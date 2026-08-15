@@ -41,7 +41,7 @@ export PATH="$TOOLBIN:$PATH"
   make -C "$WORK" -j"$JOBS"
 } > "$OUT/build.log" 2>&1
 
-test ! grep -qiE '(^|[[:space:]])error:' "$OUT/build.log"
+! grep -qiE '(^|[[:space:]])error:' "$OUT/build.log"
 test -s "$WORK/wrc.elf"
 test -s "$WORK/wrc.bin"
 test -s "$WORK/wrc.mif"

@@ -1,7 +1,7 @@
 # Current Status
 
 Last updated: 2026-08-15
-Git commit: e0bb482fba0062d9a40309be7e1719b21d54d8e6
+Git commit: pending final audit commit
 Build host: pain; Master/Slave firmware and Quartus 17 builds verified
 
 ## Current known-good baseline
@@ -34,6 +34,17 @@ Build host: pain; Master/Slave firmware and Quartus 17 builds verified
   treated as byte-identical across different invocations.
 - No new SOF was programmed during this migration validation.
 
+## Timing status
+
+Quartus compilation success is separate from timing closure. The recorded
+TimeQuest reports show:
+
+- Master: setup `-3.812 ns`, hold `0.039 ns`, recovery `-1.975 ns`, removal
+  `0.298 ns`; 3 unconstrained clocks, 1992 input paths and 83 output paths.
+- Slave: setup `-3.103 ns`, hold `0.030 ns`, recovery `-1.839 ns`, removal
+  `0.326 ns`; 3 unconstrained clocks, 2001 input paths and 83 output paths.
+- Timing closed: **NO** for both revisions.
+
 ## Not yet proven
 
 - uRV/wrpc-sw runtime initialization
@@ -46,6 +57,12 @@ Build host: pain; Master/Slave firmware and Quartus 17 builds verified
 ## Current technical bottleneck
 
 Create a stable WRPC runtime readout path, then capture `wrc# stat`, PTP state, SoftPLL lock and PPS evidence without changing the baseline PHY/PTP behavior.
+
+## Next experiment
+
+Create a separate timing/constraint experiment to investigate the negative
+TimeQuest slack and unconstrained clocks, while keeping this migration commit
+and the preserved RS422 artifact set unchanged.
 
 ## Current board bitstreams
 

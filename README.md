@@ -19,6 +19,11 @@ Source, build inputs and documentation are versioned. Quartus databases and ordi
 
 The original Laptop and pain projects are preserved outside this repository. The migration evidence is in `docs/migration/`.
 
+Source, generated input and milestone artifact rules are summarized in
+`docs/migration/05_reproducibility_audit.md`. Path mapping and unresolved
+Laptop/pain conflicts are in `docs/migration/06_path_mapping.md` and
+`docs/migration/07_open_decisions.md`.
+
 ## Current status
 
 Read `STATUS.md` first. The current baseline proves FPGA configuration and PHY/PCS link, but does not yet prove White Rabbit time synchronization.
@@ -32,6 +37,9 @@ scripts/build/build_slave.sh
 ```
 
 The scripts use Quartus Prime 17.0 by default and require the exact MIF files under `build/firmware/` before compilation.
+The build identity records the Git commit, Quartus version, QSF/SDC/MIF/SOF
+hashes, Fitter status, timing slack and unconstrained-path counts. A successful
+compile does not imply timing closure; consult `STATUS.md`.
 
 ## Firmware
 

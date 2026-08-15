@@ -17,6 +17,23 @@ mkdir -p "$WORK"
 cp -a "$WRPC_SRC/." "$WORK/"
 cp "$CONFIG" "$WORK/configs/de5a_master_defconfig"
 
+# Windows round-trips preserve source text but may lose executable bits. The
+# WRPC makefiles execute these helper scripts during Kconfig generation.
+find "$WORK" -type f -name '*.sh' -exec chmod +x {} +
+
+# pain provides a RISC-V 64-bit GNU toolchain whose compiler accepts the
+# firmware's RV32IM/ilp32 flags. Provide private RV32 tool aliases only for
+# this build workspace; the vendored source is not changed.
+TOOLBIN="$WORK/.toolchain"
+mkdir -p "$TOOLBIN"
+for tool in gcc g++ as ld objcopy ar ranlib strip nm size; do
+  if ! command -v "riscv32-elf-$tool" >/dev/null 2>&1; then
+    candidate=$(command -v "riscv64-unknown-elf-$tool" 2>/dev/null || true)
+    test -n "$candidate" && ln -sf "$candidate" "$TOOLBIN/riscv32-elf-$tool"
+  fi
+done
+export PATH="$TOOLBIN:$PATH"
+
 {
   echo "=== WRPC MASTER BUILD ==="
   date -Is

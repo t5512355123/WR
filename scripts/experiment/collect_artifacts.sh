@@ -8,9 +8,16 @@ mkdir -p "$DEST"
 cp -f "$ROOT"/build/build_info_*.txt "$DEST/" 2>/dev/null || true
 cp -f "$ROOT"/build/build_*.log "$DEST/" 2>/dev/null || true
 cp -f "$ROOT"/build/quartus_*_compile.log "$DEST/" 2>/dev/null || true
-for f in "$ROOT"/build/firmware/*.mif "$ROOT"/build/firmware/*.elf "$ROOT"/build/firmware/*.bin; do
-  test -f "$f" && cp -f "$f" "$DEST/"
+for role in master slave; do
+  for ext in mif elf bin; do
+    source_file="$ROOT/build/firmware/$role/wrc.$ext"
+    test -f "$source_file" && cp -f "$source_file" "$DEST/${role}.$ext"
+  done
 done
+test -f "$ROOT/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof" && \
+  cp -f "$ROOT/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof" "$DEST/master.sof"
+test -f "$ROOT/quartus/rs422_uart_diag/output_files_slave_rs422/DE5a_wr_slave_rs422.sof" && \
+  cp -f "$ROOT/quartus/rs422_uart_diag/output_files_slave_rs422/DE5a_wr_slave_rs422.sof" "$DEST/slave.sof"
 find "$ROOT/quartus/rs422_uart_diag" -maxdepth 3 -type f \( -name '*.sof' -o -name '*.rpt' -o -name '*.summary' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
 {
   echo "experiment=$ID"

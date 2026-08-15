@@ -23,6 +23,7 @@ Source, generated input and milestone artifact rules are summarized in
 `docs/migration/05_reproducibility_audit.md`. Path mapping and unresolved
 Laptop/pain conflicts are in `docs/migration/06_path_mapping.md` and
 `docs/migration/07_open_decisions.md`.
+The branch, build, artifact and recovery rules are in `docs/git_workflow.md`.
 
 ## Current status
 

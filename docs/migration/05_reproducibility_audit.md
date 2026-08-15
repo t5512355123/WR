@@ -5,7 +5,7 @@
 - Laptop repository: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\de5a-white-rabbit`
 - pain bare repository: `/home/b10504072/de5a-white-rabbit.git`
 - pain working clone: `/home/b10504072/de5a-white-rabbit-repo`
-- Final audited commit: `2fb75aafe0e2c03c6a20bab8d5a14ccddb7d4f6a`
+- Initial migration-audit commit: `2fb75aafe0e2c03c6a20bab8d5a14ccddb7d4f6a`
 - Local and pain working trees: clean at the final audit
 
 ## Build evidence
@@ -23,6 +23,16 @@ The generated image hashes from the recorded build were:
 | Slave MIF | `fca9e4aebfdf49674de2af31824f2d19bb422d305fcc2a0808495f515ccb7ade` |
 | Master SOF | `ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214` |
 | Slave SOF | `19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21` |
+
+The later build-identity and timing-wrapper validation is recorded in
+`artifacts/EXP-REPRO-BUILD-TIMING-20260815/` at commit
+`0a8f44afa5b26111a1103903968bf173e210ee92`. Its `build_info_master.txt` and
+`build_info_slave.txt` include Quartus version, SOF hash, Fitter status,
+timing slack and unconstrained-path counts.
+
+This document is part of the later repository history; the final repository
+commit is recorded by `STATUS.md` and the Git log. The artifact build commit
+above remains the exact source identity that produced the recorded SOFs.
 
 ## Timing interpretation
 

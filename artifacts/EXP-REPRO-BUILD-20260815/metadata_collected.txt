@@ -1,0 +1,38 @@
+experiment=EXP-REPRO-BUILD-20260815
+date=2026-08-15T22:32:58+08:00
+host=pain
+git_commit=ff09c9db8eb45ef5e164e311ad9cf361f7d13581
+quartus_bin=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin
+051a57437d458316661457dcdc68e486acb99f3830e16dcc3b0a6a2010d564f8  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/build_info_master.txt
+a9cc98c7fe97de7cfb70a3e88b756690f5ed17bd6239ace3e22eb88d4cb1d4cb  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/build_info_slave.txt
+139b2879c7e7ccee5037046a76a12a0b0ee892c6f37d201baca091325c12b2fe  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/build_master.log
+48b905215330f54601992aba5317ed560c36abc00558a2771a3e0fe31daacf69  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/build_slave.log
+146bf06ced5984723ae99a06d7e7c3e6580b34dff74bffac48e17d8429824575  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.asm.rpt
+cda92f0486845d092ebf48342aa32553f4783166277495086f42f49a2261e315  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.fit.rpt
+82cfb2a216444aad01f8883a55cc45e72ef6e558e37f9b15983b7aca9359edb6  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.fit.summary
+e69fd140bbd29fb4bad4d2403299c5d2cd345a1fcc39a1578b88ccb540f459a4  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.flow.rpt
+67e804ae6e56c7e7562636820fcf73be1282cd1e7b28dc56608503fe40049bf7  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.map.rpt
+688d256bb55cdc863a71b283c982a59d485614bffc4f1d5f0cc2d4fd3c3da987  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.map.summary
+ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.sof
+747ab5b3ca54d3ecac32ddcd8c30d5cf980c04a9825c62ebebbbde1eb9abef00  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.sta.rpt
+1943eb3ae399e953ddddf6de8024b9ac0d6aa65fb25437d5014621136a65c91f  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_master_rs422.sta.summary
+2877caa98b7323096ee370daf7dc90f734d5a201d49011311f33957a72120637  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.asm.rpt
+4c662becfa237abeb6340db7bb29c97cf8ada8f81ab508ab30907a421252ccbb  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.fit.rpt
+5e20df2070a4b1bee7e75ac470ab10efd51412cec1fa03e9b701b7772fd3d4ec  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.fit.summary
+bf04bbbe5fe7e2fa894512475db91745c338581e5eff66399c08b0ee87b3b511  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.flow.rpt
+2ff0d4c17bdb749be2b8d6bf957646dfa5c9ec5c2dfc4d67fc04246d698fb4ca  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.map.rpt
+c367d36a781804bca296fd7f26d3abc4c617b53e705158030e21422d7108e73e  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.map.summary
+19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.sof
+f2961542313c495a54f952e9066cc0a41b8f56d0fc7d9744eedd061aba516d1a  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.sta.rpt
+40707eac0e0337dbd526c833cce1670564be3fbadcd58fad5f9fa720d28ddd78  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/DE5a_wr_slave_rs422.sta.summary
+7635d6f4ec57fbc57995037ec5b70a991fd3f351140d6ea4e852c29e2902cea3  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/metadata_collected.txt
+139b2879c7e7ccee5037046a76a12a0b0ee892c6f37d201baca091325c12b2fe  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/quartus_master_compile.log
+48b905215330f54601992aba5317ed560c36abc00558a2771a3e0fe31daacf69  /home/b10504072/de5a-white-rabbit-repo/artifacts/EXP-REPRO-BUILD-20260815/quartus_slave_compile.log
+Master generated MIF:
+a664396b3d908d43d0810fa85f76dd2437dde10b1f8c3ed97514ecb304f8e29c  build/firmware/master/wrc.mif
+Slave generated MIF:
+fca9e4aebfdf49674de2af31824f2d19bb422d305fcc2a0808495f515ccb7ade  build/firmware/slave/wrc.mif
+Master generated SOF:
+ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214  quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof
+Slave generated SOF:
+19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21  quartus/rs422_uart_diag/output_files_slave_rs422/DE5a_wr_slave_rs422.sof

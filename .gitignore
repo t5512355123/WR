@@ -46,3 +46,5 @@ __pycache__/
 !artifacts/**/slave.sof
 !artifacts/**/master.mif
 !artifacts/**/slave.mif
+!artifacts/**/DE5a*.rpt
+!artifacts/**/DE5a*.summary

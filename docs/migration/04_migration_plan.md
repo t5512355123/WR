@@ -113,7 +113,20 @@ Legacy experiments:
 6. The current board baseline is a pain-side artifact. It must be copied into a new Git repository only after its source, MIF, QSF, SDC, report, and probe evidence are bundled together.
 7. Time synchronization is still a technical bottleneck, but this migration phase must not change WR algorithm, PHY, PTP, SoftPLL, DMTD, port, lane, pre-emphasis, role, or PPS behavior.
 
-## 7. Proposed next phases after review
+## 7. Staging repository created
+
+The non-destructive staging repository is now available at:
+
+- Laptop: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\de5a-white-rabbit`
+- pain working snapshot: `/home/b10504072/de5a-white-rabbit`
+- initial baseline commit: `47e705cb2d3a1ecb031962426240d911399ac44d`
+
+The commit includes canonical Quartus source paths, vendored WR source,
+firmware configurations, migration evidence, experiment templates, scripts and
+the named baseline MIF/SOF/probe records. The original projects and the two
+pre-restructure archives are unchanged.
+
+## 8. Proposed next phases after review
 
 Phase 4:
 - Create a new de5a-white-rabbit repository in a separate staging location.

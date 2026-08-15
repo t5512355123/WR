@@ -39,6 +39,17 @@ The warnings include the existing TimeQuest observation about two combinational
 loops being analyzed as latches. They are recorded in the compile logs and were
 not introduced by a WR functional change in this migration.
 
+## Clean checkout check
+
+A second clean checkout at the latest commit `d98b0c8b7e24d70c1569a03f463727e8682bd5ea`
+rebuilt both firmware images and compiled both Quartus projects successfully.
+An exact-commit checkout at `ff09c9d` also rebuilt both firmware images. The MIF
+files are not byte-for-byte identical across separate invocations because the
+vendored WRPC source intentionally embeds C `__DATE__` and `__TIME__` strings
+in the firmware. The build identity and SHA256 of every generated image are
+therefore recorded for each experiment; this is the expected reproducibility
+model for this legacy firmware build.
+
 ## Interpretation
 
 This experiment proves source-to-MIF-to-SOF build reproducibility on pain. It

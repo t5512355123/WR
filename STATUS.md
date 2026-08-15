@@ -1,7 +1,7 @@
 # Current Status
 
 Last updated: 2026-08-15
-Git commit: pending final audit commit
+Audit content commit: `44e8ba48285634a39860ef5732e69317f5f7da79`
 Build host: pain; Master/Slave firmware and Quartus 17 builds verified
 
 ## Current known-good baseline

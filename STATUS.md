@@ -1,8 +1,8 @@
 # Current Status
 
 Last updated: 2026-08-15
-Git commit: 47e705cb2d3a1ecb031962426240d911399ac44d
-Build host: pain baseline copied into staging repository; build validation pending
+Git commit: e0bb482fba0062d9a40309be7e1719b21d54d8e6
+Build host: pain; Master/Slave firmware and Quartus 17 builds verified
 
 ## Current known-good baseline
 
@@ -20,6 +20,19 @@ Build host: pain baseline copied into staging repository; build validation pendi
 - `pps_valid=0` in the available probe evidence.
 - `PPS_CR` and `PPS_ESCR` were 0 in the JTAG diagnostic build.
 - The 62.5 MHz clock isolation experiment compiled and programmed successfully but did not produce runtime synchronization evidence.
+
+## Migration validation
+
+- Git source-of-truth: local repository pushes to the pain bare repository and
+  the pain working clone fast-forwards from `origin/main`.
+- Master firmware: PASS; Slave firmware: PASS.
+- Master Quartus 17: PASS, 0 errors, 262 warnings.
+- Slave Quartus 17: PASS, 0 errors, 262 warnings.
+- A clean latest-commit checkout rebuilt both firmware images and both SOFs.
+- An exact artifact-commit checkout rebuilt both firmware images. WRPC embeds
+  `__DATE__`/`__TIME__`, so image hashes are recorded per build rather than
+  treated as byte-identical across different invocations.
+- No new SOF was programmed during this migration validation.
 
 ## Not yet proven
 

@@ -1,0 +1,5 @@
+config wr_arria10_e3p1_cmu_pll_cfg;
+		design wr_arria10_e3p1_cmu_pll;
+		instance wr_arria10_e3p1_cmu_pll.xcvr_cdr_pll_a10_0 use wr_arria10_e3p1_cmu_pll_altera_xcvr_cdr_pll_a10_170.altera_xcvr_cdr_pll_a10;
+endconfig
+

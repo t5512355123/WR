@@ -1,0 +1,27 @@
+usb
+lib_version
+board_info				bi
+fpga
+
+get_board_state board_state		bs 
+get_power				gp
+get_channel_power			gcp
+get_channel_power_all			gcpa
+set_freq
+enable_channel				ec
+disable_channel				dc
+get_level_adjust			gla
+set_level_adjust			sla
+[get|set]_latency latency
+
+nco_status				nco
+subscribe_nco_reset			snco
+
+wrc_diags				wrd
+wr_status
+wr_enable
+wr_disable
+
+temperatures				temp
+voltages				volt
+EOF quit				q 

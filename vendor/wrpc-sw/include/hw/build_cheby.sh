@@ -1,0 +1,1 @@
+cheby --gen-c wrc_diags_regs.h -i wrc_diags_regs.cheby

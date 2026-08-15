@@ -1,0 +1,2 @@
+Repeated JTAG low16 probe: 0x82CF
+Interpretation: si_config_done=1 phy_ready=1 tm_link_up=1 link_ok=1 time_valid=0 pps_valid=0 rx_ready=1 tx_ready=1 MOD_PRS_n=0 INTERRUPT_n=1 tx_disable=0 phy_rst=0 si_id_error=0 rx_enc_err=0 tx_enc_err=0 CPU_RESET_n=1

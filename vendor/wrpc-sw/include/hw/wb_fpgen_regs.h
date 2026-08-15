@@ -1,0 +1,188 @@
+#ifndef __CHEBY__WB_FPGEN__H__
+#define __CHEBY__WB_FPGEN__H__
+#define WB_FPGEN_SIZE 56 /* 0x38 */
+#define WB_FPGEN_MEMMAP_VERSION 0x1UL
+
+/* Control/Status Register */
+#define WB_FPGEN_CSR 0x0UL
+#define WB_FPGEN_CSR_TRIG0 0x1UL
+#define WB_FPGEN_CSR_TRIG1 0x2UL
+#define WB_FPGEN_CSR_TRIG2 0x4UL
+#define WB_FPGEN_CSR_TRIG3 0x8UL
+#define WB_FPGEN_CSR_TRIG4 0x10UL
+#define WB_FPGEN_CSR_TRIG5 0x20UL
+#define WB_FPGEN_CSR_TRIG6 0x40UL
+#define WB_FPGEN_CSR_TRIG7 0x80UL
+#define WB_FPGEN_CSR_FORCE0 0x100UL
+#define WB_FPGEN_CSR_FORCE1 0x200UL
+#define WB_FPGEN_CSR_FORCE2 0x400UL
+#define WB_FPGEN_CSR_FORCE3 0x800UL
+#define WB_FPGEN_CSR_FORCE4 0x1000UL
+#define WB_FPGEN_CSR_FORCE5 0x2000UL
+#define WB_FPGEN_CSR_READY_MASK 0xfc000UL
+#define WB_FPGEN_CSR_READY_SHIFT 14
+#define WB_FPGEN_CSR_PLL_RST 0x100000UL
+#define WB_FPGEN_CSR_SERDES_RST 0x200000UL
+#define WB_FPGEN_CSR_PLL_LOCKED 0x400000UL
+
+/* Output 0 Control Register A */
+#define WB_FPGEN_OCR0A 0x4UL
+#define WB_FPGEN_OCR0A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR0A_FINE_SHIFT 0
+#define WB_FPGEN_OCR0A_POL 0x1000UL
+#define WB_FPGEN_OCR0A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR0A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR0A_CONT 0x40000UL
+#define WB_FPGEN_OCR0A_TRIG_SEL 0x80000UL
+
+/* Output 0 Control Register B */
+#define WB_FPGEN_OCR0B 0x8UL
+#define WB_FPGEN_OCR0B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR0B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR0B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR0B_LENGTH_SHIFT 16
+
+/* Output 0 Control Register A */
+#define WB_FPGEN_OCR1A 0xcUL
+#define WB_FPGEN_OCR1A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR1A_FINE_SHIFT 0
+#define WB_FPGEN_OCR1A_POL 0x1000UL
+#define WB_FPGEN_OCR1A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR1A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR1A_CONT 0x40000UL
+#define WB_FPGEN_OCR1A_TRIG_SEL 0x80000UL
+
+/* Output 1 Control Register B */
+#define WB_FPGEN_OCR1B 0x10UL
+#define WB_FPGEN_OCR1B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR1B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR1B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR1B_LENGTH_SHIFT 16
+
+/* Output 2 Control Register A */
+#define WB_FPGEN_OCR2A 0x14UL
+#define WB_FPGEN_OCR2A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR2A_FINE_SHIFT 0
+#define WB_FPGEN_OCR2A_POL 0x1000UL
+#define WB_FPGEN_OCR2A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR2A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR2A_CONT 0x40000UL
+#define WB_FPGEN_OCR2A_TRIG_SEL 0x80000UL
+
+/* Output 2 Control Register B */
+#define WB_FPGEN_OCR2B 0x18UL
+#define WB_FPGEN_OCR2B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR2B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR2B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR2B_LENGTH_SHIFT 16
+
+/* Output 3 Control Register A */
+#define WB_FPGEN_OCR3A 0x1cUL
+#define WB_FPGEN_OCR3A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR3A_FINE_SHIFT 0
+#define WB_FPGEN_OCR3A_POL 0x1000UL
+#define WB_FPGEN_OCR3A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR3A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR3A_CONT 0x40000UL
+#define WB_FPGEN_OCR3A_TRIG_SEL 0x80000UL
+
+/* Output 3 Control Register B */
+#define WB_FPGEN_OCR3B 0x20UL
+#define WB_FPGEN_OCR3B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR3B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR3B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR3B_LENGTH_SHIFT 16
+
+/* Output 4 Control Register A */
+#define WB_FPGEN_OCR4A 0x24UL
+#define WB_FPGEN_OCR4A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR4A_FINE_SHIFT 0
+#define WB_FPGEN_OCR4A_POL 0x1000UL
+#define WB_FPGEN_OCR4A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR4A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR4A_CONT 0x40000UL
+#define WB_FPGEN_OCR4A_TRIG_SEL 0x80000UL
+
+/* Output 4 Control Register B */
+#define WB_FPGEN_OCR4B 0x28UL
+#define WB_FPGEN_OCR4B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR4B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR4B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR4B_LENGTH_SHIFT 16
+
+/* Output 5 Control Register A */
+#define WB_FPGEN_OCR5A 0x2cUL
+#define WB_FPGEN_OCR5A_FINE_MASK 0xfffUL
+#define WB_FPGEN_OCR5A_FINE_SHIFT 0
+#define WB_FPGEN_OCR5A_POL 0x1000UL
+#define WB_FPGEN_OCR5A_COARSE_MASK 0x3e000UL
+#define WB_FPGEN_OCR5A_COARSE_SHIFT 13
+#define WB_FPGEN_OCR5A_CONT 0x40000UL
+#define WB_FPGEN_OCR5A_TRIG_SEL 0x80000UL
+
+/* Output 5 Control Register B */
+#define WB_FPGEN_OCR5B 0x30UL
+#define WB_FPGEN_OCR5B_PPS_OFFS_MASK 0xffffUL
+#define WB_FPGEN_OCR5B_PPS_OFFS_SHIFT 0
+#define WB_FPGEN_OCR5B_LENGTH_MASK 0xffff0000UL
+#define WB_FPGEN_OCR5B_LENGTH_SHIFT 16
+
+/* Output Delay Calibration (Ultrascale-specific) */
+#define WB_FPGEN_ODELAY_CALIB 0x34UL
+#define WB_FPGEN_ODELAY_CALIB_RST_IDELAYCTRL 0x1UL
+#define WB_FPGEN_ODELAY_CALIB_RST_ODELAY 0x2UL
+#define WB_FPGEN_ODELAY_CALIB_RST_OSERDES 0x4UL
+#define WB_FPGEN_ODELAY_CALIB_RDY 0x8UL
+#define WB_FPGEN_ODELAY_CALIB_VALUE_MASK 0x1ff0UL
+#define WB_FPGEN_ODELAY_CALIB_VALUE_SHIFT 4
+#define WB_FPGEN_ODELAY_CALIB_VALUE_UPDATE 0x2000UL
+#define WB_FPGEN_ODELAY_CALIB_EN_VTC 0x4000UL
+#define WB_FPGEN_ODELAY_CALIB_CAL_LATCH 0x8000UL
+#define WB_FPGEN_ODELAY_CALIB_TAPS_MASK 0x1ff0000UL
+#define WB_FPGEN_ODELAY_CALIB_TAPS_SHIFT 16
+
+struct wb_fpgen {
+  /* [0x0]: REG (rw) Control/Status Register */
+  uint32_t csr;
+
+  /* [0x4]: REG (rw) Output 0 Control Register A */
+  uint32_t OCR0A;
+
+  /* [0x8]: REG (rw) Output 0 Control Register B */
+  uint32_t OCR0B;
+
+  /* [0xc]: REG (rw) Output 0 Control Register A */
+  uint32_t OCR1A;
+
+  /* [0x10]: REG (rw) Output 1 Control Register B */
+  uint32_t OCR1B;
+
+  /* [0x14]: REG (rw) Output 2 Control Register A */
+  uint32_t OCR2A;
+
+  /* [0x18]: REG (rw) Output 2 Control Register B */
+  uint32_t OCR2B;
+
+  /* [0x1c]: REG (rw) Output 3 Control Register A */
+  uint32_t OCR3A;
+
+  /* [0x20]: REG (rw) Output 3 Control Register B */
+  uint32_t OCR3B;
+
+  /* [0x24]: REG (rw) Output 4 Control Register A */
+  uint32_t OCR4A;
+
+  /* [0x28]: REG (rw) Output 4 Control Register B */
+  uint32_t OCR4B;
+
+  /* [0x2c]: REG (rw) Output 5 Control Register A */
+  uint32_t OCR5A;
+
+  /* [0x30]: REG (rw) Output 5 Control Register B */
+  uint32_t OCR5B;
+
+  /* [0x34]: REG (rw) Output Delay Calibration (Ultrascale-specific) */
+  uint32_t odelay_calib;
+};
+
+#endif /* __CHEBY__WB_FPGEN__H__ */

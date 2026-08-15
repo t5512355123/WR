@@ -1,0 +1,31 @@
+#
+# We want to store WRPC parameters but also the FPGA bitstream in the same
+# FLASH. That is why our default position for various parameters is right after
+# the bitstream.
+
+	position = 0x0
+
+# Allocation granularity is 64 bytes
+# We start with bitstream file at position 0, later the same set of files as for
+# EEPROM image is used.
+
+wr-init
+	write = 1
+	position = 0x0f10000
+	maxsize = 0x10000
+
+# each sfp takes 29 bytes, 4 of them fit in 128 bytes
+sfp-database
+	write = 1
+	position = 0x0f20000
+	maxsize = 0x10000
+
+calibration
+	write = 1
+	position = 0x0f30000
+	maxsize = 0x10000
+
+mac-address
+	write = 1
+	maxsize = 6
+	position = 0x0f40000

@@ -1,0 +1,43 @@
+/*
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * Copyright 2020-2021 CERN
+ * Author: Juan David Gonzalez Cobas
+ *
+ */
+
+#ifndef _ERTM_COMMON_H_
+#define _ERTM_COMMON_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define ERTM_COMMON_RF_OUT_ON 0
+#define ERTM_COMMON_RF_OUT_MONITOR 1
+#define ERTM_COMMON_RF_OUT_OFF 2
+
+#define ERTM_COMMON_CLKAB_OUT_MIN_ID 4
+#define ERTM_COMMON_CLKAB_OUT_MAX_ID 15
+#define ERTM_COMMON_CLKAB_OUT_FRONT_PANEL 15
+#define ERTM_COMMON_RF_OUT_MIN_ID 4
+#define ERTM_COMMON_RF_OUT_MAX_ID 12
+
+#define ERTM_COMMON_ALL_RF_OUT_ID_MASK (0x1ff0)
+
+#define ERTM_COMMON_SYNC_SOURCE_NONE 0
+#define ERTM_COMMON_SYNC_SOURCE_PPS 1
+#define ERTM_COMMON_SYNC_SOURCE_RF_TRIGGER 2
+
+#define ERTM_COMMON_CLK_SYNC_STATE_RESTART 0
+#define ERTM_COMMON_CLK_SYNC_STATE_WAIT_TIMING 1
+#define ERTM_COMMON_CLK_SYNC_STATE_CONFIGURE 2
+#define ERTM_COMMON_CLK_SYNC_STATE_WAIT_TRIGGER 3
+#define ERTM_COMMON_CLK_SYNC_STATE_READY 4
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* _ERTM_COMMON_H_ */
+

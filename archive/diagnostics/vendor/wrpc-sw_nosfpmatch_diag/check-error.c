@@ -1,0 +1,56 @@
+/*
+ * This work is part of the White Rabbit project
+ *
+ * Copyright (C) 2013 - 2015 CERN (www.cern.ch)
+ * Author: Alessandro Rubini <rubini@gnudd.com>
+ *
+ * Released according to the GNU GPL, version 2 or any later version.
+ */
+
+/*
+ * This file includes stuff we don't want to link, so if it is
+ * called in error we get a clear error message, rather than a
+ * "doesn't fit in ram" error
+ */
+#include <stdio.h>
+
+extern void __you_should_not_call_printf_from_wrpc_sw(void);
+extern void __you_should_not_divide_ll_in_wrpc_sw(void);
+extern void __please_call_pp_printf_not_mprintf(void);
+int mprintf(const char *fmt, ...);
+
+long long __moddi3 (long long A, long long B);
+long long __divdi3 (long long A, long long B);
+long long __udivdi3 (long long A, long long B);
+
+int printf(const char *fmt, ...)
+{
+	__you_should_not_call_printf_from_wrpc_sw();
+	return 0;
+}
+
+
+int mprintf(const char *fmt, ...)
+{
+	__please_call_pp_printf_not_mprintf();
+	return 0;
+}
+
+#ifdef CONFIG_DISALLOW_LONG_DIVISION /* with ppsi we can avoid libgcc code for division */
+/* was used twice in picos_to_ts  */
+
+/* picos_to_ts again */
+long long __udivdi3 (long long A, long long B)
+{
+	__you_should_not_divide_ll_in_wrpc_sw();
+	return 0;
+}
+
+#endif
+
+long long __moddi3 (long long A, long long B)
+{
+	__you_should_not_divide_ll_in_wrpc_sw();
+	/* use unsigned modulo instead */
+	return 0;
+}

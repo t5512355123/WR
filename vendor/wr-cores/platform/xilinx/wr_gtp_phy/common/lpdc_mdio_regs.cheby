@@ -1,0 +1,173 @@
+##############################################################################;
+## Title      : PHY LPDC register layout
+## Project    : White Rabbit
+##############################################################################;
+## File       : lpdc_mdio_registers.cheby
+## Author     : Tomasz Włostowski
+##############################################################################
+## Description: Xilinx-specific LPDC registers. Shared between all PHYs.
+##############################################################################
+##
+## Copyright (c) 2023 CERN / BE-CO-HT
+##
+## This source file is free software; you can redistribute it
+## and/or modify it under the terms of the GNU Lesser General
+## Public License as published by the Free Software Foundation;
+## either version 2.1 of the License, or (at your option) any
+## later version.
+##
+## This source is distributed in the hope that it will be
+## useful, but WITHOUT ANY WARRANTY; without even the implied
+## warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+## PURPOSE.  See the GNU Lesser General Public License for more
+## details.
+##
+## You should have received a copy of the GNU Lesser General
+## Public License along with this source; if not, download it
+## from http://www.gnu.org/licenses/lgpl-2.1l.html
+##
+##############################################################################-
+
+memory-map:
+  name: lpdc_mdio
+  description: LPDC-specific MDIO registers.
+  bus: wb-32-be
+  x-hdl:
+    busgroup: True
+    iogroup: lpdc_regs
+    name-suffix: _regs
+  schema-version:
+    core: 2.0.0
+    x-conversions: 1.0.0
+    x-hdl: 1.0.0
+    x-map-info: 1.0.0
+    x-wbgen: 1.0.0
+  children:
+  - reg:
+      name: CTRL
+      description: Low Phase Drift Calibration Control Register
+      width: 32
+      access: rw
+      address: 0x0
+      children:
+      - field:
+          name: tx_sw_reset
+          description: Reset of PHY TX path
+          range: 0
+      - field:
+          name: tx_enable
+          description: Enable of the PHY TX path
+          range: 1
+      - field:
+          name: rx_enable
+          description: Enable of the PHY RX path
+          range: 2
+      - field:
+          name: rx_sw_reset
+          description: Reset of PHY RX path
+          range: 3
+      - field:
+          name: pll_sw_reset
+          description: Reset of PHY CPLL or QPLL
+          range: 4
+      - field:
+          name: aux_reset
+          description: Auxiliary Reset of PHY (for example to reset TXUSRCLK PLL)
+          range: 5
+      - field:
+          name: comma_target_pos
+          description: Desired bitslide used for comma detection
+          range: 13-6
+      - field:
+          name: dmtd_clk_sel
+          description: PHY DDMTD clock input select
+          comment: 00 - RXRECCLK; 01 - TXOUTCLK; other - tied to 0
+          range: 15-14
+  - reg:
+      name: STAT
+      description: Low Phase Drift Calibration Status Register
+      width: 32
+      access: ro
+      address: 0x4
+      children:
+      - field:
+          name: pll_locked
+          description: CPLL or QPLL lock indication
+          range: 0
+      - field:
+          name: link_up
+          description: Early link up detect
+          range: 1
+      - field:
+          name: link_aligned
+          description: Link comma alignment complete
+          range: 2
+      - field:
+          name: tx_rst_done
+          description: PHY TX path reset sequence done
+          range: 3
+      - field:
+          name: txusrpll_locked
+          description: PHY TXUSRCLK PLL lock indication
+          range: 4
+      - field:
+          name: rx_rst_done
+          description: PHY RX path reset sequence done
+          range: 5
+      - field:
+          name: comma_current_pos
+          description: Current RX comma position
+          range: 14-7
+      - field:
+          name: comma_pos_valid
+          description: 1 if comma_current_pos contains a valid comma offset
+          range: 15
+  - reg:
+      name: CTRL2
+      description: Low Phase Drift Calibration Control Register 2
+      width: 32
+      access: rw
+      address: 0x8
+      children:
+      - field:
+          name: rx_rate
+          description: RX clock divider
+          range: 2-0
+      - field:
+          name: rx_latch_pattern
+          description: RX idle pattern latch
+          range: 3
+          x-hdl:
+            type: autoclear
+      - field:
+          name: rx_gearbox_pll_reset
+          description: RX gearbox PLL reset
+          range: 4
+      - field:
+          name: rx_gearbox_pll_locked
+          description: RX gearbox PLL locked
+          range: 5
+          x-hdl:
+            type: wire
+      - field:
+          name: rx_cdr_locked
+          description: RX CDR (PMA clock domain) locked
+          range: 6
+          x-hdl:
+            type: wire
+  - repeat:
+      name: idle_pat
+      count: 12
+      children:
+        - reg:
+            name: data
+            access: ro
+            width: 32
+
+  - submap:
+      name: drp_regs
+      size: 0x1000
+      description: Xilinx DRP registers, specific to the transceiver
+      interface: wb-32-be
+      x-hdl:
+        busgroup: True

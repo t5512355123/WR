@@ -1,0 +1,1 @@
+python ./ad9510_convert_regs.py ertm_14_pll_main_dot050.stp > ertm_14_pll_main_dot050_config.h

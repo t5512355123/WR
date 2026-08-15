@@ -1,0 +1,29 @@
+Loading with the current setup:
+
+/user/dcobas/ertm14/py/bin/python3 \
+/user/dcobas/ertm14/devel/wrpc-sw/tools/uart-bootloader/usb-bootloader.py \
+   -b default -t -s 921600 -p /dev/ttyUSB2 \
+    /user/dcobas/ertm14/devel/wrpc-sw/wrc.bin
+
+Serial line connection using cu:
+
+/user/dcobas/bin/cu -l ttyUSB2 -s 921600 -E ^C
+
+(the escape Ctrl-C is good to avoid multi-escaping tilde characters,
+used both by ssh and cu by default)
+
+
+ertm commands:
+
+ "ertm" "test-dac"
+ "ertm" "cm"			# this goes away too
+ "ertm" "test-clocks"
+ "ertm" "show-config"
+ "ertm" "activate-config"	# don't care about configs
+ "ertm" "select-config"
+ "ertm" "set-dds-ftw"
+ "ertm" "set-dds-ampl"
+ "ertm" "set-dds-enable"
+ "ertm" "set-clk-enable"
+ "ertm" "set-clk-freq"
+ "ertm" "set-dds-sync-source"

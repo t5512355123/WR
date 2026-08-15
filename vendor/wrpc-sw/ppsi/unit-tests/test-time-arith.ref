@@ -1,0 +1,90 @@
+picos_to_interval(0) = 0
+
+picos_to_interval(1) = 65
+
+picos_to_interval(1000) = 65536
+
+picos_to_interval(2000) = 131072
+
+picos_to_interval(-1) = -65
+
+picos_to_interval(-2000) = -131072
+
+picos_to_interval(50765654) = 3326977900
+
+picos_to_interval(12345678912345) = 809086413199441
+
+picos_to_interval(-12345678912345) = -809086413199441
+
+fixedDelta_to_pp_time(0) = 0 sec + 0 nsec
+
+fixedDelta_to_pp_time(1) = 0 sec + 0 nsec
+
+fixedDelta_to_pp_time(1000) = 0 sec + 1 nsec
+
+fixedDelta_to_pp_time(2000) = 0 sec + 2 nsec
+
+fixedDelta_to_pp_time(-1) = 281 sec + 31128073709551 nsec
+
+fixedDelta_to_pp_time(-2000) = 281 sec + 31128073709549 nsec
+
+fixedDelta_to_pp_time(50765654) = 0 sec + 50765 nsec
+
+fixedDelta_to_pp_time(12345678912345) = 0 sec + 12345678912 nsec
+
+fixedDelta_to_pp_time(-12345678912345) = 281 sec + 31115728030639 nsec
+
+picos_to_pp_time(0) = 0 sec + 32 nsec
+
+picos_to_pp_time(1) = 0 sec + 98 nsec
+
+picos_to_pp_time(1000) = 0 sec + 65568 nsec
+
+picos_to_pp_time(2000) = 0 sec + 131104 nsec
+
+picos_to_pp_time(-1) = 0 sec + -98 nsec
+
+picos_to_pp_time(-2000) = 0 sec + -131104 nsec
+
+picos_to_pp_time(50765654) = 0 sec + 3326977933 nsec
+
+picos_to_pp_time(12345678912345) = 12 sec + 22654413199474 nsec
+
+picos_to_pp_time(-12345678912345) = -12 sec + -22654413199474 nsec
+
+pp_time_hardwarize(0s+32ns, 540ps) = 0 ticks + 0 picos
+
+pp_time_hardwarize(0s+98ns, 540ps) = 0 ticks + 1 picos
+
+pp_time_hardwarize(0s+65568ns, 540ps) = 0 ticks + 460 picos
+
+pp_time_hardwarize(0s+131104ns, 540ps) = 1 ticks + 380 picos
+
+pp_time_hardwarize(0s+-98ns, 540ps) = 0 ticks + -1 picos
+
+pp_time_hardwarize(0s+-131104ns, 540ps) = -1 ticks + -380 picos
+
+pp_time_hardwarize(0s+3326977933ns, 540ps) = 50765 ticks + 254 picos
+
+pp_time_hardwarize(12s+22654413199474ns, 540ps) = 345678911 ticks + 525 picos
+
+pp_time_hardwarize(-12s+-22654413199474ns, 540ps) = -345678911 ticks + -525 picos
+
+pp_time_hardwarize(0s+32ns, 123ps) = 0 ticks + 0 picos
+
+pp_time_hardwarize(0s+98ns, 123ps) = 0 ticks + 1 picos
+
+pp_time_hardwarize(0s+65568ns, 123ps) = 0 ticks + 16 picos
+
+pp_time_hardwarize(0s+131104ns, 123ps) = 1 ticks + 32 picos
+
+pp_time_hardwarize(0s+-98ns, 123ps) = 0 ticks + -1 picos
+
+pp_time_hardwarize(0s+-131104ns, 123ps) = -1 ticks + -32 picos
+
+pp_time_hardwarize(0s+3326977933ns, 123ps) = 50765 ticks + 110 picos
+
+pp_time_hardwarize(12s+22654413199474ns, 123ps) = 345678912 ticks + 42 picos
+
+pp_time_hardwarize(-12s+-22654413199474ns, 123ps) = -345678912 ticks + -42 picos
+

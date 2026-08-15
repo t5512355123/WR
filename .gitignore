@@ -1,0 +1,48 @@
+# Quartus and other rebuildable outputs
+build/*
+!build/.gitkeep
+db/
+incremental_db/
+output_files/
+simulation/
+**/db/
+**/incremental_db/
+**/output_files/
+**/output_files_*/
+*.rpt
+*.summary
+*.sof
+*.pof
+*.elf
+*.bin
+*.mif
+*.o
+*.d
+*.a
+*.so
+*.map
+*.size
+*.bram
+*.vhd.tmp
+
+# Generated files inside the vendored WRPC source tree
+vendor/wrpc-sw/wrc.*
+vendor/wrpc-sw/.config*
+vendor/wrpc-sw/*.d
+vendor/wrpc-sw/*.o
+vendor/wrpc-sw/*.elf
+vendor/wrpc-sw/*.bin
+vendor/wrpc-sw/*.mif
+
+# Local/editor/OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+__pycache__/
+
+# Keep selected milestone artifacts explicitly with force-add when needed.
+!artifacts/**/master.sof
+!artifacts/**/slave.sof
+!artifacts/**/master.mif
+!artifacts/**/slave.mif

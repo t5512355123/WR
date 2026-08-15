@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
+
+import optparse
+import subprocess
+import os
+import sys
+
+# defaults possibly overriden by command-line options
+bindir = os.path.dirname(sys.argv[0])
+base = os.path.dirname(bindir)
+gui = os.path.join(bindir, 'ualgui.py')
+
+# default python interpreter
+python = '/usr/local/python3.5/bin/python3'
+
+env = os.environ
+env['LIBUAL_PATH'] = os.path.join(base, 'lib')
+env['PYTHONPATH'] = os.path.join(base, 'lib-python')
+
+if __name__ == '__main__':
+    parser = optparse.OptionParser()
+    parser.add_option("-p", "--python-interpreter", dest="python",
+                    default=python, help="path to Python 3 interpreter")
+    parser.add_option("-g", "--gui", dest="gui", help="path to gui", default=gui)
+    parser.add_option("-l", "--lib", dest="libual", help="path to libual directory")
+    parser.add_option("-u", "--ual", dest="pyual", help="path to PyUAL package")
+
+    (options, args) = parser.parse_args()
+
+    if options.python:
+        python = options.python
+    if options.libual:
+        env['LIBUAL_PATH'] = options.libual
+    if options.pyual:
+        env['PYTHONPATH'] = options.pyual
+
+    proc = subprocess.Popen([python, gui], env=env)
+    proc.wait()

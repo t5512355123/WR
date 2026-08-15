@@ -1,0 +1,5 @@
+config wr_arria10_e3p1_phy_cfg;
+		design wr_arria10_e3p1_phy;
+		instance wr_arria10_e3p1_phy.xcvr_native_a10_0 use wr_arria10_e3p1_phy_altera_xcvr_native_a10_170.wr_arria10_e3p1_phy_altera_xcvr_native_a10_170_aqgtcoa;
+endconfig
+

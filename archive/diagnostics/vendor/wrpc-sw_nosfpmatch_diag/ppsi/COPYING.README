@@ -1,0 +1,43 @@
+Introduction
+=============
+
+Most of the source code has been written according to the LGPL v2.1 license,
+however some restrictions described below need to be considered.
+
+Please look the the ppsi documentation for more information about licensing.
+
+
+LGPL v2.1 License
+==================
+
+For some specific architecture (arch-wrs), the ppsi can be compiled using only 
+LGPL source code (if some diagnostic functionalities are disabled) and therefore
+be distribute as a LGPL library together with proprietary code.
+
+
+GPL v2 License
+===============
+
+If ppsi is compiled embedded within the wrpc-sw, it wil therefore fall under the
+GPL v2 license due to the following points:
+
+printf
+-----------
+
+Both the full and the partial printf code is distributed according to
+the GPL-2, as it comes from the Linux kernel.  This means that any
+code using our diagnostics fall under the GPL requirements; you may
+compile and use the diagnostic code internally with your own
+proprietary code but you can't distribute binaries with diagnostics
+without the complete source code and associated rights. You may avoid
+the GPL requirements by using different printf implementations; if so
+we'd love to have them contributed back in the package.
+
+arch-wrc (lm32)
+----------------
+
+The same issue about the GPL license applies to the @i{div64_32}
+function.  We need this implementation in our @i{wrpc} code base
+because the default @i{libgcc} division is very big, and we are always
+tight with our in-FPGA memory space.
+

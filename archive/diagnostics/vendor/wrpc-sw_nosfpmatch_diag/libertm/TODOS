@@ -1,0 +1,20 @@
+* move the loading from the build system?
+* setup Python code in standardized manner:
+  - clean up dependencies on C code defs (grab from API)
+* do the build system stuff for ertm correctly according to
+  wrpc-sw guidelines (are there any?)
+* ditto for usb-bootloader
+* clean up branches to merge into wrpc-sw
+
+---- plan reports
+* Init and setup
+* RF LO/REF/CLKA/CLKB configuration
+* RF LO/REF/CLKA/CLKB configuration testing
+* NCO configuration
+* NCO configuration testing
+* WR diagnostics
+* board info and sensors
+* board info and sensors testing
+
+o Immediate/coalesced/RT-optimized mode
+o setup for generic FEC, init code, CCDB integr.

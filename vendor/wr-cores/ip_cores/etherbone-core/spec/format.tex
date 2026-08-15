@@ -1,0 +1,254 @@
+\documentclass{article}
+
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{bytefield}
+\usepackage{hyperref}
+
+\definecolor{lightgray}{gray}{0.8}
+\definecolor{lightblue}{rgb}{0.92,0.92,1.0}
+\definecolor{lightred}{rgb}{1.0,0.92,0.92}
+
+\newcommand{\rcolor}{lightblue}
+\newcommand{\wcolor}{lightred}
+\newcommand{\reserved}{lightgray}
+
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=false,     % window fit to page when opened
+    pdfstartview={FitH},    % fits the width of the page to the window
+    pdftitle={My title},    % title
+    pdfauthor={Author},     % author
+    pdfsubject={Subject},   % subject of the document
+    pdfcreator={Creator},   % creator of the document
+    pdfproducer={Producer}, % producer of the document
+    pdfkeywords={keyword1} {key2} {key3}, % list of keywords
+    pdfnewwindow=true,      % links in new window
+    colorlinks=true,        % false: boxed links; true: colored links
+    linkcolor=black,        % color of internal links
+    citecolor=green,        % color of links to bibliography
+    filecolor=magenta,      % color of file links
+    urlcolor=cyan           % color of external links
+}
+
+\newcommand{\colorbitbox}[4][lrtb]{%
+  \bitbox{0}{}%
+  \rlap{\bitbox[#1]{#3}{\color{#2}\rule{\width}{\height}}}%
+  \bitbox[#1]{#3}{#4}}
+\newcommand{\colorwordbox}[4][lrtb]{%
+  \bitbox{0}{}%
+  \rlap{\wordbox[#1]{#3}{\color{#2}\rule{\width}{\height}}}%
+  \wordbox[#1]{#3}{#4}}
+
+\begin{document}
+
+\begin{figure}[t]
+ \centering
+ \begin{bytefield}{32}
+  \bitheader{0,3,4,16,19,20,24,28,32} \\
+  \bitbox{16}{\nameref{field:Magic} (0x4E6F)}  &
+  \bitbox{4}{\nameref{field:Version}} &
+  \colorbitbox{\reserved}{3}{} &
+  \bitbox{1}{\rotatebox{90}{\small \nameref{field:PF}}} &
+  \bitbox{4}{\nameref{field:AddrSz}} &
+  \bitbox{4}{\nameref{field:PortSz}} \\
+  \wordgroupl{\rotatebox{90}{WB Cycle (Repeats)}}
+   \colorbitbox{\reserved}{3}{} &
+   \bitbox{1}{\rotatebox{90}{\small \nameref{field:RF}}}&
+   \bitbox{12}{\nameref{field:RCount}} &
+   \colorbitbox{\reserved}{3}{} &
+   \bitbox{1}{\rotatebox{90}{\small \nameref{field:WF}}} &
+   \bitbox{12}{\nameref{field:WCount}} \\
+   \wordgroupr{\rotatebox{270}{\nameref{field:RCount} $\not= 0$}}
+    \colorwordbox{\rcolor}{1}{\nameref{field:BaseRetAddr}} \\
+    \colorwordbox{\rcolor}{1}{\nameref{field:ReadAddr} 1} \\
+    \colorwordbox{\rcolor}{1}{\nameref{field:ReadAddr} 2} \\
+    \colorwordbox[tb]{\rcolor}{1}{$\vdots$ \\[1ex]} \\
+    \colorwordbox{\rcolor}{1}{\nameref{field:ReadAddr} $N$}
+   \endwordgroupr \\
+   \wordgroupr{\rotatebox{270}{WCount $\not= 0$}}
+    \colorwordbox{\wcolor}{1}{\nameref{field:BaseWriteAddr}} \\
+    \colorwordbox{\wcolor}{1}{\nameref{field:WriteVal} 1} \\
+    \colorwordbox{\wcolor}{1}{\nameref{field:WriteVal} 2} \\
+    \colorwordbox[tb]{\wcolor}{1}{$\vdots$ \\[1ex]} \\
+    \colorwordbox{\wcolor}{1}{\nameref{field:WriteVal} $N$}
+   \endwordgroupr 
+  \endwordgroupl \\
+ \end{bytefield}
+ \caption{Etherbone Message Format}
+ \label{fig:header}
+\end{figure}
+
+
+\section{Message Format}
+
+An Etherbone message contains an Etherbone header followed by a 
+sequence of Wishbone cycles.
+Cycles are processed in the order they appear in the message.
+
+All reserved fields should be cleared to 0.
+All numeric values have bigendian format.
+Packet alignment is max(32, \nameref{field:AddrSz}, \nameref{field:PortSz}).
+For Etherbone version 1, this is either 32 or 64 bits.
+
+\subsection{Etherbone Header}
+
+The Etherbone header immediately follows the encapsulating UDP header.
+If the packet alignment exceeds 32-bits, 
+the header is followed by zeros padding to the alignment size.
+
+\paragraph{Magic} \label{field:Magic}
+
+As Etherbone is layered atop UDP, 
+stray UDP messages might find their way to Etherbone endpoints.
+In order to indentify the Etherbone protocol,
+every valid Etherbone message includes the value 0x4E6F as a prefix.
+Any packet missing this magic protocol identifier must be dropped.
+
+\paragraph{Version} \label{field:Version}
+
+This document describes Etherbone version 1.
+
+Future Etherbone revisions must retain support for obsolete
+Etherbone messages formats.
+Etherbone responses must use the same version as the request
+which triggered the response.
+
+If an Etherbone device receives a request for an unsupported version,
+it should ignore the request unless \nameref{field:PF} is set.
+When \nameref{field:PF} is set, the largest of the requested version
+and the supported version should be returned.
+
+\paragraph{PF} \label{field:PF}
+
+The Probe-Flag (PF) is used to negotiate compatible bus width and version.
+In a message with PF set, the source Etherbone device should indicate its
+supported bus widths in the 
+\nameref{field:AddrSz} and \nameref{field:PortSz} fields.
+The highest Etherbone version supported appears in \nameref{field:Version}.
+
+Upon receipt of a message with PF set, 
+an Etherbone device should ignore the remainder of the message
+and respond with an Etherbone header with the PF field cleared.
+The supported address and data bus widths of the Etherbone
+device should appear in the \nameref{field:AddrSz} and \nameref{field:PortSz} fields.
+The \nameref{field:Version} field should contain the largest of the
+requested version and the supported version.
+
+\paragraph{AddrSz} \label{field:AddrSz}
+
+In principle, 
+Wishbone buses do not have a fixed address width.
+The value AddrSz specifies the number of bits used 
+to represent addresses in Etherbone messages.
+Only the low address bits are included,
+any necessary higher bits should be considered zero.
+
+The values for AddrSz are listed below.
+They may be added together to indicate support for multiple widths.
+When an Etherbone message contains multiple AddrSz values
+or the receiving device does not support the selected value, 
+any content beyond the header is ignored.
+
+\vspace{1em}
+\begin{tabular}{|l|l|}
+\hline
+AddrSz & Address bits \\
+\hline
+1 & 8 \\
+2 & 16 \\
+4 & 32 \\
+8 & 64 \\
+\hline
+\end{tabular}
+
+\paragraph{PortSz} \label{field:PortSz}
+The Wishbone standard permits interconnection of slaves and masters 
+with bus data widths of 8/16/32/64.
+Masters must use the correct data bus width when communicating with slaves.
+PortSz specifies the data bus width of the target slave.
+
+The values for PortSz are listed below.
+They may be added together to indicate support for multiple widths.
+When an Etherbone message contains multiple PortSz values
+or the receiving device does not support the selected value, 
+any content beyond the header is ignored.
+
+\vspace{1em}
+\begin{tabular}{|l|l|}
+\hline
+PortSz & Data bus width \\
+\hline
+0 & 8 \\
+2 & 16 \\
+4 & 32 \\
+8 & 64 \\
+\hline
+\end{tabular}
+
+\subsection{Cycle Header}
+
+Each cycle header corresponds to a single Wishbone cycle on the target bus.
+If the packet alignment exceeds 32-bits, 
+the header is followed by zeros padding to the alignment size.
+
+\paragraph{RF} \label{field:RF}
+If the results of Wishbone reads should be written back to a FIFO register
+located at BaseRetAddr, the RF flag is set.
+Otherwise read values will be written sequentially starting at the
+BaseRetAddr.
+
+\paragraph{RCount} \label{field:RCount}
+This Wishbone cycle includes RCount reads.
+The message will include an equal number of \nameref{field:ReadAddr} fields.
+
+\paragraph{WF} \label{field:WF}
+If the values written in this cycle should be written to a FIFO register,
+the WF flag is set.
+Otherwise values will be written sequentially starting at BaseWriteAddr.
+
+\paragraph{WCount} \label{field:WCount}
+This Wishbone cycle includes WCount reads.
+The message will include an equal number of \nameref{field:WriteVal} fields.
+
+\subsection{Read Data Phases}
+
+Read data phases are processed in order.
+
+\paragraph{BaseRetAddr} \label{field:BaseRetAddr}
+This field is present only if \nameref{field:RCount} $>$ 0.
+If the \nameref{field:AddrSz} is shorter than the packet alignment, 
+the address is zero extended.
+When it exists it indicates the address on the origin Etherbone endpoint 
+to which read results should written.
+
+\paragraph{ReadAddr} \label{field:ReadAddr}
+For each ReadAddr, 
+a Wishbone read data phase to that address will be executed.
+If the \nameref{field:AddrSz} is shorter than the packet alignment, 
+the address is zero extended.
+Results are written back to \nameref{field:BaseRetAddr} on the origin endpoint.
+
+\subsection{Write Data Phases}
+
+Write data phases are processed in order.
+
+\paragraph{BaseWriteAddr} \label{field:BaseWriteAddr}
+This field is present only if \nameref{field:WCount} $>$ 0.
+If the \nameref{field:AddrSz} is shorter than the packet alignment, 
+the address is zero extended.
+When it exists it indicates the address on the target Etherbone endpoint 
+to which values should written.
+
+\paragraph{WriteVal} \label{field:WriteVal}
+For each WriteVal, 
+a Wishbone write data phase will be executed.
+If the \nameref{field:PortSz} is shorter than the packet alignment, 
+the value is zero extended.
+The destination address is computed from \nameref{field:BaseWriteAddr} and 
+\nameref{field:WF}.
+
+\end{document}

@@ -1,0 +1,139 @@
+\documentclass{article}
+
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{graphicx}
+\usepackage{bytefield}
+\usepackage{hyperref}
+
+\begin{document}
+
+\section{Improvements to the first Etherbone draft}
+
+The existing Etherbone draft presents a useful very concept,
+connecting wishbone devices over ethernet.
+It was originally intended to serve as a remote debug tool.
+We would like to extend it for use as a more general purpose interconnect.
+Unfortunately, the specification in its current form is inappropriate
+for use in this setting. 
+The functional difficulties in this new context are:
+
+\begin{itemize}
+\item Unreliable delivery
+\begin{itemize}
+\item If the device is busy, packets are dropped
+\item Dropped packets (permanently) block the wishbone bus of the
+originating device;
+the Etherbone slave must wait for the lost WAK/RAK packet before raising ACK\_O.
+Until ACK\_O is raised the master cannot initiate any further WB cycles.
+\end{itemize}
+\item Insufficient performance
+\begin{itemize}
+\item Only a single EB transaction can be inflight at a time;
+for Gigabit ethernet with 1.5kB packets and a 0.1ms RTT this limits
+throughput to a theoretical maximum of 15MB/s or 12\% capacity. 
+Any increase in latency (longer cables, intermediate switches, etc) 
+will further reduce throughput.
+EB packets will be typically much smaller than 1.5kB in EB,
+reducing the capacity even further.
+\item A wishbone bus which originates an EB transaction must lock its bus.
+Typical WB bus turn-around times are a few cycles (8-24ns) as compared to
+Ethernet at 100us. 
+\end{itemize}
+\end{itemize}
+
+All of these problems stem from two design decisions:
+\begin{itemize}
+\item The current specification mixes RX and TX channels;
+a write (WCM) packet is sent via TX and a corresponding acknowledge (WAK) must
+be received via RX.
+\begin{itemize}
+\item This means both the EB slave and master need to arbitrate access to
+the RX and TX buffers, causing blocking for a RTT.
+\item This violates the networking end-to-end principle by placing the ACK
+processing inside EB instead of at the client IP core.
+\end{itemize}
+\item Blocking operation (as a consequence of the mixed RX/TX in addition to 
+explicit client-side blocking API)
+\begin{itemize}
+\item Leads to packet drops when the device is busy/blocked.
+\item Ties up the client WB bus for unacceptablely long times.
+\item Limits throughput to the round trip time (RTT).
+\end{itemize}
+\end{itemize}
+
+\section{Proposed Approach}
+
+We propose a simpler one-packet-type design for Etherbone.
+It should be easier to implement in hardware and supports full duplex.
+In our approach the Etherbone core is split into two completely isolated
+components: a receive-master and a transmit-slave.
+Each uses a 2k dual-port ring buffer internally in order to 
+operate at line-speed.
+
+The proposed architecture is illustrated in Figure~\ref{fig:design}.
+\begin{figure}[t]
+ \centering
+ \includegraphics[width=\columnwidth]{etherbone-system}
+ \caption{Etherbone System Components}
+ \label{fig:design}
+\end{figure}
+
+When a client IP core initiates an EB transaction,
+the EB transmit-slave prepares the message in the ring buffer.
+Once the message is fully prepared, 
+the read barrier is moved to the end of the message
+allowing the TX line to transmit.
+If a EB client ever fills the buffer completely,
+the EB transmit-slave will block the bus.
+However, as long as the client stays under the line speed,
+the bus never blocks.
+
+When the TX line line obtains a complete packet,
+it passes it off for processing to the EB receive-master.
+In order to guarantee timely processing,
+WB cycles must be ack'd within 4 cycles on average.
+The WB interconnect should ensure this behaviour of slaves.
+
+For requests requiring a response,
+the EB receive-master has the EB transmit-slave prepare a response.
+The response is a normal EB write request targetting a 'StatusAddress'
+(see the packet format specification) on the origin WB bus.
+This replaces the special acknowledge packets in the first EB draft.
+
+The receive-master should prepare the response (if any) in parallel
+with the processing of the request.
+This can be done either via a dedicated side-channel (as depicted)
+or by interleaving read/writes 
+to the target WB slaves with status writes to the slave transmitter.
+The dedicated side-channel achieves higher throughput 
+in exchange for a small increase in area.
+
+\section{Features / Rationale}
+
+There are two `strange' features to our proposal.
+
+\paragraph{Scatter-gather reads} are supported, in contrast to
+the incremental/in-place writes.
+This design was not chosen due to an inherent advantage of scatter-gather
+reads.
+The main benefit is that the read request is as large as the response.
+This design principle appears in several Internet protocols and 
+the benefits briefly include:
+\begin{itemize}
+\item If a request fits into a single packet, the response is guaranteed to
+also fit.
+\item TX buffer can be a reasonable fixed size.
+\item Fragmented responses are never necessary.
+\item Even the highest request throughput cannot cause response queueing.
+\item It greatly mitigates the potential impact of a smurf attack.
+\item Increased resistance to DDoS.
+\end{itemize}
+
+\paragraph{Variable width} is used to support the full WB specification.
+Since we will likely use 32-bit address and data bus widths at GSI,
+we don't want to waste message overhead on 64-bit values.
+However, to fully support the WB specification, 64-bit must be supported.
+A variable width specification allows the best of both worlds in principle
+and in practice we can still choose to support just one width.
+
+\end{document}

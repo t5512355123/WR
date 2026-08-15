@@ -1,0 +1,21 @@
+#!/bin/sh
+
+VERSION=1.1
+LIB=$VERSION/lib
+LIBPYTHON=$VERSION/lib-python
+INCLUDE=$VERSION/include
+BIN=$VERSION/bin
+
+for d in $LIB $LIBPYTHON $INCLUDE $BIN; do
+    mkdir -p $d
+done
+
+install -m 775 lib/libual.a $LIB
+install -m 775 lib/libual.so $LIB/libual.so.$VERSION
+
+ln -fs libual.so.$VERSION $LIB/libual.so
+
+install -m 775 PyUAL/PyUAL/PyUAL.py PyUAL/PyUAL/__init__.py $LIBPYTHON
+install -m 664 lib/ual.h $INCLUDE
+
+install -m 775 tools/ualmem tools/ugui tools/ualgui.py $BIN

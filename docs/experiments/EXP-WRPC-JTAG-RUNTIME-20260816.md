@@ -185,3 +185,77 @@ cpu_debug: PC=0x00000474 reset=0 fault=0 im_valid=1
 ## 成功判定限制
 
 即使 `time_valid=1`、`pps_valid=1`，也只能先宣稱 WRPC 內部同步狀態有效。若要宣稱實體次奈秒同步，仍要依官方校正流程量測兩端 1-PPS（每秒脈衝）上升緣差，並保存校正資料與量測證據。
+
+## 後續實驗：CPU 內部資料寫入觀測
+
+### 實驗名稱
+
+`EXP-WRPC-CPU-DATA-STORE-20260816`：增加 CPU 內部資料寫入位址與資料的持續觀測。
+
+### 為了驗證什麼
+
+本實驗要區分兩種可能：
+
+1. CPU 確實在執行，但 firmware marker 寫入沒有被既有 JTAG 讀回路徑看到。
+2. CPU 的資料記憶體寫入介面本身沒有正常完成，導致啟動標記沒有寫入。
+
+### 改了什麼
+
+- 在 `wrc_urv_wrapper` 增加最後一次 CPU 內部資料寫入位址與資料的 latch。
+- 將觀測值透過 `wr_core`、`xwr_core` 傳到頂層。
+- 增加 JTAG instance 4：低 32-bit 為最後一次內部 store 位址，高 32-bit 為對應資料。
+- 保留 JTAG instance 3 的 `debug_boot_stage` marker 觀測。
+- 沒有修改 QSFP-A lane 0、PHY、PCS、SI5340、WR 參考時鐘或正式 WR protocol。
+
+### 編譯與燒錄證據
+
+本版本使用 Git commit `727d08f` 編譯：
+
+| 項目 | Master | Slave |
+|---|---|---|
+| Quartus 結果 | Full Compilation was successful | Full Compilation was successful |
+| SOF SHA-256 | `41a7840a149f9856c81ec5fccf5ab7cfb2ea0479035b258da430e0ae38f97233` | `9116daffcacf2793e6e62a54d441a12ca43965b0bda2a05b82a1110beda840ef` |
+| Timing | 未關閉；最差 setup slack `-2.828 ns` | 未關閉；最差 setup slack `-3.517 ns` |
+| Programmer | `Configuration succeeded` | `Configuration succeeded` |
+
+燒錄與編譯詳細檔案保留在 pain：
+
+```text
+/home/b10504072/04_WR/build/build_info_jtag_master.txt
+/home/b10504072/04_WR/build/build_info_jtag_slave.txt
+/home/b10504072/04_WR/build/program_store_master.log
+/home/b10504072/04_WR/build/program_store_slave.log
+```
+
+### pain terminal log 結果顯示什麼
+
+診斷腳本在兩片板讀到：
+
+```text
+Master status_probe: 000203C1213C82CF
+Master cpu_probe_1: 000000040000296E
+Master cpu_debug: PC=0x0000296E reset=0 fault=0 im_valid=1
+Master cpu_probe_2: 0000000400000478
+Master cpu_debug: PC=0x00000478 reset=0 fault=0 im_valid=1
+Master cpu_marker: 0x00000000 seen=0
+Master cpu_last_internal_store: addr=0x000002E8 data=0x00000000
+
+Slave status_probe: 000102C3383C82CF
+Slave cpu_probe_1: 000000040000EFB6
+Slave cpu_debug: PC=0x0000EFB6 reset=0 fault=0 im_valid=1
+Slave cpu_probe_2: 0000000400002966
+Slave cpu_debug: PC=0x00002966 reset=0 fault=0 im_valid=1
+Slave cpu_marker: 0x00000000 seen=0
+Slave cpu_last_internal_store: addr=0x000002E8 data=0x00000000
+```
+
+兩端的 `CPU_RESET=00000000`，而且取樣到的 `reset=0`、`fault=0`、`im_valid=1`；這表示 CPU 仍在取指執行，沒有看到被 reset 或 fault 卡住。兩端低 16-bit 仍是 `0x82CF`，所以這次增加觀測邏輯沒有破壞原本的 PHY/link 基準。
+
+### 結果與判讀
+
+- `cpu_marker seen=0`：目前沒有觀察到對 `0x00016530` 的啟動 marker 寫入。
+- `cpu_last_internal_store` 讀到位址 `0x000002E8`、資料 `0x00000000`：確實捕捉到至少一筆 CPU 內部資料寫入，但這一筆資料尚不足以證明 marker 寫入路徑正常或異常。
+- 目前不能把結果解讀成「CPU 資料寫入完全失效」，因為 latch 保存的是最後一次觀察到的 store，而且 `0x2E8` 可能是初始化或其他內部資料位置。
+- 目前也不能宣稱 WR 時間同步成功；兩端 `time_valid` 與 `pps_valid` 仍未成為 1 的證據。
+
+下一個診斷會加入內部 store 累計次數，並檢查 CPU store 位址的位元組／字組位址定義；必要時再讀取 CPU exception 的 `mepc`（Machine Exception Program Counter，機器例外程式計數器）與 `mcause`（Machine Cause，機器例外原因），以判斷是否反覆進入中斷或例外處理。這些仍維持「診斷版單一變因」，不先修改光纖、lane polarity 或 pre-emphasis。

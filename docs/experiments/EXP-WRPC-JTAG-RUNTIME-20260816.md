@@ -1299,3 +1299,72 @@ timeout 300s quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeserie
 3. 每列保留 `WDIAGS_CTRL`、完整 register frame 與讀取時間；invalid frame 不納入 parent/SoftPLL 結論。
 4. 只有當 `SSTAT` 進入 state 4/5 且 `PSTAT.locked=1` 時，才進一步檢查 `time_valid` gating。
 5. 在 mailbox 證據穩定前，不修改 PHY、PTP filter、servo、SI5340、PPS 或重新燒錄新功能版 SOF。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-TIMESERIES-SESSION-20260816
+
+### 實驗名稱
+
+`6bff5d1 加入單一 JTAG 工作階段有效性觀測`：以同一 source probe session 重跑 60 秒唯讀伺服器/SoftPLL 觀測，與前一輪每列重新開關 session 的結果比較。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`6bff5d1`
+- 本次沒有 compile、沒有產生 MIF/SOF、沒有燒錄 FPGA。
+- Quartus 17：`17.0.0 Build 595`。
+- 沿用既有 `c88cc05` 燒錄後的硬體狀態。
+
+### 這次要驗證什麼
+
+驗證前一輪觀察到的 mailbox 欄位偶發不一致，是否主要由每秒重新建立 JTAG source probe 造成；同時確認 Slave 的 `SSTAT`、`PSTAT`、`time_valid` 是否在更穩定的讀取 session 下改變。
+
+### 相較 baseline 唯一修改了什麼
+
+只新增唯讀腳本：
+
+```text
+scripts/jtag/read_wb_timeseries_session.tcl
+```
+
+腳本對每張板只執行一次 `start_insystem_source_probe`，連續讀取 60 列；沒有寫入 WR 控制 register，也沒有寫入 `DATA_SNAPSHOT`。每列讀取 `WDIAGS_CTRL` 的開始與結束值，並以 `FRAME_VALID=1` 表示兩端資料有效位皆為 1 且值一致；timeout、非 32-bit 值或 `CTRL_END=0` 會標示 invalid。
+
+### 測試指令與原始 log
+
+```text
+timeout 300s /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-SESSION-20260816/runtime_60samples.log
+```
+
+Quartus STP 回報 Tcl evaluation successful，0 errors、0 warnings；完整 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-SESSION-20260816/runtime_60samples.log
+```
+
+### 結果
+
+- Master：60 列，58 列 `FRAME_VALID=1`，2 列被標為 invalid；兩列都是 `CTRL_BEGIN=00000001`、`CTRL_END=00000000`。有效列的 `PSTAT=0x00000001`，status low 為 `0xFF`。
+- Slave：60 列全部 `FRAME_VALID=1`；`SSTAT=0x00000001`、`PSTAT=0x00000001`，status low 在 `0xCF/0xEF` 間變化，`time_valid` 仍未成立。
+- Slave `UCNT`、DMS、CKO 仍有活動，但沒有進入 `PSTAT` lock bit=1 的證據。
+- 沒有 timeout、CPU fault、reset、stall 或需要實體重啟的情況。
+
+### Observation
+
+和前一輪相比，單一 session 讓 Slave 的 frame validity 變得穩定，60 列全部可採信；但 Slave 的伺服器狀態與 SoftPLL lock 沒有前進。因此，JTAG session 重建是 mailbox 觀測品質問題的一個來源，卻不能解釋 Slave 長時間停在 `SSTAT state 0 / SoftPLL lock 0`。
+
+### Conclusion
+
+目前證據更強地支持：
+
+> Slave 的 WR servo/SoftPLL 前段仍是主要問題範圍；目前尚未有證據可以把根因歸結為 mailbox 讀取方式，也尚未有證據支持已 lock 後才被 `time_valid` gating 擋住。
+
+本次仍不是硬體功能成功實驗，因為沒有重新燒錄；它只提高了 runtime 證據的可信度。
+
+### Next Step
+
+1. 保留單一 session 腳本作為後續 baseline。
+2. 增加 frame retry 與欄位一致性摘要，將 invalid sample 與有效 sample 分開統計。
+3. 在不改 PHY/PTP/servo/SI5340 的前提下，繼續讀取能區分 parent flags、servo state transition 與 SoftPLL lock 的唯讀欄位。
+4. 只有看到 `SSTAT state 4/5` 且 `PSTAT.locked=1`，才檢查後續 `time_valid` gating；目前不進入該分支。

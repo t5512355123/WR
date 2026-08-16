@@ -105,4 +105,12 @@
 /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-20260816/runtime_60samples.log
 ```
 
-下一步只改善 JTAG mailbox 的讀取一致性，例如同一 JTAG session 的完整 frame、有效位重讀與欄位一致性檢查；在此之前不修改 PHY、PTP 演算法、servo 或 SI5340。
+### 同一 JTAG session 交叉驗證
+
+後續以 `6bff5d1` 的 `read_wb_timeseries_session.tcl` 重跑相同 60 秒 read-only 觀測。每張板只建立一次 source probe，並以 `CTRL_BEGIN/CTRL_END` 與 `FRAME_VALID` 標示可採信的資料列：
+
+- Master：60 列，其中 58 列有效、2 列因 `CTRL_END=0` 被標為 invalid。
+- Slave：60 列全部 `FRAME_VALID=1`。
+- Slave 有效列仍維持 `SSTAT=0x00000001`、`PSTAT=0x00000001`，`time_valid` 仍未成立。
+
+這表示重新建立 JTAG session 確實會增加觀測雜訊，但不是 Slave 尚未取得 SoftPLL lock 的唯一解釋。下一步仍只改善 mailbox frame 的重讀/一致性標記；在此之前不修改 PHY、PTP 演算法、servo 或 SI5340。

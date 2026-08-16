@@ -189,6 +189,27 @@ void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
 	wdiag_write(0xa0, spll_state);
 }
 
+void wdiags_write_wr_spll_hw_debug(uint32_t ocer, uint32_t rcer,
+                                   uint32_t occr, uint32_t trr_csr,
+                                   uint32_t dac_hpll, uint32_t dac_main,
+                                   uint32_t helper_state, uint32_t helper_limits,
+                                   uint32_t main_state, uint32_t main_limits,
+                                   uint32_t main_phase_limits)
+{
+	/* These words are read-only shadows. They never feed back into SoftPLL. */
+	wdiag_write(0xa4, ocer);
+	wdiag_write(0xa8, rcer);
+	wdiag_write(0xac, occr);
+	wdiag_write(0xb0, trr_csr);
+	wdiag_write(0xb4, dac_hpll);
+	wdiag_write(0xb8, dac_main);
+	wdiag_write(0xbc, helper_state);
+	wdiag_write(0xc0, helper_limits);
+	wdiag_write(0xc4, main_state);
+	wdiag_write(0xc8, main_limits);
+	wdiag_write(0xcc, main_phase_limits);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

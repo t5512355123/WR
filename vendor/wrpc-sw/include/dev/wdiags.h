@@ -38,6 +38,13 @@ void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
 void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
 					uint32_t unlocked, uint32_t calibration_fail,
 					uint32_t enable_count, uint32_t spll_state);
+/* Read-only SoftPLL hardware and lock-detector shadow for WR bring-up. */
+void wdiags_write_wr_spll_hw_debug(uint32_t ocer, uint32_t rcer,
+                                   uint32_t occr, uint32_t trr_csr,
+                                   uint32_t dac_hpll, uint32_t dac_main,
+                                   uint32_t helper_state, uint32_t helper_limits,
+                                   uint32_t main_state, uint32_t main_limits,
+                                   uint32_t main_phase_limits);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

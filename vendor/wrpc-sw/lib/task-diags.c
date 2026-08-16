@@ -154,8 +154,31 @@ int wrc_wr_diags(void)
 				wrpc_wr_lock_enable_count,
 				((uint32_t)softpll.seq_state & 0xffu) |
 					(((uint32_t)softpll.ext.align_state & 0xffu) << 8) |
-					(((uint32_t)softpll.mode & 0xffu) << 16) |
-					(((uint32_t)softpll.delock_count & 0xffu) << 24));
+				(((uint32_t)softpll.mode & 0xffu) << 16) |
+				(((uint32_t)softpll.delock_count & 0xffu) << 24));
+			wdiags_write_wr_spll_hw_debug(
+				SPLL->OCER,
+				SPLL->RCER,
+				SPLL->OCCR,
+				SPLL->TRR_CSR,
+				SPLL->DAC_HPLL,
+				SPLL->DAC_MAIN,
+				((uint32_t)(softpll.helper.ld.locked ? 1u : 0u)) |
+					((uint32_t)(softpll.helper.ld.lock_changed ? 1u : 0u) << 1) |
+					(((uint32_t)softpll.helper.ref_src & 0xffu) << 8) |
+					(((uint32_t)softpll.helper.ld.lock_cnt & 0xffffu) << 16),
+				((uint32_t)softpll.helper.ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.helper.ld.lock_samples & 0xffffu) << 16),
+				((uint32_t)(softpll.mpll.enabled ? 1u : 0u)) |
+					((uint32_t)(softpll.mpll.locked ? 1u : 0u) << 1) |
+					((uint32_t)(softpll.mpll.freq_ld.locked ? 1u : 0u) << 2) |
+					((uint32_t)(softpll.mpll.phase_ld.locked ? 1u : 0u) << 3) |
+					(((uint32_t)softpll.mpll.freq_ld.lock_cnt & 0xfffu) << 8) |
+					(((uint32_t)softpll.mpll.phase_ld.lock_cnt & 0xfffu) << 20),
+				((uint32_t)softpll.mpll.freq_ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.mpll.freq_ld.lock_samples & 0xffffu) << 16),
+				((uint32_t)softpll.mpll.phase_ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
 		}
 	}
 

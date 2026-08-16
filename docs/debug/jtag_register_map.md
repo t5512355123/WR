@@ -59,6 +59,15 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100998` | `WR_LOCK_CALIBRATION_FAIL_COUNT` | `calib_t24p()` 失敗累計次數 |
 | `0x0010099C` | `WR_LOCK_ENABLE_COUNT` | `locking_enable()` 累計呼叫次數 |
 | `0x001009A0` | `WR_SPLL_STATE_DEBUG` | 低 8 位 `seq_state`、次 8 位 `align_state`、次 8 位 SoftPLL mode、最高 8 位 `delock_count` |
+| `0x001009A4` | `WR_SPLL_OCER_DEBUG` | SoftPLL output tag enable register 的唯讀 shadow |
+| `0x001009A8` | `WR_SPLL_RCER_DEBUG` | SoftPLL reference tag enable register 的唯讀 shadow |
+| `0x001009AC` | `WR_SPLL_OCCR_DEBUG` | SoftPLL output channel control/status 的唯讀 shadow |
+| `0x001009B0` | `WR_SPLL_TRR_CSR_DEBUG` | tag receiver FIFO 狀態；bit 17 為 empty |
+| `0x001009B4` / `0x001009B8` | `WR_SPLL_DAC_HPLL_DEBUG` / `WR_SPLL_DAC_MAIN_DEBUG` | helper/main DAC 輸出的唯讀 shadow |
+| `0x001009BC` | `WR_SPLL_HELPER_LOCKDET` | bit0 helper locked、bit1 lock_changed、bits8..15 ref channel、bits16..31 lock counter |
+| `0x001009C0` | `WR_SPLL_HELPER_LIMITS` | 低 16 位 threshold、高 16 位 lock_samples |
+| `0x001009C4` | `WR_SPLL_MAIN_LOCKDET` | main enabled/locked/frequency locked/phase locked 與頻率、相位 lock counter |
+| `0x001009C8` / `0x001009CC` | `WR_SPLL_MAIN_FREQ_LIMITS` / `WR_SPLL_MAIN_PHASE_LIMITS` | main 頻率/相位 lock detector threshold 與 lock_samples |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

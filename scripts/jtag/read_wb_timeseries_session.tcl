@@ -81,6 +81,17 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_lock_calibration_fail [wb_read 0x00100998]
   set wr_lock_enable [wb_read 0x0010099C]
   set wr_spll_state [wb_read 0x001009A0]
+  set wr_spll_ocer [wb_read 0x001009A4]
+  set wr_spll_rcer [wb_read 0x001009A8]
+  set wr_spll_occr [wb_read 0x001009AC]
+  set wr_spll_trr_csr [wb_read 0x001009B0]
+  set wr_spll_dac_hpll [wb_read 0x001009B4]
+  set wr_spll_dac_main [wb_read 0x001009B8]
+  set wr_spll_helper_state [wb_read 0x001009BC]
+  set wr_spll_helper_limits [wb_read 0x001009C0]
+  set wr_spll_main_state [wb_read 0x001009C4]
+  set wr_spll_main_limits [wb_read 0x001009C8]
+  set wr_spll_main_phase_limits [wb_read 0x001009CC]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -106,6 +117,17 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_lock_calibration_fail_end [wb_read 0x00100998]
   set wr_lock_enable_end [wb_read 0x0010099C]
   set wr_spll_state_end [wb_read 0x001009A0]
+  set wr_spll_ocer_end [wb_read 0x001009A4]
+  set wr_spll_rcer_end [wb_read 0x001009A8]
+  set wr_spll_occr_end [wb_read 0x001009AC]
+  set wr_spll_trr_csr_end [wb_read 0x001009B0]
+  set wr_spll_dac_hpll_end [wb_read 0x001009B4]
+  set wr_spll_dac_main_end [wb_read 0x001009B8]
+  set wr_spll_helper_state_end [wb_read 0x001009BC]
+  set wr_spll_helper_limits_end [wb_read 0x001009C0]
+  set wr_spll_main_state_end [wb_read 0x001009C4]
+  set wr_spll_main_limits_end [wb_read 0x001009C8]
+  set wr_spll_main_phase_limits_end [wb_read 0x001009CC]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
@@ -116,12 +138,20 @@ proc read_diag_sample {hardware_name sample attempt} {
       $wr_rx_debug $wr_tx_debug $wr_fail_debug \
       $wr_lock_result $wr_lock_polls $wr_lock_unlocked \
       $wr_lock_calibration_fail $wr_lock_enable $wr_spll_state \
+      $wr_spll_ocer $wr_spll_rcer $wr_spll_occr $wr_spll_trr_csr \
+      $wr_spll_dac_hpll $wr_spll_dac_main $wr_spll_helper_state \
+      $wr_spll_helper_limits $wr_spll_main_state $wr_spll_main_limits \
+      $wr_spll_main_phase_limits \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
       $foreign_meta_end $parse_meta_end $wr_state_debug_end \
       $wr_rx_debug_end $wr_tx_debug_end $wr_fail_debug_end \
       $wr_lock_result_end $wr_lock_polls_end $wr_lock_unlocked_end \
       $wr_lock_calibration_fail_end $wr_lock_enable_end $wr_spll_state_end \
+      $wr_spll_ocer_end $wr_spll_rcer_end $wr_spll_occr_end $wr_spll_trr_csr_end \
+      $wr_spll_dac_hpll_end $wr_spll_dac_main_end $wr_spll_helper_state_end \
+      $wr_spll_helper_limits_end $wr_spll_main_state_end $wr_spll_main_limits_end \
+      $wr_spll_main_phase_limits_end \
       $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
@@ -150,9 +180,20 @@ proc read_diag_sample {hardware_name sample attempt} {
                                  $wr_lock_calibration_fail == $wr_lock_calibration_fail_end &&
                                  $wr_lock_enable == $wr_lock_enable_end &&
                                  $wr_spll_state == $wr_spll_state_end}]
+  set wr_spll_hw_block_valid [expr {$wr_spll_ocer == $wr_spll_ocer_end &&
+                                    $wr_spll_rcer == $wr_spll_rcer_end &&
+                                    $wr_spll_occr == $wr_spll_occr_end &&
+                                    $wr_spll_trr_csr == $wr_spll_trr_csr_end &&
+                                    $wr_spll_dac_hpll == $wr_spll_dac_hpll_end &&
+                                    $wr_spll_dac_main == $wr_spll_dac_main_end &&
+                                    $wr_spll_helper_state == $wr_spll_helper_state_end &&
+                                    $wr_spll_helper_limits == $wr_spll_helper_limits_end &&
+                                    $wr_spll_main_state == $wr_spll_main_state_end &&
+                                    $wr_spll_main_limits == $wr_spll_main_limits_end &&
+                                    $wr_spll_main_phase_limits == $wr_spll_main_phase_limits_end}]
   set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid &&
                          $wr_state_block_valid && $wr_signal_block_valid &&
-                         $wr_lock_block_valid}]
+                         $wr_lock_block_valid && $wr_spll_hw_block_valid}]
 
   scan $status %x status_word
   set status_low [expr {$status_word & 0xff}]
@@ -231,6 +272,14 @@ proc read_diag_sample {hardware_name sample attempt} {
         $wr_lock_polls $wr_lock_polls_end $wr_lock_unlocked $wr_lock_unlocked_end \
         $wr_lock_calibration_fail $wr_lock_calibration_fail_end \
         $wr_lock_enable $wr_lock_enable_end $wr_spll_state $wr_spll_state_end]
+  puts [format "WR_SPLL_HW_BLOCK_VALID: %d OCER=%s/%s RCER=%s/%s OCCR=%s/%s TRR_CSR=%s/%s DAC_HPLL=%s/%s DAC_MAIN=%s/%s" \
+        $wr_spll_hw_block_valid $wr_spll_ocer $wr_spll_ocer_end \
+        $wr_spll_rcer $wr_spll_rcer_end $wr_spll_occr $wr_spll_occr_end \
+        $wr_spll_trr_csr $wr_spll_trr_csr_end $wr_spll_dac_hpll $wr_spll_dac_hpll_end \
+        $wr_spll_dac_main $wr_spll_dac_main_end]
+  puts [format "WR_SPLL_LOCKDET: HELPER=%s LIMITS=%s MAIN=%s FREQ_LIMITS=%s PHASE_LIMITS=%s" \
+        $wr_spll_helper_state $wr_spll_helper_limits $wr_spll_main_state \
+        $wr_spll_main_limits $wr_spll_main_phase_limits]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

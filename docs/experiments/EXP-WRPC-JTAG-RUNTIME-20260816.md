@@ -359,3 +359,119 @@ WDIAGS_TX: 00000000
 - `WDIAGS_*` 仍全部為 0，代表目前不能用這組診斷暫存器證明 WRPC 已經正常進入 PTP、SoftPLL 或 clock actuator 的工作狀態。
 - 兩端 `time_valid` 與 `pps_valid` 仍沒有變成 1 的證據，因此本實驗不能宣稱 White Rabbit 時間同步成功；目前只確認 PHY/link 與 CPU 活動仍在。
 - 下一個最小變因應該是加入 CPU `mepc`（Machine Exception Program Counter，機器例外程式計數器）與 `mcause`（Machine Cause，機器例外原因）觀測，並檢查 internal store 的位址／字組位址定義。暫時不更換光纖、不切換 QSFP port，也不再盲目調高 TX pre-emphasis。
+
+## 實驗：EXP-WRPC-RV32IM-20260816
+
+### 實驗名稱
+
+修正 WRPC firmware 與 uRV CPU 指令集不一致，並重新驗證兩片 DE5a 的 WR runtime。
+
+### 這次要驗證什麼
+
+前一輪的例外 probe 在兩片都固定讀到 `mepc=0x00000474`、`mcause=0x00000006`。uRV 原始碼將 cause 6 定義為 `CAUSE_UNALIGNED_STORE`（未對齊的 store／AMO 存取），而當時 firmware 的設定是 `CONFIG_RISCV_COMP_INSTR=y`，編譯結果為 `rv32imc`。檢查 uRV fetch/decode 原始碼後，確認這份 uRV 實作沒有完整的壓縮指令取指流程；因此本實驗把 firmware 改成 uRV 實際使用的 `rv32im` 指令集，驗證例外是否消失、WRPC 是否能進入 PTP 工作狀態。
+
+### 修改內容
+
+- `firmware/configs/de5a_master_defconfig`：取消 `CONFIG_RISCV_COMP_INSTR`。
+- `firmware/configs/de5a_slave_defconfig`：取消 `CONFIG_RISCV_COMP_INSTR`。
+- 重新建立 Master／Slave 的 `wrc.elf`、`wrc.bin` 與 `wrc.mif`。
+- 保留前一輪的唯讀 `mepc/mcause` JTAG probe、CPU store counter 與 runtime mailbox。
+- Git commit：`b9fa1dc 修正 WRPC 與 uRV 指令集不一致`。
+
+### Compile 證據
+
+兩份 firmware 都確認 `# CONFIG_RISCV_COMP_INSTR is not set`，並成功產生新的 MIF：
+
+```text
+Master wrc.mif SHA-256:
+5fc963872ffa351ff3ea1b881e903eed2df67dde18e70958ce13f0f7b41c31ae
+
+Slave wrc.mif SHA-256:
+cc047c9b789cd5f787f7f253520f0da5af23a82824d42038b8cca2631d274840
+```
+
+Quartus Prime 17.0 完整編譯結果：
+
+| 項目 | Master | Slave |
+|---|---|---|
+| Compile 結果 | `Full Compilation was successful`，0 errors | `Full Compilation was successful`，0 errors |
+| SOF SHA-256 | `420ee7122ea72f57aecc058af0afd0b78a911420187743abffa03184edc93be9` | `6bf747aa44d65af6dc1b593d10633b7ed1d6eb03a225c4d4d5c50907a9339390` |
+| Timing | 未關閉；最差 setup slack `-3.024 ns` | 未關閉；最差 setup slack `-3.002 ns` |
+
+### 燒錄證據
+
+```text
+Master cable: DE5 [1-11.1]
+Configuration succeeded -- 1 device(s) configured
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+
+Slave cable: DE5 [1-11.2]
+Configuration succeeded -- 1 device(s) configured
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+本輪 pain 輸出保留在：
+
+```text
+/home/b10504072/04_WR/build/firmware/master/build_hashes.sha256
+/home/b10504072/04_WR/build/firmware/slave/build_hashes.sha256
+/home/b10504072/04_WR/build/build_info_jtag_master.txt
+/home/b10504072/04_WR/build/build_info_jtag_slave.txt
+/home/b10504072/04_WR/build/program_rv32im_master.log
+/home/b10504072/04_WR/build/program_rv32im_slave.log
+/home/b10504072/04_WR/build/runtime_rv32im.log
+/home/b10504072/04_WR/build/runtime_rv32im_repeat.log
+```
+
+### pain terminal log 結果顯示什麼
+
+燒錄後第一次 runtime 讀取：
+
+```text
+Master status_probe: 101ED0C1275082FF
+Master cpu_exception: mepc=0x00000000 mcause=0x00000000
+Master WDIAGS_VER: 00000002
+Master WDIAGS_PTP: 00000006
+Master WDIAGS_TX: 00000021
+Master WDIAGS_RX: 00000003
+Master WDIAGS_TEMP: 0000B004
+
+Slave status_probe: 001E766335BC82EF
+Slave cpu_exception: mepc=0x00000000 mcause=0x00000000
+Slave WDIAGS_VER: 00000002
+Slave WDIAGS_PTP: 00000004
+Slave WDIAGS_TX: 00000013
+Slave WDIAGS_RX: 00000010
+Slave WDIAGS_TEMP: 0000B004
+```
+
+約五秒後再次讀取：
+
+```text
+Master status_probe: 101E886137BC82FF
+Master cpu_exception: mepc=0x00000000 mcause=0x00000000
+Master WDIAGS_PTP: 00000006
+Master WDIAGS_TX: 00000083
+Master WDIAGS_RX: 00000014
+
+Slave status_probe: 001E8A6135BC82EF
+Slave cpu_exception: mepc=0x00000000 mcause=0x00000000
+Slave WDIAGS_PTP: 00000004
+Slave WDIAGS_TX: 00000044
+Slave WDIAGS_RX: 00000054
+```
+
+依 status probe 的 bit mapping：
+
+- Master 低 byte `0xFF`：`tm_link_up=1`、`link_ok=1`、`time_valid=1`、`pps_valid=1`。
+- Slave 低 byte `0xEF`：`tm_link_up=1`、`link_ok=1`、`time_valid=0`、`pps_valid=1`。
+- 兩片 CPU 都是 `reset=0`、`fault=0`、`im_valid=1`，且例外狀態清為 0。
+- `WDIAGS_PTP=6` 對應 Master 狀態；`WDIAGS_PTP=4` 對應 `PPS_LISTENING`，表示 Slave 仍在等待有效的 PTP／WR 上游狀態。
+- 兩端 `WDIAGS_PSTAT=1` 表示 link 已起來，但目前診斷版本顯示的 SoftPLL locked bit 尚未成為 1。
+
+### 結果與判讀
+
+- **已確認的根因：** 原本的 CPU 例外主要來自 firmware 使用 `rv32imc`，而目前採用的 uRV core 不具備相符的 compressed instruction 取指支援；改為 `rv32im` 後，兩片的 `mepc/mcause` 都回到 0，CPU 可以持續執行，WRPC marker／WDIAGS 也開始正常更新。
+- **已確認的改善：** Master 已進入 `PPS_MASTER`，並同時出現 `time_valid=1`、`pps_valid=1`；這是第一次取得 WR timecode 有效的實機證據。
+- **尚未完成的部分：** Slave 仍是 `PPS_LISTENING`，雖然 `pps_valid=1`、link_ok=1，`time_valid` 仍為 0。因此現在還不能宣稱兩片已完成 WR 時間同步。
+- **下一個驗證方向：** 保留目前 `rv32im` firmware，不再修改 CPU；針對 Slave 的 PTP 接收路徑檢查 announce／sync 是否真的被 PPSI 接受，以及 QSFP lane0 的 WR Ethernet 設定、封包過濾與接收錯誤計數。若需要重編譯，仍維持一次只改一個變因。

@@ -54,3 +54,6 @@ __pycache__/
 # Experiment outputs are retained on pain under 04_WR/artifacts/EXP-*/.
 # GitHub stores the reproducible source, scripts and metadata templates only.
 artifacts/EXP-*/
+
+# Quartus 在本機產生的診斷中繼資料；保留檔案但不納入版本控制。
+quartus/jtag_runtime_diag/cr_ie_info.json

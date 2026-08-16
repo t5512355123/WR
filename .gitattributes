@@ -18,6 +18,9 @@
 *.sdc text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
+*.json text eol=lf
+*.sha256 text eol=lf
+*.stp text eol=lf
 
 # 二進位檔不做換行轉換。
 *.bin binary

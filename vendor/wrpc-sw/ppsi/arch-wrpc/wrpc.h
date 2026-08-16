@@ -142,5 +142,10 @@ extern volatile uint16_t wrpc_wr_last_tx_msg_id;
 extern volatile uint32_t wrpc_wr_handshake_fail_count;
 extern volatile uint8_t wrpc_wr_last_fail_state;
 extern volatile uint8_t wrpc_wr_last_fail_role;
+extern volatile uint32_t wrpc_wr_lock_poll_count;
+extern volatile uint32_t wrpc_wr_lock_unlocked_count;
+extern volatile uint32_t wrpc_wr_lock_calibration_fail_count;
+extern volatile uint32_t wrpc_wr_lock_enable_count;
+extern volatile uint8_t wrpc_wr_lock_last_result;
 
 #endif /* __WRPC_H */

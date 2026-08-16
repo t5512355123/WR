@@ -101,6 +101,11 @@ volatile uint16_t wrpc_wr_last_tx_msg_id;
 volatile uint32_t wrpc_wr_handshake_fail_count;
 volatile uint8_t wrpc_wr_last_fail_state;
 volatile uint8_t wrpc_wr_last_fail_role;
+volatile uint32_t wrpc_wr_lock_poll_count;
+volatile uint32_t wrpc_wr_lock_unlocked_count;
+volatile uint32_t wrpc_wr_lock_calibration_fail_count;
+volatile uint32_t wrpc_wr_lock_enable_count;
+volatile uint8_t wrpc_wr_lock_last_result;
 
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
@@ -320,6 +325,11 @@ int wrc_ptp_start(void)
 	wrpc_wr_handshake_fail_count = 0;
 	wrpc_wr_last_fail_state = 0;
 	wrpc_wr_last_fail_role = 0;
+	wrpc_wr_lock_poll_count = 0;
+	wrpc_wr_lock_unlocked_count = 0;
+	wrpc_wr_lock_calibration_fail_count = 0;
+	wrpc_wr_lock_enable_count = 0;
+	wrpc_wr_lock_last_result = 0;
 
 	/* sfp match was done before so read calibration data */
 

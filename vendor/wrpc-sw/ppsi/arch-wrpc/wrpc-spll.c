@@ -18,6 +18,7 @@
 
 int wrpc_spll_locking_enable(struct pp_instance *ppi)
 {
+	wrpc_wr_lock_enable_count++;
 	if (wrc_ptp_get_mode() == WRC_MODE_GM) {
 		/* If in grand master don't change pll mode */
 		return WRH_SPLL_OK;
@@ -34,21 +35,27 @@ int wrpc_spll_locking_poll(struct pp_instance *ppi)
 	int locked;
 	static int t24p_calibrated = 0;
 
+	wrpc_wr_lock_poll_count++;
 	locked = spll_check_lock(0); /* both slave and gm mode */
 
 	/* Else, slave: ensure calibration is done */
 	if(!locked) {
 		t24p_calibrated = 0;
+		wrpc_wr_lock_unlocked_count++;
+		wrpc_wr_lock_last_result = 1;
 		return WRH_SPLL_UNLOCKED;
 	}
 	if(!t24p_calibrated) {
 		/*run t24p calibration if needed*/
 		if (calib_t24p() < 0) {
+			wrpc_wr_lock_calibration_fail_count++;
+			wrpc_wr_lock_last_result = 2;
 			return WRH_SPLL_UNLOCKED;
 		}
 		t24p_calibrated = 1;
 	}
 
+	wrpc_wr_lock_last_result = 0;
 	return WRH_SPLL_LOCKED;
 }
 

@@ -17,6 +17,7 @@
 #include "dev/wdiags.h"
 #include "dev/temperature.h"
 #include "softpll/softpll_ng.h"
+#include "softpll/softpll_export.h"
 #include "dev/netif.h"
 #include "dev/pps_gen.h"
 #include "wrc_global.h"
@@ -145,6 +146,17 @@ int wrc_wr_diags(void)
 				(((uint32_t)wrpc_wr_last_fail_role & 0xffu) << 24) |
 				(((uint32_t)wrpc_wr_last_fail_state & 0xffu) << 16) |
 				 (wrpc_wr_handshake_fail_count & 0xffffu));
+			wdiags_write_wr_lock_debug(
+				(uint32_t)wrpc_wr_lock_last_result |
+					((uint32_t)(spll_check_lock(0) ? 1u : 0u) << 8),
+				wrpc_wr_lock_poll_count,
+				wrpc_wr_lock_unlocked_count,
+				wrpc_wr_lock_calibration_fail_count,
+				wrpc_wr_lock_enable_count,
+				((uint32_t)stats.seq_state & 0xffu) |
+					(((uint32_t)stats.align_state & 0xffu) << 8) |
+					(((uint32_t)stats.mode & 0xffu) << 16) |
+					(((uint32_t)stats.delock_count & 0xffu) << 24));
 		}
 	}
 

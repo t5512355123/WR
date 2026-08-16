@@ -175,6 +175,20 @@ void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
 	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
 }
 
+void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
+					uint32_t unlocked, uint32_t calibration_fail,
+					uint32_t enable_count, uint32_t spll_state)
+{
+	/* The DE5a diagnostic DPRAM has unused words after the standard map.
+	 * Keep this shadow read-only: it never feeds back into WR control. */
+	wdiag_write(0x8c, result);
+	wdiag_write(0x90, polls);
+	wdiag_write(0x94, unlocked);
+	wdiag_write(0x98, calibration_fail);
+	wdiag_write(0x9c, enable_count);
+	wdiag_write(0xa0, spll_state);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

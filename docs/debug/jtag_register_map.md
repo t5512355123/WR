@@ -53,6 +53,12 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100968` | `WR_TX_SIGNAL_DEBUG` | 高 16 位為最後送出的 WR signaling message ID，低 16 位為成功送出計數 |
 | `0x00100960` | `WDIAGS_RXERR` | WRPC RX 錯誤計數 |
 | `0x0010096C` | `WR_HANDSHAKE_FAIL_DEBUG` | 高 8 位為失敗前 role，中間 8 位為失敗前 WR state，低 16 位為 failure 計數；本診斷版不使用原 restart 欄位 |
+| `0x0010098C` | `WR_LOCK_RESULT_DEBUG` | 低 8 位為最後 locking_poll 結果（0=locked、1=unlocked、2=t24p calibration fail），bit8 為當下 spll_check_lock 結果 |
+| `0x00100990` | `WR_LOCK_POLL_COUNT` | `locking_poll()` 累計呼叫次數 |
+| `0x00100994` | `WR_LOCK_UNLOCKED_COUNT` | `spll_check_lock(0)=false` 的累計次數 |
+| `0x00100998` | `WR_LOCK_CALIBRATION_FAIL_COUNT` | `calib_t24p()` 失敗累計次數 |
+| `0x0010099C` | `WR_LOCK_ENABLE_COUNT` | `locking_enable()` 累計呼叫次數 |
+| `0x001009A0` | `WR_SPLL_STATE_DEBUG` | 低 8 位 `seq_state`、次 8 位 `align_state`、次 8 位 SoftPLL mode、最高 8 位 delock count |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

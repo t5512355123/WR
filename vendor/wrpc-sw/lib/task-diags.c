@@ -106,11 +106,13 @@ int wrc_wr_diags(void)
 			(((uint32_t)wrpc_ptp_rx_announce_added_count & 0xff) << 16);
 #if CONFIG_HAS_EXT_WR
 		struct wr_dsport *wrp = WR_DSPOR(ppi);
+		uint32_t parent_flags =
+			(wrp->parentIsWRnode ? 1 : 0) |
+			((wrp->parentWrModeOn ? 1 : 0) << 1) |
+			((wrp->parentCalibrated ? 1 : 0) << 2);
 		foreign_master_meta |= ((uint32_t)wrp->parentDetection & 0xff) << 16;
 		foreign_master_meta |= ((uint32_t)wrp->parentWrConfig & 0xff) << 24;
-		parse_meta |= ((uint32_t)((wrp->parentIsWRnode ? 1 : 0) |
-			((wrp->parentWrModeOn ? 1 : 0) << 1) |
-			((wrp->parentCalibrated ? 1 : 0) << 2)) << 24;
+		parse_meta |= (parent_flags & 0x7) << 24;
 #endif
 		wdiags_write_ptp_debug_detail(rx_type_counts,
 					      foreign_master_meta,

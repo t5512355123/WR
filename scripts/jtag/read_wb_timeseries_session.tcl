@@ -209,7 +209,7 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_seq_state [expr {$wr_spll_state_word & 0xff}]
   set wr_spll_align_state [expr {($wr_spll_state_word >> 8) & 0xff}]
   set wr_spll_mode [expr {($wr_spll_state_word >> 16) & 0xff}]
-  set wr_spll_delock_count [expr {($wr_spll_state_word >> 24) & 0xff}]
+  set wr_spll_del_count [expr {($wr_spll_state_word >> 24) & 0xff}]
 
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
@@ -250,10 +250,10 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SIGNAL: rx_msg=0x%04X rx_count=%d tx_msg=0x%04X tx_count=%d fail_role=%d fail_state=%d fail_count=%d" \
         $wr_rx_msg_id $wr_rx_count $wr_tx_msg_id $wr_tx_count \
         $wr_fail_role $wr_fail_state $wr_fail_count]
-  puts [format "WR_LOCK: result=%d spll_locked=%d polls=%d unlocked=%d calibration_fail=%d enable=%d seq_state=%d align_state=%d mode=%d delock=%d" \
+  puts [format "WR_LOCK: result=%d spll_locked=%d polls=%d unlocked=%d calibration_fail=%d enable=%d seq_state=%d align_state=%d mode=%d del_cnt=%d" \
         $wr_lock_result_code $wr_lock_spll_locked $wr_lock_polls_word \
         $wr_lock_unlocked_word $wr_lock_calibration_fail_word $wr_lock_enable_word \
-        $wr_spll_seq_state $wr_spll_align_state $wr_spll_mode $wr_spll_delock_count]
+        $wr_spll_seq_state $wr_spll_align_state $wr_spll_mode $wr_spll_del_count]
   flush stdout
   return $frame_valid
 }

@@ -58,7 +58,7 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100994` | `WR_LOCK_UNLOCKED_COUNT` | `spll_check_lock(0)=false` 的累計次數 |
 | `0x00100998` | `WR_LOCK_CALIBRATION_FAIL_COUNT` | `calib_t24p()` 失敗累計次數 |
 | `0x0010099C` | `WR_LOCK_ENABLE_COUNT` | `locking_enable()` 累計呼叫次數 |
-| `0x001009A0` | `WR_SPLL_STATE_DEBUG` | 低 8 位 `seq_state`、次 8 位 `align_state`、次 8 位 SoftPLL mode、最高 8 位 delock count |
+| `0x001009A0` | `WR_SPLL_STATE_DEBUG` | 低 8 位 `seq_state`、次 8 位 `align_state`、次 8 位 SoftPLL mode、最高 8 位 `del_cnt` |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

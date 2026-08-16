@@ -156,7 +156,7 @@ int wrc_wr_diags(void)
 				((uint32_t)stats.seq_state & 0xffu) |
 					(((uint32_t)stats.align_state & 0xffu) << 8) |
 					(((uint32_t)stats.mode & 0xffu) << 16) |
-					(((uint32_t)stats.delock_count & 0xffu) << 24));
+					(((uint32_t)stats.del_cnt & 0xffu) << 24));
 		}
 	}
 

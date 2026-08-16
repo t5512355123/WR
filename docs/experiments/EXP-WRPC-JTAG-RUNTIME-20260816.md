@@ -475,3 +475,160 @@ Slave WDIAGS_RX: 00000054
 - **已確認的改善：** Master 已進入 `PPS_MASTER`，並同時出現 `time_valid=1`、`pps_valid=1`；這是第一次取得 WR timecode 有效的實機證據。
 - **尚未完成的部分：** Slave 仍是 `PPS_LISTENING`，雖然 `pps_valid=1`、link_ok=1，`time_valid` 仍為 0。因此現在還不能宣稱兩片已完成 WR 時間同步。
 - **下一個驗證方向：** 保留目前 `rv32im` firmware，不再修改 CPU；針對 Slave 的 PTP 接收路徑檢查 announce／sync 是否真的被 PPSI 接受，以及 QSFP lane0 的 WR Ethernet 設定、封包過濾與接收錯誤計數。若需要重編譯，仍維持一次只改一個變因。
+
+## 實驗：EXP-WRPC-PPSI-COUNTERS-20260816
+
+### 實驗名稱
+
+加入 PPSI（PTP Protocol State Machine，精確時間協定狀態機）封包收發計數與父時鐘診斷。
+
+### 這次要驗證什麼
+
+本實驗要區分「PHY/link 已連線」與「WRPC（White Rabbit Protocol Core，White Rabbit 協定核心）真的有收到並處理 PTP 封包」。如果兩片板都能看到 Sync、Announce、Follow-up 訊息計數增加，代表 QSFP 光路與 PTP 封包接收路徑至少有資料流動；接著再觀察 Slave 是否建立 foreign master（候選上游時鐘）以及是否進入同步狀態。
+
+### 修改內容
+
+- 在 `wdiags` 的診斷暫存器中加入 PPSI RX/TX 計數。
+- 加入 PTP 狀態與父時鐘相關 metadata（中繼資料）讀回。
+- 更新 `scripts/jtag/read_wb_runtime.tcl`，讀取 `WDIAGS_PTP_RX`、`WDIAGS_PTP_TX` 與 `WDIAGS_PTP_META`。
+- 只增加診斷讀值，不改變 WRPC 的同步決策流程。
+- Git commit：`3bfa39d 新增 PPSI 訊息類型與父時鐘診斷`。
+
+### Compile 與燒錄證據
+
+Master 與 Slave 都使用 Quartus Prime 17.0 Build 595 完整編譯成功，0 errors、267 warnings；兩端的 timing 尚未關閉，最差 setup slack 分別為 `-3.024 ns` 與 `-3.002 ns`。編譯前先將可工作的前一版本產物保存至：
+
+```text
+/home/b10504072/04_WR/build/artifacts/ptp_total_diag_028c8a1/
+```
+
+本實驗產物的 MIF SHA-256：
+
+```text
+Master: 5919576947bae5cf29eb98781171c4fed6879eab0037d19f2f9acb37688e0c31
+Slave : 9400e5df385d905d8c9cca2451c38727515002a1bf2a83f39ee88d9b8
+```
+
+SOF SHA-256：
+
+```text
+Master: aad08d9f70dafb290604bd3188d928fc3a50b4ed704312dd9f26d538f41e6b00
+Slave : db1aba16d2ffc243e150e5db74b7c11ac953bcefd8fa3fc622ec930e42834d00
+```
+
+兩端分別使用 `DE5 [1-11.1]` 與 `DE5 [1-11.2]` 燒錄，均顯示 `Configuration succeeded`，且 Quartus Programmer 回報 0 errors、0 warnings。
+
+### pain terminal log 結果顯示什麼
+
+燒錄約 8 秒後的主要讀值如下：
+
+```text
+Master WDIAGS_PTP:00000006
+Master WDIAGS_PTP_RX:00000013
+Master WDIAGS_PTP_TX:00000035
+Master WDIAGS_PTP_META:01010106
+Master WDIAGS_RXERR:00000022
+
+Slave WDIAGS_PTP:00000004
+Slave WDIAGS_PTP_RX:00000037
+Slave WDIAGS_PTP_TX:00000013
+Slave WDIAGS_PTP_META:01010104
+Slave WDIAGS_RXERR:0000001B
+```
+
+約 20 秒後，兩端的 PPSI RX/TX 計數仍持續增加；Master 仍為 `WDIAGS_PTP=6`，Slave 仍為 `WDIAGS_PTP=4`。
+
+### 結果與判讀
+
+- 兩端都確實有 PTP 封包收發，因為 PPSI RX/TX 計數會增加。
+- Slave 沒有從 `PPS_LISTENING` 進入可用的同步狀態，表示「有收到封包」不等於「已選出可接受的父時鐘」。
+- 這排除了「QSFP 完全沒有資料」這個最簡單的解釋，但還不能定位是封包過濾、Announce 資料、時鐘身份，或其他 PPSI 條件未滿足。
+- 因此本實驗的結論是：**光路與 PTP 資料流存在，但兩片尚未完成 WR 時間同步。**
+
+## 實驗：EXP-WRPC-PREFILTER-20260816
+
+### 實驗名稱
+
+加入 PTP 封包類型、Announce 處理與 prefilter（前置封包過濾）原因診斷。
+
+### 這次要驗證什麼
+
+上一個實驗確認兩端會交換 PTP 封包，但 Slave 仍停在 `PPS_LISTENING`。本實驗進一步確認：
+
+1. 收到的封包是否包含 Sync、Announce、Follow-up。
+2. Announce 是否進入 PPSI 狀態機。
+3. 封包是否因 domain、alternate master、same port 或 same clock 等條件被丟棄。
+4. 是否真的建立 foreign master 記錄。
+
+### 修改內容
+
+- 在 `wrc_ptp_ppsi.c` 增加 PTP message type 計數。
+- 在 `fsm.c` 增加 parse error 與 prefilter 原因計數。
+- 在 `wrc_ptp_ppsi.c` 記錄 Announce processed、Announce added 與 Announce length。
+- 在 `wdiags` 暫存器增加 `WDIAGS_PTP_TYPES`、`WDIAGS_FOREIGN_META`、`WDIAGS_FILTER_META` 與 `WDIAGS_PARSE_META`。
+- 更新 JTAG runtime 讀取腳本。
+- 第一次編譯因 `task-diags.c` 的括號錯誤失敗，隨後以 `af9162b 修正封包診斷編譯錯誤` 修正；修正後 Quartus 編譯成功。
+
+### Compile 與燒錄證據
+
+修正後的 Master 與 Slave 都以 Quartus Prime 17.0 Build 595 完整編譯成功，0 errors、267 warnings：
+
+```text
+Master GIT_COMMIT   : af9162bd2ce785caa954cc1738240110c8ce4292
+Master MIF SHA-256  : f57d7fb44d2a7b091a934f1e713452fb6136fba2c6aab2d699a78dd0cff0ba28
+Master SOF SHA-256  : fdeaf2b36e85f24d544ae2b1fa2d9d03cdc7e668f2fcf26a32f04db0ca727698
+Master timing       : 未關閉，最差 setup slack -3.024 ns
+
+Slave MIF SHA-256   : 689f2679cb3bffa13ce085480dbd239c54f409077c2db64aac32946f06f0f781
+Slave SOF SHA-256   : bde6aefdae1c65a957d40e2d9c00f46fcf390f5f05a44175037dcb628af88fa2
+Slave timing        : 未關閉，最差 setup slack -3.002 ns
+```
+
+兩端燒錄均顯示 `Configuration succeeded -- 1 device(s) configured`。
+
+### pain terminal log 結果顯示什麼
+
+這一版燒錄後，兩端都在 WRPC 啟動早期陷入 CPU fault handler，主要輸出如下：
+
+```text
+Master status_probe: 000102C1275082CF
+Master cpu_probe: PC around 0x00015CF0..0x00015CFC
+Master cpu_exception: mepc=0x0000006F mcause=0x00000000
+Master WDIAGS_VER: 00000000
+Master WDIAGS_PTP: 00000000
+Master PPS_CR: 00000000
+Master PPS_ESCR: 00000000
+
+Slave status_probe: 000102C123D082CF
+Slave cpu_probe: PC around 0x00015CF0..0x00015CFC
+Slave cpu_exception: mepc=0x0000006F mcause=0x00000000
+Slave WDIAGS_VER: 00000000
+Slave WDIAGS_PTP: 00000000
+Slave PPS_CR: 00000000
+Slave PPS_ESCR: 00000000
+```
+
+約 20 秒後讀取結果沒有改善，診斷暫存器仍為 0。
+
+### 結果與判讀
+
+- 本版本的 Quartus 編譯與 FPGA 燒錄都成功，但 **firmware runtime 沒有成功啟動到 WRPC 診斷階段**。
+- 因為 CPU 已進入 fault handler，所以 `WDIAGS_PTP_TYPES=0`、`WDIAGS_FILTER_META=0` 與 `WDIAGS_PARSE_META=0` 不能解讀成「沒有收到 PTP 封包」；它們只是表示診斷程式還沒跑到會更新這些暫存器的位置。
+- 這次實驗因此是「編譯成功、runtime 失敗」，不是封包過濾結論。
+- 目前最可靠的回復基準是前一個可正常執行的 `3bfa39d` 產物，已保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/ptp_types_diag_3bfa39d/
+```
+
+- 下一步應先重新燒錄該基準版本，確認 `WDIAGS_VER=2`、PPSI RX/TX 計數持續增加且 `mepc/mcause` 回到 0，再以更小變因重新加入封包過濾診斷。未完成這個回復前，不應宣稱 Slave 的封包過濾原因已被量出來。
+
+### 目前階段性總結
+
+截至本紀錄：
+
+- Master 已有 `link_ok=1`、`time_valid=1`、`pps_valid=1` 的實機證據。
+- Slave 已有 `link_ok=1`、`pps_valid=1`，但 `time_valid=0`，仍未完成 WR 時間同步。
+- `3bfa39d` 能正常執行並證明兩端交換 PTP 封包。
+- `af9162b` 雖然編譯與燒錄成功，但造成 CPU runtime trap，因此必須先回到 `3bfa39d` 基準再繼續診斷。
+- 尚未取得兩片 DE5a 外部 PPS 端點的示波器量測，因此不能宣稱已達到 White Rabbit 的實體次奈秒同步精度。

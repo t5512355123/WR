@@ -7,9 +7,9 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的操作：Master image `9f848ec`、Slave 重新初始化操作記錄於 `24fcc4c`
-- 目前工作樹：本次只新增 raw helper 飽和唯讀觀測紀錄；沒有新的 compile 或燒錄
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-SLAVE-REINIT-20260817.md`
+- 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新燒錄為 `b490a5d`
+- 目前工作樹：已完成 Slave DCO load toggle CDC 的 compile、燒錄與 60 秒 JTAG 觀測
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-DCO-CDC-SLAVE-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
@@ -29,6 +29,15 @@
 - 60 sample runtime session 中，Slave raw tag/TRR counters 持續增加，但 `HELPER_ERROR=-150000`、`HELPER_OUTPUT=0xFFFB`、`PSTAT.bit1=0`、`time_valid=0`；最後 sample 僅 `pps_valid=1`。
 - 結論：page/register 修正本身不足以完成同步；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-PAGE-20260817.md`。
 - 下一個單一變因改查 DAC load request 的 clock-domain crossing，不能與 PHY 或 DMTD wiring 同時修改。
+
+### `b490a5d` Slave DCO load toggle CDC A/B
+
+- 只修改 Slave top：`clk_sys_625` 的 DCO load pulse 先轉為 toggle/held-data，再同步到 `CLK_50_B2J`；Master 不修改、不重燒。
+- pain 以明確 commit `b490a5d` 編譯成功：Full Compilation successful，0 errors、271 warnings；timing_closed=NO。
+- Slave SOF SHA-256：`30b9e62380508e111b011cd8d0d74a2ab029313c65b65af398918b5952762be4`；programmer checksum：`0x30A245FB`；configuration succeeded。
+- 燒錄後 60 秒 JTAG：Slave tag/IRQ counters 持續增加，但 `HELPER_ERROR=-150000`、`PSTAT.bit1=0`、`SSTAT=1`、`time_valid=0`；沒有完成同步。
+- 結論：本輪未觀察到 CDC 修正改善 SoftPLL；下一步先增加 DCO transaction/ACK/step 的唯讀觀測，不直接再改 PHY。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-CDC-SLAVE-20260817.md`。
 
 最近一次有效燒錄的 source 變因是 `9f848ec` 的 Master 啟動命令修正；`18614cf`、`f4b7e79` 是前一輪唯讀診斷，`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 

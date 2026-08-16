@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-08-16
+
+- Renamed the laptop and pain source-of-truth staging folder from
+  `de5a-white-rabbit` to `04_WR`.
+- Restored and preserved the legacy project folder as
+  `04_White_Rabbit`; the bare Git repository and formal build clone keep
+  their operational names.
+- Updated current workflow and traceability documents while retaining the
+  original inventory snapshots and historical experiment paths.
+
 ## 2026-08-15
 
 - Created the non-destructive `de5a-white-rabbit` staging repository.

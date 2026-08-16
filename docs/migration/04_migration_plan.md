@@ -117,8 +117,8 @@ Legacy experiments:
 
 The non-destructive staging repository is now available at:
 
-- Laptop: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\de5a-white-rabbit`
-- pain working snapshot: `/home/b10504072/de5a-white-rabbit`
+- Laptop: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
+- pain working snapshot: `/home/b10504072/04_WR`
 - initial baseline commit: `47e705cb2d3a1ecb031962426240d911399ac44d`
 
 The commit includes canonical Quartus source paths, vendored WR source,

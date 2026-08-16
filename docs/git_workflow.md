@@ -4,7 +4,7 @@
 
 The laptop repository is the primary authoring checkout:
 
-`C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\de5a-white-rabbit`
+`C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
 
 The pain bare repository is the shared transport endpoint:
 

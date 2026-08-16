@@ -2,7 +2,7 @@
 
 | Original location | New source-of-truth location | Classification |
 |---|---|---|
-| Laptop `04_White_Rabbit/week02/v01` | `de5a-white-rabbit` | preserved legacy source/reference |
+| Laptop `04_White_Rabbit/week02/v01` | `04_WR` | preserved legacy source/reference; source-of-truth folder renamed on 2026-08-16 |
 | pain `/home/b10504072/04_White_Rabbit/week02/v01/rs422_uart_diag` | `quartus/rs422_uart_diag` | canonical Quartus projects |
 | pain `.../vendor/wr-cores` | `vendor/wr-cores` | vendored source snapshot |
 | pain `.../vendor/wr-cores-arria10` | `vendor/wr-cores-arria10` | vendored Arria 10 source snapshot |

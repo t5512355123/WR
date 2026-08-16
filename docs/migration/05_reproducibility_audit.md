@@ -2,7 +2,7 @@
 
 ## Source-of-truth
 
-- Laptop repository: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\de5a-white-rabbit`
+- Laptop repository: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
 - pain bare repository: `/home/b10504072/de5a-white-rabbit.git`
 - pain working clone: `/home/b10504072/de5a-white-rabbit-repo`
 - Initial migration-audit commit: `2fb75aafe0e2c03c6a20bab8d5a14ccddb7d4f6a`

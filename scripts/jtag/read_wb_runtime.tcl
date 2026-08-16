@@ -36,6 +36,7 @@ foreach hardware_name [get_hardware_names] {
     puts "SPLL_OCCR:    [wb_read 0x00100210]"
     puts "SYSC_RSTR:    [wb_read 0x00100400]"
     puts "SYSC_GPSR:    [wb_read 0x00100404]"
+    puts "CPU_RESET:    [wb_read 0x00100B00]"
     puts "CPU_DBGSTAT:  [wb_read 0x00100B80]"
     puts "CPU_DBGREADY: [wb_read 0x00100B88]"
     puts "CPU_MBX:      [wb_read 0x00100B90]"

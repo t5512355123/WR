@@ -27,6 +27,7 @@
 | `0x00100B80` | `CPU_DBGSTAT` | uRV CPU debug 狀態 |
 | `0x00100B88` | `CPU_DBGREADY` | uRV CPU debug ready 狀態 |
 | `0x00100B90` | `CPU_MBX` | uRV CPU mailbox 狀態 |
+| `0x00100B00` | `CPU_RESET` | uRV CPU 內部 reset 暫存器；bit 0 為 1 時代表 CPU 被保持在 reset |
 
 ## WRPC 內建診斷區
 

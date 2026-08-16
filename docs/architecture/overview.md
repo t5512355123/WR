@@ -1,5 +1,5 @@
-# Architecture Overview
+# 架構總覽
 
-The DE5a design uses `xwr_core` with an Arria 10 WR PHY. QSFP-A lane 0 carries the White Rabbit Ethernet link. The system also contains SI5340/DCO clock control, a uRV RISC-V soft CPU running wrpc-sw, and PPS output to SMA_CLKOUT.
+DE5a 設計使用搭配 Arria 10 WR PHY 的 `xwr_core`。QSFP-A lane 0 負責 White Rabbit Ethernet link。系統另外包含 SI5340/DCO 時脈控制、執行 wrpc-sw 的 uRV RISC-V soft CPU，以及輸出至 SMA_CLKOUT 的 PPS。
 
-This repository separates the canonical RS422 diagnostic baseline from legacy experiments. The reorganization changes file ownership and build paths only; it does not alter the WR datapath.
+本 repository 將正式的 RS422 除錯基準版本與歷史實驗分開保存。本次整理只改變檔案歸屬與建置路徑，不改變 WR 資料路徑。

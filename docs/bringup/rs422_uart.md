@@ -1,3 +1,3 @@
 # RS422 UART
 
-The RS422 diagnostic build exposes the WRPC UART through the DE5a differential interface. The prior test confirmed that the FPGA pins compile and program, but pain did not have a USB-RS422/USB-UART receiver. Therefore UART runtime output remains an unverified measurement path.
+RS422 除錯版本透過 DE5a differential interface 提供 WRPC UART。先前測試已確認 FPGA 腳位可以編譯並完成燒錄，但 pain 沒有 USB-RS422/USB-UART 接收器。因此 UART 執行期輸出目前仍是尚未驗證的量測路徑。

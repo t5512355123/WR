@@ -1,11 +1,7 @@
-# Artifacts
+# 實驗產物
 
-Experiment artifacts are kept on the pain build server, not in the GitHub
-source repository. The active pain checkout stores them under:
+實驗 artifact 保留在 pain 建置伺服器，不放在 GitHub 原始碼 repository。pain 的 active checkout 將它們放在：
 
 `/home/b10504072/04_WR/artifacts/EXP-<id>/`
 
-Each experiment directory should contain `metadata.md`, the exact SOF/MIF
-files, relevant Quartus reports, compile logs, and probe/programming evidence.
-The GitHub repository keeps this README and the metadata template so every
-experiment uses the same record format.
+每個實驗資料夾應包含 `metadata.md`、精確的 SOF/MIF、相關 Quartus report、編譯 log，以及 probe/燒錄證據。GitHub repository 只保留本 README 與 metadata template，讓每個實驗都使用相同的紀錄格式。

@@ -1,55 +1,45 @@
-# Git Workflow
+# Git 工作流程
 
-## Source of truth
+## 正式原始碼來源
 
-The laptop repository is the primary authoring checkout:
+Laptop repository 是主要的編輯 checkout：
 
 `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
 
-The pain bare repository is the shared transport endpoint:
+GitHub repository 是 Laptop 與 pain 共用的版本傳輸端點：
 
-`/home/b10504072/de5a-white-rabbit.git`
+`git@github.com:t5512355123/WR.git`
 
-The pain working clone is used for Quartus 17 and firmware builds:
+pain 的工作 clone 用於 Quartus 17 與韌體建置：
 
-`/home/b10504072/de5a-white-rabbit-repo`
+`/home/b10504072/04_WR`
 
-The old project at `/home/b10504072/04_White_Rabbit/week02/v01` is preserved
-and is not a source-of-truth checkout.
+舊專案與歷史建置資料已移至 `/home/b10504072/04_White_Rabbit_backups/` 保存，不是正式原始碼 checkout。SOF、MIF 與建置證據則保留在 pain `/home/b10504072/04_WR/artifacts/`。
 
-## Branch rules
+## 分支規則
 
-- `main` contains the known-good baseline and reproducibility changes.
-- Each functional investigation uses `exp/<short-name>`.
-- Do not create ambiguous branches such as `final`, `final2`, or `new`.
-- A functional experiment must not be merged into `main` until its artifact
-  metadata, build log, SOF/MIF hashes and runtime evidence are recorded.
+- `main` 包含已知可用的基準版本與可重現性變更。
+- 每個功能性研究使用 `exp/<short-name>`。
+- 不要建立 `final`、`final2` 或 `new` 這類含義不清的分支。
+- 功能性實驗在記錄 artifact metadata、建置 log、SOF/MIF hash 與執行期證據前，不得合併到 `main`。
 
-## Normal change flow
+## 一般變更流程
 
-1. Start from a clean local `main` or an explicitly named experiment branch.
-2. Make one scoped change and record the reason in `docs/experiments/`.
-3. Build firmware and Quartus on pain using the repository scripts.
-4. Collect outputs into a new `artifacts/EXP-<id>/` directory.
-5. Record the exact Git commit, QSF/SDC/MIF/SOF hashes, Quartus version and
-   runtime result before programming a board.
-6. Push the commit to the pain bare repository and fast-forward the pain clone
-   to that exact commit.
-7. Program only the SOF named by the experiment record. Keep the prior SOF and
-   logs in their existing artifact directory.
+1. 從乾淨的本機 `main` 或明確命名的實驗分支開始。
+2. 進行一項範圍清楚的變更，並在 `docs/experiments/` 記錄原因。
+3. 使用 repository script 在 pain 建置韌體與 Quartus project。
+4. 將輸出收集到新的 `artifacts/EXP-<id>/` 資料夾。
+5. 燒錄板卡前，記錄精確 Git commit、QSF/SDC/MIF/SOF hash、Quartus 版本與執行期結果。
+6. 將 commit push 到 GitHub，再讓 pain clone fast-forward 到相同 commit。
+7. 只燒錄實驗紀錄指定的 SOF。舊 SOF 與 log 保留在原本的 artifact 資料夾。
 
-## Build identity
+## 建置身份
 
-The Quartus build wrappers write `build/build_info_master.txt` and
-`build/build_info_slave.txt`. These files connect a SOF to the Git commit,
-branch, top-level source, QPF/QSF/SDC, firmware MIF, Quartus version, Fitter
-result, timing slack and unconstrained-path counts.
+Quartus build wrapper 會寫入 `build/build_info_master.txt` 與
+`build/build_info_slave.txt`。這些檔案將 SOF 對應到 Git commit、branch、top-level source、QPF/QSF/SDC、韌體 MIF、Quartus 版本、Fitter 結果、timing slack 與 unconstrained-path 數量。
 
-`Full Compilation was successful` means the compiler completed. It does not
-mean timing closure, White Rabbit link-up or time synchronization succeeded.
+`Full Compilation was successful` 只代表 compiler 完成，不代表 timing closure、White Rabbit link-up 或時間同步成功。
 
-## Recovery rule
+## 復原規則
 
-If an experiment fails, stop the experiment, preserve its terminal output and
-artifact directory, and return to the previously recorded known-good commit
-and SOF. Do not overwrite the previous experiment directory.
+如果實驗失敗，請停止實驗、保留 terminal output 與 artifact 資料夾，並回到先前記錄的已知可用 commit 與 SOF。不要覆寫之前的實驗資料夾。

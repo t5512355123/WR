@@ -1,16 +1,12 @@
-# Legacy Archive
+# 歷史封存
 
-Legacy diagnostic source is preserved under `archive/diagnostics/`. Quartus databases and ordinary output directories were excluded from the source archive because the pre-restructure backup retains the original tree. No legacy folder is deleted or treated as a new source template automatically.
+歷史除錯原始碼保留在 `archive/diagnostics/`。Quartus database 與一般輸出資料夾未放入原始碼封存，因為重整前備份仍保留完整 tree。沒有任何歷史資料夾被刪除，也不會自動被當成新的 source template。
 
-`MANIFEST.sha256` lists the SHA256 of every archived file. The original full
-trees and pre-restructure backups remain the authoritative fallback for any
-generated database that was intentionally excluded from this source archive.
+`MANIFEST.sha256` 列出每個封存檔案的 SHA256。對於刻意排除的 generated database，原始完整 tree 與重整前備份仍是正式的 fallback 來源。
 
-## Preserved legacy diagnostics
+## 保留的歷史除錯版本
 
-The source-only archive currently contains these legacy experiment trees. They
-are retained for comparison and provenance; they are not automatically used by
-the canonical Quartus build:
+目前的純原始碼封存包含以下歷史實驗 tree。它們保留作為比較與 provenance，不會被正式 Quartus build 自動使用：
 
 | Group | Archived trees |
 |---|---|
@@ -20,4 +16,4 @@ the canonical Quartus build:
 | RX polarity and SFP diagnostics | `rxpol_diag`, `rxpol_both_diag`, `sfp_eeprom_diag`, `sfp_i2c_fix_diag` |
 | Vendor diagnostic snapshot | `vendor/wrpc-sw_nosfpmatch_diag` |
 
-The authoritative file-level inventory and hashes are in `MANIFEST.sha256`.
+正式的檔案層級 inventory 與 hash 位於 `MANIFEST.sha256`。

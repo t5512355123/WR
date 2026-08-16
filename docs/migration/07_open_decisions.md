@@ -1,32 +1,20 @@
-# Open Decisions and Conflicts
+# 待決定事項與衝突
 
-These items are intentionally not auto-merged or deleted.
+以下項目刻意不自動合併或刪除。
 
-## Source conflicts
+## 原始碼衝突
 
-- The laptop snapshot did not contain the complete pain-side vendor and
-  firmware/artifact set. The pain snapshot was therefore used for the
-  canonical baseline after inventory and backup.
-- The root Laptop/pain QSF difference was identified as Quartus metadata
-  (`LAST_QUARTUS_VERSION`); the canonical project keeps the proven pain-side
-  source and records the comparison rather than silently selecting a winner.
-- The pain vendor trees were detached and dirty at inventory time. Their HEAD,
-  remotes and modifications are recorded in `provenance/vendor_git_state.md`.
+- Laptop snapshot 沒有完整的 pain 端 vendor 與韌體/artifact set。因此在完成 inventory 與備份後，使用 pain snapshot 作為正式基準。
+- root Laptop/pain QSF 差異被確認為 Quartus metadata（`LAST_QUARTUS_VERSION`）；正式 project 保留已驗證的 pain 端原始碼，記錄比較結果，不暗中選擇其中一方。
+- inventory 時 pain vendor tree 處於 detached 且 dirty 狀態。其 HEAD、remote 與修改內容記錄在 `provenance/vendor_git_state.md`。
 
-## Not merged
+## 未合併內容
 
-- `simplewa`, complex word alignment, 62.5 MHz, DCO, SFP EEPROM/I2C, runtime
-  probe, load probe, JTAG Wishbone and no-SFP-match diagnostics remain legacy
-  snapshots under `archive/diagnostics/`.
-- No WR algorithm, PHY, PTP, SoftPLL, DMTD, QSFP, role, lane, PPS or
-  pre-emphasis change was made to resolve any of these conflicts.
+- `simplewa`、complex word alignment、62.5 MHz、DCO、SFP EEPROM/I2C、runtime probe、load probe、JTAG Wishbone 與 no-SFP-match 除錯版本仍是 `archive/diagnostics/` 下的歷史 snapshot。
+- 沒有為了解決上述衝突而修改 WR algorithm、PHY、PTP、SoftPLL、DMTD、QSFP、role、lane、PPS 或 pre-emphasis。
 
-## Technical follow-up
+## 技術後續工作
 
-- The current baseline has link/configuration evidence but not time
-  synchronization evidence.
-- TimeQuest reports show negative worst setup and recovery slack and several
-  unconstrained paths. This is a future timing/constraint experiment, not an
-  undocumented migration change.
-- uRV/wrpc-sw runtime, PPSi state, SoftPLL lock and calibrated PPS alignment
-  still need separate experiments with their own commits and artifacts.
+- 目前基準版本有 link/configuration 證據，但沒有時間同步證據。
+- TimeQuest report 顯示最差 setup 與 recovery slack 為負值，且有數個 unconstrained path。這應是未來的 timing/constraint 實驗，不是未記錄的遷移變更。
+- uRV/wrpc-sw runtime、PPSi state、SoftPLL lock 與校準後的 PPS alignment，仍需要各自建立 commit 與 artifact 的獨立實驗。

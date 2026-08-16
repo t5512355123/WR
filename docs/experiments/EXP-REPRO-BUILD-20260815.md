@@ -1,58 +1,42 @@
 # EXP-REPRO-BUILD-20260815
 
-## Objective
+## 目標
 
-Verify that the new repository can rebuild the preserved DE5a Master/Slave
-baseline inputs on `pain` with Quartus Prime 17.0, without changing WR
-behavioral parameters.
+確認新的 repository 能在 `pain` 使用 Quartus Prime 17.0 重新建置保留的 DE5a Master/Slave 基準輸入，且不改變 WR 行為參數。
 
-## Inputs
+## 輸入
 
-- Git commit: `ff09c9db8eb45ef5e164e311ad9cf361f7d13581`
-- Build host: `pain`
-- Quartus: `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`, Prime 17.0 Build 595
-- Master project: `quartus/rs422_uart_diag/DE5a_wr_master_rs422.qpf`
-- Slave project: `quartus/rs422_uart_diag/DE5a_wr_slave_rs422.qpf`
-- Master generated MIF SHA256: `a664396b3d908d43d0810fa85f76dd2437dde10b1f8c3ed97514ecb304f8e29c`
-- Slave generated MIF SHA256: `fca9e4aebfdf49674de2af31824f2d19bb422d305fcc2a0808495f515ccb7ade`
+- Git commit：`ff09c9db8eb45ef5e164e311ad9cf361f7d13581`
+- 建置主機：`pain`
+- Quartus：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`，Prime 17.0 Build 595
+- Master project：`quartus/rs422_uart_diag/DE5a_wr_master_rs422.qpf`
+- Slave project：`quartus/rs422_uart_diag/DE5a_wr_slave_rs422.qpf`
+- Master 產生的 MIF SHA256：`a664396b3d908d43d0810fa85f76dd2437dde10b1f8c3ed97514ecb304f8e29c`
+- Slave 產生的 MIF SHA256：`fca9e4aebfdf49674de2af31824f2d19bb422d305fcc2a0808495f515ccb7ade`
 
-## Changes for reproducibility only
+## 僅為可重現性所做的變更
 
-- The build wrapper restores executable bits for vendored shell helpers after
-  a Windows transfer.
-- pain's `riscv64-unknown-elf-*` tools are exposed through private
-  `riscv32-elf-*` aliases for this build workspace because the WRPC makefiles
-  request the latter command names.
-- No PHY, QSFP, PTP, SoftPLL, DMTD, clock, role, lane or pre-emphasis setting
-  was changed.
+- 建置 wrapper 會在 Windows 傳輸後，恢復 vendored shell helper 的 executable bit。
+- 因為 WRPC makefile 要求 `riscv32-elf-*` command name，本建置 workspace 以 private alias 提供 pain 的 `riscv64-unknown-elf-*` 工具。
+- 沒有修改 PHY、QSFP、PTP、SoftPLL、DMTD、clock、role、lane 或 pre-emphasis 設定。
 
-## Results
+## 結果
 
-- Master firmware: PASS, `wrc.mif` generated.
-- Slave firmware: PASS, `wrc.mif` generated.
-- Master Quartus: PASS, `Full Compilation was successful`, 0 errors, 262 warnings.
-- Slave Quartus: PASS, `Full Compilation was successful`, 0 errors, 262 warnings.
-- Master generated SOF SHA256: `ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214`
-- Slave generated SOF SHA256: `19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21`
+- Master 韌體：PASS，已產生 `wrc.mif`。
+- Slave 韌體：PASS，已產生 `wrc.mif`。
+- Master Quartus：PASS，`Full Compilation was successful`，0 errors，262 warnings。
+- Slave Quartus：PASS，`Full Compilation was successful`，0 errors，262 warnings。
+- Master 產生的 SOF SHA256：`ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214`
+- Slave 產生的 SOF SHA256：`19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21`
 
-The warnings include the existing TimeQuest observation about two combinational
-loops being analyzed as latches. They are recorded in the compile logs and were
-not introduced by a WR functional change in this migration.
+警告包含既有的 TimeQuest 觀察結果：兩個 combinational loop 被以 latch 分析。它們已記錄在編譯 log 中，不是本次遷移新增的 WR 功能變更。
 
-## Clean checkout check
+## 乾淨 checkout 檢查
 
 A second clean checkout at the latest commit `d98b0c8b7e24d70c1569a03f463727e8682bd5ea`
 rebuilt both firmware images and compiled both Quartus projects successfully.
-An exact-commit checkout at `ff09c9d` also rebuilt both firmware images. The MIF
-files are not byte-for-byte identical across separate invocations because the
-vendored WRPC source intentionally embeds C `__DATE__` and `__TIME__` strings
-in the firmware. The build identity and SHA256 of every generated image are
-therefore recorded for each experiment; this is the expected reproducibility
-model for this legacy firmware build.
+精確 commit checkout `ff09c9d` 也重新建置了兩份韌體。不同次執行產生的 MIF 不會 byte-for-byte identical，因為 vendored WRPC 原始碼刻意將 C 的 `__DATE__` 與 `__TIME__` 字串嵌入韌體。因此每個實驗都記錄每份產生 image 的 build identity 與 SHA256，這是此歷史韌體建置的預期可重現性模型。
 
-## Interpretation
+## 解讀
 
-This experiment proves source-to-MIF-to-SOF build reproducibility on pain. It
-does not claim that the newly generated bitstreams have been programmed or that
-White Rabbit time synchronization is complete. The preserved hardware baseline
-and the generated build are intentionally separate artifact sets.
+本實驗證明在 pain 上可重現從原始碼到 MIF 再到 SOF 的建置流程。不代表新產生的 bitstream 已經燒錄，也不代表 White Rabbit 時間同步完成。保留的硬體基準與新產生的 build 刻意分成不同 artifact set。

@@ -1,6 +1,6 @@
-# Laptop / pain Path Mapping
+# Laptop / pain 路徑對照
 
-| Original location | New source-of-truth location | Classification |
+| 原始位置 | 新正式原始碼位置 | 分類 |
 |---|---|---|
 | Laptop `04_White_Rabbit/week02/v01` | `04_WR` | preserved legacy source/reference; source-of-truth folder renamed on 2026-08-16 |
 | pain `/home/b10504072/04_White_Rabbit/week02/v01/rs422_uart_diag` | `quartus/rs422_uart_diag` | canonical Quartus projects |
@@ -14,4 +14,4 @@
 | pain output/MIF/SOF/reports | `artifacts/EXP-...` | milestone evidence |
 | old experiment record | `docs/experiments/legacy_實驗紀錄.md` | immutable historical record |
 
-The original paths remain available and are not replaced by the new mapping.
+原始路徑仍可取得，不會被新的對照關係取代。

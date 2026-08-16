@@ -1,3 +1,3 @@
 # PHY
 
-The canonical Quartus project uses the Arria 10 WR PHY source and generated QIP under `generated/work_wrphy_full/`. QSF assignments, including the existing transceiver settings, are preserved from the pain-side baseline. This repository does not tune line rate, polarity, word alignment or pre-emphasis.
+正式的 Quartus project 使用 Arria 10 WR PHY 原始碼，以及 `generated/work_wrphy_full/` 下的產生式 QIP。QSF 設定，包括既有的 transceiver 參數，都依照 pain 端基準版本保留。本 repository 不調整 line rate、polarity、word alignment 或 pre-emphasis。

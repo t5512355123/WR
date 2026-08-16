@@ -1,13 +1,13 @@
-# Research Reports
+# 研究報告
 
-Use the experiment records as evidence, then write professor-facing summaries with this order:
+請以實驗紀錄作為證據，再依照下列順序撰寫給教授閱讀的摘要：
 
-1. Goal
-2. Current architecture
-3. Implemented work
-4. Key experiments
-5. Evidence
-6. Current bottleneck
-7. Next step
+1. 目標
+2. 目前架構
+3. 已完成工作
+4. 重要實驗
+5. 證據
+6. 目前瓶頸
+7. 下一步
 
-Raw Quartus logs belong in artifacts, not in the main presentation narrative.
+原始 Quartus log 應放在 artifact，不要直接放進主要簡報敘事。

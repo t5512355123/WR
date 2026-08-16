@@ -1,9 +1,9 @@
-# Debug Architecture
+# 除錯架構
 
-Debug evidence is split into three layers:
+除錯證據分成三個層次：
 
-1. FPGA configuration and Quartus reports.
-2. Link/status probe evidence.
-3. WRPC runtime evidence such as UART, PTP state, SoftPLL and PPS.
+1. FPGA 設定結果與 Quartus 報告。
+2. Link/status probe 證據。
+3. WRPC 執行期證據，例如 UART、PTP 狀態、SoftPLL 與 PPS。
 
-A link-up probe is not treated as proof of time synchronization. Each experiment must state which layer it actually proves.
+只看到 link-up probe，不代表時間同步已經成功。每一個實驗都必須清楚寫明實際證明了哪一個層次。

@@ -1,5 +1,5 @@
-# WRPC and Firmware
+# WRPC 與韌體
 
-The embedded WRPC firmware is built from the vendored `vendor/wrpc-sw` source with the DE5a Master and Slave configurations in `firmware/configs/`. The generated MIF is a build product and is staged under `build/firmware/` before Quartus compilation.
+嵌入式 WRPC 韌體以 vendored 的 `vendor/wrpc-sw` 原始碼建置，DE5a Master 與 Slave 設定位於 `firmware/configs/`。產生的 MIF 屬於建置產物，會在 Quartus 編譯前暫存於 `build/firmware/`。
 
-The baseline Master and Slave MIF files are retained in `artifacts/EXP-BASELINE-RS422/` with their SHA256 values in the experiment metadata.
+基準版本的 Master 與 Slave MIF 保留在 pain 的 `/home/b10504072/04_WR/artifacts/EXP-BASELINE-RS422/`；對應的 SHA256 值記錄在實驗 metadata 中。這些大型建置產物不放在 GitHub 原始碼 repository。

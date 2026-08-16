@@ -1,21 +1,18 @@
-# Reproducibility Audit
+# 可重現性稽核
 
-## Source-of-truth
+## 正式原始碼來源
 
-- Laptop repository: `C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
-- pain bare repository: `/home/b10504072/de5a-white-rabbit.git`
-- pain working clone: `/home/b10504072/de5a-white-rabbit-repo`
-- Initial migration-audit commit: `2fb75aafe0e2c03c6a20bab8d5a14ccddb7d4f6a`
-- Local and pain working trees: clean at the final audit
+- Laptop repository：`C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_WR`
+- GitHub repository：`git@github.com:t5512355123/WR.git`
+- pain working clone：`/home/b10504072/04_WR`
+- 初始 migration-audit commit：`2fb75aafe0e2c03c6a20bab8d5a14ccddb7d4f6a`
+- 最終稽核時的本機與 pain working tree：clean
 
-## Build evidence
+## 建置證據
 
-The formal pain clone produced both firmware images and both Quartus SOFs.
-Quartus Prime 17.0 Build 595 reported `Full Compilation was successful` and
-0 errors for Master and Slave. The full logs and reports are in
-`artifacts/EXP-REPRO-BUILD-20260815/`.
+正式的 pain clone 產生了兩份韌體 image 與兩份 Quartus SOF。Quartus Prime 17.0 Build 595 對 Master 與 Slave 都回報 `Full Compilation was successful` 且 0 errors。完整 log 與 report 位於 pain `/home/b10504072/04_WR/artifacts/EXP-REPRO-BUILD-20260815/`。
 
-The generated image hashes from the recorded build were:
+記錄建置產生的 image hash 如下：
 
 | Image | SHA256 |
 |---|---|
@@ -24,39 +21,28 @@ The generated image hashes from the recorded build were:
 | Master SOF | `ea66406592d0734e7547d60ab88d6416c86bc4ef4fdfa4e4e90a330c19de1214` |
 | Slave SOF | `19fac5b4fe9d2c867f052683adb31b2d266900a52fe185b78330b15318ba8b21` |
 
-The later build-identity and timing-wrapper validation is recorded in
-`artifacts/EXP-REPRO-BUILD-TIMING-20260815/` at commit
-`0a8f44afa5b26111a1103903968bf173e210ee92`. Its `build_info_master.txt` and
-`build_info_slave.txt` include Quartus version, SOF hash, Fitter status,
-timing slack and unconstrained-path counts.
+後續的 build-identity 與 timing-wrapper 驗證記錄在 pain
+`/home/b10504072/04_WR/artifacts/EXP-REPRO-BUILD-TIMING-20260815/`，commit 為
+`0a8f44afa5b26111a1103903968bf173e210ee92`。其中的 `build_info_master.txt` 與
+`build_info_slave.txt` 包含 Quartus 版本、SOF hash、Fitter 狀態、timing slack 與 unconstrained-path 數量。
 
-This document is part of the later repository history; the final repository
-commit is recorded by `STATUS.md` and the Git log. The artifact build commit
-above remains the exact source identity that produced the recorded SOFs.
+本文件屬於後續 repository history；最終 repository commit 記錄在 `STATUS.md` 與 Git log。上方的 artifact build commit 仍是產生這些 SOF 的精確原始碼身份。
 
-## Timing interpretation
+## Timing 解讀
 
-Compile success is not timing closure. The recorded TimeQuest reports show:
+Compile success 不等於 timing closure。記錄的 TimeQuest report 如下：
 
 | Revision | Worst setup | Worst hold | Worst recovery | Worst removal | Unconstrained clocks | Input paths | Output paths | Timing closed |
 |---|---:|---:|---:|---:|---:|---:|---:|---|
 | Master | -3.812 ns | 0.039 ns | -1.975 ns | 0.298 ns | 3 | 1992 | 83 | NO |
 | Slave | -3.103 ns | 0.030 ns | -1.839 ns | 0.326 ns | 3 | 2001 | 83 | NO |
 
-These are observations of the preserved design and are not a reason to alter
-the WR function in this migration task. Timing closure remains a separate
-technical investigation.
+這些是保留設計的觀察結果，不是本次遷移任務修改 WR 功能的理由。Timing closure 仍應作為獨立的技術調查。
 
-## Clean checkout
+## 乾淨 checkout
 
-From a new clone of the pain bare repository at the latest commit, Master and
-Slave firmware and Quartus compilation both completed. A second clean checkout
-at the exact artifact build commit also rebuilt both firmware images. The WRPC
-source embeds `__DATE__` and `__TIME__`, so separate invocations are expected
-to have different image hashes even when the functional source is unchanged.
+從最新 commit 的 GitHub clone，Master 與 Slave 韌體以及 Quartus 編譯都完成。另一份精確 artifact build commit 的乾淨 checkout 也重新建置了兩份韌體。WRPC 原始碼會嵌入 `__DATE__` 與 `__TIME__`，因此即使功能性原始碼不變，不同次執行也預期會得到不同 image hash。
 
-## Functional baseline comparison
+## 功能基準比較
 
-The path changes are limited to the new repository layout and fixed MIF
-locations. The preserved probe mapping, QSFP-A lane 0 choice, clock periods,
-Master/Slave roles and pre-emphasis assignments were not changed.
+路徑變更僅限於新的 repository layout 與固定 MIF 位置。保留的 probe mapping、QSFP-A lane 0 選擇、clock period、Master/Slave role 與 pre-emphasis 設定都沒有變更。

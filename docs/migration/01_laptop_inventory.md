@@ -1,16 +1,16 @@
-# Laptop Inventory
+# Laptop 資料清查
 
-Generated: 2026-08-15 21:51:21 +08:00
-Root: C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_White_Rabbit
+產生時間：2026-08-15 21:51:21 +08:00
+Root：C:\Users\t5512\OneDrive\桌面\Google 雲端硬碟\碩士班研究資料\04_White_Rabbit
 
-## Scope
-The companion laptop_manifest.tsv records path, size, UTC mtime, SHA256, and classification for requested source, firmware, Quartus, script, report, artifact, and documentation extensions.
+## 範圍
+配套的 laptop_manifest.tsv 會記錄指定原始碼、韌體、Quartus、script、report、artifact 與文件副檔名的路徑、大小、UTC mtime、SHA256 與分類。
 
-## Counts
-Selected files: 108
-Selected bytes: 2,916,088 (2.78 MiB)
+## 統計
+選取檔案：108
+選取大小：2,916,088（2.78 MiB）
 
-File counts by extension:
+依副檔名統計：
 .vhd             32
 .qsf             15
 .sdc             15
@@ -26,9 +26,9 @@ File counts by extension:
 .mk               1
 .py               1
 
-## Important paths found
-- DE5a_wr_master.vhd: 1 selected file(s)
-- DE5a_wr_slave.vhd: 1 selected file(s)
+## 找到的重要路徑
+- DE5a_wr_master.vhd：1 個選取檔案
+- DE5a_wr_slave.vhd：1 個選取檔案
 - jtag_wb_diag: 11 selected file(s)
 - clock625_jtagwb_diag: 17 selected file(s)
 - simplewa: 14 selected file(s)

@@ -1,3 +1,3 @@
 # DE5a Bring-up
 
-Use the known baseline artifacts first. Program Master and Slave with the exact SOF recorded in the experiment metadata, wait for configuration to settle, then collect the status probe. Do not claim WR synchronization from `link_ok` alone.
+請先使用已知的基準版本產物。依照實驗 metadata 所記錄的精確 SOF，分別燒錄 Master 與 Slave；等待設定完成後，再讀取 status probe。不能只因為 `link_ok` 為 1，就宣稱 WR 時間同步成功。

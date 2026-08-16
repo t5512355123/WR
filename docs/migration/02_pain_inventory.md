@@ -1,17 +1,17 @@
-# pain Inventory
+# pain 資料清查
 
-Generated: 2026-08-15T21:50:54.406815+08:00
-Root: /home/b10504072/04_White_Rabbit
+產生時間：2026-08-15T21:50:54.406815+08:00
+Root：/home/b10504072/04_White_Rabbit
 
-## Scope
-pain_manifest.tsv records selected source, firmware, Quartus, script, report, artifact, and documentation files with path, size, UTC mtime, SHA256, and classification.
-The generated internal directories db/, incremental_db/, and simulation/ are excluded from the detailed manifest but remain in the original tree and backup.
+## 範圍
+pain_manifest.tsv 會記錄選取的原始碼、韌體、Quartus、script、report、artifact 與文件，包含路徑、大小、UTC mtime、SHA256 與分類。
+產生的內部資料夾 db/、incremental_db/ 與 simulation/ 未列入詳細 manifest，但仍保留在原始 tree 與備份中。
 
-## Counts
-Selected files: 4196
-Selected bytes: 2,551,225,021
+## 統計
+選取檔案：4196
+選取大小：2,551,225,021
 
-File counts by extension:
+依副檔名統計：
 .c              830
 .vhd            747
 .h              724
@@ -36,7 +36,7 @@ File counts by extension:
 .hex              3
 .elf              2
 
-## Important paths found
+## 找到的重要路徑
 - DE5a_wr_master.vhd: 2 selected file(s)
 - DE5a_wr_slave.vhd: 1 selected file(s)
 - jtag_wb_diag: 44 selected file(s)
@@ -53,10 +53,10 @@ File counts by extension:
 - vendor: 3033 selected file(s)
 - 實驗紀錄.md: 1 selected file(s)
 
-## Git roots
+## Git 根目錄
 /home/b10504072/04_White_Rabbit/week02/v01/vendor/wr-cores/.git
 /home/b10504072/04_White_Rabbit/week02/v01/vendor/wrpc-sw/.git
 /home/b10504072/04_White_Rabbit/week02/v01/vendor/wrpc-sw_nosfpmatch_diag/.git
 
-## Directory size notes
-The full root is approximately 4.6G; large generated directories include db/, incremental_db/, and many diagnostic output folders. See migration plan before moving anything.
+## 資料夾大小備註
+完整 root 約為 4.6G；大型產生資料夾包含 db/、incremental_db/ 與許多除錯輸出資料夾。移動任何資料前請先參閱遷移計畫。

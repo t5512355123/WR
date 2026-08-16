@@ -1,6 +1,6 @@
-# Status Probe Bit Mapping
+# Status Probe Bit Mapping（狀態 probe bit 對照）
 
-The 16-bit status vector is a debug bit vector, not a board identity code.
+這個 16-bit status vector 是除錯用 bit vector，不是用來識別 Master/Slave 或板卡身份的 code。
 
 | Bit | Signal |
 |---:|---|
@@ -23,10 +23,10 @@ The 16-bit status vector is a debug bit vector, not a board identity code.
 
 ## 0x82CF
 
-`0x82CF` means `si_config_done=1`, `phy_ready=1`, `tm_link_up=1`, `link_ok=1`, `time_valid=0`, `pps_valid=0`, `rx_ready=1`, `tx_ready=1`, no reported encoding errors, and CPU reset deasserted.
+`0x82CF` 表示 `si_config_done=1`、`phy_ready=1`、`tm_link_up=1`、`link_ok=1`、`time_valid=0`、`pps_valid=0`、`rx_ready=1`、`tx_ready=1`，沒有回報 encoding error，且 CPU reset 已解除。
 
 ## 0xA2C3
 
-`0xA2C3` means the link/status bits are not equivalent to 0x82CF and includes `rx_enc_err=1` under this mapping. It was observed in an earlier asymmetric diagnostic experiment.
+`0xA2C3` 表示 link/status bits 與 0x82CF 不相同；依照此 mapping，包含 `rx_enc_err=1`。這個值曾在較早的非對稱除錯實驗中觀察到。
 
-`0x82CF` is not a Master code and `0xA2C3` is not a Slave code. They are only debug bit vectors.
+`0x82CF` 不是 Master code，`0xA2C3` 也不是 Slave code；兩者都只是除錯用 bit vector。

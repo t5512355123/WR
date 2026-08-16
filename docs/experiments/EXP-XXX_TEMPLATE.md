@@ -1,46 +1,46 @@
-# EXP-XXX - Title
+# EXP-XXX - 實驗標題
 
-Date:
-Git commit:
-Build host:
-Quartus version:
+日期：
+Git commit：
+建置主機：
+Quartus 版本：
 
-## Hypothesis
+## 假設
 
-## Baseline
+## 基準版本
 
-## Change
+## 變更內容
 
-## Build
+## 建置
 
-Master source:
-Slave source:
-Master MIF:
-Slave MIF:
-Master SOF:
-Slave SOF:
-QSF/SDC:
-Timing summary:
+Master 原始碼：
+Slave 原始碼：
+Master MIF：
+Slave MIF：
+Master SOF：
+Slave SOF：
+QSF/SDC：
+Timing 摘要：
 
-## Experiment setup
+## 實驗設定
 
-Board A:
-Board B:
-Port/lane:
-Fiber/module:
+板卡 A：
+板卡 B：
+Port/lane：
+Fiber/module：
 
-## Observation
+## 觀察結果
 
-Master probe:
-Slave probe:
-JTAG WB:
-UART:
-PPS/scope:
+Master probe：
+Slave probe：
+JTAG WB：
+UART：
+PPS/scope：
 
-## Result
+## 結果
 
 PASS / FAIL / INCONCLUSIVE
 
-## Conclusion
+## 結論
 
-## Next step
+## 下一步

@@ -1,5 +1,0 @@
-Master SOF: DE5a_wr_master_rs422.sof
-Master checksum: 0x3088011E
-Slave SOF: DE5a_wr_slave_rs422.sof
-Slave checksum: 0x308FFC95
-Both programming operations completed successfully on pain.

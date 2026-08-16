@@ -41,10 +41,6 @@ Thumbs.db
 *.swo
 __pycache__/
 
-# Keep selected milestone artifacts explicitly with force-add when needed.
-!artifacts/**/master.sof
-!artifacts/**/slave.sof
-!artifacts/**/master.mif
-!artifacts/**/slave.mif
-!artifacts/**/DE5a*.rpt
-!artifacts/**/DE5a*.summary
+# Experiment outputs are retained on pain under 04_WR/artifacts/EXP-*/.
+# GitHub stores the reproducible source, scripts and metadata templates only.
+artifacts/EXP-*/

@@ -192,7 +192,10 @@ begin
       g_with_hw_debug => 1,
       g_with_hw_mulh => 1,
       g_with_hw_mul => 1,
-      g_with_hw_div => 1
+      g_with_hw_div => 1,
+      -- WRPC is built with CONFIG_RISCV_COMP_INSTR=y (-march=rv32imc).
+      -- The uRV decoder must match the firmware ISA.
+      g_with_compressed_insns => 1
     )
     port map (
       clk_i            => clk_sys_i,

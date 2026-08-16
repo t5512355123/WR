@@ -63,6 +63,7 @@ reg [15:0] hpll_accept_count;
 reg [15:0] dpll_accept_count;
 reg [15:0] hpll_done_count;
 reg [15:0] dpll_done_count;
+reg        hpll_done_once;
 reg        dco_error;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
@@ -197,6 +198,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     dpll_accept_count <= 16'd0;
     hpll_done_count <= 16'd0;
     dpll_done_count <= 16'd0;
+    hpll_done_once  <= 1'b0;
     dco_error        <= 1'b0;
   end else begin
     if (iDPLL_LOAD) begin
@@ -223,12 +225,9 @@ always @(posedge iCLK or negedge iRST_n) begin
     case (rt_state)
       4'd0: begin
         rt_seen_busy <= 1'b0;
-        if (static_controller_ready && dpll_pending) begin
-          rt_state <= 4'd1;
-          rt_select_dpll <= 1'b1;
-          rt_dir <= dpll_dir;
-          dpll_pending <= 1'b0;
-        end else if (static_controller_ready && hpll_pending) begin
+        // HPLL-only isolation experiment: keep DPLL requests pending but
+        // never issue a DPLL I2C transaction in this bitstream.
+        if (static_controller_ready && hpll_pending && !hpll_done_once) begin
           rt_state <= 4'd1;
           rt_select_dpll <= 1'b0;
           rt_dir <= hpll_dir;
@@ -286,8 +285,10 @@ always @(posedge iCLK or negedge iRST_n) begin
           dco_step_count <= dco_step_count + 1'b1;
           if (rt_select_dpll)
             dpll_done_count <= dpll_done_count + 1'b1;
-          else
+          else begin
             hpll_done_count <= hpll_done_count + 1'b1;
+            hpll_done_once <= 1'b1;
+          end
         end
       end
       default: rt_state <= 4'd0;

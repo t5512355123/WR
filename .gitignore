@@ -11,6 +11,7 @@ simulation/
 **/output_files_*/
 *.rpt
 *.summary
+*.log
 *.sof
 *.pof
 *.elf
@@ -24,6 +25,15 @@ simulation/
 *.size
 *.bram
 *.vhd.tmp
+*.qdb
+*.qws
+*.qmsg
+*.qdf
+*.srf
+*.done
+*.pin
+*.jdi
+*.smsg
 
 # Generated files inside the vendored WRPC source tree
 vendor/wrpc-sw/wrc.*

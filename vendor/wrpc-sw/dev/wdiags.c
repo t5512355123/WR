@@ -215,7 +215,9 @@ void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
                                          uint32_t state_visit_mask,
                                          uint32_t state_transition_count,
                                          uint32_t last_state,
-                                         uint32_t irq_count)
+                                         uint32_t irq_count,
+                                         uint32_t irq_mask,
+                                         uint32_t irq_status)
 {
 	wdiag_write(0xd0, ref_count);
 	wdiag_write(0xd4, tag_count);
@@ -225,6 +227,8 @@ void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
 	wdiag_write(0xe4, state_transition_count);
 	wdiag_write(0xe8, last_state);
 	wdiag_write(0xec, irq_count);
+	wdiag_write(0xf0, irq_mask);
+	wdiag_write(0xf4, irq_status);
 }
 
 void wdiags_set_base_address( void *base )

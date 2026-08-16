@@ -187,7 +187,9 @@ int wrc_wr_diags(void)
 				wrpc_spll_state_visit_mask,
 				wrpc_spll_state_transition_count,
 				wrpc_spll_last_state,
-				softpll.irq_count);
+				softpll.irq_count,
+				SPLL->EIC_IMR,
+				SPLL->EIC_ISR);
 		}
 	}
 

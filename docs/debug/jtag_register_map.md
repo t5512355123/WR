@@ -80,3 +80,15 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 其中 `60` 是完整 snapshot 次數，`1000` 是兩次 snapshot 之間的最小等待毫秒數。每次 snapshot 都會重新讀取兩片 JTAG mailbox，輸出 `WDIAGS_SSTAT`、`WDIAGS_PSTAT`、`WDIAGS_PTP`、時間有效位元、`DMS`、`CKO`、`SETP`、`UCNT` 與 parent/foreign metadata。
 
 這個腳本只讀取既有 register，不會寫入 WR 設定，也不會改變 QSFP、PHY、PTP 或 SoftPLL 控制流程。需要注意的是，一次完整的 JTAG snapshot 本身也需要時間，因此 `gap_ms` 是兩次 snapshot 之間的等待時間，不保證 sample timestamp 恰好相隔一秒。
+
+## 單一 JTAG session 版本
+
+若要避免每個 sample 重新建立 source probe，可使用：
+
+```bash
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 \
+  2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-SESSION-20260816.log
+```
+
+這個版本每張板只開啟一次 JTAG source probe，並在每列輸出 `CTRL_BEGIN`、`CTRL_END` 與 `FRAME_VALID`。只有兩端資料有效位都為 1 且值一致時，該列才標記為有效；遇到 timeout 或 mailbox 欄位不是 32-bit 十六進位值時，該列標記為 invalid。這是讀取證據的品質標記，不代表 FPGA 內部 register 更新本身是硬體原子 snapshot。

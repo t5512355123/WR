@@ -209,3 +209,12 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 本次 JTAG session 因 300 秒外層 timeout 未完成兩片各 60 個樣本：Master 55/60 accepted，Slave 到 sample 48，沒有 `SESSION_TIME_SERIES_DONE`。因此只列為「燒錄成功、取樣不完整」，不宣稱完整 60 秒實驗。
 - 原始 log：`build/artifacts/EXP-WRPC-SPLL-ACTIVITY-20260816/runtime_60samples.log`，SHA256 `a774d75e99006d9626e8f571a1e17f6ac3b33db108594b9de61948f911b90bed`。
 - 下一步：沿用同一 bitstream 做較長 timeout 的唯讀重測；不修改 PHY、PTP、servo、SoftPLL 控制或 SI5340。
+
+### 同一 bitstream 的完整唯讀重測
+
+- 沿用硬體 commit `180406824b1f4971b1bfbbbe947f5267c4568a8a`，沒有重新 compile 或燒錄。
+- 600 秒外層 timeout 下，JTAG session 完成：`JTAG_RC=0`、`SESSION_TIME_SERIES_DONE`、Tcl/SignalTap 均 successful；總耗時 5 分 44 秒。
+- Master accepted `59/60`、Slave accepted `58/60`；rejected 列由前後 mailbox 不一致規則排除。
+- Slave 所有 accepted activity 列一致為 `REF_COUNT=0`、`TAG_COUNT=0`、`HELPER_ERROR=0`、`HELPER_OUTPUT=0`、`VISIT_MASK=0x200`、`TRANSITIONS=0`、`LAST_STATE=9`。
+- Slave 仍為 `link_up=1`、`spll_locked=0`、`time_valid=0`；證據把優先懷疑維持在 recovered clock/tagger 到 SoftPLL helper lock 的路徑，但尚未證明物理光路根因。
+- 完整 log：`build/artifacts/EXP-WRPC-SPLL-ACTIVITY-READONLY-20260816/runtime_60samples.log`，SHA256 `9252c96c9ce4ece0947ad25bda019cca13bf3c91d5039abe91cca2f11f1916ab`。

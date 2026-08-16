@@ -2247,3 +2247,50 @@ WR_LOCK: result=1 spll_locked=0 polls=847432 unlocked=847432 calibration_fail=0 
 2. 先用同一 bitstream 重跑唯讀 JTAG，將 timeout 提高到足以完成兩片各 60 個樣本，修正外層命令的 return-code 包裝，但不改 RTL/firmware。
 3. 取樣時持續記錄 `REF_COUNT/TAG_COUNT`、`VISIT_MASK`、`TRANSITIONS`、helper PI 與 `TRR_CSR`，並把「沒有 tag」與「tagger shadow 沒更新」分開描述。
 4. 只有在完整取樣仍確認沒有 tag 活動後，才檢查 recovered clock/tagger input；若確認有 tag 但 helper error 不收斂，再查 helper lock threshold 與 feedback 路徑。
+
+### 補充唯讀重測：同一 bitstream 完成 60 秒取樣
+
+前一輪只因外層 timeout 而未完成，本次不重新 compile、不重新燒錄，也不修改硬體或 firmware；沿用本實驗已燒錄的 commit `180406824b1f4971b1bfbbbe947f5267c4568a8a`，只將 JTAG session 外層 timeout 提高到 600 秒。
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SPLL-ACTIVITY-READONLY-20260816/runtime_60samples.log
+```
+
+本機副本與 hash：
+
+```text
+build/artifacts/EXP-WRPC-SPLL-ACTIVITY-READONLY-20260816/runtime_60samples.log
+SHA256=9252c96c9ce4ece0947ad25bda019cca13bf3c91d5039abe91cca2f11f1916ab
+```
+
+pain terminal 的完成證據：
+
+```text
+JTAG_RC=0
+SESSION_SAMPLE_RESULT board=DE5 [1-11.2] sample=060 accepted=1 retries=4
+SESSION_TIME_SERIES_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_timeseries_session.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+Info: Elapsed time: 00:05:44
+```
+
+取樣統計：
+
+```text
+Master: accepted=59/60, rejected=1
+Slave : accepted=58/60, rejected=2
+```
+
+Slave 所有 accepted activity 列都一致為：
+
+```text
+WR_SPLL_ACTIVITY: REF_COUNT=00000000 TAG_COUNT=00000000 HELPER_ERROR=00000000 HELPER_OUTPUT=00000000 VISIT_MASK=00000200 TRANSITIONS=00000000 LAST_STATE=00000009
+```
+
+Slave accepted 列的狀態仍為 `link_up=1`、`spll_locked=0`、`time_valid=0`；部分列的 `pps_valid` 顯示為 1，但 `time_valid` 全程沒有成立。這個補充重測使「目前沒有觀察到 SoftPLL tag counter 或 state transition 活動」成為跨完整取樣期間的可重現觀測，但仍不能證明物理光路上每一個 tag 都不存在，因為這些是週期性 firmware shadow，不是逐 tag 硬體 trace。
+
+### 補充結論
+
+在不改變控制流程的前提下，完整重測再次支持：Slave 卡在 `SEQ_CLEAR_DACS`、尚未進入 helper lock；下一步應優先確認 recovered clock/tagger 是否真的產生並送入 SoftPLL FIFO，以及 firmware shadow 是否在正確的 runtime task 更新。暫不修改 PHY、PTP、servo、SoftPLL 參數或 SI5340。

@@ -378,3 +378,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 結論：HPLL-only 沒有完成同步；不能把 DCO counter 增加解讀為 SI5340 時鐘校正已正確生效。下一步新增唯讀 DPLL/HPLL data-change snapshot。
 - 原始 log：`build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/dco_diag.log`、`build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/runtime_60s.log`。
 - log SHA-256：`fd47960001a0e8178f44200e3af02f9f86f71e9800a94182e8dcafbcea7fd5b3`、`f0574758bd59b7762d315f53b360b5eb9d9a2903138ee24f315f60dcfe0853c9`。
+
+## 最新燒錄實驗：DCO load 資料變化唯讀觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-DCO-DATA-OBS-20260817`。
+- source commit：`8054e4aa2a952e331412f8abaf7dbcb1c280ee87`，branch：`exp/jtag-runtime-observability`。
+- 只新增 HPLL/DPLL current/previous data 的唯讀 probe 與 Tcl 解析，沒有修改 DCO 功能條件。
+- Slave Quartus 17 compile：Full Compilation successful，0 errors、274 warnings；Fitter successful；timing 尚未 closure。
+- Slave SOF SHA-256：`dd426ddf2529245554bf7a3ba665782f3c93ba5eff1dc6c25bebe426aeee3539`。
+- 已燒錄至 `DE5 [1-11.2]`；checksum `0x30A1F2A5`、JTAG ID `0x02E660DD`、configuration succeeded、Programmer 0 errors/0 warnings。
+- 燒錄後 runtime 尚待唯讀 JTAG 取樣；目前不宣稱同步成功。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-DATA-OBS-20260817.md`。

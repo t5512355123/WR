@@ -1039,3 +1039,60 @@ diff count: 0 / 0
 ### 怎麼看待這個結果
 
 這次已證明韌體從 source 到 MIF 的建置流程具備位元級可重現性，後續可以把 Quartus compile、燒錄與 JTAG runtime 讀值歸因到明確的 Git commit 與 MIF。這個結果本身不代表 WR 已完成時間同步；它只排除了「韌體建置產物每次不同」這個干擾因素。下一步可在不改 source 的前提下，以 `a0a1973` 產出的 MIF 做 Quartus 17 compile、燒錄，再記錄兩片 DE5a 的 runtime、PTP、parent 與 servo 證據。
+
+---
+
+## 實驗：EXP-WRPC-DETERMINISTIC-SOF-RUNTIME-20260816
+
+### 實驗名稱
+
+`56848ac 補充可重現韌體建置實驗紀錄`：使用 `a0a1973` 固定產物進行 Quartus 17 compile、燒錄與 JTAG runtime 讀值。
+
+### 這次要驗證什麼
+
+確認已經位元級固定的 Master/Slave MIF，可以在 Quartus 17 重新編譯成可燒錄 SOF，並確認燒錄後兩片 DE5a 的 CPU、PTP 封包活動與目前 WR link 狀態。這次不修改 PHY、QSFP 接線、Pre-Emphasis 或 SFP database。
+
+### 修改內容
+
+- source code 沒有新增功能變更；使用 `56848ac` 所包含的 `a0a1973` deterministic firmware。
+- pain 重新執行 `build_master_firmware.sh`、`build_slave_firmware.sh`。
+- pain 使用 Quartus 17 重新編譯 `DE5a_wr_master_jtag` 與 `DE5a_wr_slave_jtag`。
+- 產生的 SOF 另存於 `/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/quartus_sof/`。
+- 透過兩條獨立 JTAG 分別燒錄 Master `DE5 [1-11.1]` 與 Slave `DE5 [1-11.2]`，8 秒後執行相同的 `read_wb_runtime.tcl`。
+
+### 結果
+
+- Master/Slave Quartus 17 compile 均成功，但兩份報告均為 `timing_closed=NO`。
+- 燒錄均成功：
+
+```text
+Master checksum: 0x30A0A429
+Slave  checksum: 0x30A5A091
+Configuration succeeded -- 1 device(s) configured
+```
+
+- 8 秒後兩片 CPU 都正常：
+
+```text
+Master: fault=0, marker=0x0000B004, seen=1
+Slave : fault=0, marker=0x0000B004, seen=1
+```
+
+- Master runtime：`WDIAGS_MODE=2`、`WDIAGS_PTP=00000006`，PTP RX/TX 為 `0x0D / 0x38`。
+- Slave runtime：`WDIAGS_MODE=3`、`WDIAGS_PTP=00000004`，PTP RX/TX 為 `0x20 / 0x29`。
+- 目前兩端仍讀到相同 endpoint MAC：`EP_MAC_H=02002233`、`EP_MAC_L=44556677`。
+- 兩端 `WDIAGS_FOREIGN_META=0000FF00`，表示目前沒有選出有效的 foreign master；`time_valid` 尚未形成可宣稱的穩定成功證據。
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/quartus_master_compile.log
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/quartus_slave_compile.log
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/program_a0a1973.log
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/runtime_after_program_8s.log
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/quartus_artifact_hashes.sha256
+```
+
+### 怎麼看待這個結果
+
+這次證明 `56848ac` 的 firmware 可重現產物可以通過 Quartus 17 compile 並成功燒錄，且沒有重現先前的 CPU early fault；因此目前平台仍可繼續做 runtime 實驗，不需要實體斷電。另一方面，這次沒有證明 White Rabbit 已完成同步：兩端仍使用相同 fallback MAC，且 foreign master 尚未被選出。下一個實驗必須只改「節點唯一身份」這一個變因，並沿用本次 deterministic build、相同 JTAG 讀值與相同 artifact 保存規則。

@@ -187,6 +187,8 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
   signal cpu_internal_store_count : std_logic_vector(31 downto 0);
+  signal cpu_mepc              : std_logic_vector(31 downto 0);
+  signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
@@ -199,6 +201,8 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_store_source      : std_logic_vector(0 downto 0);
   signal cpu_store_count_probe : std_logic_vector(63 downto 0);
   signal cpu_store_count_source : std_logic_vector(0 downto 0);
+  signal cpu_exception_probe   : std_logic_vector(63 downto 0);
+  signal cpu_exception_source  : std_logic_vector(0 downto 0);
   signal dac_hpll_load        : std_logic;
   signal dac_hpll_data        : std_logic_vector(15 downto 0);
   signal dac_dpll_load        : std_logic;
@@ -374,6 +378,24 @@ begin
     port map (
       probe      => cpu_store_count_probe,
       source     => cpu_store_count_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  cpu_exception_probe(31 downto 0) <= cpu_mepc;
+  cpu_exception_probe(63 downto 32) <= cpu_mcause;
+
+  u_cpu_exception_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_EXCEPTION_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 6,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_exception_probe,
+      source     => cpu_exception_source,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
@@ -570,7 +592,9 @@ begin
       cpu_last_store_addr_o     => cpu_last_store_addr,
       cpu_last_store_data_o     => cpu_last_store_data,
       cpu_last_store_seen_o     => cpu_last_store_seen,
-      cpu_internal_store_count_o => cpu_internal_store_count
+      cpu_internal_store_count_o => cpu_internal_store_count,
+      cpu_mepc_o               => cpu_mepc,
+      cpu_mcause_o             => cpu_mcause
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

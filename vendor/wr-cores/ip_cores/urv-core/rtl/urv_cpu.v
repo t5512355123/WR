@@ -84,7 +84,9 @@ module urv_cpu
 
    input [31:0]  dbg_mbx_data_i,
    input 	 dbg_mbx_write_i,
-   output [31:0] dbg_mbx_data_o
+   output [31:0] dbg_mbx_data_o,
+   output [31:0] csr_mepc_o,
+   output [31:0] csr_mcause_o
    );
 
 
@@ -434,6 +436,8 @@ module urv_cpu
    );
 
    assign fault_o = x_fault & g_with_ecc;
+   assign csr_mepc_o = csr_mepc;
+   assign csr_mcause_o = csr_mcause;
 
    // Built-in timer
    generate

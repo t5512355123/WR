@@ -344,7 +344,9 @@ entity wr_core is
     cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_seen_o  : out std_logic;
-    cpu_internal_store_count_o : out std_logic_vector(31 downto 0)
+    cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
+    cpu_mepc_o : out std_logic_vector(31 downto 0);
+    cpu_mcause_o : out std_logic_vector(31 downto 0)
     );
 end wr_core;
 
@@ -891,7 +893,9 @@ begin
       cpu_last_store_addr_o  => cpu_last_store_addr_o,
       cpu_last_store_data_o  => cpu_last_store_data_o,
       cpu_last_store_seen_o  => cpu_last_store_seen_o,
-      cpu_internal_store_count_o => cpu_internal_store_count_o
+      cpu_internal_store_count_o => cpu_internal_store_count_o,
+      cpu_mepc_o => cpu_mepc_o,
+      cpu_mcause_o => cpu_mcause_o
       );
 
   -----------------------------------------------------------------------------

@@ -41,6 +41,14 @@ proc read_store_count_probe {label} {
   puts [format "%s: %d (0x%08X)" $label [expr {$word & 0xffffffff}] [expr {$word & 0xffffffff}]]
 }
 
+proc read_exception_probe {label} {
+  set value [read_probe_data -instance_index 6 -value_in_hex]
+  scan $value %x word
+  set mepc [expr {$word & 0xffffffff}]
+  set mcause [expr {($word >> 32) & 0xffffffff}]
+  puts [format "%s: mepc=0x%08X mcause=0x%08X" $label $mepc $mcause]
+}
+
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -85,6 +93,7 @@ foreach hardware_name [get_hardware_names] {
     read_marker_probe "cpu_marker"
     read_store_probe "cpu_last_internal_store"
     read_store_count_probe "cpu_internal_store_count"
+    read_exception_probe "cpu_exception"
     wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"

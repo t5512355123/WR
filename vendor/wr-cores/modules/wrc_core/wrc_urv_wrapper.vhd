@@ -54,7 +54,9 @@ entity wrc_urv_wrapper is
     cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_seen_o  : out std_logic;
-    cpu_internal_store_count_o : out std_logic_vector(31 downto 0)
+    cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
+    cpu_mepc_o : out std_logic_vector(31 downto 0);
+    cpu_mcause_o : out std_logic_vector(31 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -106,6 +108,8 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
   signal cpu_internal_store_count : unsigned(31 downto 0);
+  signal cpu_mepc : std_logic_vector(31 downto 0);
+  signal cpu_mcause : std_logic_vector(31 downto 0);
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -165,7 +169,9 @@ architecture arch of wrc_urv_wrapper is
       dbg_insn_ready_o : out std_logic;
       dbg_mbx_data_i   : in  std_logic_vector(31 downto 0);
       dbg_mbx_write_i  : in  std_logic;
-      dbg_mbx_data_o   : out std_logic_vector(31 downto 0));
+      dbg_mbx_data_o   : out std_logic_vector(31 downto 0);
+      csr_mepc_o       : out std_logic_vector(31 downto 0);
+      csr_mcause_o     : out std_logic_vector(31 downto 0));
   end component;
 
 begin
@@ -212,7 +218,9 @@ begin
       dbg_insn_ready_o => regs_out.dbg_insn_ready_i(0),
       dbg_mbx_data_i   => regs_in.dbg_core0_mbx_o,
       dbg_mbx_write_i  => regs_in.dbg_core0_mbx_load_o,
-      dbg_mbx_data_o   => regs_out.dbg_core0_mbx_i);
+      dbg_mbx_data_o   => regs_out.dbg_core0_mbx_i,
+      csr_mepc_o       => cpu_mepc,
+      csr_mcause_o     => cpu_mcause);
 
   -- 1st MByte of the mem is the IRAM
   dm_is_wishbone <= '1' when dm_addr(31 downto 20) /= x"000" else '0';
@@ -401,5 +409,7 @@ begin
   cpu_last_store_data_o  <= cpu_last_store_data;
   cpu_last_store_seen_o  <= cpu_last_store_seen;
   cpu_internal_store_count_o <= std_logic_vector(cpu_internal_store_count);
+  cpu_mepc_o <= cpu_mepc;
+  cpu_mcause_o <= cpu_mcause;
 
 end architecture arch;

@@ -7,22 +7,24 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的 commit：`bae06ff`
-- 下一輪待建置的診斷修改：工作樹中，尚未燒錄
+- 目前已燒錄並完成觀測的 commit：`5483669`
+- 下一輪待建置的 locking/SoftPLL 診斷修改：工作樹中，尚未燒錄
 - 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
-最近一次有效燒錄的 source 變因是 `bae06ff` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c` 與 `7467e46` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
+最近一次有效燒錄的 source 變因是 `5483669` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
-### `bae06ff` 實際燒錄後狀態
+### `5483669` 實際燒錄後狀態
 
 - Master SOF checksum：`0x30A0A429`；Slave SOF checksum：`0x30A5A091`。
-- Master 停在 `WRS_M_LOCK`，Slave 最終回到 `WRS_IDLE`、`PP_PDSTATE_FAILURE` 與 PTP fallback。
+- Master 曾送出 `LOCK`；Slave 成功收到 `LOCK` 並回送 `SLAVE_PRESENT`。
+- Slave sticky 診斷為 `fail_role=2`、`fail_state=2`、`fail_count=1`，即失敗前為 `WR_SLAVE/WRS_S_LOCK`。
+- Master 停在 `WRS_M_LOCK`；Slave 失敗後回到 `WRS_IDLE`、`PP_PDSTATE_FAILURE` 與 PTP fallback。
 - Master 的 `time_valid=1`；Slave 的 `time_valid=0`，尚未證明兩端完成 WR 時間同步。
-- 完整紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md` 的 `EXP-WRPC-LOCAL-WR-STATE-20260816`。
-- 本輪新增的 WR signaling RX/TX 計數與握手失敗 sticky shadow 尚未 compile、燒錄或做板端實驗。
+- 完整紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md` 的 `EXP-WRPC-SIGNALING-20260816`。
+- 下一輪的 `locking_poll/SoftPLL` 計數與 `seq_state` shadow 尚未 compile、燒錄或做板端實驗。
 
 ## 硬體限制與固定條件
 

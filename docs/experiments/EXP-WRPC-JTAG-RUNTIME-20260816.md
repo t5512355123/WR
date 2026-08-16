@@ -1747,3 +1747,132 @@ Master 已在 WR extension active 狀態停在 `WRS_M_LOCK`，這與「Master �
 1. 維持目前 PHY、PTP、servo 與 SI5340 不變。
 2. 新增只讀 WR signaling TX/RX 最後 message ID、計數器，以及 `wr_handshake_fail` 次數與失敗前 state/role。
 3. 重新 compile、燒錄並以同一 JTAG session 取樣；依 counters 判斷是 signaling 未抵達、message 被拒絕，或 Slave 進入 `WRS_S_LOCK` 後 PLL 沒有 lock。
+
+---
+
+## 實驗：EXP-WRPC-SIGNALING-20260816
+
+### 實驗名稱
+
+`5483669 加入 WR signaling 與握手失敗唯讀診斷`：在不改變 PHY、PTP、servo、SoftPLL 或 SI5340 控制行為的前提下，觀察 WR signaling message 是否抵達，以及 Slave 是否在 `WRS_S_LOCK` 失敗。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`54836690f66e93d21f7df450cfc55e09f925be0c`
+- Quartus：`17.0.0 Build 595`
+- Master MIF SHA256：`eb1e0a132838f8cfe13a3d04b9b90ca9b0171b0694ca842bd6c0584ede9eeb09`
+- Slave MIF SHA256：`5be13bb08437a9ae487acd7b169914c8a3784d5a9c59a71458426ff2e1c745d4`
+- Master SOF SHA256：`eef7510502dd7d9c846aefaf580aff6aca6eb5f8961e792f1e4a02cad5f8fd7e`
+- Slave SOF SHA256：`041e826b2b61b01e5f7917bb591128cfb2b4bb9ad66a99faef2f0ecd2ee37764`
+- Programmer checksum：Master `0x30A0A429`；Slave `0x30A5A091`
+- Fitter：兩端 Successful；兩端 `TIMING_CLOSED=NO`。Master setup/recovery slack 分別為 `-3.024/-2.042 ns`；Slave 為 `-3.002/-1.722 ns`。
+
+### 這次要驗證什麼
+
+區分三種可能：
+
+1. Master 沒有送出 WR signaling。
+2. Master 有送，但 Slave 沒有收到或無法解析。
+3. Slave 收到 `LOCK` 並進入 `WRS_S_LOCK`，但 `locking_poll()` 沒有成功，最後由 `wr_handshake_fail()` 退回 non-WR。
+
+### 相較 baseline 唯一修改了什麼
+
+只增加 firmware 內部的唯讀 shadow 與 JTAG 顯示：
+
+- 最後成功解析的 RX message ID 與計數。
+- 最後成功送出的 TX message ID 與計數。
+- `wr_handshake_fail()` 次數，以及失敗前的 role/state。
+- JTAG 腳本對這三個欄位做前後一致性檢查。
+
+沒有修改 PHY、QSFP lane/polarity、PTP 封包流程、servo 演算法、SoftPLL 設定或 SI5340 控制。
+
+### Compile 與燒錄結果
+
+Master 與 Slave 都由 pain 從 GitHub checkout `54836690f66e...` 後建置：
+
+```text
+Master: Quartus Prime Full Compilation was successful, 0 errors
+Slave : Quartus Prime Full Compilation was successful, 0 errors
+```
+
+兩端 programmer 原始結果都是：
+
+```text
+Configuration succeeded -- 1 device(s) configured
+Successfully performed operation(s)
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+### JTAG 原始結果與 pain terminal log
+
+執行：
+
+```text
+timeout 300s quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3
+```
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SIGNALING-20260816/runtime_60samples.log
+```
+
+本機留存副本：
+
+```text
+build/artifacts/EXP-WRPC-SIGNALING-20260816/runtime_60samples.log
+```
+
+Quartus STP log 結尾為：
+
+```text
+SESSION_TIME_SERIES_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_timeseries_session.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+```
+
+每張板均完成 60/60 個 `SESSION_SAMPLE_RESULT`；Master retry 分布為 0/1/2/3 次分別 39/16/3/2，Slave 為 40/14/3/3。retry 是 mailbox 非原子讀取造成的 invalid frame 重讀，不是 WR handshake failure。
+
+Master accepted sample 的關鍵訊號：
+
+```text
+tx_msg=0x1001  tx_count=1..4
+rx_msg=0x1000  rx_count=1
+fail_count=0
+wr_state=3 (WRS_M_LOCK)
+```
+
+Slave accepted sample 的關鍵訊號：
+
+```text
+rx_msg=0x1001  rx_count=1
+tx_msg=0x1000  tx_count=1
+fail_role=2    fail_state=2  fail_count=1
+wr_state=0     (failure 後回到 WRS_IDLE)
+status_low=0xCF/0xEF
+time_valid=0   spll_locked=0
+```
+
+依 `wr-constants.h`，`WR_SLAVE=2`、`WRS_S_LOCK=2`；依 `state-wr-s-lock.c`，Slave 在此狀態會呼叫 `locking_poll()`，只有得到 `WRH_SPLL_LOCKED` 才會前進到 `WRS_LOCKED`，逾時則呼叫 `wr_handshake_fail()`。
+
+### Observation
+
+這次已直接證明 WR signaling 並非完全不通：Master 的 `LOCK` 已被 Slave 成功解析，且 Slave 的 `wr_handshake_fail()` sticky 計數確實增加。Slave 的失敗前 state 是 `WRS_S_LOCK`，不是停在 `WRS_PRESENT`，所以問題已排除「LOCK 沒送到／沒收到」這個主要假設。
+
+同一段觀測中，Slave 的 `SPLL_CSR=0x01010000`、`PSTAT.locked=0`、`time_valid=0`，而 `DMS/CKO/UCNT` 有活動；這支持 Slave 已進入 locking path，但沒有取得 `WRH_SPLL_LOCKED`。這些資料仍未說明是 SoftPLL 輸入、calibration、locking threshold、clock reference，還是其他必要條件失敗。
+
+### Conclusion
+
+在目前證據範圍內，最保守且可重現的結論是：
+
+> **Master→Slave 的 WR signaling path 可運作；Slave 已收到 LOCK 並進入 `WRS_S_LOCK`，但在 `locking_poll()` 階段未取得 SoftPLL locked，最後握手失敗並退回 PTP fallback。**
+
+因此，問題已從「PHY/PTP 封包是否完全不通」收斂到「Slave WR locking/SoftPLL-to-time-valid 路徑」，但尚不能宣稱根因已確定，也不能由此單獨判定是光路、pre-emphasis 或某一個 SI5340 參數。
+
+### Next Step
+
+1. 先維持現有 bitstream、PHY 與 PTP 不變。
+2. 做下一輪唯讀 source/observability：記錄 `locking_enable`、`locking_poll` 的返回分類、timeout/retry 邊界，以及 SoftPLL sequence state；不直接修改 lock 判斷。
+3. 若能把 `WRH_SPLL_LOCKED` 的判斷鏈完整對上，再只改一個可驗證的 SoftPLL/calibration 變因，重新 compile、燒錄並建立新的實驗 ID。

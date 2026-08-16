@@ -291,7 +291,10 @@ entity xwr_core is
     cpu_fault_o    : out std_logic;
     cpu_im_valid_o : out std_logic;
     cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
-    cpu_boot_stage_seen_o  : out std_logic
+    cpu_boot_stage_seen_o  : out std_logic;
+    cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_seen_o  : out std_logic
     );
 end xwr_core;
 
@@ -493,6 +496,9 @@ begin
        cpu_im_valid_o => cpu_im_valid_o,
        cpu_boot_stage_value_o => cpu_boot_stage_value_o,
        cpu_boot_stage_seen_o  => cpu_boot_stage_seen_o,
+       cpu_last_store_addr_o  => cpu_last_store_addr_o,
+       cpu_last_store_data_o  => cpu_last_store_data_o,
+       cpu_last_store_seen_o  => cpu_last_store_seen_o,
 
        aux_diag_i => aux_diag_i,
       aux_diag_o => aux_diag_o

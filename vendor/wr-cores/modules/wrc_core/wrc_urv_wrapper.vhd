@@ -50,7 +50,10 @@ entity wrc_urv_wrapper is
     cpu_fault_o  : out std_logic;
     cpu_im_valid_o : out std_logic;
     cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
-    cpu_boot_stage_seen_o  : out std_logic
+    cpu_boot_stage_seen_o  : out std_logic;
+    cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_seen_o  : out std_logic
     );
 end wrc_urv_wrapper;
 
@@ -98,6 +101,9 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_fault : std_logic;
   signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
   signal cpu_boot_stage_seen  : std_logic;
+  signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
+  signal cpu_last_store_data  : std_logic_vector(31 downto 0);
+  signal cpu_last_store_seen  : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -364,10 +370,17 @@ begin
       if rst_n_i = '0' then
         cpu_boot_stage_value <= (others => '0');
         cpu_boot_stage_seen  <= '0';
-      elsif dm_store = '1' and dm_is_wishbone = '0' and
-            dm_addr = x"00016530" then
-        cpu_boot_stage_value <= dm_data_s;
-        cpu_boot_stage_seen  <= '1';
+        cpu_last_store_addr  <= (others => '0');
+        cpu_last_store_data  <= (others => '0');
+        cpu_last_store_seen  <= '0';
+      elsif dm_store = '1' and dm_is_wishbone = '0' then
+        cpu_last_store_addr <= dm_addr;
+        cpu_last_store_data <= dm_data_s;
+        cpu_last_store_seen <= '1';
+        if dm_addr = x"00016530" then
+          cpu_boot_stage_value <= dm_data_s;
+          cpu_boot_stage_seen  <= '1';
+        end if;
       end if;
     end if;
   end process p_boot_stage_observe;
@@ -380,5 +393,8 @@ begin
   cpu_im_valid_o <= im_valid;
   cpu_boot_stage_value_o <= cpu_boot_stage_value;
   cpu_boot_stage_seen_o  <= cpu_boot_stage_seen;
+  cpu_last_store_addr_o  <= cpu_last_store_addr;
+  cpu_last_store_data_o  <= cpu_last_store_data;
+  cpu_last_store_seen_o  <= cpu_last_store_seen;
 
 end architecture arch;

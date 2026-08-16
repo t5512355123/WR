@@ -275,6 +275,9 @@ architecture rtl of wr_softpll_ng is
 
   signal irq_tag : std_logic;
 
+  signal diag_tag_valid_count : unsigned(31 downto 0);
+  signal diag_trr_write_count : unsigned(31 downto 0);
+
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -597,7 +600,9 @@ begin  -- rtl
       regs_o => regs_in,
       regs_i => regs_out,
 
-      irq_tag_i => irq_tag);
+      irq_tag_i => irq_tag,
+      diag_tag_valid_count_i => std_logic_vector(diag_tag_valid_count),
+      diag_trr_write_count_i => std_logic_vector(diag_trr_write_count));
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -729,6 +734,25 @@ begin  -- rtl
   out_locked_o <= regs_in.occr_out_lock_o(g_num_outputs-1 downto 0);
 
   irq_tag <= not regs_in.trr_wr_empty_o;
+
+  -- Read-only event counters. They observe tag arbitration and the actual
+  -- tag FIFO write request without changing the SoftPLL control path.
+  p_diag_tag_events : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        diag_tag_valid_count <= (others => '0');
+        diag_trr_write_count <= (others => '0');
+      else
+        if tag_valid = '1' then
+          diag_tag_valid_count <= diag_tag_valid_count + 1;
+        end if;
+        if tag_valid = '1' and regs_in.trr_wr_full_o = '0' then
+          diag_trr_write_count <= diag_trr_write_count + 1;
+        end if;
+      end if;
+    end if;
+  end process;
 
   deglitch_thr_slv <= regs_in.deglitch_thr_o;
 

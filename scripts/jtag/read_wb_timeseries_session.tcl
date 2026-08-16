@@ -107,6 +107,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_irq_count [wb_read 0x001009EC]
   set wr_spll_irq_mask [wb_read 0x001009F0]
   set wr_spll_irq_status [wb_read 0x001009F4]
+  set wr_spll_tag_valid_count [wb_read 0x001009F8]
+  set wr_spll_trr_write_count [wb_read 0x001009FC]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -153,6 +155,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_irq_count_end [wb_read 0x001009EC]
   set wr_spll_irq_mask_end [wb_read 0x001009F0]
   set wr_spll_irq_status_end [wb_read 0x001009F4]
+  set wr_spll_tag_valid_count_end [wb_read 0x001009F8]
+  set wr_spll_trr_write_count_end [wb_read 0x001009FC]
   set ctrl_end [wb_read 0x00100904]
   set clock_activity_end [read_probe_data -instance_index 7 -value_in_hex]
 
@@ -173,6 +177,7 @@ proc read_diag_sample {hardware_name sample attempt} {
       $wr_spll_state_transition_count $wr_spll_last_state \
       $wr_spll_irq_count \
       $wr_spll_irq_mask $wr_spll_irq_status \
+      $wr_spll_tag_valid_count $wr_spll_trr_write_count \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
       $foreign_meta_end $parse_meta_end $wr_state_debug_end \
@@ -188,6 +193,7 @@ proc read_diag_sample {hardware_name sample attempt} {
       $wr_spll_state_transition_count_end $wr_spll_last_state_end \
       $wr_spll_irq_count_end \
       $wr_spll_irq_mask_end $wr_spll_irq_status_end \
+      $wr_spll_tag_valid_count_end $wr_spll_trr_write_count_end \
       $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
@@ -336,6 +342,9 @@ proc read_diag_sample {hardware_name sample attempt} {
         $wr_spll_helper_output $wr_spll_state_visit_mask \
         $wr_spll_state_transition_count $wr_spll_last_state $wr_spll_irq_count \
         $wr_spll_irq_mask $wr_spll_irq_status]
+  puts [format "WR_SPLL_EVENTS: TAG_VALID_COUNT=%s/%s TRR_WRITE_COUNT=%s/%s" \
+        $wr_spll_tag_valid_count $wr_spll_tag_valid_count_end \
+        $wr_spll_trr_write_count $wr_spll_trr_write_count_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

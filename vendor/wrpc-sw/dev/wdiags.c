@@ -231,6 +231,14 @@ void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
 	wdiag_write(0xf4, irq_status);
 }
 
+void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
+                                      uint32_t trr_write_count)
+{
+	/* These are read-only hardware counters exposed by SoftPLL-ng. */
+	wdiag_write(0xf8, tag_valid_count);
+	wdiag_write(0xfc, trr_write_count);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

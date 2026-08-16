@@ -190,6 +190,9 @@ int wrc_wr_diags(void)
 				softpll.irq_count,
 				SPLL->EIC_IMR,
 				SPLL->EIC_ISR);
+			wdiags_write_wr_spll_event_debug(
+				SPLL->TAG_VALID_COUNT,
+				SPLL->TRR_WRITE_COUNT);
 		}
 	}
 

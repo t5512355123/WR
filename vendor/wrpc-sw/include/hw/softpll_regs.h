@@ -316,6 +316,10 @@ uint32_t DFR_HOST_CSR;
 uint32_t TRR_R0;
 /* [0x80]: REG FIFO 'Tag Readout Register' control/status register */
 uint32_t TRR_CSR;
+/* [0x84]: read-only diagnostic count of tag arbitration events */
+uint32_t TAG_VALID_COUNT;
+/* [0x88]: read-only diagnostic count of tag FIFO write requests */
+uint32_t TRR_WRITE_COUNT;
 };
 
 #endif

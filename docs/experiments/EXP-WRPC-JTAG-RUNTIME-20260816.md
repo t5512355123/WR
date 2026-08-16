@@ -2004,3 +2004,129 @@ Master 的最終 accepted sample 為 `status_low=0xFF`、`time_valid=1`、`pps_v
 2. 進行 source audit，對照 `SEQ_CLEAR_DACS` 的進入與離開條件，以及 SoftPLL channel/reference 的 enable、lock feedback 和 DAC clear/ack 狀態。
 3. 下一版若仍只加觀測，應記錄 sequence state transition、clear-DAC completion/timeout、lock feedback/threshold 與每個 SoftPLL channel 的 enable/locked 狀態。
 4. 只有在上述觀測指出單一明確變因後，才建立下一個「只改一個控制參數」的燒錄實驗；不能把本次 `result=1` 直接當成已證明的 SI5340 或光路根因。
+
+---
+
+## 實驗：EXP-WRPC-SPLL-HW-OBS-20260816
+
+### 實驗名稱
+
+`77f0f7d 加入 SoftPLL 硬體與 lock detector 唯讀診斷`：觀察 `SEQ_CLEAR_DACS` 是否能進入下一個 sequence、tag receiver 是否有資料、helper/main PLL 是否啟動與鎖定；不改變 WR 控制流程。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`77f0f7de68ea88ca5baf4886b147daadedc63dcb`
+- Quartus：`17.0.0 Build 595`
+- Master MIF SHA256：`8b5eb198ad57a6c9f85ba7109722906083c44baf309c0aca275604ecf6247b8e`
+- Slave MIF SHA256：`b2c12b941e47b06a942f4316feff13b1f927d3eb0b4c3049e0c184cba82b21f8`
+- Master SOF SHA256：`eae911fac8321b365e5c353bdfc99c1d8b80beebf25376a13485c3e8f9f2dcde`
+- Slave SOF SHA256：`b48886a836b526777706d3627dffc8f3860d3627d09608984c839e4a217290a0`
+- Programmer checksum：Master `0x30A0A429`；Slave `0x30A5A091`
+- Fitter：兩端 Successful；兩端 `TIMING_CLOSED=NO`
+
+### 這次要驗證什麼
+
+用唯讀欄位區分：
+
+1. SoftPLL 是否停在 `SEQ_CLEAR_DACS`，還是有進入 helper/main 啟動階段。
+2. tag receiver FIFO 是否在取樣時為 empty。
+3. helper PLL 的 lock detector 是否有累積有效 lock samples。
+4. main PLL 是否已被啟動，以及 output channel lock bit 是否成立。
+
+### 相較 baseline 唯一修改了什麼
+
+只新增診斷 mailbox 的唯讀 shadow：`OCER`、`RCER`、`OCCR`、`TRR_CSR`、helper/main DAC 值、helper lock detector、main lock detector 與其 threshold/lock_samples。這些欄位只由 JTAG 讀取，沒有寫回 SoftPLL，也沒有改變任何 PLL、PHY、PTP、servo 或 SI5340 行為。
+
+### Compile 與燒錄結果
+
+pain 從 GitHub checkout 明確 commit `77f0f7de68ea88ca5baf4886b147daadedc63dcb` 後建置：
+
+```text
+Master: Quartus Prime Full Compilation was successful, 0 errors
+Slave : Quartus Prime Full Compilation was successful, 0 errors
+```
+
+兩端 programmer 原始結果都是：
+
+```text
+Configuration succeeded -- 1 device(s) configured
+Successfully performed operation(s)
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+### JTAG 原始結果與 pain terminal log
+
+第一次取樣：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples.log
+```
+
+補充取樣使用同一 bitstream、只把最大 retry 從 3 提高到 8：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples_retry8.log
+```
+
+本機副本與 hash：
+
+```text
+build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples.log
+SHA256=0184682658fe313827c617d2282c1926519aa7171462f59f9c126ddd6940167e
+
+build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples_retry8.log
+SHA256=50d63f5378b3413df6cf5ec4f31890320e53084a74db25c137512c3dcfe78a56
+```
+
+補充取樣的 pain terminal log 結尾為：
+
+```text
+SESSION_SAMPLE_RESULT board=DE5 [1-11.2] sample=060 accepted=1 retries=1
+SESSION_TIME_SERIES_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_timeseries_session.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+```
+
+補充取樣接受 Master 59/60、Slave 58/60；未接受列只因前後讀值不一致而被 retry 規則排除，JTAG session 沒有中斷。
+
+### JTAG 關鍵結果
+
+Slave 的有效列穩定為：
+
+```text
+WR_LOCK: result=1 spll_locked=0 polls=847410 unlocked=847410 calibration_fail=0 enable=4 seq_state=9 align_state=0 mode=3 delock_count=0
+WR_SPLL_HW_BLOCK_VALID: 1 OCER=00000101/00000101 RCER=00000001/00000001 OCCR=00000101/00000101 TRR_CSR=00020100/00020100 DAC_HPLL=010003E8/010003E8 DAC_MAIN=000003E8/000003E8
+WR_SPLL_LOCKDET: HELPER=00000000 LIMITS=271000C8 MAIN=00000000 FREQ_LIMITS=00320032 PHASE_LIMITS=03E804B0
+DECODE: status_low=CF time_valid=0 pps_valid=0 wr_mode=3 link_up=1 spll_locked=0
+```
+
+欄位解讀：
+
+- `seq_state=9` 是 `SEQ_CLEAR_DACS`，不是 `SEQ_READY=8`。
+- `TRR_CSR=0x20100` 的 empty bit（bit 17）在取樣時為 1；這只能表示該次讀取當下 FIFO 為 empty，不能單獨證明整段時間完全沒有 tag。
+- `RCER=1` 表示 Slave 的 reference tagger 已啟用。
+- `OCCR=0x101` 表示 output channel enable bit 已設，但 output lock bit 尚未設。
+- `HELPER=0x00000000` 表示 helper 未鎖定、沒有 lock_changed，lock counter 為 0；其 threshold 為 200、lock_samples 為 10000。
+- `MAIN=0` 表示 main PLL 尚未 enabled，也尚未 locked。
+- Slave 的 `calibration_fail=0`，所以這輪沒有 t24p calibration failure 證據。
+
+Master 的有效列則維持 `status_low=0xFF`、`time_valid=1`、`pps_valid=1`；其 `OCCR=0x100` 也沒有 output lock bit，但 Master 是 free-running master，不能用 Slave 的 helper/main 判讀方式直接等同比較。
+
+### Observation
+
+這次證據顯示 Slave 的失敗點比上一輪更早、更具體：Slave 的 reference tagger 已啟用，但 helper lock detector 沒有累積到任何 lock sample，main PLL 也沒有被啟動；因此不是「main PLL 已經 lock 後又掉鎖」。`SEQ_CLEAR_DACS` 仍未被觀測到離開，與 `locking_poll()` 長時間得到 `spll_check_lock(0)=false` 一致。
+
+### Conclusion
+
+證據支持以下保守結論：
+
+> **Slave 尚未通過 helper PLL lock，因此主 PLL 尚未啟動，WR handshake 無法完成。問題目前優先落在 reference/tag input 到 helper lock detector 的路徑；但因為本輪只在週期性 mailbox 讀取 `TRR_CSR`，仍不能單憑 empty bit 判定沒有任何 tag，也不能直接宣稱是光路或某一個 PHY 參數。**
+
+### Next Step
+
+1. 維持目前 PHY、PTP、servo、SoftPLL 設定與 SI5340 控制不變。
+2. 下一個唯讀版本加入 `softpll.ref_count/tag_count`、helper PI error/output 與 tag readout 的累積資訊，確認是「沒有 tag」還是「有 tag 但誤差始終超過 threshold」。
+3. 若確認有 tag 且 helper error 長期超過 200，再查 reference clock/PCS recovered clock 與 helper input；若沒有 tag，優先查 tagger/clock input path。
+4. 只有在這些證據指出單一明確變因後，才進行下一個控制參數實驗。

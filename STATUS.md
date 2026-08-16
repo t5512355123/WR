@@ -183,3 +183,18 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 原始 log：`build/artifacts/EXP-WRPC-LOCK-STATE-20260816/runtime_60samples.log`。
 
 下一步是唯讀追蹤 `SEQ_CLEAR_DACS` 的進出條件、DAC clear/ack 與 channel/reference lock feedback；在新證據前不改 PHY、PTP、servo 或 SI5340 控制參數。
+
+## 最新燒錄實驗：SoftPLL 硬體與 lock detector 觀測
+
+- 實驗 ID：`EXP-WRPC-SPLL-HW-OBS-20260816`
+- commit：`77f0f7de68ea88ca5baf4886b147daadedc63dcb`
+- branch：`exp/jtag-runtime-observability`
+- Master checksum：`0x30A0A429`
+- Slave checksum：`0x30A5A091`
+- 燒錄：兩端 configuration succeeded，Quartus Programmer 0 errors、0 warnings。
+- JTAG：同一 bitstream 的 retry=8 補充取樣接受 Master 59/60、Slave 58/60，STP Tcl evaluation successful。
+- Slave：`RCER=1`、`OCCR=0x101`、`seq_state=9 (SEQ_CLEAR_DACS)`、helper locked=0/lock_count=0、main enabled=0/locked=0、`calibration_fail=0`、`time_valid=0`。
+- 結論：Slave 尚未通過 helper PLL lock，main PLL 尚未啟動；目前優先查 reference/tag input 到 helper lock detector 的路徑，尚未證明光路或特定 PHY 參數是根因。
+- 原始 log：`build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples_retry8.log`。
+
+下一步是加入 `softpll.ref_count/tag_count` 與 helper PI error/output 的唯讀觀測，以區分沒有 tag 和有 tag 但誤差超過 threshold。

@@ -179,6 +179,14 @@ int wrc_wr_diags(void)
 					(((uint32_t)softpll.mpll.freq_ld.lock_samples & 0xffffu) << 16),
 				((uint32_t)softpll.mpll.phase_ld.threshold & 0xffffu) |
 					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
+			wdiags_write_wr_spll_activity_debug(
+				softpll.ref_count,
+				softpll.tag_count,
+				softpll.helper.pi.x,
+				softpll.helper.pi.y,
+				wrpc_spll_state_visit_mask,
+				wrpc_spll_state_transition_count,
+				wrpc_spll_last_state);
 		}
 	}
 

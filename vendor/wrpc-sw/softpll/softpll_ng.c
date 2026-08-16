@@ -47,6 +47,16 @@ static const char * const seq_states[] =
 #define SEQ_STATES_NR  ARRAY_SIZE(seq_states)
 
 volatile struct softpll_state softpll;
+volatile uint32_t wrpc_spll_state_visit_mask;
+volatile uint32_t wrpc_spll_state_transition_count;
+volatile uint8_t wrpc_spll_last_state;
+
+static inline void wrpc_spll_note_state(int state)
+{
+	if (state >= 0 && state < 32)
+		wrpc_spll_state_visit_mask |= (uint32_t)1u << state;
+	wrpc_spll_last_state = (uint8_t)state;
+}
 
 static volatile int ptracker_mask = 0;
 /* fixme: should be done by spll_init() but spll_init is called to
@@ -102,6 +112,8 @@ static inline void update_ptrackers(struct softpll_state *s, int tag_value, int 
 
 static inline void sequencing_fsm(struct softpll_state *s, int tag_value, int tag_source)
 {
+	int previous_state = s->seq_state;
+
 	if( tag_source == spll_n_chan_ref ) // main osc
 		s->tag_count++;
 	else if ( tag_source == 0 ) // ref 0
@@ -229,6 +241,10 @@ static inline void sequencing_fsm(struct softpll_state *s, int tag_value, int ta
 			break;
 		}
 	}
+
+	if (s->seq_state != previous_state)
+		wrpc_spll_state_transition_count++;
+	wrpc_spll_note_state(s->seq_state);
 }
 
 static inline void update_loops(struct softpll_state *s, int tag_value, int tag_source)
@@ -286,6 +302,9 @@ void spll_very_init(void)
 
 	memset( (void *) &softpll, 0, sizeof(struct softpll_state ));
 	softpll.mode = SPLL_MODE_DISABLED;
+	wrpc_spll_state_visit_mask = 0;
+	wrpc_spll_state_transition_count = 0;
+	wrpc_spll_last_state = SEQ_DISABLED;
 
 	uint32_t csr = SPLL->CSR;
 
@@ -347,6 +366,9 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 		s->seq_state = SEQ_DISABLED;
 	else
 		s->seq_state = SEQ_CLEAR_DACS;
+	wrpc_spll_state_visit_mask = 0;
+	wrpc_spll_state_transition_count = 0;
+	wrpc_spll_note_state(s->seq_state);
 
 	int helper_ref;
 

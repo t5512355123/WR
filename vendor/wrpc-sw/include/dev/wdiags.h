@@ -45,6 +45,11 @@ void wdiags_write_wr_spll_hw_debug(uint32_t ocer, uint32_t rcer,
                                    uint32_t helper_state, uint32_t helper_limits,
                                    uint32_t main_state, uint32_t main_limits,
                                    uint32_t main_phase_limits);
+void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
+                                         int32_t helper_error, int32_t helper_output,
+                                         uint32_t state_visit_mask,
+                                         uint32_t state_transition_count,
+                                         uint32_t last_state);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

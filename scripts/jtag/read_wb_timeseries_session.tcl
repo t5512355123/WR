@@ -92,6 +92,13 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_main_state [wb_read 0x001009C4]
   set wr_spll_main_limits [wb_read 0x001009C8]
   set wr_spll_main_phase_limits [wb_read 0x001009CC]
+  set wr_spll_ref_count [wb_read 0x001009D0]
+  set wr_spll_tag_count [wb_read 0x001009D4]
+  set wr_spll_helper_error [wb_read 0x001009D8]
+  set wr_spll_helper_output [wb_read 0x001009DC]
+  set wr_spll_state_visit_mask [wb_read 0x001009E0]
+  set wr_spll_state_transition_count [wb_read 0x001009E4]
+  set wr_spll_last_state [wb_read 0x001009E8]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -128,6 +135,13 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_main_state_end [wb_read 0x001009C4]
   set wr_spll_main_limits_end [wb_read 0x001009C8]
   set wr_spll_main_phase_limits_end [wb_read 0x001009CC]
+  set wr_spll_ref_count_end [wb_read 0x001009D0]
+  set wr_spll_tag_count_end [wb_read 0x001009D4]
+  set wr_spll_helper_error_end [wb_read 0x001009D8]
+  set wr_spll_helper_output_end [wb_read 0x001009DC]
+  set wr_spll_state_visit_mask_end [wb_read 0x001009E0]
+  set wr_spll_state_transition_count_end [wb_read 0x001009E4]
+  set wr_spll_last_state_end [wb_read 0x001009E8]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
@@ -142,6 +156,9 @@ proc read_diag_sample {hardware_name sample attempt} {
       $wr_spll_dac_hpll $wr_spll_dac_main $wr_spll_helper_state \
       $wr_spll_helper_limits $wr_spll_main_state $wr_spll_main_limits \
       $wr_spll_main_phase_limits \
+      $wr_spll_ref_count $wr_spll_tag_count $wr_spll_helper_error \
+      $wr_spll_helper_output $wr_spll_state_visit_mask \
+      $wr_spll_state_transition_count $wr_spll_last_state \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
       $foreign_meta_end $parse_meta_end $wr_state_debug_end \
@@ -152,6 +169,9 @@ proc read_diag_sample {hardware_name sample attempt} {
       $wr_spll_dac_hpll_end $wr_spll_dac_main_end $wr_spll_helper_state_end \
       $wr_spll_helper_limits_end $wr_spll_main_state_end $wr_spll_main_limits_end \
       $wr_spll_main_phase_limits_end \
+      $wr_spll_ref_count_end $wr_spll_tag_count_end $wr_spll_helper_error_end \
+      $wr_spll_helper_output_end $wr_spll_state_visit_mask_end \
+      $wr_spll_state_transition_count_end $wr_spll_last_state_end \
       $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
@@ -190,7 +210,14 @@ proc read_diag_sample {hardware_name sample attempt} {
                                     $wr_spll_helper_limits == $wr_spll_helper_limits_end &&
                                     $wr_spll_main_state == $wr_spll_main_state_end &&
                                     $wr_spll_main_limits == $wr_spll_main_limits_end &&
-                                    $wr_spll_main_phase_limits == $wr_spll_main_phase_limits_end}]
+                                    $wr_spll_main_phase_limits == $wr_spll_main_phase_limits_end &&
+                                    $wr_spll_ref_count == $wr_spll_ref_count_end &&
+                                    $wr_spll_tag_count == $wr_spll_tag_count_end &&
+                                    $wr_spll_helper_error == $wr_spll_helper_error_end &&
+                                    $wr_spll_helper_output == $wr_spll_helper_output_end &&
+                                    $wr_spll_state_visit_mask == $wr_spll_state_visit_mask_end &&
+                                    $wr_spll_state_transition_count == $wr_spll_state_transition_count_end &&
+                                    $wr_spll_last_state == $wr_spll_last_state_end}]
   set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid &&
                          $wr_state_block_valid && $wr_signal_block_valid &&
                          $wr_lock_block_valid && $wr_spll_hw_block_valid}]
@@ -280,6 +307,10 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SPLL_LOCKDET: HELPER=%s LIMITS=%s MAIN=%s FREQ_LIMITS=%s PHASE_LIMITS=%s" \
         $wr_spll_helper_state $wr_spll_helper_limits $wr_spll_main_state \
         $wr_spll_main_limits $wr_spll_main_phase_limits]
+  puts [format "WR_SPLL_ACTIVITY: REF_COUNT=%s TAG_COUNT=%s HELPER_ERROR=%s HELPER_OUTPUT=%s VISIT_MASK=%s TRANSITIONS=%s LAST_STATE=%s" \
+        $wr_spll_ref_count $wr_spll_tag_count $wr_spll_helper_error \
+        $wr_spll_helper_output $wr_spll_state_visit_mask \
+        $wr_spll_state_transition_count $wr_spll_last_state]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

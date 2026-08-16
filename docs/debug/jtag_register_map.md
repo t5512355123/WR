@@ -68,6 +68,10 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x001009C0` | `WR_SPLL_HELPER_LIMITS` | 低 16 位 threshold、高 16 位 lock_samples |
 | `0x001009C4` | `WR_SPLL_MAIN_LOCKDET` | main enabled/locked/frequency locked/phase locked 與頻率、相位 lock counter |
 | `0x001009C8` / `0x001009CC` | `WR_SPLL_MAIN_FREQ_LIMITS` / `WR_SPLL_MAIN_PHASE_LIMITS` | main 頻率/相位 lock detector threshold 與 lock_samples |
+| `0x001009D0` / `0x001009D4` | `WR_SPLL_REF_COUNT` / `WR_SPLL_TAG_COUNT` | SoftPLL 自 `spll_init()` 後處理的 reference/main tag 累計數 |
+| `0x001009D8` / `0x001009DC` | `WR_SPLL_HELPER_ERROR` / `WR_SPLL_HELPER_OUTPUT` | helper PI 最近一次 error (`pi.x`) 與輸出 (`pi.y`) |
+| `0x001009E0` | `WR_SPLL_STATE_VISIT_MASK` | sticky sequence state visit mask；bit N 表示曾經進入 state N |
+| `0x001009E4` / `0x001009E8` | `WR_SPLL_STATE_TRANSITIONS` / `WR_SPLL_LAST_STATE` | sequence state transition 累計次數與最後 state |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

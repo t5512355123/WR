@@ -210,6 +210,21 @@ void wdiags_write_wr_spll_hw_debug(uint32_t ocer, uint32_t rcer,
 	wdiag_write(0xcc, main_phase_limits);
 }
 
+void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
+                                         int32_t helper_error, int32_t helper_output,
+                                         uint32_t state_visit_mask,
+                                         uint32_t state_transition_count,
+                                         uint32_t last_state)
+{
+	wdiag_write(0xd0, ref_count);
+	wdiag_write(0xd4, tag_count);
+	wdiag_write(0xd8, (uint32_t)helper_error);
+	wdiag_write(0xdc, (uint32_t)helper_output);
+	wdiag_write(0xe0, state_visit_mask);
+	wdiag_write(0xe4, state_transition_count);
+	wdiag_write(0xe8, last_state);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

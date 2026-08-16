@@ -22,6 +22,14 @@
 - 這次沒有改變硬體、沒有重新 compile、沒有燒錄；完整紀錄：`docs/experiments/EXP-WRPC-HELPER-SATURATION-OBS-20260817.md`。
 - 下一個單一變因候選是修正 SI5340 runtime page/register 序列；在 compile、hash、燒錄與 runtime 證據完成前，不把它寫成已證明根因。
 
+### `5e816ea` SI5340 runtime page/register A/B
+
+- 只把 runtime I2C 序列改成 `page 3 -> 0x39 -> page 0 -> 0x1D`，Master/Slave 均以 Quartus 17 compile、fit、燒錄成功。
+- Master SOF checksum：`0x30A4AB2F`；Slave SOF checksum：`0x30A38097`。
+- 60 sample runtime session 中，Slave raw tag/TRR counters 持續增加，但 `HELPER_ERROR=-150000`、`HELPER_OUTPUT=0xFFFB`、`PSTAT.bit1=0`、`time_valid=0`；最後 sample 僅 `pps_valid=1`。
+- 結論：page/register 修正本身不足以完成同步；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-PAGE-20260817.md`。
+- 下一個單一變因改查 DAC load request 的 clock-domain crossing，不能與 PHY 或 DMTD wiring 同時修改。
+
 最近一次有效燒錄的 source 變因是 `9f848ec` 的 Master 啟動命令修正；`18614cf`、`f4b7e79` 是前一輪唯讀診斷，`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
 ### Slave 重新初始化實驗

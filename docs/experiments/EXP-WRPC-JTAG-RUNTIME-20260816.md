@@ -1490,3 +1490,76 @@ WDIAGS_SPLL_MY = 0x00100988
 2. 對 `SPLL_CSR/ECCR/OCCR` 查對應版本 header/硬體 map，建立繁中欄位表。
 3. 將 `PSTAT.locked`、SSTAT state、DAC request/load/ack 與 parent flags 放在同一份有效 frame 摘要。
 4. 在這些證據完成前，不修改 PHY、PTP filter、servo、SI5340 或重新燒錄功能版 SOF。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-SPLL-BLOCK-20260816
+
+### 實驗名稱
+
+`3218b55 加入 SoftPLL register block 前後一致性檢查`：對 `SPLL_CSR/ECCR/OCCR` 做前後雙讀，將 block 不一致列標 invalid 並重試。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`3218b55`
+- 本次沒有 compile、沒有產生 MIF/SOF、沒有燒錄 FPGA。
+- Quartus 17：`17.0.0 Build 595`。
+
+### 這次要驗證什麼
+
+驗證上一輪少數 `SPLL_CSR/ECCR` 異常值是否是跨 register mailbox 讀取污染，而不是真實 SoftPLL register 狀態；同時保留 retry 後的有效 sample 作為後續判讀基線。
+
+### 相較 baseline 唯一修改了什麼
+
+在既有單一 JTAG session、`CTRL_BEGIN/CTRL_END` 和最多 3 次 retry 之上，新增：
+
+```text
+SPLL_BLOCK_VALID = (CSR_A == CSR_B) && (ECCR_A == ECCR_B) && (OCCR_A == OCCR_B)
+```
+
+只有 `FRAME_VALID=1` 且 `SPLL_BLOCK_VALID=1` 才接受該列。沒有寫入任何 WR register。
+
+### 結果與 pain terminal log
+
+- Quartus Tcl evaluation successful，0 errors、0 warnings。
+- 兩張板共完成 120 個 accepted sample。
+- 有 7 次 `SPLL_BLOCK_VALID=0`，以及 3 次 `CTRL_BEGIN/CTRL_END` 不一致；全部被丟棄並重試，沒有把不一致列納入 accepted 結果。
+- 120 個 accepted sample 的 SoftPLL block 前後值皆為：
+
+```text
+SPLL_CSR=01010000
+SPLL_ECCR=00000000
+SPLL_OCCR=00000000
+```
+
+- Accepted sample 的 `WDIAGS_SPLL_HY/MY` 仍為 0；Slave `SSTAT` state field=0，`PSTAT=0x1`，沒有 lock bit=1。
+- 沒有 timeout、CPU fault、reset、stall 或實體重啟。
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-SPLL-BLOCK-20260816/runtime_60samples.log
+```
+
+### Source map 核對
+
+依本機目前採用的 `vendor/wrpc-sw/include/hw/softpll_regs.h`：
+
+- `SPLL_CSR=0x01010000`：`N_REF` bits 16..21 為 1、`N_OUT` bits 24..26 為 1，`DBG_SUPPORTED` bit 27 為 0。
+- `SPLL_ECCR=0`：external clock enable/supported/reference locked/stopped bits 都是 0；這不是單獨的 WR main PLL lock bit。
+- `SPLL_OCCR=0`：output-channel enable/lock fields 都是 0；它不能取代 `WDIAGS_PSTAT` 的 main SoftPLL lock 證據。
+- `WDIAGS_SPLL_HY/MY` 是 `wdiags_write_pll_diags()` 寫入的診斷欄位；在目前 firmware path 沒有填入時讀到 0，不應直接翻譯成 DAC 輸出為 0 或 PLL 故障。
+
+### Observation 與 Conclusion
+
+雙讀後，前一輪少數 `51001D0A` 等異常值被判定為 mailbox 觀測污染；有效資料的 SoftPLL block 本身是穩定的。可是穩定值仍顯示 Slave 沒有 `PSTAT.locked=1`，伺服器 state field 也仍為 0，因此問題仍落在 Slave servo/SoftPLL 前段，不能宣稱已進入 time-valid gating 階段。
+
+這個實驗沒有改功能、沒有重新燒錄，所以只提升了證據品質，不能宣稱 WR 硬體同步成功。
+
+### Next Step
+
+1. 保持 `SPLL_BLOCK_VALID` 與 retry 規則，加入 parent flags、PPS raw validity、servo transition 的同一列摘要。
+2. 對 `PSTAT.locked` 與 `SSTAT[11:8]` 做明確 bit-field 解碼，避免把 raw status 當 state number。
+3. 若 valid frame 長時間仍是 `state=0/lock=0`，再依 source map 查 parent/servo 初始化條件；目前不改 PHY、PTP filter、servo 或 SI5340。

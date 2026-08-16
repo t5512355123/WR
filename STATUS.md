@@ -122,3 +122,19 @@
 - 少數 `SPLL_CSR/ECCR` 跨列異常，表示 `CTRL.DATA_VALID` 不是跨多 register 的硬體原子 snapshot；後續必須用同一欄位重讀/一致性規則再解碼。
 
 因此目前不進入功能修改，下一步是補上 SoftPLL register block 的重讀一致性統計與 bit-field 解碼。
+
+### SoftPLL register block 雙讀結果
+
+使用 `3218b55` 後，120 個 accepted sample 的 SoftPLL block 前後值全部一致為：
+
+```text
+SPLL_CSR=01010000
+SPLL_ECCR=00000000
+SPLL_OCCR=00000000
+```
+
+另有 7 次 `SPLL_BLOCK_VALID=0` 與 3 次 `CTRL_BEGIN/CTRL_END` 不一致；全部被 retry 丟棄，最終 120/120 sample 接受。這證明前一輪少數異常 SoftPLL 數值不能當作真實 lock/error 狀態。
+
+依目前 source header，Slave 的 state field 仍為 0，`PSTAT=0x1` 仍只有 link bit；目前沒有 SoftPLL lock 或 `time_valid=1` 證據。
+
+下一步應在相同的 valid-frame 機制下讀取 parent flags、PPS 與 servo transition，不應先修改 WR 功能。

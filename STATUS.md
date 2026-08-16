@@ -312,3 +312,10 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 但後續 20 秒 Slave 的 PTP、tag、IRQ、UCNT 與 parent activity 掉到 0，後段 `link_up=0`，`time_valid=0`。
 - 結論：這不是成功修正；transaction 的實際 SI5340 寫入可能破壞 clock/runtime，下一步先回到可運作 baseline 並查 page/register/readback/clock effect。
 - 完整紀錄：`docs/experiments/EXP-WRPC-DCO-START-HANDSHAKE-20260817.md`。
+## 最新燒錄實驗：恢復 DCO 觀測 baseline（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-ROLLBACK-DCO-20260817`
+- pain 已 checkout `c5092dd` 並重新編譯、燒錄 Slave；SOF checksum `0x30A53A47`，configuration succeeded。
+- rollback 後 Slave 的 PTP/tag/IRQ activity 恢復；但 `PSTAT.locked=0`、`time_valid=0`，因此只是恢復 baseline，不是同步成功。
+- 下一步維持此 baseline，先離線核對 SI5340 runtime page/register/ACK/readback，再決定是否重新燒錄。
+- 完整紀錄：`docs/experiments/EXP-WRPC-ROLLBACK-DCO-20260817.md`。

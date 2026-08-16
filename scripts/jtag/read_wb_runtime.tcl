@@ -3,7 +3,7 @@ package require ::quartus::insystem_source_probe
 set ::wb_toggle 0
 
 proc decode_cpu_probe {hex_value} {
-  set value [expr {0x$hex_value}]
+  scan $hex_value %x value
   set pc [expr {$value & 0xffffffff}]
   set reset [expr {($value >> 32) & 1}]
   set fault [expr {($value >> 33) & 1}]

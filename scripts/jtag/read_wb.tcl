@@ -1,6 +1,7 @@
 package require ::quartus::insystem_source_probe
 
 set ::wb_toggle 0
+set ::boot_stage_word 0x594C
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -95,6 +96,8 @@ foreach hardware_name [get_hardware_names] {
     puts "CPU_HOLD:     [wb_write 0x00100B00 1]"
     puts "CPU_UADDR_WR: [wb_write 0x00100B04 0]"
     puts "CPU_IRAM0:    [wb_read_twice 0x00100B08]"
+    puts "CPU_UADDR_STAGE: [wb_write 0x00100B04 $::boot_stage_word]"
+    puts "CPU_BOOT_STAGE:  [wb_read_twice 0x00100B08]"
     puts "CPU_RELEASE:  [wb_write 0x00100B00 0]"
   } error_message]} {
     puts "error: ${error_message}"

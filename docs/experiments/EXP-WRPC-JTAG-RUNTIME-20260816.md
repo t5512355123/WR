@@ -1368,3 +1368,125 @@ Quartus STP 回報 Tcl evaluation successful，0 errors、0 warnings；完整 lo
 2. 增加 frame retry 與欄位一致性摘要，將 invalid sample 與有效 sample 分開統計。
 3. 在不改 PHY/PTP/servo/SI5340 的前提下，繼續讀取能區分 parent flags、servo state transition 與 SoftPLL lock 的唯讀欄位。
 4. 只有看到 `SSTAT state 4/5` 且 `PSTAT.locked=1`，才檢查後續 `time_valid` gating；目前不進入該分支。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-TIMESERIES-RETRY-20260816
+
+### 實驗名稱
+
+`b23a452 加入 JTAG 無效框重讀機制`：保留單一 JTAG session，遇到 `CTRL_BEGIN/CTRL_END` 不一致時最多重讀 3 次。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`b23a452`
+- 本次沒有 compile、沒有產生 MIF/SOF、沒有燒錄 FPGA。
+- Quartus 17：`17.0.0 Build 595`。
+
+### 這次要驗證什麼
+
+確認 invalid frame 可以在 host 端被丟棄並重讀，而不會混入 Servo/SoftPLL 結論；同時確認重試後 Slave 的狀態是否仍然停在同一階段。
+
+### 修改與測試方式
+
+只修改 host-side JTAG Tcl：
+
+```text
+scripts/jtag/read_wb_timeseries_session.tcl
+```
+
+每張板維持單一 source probe session；每個 sample 最多執行 3 次 retry。這次沒有寫入 mailbox 控制位，也沒有寫 `DATA_SNAPSHOT`。
+
+完整測試指令：
+
+```text
+timeout 300s /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3 2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-RETRY-20260816/runtime_60samples.log
+```
+
+### 結果與 pain terminal log
+
+- Quartus Tcl evaluation successful，0 errors、0 warnings。
+- Master：60 個 accepted sample；共有 1 次 invalid attempt（`CTRL_BEGIN=1`、`CTRL_END=0`），第 1 次重讀成功，沒有遺失 accepted sample。
+- Slave：60 個 accepted sample，0 invalid attempt，0 retry。
+- 沒有 timeout、CPU fault、reset、stall 或實體重啟。
+- Slave raw `SSTAT` 主要是 `0x00000001`，偶爾為 `0x00000002`；依 `vendor/wrpc-sw/include/hw/wrc_diags_regs.h`，伺服器 state 是 bits `[11:8]`，所以這些 raw 值的 state field 都仍是 0，不可把 raw 整數 2 直接翻成 `SYNC_TAI`。
+- Slave `PSTAT=0x00000001`，表示 link bit=1、SoftPLL lock bit=0；status low 為 `0xCF/0xEF`，`time_valid` 仍未成立。
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-RETRY-20260816/runtime_60samples.log
+```
+
+### Observation 與 Conclusion
+
+重試機制有效改善觀測資料品質；在可接受的 sample 中，Slave 仍沒有進入 `TRACK_PHASE` 或 SoftPLL lock。這支持問題仍在 Slave servo/SoftPLL 前段，且不是單純由一次 mailbox 讀錯造成；但尚未證明實際根因。
+
+### Next Step
+
+把 SoftPLL 狀態/控制 register 一起納入同樣的 frame 觀測，並保留 retry/invalid 統計；不要修改 PHY、PTP、servo 或 SI5340。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-SPLL-20260816
+
+### 實驗名稱
+
+`98c9ddb 補充 SoftPLL 唯讀診斷欄位`：在單一 JTAG session 與 retry 框架內加入 `SPLL_CSR/ECCR/OCCR` 及 SoftPLL DAC 觀測。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`98c9ddb`
+- 本次沒有 compile、沒有產生 MIF/SOF、沒有燒錄 FPGA。
+- Quartus 17：`17.0.0 Build 595`。
+
+### 這次要驗證什麼
+
+在不改動 WR runtime 的前提下，觀察 SoftPLL 控制/狀態 register、輔助 DAC 與主 DAC 是否有活動，協助區分「沒有 request/feedback」與「有活動但尚未 lock」。
+
+### 相較 baseline 唯一修改了什麼
+
+只增加 JTAG 唯讀輸出：
+
+```text
+SPLL_CSR   = 0x00100200
+SPLL_ECCR  = 0x00100204
+SPLL_OCCR  = 0x00100210
+WDIAGS_SPLL_HY = 0x00100984
+WDIAGS_SPLL_MY = 0x00100988
+```
+
+### 結果與 pain terminal log
+
+- 兩張板各 60 個 sample，共 120 個 sample；0 invalid、0 retry。
+- Quartus Tcl evaluation successful，0 errors、0 warnings。
+- 大多數 sample：`SPLL_CSR=01010000`、`SPLL_ECCR=00000000`、`SPLL_OCCR=00000000`。
+- 少數列出現不同的 `SPLL_CSR/ECCR` 組合；由於目前 mailbox 沒有跨 register sequence counter，這些少數值先列為需一致性重讀的觀測，不能直接解碼成 lock 或 error。
+- `WDIAGS_SPLL_HY=00000000`、`WDIAGS_SPLL_MY=00000000`。
+- Slave `SSTAT` 的 state field 仍為 0，`PSTAT=0x00000001`；沒有 SoftPLL lock 或 `time_valid=1` 證據。
+- 沒有 timeout、CPU fault、reset、stall 或實體重啟。
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-SPLL-20260816/runtime_60samples.log
+```
+
+### Observation
+
+這次沒有看到 `PSTAT.locked=1`，而且 DAC diagnostic 值維持 0；但少數 SoftPLL register 跨列變化仍顯示目前 host mailbox 讀取不能保證完整 block 的硬體原子性。`SPLL_CSR/ECCR/OCCR` 的 bit-field 意義需要對照目前 WRPC/SoftPLL 版本的 register definition 後再判讀。
+
+### Conclusion
+
+目前證據仍只支持「Slave 尚未取得可觀察的 SoftPLL lock，並且伺服器 state field 尚未離開 0」；不能由這次 read-only 輸出宣稱根因是 DCO、DMTD、calibration 或某一個 SoftPLL bit。
+
+### Next Step
+
+1. 讓同一個 SoftPLL register block 連續讀兩次，只有兩次一致才接受 bit-field 解碼。
+2. 對 `SPLL_CSR/ECCR/OCCR` 查對應版本 header/硬體 map，建立繁中欄位表。
+3. 將 `PSTAT.locked`、SSTAT state、DAC request/load/ack 與 parent flags 放在同一份有效 frame 摘要。
+4. 在這些證據完成前，不修改 PHY、PTP filter、servo、SI5340 或重新燒錄功能版 SOF。

@@ -7,13 +7,13 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 本次文件更新前的 source 基線：`5a4def7`
+- 目前觀測文件所在 commit：`98c9ddb`
 - 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
-最近一次有效燒錄的 source 變因是 `c88cc05` 的 clean Quartus build；`d82cf9c` 與 `5a4def7` 只追加實驗紀錄及 Git 跨平台治理，沒有修改 WR 功能。
+最近一次有效燒錄的 source 變因是 `c88cc05` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452` 與 `98c9ddb` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
 ## 硬體限制與固定條件
 
@@ -114,3 +114,11 @@
 - Slave 有效列仍維持 `SSTAT=0x00000001`、`PSTAT=0x00000001`，`time_valid` 仍未成立。
 
 這表示重新建立 JTAG session 確實會增加觀測雜訊，但不是 Slave 尚未取得 SoftPLL lock 的唯一解釋。下一步仍只改善 mailbox frame 的重讀/一致性標記；在此之前不修改 PHY、PTP 演算法、servo 或 SI5340。
+
+### retry 與 SoftPLL 欄位觀測結果
+
+- `b23a452` retry 版本：Master 60 個 sample 中有 1 次 invalid attempt，重讀後接受；Slave 60/60 直接有效。所有 sample 的 `SSTAT` state field（`raw & 0xF00 >> 8`）仍為 0，Slave `PSTAT=0x1`。
+- `98c9ddb` SoftPLL 唯讀欄位版本：兩張板各 60 個 sample，0 invalid、0 retry；`SPLL_CSR/ECCR/OCCR`、`WDIAGS_SPLL_HY/MY` 已納入輸出。Slave `PSTAT=0x1`、state field=0、`WDIAGS_SPLL_HY/MY=0`，仍沒有 lock 證據。
+- 少數 `SPLL_CSR/ECCR` 跨列異常，表示 `CTRL.DATA_VALID` 不是跨多 register 的硬體原子 snapshot；後續必須用同一欄位重讀/一致性規則再解碼。
+
+因此目前不進入功能修改，下一步是補上 SoftPLL register block 的重讀一致性統計與 bit-field 解碼。

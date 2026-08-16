@@ -30,6 +30,13 @@ config DATASIZE
 	help
 	  Maximum size of data segment, 0 to disable, 2048 should be ok.
 
+config DE5A_NODE_ID
+	int
+	default 0
+	help
+	  Optional identity selector for the two DE5a generic WR nodes.
+	  A non-zero value is used only when no persistent MAC is available.
+
 choice
 	prompt "Target Platform"
 
@@ -859,4 +866,3 @@ config PRINTF_MINI
 config PRINTF_NONE
 	boolean
 	default PRINTF_IS_NONE
-

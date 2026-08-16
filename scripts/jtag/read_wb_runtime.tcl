@@ -102,6 +102,13 @@ foreach hardware_name [get_hardware_names] {
     puts "SPLL_OCCR:    [wb_read 0x00100210]"
     puts "SYSC_RSTR:    [wb_read 0x00100400]"
     puts "SYSC_GPSR:    [wb_read 0x00100404]"
+    # Endpoint registers: verify that the two WR nodes have distinct clock IDs.
+    # The generic board derives the PTP clock identity from this MAC address.
+    set ep_mach [wb_read 0x00100124]
+    set ep_macl [wb_read 0x00100128]
+    puts "EP_MAC_H:     $ep_mach"
+    puts "EP_MAC_L:     $ep_macl"
+    puts "EP_DSR:       [wb_read 0x00100138]"
     puts "CPU_RESET:    [wb_read 0x00100B00]"
     puts "CPU_DBGSTAT:  [wb_read 0x00100B80]"
     puts "CPU_DBGREADY: [wb_read 0x00100B88]"

@@ -92,6 +92,12 @@ SECTIONS
 	*(COMMON)
     } > ram
 
+    /* Fixed JTAG-observable boot marker, immediately before the stack. */
+    .debug_boot 0x0002f7f0 (NOLOAD) :
+    {
+	KEEP(*(.debug_boot))
+    } > ram
+
     /* Bounds of bss segment. */
     _fbss = ADDR(.sbss);
     . = ALIGN(4);

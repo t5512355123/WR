@@ -61,7 +61,9 @@
 struct wr_endpoint_device wrc_endpoint_dev;
 
 /* CPU-local marker used when the external diagnostics RAM is unavailable. */
-volatile uint32_t debug_boot_stage __attribute__((used));
+/* Keep the marker at the fixed linker section observed by the JTAG wrapper. */
+volatile uint32_t debug_boot_stage
+	__attribute__((used, section(".debug_boot")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

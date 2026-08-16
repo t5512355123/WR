@@ -59,6 +59,10 @@ SECTIONS
  *(.gnu.linkonce.b.*)
  *(COMMON)
     } > ram
+    .debug_boot 0x0002f7f0 (NOLOAD) :
+    {
+ KEEP(*(.debug_boot))
+    } > ram
     _fbss = ADDR(.sbss);
     . = ALIGN(4);
     _end = .;

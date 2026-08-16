@@ -50,7 +50,8 @@ Slave : ERROR: No In-System Sources and Probes instance was found.
 - 將 `xwr_core` 既有 Wishbone slave 介面接到 `wr_jtag_wb_mailbox`。
 - 只增加 JTAG instance 1；instance 0 的既有 64-bit 狀態 probe 不變。
 - 不新增 RS422、不新增 Common Reset、不新增 Common START，也不把 JTAG latency 放進 WR 同步路徑。
-- 新增 `scripts/jtag/read_wb_runtime.tcl`，只讀取 PPS、SoftPLL、系統與 CPU debug 狀態，不寫入 CPU reset 或其他控制暫存器。
+- 新增 `scripts/jtag/read_wb_runtime.tcl`，只讀取 PPS、SoftPLL、系統與 CPU debug 狀態。
+- `scripts/jtag/read_wb.tcl` 是另一支記憶體診斷工具；它會短暫寫入 CPU reset 與 UADDR，讀取 instruction RAM 後一定釋放 CPU，不能把它和唯讀 runtime snapshot 混用。
 
 ## 結果
 
@@ -93,7 +94,7 @@ Slave CPU_MBX:      00000000
 
 狀態 probe 的低 16-bit 仍然是兩端 `0x82CF`，表示這次診斷介面沒有破壞既有 QSFP-A lane 0 的 PHY/link 基準。兩端仍是 `time_valid=0`、`pps_valid=0`，所以同步尚未完成。
 
-另外，腳本已加入 WRPC 既有 `wdiags` 區的唯讀讀取。實際兩次讀取間隔約兩秒，兩片的 `WDIAGS_VER`、`WDIAGS_CTRL`、PTP 計數、伺服器狀態、`WDIAGS_UCNT` 與 SoftPLL 診斷欄位都維持零；這不是單純「尚未同步」，而是韌體沒有完成 `wdiags_init()` 或尚未進入 WRPC 主迴圈的證據。
+另外，腳本已加入 WRPC 既有 `wdiags` 區的唯讀讀取。實際讀取時兩片的 `WDIAGS_VER`、`WDIAGS_CTRL`、PTP 計數、伺服器狀態、`WDIAGS_UCNT` 與 SoftPLL 診斷欄位都維持零；這仍不能單獨證明 CPU 沒有執行，因為還需要直接觀測 CPU 的取指位址與 firmware marker。
 
 `CPU_RESET=00000000` 表示 uRV CPU 沒有被 CPU CSR（Control and Status Register，控制與狀態暫存器）的 reset bit 保持住；但這還不足以證明 CPU 已執行到 `main()`。因此下一個診斷版本會在 WRPC 初始化早期，把 `WDIAGS_TEMP` 暫時當作 boot stage：
 
@@ -106,6 +107,63 @@ Slave CPU_MBX:      00000000
 
 這些值只用於診斷版，因為目前設定沒有啟用板上溫度感測器；正式版本若啟用溫度感測器，該欄位恢復原本的溫度用途。
 
+## 後續實驗：CPU 執行與啟動標記觀測
+
+### 實驗名稱
+
+`EXP-WRPC-CPU-OBSERVABILITY-20260816`：增加 CPU instruction address 與 firmware boot marker 的只讀觀測。
+
+### 為了驗證什麼
+
+本實驗要回答：CPU 是完全停在 reset、遇到 fault，還是其實正在執行 WRPC，只是先前的 JTAG RAM 讀值路徑沒有讀到 marker。
+
+### 改了什麼
+
+- 在 `wrc_urv_wrapper`、`wr_core`、`xwr_core` 逐層導出 CPU 的 PC、CPU reset、fault 與 instruction-valid。
+- 增加 JTAG instance 2：`[31:0]` 是 CPU PC，bit 32 是 CPU reset，bit 33 是 fault，bit 34 是 instruction-valid。
+- `read_wb_runtime.tcl` 對 instance 2 連續取樣，間隔 50 ms。
+- 目前工作中的下一版再增加 JTAG instance 3：只記住 CPU 對 `0x00016530` 這個 `debug_boot_stage` 位址發出的第一次 store，避免只依賴停止 CPU 後的 RAM 讀回。
+- 以上都是診斷觀測，不改 QSFP-A lane 0、PHY、PCS、SI5340、125 MHz 參考時鐘或 WR protocol。
+
+### 已完成的結果
+
+CPU probe 版本以 commit `4a1ec34` 編譯並燒錄；讀值工具修正與連續取樣分別是 `0f2e1bc`、`1fd0831`。pain 上執行 `quartus_stp -t scripts/jtag/read_wb_runtime.tcl` 的重要輸出如下：
+
+```text
+=== DE5 [1-11.1] ===
+status_probe: 000102E1363C82CF
+cpu_probe_1:    0000000400001E1A
+cpu_debug: PC=0x00001E1A reset=0 fault=0 im_valid=1
+cpu_probe_2:    000000040000EFE6
+cpu_debug: PC=0x0000EFE6 reset=0 fault=0 im_valid=1
+
+=== DE5 [1-11.2] ===
+status_probe: 000102C1205082CF
+cpu_probe_1:    0000000400002962
+cpu_debug: PC=0x00002962 reset=0 fault=0 im_valid=1
+cpu_probe_2:    0000000400000474
+cpu_debug: PC=0x00000474 reset=0 fault=0 im_valid=1
+```
+
+### pain terminal log 結果顯示什麼
+
+- `status_probe` 兩片低 16-bit 都仍是 `0x82CF`，所以 CPU probe 沒有破壞原本的 PHY/link 基準。
+- `reset=0` 表示 CPU 沒有被 reset bit 持續壓住。
+- `fault=0` 表示這次取樣沒有看到 ECC fault。
+- `im_valid=1` 且兩次 PC 不同，表示 CPU 有在取指；Master 的 `0x0000EFE6` 落在 `trap_entry`，Slave 的樣本也會落在初始化或中斷處理函式。
+- 兩片 `time_valid` 與 `pps_valid` 仍為 0，因此這不是時間同步成功證據。
+
+### 怎麼看待這個結果
+
+目前最合理的結論是：問題已從「CPU 完全沒有執行」縮小到「WRPC 啟動流程、interrupt/SoftPLL 互動、CPU data-store，或 JTAG RAM 讀回其中一段仍有問題」。不能再把 `WDIAGS` 全零直接解讀成 CPU 死掉。
+
+下一個 marker latch 編譯完成後：
+
+- `seen=1` 且 marker 是 `0xB000`、`0xB00A` 或 `0xB00B`：CPU 已執行到對應啟動階段，先檢查 JTAG RAM 讀回時序。
+- `seen=0`：CPU 沒有對 marker 位址發出 store，需繼續檢查 CPU data memory write/exception 路徑。
+
+在拿到 marker 之前，不修改 pre-emphasis、lane polarity 或 QSFP port；這些是另一條實驗線，必須維持單一變因。
+
 ## pain terminal log
 
 建置與燒錄的完整輸出保存於 pain 的：
@@ -114,7 +172,7 @@ Slave CPU_MBX:      00000000
 /home/b10504072/04_WR/artifacts/EXP-WRPC-JTAG-RUNTIME-20260816/
 ```
 
-上面的輸出是目前已取得的最小必要結果；完整 Quartus、燒錄與 JTAG log 保留在上述目錄。下一輪 `wdiags` 讀值會另外附加在此實驗文件的後續紀錄中。
+上面的輸出是目前已取得的最小必要結果；完整 Quartus、燒錄與 JTAG log 保留在上述目錄。後續每一版都會在此實驗文件追加實驗名稱、目的、修改、pain log、結果與判讀，不用只看最後一行結論。
 
 ## 怎麼看待這個結果
 

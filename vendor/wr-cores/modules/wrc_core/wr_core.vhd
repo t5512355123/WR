@@ -338,7 +338,9 @@ entity wr_core is
     cpu_pc_o       : out std_logic_vector(31 downto 0);
     cpu_reset_o    : out std_logic;
     cpu_fault_o    : out std_logic;
-    cpu_im_valid_o : out std_logic
+    cpu_im_valid_o : out std_logic;
+    cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
+    cpu_boot_stage_seen_o  : out std_logic
     );
 end wr_core;
 
@@ -879,7 +881,9 @@ begin
       cpu_pc_o       => cpu_pc_o,
       cpu_reset_o    => cpu_reset_o,
       cpu_fault_o    => cpu_fault_o,
-      cpu_im_valid_o => cpu_im_valid_o
+      cpu_im_valid_o => cpu_im_valid_o,
+      cpu_boot_stage_value_o => cpu_boot_stage_value_o,
+      cpu_boot_stage_seen_o  => cpu_boot_stage_seen_o
       );
 
   -----------------------------------------------------------------------------

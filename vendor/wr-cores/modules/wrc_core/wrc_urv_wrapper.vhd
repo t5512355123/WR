@@ -48,7 +48,9 @@ entity wrc_urv_wrapper is
     cpu_pc_o     : out std_logic_vector(31 downto 0);
     cpu_reset_o  : out std_logic;
     cpu_fault_o  : out std_logic;
-    cpu_im_valid_o : out std_logic
+    cpu_im_valid_o : out std_logic;
+    cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
+    cpu_boot_stage_seen_o  : out std_logic
     );
 end wrc_urv_wrapper;
 
@@ -94,6 +96,8 @@ architecture arch of wrc_urv_wrapper is
   signal im_data  : std_logic_vector(31 downto 0);
   signal im_valid : std_logic;
   signal cpu_fault : std_logic;
+  signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
+  signal cpu_boot_stage_seen  : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -353,11 +357,28 @@ begin
     end if;
   end process p_im_valid;
 
+  -- 診斷 latch：記住韌體在 0x00016530 寫入的啟動標記。
+  p_boot_stage_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_boot_stage_value <= (others => '0');
+        cpu_boot_stage_seen  <= '0';
+      elsif dm_store = '1' and dm_is_wishbone = '0' and
+            dm_addr = x"00016530" then
+        cpu_boot_stage_value <= dm_data_s;
+        cpu_boot_stage_seen  <= '1';
+      end if;
+    end if;
+  end process p_boot_stage_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
   cpu_reset_o    <= cpu_rst;
   cpu_fault_o    <= cpu_fault;
   cpu_im_valid_o <= im_valid;
+  cpu_boot_stage_value_o <= cpu_boot_stage_value;
+  cpu_boot_stage_seen_o  <= cpu_boot_stage_seen;
 
 end architecture arch;

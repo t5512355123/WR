@@ -19,6 +19,14 @@ proc read_cpu_probe {label} {
   return $value
 }
 
+proc read_marker_probe {label} {
+  set value [read_probe_data -instance_index 3 -value_in_hex]
+  scan $value %x word
+  set marker [expr {$word & 0xffffffff}]
+  set seen [expr {($word >> 32) & 1}]
+  puts [format "%s: 0x%08X seen=%d" $label $marker $seen]
+}
+
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -60,6 +68,7 @@ foreach hardware_name [get_hardware_names] {
     read_cpu_probe "cpu_probe_1"
     after 50
     read_cpu_probe "cpu_probe_2"
+    read_marker_probe "cpu_marker"
     wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"

@@ -7,14 +7,23 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的 commit：`9f848ec84b73328daca63b64d2725817e8802e60`
-- 目前工作樹：待提交本次 Master 啟動流程實驗紀錄；source 與 build artifact 已由該 commit 固定
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-MASTER-INIT-20260817.md`
+- 目前已燒錄並完成觀測的操作：Master image `9f848ec`、Slave 重新初始化操作記錄於 `e22bb75`
+- 目前工作樹：待提交本次 Slave 重新初始化實驗紀錄；source 與 build artifact 已由明確 commit 固定
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-SLAVE-REINIT-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
 最近一次有效燒錄的 source 變因是 `9f848ec` 的 Master 啟動命令修正；`18614cf`、`f4b7e79` 是前一輪唯讀診斷，`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
+
+### Slave 重新初始化實驗
+
+- 在 Master 已正確進入 `WDIAGS_MODE=2/PPS=6` 後，只重新燒錄既有 Slave SOF，沒有重新 compile 或修改 source。
+- Slave SOF checksum：`0x309FCFD1`；configuration succeeded、0 errors、0 warnings。
+- Slave 重新進入 `WRS_S_LOCK`，但約一分鐘後以 `WDIAGS_RESTART=0x02020001` 回報 `WR_SLAVE/WRS_S_LOCK` 失敗。
+- Slave `PSTAT.locked=0`、`time_valid=0`；Master 維持 status `0xFF`。
+- 結論：啟動順序/狀態殘留會影響 handshake 是否重新開始，但目前真正未通過的是 Slave SoftPLL lock。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SLAVE-REINIT-20260817.md`。
 
 ### `9f848ec` Master 啟動流程實驗
 

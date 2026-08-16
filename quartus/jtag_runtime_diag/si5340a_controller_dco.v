@@ -20,7 +20,13 @@ output                  oPLL_I2C_ID_READ_ERROR,
 output                  oPLL_REG_CONFIG_DONE,
 output                  oDCO_BUSY,
 output                  oDCO_ERROR,
-output    [15:0]        oDCO_STEP_COUNT
+output    [15:0]        oDCO_STEP_COUNT,
+output    [15:0]        oDCO_HPLL_INPUT_COUNT,
+output    [15:0]        oDCO_DPLL_INPUT_COUNT,
+output    [15:0]        oDCO_HPLL_ACCEPT_COUNT,
+output    [15:0]        oDCO_DPLL_ACCEPT_COUNT,
+output    [15:0]        oDCO_HPLL_DONE_COUNT,
+output    [15:0]        oDCO_DPLL_DONE_COUNT
 );
 
 wire [6:0] static_slave_addr;
@@ -51,6 +57,12 @@ reg        hpll_prev_valid;
 reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
 reg [15:0] dco_step_count;
+reg [15:0] hpll_input_count;
+reg [15:0] dpll_input_count;
+reg [15:0] hpll_accept_count;
+reg [15:0] dpll_accept_count;
+reg [15:0] hpll_done_count;
+reg [15:0] dpll_done_count;
 reg        dco_error;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
@@ -90,6 +102,12 @@ assign oPLL_REG_CONFIG_DONE = static_controller_ready;
 assign oDCO_BUSY = (rt_state != 4'd0);
 assign oDCO_ERROR = dco_error;
 assign oDCO_STEP_COUNT = dco_step_count;
+assign oDCO_HPLL_INPUT_COUNT = hpll_input_count;
+assign oDCO_DPLL_INPUT_COUNT = dpll_input_count;
+assign oDCO_HPLL_ACCEPT_COUNT = hpll_accept_count;
+assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
+assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
+assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
 assign oPLL_I2C_ID_READ_ERROR = 1'b0;
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
@@ -173,20 +191,30 @@ always @(posedge iCLK or negedge iRST_n) begin
     dpll_prev_data   <= 16'd0;
     hpll_prev_data   <= 16'd0;
     dco_step_count   <= 16'd0;
+    hpll_input_count <= 16'd0;
+    dpll_input_count <= 16'd0;
+    hpll_accept_count <= 16'd0;
+    dpll_accept_count <= 16'd0;
+    hpll_done_count <= 16'd0;
+    dpll_done_count <= 16'd0;
     dco_error        <= 1'b0;
   end else begin
     if (iDPLL_LOAD) begin
+      dpll_input_count <= dpll_input_count + 1'b1;
       if (dpll_prev_valid && (iDPLL_DATA != dpll_prev_data)) begin
         dpll_pending <= 1'b1;
         dpll_dir <= (iDPLL_DATA > dpll_prev_data);
+        dpll_accept_count <= dpll_accept_count + 1'b1;
       end
       dpll_prev_data <= iDPLL_DATA;
       dpll_prev_valid <= 1'b1;
     end
     if (iHPLL_LOAD) begin
+      hpll_input_count <= hpll_input_count + 1'b1;
       if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data)) begin
         hpll_pending <= 1'b1;
         hpll_dir <= (iHPLL_DATA > hpll_prev_data);
+        hpll_accept_count <= hpll_accept_count + 1'b1;
       end
       hpll_prev_data <= iHPLL_DATA;
       hpll_prev_valid <= 1'b1;
@@ -254,6 +282,10 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_state <= 4'd0;
           rt_seen_busy <= 1'b0;
           dco_step_count <= dco_step_count + 1'b1;
+          if (rt_select_dpll)
+            dpll_done_count <= dpll_done_count + 1'b1;
+          else
+            hpll_done_count <= hpll_done_count + 1'b1;
         end
       end
       default: rt_state <= 4'd0;

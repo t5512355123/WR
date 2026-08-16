@@ -45,6 +45,16 @@ entity DE5a_wr_slave_jtag is
 end DE5a_wr_slave_jtag;
 
 architecture rtl of DE5a_wr_slave_jtag is
+  function gray_to_unsigned(g : unsigned) return unsigned is
+    variable b : unsigned(g'range);
+  begin
+    b(b'high) := g(g'high);
+    for i in b'high - 1 downto 0 loop
+      b(i) := b(i + 1) xor g(i);
+    end loop;
+    return b;
+  end function;
+
   component si5340a_controller_dco is
     port (
       iCLK                  : in    std_logic;
@@ -64,7 +74,13 @@ architecture rtl of DE5a_wr_slave_jtag is
       oPLL_REG_CONFIG_DONE  : out   std_logic;
       oDCO_BUSY             : out   std_logic;
       oDCO_ERROR            : out   std_logic;
-      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0)
+      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0);
+      oDCO_HPLL_INPUT_COUNT : out   std_logic_vector(15 downto 0);
+      oDCO_DPLL_INPUT_COUNT : out   std_logic_vector(15 downto 0);
+      oDCO_HPLL_ACCEPT_COUNT: out   std_logic_vector(15 downto 0);
+      oDCO_DPLL_ACCEPT_COUNT: out   std_logic_vector(15 downto 0);
+      oDCO_HPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0);
+      oDCO_DPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0)
     );
   end component;
 
@@ -256,6 +272,16 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dac_hpll_data        : std_logic_vector(15 downto 0) := (others => '0');
   signal dac_dpll_load        : std_logic := '0';
   signal dac_dpll_data        : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_hpll_src_count_625 : unsigned(15 downto 0) := (others => '0');
+  signal dac_dpll_src_count_625 : unsigned(15 downto 0) := (others => '0');
+  signal dac_hpll_src_gray_625  : unsigned(15 downto 0) := (others => '0');
+  signal dac_dpll_src_gray_625  : unsigned(15 downto 0) := (others => '0');
+  signal dac_hpll_src_gray_meta : unsigned(15 downto 0) := (others => '0');
+  signal dac_hpll_src_gray_sync : unsigned(15 downto 0) := (others => '0');
+  signal dac_dpll_src_gray_meta : unsigned(15 downto 0) := (others => '0');
+  signal dac_dpll_src_gray_sync : unsigned(15 downto 0) := (others => '0');
+  signal dac_hpll_src_count_50  : unsigned(15 downto 0) := (others => '0');
+  signal dac_dpll_src_count_50  : unsigned(15 downto 0) := (others => '0');
   signal dac_hpll_count       : unsigned(11 downto 0) := (others => '0');
   signal dac_dpll_count       : unsigned(11 downto 0) := (others => '0');
   signal uart_txd              : std_logic := '1';
@@ -266,6 +292,16 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_busy              : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
+  signal dco_hpll_input_count  : std_logic_vector(15 downto 0);
+  signal dco_dpll_input_count  : std_logic_vector(15 downto 0);
+  signal dco_hpll_accept_count : std_logic_vector(15 downto 0);
+  signal dco_dpll_accept_count : std_logic_vector(15 downto 0);
+  signal dco_hpll_done_count   : std_logic_vector(15 downto 0);
+  signal dco_dpll_done_count   : std_logic_vector(15 downto 0);
+  signal dco_hpll_diag_probe   : std_logic_vector(63 downto 0);
+  signal dco_dpll_diag_probe   : std_logic_vector(63 downto 0);
+  signal dco_hpll_diag_source  : std_logic_vector(0 downto 0);
+  signal dco_dpll_diag_source  : std_logic_vector(0 downto 0);
 
   signal reconfig_read        : std_logic_vector(0 downto 0) := (others => '0');
   signal reconfig_write       : std_logic_vector(0 downto 0) := (others => '0');
@@ -326,15 +362,25 @@ begin
         dac_hpll_data_hold <= (others => '0');
         dac_dpll_event_625 <= '0';
         dac_dpll_data_hold <= (others => '0');
+        dac_hpll_src_count_625 <= (others => '0');
+        dac_dpll_src_count_625 <= (others => '0');
+        dac_hpll_src_gray_625 <= (others => '0');
+        dac_dpll_src_gray_625 <= (others => '0');
       else
         if dac_hpll_load_core = '1' then
           dac_hpll_data_hold <= dac_hpll_data_core;
           dac_hpll_event_625 <= not dac_hpll_event_625;
+          dac_hpll_src_count_625 <= dac_hpll_src_count_625 + 1;
         end if;
         if dac_dpll_load_core = '1' then
           dac_dpll_data_hold <= dac_dpll_data_core;
           dac_dpll_event_625 <= not dac_dpll_event_625;
+          dac_dpll_src_count_625 <= dac_dpll_src_count_625 + 1;
         end if;
+        dac_hpll_src_gray_625 <= dac_hpll_src_count_625 xor
+                                 shift_right(dac_hpll_src_count_625, 1);
+        dac_dpll_src_gray_625 <= dac_dpll_src_count_625 xor
+                                 shift_right(dac_dpll_src_count_625, 1);
       end if;
     end if;
   end process;
@@ -359,6 +405,12 @@ begin
         dac_dpll_data_sync  <= (others => '0');
         dac_dpll_load       <= '0';
         dac_dpll_data       <= (others => '0');
+        dac_hpll_src_gray_meta <= (others => '0');
+        dac_hpll_src_gray_sync <= (others => '0');
+        dac_dpll_src_gray_meta <= (others => '0');
+        dac_dpll_src_gray_sync <= (others => '0');
+        dac_hpll_src_count_50 <= (others => '0');
+        dac_dpll_src_count_50 <= (others => '0');
       else
         dac_hpll_event_meta <= dac_hpll_event_625;
         dac_hpll_event_sync <= dac_hpll_event_meta;
@@ -381,6 +433,13 @@ begin
           dac_dpll_data       <= dac_dpll_data_sync;
           dac_dpll_load       <= '1';
         end if;
+
+        dac_hpll_src_gray_meta <= dac_hpll_src_gray_625;
+        dac_hpll_src_gray_sync <= dac_hpll_src_gray_meta;
+        dac_hpll_src_count_50 <= gray_to_unsigned(dac_hpll_src_gray_sync);
+        dac_dpll_src_gray_meta <= dac_dpll_src_gray_625;
+        dac_dpll_src_gray_sync <= dac_dpll_src_gray_meta;
+        dac_dpll_src_count_50 <= gray_to_unsigned(dac_dpll_src_gray_sync);
       end if;
     end if;
   end process;
@@ -569,6 +628,47 @@ begin
       source_ena => '1'
     );
 
+  -- Read-only actuator pipeline counters: source, destination input,
+  -- controller accept, and completed four-write I2C transaction.
+  dco_hpll_diag_probe(15 downto 0)  <= std_logic_vector(dac_hpll_src_count_50);
+  dco_hpll_diag_probe(31 downto 16) <= dco_hpll_input_count;
+  dco_hpll_diag_probe(47 downto 32) <= dco_hpll_accept_count;
+  dco_hpll_diag_probe(63 downto 48) <= dco_hpll_done_count;
+  dco_dpll_diag_probe(15 downto 0)  <= std_logic_vector(dac_dpll_src_count_50);
+  dco_dpll_diag_probe(31 downto 16) <= dco_dpll_input_count;
+  dco_dpll_diag_probe(47 downto 32) <= dco_dpll_accept_count;
+  dco_dpll_diag_probe(63 downto 48) <= dco_dpll_done_count;
+
+  u_dco_hpll_diag_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_HPLL_DIAG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 8,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_hpll_diag_probe,
+      source     => dco_hpll_diag_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dco_dpll_diag_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_DPLL_DIAG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 9,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_dpll_diag_probe,
+      source     => dco_dpll_diag_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -697,7 +797,13 @@ begin
       oPLL_REG_CONFIG_DONE   => si_config_done,
       oDCO_BUSY              => dco_busy,
       oDCO_ERROR             => dco_error,
-      oDCO_STEP_COUNT        => dco_step_count
+      oDCO_STEP_COUNT        => dco_step_count,
+      oDCO_HPLL_INPUT_COUNT  => dco_hpll_input_count,
+      oDCO_DPLL_INPUT_COUNT  => dco_dpll_input_count,
+      oDCO_HPLL_ACCEPT_COUNT => dco_hpll_accept_count,
+      oDCO_DPLL_ACCEPT_COUNT => dco_dpll_accept_count,
+      oDCO_HPLL_DONE_COUNT   => dco_hpll_done_count,
+      oDCO_DPLL_DONE_COUNT   => dco_dpll_done_count
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

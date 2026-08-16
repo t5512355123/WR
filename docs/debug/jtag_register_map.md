@@ -28,6 +28,32 @@
 | `0x00100B88` | `CPU_DBGREADY` | uRV CPU debug ready 狀態 |
 | `0x00100B90` | `CPU_MBX` | uRV CPU mailbox 狀態 |
 
+## WRPC 內建診斷區
+
+WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有一個由韌體每秒更新的診斷區。它位於 `0x00100900`，不是額外加入同步路徑的自訂訊號。以下位址是診斷腳本目前讀取的欄位：
+
+| 位址 | 名稱 | 讀取意義 |
+|---:|---|---|
+| `0x00100900` | `WDIAGS_VER` | 診斷區版本，正常 WRPC 為 2 |
+| `0x00100904` | `WDIAGS_CTRL` | 診斷資料是否有效 |
+| `0x00100908` | `WDIAGS_SSTAT` | WR 模式與伺服器狀態 |
+| `0x0010090C` | `WDIAGS_PSTAT` | Link 與 SoftPLL lock 狀態 |
+| `0x00100910` | `WDIAGS_PTP` | PTP/WR 協定狀態 |
+| `0x00100918` / `0x0010091C` | `WDIAGS_TX` / `WDIAGS_RX` | PTP 封包傳送與接收計數 |
+| `0x00100920` / `0x00100924` / `0x00100928` | `WDIAGS_SEC_H` / `WDIAGS_SEC_L` / `WDIAGS_NS` | WR 本地 TAI 時間 |
+| `0x0010092C` / `0x00100930` | `WDIAGS_MU_H` / `WDIAGS_MU_L` | 往返延遲的皮秒值 |
+| `0x00100934` / `0x00100938` | `WDIAGS_DMS_H` / `WDIAGS_DMS_L` | Master-Slave 延遲的皮秒值 |
+| `0x0010093C` | `WDIAGS_ASYM` | 連線非對稱延遲 |
+| `0x00100940` | `WDIAGS_CKO` | 時鐘偏移 |
+| `0x00100944` | `WDIAGS_SETP` | 相位設定值 |
+| `0x00100948` | `WDIAGS_UCNT` | 伺服器更新計數 |
+| `0x00100960` | `WDIAGS_RXERR` | WRPC RX 錯誤計數 |
+| `0x0010096C` | `WDIAGS_RESTART` | 伺服器重新啟動次數 |
+| `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
+| `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
+
+`WDIAGS_PSTAT` 的 bit 0 是 link，bit 1 是 SoftPLL lock；`WDIAGS_CTRL` 的 bit 0 是韌體填入資料是否有效。這些欄位需要搭配兩次、間隔約一秒以上的讀值觀察，不能只看單次快照。
+
 ## 讀取方式
 
 在 pain 上執行：

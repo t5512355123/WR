@@ -1,7 +1,7 @@
 # White Rabbit JTAG 唯讀時間序列觀測：每張板只建立一次 source probe。
 #
 # 用法：
-#   quartus_stp -t read_wb_timeseries_session.tcl ?samples? ?gap_ms?
+#   quartus_stp -t read_wb_timeseries_session.tcl ?samples? ?gap_ms? ?max_retries?
 #
 # 本腳本不寫入 WR 設定，也不寫入 DATA_SNAPSHOT；只透過既有 mailbox
 # 讀取診斷 register。CTRL_BEGIN/CTRL_END 用來標記該列是否可採信。
@@ -10,14 +10,18 @@ package require ::quartus::insystem_source_probe
 
 set samples 60
 set gap_ms 1000
+set max_retries 3
 if {[llength $argv] >= 1} {
   set samples [expr {int([lindex $argv 0])}]
 }
 if {[llength $argv] >= 2} {
   set gap_ms [expr {int([lindex $argv 1])}]
 }
-if {$samples <= 0 || $gap_ms < 0} {
-  error "samples must be > 0 and gap_ms must be >= 0"
+if {[llength $argv] >= 3} {
+  set max_retries [expr {int([lindex $argv 2])}]
+}
+if {$samples <= 0 || $gap_ms < 0 || $max_retries < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, and max_retries must be >= 0"
 }
 
 set ::wb_toggle 0
@@ -51,7 +55,7 @@ proc is_u32 {value} {
   return [regexp {^[0-9A-Fa-f]{1,8}$} $value]
 }
 
-proc read_diag_sample {hardware_name sample} {
+proc read_diag_sample {hardware_name sample attempt} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
   set ctrl_begin [wb_read 0x00100904]
   set ver [wb_read 0x00100900]
@@ -89,19 +93,21 @@ proc read_diag_sample {hardware_name sample} {
                            ($ctrl_begin_word == $ctrl_end_word)}]
   }
 
-  puts [format "SESSION_SAMPLE board=%s sample=%03d status=%s" \
-        $hardware_name $sample $status]
-  puts [format "FRAME_VALID: %d CTRL_BEGIN=%s CTRL_END=%s" \
-        $frame_valid $ctrl_begin $ctrl_end]
+  puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
+        $hardware_name $sample $attempt $status]
+  puts [format "FRAME_VALID: %d CTRL_BEGIN=%s CTRL_END=%s RETRY_INDEX=%d" \
+        $frame_valid $ctrl_begin $ctrl_end $attempt]
   puts "WDIAGS_VER:$ver WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"
   puts "WDIAGS_FOREIGN_META:$foreign_meta WDIAGS_FILTER_META:$filter_meta WDIAGS_PARSE_META:$parse_meta"
   puts "WDIAGS_DMS_H:$dms_h WDIAGS_DMS_L:$dms_l WDIAGS_CKO:$cko WDIAGS_SETP:$setp WDIAGS_UCNT:$ucnt"
   puts "PPS_CR:$pps_cr PPS_ESCR:$pps_escr"
   flush stdout
+  return $frame_valid
 }
 
-puts [format "SESSION_TIME_SERIES_CONFIG samples=%d gap_ms=%d" $samples $gap_ms]
+puts [format "SESSION_TIME_SERIES_CONFIG samples=%d gap_ms=%d max_retries=%d" \
+      $samples $gap_ms $max_retries]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -113,7 +119,20 @@ foreach hardware_name [get_hardware_names] {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
     for {set sample 1} {$sample <= $samples} {incr sample} {
-      read_diag_sample $hardware_name $sample
+      set accepted 0
+      for {set attempt 0} {$attempt <= $max_retries} {incr attempt} {
+        set accepted [read_diag_sample $hardware_name $sample $attempt]
+        if {$accepted} {
+          break
+        }
+        if {$attempt < $max_retries} {
+          after 10
+        }
+      }
+      set retries_used [expr {$attempt > $max_retries ? $max_retries : $attempt}]
+      puts [format "SESSION_SAMPLE_RESULT board=%s sample=%03d accepted=%d retries=%d" \
+            $hardware_name $sample $accepted $retries_used]
+      flush stdout
       if {$sample < $samples && $gap_ms > 0} {
         after $gap_ms
       }

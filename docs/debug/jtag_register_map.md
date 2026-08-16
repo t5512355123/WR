@@ -87,8 +87,8 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 
 ```bash
 /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
-  -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3 \
   2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-SESSION-20260816.log
 ```
 
-這個版本每張板只開啟一次 JTAG source probe，並在每列輸出 `CTRL_BEGIN`、`CTRL_END` 與 `FRAME_VALID`。只有兩端資料有效位都為 1 且值一致時，該列才標記為有效；遇到 timeout 或 mailbox 欄位不是 32-bit 十六進位值時，該列標記為 invalid。這是讀取證據的品質標記，不代表 FPGA 內部 register 更新本身是硬體原子 snapshot。
+這個版本每張板只開啟一次 JTAG source probe，並在每列輸出 `CTRL_BEGIN`、`CTRL_END`、`FRAME_VALID` 與 retry 次數。只有兩端資料有效位都為 1 且值一致時，該列才標記為有效；遇到 timeout 或 mailbox 欄位不是 32-bit 十六進位值時，最多重讀 3 次，仍失敗才標記為 invalid。這是讀取證據的品質標記，不代表 FPGA 內部 register 更新本身是硬體原子 snapshot。

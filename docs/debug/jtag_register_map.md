@@ -54,6 +54,8 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 
+單一 session 的時間序列腳本會同時讀取 `SPLL_CSR/ECCR/OCCR` 與 `WDIAGS_SPLL_HY/MY`。這些欄位目前只作觀測，不能單獨當成 SoftPLL lock；仍要搭配 `WDIAGS_PSTAT` bit 1、`WDIAGS_SSTAT` 的 state field 與 PPS/time-valid 欄位。
+
 `WDIAGS_PSTAT` 的 bit 0 是 link，bit 1 是 SoftPLL lock；`WDIAGS_CTRL` 的 bit 0 是韌體填入資料是否有效。這些欄位需要搭配兩次、間隔約一秒以上的讀值觀察，不能只看單次快照。
 
 ## 讀取方式

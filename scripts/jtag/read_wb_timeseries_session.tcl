@@ -59,6 +59,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
   set ctrl_begin [wb_read 0x00100904]
   set ver [wb_read 0x00100900]
+  set spll_csr [wb_read 0x00100200]
+  set spll_eccr [wb_read 0x00100204]
+  set spll_occr [wb_read 0x00100210]
   set sstat [wb_read 0x00100908]
   set pstat [wb_read 0x0010090C]
   set ptp [wb_read 0x00100910]
@@ -75,12 +78,15 @@ proc read_diag_sample {hardware_name sample attempt} {
   set ucnt [wb_read 0x00100948]
   set pps_cr [wb_read 0x00100300]
   set pps_escr [wb_read 0x0010031C]
+  set spll_hy [wb_read 0x00100984]
+  set spll_my [wb_read 0x00100988]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
-  foreach value [list $ctrl_begin $ver $sstat $pstat $ptp $ptp_rx $ptp_tx \
+  foreach value [list $ctrl_begin $ver $spll_csr $spll_eccr $spll_occr \
+      $sstat $pstat $ptp $ptp_rx $ptp_tx \
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
-      $cko $setp $ucnt $pps_cr $pps_escr $ctrl_end] {
+      $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
@@ -97,11 +103,12 @@ proc read_diag_sample {hardware_name sample attempt} {
         $hardware_name $sample $attempt $status]
   puts [format "FRAME_VALID: %d CTRL_BEGIN=%s CTRL_END=%s RETRY_INDEX=%d" \
         $frame_valid $ctrl_begin $ctrl_end $attempt]
-  puts "WDIAGS_VER:$ver WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
+  puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
+  puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"
   puts "WDIAGS_FOREIGN_META:$foreign_meta WDIAGS_FILTER_META:$filter_meta WDIAGS_PARSE_META:$parse_meta"
   puts "WDIAGS_DMS_H:$dms_h WDIAGS_DMS_L:$dms_l WDIAGS_CKO:$cko WDIAGS_SETP:$setp WDIAGS_UCNT:$ucnt"
-  puts "PPS_CR:$pps_cr PPS_ESCR:$pps_escr"
+  puts "PPS_CR:$pps_cr PPS_ESCR:$pps_escr WDIAGS_SPLL_HY:$spll_hy WDIAGS_SPLL_MY:$spll_my"
   flush stdout
   return $frame_valid
 }

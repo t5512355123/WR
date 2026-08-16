@@ -827,4 +827,171 @@ CPU runtime：e302c4d baseline 正常
 節點身份：兩片仍使用相同 fallback MAC
 唯一 MAC 修正：尚未成功，因 firmware 先 fault
 White Rabbit 完整同步：尚未完成，不能宣稱 time_valid=1、pps_valid=1
+
+---
+
+## 實驗：EXP-WRPC-CONTROL-NO-MAC-20260816
+
+### 實驗名稱
+
+`ffb7350 建立唯一身份問題的控制組`：移除 `DE5A_NODE_ID` 與角色專用 MAC，保留其餘診斷程式。
+
+### 這次要驗證什麼
+
+確認 `c206628` 的 early fault 是否只由角色專用 MAC 或 Kconfig node-ID 造成。控制組恢復原始 `22:33:44:55:66:77` fallback MAC，且不再有 node-ID 設定。
+
+### 修改內容
+
+- `vendor/wrpc-sw/boards/generic/board.c` 恢復原始 fallback MAC。
+- 移除 `vendor/wrpc-sw/Kconfig` 的 `DE5A_NODE_ID` 設定。
+- 移除 Master/Slave defconfig 的 node-ID 行。
+- 其餘角色診斷、PTP 診斷與 linker marker 保持不變。
+- pain pull `ffb7350` 後重新產生兩份 MIF，再以 Quartus 17 完整編譯兩份 SOF。
+
+### 結果
+
+- Master 與 Slave firmware build 成功。
+- Master 與 Slave Quartus build 成功，均為 `timing_closed=NO`。
+- 兩片燒錄都顯示 `Configuration succeeded`、0 errors、0 warnings。
+- Master 8 秒後正常：`fault=0`、`marker=0xB004 seen=1`、`WDIAGS_VER=2`。
+- Slave 8 秒後仍停在 `PC=0x15CEC` fault handler：`marker seen=0`、`WDIAGS_* = 0`、endpoint MAC 尚未初始化。
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/control_no_mac_ffb7350/hashes.sha256
+/home/b10504072/04_WR/build/artifacts/control_no_mac_ffb7350/runtime_after_program_8s.log
+```
+
+關鍵輸出：
+
+```text
+Master cpu_debug: fault=0
+Master cpu_marker: 0x0000B004 seen=1
+Slave  cpu_debug: PC=0x00015CEC fault=0 im_valid=1
+Slave  cpu_marker: 0x00000000 seen=0
+Slave  WDIAGS_VER: 00000000
+```
+
+### 怎麼看待這個結果
+
+單純移除角色 MAC 與 node-ID，仍不能保證 runtime 正常；但這個結果受到「每次重建的 MIF 可能包含不同 SDBFS 內嵌資料」影響，不能直接把 fault 歸因到某一段 C 程式。下一步必須先驗證同一 commit 的 firmware 是否可重現。
+
+---
+
+## 實驗：EXP-WRPC-CLEAN-REBUILD-798-20260816
+
+### 實驗名稱
+
+`798dd99 加入角色模式的 JTAG 診斷`：乾淨 worktree 重建與實機驗證。
+
+### 這次要驗證什麼
+
+確認先前保存的 `role_diag_798dd99` 正常結果能否由同一 Git commit、同一 pain 建置流程重新產生；同時比較它與 `ffb7350` 控制組的 MIF。
+
+### 修改內容
+
+- 沒有修改 source code。
+- 在 pain 建立乾淨 worktree `/tmp/wr_role_diag_798`，固定 checkout `798dd99`。
+- 使用同一套 firmware 與 Quartus 17 build scripts 產生兩份 MIF/SOF。
+- 將產物保存到新的 artifact 目錄，未覆蓋任何舊檔。
+
+### 結果
+
+- Master/Slave firmware 與 Quartus 17 build 都成功。
+- MIF SHA-256：Master `2edf4da24e3a535569cefa14f89e8e3a7681da0ce76282977fe299eda640871c`；Slave `ce1409c4207ba609985686514a5799ea7841dddc741ee00ebc185b3ce19b264d`。
+- 兩片 SOF 都成功燒錄。
+- 8 秒後兩片 CPU 都正常：`fault=0`、`marker=0xB004 seen=1`。
+- Master `WDIAGS_PTP=6`、mode=2；Slave `WDIAGS_PTP=6`、mode=3；兩端 PTP RX/TX 計數都有增加。
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/rebuild_798_clean/hashes.sha256
+/home/b10504072/04_WR/build/artifacts/rebuild_798_clean/runtime_after_program_8s.log
+```
+
+### 怎麼看待這個結果
+
+`798dd99` 乾淨重建可正常執行，說明 CPU fault 不是這個診斷功能必然造成，也不是板卡永久故障。它與 `ffb7350` 的差異需要以 firmware 產物與 SDBFS 內嵌影像追查；目前仍不能宣稱 WR 已完成時間同步，因為 `FOREIGN_META=0x0000FF00` 且 Slave 尚未有有效 parent 證據。
+
+---
+
+## 實驗：EXP-WRPC-REBUILD-REPRODUCIBILITY-20260816
+
+### 實驗名稱
+
+`ffb7350 建立唯一身份問題的控制組`：同一 commit 的第二次乾淨 firmware rebuild。
+
+### 這次要驗證什麼
+
+確認 `ffb7350` 的 MIF/ELF 是否可重現，避免把不可重現的 firmware 產物誤判為硬體或 PTP 問題。
+
+### 修改內容
+
+- 沒有修改 source code。
+- 在 pain 建立第二個乾淨 worktree `/tmp/wr_control_ffb2`，固定 checkout `ffb7350`。
+- 只重新執行 Master/Slave firmware build，沒有覆蓋正在板上運作的 baseline。
+
+### 結果
+
+同一 commit 的兩次 firmware 產物 hash 不同：
+
+```text
+第一次 Master MIF: 40aa683ef4bb3319265cb34063da21af56735e08c564f2eec93fe0eb15f3c4be
+第二次 Master MIF: 6cff5faedd04fb3559cf977e7a3b680bbf749fb857b84b5ba6c8855cd00d3df4
+第一次 Slave  MIF: f770a7057d0b1054da1e718dab2c5cb470d82963785e74fd652d2f4d478e7872
+第二次 Slave  MIF: d2516c15c464f154b72fea064faf89571d589742ade56aa68a1621daa40a2667
+```
+
+Map 的主要 code section 位址仍相同，但 `wrc.bram`/`wrc.mif` 在 SDBFS 影像區的檔案排列與 build-time 字串不同，例如 `sfp-` 與 `wr-init` 的資料位置互換。這表示目前建置流程不是位元級可重現。
+
+### pain terminal log 結果顯示什麼
+
+第二次建置的 worktree 與產物位於：
+
+```text
+/tmp/wr_control_ffb2/build/firmware/work/master/
+/tmp/wr_control_ffb2/build/firmware/work/slave/
+```
+
+主要比對證據是 `diff -u wrc.mif` 顯示 SDBFS 區域差異，而 `.text/.rodata/.data/.bss/.debug_boot` 位址與大小一致。
+
+### 怎麼看待這個結果
+
+目前最值得優先修正的是 firmware/SDBFS 的可重現性。即使程式碼與 linker map 看起來相同，內嵌 SDBFS 的排列或生成順序變動，也可能改變啟動時讀到的資料。下一輪先固定 SDBFS 生成輸入的排序與 build metadata，再重新編譯同一 commit 兩次，直到 MIF hash 一致，才繼續 MAC identity 與 parent selection 實驗。
+
+---
+
+## 實驗：EXP-WRPC-RESTORE-AFTER-CONTROL-20260816
+
+### 實驗名稱
+
+A 組測試後恢復 `e302c4d` baseline。
+
+### 這次要驗證什麼
+
+確認 A 組 fault 不會永久破壞 DE5a，並把實驗平台留在已知可執行狀態。
+
+### 修改內容
+
+- 沒有修改 source code。
+- 重新燒錄保存的 `/home/b10504072/04_WR/build/artifacts/fixed_marker_2e000_e302c4d/` 兩份 SOF。
+- 等待 8 秒後以相同 JTAG 腳本讀取。
+
+### 結果
+
+- Master/Slave 都恢復 `fault=0`、`marker=0xB004 seen=1`、`mepc=0`、`mcause=0`。
+- PTP RX/TX 計數持續增加。
+- 兩端仍使用相同 fallback MAC，身份問題仍未處理。
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/control_no_mac_ffb7350/runtime_restore_e302c4d_after_A_8s.log
+```
+
+### 怎麼看待這個結果
+
+baseline 回復成功，表示不需要實體斷電，也不支持把 fault 歸因於 QSFP 光路永久故障。後續實驗會先修正可重現建置，再以相同 baseline 逐項加入唯一身份設定。
 ```

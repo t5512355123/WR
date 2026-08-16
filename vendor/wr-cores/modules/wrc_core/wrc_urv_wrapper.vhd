@@ -53,7 +53,8 @@ entity wrc_urv_wrapper is
     cpu_boot_stage_seen_o  : out std_logic;
     cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
-    cpu_last_store_seen_o  : out std_logic
+    cpu_last_store_seen_o  : out std_logic;
+    cpu_internal_store_count_o : out std_logic_vector(31 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -104,6 +105,7 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
+  signal cpu_internal_store_count : unsigned(31 downto 0);
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -373,10 +375,12 @@ begin
         cpu_last_store_addr  <= (others => '0');
         cpu_last_store_data  <= (others => '0');
         cpu_last_store_seen  <= '0';
+        cpu_internal_store_count <= (others => '0');
       elsif dm_store = '1' and dm_is_wishbone = '0' then
         cpu_last_store_addr <= dm_addr;
         cpu_last_store_data <= dm_data_s;
         cpu_last_store_seen <= '1';
+        cpu_internal_store_count <= cpu_internal_store_count + 1;
         if dm_addr = x"00016530" then
           cpu_boot_stage_value <= dm_data_s;
           cpu_boot_stage_seen  <= '1';
@@ -396,5 +400,6 @@ begin
   cpu_last_store_addr_o  <= cpu_last_store_addr;
   cpu_last_store_data_o  <= cpu_last_store_data;
   cpu_last_store_seen_o  <= cpu_last_store_seen;
+  cpu_internal_store_count_o <= std_logic_vector(cpu_internal_store_count);
 
 end architecture arch;

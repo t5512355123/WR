@@ -186,6 +186,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
+  signal cpu_internal_store_count : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
@@ -196,6 +197,8 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_marker_source    : std_logic_vector(0 downto 0);
   signal cpu_store_probe       : std_logic_vector(63 downto 0);
   signal cpu_store_source      : std_logic_vector(0 downto 0);
+  signal cpu_store_count_probe : std_logic_vector(63 downto 0);
+  signal cpu_store_count_source : std_logic_vector(0 downto 0);
   signal dac_hpll_load        : std_logic;
   signal dac_hpll_data        : std_logic_vector(15 downto 0);
   signal dac_dpll_load        : std_logic;
@@ -353,6 +356,24 @@ begin
     port map (
       probe      => cpu_store_probe,
       source     => cpu_store_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  cpu_store_count_probe(31 downto 0) <= cpu_internal_store_count;
+  cpu_store_count_probe(63 downto 32) <= (others => '0');
+
+  u_cpu_store_count_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_STORE_COUNT_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 5,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_store_count_probe,
+      source     => cpu_store_count_source,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
@@ -548,7 +569,8 @@ begin
       cpu_boot_stage_seen_o     => cpu_boot_stage_seen,
       cpu_last_store_addr_o     => cpu_last_store_addr,
       cpu_last_store_data_o     => cpu_last_store_data,
-      cpu_last_store_seen_o     => cpu_last_store_seen
+      cpu_last_store_seen_o     => cpu_last_store_seen,
+      cpu_internal_store_count_o => cpu_internal_store_count
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

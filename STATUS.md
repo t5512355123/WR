@@ -328,3 +328,13 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 但 `PSTAT.locked=0`、`time_valid=0`，尚未同步。
 - 結論：DPLL/N0/125 MHz reference path 嫌疑提高，但尚未證明唯一根因；下一步先做 SI5340 register semantics source audit。
 - 完整紀錄：`docs/experiments/EXP-WRPC-DCO-HPLL-ONLY-20260817.md`。
+## 最新唯讀觀測：HPLL-only bitstream 的 60 秒 runtime（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-READONLY-HPLL-20260817`。
+- 本輪沒有修改 source、compile 或燒錄；使用板上 `b8e1f85` 的 HPLL-only Slave SOF。
+- `read_wb_timeseries_session.tcl 60 1000 5` 完成，Master `60/60`、Slave `10/60` frame accepted。
+- Slave accepted frame 一致為 `link_up=1、wr_mode=3、spll_locked=0、time_valid=0`；parent metadata 為 `foreign_count=1、parent_is_wr=1、parent_calibrated=1`。
+- Slave raw SoftPLL event 與 `UCNT` 持續增加，表示 runtime/servo 有活動，但不等於 SoftPLL 已 lock。
+- 原始 log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-READONLY-HPLL-20260817/runtime_60s.log`，SHA-256：`25d0ccffe93e54596aa17933e611c35d159e33d4d85154354caf2be548dabaca`。
+- 結論：Slave 尚未同步；下一輪只做 DPLL-only 單次 transaction 隔離，不同時改 PHY、PTP 或 servo。
+- 完整紀錄：`docs/experiments/EXP-WRPC-READONLY-HPLL-20260817.md`。

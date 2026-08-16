@@ -66,15 +66,21 @@ proc read_diag {label} {
   set shadow_valid [wb_read 0x001009F8]
   set shadow_write [wb_read 0x001009FC]
   set helper [wb_read 0x001009BC]
+  set helper_limits [wb_read 0x001009C0]
+  set helper_error [wb_read 0x001009D8]
+  set helper_output [wb_read 0x001009DC]
   set main [wb_read 0x001009C4]
+  set main_freq_limits [wb_read 0x001009C8]
+  set main_phase_limits [wb_read 0x001009CC]
   set visit [wb_read 0x001009E0]
   set transitions [wb_read 0x001009E4]
   set last_state [wb_read 0x001009E8]
   puts [format "RAW_SAMPLE label=%s status=%s" $label $status]
   puts [format "RAW_CORE: CTRL=%s SSTAT=%s PSTAT=%s PPS_ESCR=%s" \
         $ctrl $sstat $pstat $pps]
-  puts [format "RAW_LOCK: RESULT=%s UNLOCKED=%s HELPER=%s MAIN=%s" \
-        $lock $unlocked $helper $main]
+  puts [format "RAW_LOCK: RESULT=%s UNLOCKED=%s HELPER=%s HELPER_LIMITS=%s MAIN=%s MAIN_FREQ_LIMITS=%s MAIN_PHASE_LIMITS=%s" \
+        $lock $unlocked $helper $helper_limits $main $main_freq_limits $main_phase_limits]
+  puts [format "RAW_HELPER: ERROR=%s OUTPUT=%s" $helper_error $helper_output]
   puts [format "RAW_HW: RCER=%s OCER=%s TRR_CSR=%s" $rcer $ocer $trr_csr]
   puts [format "RAW_COUNTER: TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
         $raw_valid $raw_write $raw_source $raw_ref $raw_feedback]

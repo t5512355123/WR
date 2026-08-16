@@ -7,14 +7,14 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的 commit：`5483669`
-- 下一輪待建置的 locking/SoftPLL 診斷修改：工作樹中，尚未燒錄
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md`
+- 目前已燒錄並完成觀測的 commit：`f4b7e79`
+- 目前工作樹：乾淨；下一輪 raw tag/IRQ 唯讀診斷尚未修改
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-CLOCK-ACTIVITY-20260816.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
-最近一次有效燒錄的 source 變因是 `5483669` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
+最近一次有效燒錄的 source 變因是 `f4b7e79` 的時鐘域活動唯讀診斷；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
 ### `5483669` 實際燒錄後狀態
 
@@ -56,6 +56,15 @@
 | 14 | 雙 FPGA accelerator 同步啟動 | 尚未開始 |
 
 ## 最近一次燒錄後 runtime 證據
+
+### `f4b7e79` 時鐘域活動唯讀診斷
+
+- Master/Slave 均以 Quartus 17.0 Build 595 compile 成功並實際燒錄；programmer 均回報 configuration succeeded、0 errors、0 warnings。
+- Master checksum：`0x30ABDD91`；Slave checksum：`0x30A5A13F`。
+- 60 秒 JTAG session 完成；Master accepted 55/60、Slave accepted 60/60。
+- QSFPA reference、QSFPB DMTD、recovered RX 三個 activity counter 皆持續變化，表示 clock domain 有活動。
+- Slave 仍為 `link_up=1`、`wr_mode=3`、`spll_locked=0`、`time_valid=0`、`LAST_STATE=9`；因此尚未完成 WR synchronization。
+- 完整紀錄：`docs/experiments/EXP-WRPC-CLOCK-ACTIVITY-20260816.md`。
 
 來源：`c88cc05` clean Quartus 17 build，燒錄後等待約 60 秒讀取兩片 JTAG。
 

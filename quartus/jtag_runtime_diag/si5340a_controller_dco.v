@@ -27,7 +27,8 @@ output    [15:0]        oDCO_HPLL_ACCEPT_COUNT,
 output    [15:0]        oDCO_DPLL_ACCEPT_COUNT,
 output    [15:0]        oDCO_HPLL_DONE_COUNT,
 output    [15:0]        oDCO_DPLL_DONE_COUNT,
-output    [63:0]        oDCO_DPLL_STATE
+output    [63:0]        oDCO_DPLL_STATE,
+output    [63:0]        oDCO_HPLL_STATE
 );
 
 wire [6:0] static_slave_addr;
@@ -111,6 +112,13 @@ assign oDCO_HPLL_ACCEPT_COUNT = hpll_accept_count;
 assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
 assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
 assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
+// Read-only HPLL request snapshot. The low fields mirror the DPLL snapshot:
+// previous data, current input, runtime state, pending/select/direction,
+// I2C state, controller readiness, previous-data validity, and done-once.
+assign oDCO_HPLL_STATE = {19'd0, hpll_done_once, hpll_prev_valid,
+                          bus_done, static_controller_ready, bus_state,
+                          rt_dir, rt_select_dpll, hpll_pending, dpll_pending,
+                          rt_state, iHPLL_DATA, hpll_prev_data};
 // Read-only DPLL request/FSM snapshot:
 // [15:0] previous loaded data, [31:16] current input data,
 // [35:32] runtime state, [36] DPLL pending, [37] HPLL pending,

@@ -109,6 +109,10 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_irq_status [wb_read 0x001009F4]
   set wr_spll_tag_valid_count [wb_read 0x001009F8]
   set wr_spll_trr_write_count [wb_read 0x001009FC]
+  # Read the hardware counters directly from the SoftPLL WB block as well.
+  # The WDIAGS values above are firmware shadows and can lag a task refresh.
+  set spll_tag_valid_count_raw [wb_read 0x00100284]
+  set spll_trr_write_count_raw [wb_read 0x00100288]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -157,6 +161,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_irq_status_end [wb_read 0x001009F4]
   set wr_spll_tag_valid_count_end [wb_read 0x001009F8]
   set wr_spll_trr_write_count_end [wb_read 0x001009FC]
+  set spll_tag_valid_count_raw_end [wb_read 0x00100284]
+  set spll_trr_write_count_raw_end [wb_read 0x00100288]
   set ctrl_end [wb_read 0x00100904]
   set clock_activity_end [read_probe_data -instance_index 7 -value_in_hex]
 
@@ -345,6 +351,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SPLL_EVENTS: TAG_VALID_COUNT=%s/%s TRR_WRITE_COUNT=%s/%s" \
         $wr_spll_tag_valid_count $wr_spll_tag_valid_count_end \
         $wr_spll_trr_write_count $wr_spll_trr_write_count_end]
+  puts [format "WR_SPLL_EVENTS_RAW: TAG_VALID_COUNT=%s/%s TRR_WRITE_COUNT=%s/%s" \
+        $spll_tag_valid_count_raw $spll_tag_valid_count_raw_end \
+        $spll_trr_write_count_raw $spll_trr_write_count_raw_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

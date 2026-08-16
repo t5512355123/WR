@@ -7,12 +7,21 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新燒錄為 `b490a5d`
-- 目前工作樹：已完成 Slave DCO load toggle CDC 的 compile、燒錄與 60 秒 JTAG 觀測
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-DCO-CDC-SLAVE-20260817.md`
+- 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新燒錄 source 為 `8c8b444`
+- 目前工作樹：已完成 Slave DPLL request/FSM 唯讀觀測版的 compile、燒錄與 60 秒 JTAG 觀測
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-DCO-STATE-OBS-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
+
+### `8c8b444` Slave DPLL request/FSM 唯讀觀測
+
+- 只新增 DPLL data、pending、FSM 與 bus state 的 JTAG read-only probe；Master 不變，未修改 PHY、PTP、servo 或 SI5340 控制條件。
+- Quartus 17 compile 成功；Slave 以 checksum `0x30A4DF88` 燒錄成功，JTAG ID `0x02E660DD`，programmer 回報 0 errors、0 warnings。
+- DPLL snapshot 兩次都是 `prev_data=8000`、`input_data=8000`、`dpll_pending=0`、`rt_state=0`、`bus_state=0`；source/destination load count 為 4，accepted/done 為 0。
+- 60 秒唯讀 session 完成；Master accepted 60/60，Slave accepted 52/60。Slave PTP、raw tag/IRQ 與 servo activity 持續增加，但 `spll_locked=0`、`time_valid=0`，helper error 到達正負 150000 邊界。
+- 結論：目前證據支持「DPLL request 尚未產生」與「Slave 尚未完成 SoftPLL lock」，不支持把 CDC 或 SI5340 transaction 宣稱為已證明根因。下一步先做 servo/helper 與 DPLL data 形成條件的 source-level 唯讀審查。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-STATE-OBS-20260817.md`。
 
 ### 2026-08-17 raw helper 飽和唯讀觀測
 

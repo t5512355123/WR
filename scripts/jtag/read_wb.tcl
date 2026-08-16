@@ -46,6 +46,14 @@ proc wb_write {addr data} {
   return "TIMEOUT"
 }
 
+proc wb_read_twice {addr} {
+  # The CPU UDATA path is registered: the first read can reflect the
+  # previous address while the new IRAM address is settling.
+  set first [wb_read $addr]
+  set second [wb_read $addr]
+  return "$first / $second"
+}
+
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
@@ -70,7 +78,7 @@ foreach hardware_name [get_hardware_names] {
     puts "CPU_DBGREADY: [wb_read 0x00100B88]"
     puts "CPU_MBX:      [wb_read 0x00100B90]"
     puts "CPU_UADDR_WR: [wb_write 0x00100B04 0]"
-    puts "CPU_IRAM0:    [wb_read 0x00100B08]"
+    puts "CPU_IRAM0:    [wb_read_twice 0x00100B08]"
   } error_message]} {
     puts "error: ${error_message}"
   }

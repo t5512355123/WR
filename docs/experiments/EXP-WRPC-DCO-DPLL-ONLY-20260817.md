@@ -86,6 +86,26 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 - `foreign_count=1、parent_wr_config=3、parent_is_wr=1、parent_calibrated=1` 曾出現；個別 invalid frame 的 metadata 不納入結論。
 - `pps_valid` 在 sample 間有變化，但沒有穩定為 1。
 
+### 60 秒延長唯讀觀測
+
+為確認 DPLL request 是否只是晚到，本輪在同一顆已燒錄的 FPGA 上延長觀測，
+沒有重新燒錄：
+
+- begin DCO log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-DCO-DPLL-ONLY-20260817/dco_diag_60s_begin.log`
+- begin DCO log SHA-256：`2b8398056d56ee49bb907f0f0391dd735d6c684b166096c9efc06217111213f0`
+- runtime log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-DCO-DPLL-ONLY-20260817/runtime_60s.log`
+- runtime log SHA-256：`5fb2d8dc3ed78bca893c2f7cf41107cf51a9a8c206f7c3eea8d7689655c99c60`
+- end DCO log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-DCO-DPLL-ONLY-20260817/dco_diag_60s_end.log`
+- end DCO log SHA-256：`ac4331d0feda62c3753ee9a65cf6cb52da2174fac931bb454c260a39700c9614`
+- `SESSION_TIME_SERIES_DONE`
+- frame accepted：Master `60/60`、Slave `19/60`
+- Slave accepted frame：`link_up=1`、`spll_locked=0`、`time_valid=0`；其中
+  `pps_valid=1` 的列只有 `3/19`，不能視為穩定 PPS。
+- Slave parent accepted frame 全部為 `foreign_count=1、wr_config=3、is_wr=1、calibrated=1`。
+- DCO begin/end 都是 `DPLL source=0004、accepted=0000、done=0000`。
+- Slave raw `REF_COUNT` 由 `0x002B7641` 增加到 `0x0047617F`，
+  `TAG_COUNT` 由 `0x002A660F` 增加到 `0x00459ED9`，表示 runtime activity 持續。
+
 ## Observation
 
 1. DPLL-only bitstream 燒錄後，Slave 沒有立即掉線，link 與 runtime activity 仍在。
@@ -110,8 +130,8 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 
 ## Next Step
 
-在不重新燒錄的前提下，對目前 DPLL-only bitstream 做較長的唯讀 DCO/runtime
-觀測，確認 request 是否只是晚於 20 秒才出現。若仍為 `accepted=0`，下一個
-硬體變因應回到「保留 DPLL transaction，但反轉 FINC/FDEC direction」的版本，
-並以完整 DCO counter 驗證是否真的完成 transaction；不同時改 FSTEPW、PHY 或
-SoftPLL 演算法。
+延長到 60 秒後 DPLL 仍為 `accepted=0、done=0`，因此下一個硬體變因應回到
+「保留 DPLL transaction，但反轉 FINC/FDEC direction」的版本，並先設計能讓
+DPLL request 確實被觸發的單一 A/B 實驗；不同時改 FSTEPW、PHY 或 SoftPLL
+演算法。若 DPLL request 仍無法形成，應先把問題定位在 servo→DCO request path，
+而不是宣稱 SI5340 register direction 已被驗證。

@@ -346,3 +346,10 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 燒錄後 DCO counter 為 `DPLL accepted=0、done=0`，因此本輪沒有真正測到 DPLL I2C transaction 對 link 的影響。
 - 20 秒 runtime 中 Slave 仍 `link_up=1`、PTP/SoftPLL activity 有增加，但 `spll_locked=0、time_valid=0`。
 - 完整紀錄：`docs/experiments/EXP-WRPC-DCO-DPLL-ONLY-20260817.md`。
+
+### DPLL-only 延長觀測補充
+
+- 同一顆已燒錄的 DPLL-only SOF 延長觀測 60 秒，`SESSION_TIME_SERIES_DONE`；Master `60/60`、Slave `19/60` accepted。
+- Slave `link_up=1`、`spll_locked=0`、`time_valid=0`；DCO begin/end 皆為 `DPLL source=0004、accepted=0000、done=0000`。
+- Slave raw `REF_COUNT` 與 `TAG_COUNT` 持續增加，因此 runtime 有活動，但本輪仍未真正測到 DPLL I2C transaction。
+- 延長觀測原始檔與 hash 已補入 `docs/experiments/EXP-WRPC-DCO-DPLL-ONLY-20260817.md`。

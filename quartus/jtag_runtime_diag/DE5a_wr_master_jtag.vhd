@@ -681,6 +681,8 @@ begin
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
       g_pcs_16bit                 => false,
+      -- 本實驗唯一變因：讓 DDMTD offset clock 由 RX clock 取樣。
+      g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )
     port map (

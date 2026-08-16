@@ -1096,3 +1096,69 @@ Slave : fault=0, marker=0x0000B004, seen=1
 ### 怎麼看待這個結果
 
 這次證明 `56848ac` 的 firmware 可重現產物可以通過 Quartus 17 compile 並成功燒錄，且沒有重現先前的 CPU early fault；因此目前平台仍可繼續做 runtime 實驗，不需要實體斷電。另一方面，這次沒有證明 White Rabbit 已完成同步：兩端仍使用相同 fallback MAC，且 foreign master 尚未被選出。下一個實驗必須只改「節點唯一身份」這一個變因，並沿用本次 deterministic build、相同 JTAG 讀值與相同 artifact 保存規則。
+
+---
+
+## 實驗：EXP-WRPC-UNIQUE-IDENTITY-CACHE-20260816
+
+### 實驗名稱
+
+`ed21eaa 加入兩片 DE5a 唯一節點身份` 與 `c88cc05 修正 Quartus 建置前清理快取`：排除相同 PTP clock identity，並確認新 MIF 確實進入 SOF。
+
+### 這次要驗證什麼
+
+確認兩片 DE5a 不再使用相同 fallback MAC，讓 White Rabbit 的 BMC（Best Master Clock，最佳主時鐘選擇）可以辨識不同節點並建立 foreign-master/parent 關係；同時確認 Quartus incremental cache 不會讓新 MIF 被舊 SOF 蓋過。
+
+### 修改內容
+
+- `ed21eaa`：不新增 Kconfig、不修改 linker、PHY 或 PTP 參數。
+- Master/Slave build script 各自注入 identity header：
+  - Master：`02:00:22:33:44:01`
+  - Slave：`02:00:22:33:44:02`
+- `c88cc05`：在 Master/Slave Quartus 17 build script 於 compile 前執行 `quartus_sh --clean <project.qpf>`，清除 database/incremental cache。
+- 保留 stale-SOF 版本與 log，不覆蓋：
+  `/home/b10504072/04_WR/build/artifacts/unique_mac_ed21eaa/`
+- 修正後的 clean 版本保存於：
+  `/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/`
+
+### 結果
+
+#### A 組：stale-SOF 失效判定
+
+- `ed21eaa` 的 Master/Slave MIF hash 已改變，但未清 Quartus cache 時，SOF hash 與前一版相同。
+- 因此 A 組只證明「firmware build 產生了新 MIF」，不能證明新 MIF 已進入 FPGA；這次燒錄結果不採用為唯一身份實驗證據。
+
+#### B 組：clean Quartus 有效版本
+
+- `c88cc05` clean compile 後，SOF hash 改變：
+
+```text
+Master SOF SHA256: f565c0a209cf1567f048df25b0f3312e9db4bf45a3fc46914a87efefbf2b1abf
+Slave  SOF SHA256: 926d4a57f50dce0e39e437af7eba164a8ca1ec327c989b59d5f6480a038eb2cb
+```
+
+- Master/Slave Quartus 17 compile 均成功，兩份均為 `timing_closed=NO`。
+- 兩片 JTAG 燒錄均 `Configuration succeeded`，SOF programmer checksum 分別為 `0x30A0A429` 與 `0x30A5A091`。此 checksum 不是本次唯一判斷依據，因為 JTAG runtime 已提供更直接的 MAC/parent 證據。
+- 8 秒後兩片 CPU 都正常：`fault=0`、`marker=0xB004 seen=1`。
+- Master JTAG 讀到 `EP_MAC_H=02000200`、`EP_MAC_L=22334401`，對應 `02:00:22:33:44:01`。
+- Slave 已不再是舊的相同 fallback identity；`WDIAGS_FOREIGN_META` 由 `0000FF00` 變成 `03000001`，`WDIAGS_PTP` 由 4 前進到 8，表示已開始建立 foreign-master/parent 狀態。
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/unique_mac_ed21eaa/master_firmware_build.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_ed21eaa/slave_firmware_build.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_ed21eaa/program_ed21eaa.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/master_firmware_build.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/slave_firmware_build.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_clean_master.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_master_compile.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_slave_compile.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/program_clean_c88cc05.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/runtime_after_program_8s.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_artifact_hashes.sha256
+```
+
+### 怎麼看待這個結果
+
+這是目前第一個證據顯示「唯一節點身份」變因已真正進入 FPGA，並讓 Slave 的 foreign/parent metadata 開始變化；先前 `c206628` 的 CPU fault 沒有重現。可是 `time_valid=1`、Slave 的完整 parent identity、Delay exchange 與 SoftPLL/DCO lock 尚未完成，因此不能宣稱 WR 時間同步成功。60 秒 runtime snapshot 完成後，會在本節追加結果；在此之前不會進行下一個 source 變因。

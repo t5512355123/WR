@@ -83,6 +83,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   set spll_csr_end [wb_read 0x00100200]
   set spll_eccr_end [wb_read 0x00100204]
   set spll_occr_end [wb_read 0x00100210]
+  set ptp_meta_end [wb_read 0x0010095C]
+  set foreign_meta_end [wb_read 0x00100978]
+  set parse_meta_end [wb_read 0x00100980]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
@@ -90,7 +93,8 @@ proc read_diag_sample {hardware_name sample attempt} {
       $sstat $pstat $ptp $ptp_rx $ptp_tx \
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
-      $spll_csr_end $spll_eccr_end $spll_occr_end $ctrl_end] {
+      $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
+      $foreign_meta_end $parse_meta_end $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
@@ -105,7 +109,10 @@ proc read_diag_sample {hardware_name sample attempt} {
   set spll_block_valid [expr {$spll_csr == $spll_csr_end &&
                               $spll_eccr == $spll_eccr_end &&
                               $spll_occr == $spll_occr_end}]
-  set frame_valid [expr {$frame_valid && $spll_block_valid}]
+  set parent_block_valid [expr {$ptp_meta == $ptp_meta_end &&
+                                $foreign_meta == $foreign_meta_end &&
+                                $parse_meta == $parse_meta_end}]
+  set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid}]
 
   scan $status %x status_word
   set status_low [expr {$status_word & 0xff}]
@@ -136,6 +143,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "SPLL_BLOCK_VALID: %d A=%s/%s/%s B=%s/%s/%s" \
         $spll_block_valid $spll_csr $spll_eccr $spll_occr \
         $spll_csr_end $spll_eccr_end $spll_occr_end]
+  puts [format "PARENT_BLOCK_VALID: %d A=%s/%s/%s B=%s/%s/%s" \
+        $parent_block_valid $ptp_meta $foreign_meta $parse_meta \
+        $ptp_meta_end $foreign_meta_end $parse_meta_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

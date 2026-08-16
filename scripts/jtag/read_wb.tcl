@@ -77,8 +77,13 @@ foreach hardware_name [get_hardware_names] {
     puts "CPU_DBGFORCE: [wb_read 0x00100B84]"
     puts "CPU_DBGREADY: [wb_read 0x00100B88]"
     puts "CPU_MBX:      [wb_read 0x00100B90]"
+    # The CPU IRAM host mux is selected only while the CPU reset bit is set.
+    # Hold the CPU briefly so UADDR really selects IRAM address zero, then
+    # release it so the firmware can restart normally.
+    puts "CPU_HOLD:     [wb_write 0x00100B00 1]"
     puts "CPU_UADDR_WR: [wb_write 0x00100B04 0]"
     puts "CPU_IRAM0:    [wb_read_twice 0x00100B08]"
+    puts "CPU_RELEASE:  [wb_write 0x00100B00 0]"
   } error_message]} {
     puts "error: ${error_message}"
   }

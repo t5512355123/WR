@@ -130,6 +130,27 @@ build/artifacts/EXP-WRPC-MASTER-INIT-20260817/runtime_after_program.log
 
 檔案 SHA-256：`9C2C2E43796F04CCD6D03158976556D2435EA69C0B8F6975339345F17951D3FA`
 
+### 追加：60 秒唯讀觀測
+
+在前述燒錄後約 60 秒內，每 10 秒讀取一次，共 6 個 sample。這一輪沒有 compile、沒有燒錄，也沒有寫入任何控制暫存器；只是延長觀測時間，確認前述狀態是否穩定。
+
+```text
+Sample 1: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x55 CKO=0x0193A021
+Sample 2: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x58 CKO=0x018EED01
+Sample 3: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x5B CKO=0x0000005B
+Sample 4: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x5E CKO=0x019AF321
+Sample 5: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x4E CKO=0x0168C761
+Sample 6: Master mode=2 PTP=6 status=0xFF; Slave mode=3 PTP=9 status=0xCF SSTAT=1 PSTAT=1 UCNT=0x65 CKO=0x016FDBE1
+```
+
+完整篩選後的唯讀輸出保存於：
+
+```text
+build/artifacts/EXP-WRPC-MASTER-INIT-20260817/servo_observation_60s.log
+```
+
+這 60 秒內 Master 狀態穩定；Slave 的 `UCNT/CKO` 有持續活動，但 `SSTAT/PSTAT` 沒有進入可宣稱 lock 的狀態，`status=0xCF` 的 `time_valid` 仍為 0。這支持下一步繼續檢查 Slave SoftPLL sequence/lock feedback，而不是回頭修改 Master boot command。
+
 ## Observation
 
 1. Master 連續兩次都是 `WDIAGS_MODE=2`、`WDIAGS_PTP=6`，而且 status low byte 為 `0xFF`。依目前 mapping，Master 的 link、PHY、PPS 與 time-valid bits 都已為 1。
@@ -158,4 +179,3 @@ build/artifacts/EXP-WRPC-MASTER-INIT-20260817/runtime_after_program.log
 1. 以同一 JTAG session 觀測 Slave 的 `SSTAT` state field、`PSTAT.locked`、`UCNT`、`CKO/SETP`、`FOREIGN_META`、`PARSE_META`、`PPS_ESCR` 與 status bits 的轉換。
 2. 若 Slave 的 `UCNT` 持續增加但 `PSTAT.locked` 長時間維持 0，再檢查 SoftPLL sequence/lock feedback；若 locked=1 但 time-valid 仍 0，才把 validity gating 列為主要假設。
 3. Master 本次設定先保留，不再把 `sfp match` 加回去；下一個可燒錄變因必須另立 commit 與實驗紀錄。
-

@@ -55,8 +55,13 @@ proc is_u32 {value} {
   return [regexp {^[0-9A-Fa-f]{1,8}$} $value]
 }
 
+proc is_u64 {value} {
+  return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
+}
+
 proc read_diag_sample {hardware_name sample attempt} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
+  set clock_activity_begin [read_probe_data -instance_index 7 -value_in_hex]
   set ctrl_begin [wb_read 0x00100904]
   set ver [wb_read 0x00100900]
   set spll_csr [wb_read 0x00100200]
@@ -143,6 +148,7 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_state_transition_count_end [wb_read 0x001009E4]
   set wr_spll_last_state_end [wb_read 0x001009E8]
   set ctrl_end [wb_read 0x00100904]
+  set clock_activity_end [read_probe_data -instance_index 7 -value_in_hex]
 
   set frame_valid 1
   foreach value [list $ctrl_begin $ver $spll_csr $spll_eccr $spll_occr \
@@ -176,6 +182,9 @@ proc read_diag_sample {hardware_name sample attempt} {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
+  }
+  if {![is_u64 $clock_activity_begin] || ![is_u64 $clock_activity_end]} {
+    set frame_valid 0
   }
   if {$frame_valid} {
     scan $ctrl_begin %x ctrl_begin_word
@@ -294,6 +303,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SIGNAL_BLOCK_VALID: %d RX=%s/%s TX=%s/%s FAIL=%s/%s" \
         $wr_signal_block_valid $wr_rx_debug $wr_rx_debug_end \
         $wr_tx_debug $wr_tx_debug_end $wr_fail_debug $wr_fail_debug_end]
+  puts [format "WR_CLOCK_ACTIVITY: BEGIN=%s END=%s" \
+        $clock_activity_begin $clock_activity_end]
   puts [format "WR_LOCK_BLOCK_VALID: %d RESULT=%s/%s POLLS=%s/%s UNLOCKED=%s/%s CALIB_FAIL=%s/%s ENABLE=%s/%s SPLL=%s/%s" \
         $wr_lock_block_valid $wr_lock_result $wr_lock_result_end \
         $wr_lock_polls $wr_lock_polls_end $wr_lock_unlocked $wr_lock_unlocked_end \

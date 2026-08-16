@@ -190,6 +190,25 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_mepc              : std_logic_vector(31 downto 0);
   signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
+  signal clock_activity_probe : std_logic_vector(63 downto 0);
+  signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
+  signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
+  signal rx_activity_div      : unsigned(7 downto 0) := (others => '0');
+  signal ref_activity_toggle  : std_logic := '0';
+  signal dmtd_activity_toggle : std_logic := '0';
+  signal rx_activity_toggle   : std_logic := '0';
+  signal ref_activity_meta    : std_logic := '0';
+  signal ref_activity_sync    : std_logic := '0';
+  signal ref_activity_prev    : std_logic := '0';
+  signal dmtd_activity_meta   : std_logic := '0';
+  signal dmtd_activity_sync   : std_logic := '0';
+  signal dmtd_activity_prev   : std_logic := '0';
+  signal rx_activity_meta     : std_logic := '0';
+  signal rx_activity_sync     : std_logic := '0';
+  signal rx_activity_prev     : std_logic := '0';
+  signal ref_activity_count   : unsigned(15 downto 0) := (others => '0');
+  signal dmtd_activity_count  : unsigned(15 downto 0) := (others => '0');
+  signal rx_activity_count    : unsigned(15 downto 0) := (others => '0');
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
   signal sync_source          : std_logic_vector(0 downto 0);
@@ -234,6 +253,104 @@ architecture rtl of DE5a_wr_slave_jtag is
 
 begin
   reconfig_reset(0) <= not CPU_RESET_n;
+
+  -- Read-only activity markers. Each source clock toggles one bit every
+  -- 256 cycles; the markers are synchronized into the 50 MHz system clock
+  -- and counted there. They do not drive WR timing or reset behavior.
+  p_ref_activity : process(QSFPA_REFCLK_p)
+  begin
+    if rising_edge(QSFPA_REFCLK_p) then
+      if CPU_RESET_n = '0' then
+        ref_activity_div <= (others => '0');
+        ref_activity_toggle <= '0';
+      elsif ref_activity_div = x"FF" then
+        ref_activity_div <= (others => '0');
+        ref_activity_toggle <= not ref_activity_toggle;
+      else
+        ref_activity_div <= ref_activity_div + 1;
+      end if;
+    end if;
+  end process;
+
+  p_dmtd_activity : process(QSFPB_REFCLK_p)
+  begin
+    if rising_edge(QSFPB_REFCLK_p) then
+      if CPU_RESET_n = '0' then
+        dmtd_activity_div <= (others => '0');
+        dmtd_activity_toggle <= '0';
+      elsif dmtd_activity_div = x"FF" then
+        dmtd_activity_div <= (others => '0');
+        dmtd_activity_toggle <= not dmtd_activity_toggle;
+      else
+        dmtd_activity_div <= dmtd_activity_div + 1;
+      end if;
+    end if;
+  end process;
+
+  p_rx_activity : process(wr_rx_clk)
+  begin
+    if rising_edge(wr_rx_clk) then
+      if CPU_RESET_n = '0' then
+        rx_activity_div <= (others => '0');
+        rx_activity_toggle <= '0';
+      elsif rx_activity_div = x"FF" then
+        rx_activity_div <= (others => '0');
+        rx_activity_toggle <= not rx_activity_toggle;
+      else
+        rx_activity_div <= rx_activity_div + 1;
+      end if;
+    end if;
+  end process;
+
+  p_activity_observer : process(CLK_50_B2J)
+  begin
+    if rising_edge(CLK_50_B2J) then
+      if CPU_RESET_n = '0' then
+        ref_activity_meta <= '0';
+        ref_activity_sync <= '0';
+        ref_activity_prev <= '0';
+        dmtd_activity_meta <= '0';
+        dmtd_activity_sync <= '0';
+        dmtd_activity_prev <= '0';
+        rx_activity_meta <= '0';
+        rx_activity_sync <= '0';
+        rx_activity_prev <= '0';
+        ref_activity_count <= (others => '0');
+        dmtd_activity_count <= (others => '0');
+        rx_activity_count <= (others => '0');
+      else
+        ref_activity_meta <= ref_activity_toggle;
+        ref_activity_sync <= ref_activity_meta;
+        ref_activity_prev <= ref_activity_sync;
+        dmtd_activity_meta <= dmtd_activity_toggle;
+        dmtd_activity_sync <= dmtd_activity_meta;
+        dmtd_activity_prev <= dmtd_activity_sync;
+        rx_activity_meta <= rx_activity_toggle;
+        rx_activity_sync <= rx_activity_meta;
+        rx_activity_prev <= rx_activity_sync;
+        if ref_activity_sync /= ref_activity_prev then
+          ref_activity_count <= ref_activity_count + 1;
+        end if;
+        if dmtd_activity_sync /= dmtd_activity_prev then
+          dmtd_activity_count <= dmtd_activity_count + 1;
+        end if;
+        if rx_activity_sync /= rx_activity_prev then
+          rx_activity_count <= rx_activity_count + 1;
+        end if;
+      end if;
+    end if;
+  end process;
+
+  clock_activity_probe(15 downto 0) <= std_logic_vector(ref_activity_count);
+  clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_activity_count);
+  clock_activity_probe(47 downto 32) <= std_logic_vector(rx_activity_count);
+  clock_activity_probe(48) <= ref_activity_sync;
+  clock_activity_probe(49) <= dmtd_activity_sync;
+  clock_activity_probe(50) <= rx_activity_sync;
+  clock_activity_probe(51) <= wr_ready;
+  clock_activity_probe(52) <= wr_rx_locked_to_ref;
+  clock_activity_probe(53) <= wr_rx_locked_to_data;
+  clock_activity_probe(63 downto 54) <= (others => '0');
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -300,6 +417,21 @@ begin
     port map (
       probe      => sync_probe,
       source     => sync_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_clock_activity_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CLOCK_ACTIVITY_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 7,
+      source_width            => 1
+    )
+    port map (
+      probe      => clock_activity_probe,
+      source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );

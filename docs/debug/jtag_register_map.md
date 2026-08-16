@@ -10,8 +10,11 @@
 |---:|---|
 | 0 | 既有 64-bit WR 狀態 probe |
 | 1 | JTAG Wishbone mailbox，送出一次讀取命令並回收 32-bit 結果 |
+| 7 | 只讀時鐘域活動 probe：reference、DMTD 與 transceiver RX clock |
 
 只有燒錄 `jtag_runtime_diag` 的 SOF 時，instance 1 才存在。正式 `rs422_uart_diag` SOF 沒有這個介面，執行 mailbox 腳本出現 `No In-System Sources and Probes instance was found` 是預期結果。
+
+instance 7 的 64-bit probe 僅用於診斷：低 16 位元是 `QSFPA_REFCLK_p` 活動計數，bits 16..31 是 `QSFPB_REFCLK_p` 活動計數，bits 32..47 是 transceiver `wr_rx_clk` 活動計數；bits 48..53 是三個同步後 toggle 與 PHY ready/lock 狀態。每個時鐘域每 256 個 clock 週期翻轉一次標記，再由 50 MHz 系統時鐘同步與計數。此 probe 不寫入任何 WR 控制暫存器，也不參與同步。
 
 ## 目前使用的 WRPC 暫存器
 

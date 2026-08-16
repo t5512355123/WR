@@ -121,6 +121,15 @@ architecture rtl of DE5a_wr_master_jtag is
     );
   end component;
 
+  component wr_sys_clk_625 is
+    port (
+      i_clk_50  : in  std_logic;
+      i_reset_n : in  std_logic;
+      o_clk_625 : out std_logic;
+      o_locked  : out std_logic
+    );
+  end component;
+
   component altsource_probe is
     generic (
       enable_metastability    : string  := "NO";
@@ -252,14 +261,24 @@ architecture rtl of DE5a_wr_master_jtag is
   signal sfp_scl_i            : std_logic;
   signal wr_core_reset_n      : std_logic := '0';
   signal wr_reset_delay       : unsigned(7 downto 0) := (others => '0');
+  signal clk_sys_625           : std_logic;
+  signal clk_sys_625_locked    : std_logic;
 
 begin
+  u_sys_clk_625 : wr_sys_clk_625
+    port map (
+      i_clk_50  => CLK_50_B2J,
+      i_reset_n => CPU_RESET_n,
+      o_clk_625 => clk_sys_625,
+      o_locked  => clk_sys_625_locked
+    );
+
   -- Hold WR core and PHY reset until the SI5340 static table is complete.
   -- This prevents SoftPLL/DMTD initialization from seeing an unstable clock.
-  p_release_wr_core_reset : process(CLK_50_B2J)
+  p_release_wr_core_reset : process(clk_sys_625)
   begin
-    if rising_edge(CLK_50_B2J) then
-      if CPU_RESET_n = '0' then
+    if rising_edge(clk_sys_625) then
+      if CPU_RESET_n = '0' or clk_sys_625_locked = '0' then
         wr_reset_delay  <= (others => '0');
         wr_core_reset_n <= '0';
       elsif si_config_done = '0' then
@@ -277,7 +296,7 @@ begin
   reconfig_reset(0) <= not wr_core_reset_n;
 
   -- Read-only activity markers. Each source clock toggles one bit every
-  -- 256 cycles; the markers are synchronized into the 50 MHz system clock
+  -- 256 cycles; the markers are synchronized into the 50 MHz observer clock
   -- and counted there. They do not drive WR timing or reset behavior.
   p_ref_activity : process(QSFPA_REFCLK_p)
   begin
@@ -644,7 +663,7 @@ begin
       g_instance_id => "WR_WB_MASTER"
     )
     port map (
-      i_clk        => CLK_50_B2J,
+      i_clk        => clk_sys_625,
       i_reset_n    => wr_core_reset_n,
       i_wb_slave_o => core_wb_o,
       o_wb_slave_i => core_wb_i
@@ -665,7 +684,7 @@ begin
       g_with_clock_freq_monitor   => true
     )
     port map (
-      clk_sys_i                  => CLK_50_B2J,
+      clk_sys_i                  => clk_sys_625,
       clk_dmtd_i                 => QSFPB_REFCLK_p,
       clk_ref_i                  => QSFPA_REFCLK_p,
       clk_ext_rst_o              => open,

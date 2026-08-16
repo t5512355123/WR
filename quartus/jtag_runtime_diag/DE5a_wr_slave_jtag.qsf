@@ -5,6 +5,7 @@ set_global_assignment -name ORIGINAL_QUARTUS_VERSION 17.0.0
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files_slave_jtag
 set_global_assignment -name AUTO_OPEN_DRAIN_PINS OFF
 set_global_assignment -name VHDL_FILE DE5a_wr_slave_jtag.vhd
+set_global_assignment -name VHDL_FILE wr_sys_clk_625.vhd
 set_global_assignment -name VHDL_FILE wr_jtag_wb_mailbox.vhd
 set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/ip_cores/general-cores/modules/genrams/genram_pkg.vhd
 set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wishbone_pkg.vhd
@@ -349,5 +350,4 @@ set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/modules/wrc_core/wrc
 set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/modules/wrc_core/xwr_core.vhd
 
 set_global_assignment -name LAST_QUARTUS_VERSION "17.0.0 Standard Edition"
-
 

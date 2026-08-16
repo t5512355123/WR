@@ -189,6 +189,8 @@ begin
 
   U_cpu_core : urv_cpu
     generic map (
+      g_timer_frequency => 1000,
+      g_clock_frequency => 62500000,
       g_with_hw_debug => 1,
       g_with_hw_mulh => 1,
       g_with_hw_mul => 1,

@@ -54,6 +54,16 @@ proc wb_read_twice {addr} {
   return "$first / $second"
 }
 
+proc wb_sync_toggle {} {
+  # The mailbox completion toggle survives between quartus_stp sessions.
+  # Start with the opposite value so the first command cannot match stale data.
+  set value [read_probe_data -instance_index 1 -value_in_hex]
+  scan $value %x word
+  set current_done [expr {(($word >> 35) & 1)}]
+  set ::wb_toggle [expr {$current_done ^ 1}]
+  puts [format "mailbox initial done=%d next_toggle=%d" $current_done $::wb_toggle]
+}
+
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
@@ -65,6 +75,7 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     puts "status_probe: [read_probe_data -instance_index 0 -value_in_hex]"
+    wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"
     puts "SPLL_CSR:     [wb_read 0x00100200]"

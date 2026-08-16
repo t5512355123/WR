@@ -113,7 +113,10 @@ foreach hardware_name [get_hardware_names] {
     puts "WDIAGS_PTP:   [wb_read 0x00100910]"
     puts "WDIAGS_PTP_RX:[wb_read 0x00100954]"
     puts "WDIAGS_PTP_TX:[wb_read 0x00100958]"
-    puts "WDIAGS_PTP_META:[wb_read 0x0010095C]"
+    set ptp_meta [wb_read 0x0010095C]
+    puts "WDIAGS_PTP_META:$ptp_meta"
+    scan $ptp_meta %x ptp_meta_word
+    puts [format "WDIAGS_MODE:   %d" [expr {($ptp_meta_word >> 24) & 0xff}]]
     puts "WDIAGS_PTP_TYPES:[wb_read 0x00100974]"
     puts "WDIAGS_FOREIGN_META:[wb_read 0x00100978]"
     puts "WDIAGS_FILTER_META:[wb_read 0x0010097C]"

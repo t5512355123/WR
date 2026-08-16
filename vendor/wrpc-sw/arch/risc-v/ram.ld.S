@@ -97,6 +97,8 @@ SECTIONS
     {
 	KEEP(*(.debug_boot))
     } > ram
+    ASSERT(ADDR(.debug_boot) + SIZEOF(.debug_boot) <= ORIGIN(stack) - 0x1000,
+	   "debug_boot must stay at least 4 KiB below the stack")
 
     /* Bounds of bss segment. */
     _fbss = ADDR(.sbss);

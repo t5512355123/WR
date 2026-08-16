@@ -78,13 +78,14 @@ int wrc_wr_diags(void)
 	*/
 	wdiags_write_ptp_state((uint8_t)ppi->state);
 	/* Preserve PPSI-side counters separately from the Mini-NIC counters.
-	 * This distinguishes no PTP frame from a frame rejected by PPSI. */
+	 * The metadata high byte carries the configured WRC mode during bring-up
+	 * so Master/Slave role selection is directly visible over JTAG. */
 	wdiags_write_ptp_debug((uint32_t)ppi->ptp_rx_count,
 			       (uint32_t)ppi->ptp_tx_count,
 			       (uint8_t)ppi->state,
 			       (uint8_t)ppi->pdstate,
 			       (uint8_t)ppi->extState,
-			       (uint8_t)ppi->protocol_extension);
+			       (uint8_t)wrc_ptp_get_mode());
 	/* 診斷版：拆出訊息類型與 foreign-master/WR-parent 判斷。 */
 	{
 		uint32_t rx_type_counts =

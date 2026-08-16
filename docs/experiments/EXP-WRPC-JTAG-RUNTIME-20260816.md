@@ -995,3 +995,47 @@ A 組測試後恢復 `e302c4d` baseline。
 
 baseline 回復成功，表示不需要實體斷電，也不支持把 fault 歸因於 QSFP 光路永久故障。後續實驗會先修正可重現建置，再以相同 baseline 逐項加入唯一身份設定。
 ```
+
+---
+
+## 實驗：EXP-WRPC-DETERMINISTIC-BUILD-20260816
+
+### 實驗名稱
+
+`4acdeb6`、`569c9f3`、`a0a1973`：固定韌體產物的可重現建置流程。
+
+### 這次要驗證什麼
+
+驗證同一份 Master/Slave 原始碼，在相同建置流程執行兩次時，產生的韌體 MIF（Memory Initialization File，記憶體初始化檔）是否完全一致。這一步是為了避免把每次建置產物的差異誤判成 FPGA、PHY 或 White Rabbit（WR）執行期故障。
+
+### 修改內容
+
+- `4acdeb6 固定 SDBFS 生成順序`：在 `gensdbfs.c` 對嵌入檔案名稱排序，避免 `readdir()` 回傳順序改變 SDBFS（Software Database File System，軟體資料庫檔案系統）內容排列。
+- `569c9f3 啟用可重現韌體建置`：在 Master/Slave defconfig 啟用 `CONFIG_DETERMINISTIC_BINARY=y`。
+- `a0a1973 移除韌體中的建置時間差異`：將 PPSi 與 SNMP 中的 `__DATE__`、`__TIME__` 改為 deterministic 分支，避免建置日期與時間寫入韌體。
+- 使用 pain 上的 Quartus 17 / WR 韌體建置流程；本階段只驗證韌體產物，尚未以這一輪產物燒錄 FPGA。
+
+### 結果
+
+- Master/Slave firmware build 均成功。
+- 同一份 commit 的兩次獨立建置，MIF hash 完全相同：
+
+```text
+Master MIF: 7bb9a242b81683d71e208539fd2ecd5b7f9a0c691a555ecc3ffe1e1ed7250b04
+Slave  MIF: c5ab914a69bd7ec6a1336e4afc9f6ef63fe0f8491ae23bbd94ef3988f8e81697
+diff count: 0 / 0
+```
+
+### pain terminal log 結果顯示什麼
+
+```text
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/hashes.sha256
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/master_build.log
+/home/b10504072/04_WR/build/artifacts/deterministic_a0a1973/slave_build.log
+```
+
+`hashes.sha256` 記錄兩次建置的 Master/Slave MIF hash 與逐位元比對結果；結果為 `diff count: 0 / 0`。
+
+### 怎麼看待這個結果
+
+這次已證明韌體從 source 到 MIF 的建置流程具備位元級可重現性，後續可以把 Quartus compile、燒錄與 JTAG runtime 讀值歸因到明確的 Git commit 與 MIF。這個結果本身不代表 WR 已完成時間同步；它只排除了「韌體建置產物每次不同」這個干擾因素。下一步可在不改 source 的前提下，以 `a0a1973` 產出的 MIF 做 Quartus 17 compile、燒錄，再記錄兩片 DE5a 的 runtime、PTP、parent 與 servo 證據。

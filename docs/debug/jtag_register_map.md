@@ -66,3 +66,17 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 ```
 
 先看 `status_probe` 的低 16-bit 是否仍是 `0x82CF`，再看 PPS、SoftPLL 與 CPU 狀態。這個順序可以避免把 JTAG 介面問題誤判成 WR 光路問題。
+
+## 唯讀時間序列觀測
+
+若要觀察 Slave 是否從 servo 初期逐步進入 `TRACK_PHASE`，可在 pain 上使用：
+
+```bash
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries.tcl 60 1000 \
+  2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-20260816.log
+```
+
+其中 `60` 是完整 snapshot 次數，`1000` 是兩次 snapshot 之間的最小等待毫秒數。每次 snapshot 都會重新讀取兩片 JTAG mailbox，輸出 `WDIAGS_SSTAT`、`WDIAGS_PSTAT`、`WDIAGS_PTP`、時間有效位元、`DMS`、`CKO`、`SETP`、`UCNT` 與 parent/foreign metadata。
+
+這個腳本只讀取既有 register，不會寫入 WR 設定，也不會改變 QSFP、PHY、PTP 或 SoftPLL 控制流程。需要注意的是，一次完整的 JTAG snapshot 本身也需要時間，因此 `gap_ms` 是兩次 snapshot 之間的等待時間，不保證 sample timestamp 恰好相隔一秒。

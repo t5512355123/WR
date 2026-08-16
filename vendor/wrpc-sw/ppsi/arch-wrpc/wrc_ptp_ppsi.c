@@ -116,11 +116,17 @@ struct pp_globals ppg_static = {
 
 extern struct pp_ext_hooks const pp_hooks;
 
+#ifdef CONFIG_DETERMINISTIC_BINARY
+#define WRPC_BUILD_DATE "deterministic"
+#else
+#define WRPC_BUILD_DATE __DATE__
+#endif
+
 int wrc_ptp_init(void)
 {
 	struct pp_instance *ppi = &ppi_static;
 
-	pp_printf("PPSi for WRPC. Commit %s, built on " __DATE__ "\n",
+	pp_printf("PPSi for WRPC. Commit %s, built on " WRPC_BUILD_DATE "\n",
 		PPSI_VERSION);
 
 	ppi->glbs = &ppg_static;

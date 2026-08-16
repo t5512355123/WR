@@ -272,7 +272,11 @@ static uint32_t aux_diag_reg_rw_num;
 
 /* __DATE__ and __TIME__ is already stored in struct spll_stats stats, but
  * redefining it here makes code smaller than concatenate existing one */
+#ifdef CONFIG_DETERMINISTIC_BINARY
+static const char snmp_build_date[] = "deterministic";
+#else
 static const char snmp_build_date[] = __DATE__ " " __TIME__;
+#endif
 /* store SNMP version, not fully used yet */
 static uint8_t snmp_version;
 

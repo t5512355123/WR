@@ -362,3 +362,19 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - Slave `link_up=1`、`spll_locked=0`、`time_valid=0`；DCO begin/end 皆為 `DPLL source=0004、accepted=0000、done=0000`。
 - Slave raw `REF_COUNT` 與 `TAG_COUNT` 持續增加，因此 runtime 有活動，但本輪仍未真正測到 DPLL I2C transaction。
 - 延長觀測原始檔與 hash 已補入 `docs/experiments/EXP-WRPC-DCO-DPLL-ONLY-20260817.md`。
+
+## 最新燒錄實驗：HPLL 連續、DPLL 隔離觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-HPLL-CONT-OBS-20260817`。
+- source commit：`97e70ca4abdca31b88be0616d66320f6cb89825a`，branch：`exp/jtag-runtime-observability`。
+- 只重新編譯、燒錄 Slave；Master 沿用 `5e816ead` baseline。
+- Slave SOF SHA-256：`50672283f8628bc98655ecca8f608834079bac66ac6ef7e0a3b4117177dec79a`；programmer checksum：`0x30A30C52`；JTAG ID：`0x02E660DD`；configuration succeeded。
+- Quartus 17.0 Full Compilation successful，0 errors、275 warnings；timing 尚未 closure，worst setup `-0.190 ns`、hold `-3.506 ns`。
+- DCO snapshot：HPLL `accepted=0x0012、done=0x000C`；DPLL `accepted=0x000B、done=0x0000`，`dpll_pending=1`。
+- 同一 bitstream 的 60 秒唯讀 session 完成，Master/Slave 各 60 個 accepted sample。
+- Master 維持 `status_low=FF、link_up=1、time_valid=1、pps_valid=1`。
+- Slave 維持 `link_up=1、SSTAT=1、spll_locked=0、time_valid=0`；`pps_valid` 有 0/1 變化，但沒有 `time_valid=1` 或 lock 證據。
+- Slave 的 parent/servo/部分 PTP 活動仍存在，但本輪沒有進入 `SSTAT=4/5` 或 `PSTAT.locked=1`。
+- 結論：HPLL-only 沒有完成同步；不能把 DCO counter 增加解讀為 SI5340 時鐘校正已正確生效。下一步新增唯讀 DPLL/HPLL data-change snapshot。
+- 原始 log：`build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/dco_diag.log`、`build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/runtime_60s.log`。
+- log SHA-256：`fd47960001a0e8178f44200e3af02f9f86f71e9800a94182e8dcafbcea7fd5b3`、`f0574758bd59b7762d315f53b360b5eb9d9a2903138ee24f315f60dcfe0853c9`。

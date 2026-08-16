@@ -71,23 +71,36 @@
 
 ## JTAG/runtime 原始結果
 
-待在本顆已燒錄 Slave 上執行唯讀 DCO snapshot 與 60 秒 runtime session 後補入。觀測期間不寫入控制 register、不重新燒錄、不修改 Master。
+觀測期間沒有寫入控制 register、沒有重新燒錄、沒有修改 Master。Quartus 17 SignalTap/Tcl session 完成，`SESSION_TIME_SERIES_DONE`，Master 與 Slave 各完成 60 個樣本；frame retry 後均為有效取樣。
+
+- DCO snapshot log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/dco_diag.log`
+- DCO snapshot SHA-256：`fd47960001a0e8178f44200e3af02f9f86f71e9800a94182e8dcafbcea7fd5b3`
+- 60 秒 runtime log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-HPLL-CONT-OBS-20260817/runtime_60s.log`
+- 60 秒 runtime SHA-256：`f0574758bd59b7762d315f53b360b5eb9d9a2903138ee24f315f60dcfe0853c9`
+- JTAG/Tcl：成功，`0 errors, 0 warnings`，`SESSION_TIME_SERIES_DONE`
+- Master：60/60 accepted；主要狀態 `status_low=FF`、`link_up=1`、`time_valid=1`、`pps_valid=1`。
+- Slave：60/60 accepted；`link_up=1`，`SSTAT=0x00000001`、`PSTAT.locked=0`、`spll_locked=0`、`time_valid=0`。
+- Slave：`pps_valid` 在樣本中於 `0` 與 `1` 間變動，但沒有伴隨 `time_valid=1` 或 SoftPLL lock；不能視為同步成功。
+- Slave：`foreign_count=1`、`foreign_best=0`、`parent_is_wr=1`、`parent_calibrated=1`；PTP RX/TX、DMS、CKO、UCNT 有活動。
+- Slave：`SSTAT` 在 accepted frames 維持 `1`，沒有進入 `4/5`；`WR_LOCK` 維持 `result=0`、`spll_locked=0`。
+- DCO snapshot：HPLL `accepted=0x0012`、`done=0x000C`；DPLL `accepted=0x000B`、`done=0x0000`，DPLL state 顯示 `dpll_pending=1`。
+- DCO snapshot 也顯示 `DPLL prev_data=0x0000`、`input_data=0x0000`；這支持 DPLL 輸入資料沒有形成有效變化的方向，但單次 snapshot 仍不足以證明每次 load 的資料都相同。
+- Master 的 DCO probe instance 不存在於本輪 Master image；因此本輪 DCO transaction 證據只適用於 Slave。
 
 ## Observation
 
-待補入 runtime 原始 log、SHA-256、accepted/rejected sample 數與 Slave 的 `SSTAT`、`PSTAT.locked`、`time_valid`、`pps_valid`、helper error、HPLL/DPLL transaction counter。
+本輪唯一修改是讓 HPLL transaction 可連續服務、DPLL 保持隔離；這沒有讓 Slave 進入 SoftPLL tracking。Slave 已經看見 WR parent 且 PTP/servo 有活動，但 `SSTAT=1`、`PSTAT.locked=0`、`time_valid=0` 在整個 60 秒內沒有改善。HPLL counter 增加不能等同於 SI5340 實際完成正確的時鐘校正，因為目前 bus controller 的 transaction counter 是 RTL FSM 完成計數，尚未提供每一筆 ACK/readback 的證據。
 
 ## Conclusion
 
-目前由本次結果支持的結論只有：HPLL continuous/DPLL isolation source 已成功 compile，且 Slave 已成功燒錄。Slave 是否能由 HPLL/helper 進入 lock，尚待 runtime 證據。
+本輪證據支持：HPLL continuous/DPLL isolation image 已成功 compile、燒錄；Slave 的 PHY link、PTP parent 選擇與部分 servo 活動仍在，但 HPLL-only 沒有使 Slave 進入 `SSTAT=4/5`、`PSTAT.locked=1` 或 `time_valid=1`。因此「Slave WR servo/SoftPLL 到 time_valid 路徑」仍是優先問題範圍，但尚未能宣稱根因是 HPLL、DPLL、CDC、SI5340 ACK 或 helper clock 中的任何單一項。
 
 ## Next Step
 
-在不改變目前 bitstream 的情況下執行：
+先不改變目前功能路徑，新增純唯讀的 HPLL/DPLL data-change snapshot，直接保存每一個 load 事件看到的 current/previous data、change count、pending 與 direction；目標是區分「load 有到但 data 沒變」與「data 有變但 transaction 沒完成」。下一輪若需燒錄，會先以新 commit 在 pain compile，再依本紀錄格式追加新的燒錄證據。
 
 ```text
-quartus_stp -t scripts/jtag/read_dco_diag.tcl 1000
-quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 5
+唯讀 data-change observability；不修改 PHY、PTP、servo、SI5340 寫入資料或 DCO gate。
 ```
 
-若 HPLL done/input 持續增加且 `SSTAT` 進入 `4/5`、`PSTAT.locked=1`，再設計 DPLL-only-on-top-of-locked 的最小變因；若 HPLL 仍無法 lock，先查 helper feedback/clock 與 HPLL actuator。
+只有在 data-change 證據完成後，才決定是否做 DPLL-on-top-of-helper-lock 或 SI5340 ACK/readback 的下一個單一變因。

@@ -32,6 +32,8 @@ void wdiags_write_ptp_debug_detail(uint32_t rx_type_counts,
                                    uint32_t parse_meta);
 void wdiags_write_time(uint64_t sec, uint32_t nsec);
 void wdiags_write_temp(uint32_t temp);
+/* Read-only WR extension state shadow for DE5a bring-up diagnostics. */
+void wdiags_write_wr_state_debug(uint32_t state);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

@@ -159,6 +159,13 @@ void wdiags_write_temp(uint32_t temp)
 	wdiag_write( WRC_DIAGS_WDIAG_TEMP, temp );
 }
 
+void wdiags_write_wr_state_debug(uint32_t state)
+{
+	/* WDIAG_TEMP is unused on the DE5a builds without temperature sensors.
+	 * The 0xA tag makes stale or unsupported values immediately visible. */
+	wdiag_write( WRC_DIAGS_WDIAG_TEMP, state );
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

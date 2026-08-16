@@ -71,6 +71,7 @@ proc read_diag_sample {hardware_name sample attempt} {
   set foreign_meta [wb_read 0x00100978]
   set filter_meta [wb_read 0x0010097C]
   set parse_meta [wb_read 0x00100980]
+  set wr_state_debug [wb_read 0x0010094C]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -86,15 +87,17 @@ proc read_diag_sample {hardware_name sample attempt} {
   set ptp_meta_end [wb_read 0x0010095C]
   set foreign_meta_end [wb_read 0x00100978]
   set parse_meta_end [wb_read 0x00100980]
+  set wr_state_debug_end [wb_read 0x0010094C]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
   foreach value [list $ctrl_begin $ver $spll_csr $spll_eccr $spll_occr \
       $sstat $pstat $ptp $ptp_rx $ptp_tx \
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
+      $wr_state_debug \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
-      $foreign_meta_end $parse_meta_end $ctrl_end] {
+      $foreign_meta_end $parse_meta_end $wr_state_debug_end $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
@@ -112,7 +115,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   set parent_block_valid [expr {$ptp_meta == $ptp_meta_end &&
                                 $foreign_meta == $foreign_meta_end &&
                                 $parse_meta == $parse_meta_end}]
-  set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid}]
+  set wr_state_block_valid [expr {$wr_state_debug == $wr_state_debug_end}]
+  set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid && $wr_state_block_valid}]
 
   scan $status %x status_word
   set status_low [expr {$status_word & 0xff}]
@@ -135,6 +139,19 @@ proc read_diag_sample {hardware_name sample attempt} {
   set parent_is_wr [expr {($parse_word >> 24) & 1}]
   set parent_wr_mode_on [expr {($parse_word >> 25) & 1}]
   set parent_calibrated [expr {($parse_word >> 26) & 1}]
+  scan $wr_state_debug %x wr_debug_word
+  set wr_debug_tag [expr {($wr_debug_word >> 28) & 0xf}]
+  set local_wr_mode_on [expr {$wr_debug_word & 1}]
+  set local_parent_wr_mode_on [expr {($wr_debug_word >> 1) & 1}]
+  set local_calibrated [expr {($wr_debug_word >> 2) & 1}]
+  set local_parent_is_wr [expr {($wr_debug_word >> 3) & 1}]
+  set local_parent_calibrated [expr {($wr_debug_word >> 4) & 1}]
+  set local_wr_config [expr {($wr_debug_word >> 5) & 7}]
+  set local_parent_wr_config [expr {($wr_debug_word >> 8) & 7}]
+  set local_wr_state [expr {($wr_debug_word >> 11) & 0xf}]
+  set local_wr_next_state [expr {($wr_debug_word >> 15) & 0xf}]
+  set local_parent_detection [expr {($wr_debug_word >> 19) & 3}]
+  set local_wr_mode [expr {($wr_debug_word >> 21) & 7}]
 
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
@@ -146,6 +163,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "PARENT_BLOCK_VALID: %d A=%s/%s/%s B=%s/%s/%s" \
         $parent_block_valid $ptp_meta $foreign_meta $parse_meta \
         $ptp_meta_end $foreign_meta_end $parse_meta_end]
+  puts [format "WR_STATE_BLOCK_VALID: %d A=%s B=%s" \
+        $wr_state_block_valid $wr_state_debug $wr_state_debug_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"
@@ -157,6 +176,11 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "PARENT: foreign_count=%d foreign_best=%d detection=%d wr_config=%d is_wr=%d mode_on=%d calibrated=%d" \
         $foreign_count $foreign_best $parent_detection $parent_wr_config \
         $parent_is_wr $parent_wr_mode_on $parent_calibrated]
+  puts [format "WR_LOCAL: tag=%X mode_on=%d parent_mode_on=%d calibrated=%d parent_is_wr=%d parent_calibrated=%d wr_config=%d parent_wr_config=%d state=%d next_state=%d parent_detection=%d wr_mode=%d" \
+        $wr_debug_tag $local_wr_mode_on $local_parent_wr_mode_on $local_calibrated \
+        $local_parent_is_wr $local_parent_calibrated $local_wr_config \
+        $local_parent_wr_config $local_wr_state $local_wr_next_state \
+        $local_parent_detection $local_wr_mode]
   flush stdout
   return $frame_valid
 }

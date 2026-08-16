@@ -119,6 +119,25 @@ int wrc_wr_diags(void)
 					      foreign_master_meta,
 					      filter_meta,
 					      parse_meta);
+
+		/* DE5a has no temperature sensor. Reuse the otherwise idle register
+		 * as a read-only shadow of the WR extension state. This does not feed
+		 * back into PPSI, the servo, or the clock actuator. */
+		if (!HAS_TEMP_SENSORS) {
+			uint32_t wr_state_debug = 0xA0000000u |
+				((uint32_t)(wrp->wrModeOn ? 1 : 0) << 0) |
+				((uint32_t)(wrp->parentWrModeOn ? 1 : 0) << 1) |
+				((uint32_t)(wrp->calibrated ? 1 : 0) << 2) |
+				((uint32_t)(wrp->parentIsWRnode ? 1 : 0) << 3) |
+				((uint32_t)(wrp->parentCalibrated ? 1 : 0) << 4) |
+				(((uint32_t)wrp->wrConfig & 0x7u) << 5) |
+				(((uint32_t)wrp->parentWrConfig & 0x7u) << 8) |
+				(((uint32_t)wrp->state & 0xfu) << 11) |
+				(((uint32_t)wrp->next_state & 0xfu) << 15) |
+				(((uint32_t)wrp->parentDetection & 0x3u) << 19) |
+				(((uint32_t)wrp->wrMode & 0x7u) << 21);
+			wdiags_write_wr_state_debug(wr_state_debug);
+		}
 	}
 
 	

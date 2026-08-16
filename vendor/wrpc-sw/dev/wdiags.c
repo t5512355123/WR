@@ -135,6 +135,16 @@ void wdiags_write_ptp_debug(uint32_t rx_count, uint32_t tx_count,
 		    (uint32_t)ptp_state);
 }
 
+void wdiags_write_ptp_debug_detail(uint32_t rx_type_counts,
+				   uint32_t foreign_master_meta,
+				   uint32_t parent_flags)
+{
+	/* 0x74..0x7c are unused by this build's regular diagnostic refresh. */
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_RX_M, rx_type_counts);
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_RX_S, foreign_master_meta);
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_TX_M, parent_flags);
+}
+
 void wdiags_write_time(uint64_t sec, uint32_t nsec)
 {
 	wdiag_write( WRC_DIAGS_WDIAG_SEC_MSB, 0xFFFFFFFF & (sec>>32) );

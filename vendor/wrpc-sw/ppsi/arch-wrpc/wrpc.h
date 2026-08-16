@@ -121,4 +121,10 @@ int wrc_ptp_is_abscal(void);
 extern struct pp_globals ppg_static;
 extern struct pp_instance ppi_static;
 
+/* 診斷版：記錄收到的 PTP 訊息類型，不參與同步狀態機。 */
+extern volatile uint32_t wrpc_ptp_rx_sync_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_count;
+extern volatile uint32_t wrpc_ptp_rx_followup_count;
+extern volatile uint32_t wrpc_ptp_rx_signaling_count;
+
 #endif /* __WRPC_H */

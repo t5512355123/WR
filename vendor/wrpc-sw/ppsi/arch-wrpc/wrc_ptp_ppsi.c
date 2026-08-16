@@ -86,6 +86,12 @@ static unsigned char __rx_buffer[PP_MAX_FRAME_LENGTH];
 /* despite the name, ppi_static is not static: tests/measure_t24p.c uses it */
 struct pp_instance ppi_static;
 
+/* 診斷版：收到封包後只依 PTP header 的 messageType 計數。 */
+volatile uint32_t wrpc_ptp_rx_sync_count;
+volatile uint32_t wrpc_ptp_rx_announce_count;
+volatile uint32_t wrpc_ptp_rx_followup_count;
+volatile uint32_t wrpc_ptp_rx_signaling_count;
+
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
 	.wrpcModeCfg = WRC_MODE_UNKNOWN
@@ -278,6 +284,12 @@ int wrc_ptp_start(void)
 	TimeInterval scaledSfpDeltaTx = 0;
 	TimeInterval scaledSfpDeltaRx = 0;
 
+	/* 每次重新啟動 PTP 時重新開始統計，方便與本次 runtime 狀態對照。 */
+	wrpc_ptp_rx_sync_count = 0;
+	wrpc_ptp_rx_announce_count = 0;
+	wrpc_ptp_rx_followup_count = 0;
+	wrpc_ptp_rx_signaling_count = 0;
+
 	/* sfp match was done before so read calibration data */
 
 	wrpc_read_calibration_data(ppi,
@@ -399,6 +411,23 @@ int wrc_ptp_update(void)
 		l = __recv_and_count(ppi, ppi->rx_frame, PP_MAX_FRAME_LENGTH - 4,
 				     &ppi->last_rcv_time);
 		if (l) {
+			/* rx_ptp 指向 PTP common header；低 4 bits 是 messageType。 */
+			switch (((const uint8_t *)ppi->rx_ptp)[0] & 0x0f) {
+			case PPM_SYNC:
+				wrpc_ptp_rx_sync_count++;
+				break;
+			case PPM_ANNOUNCE:
+				wrpc_ptp_rx_announce_count++;
+				break;
+			case PPM_FOLLOW_UP:
+				wrpc_ptp_rx_followup_count++;
+				break;
+			case PPM_SIGNALING:
+				wrpc_ptp_rx_signaling_count++;
+				break;
+			default:
+				break;
+			}
 			delay_ms = pp_state_machine(ppi, ppi->rx_ptp, l);
 			return 1;
 		}

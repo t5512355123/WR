@@ -85,6 +85,29 @@ int wrc_wr_diags(void)
 			       (uint8_t)ppi->pdstate,
 			       (uint8_t)ppi->extState,
 			       (uint8_t)ppi->protocol_extension);
+	/* 診斷版：拆出訊息類型與 foreign-master/WR-parent 判斷。 */
+	{
+		uint32_t rx_type_counts =
+			((uint32_t)wrpc_ptp_rx_sync_count & 0xff) |
+			(((uint32_t)wrpc_ptp_rx_announce_count & 0xff) << 8) |
+			(((uint32_t)wrpc_ptp_rx_followup_count & 0xff) << 16) |
+			(((uint32_t)wrpc_ptp_rx_signaling_count & 0xff) << 24);
+		uint32_t foreign_master_meta =
+			((uint32_t)ppi->frgn_rec_num & 0xff) |
+			(((uint32_t)(ppi->frgn_rec_best < 0 ? 0xff : ppi->frgn_rec_best) & 0xff) << 8);
+		uint32_t parent_flags = 0;
+#if CONFIG_HAS_EXT_WR
+		struct wr_dsport *wrp = WR_DSPOR(ppi);
+		foreign_master_meta |= ((uint32_t)wrp->parentDetection & 0xff) << 16;
+		foreign_master_meta |= ((uint32_t)wrp->parentWrConfig & 0xff) << 24;
+		parent_flags = (wrp->parentIsWRnode ? 1 : 0) |
+			((wrp->parentWrModeOn ? 1 : 0) << 1) |
+			((wrp->parentCalibrated ? 1 : 0) << 2);
+#endif
+		wdiags_write_ptp_debug_detail(rx_type_counts,
+					      foreign_master_meta,
+					      parent_flags);
+	}
 
 	
 	/* servo state (if slave)s */

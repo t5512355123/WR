@@ -305,9 +305,21 @@ static void create_tasks(void)
 int main(void) __attribute__ ((weak));
 int main(void)
 {
+	#ifdef CONFIG_WR_DIAG
+	/* Early markers distinguish CPU entry from task/setup failures. */
+	wdiags_init();
+	wdiags_write_temp(0x0000B000);
+	#endif
+
 	check_reset();
 	create_tasks();
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B00A);
+	#endif
 	wrc_board_create_tasks();
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B00B);
+	#endif
 
 	wrc_initialize();
 

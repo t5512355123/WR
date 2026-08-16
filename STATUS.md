@@ -319,3 +319,12 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - rollback 後 Slave 的 PTP/tag/IRQ activity 恢復；但 `PSTAT.locked=0`、`time_valid=0`，因此只是恢復 baseline，不是同步成功。
 - 下一步維持此 baseline，先離線核對 SI5340 runtime page/register/ACK/readback，再決定是否重新燒錄。
 - 完整紀錄：`docs/experiments/EXP-WRPC-ROLLBACK-DCO-20260817.md`。
+## 最新燒錄實驗：只允許一次 HPLL transaction（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-DCO-HPLL-ONLY-20260817`
+- commit：`b8e1f855a5f75ad6fd748b1e36e464cbefac3163`
+- Slave compile/burn 成功，SOF checksum `0x30A2A4DF`。
+- HPLL `done=1`、DPLL `done=0`；20 秒內 Slave `link_up=1`、PTP/tag/IRQ/UCNT/parent activity 持續。
+- 但 `PSTAT.locked=0`、`time_valid=0`，尚未同步。
+- 結論：DPLL/N0/125 MHz reference path 嫌疑提高，但尚未證明唯一根因；下一步先做 SI5340 register semantics source audit。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-HPLL-ONLY-20260817.md`。

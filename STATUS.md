@@ -338,3 +338,11 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 原始 log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-READONLY-HPLL-20260817/runtime_60s.log`，SHA-256：`25d0ccffe93e54596aa17933e611c35d159e33d4d85154354caf2be548dabaca`。
 - 結論：Slave 尚未同步；下一輪只做 DPLL-only 單次 transaction 隔離，不同時改 PHY、PTP 或 servo。
 - 完整紀錄：`docs/experiments/EXP-WRPC-READONLY-HPLL-20260817.md`。
+## 最新燒錄實驗：DPLL-only 單次隔離（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-DCO-DPLL-ONLY-20260817`，commit：`24f4983`。
+- Slave compile 成功但 timing 未 closure：worst setup `-0.629 ns`、hold `-4.083 ns`。
+- Slave 使用 SOF SHA-256 `754ad7c9b9f3c6cb446a609d9ad51be427ae4815ebca9606c05ee1d682666453`，programmer checksum `0x30A1D708`；configuration succeeded、0 errors、0 warnings。
+- 燒錄後 DCO counter 為 `DPLL accepted=0、done=0`，因此本輪沒有真正測到 DPLL I2C transaction 對 link 的影響。
+- 20 秒 runtime 中 Slave 仍 `link_up=1`、PTP/SoftPLL activity 有增加，但 `spll_locked=0、time_valid=0`。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-DPLL-ONLY-20260817.md`。

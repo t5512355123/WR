@@ -259,3 +259,103 @@ Slave cpu_last_internal_store: addr=0x000002E8 data=0x00000000
 - 目前也不能宣稱 WR 時間同步成功；兩端 `time_valid` 與 `pps_valid` 仍未成為 1 的證據。
 
 下一個診斷會加入內部 store 累計次數，並檢查 CPU store 位址的位元組／字組位址定義；必要時再讀取 CPU exception 的 `mepc`（Machine Exception Program Counter，機器例外程式計數器）與 `mcause`（Machine Cause，機器例外原因），以判斷是否反覆進入中斷或例外處理。這些仍維持「診斷版單一變因」，不先修改光纖、lane polarity 或 pre-emphasis。
+
+## 實驗：EXP-WRPC-CPU-STORE-COUNT-20260816
+
+### 實驗名稱
+
+CPU 內部資料寫入累計計數觀測。
+
+### 這次要驗證什麼
+
+前一輪只保存「最後一次 CPU 內部寫入」，無法分辨 CPU 是只寫過一次後停止，還是一直有寫入但最後一筆剛好落在其他位址。本實驗加入累計計數器，並在兩秒間隔後再次讀取，確認 CPU 是否持續執行資料寫入活動。
+
+### 修改內容
+
+- 在 `wrc_urv_wrapper.vhd` 新增 32-bit `cpu_internal_store_count_o`，每次觀察到 CPU internal store 就累加。
+- 在 `wr_core.vhd` 與 `xwr_core.vhd` 將該計數器訊號向上傳遞。
+- Master／Slave 的 JTAG diagnostic top 各新增第 5 個 SLD probe，讓 JTAG 可以讀回計數值。
+- `read_wb_runtime.tcl` 新增 `cpu_internal_store_count` 顯示；其他 WR timing、QSFP lane、pre-emphasis 與 firmware 內容沒有改動。
+- Git commit：`64d4739 增加 CPU 內部寫入計數觀測`。
+
+### Compile 證據
+
+兩片都使用 pain 上的 Quartus Prime 17.0 Build 595 編譯，且為完整編譯成功：
+
+| 項目 | Master | Slave |
+|---|---|---|
+| Compile 結果 | `Full Compilation was successful`，0 errors | `Full Compilation was successful`，0 errors |
+| SOF SHA-256 | `5e3f5958e7af37dcf1592c9b64a2679ff5275b45d3f50a9c22f301834e8a1051` | `8a3454f9317e3a7a6fdd3b99e4642ccf7a497f0382e3964e370b205c88fa24d1` |
+| Timing | 未關閉；最差 setup slack `-2.902 ns` | 未關閉；最差 setup slack `-2.873 ns` |
+
+編譯 metadata 保留在 pain：
+
+```text
+/home/b10504072/04_WR/build/build_info_jtag_master.txt
+/home/b10504072/04_WR/build/build_info_jtag_slave.txt
+```
+
+### 燒錄證據
+
+兩片皆由各自 JTAG cable 燒錄成功：
+
+```text
+Master cable: DE5 [1-11.1]
+Device 1 contains JTAG ID code 0x02E660DD
+Configuration succeeded -- 1 device(s) configured
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+
+Slave cable: DE5 [1-11.2]
+Device 1 contains JTAG ID code 0x02E660DD
+Configuration succeeded -- 1 device(s) configured
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+完整終端機輸出保留在：
+
+```text
+/home/b10504072/04_WR/build/program_store_count_master.log
+/home/b10504072/04_WR/build/program_store_count_slave.log
+/home/b10504072/04_WR/build/runtime_store_count.log
+/home/b10504072/04_WR/build/runtime_store_count_repeat.log
+```
+
+### pain terminal log 結果顯示什麼
+
+燒錄後第一次讀取：
+
+```text
+DE5 [1-11.1] status_probe: 000102C1275082CF
+DE5 [1-11.1] cpu_internal_store_count: 33466578 (0x01FEA8D2)
+
+DE5 [1-11.2] status_probe: 0001026131BC82CF
+DE5 [1-11.2] cpu_internal_store_count: 8138969 (0x007C30D9)
+```
+
+約三秒後再次讀取：
+
+```text
+DE5 [1-11.1] cpu_internal_store_count: 47845853 -> 50794168
+DE5 [1-11.2] cpu_internal_store_count: 22515792 -> 25468453
+```
+
+兩片在所有讀取中都保持低 16-bit status `0x82CF`，其 bit mapping 表示 `phy_ready=1`、`tm_link_up=1`、`link_ok=1`、`rx_ready=1`、`tx_ready=1`，且沒有看到 RX/TX encoding error。CPU probe 也保持 `reset=0`、`fault=0`、`im_valid=1`。
+
+同一批讀取仍看到：
+
+```text
+cpu_marker: 0x00000000 seen=0
+PPS_CR: 00000000
+WDIAGS_VER: 00000000
+WDIAGS_PTP: 00000000
+WDIAGS_RX: 00000000
+WDIAGS_TX: 00000000
+```
+
+### 結果與判讀
+
+- 兩片 store counter 在短時間內都明顯增加，證明 CPU 內部資料寫入活動持續發生，不是「CPU 完全停止」或「只執行一次 store」的情況。
+- `cpu_marker` 仍沒有觀察到預期的啟動 marker，最後一次 store 仍是 `addr=0x000002E8 data=0x00000000`。因此目前更像是觀測到的 store 位址分類、CPU 啟動流程或中斷／例外活動與 marker 假設不一致，而不是單純沒有寫入。
+- `WDIAGS_*` 仍全部為 0，代表目前不能用這組診斷暫存器證明 WRPC 已經正常進入 PTP、SoftPLL 或 clock actuator 的工作狀態。
+- 兩端 `time_valid` 與 `pps_valid` 仍沒有變成 1 的證據，因此本實驗不能宣稱 White Rabbit 時間同步成功；目前只確認 PHY/link 與 CPU 活動仍在。
+- 下一個最小變因應該是加入 CPU `mepc`（Machine Exception Program Counter，機器例外程式計數器）與 `mcause`（Machine Cause，機器例外原因）觀測，並檢查 internal store 的位址／字組位址定義。暫時不更換光纖、不切換 QSFP port，也不再盲目調高 TX pre-emphasis。

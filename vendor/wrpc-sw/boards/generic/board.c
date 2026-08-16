@@ -49,21 +49,13 @@ int wrc_board_init()
 	 */
 	if (board_get_persistent_mac(mac_addr) < 0) {
 		board_dbg("Failed to get MAC address from the flash. Using fallback address.\n");
-		/* DE5a boards do not currently expose a persistent MAC.  Keep the
-		 * fallback locally administered and distinct so PTP clock identities
-		 * are not rejected as the same clock by the slave BMC. */
-		mac_addr[0] = 0x02;
-		mac_addr[1] = 0x00;
-		mac_addr[2] = 0x22;
-		mac_addr[3] = 0x33;
-		mac_addr[4] = 0x44;
-#if CONFIG_DE5A_NODE_ID == 1
-		mac_addr[5] = 0x01;
-#elif CONFIG_DE5A_NODE_ID == 2
-		mac_addr[5] = 0x02;
-#else
+		/* A/B control: preserve the original generic fallback identity. */
+		mac_addr[0] = 0x22;
+		mac_addr[1] = 0x33;
+		mac_addr[2] = 0x44;
+		mac_addr[3] = 0x55;
+		mac_addr[4] = 0x66;
 		mac_addr[5] = 0x77;
-#endif
 	}
 	ep_set_mac_addr(&wrc_endpoint_dev, mac_addr);
 	ep_pfilter_init_default(&wrc_endpoint_dev);

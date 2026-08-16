@@ -2130,3 +2130,120 @@ Master 的有效列則維持 `status_low=0xFF`、`time_valid=1`、`pps_valid=1`�
 2. 下一個唯讀版本加入 `softpll.ref_count/tag_count`、helper PI error/output 與 tag readout 的累積資訊，確認是「沒有 tag」還是「有 tag 但誤差始終超過 threshold」。
 3. 若確認有 tag 且 helper error 長期超過 200，再查 reference clock/PCS recovered clock 與 helper input；若沒有 tag，優先查 tagger/clock input path。
 4. 只有在這些證據指出單一明確變因後，才進行下一個控制參數實驗。
+
+---
+
+## 實驗：EXP-WRPC-SPLL-ACTIVITY-20260816
+
+### 實驗名稱
+
+`1804068 增加 SoftPLL 活動與狀態轉移唯讀診斷`：觀察 reference/tag 計數、helper PI error/output，以及 sequence state 是否曾離開 `SEQ_CLEAR_DACS`；不改變 SoftPLL 控制流程。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`180406824b1f4971b1bfbbbe947f5267c4568a8a`
+- pain checkout：detached HEAD，明確指向上述 commit
+- Quartus：`17.0.0 Build 595`
+- Master MIF SHA256：`c98011fdf7661627de73bfd3fb3fdc5f592af4ec5030f3d8b67a9d984e732a6f`
+- Slave MIF SHA256：`880fe4d09d2b9999990035ee6d5a219d8a761cc4c1a08d0948dc94532ade87bf`
+- Master SOF SHA256：`c4ace9ed6dece0965c703d9203b7b936971ac29e7a13b10a4e76aa474d46589f`
+- Slave SOF SHA256：`38338868535856a2e7e59d63e07e69fc239f6d5c795408f8b32a5534a9f79b6b`
+- Programmer checksum：Master `0x30A0A429`；Slave `0x30A5A091`
+- Fitter：兩端 Successful；兩端 `TIMING_CLOSED=NO`
+
+### 這次要驗證什麼
+
+確認 Slave 的 SoftPLL 是否真的收到並處理 reference/main tag，並區分：
+
+1. 完全沒有 tag 活動。
+2. 有 tag 活動，但 helper PI 誤差無法進入 lock threshold。
+3. sequence 曾進入 helper/main/ready 狀態，只是後續掉鎖。
+
+### 相較 baseline 唯一修改了什麼
+
+只新增 SoftPLL 的 sticky 唯讀診斷：`ref_count`、`tag_count`、helper PI `x/y`、sequence state visit mask、state transition count 與 last state。這些欄位不參與 SoftPLL 控制、鎖定判斷、PHY、PTP、servo 或 SI5340 寫入。
+
+### Compile 與燒錄結果
+
+pain 從 GitHub fetch 後 checkout 明確 commit `180406824b1f4971b1bfbbbe947f5267c4568a8a`，Master 與 Slave 均完成 Quartus compile：
+
+```text
+Master Quartus build passed: DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave  Quartus build passed: DE5a_wr_slave_jtag.sof (timing_closed=NO)
+```
+
+兩片 FPGA 都成功燒錄：
+
+```text
+Master: Configuration succeeded -- 1 device(s) configured
+        Quartus Prime Programmer was successful. 0 errors, 0 warnings
+        checksum 0x30A0A429
+Slave : Configuration succeeded -- 1 device(s) configured
+        Quartus Prime Programmer was successful. 0 errors, 0 warnings
+        checksum 0x30A5A091
+```
+
+### JTAG 原始結果與 pain terminal log
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SPLL-ACTIVITY-20260816/runtime_60samples.log
+```
+
+本機副本：
+
+```text
+build/artifacts/EXP-WRPC-SPLL-ACTIVITY-20260816/runtime_60samples.log
+SHA256=a774d75e99006d9626e8f571a1e17f6ac3b33db108594b9de61948f911b90bed
+```
+
+這次 session 原本要求 Master/Slave 各 60 個樣本，但 300 秒外層 timeout 在 Slave 第 49 個樣本前結束，因此 log 沒有 `SESSION_TIME_SERIES_DONE`，不能把它宣稱為完整 60 秒取樣：
+
+```text
+Master: accepted=55, rejected=5, completed sample=60
+Slave : accepted=47, rejected=1, reached sample=48
+SESSION_TIME_SERIES_DONE: absent
+```
+
+### JTAG 關鍵結果
+
+Master 觀測維持正常：
+
+```text
+DECODE: status_low=FF time_valid=1 pps_valid=1 wr_mode=2 link_up=1 spll_locked=0
+WR_SPLL_ACTIVITY: REF_COUNT=00000000 TAG_COUNT=00000000 HELPER_ERROR=00000000 HELPER_OUTPUT=00000000 VISIT_MASK=00000200 TRANSITIONS=00000000 LAST_STATE=00000009
+```
+
+Slave 的關鍵列為：
+
+```text
+DECODE: status_low=CF time_valid=0 pps_valid=0 wr_mode=3 link_up=1 spll_locked=0
+WR_SPLL_ACTIVITY: REF_COUNT=00000000 TAG_COUNT=00000000 HELPER_ERROR=00000000 HELPER_OUTPUT=00000000 VISIT_MASK=00000200 TRANSITIONS=00000000 LAST_STATE=00000009
+WR_LOCK: result=1 spll_locked=0 polls=847432 unlocked=847432 calibration_fail=0 enable=4 seq_state=9 align_state=0 mode=3 delock_count=0
+```
+
+`VISIT_MASK=0x00000200` 只表示曾記錄 state 9，也就是 `SEQ_CLEAR_DACS`；`TRANSITIONS=0` 表示本次 sticky 計數沒有觀察到 state transition。`REF_COUNT=0`、`TAG_COUNT=0`、helper error/output 皆為 0，尚未看到「有 tag 進來但誤差過大」的證據。
+
+### Observation
+
+這次新診斷欄位在 Master 與 Slave 都能被 JTAG 讀出，代表 mailbox 擴充與 firmware 版本確實已進入燒錄的 bitstream。Slave 仍維持 `link_up=1`、`time_valid=0`、`spll_locked=0`；新的 sticky activity 欄位沒有顯示 tag 計數或狀態轉移活動。
+
+但本輪並未完成預定的 60 個 Slave 樣本，且 `TRR_CSR` 仍是週期性 shadow，不是每一個 tag 的即時硬體 trace；因此不能把 `REF_COUNT=0/TAG_COUNT=0` 單獨解讀為光纖上完全沒有 tag。
+
+### Conclusion
+
+目前證據支持的保守結論是：
+
+> **Slave 仍卡在 SoftPLL helper 啟動前的 `SEQ_CLEAR_DACS` 觀測狀態，這輪沒有看到 sequence transition 或 tag counter 增加；因此「reference/tag input 到 helper lock detector 之前」仍是最高優先懷疑路徑，但根因尚未確定，不能直接歸咎於光模組、PHY 或某個時鐘參數。**
+
+這次 compile 與燒錄成功，但 JTAG 取樣因 timeout 不完整；成功燒錄不等於 WR synchronization 成功。
+
+### Next Step
+
+1. 保留本次 commit、MIF、SOF 與原始 log，不改動目前 PHY、PTP、servo、SoftPLL 控制參數。
+2. 先用同一 bitstream 重跑唯讀 JTAG，將 timeout 提高到足以完成兩片各 60 個樣本，修正外層命令的 return-code 包裝，但不改 RTL/firmware。
+3. 取樣時持續記錄 `REF_COUNT/TAG_COUNT`、`VISIT_MASK`、`TRANSITIONS`、helper PI 與 `TRR_CSR`，並把「沒有 tag」與「tagger shadow 沒更新」分開描述。
+4. 只有在完整取樣仍確認沒有 tag 活動後，才檢查 recovered clock/tagger input；若確認有 tag 但 helper error 不收斂，再查 helper lock threshold 與 feedback 路徑。

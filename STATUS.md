@@ -198,3 +198,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 原始 log：`build/artifacts/EXP-WRPC-SPLL-HW-OBS-20260816/runtime_60samples_retry8.log`。
 
 下一步是加入 `softpll.ref_count/tag_count` 與 helper PI error/output 的唯讀觀測，以區分沒有 tag 和有 tag 但誤差超過 threshold。
+
+## 2026-08-16 最新狀態：SoftPLL 活動唯讀觀測
+
+- GitHub 實驗分支最新 commit：`180406824b1f4971b1bfbbbe947f5267c4568a8a`
+- 本次已從 GitHub checkout 明確 commit，Master/Slave compile 成功，Quartus `17.0.0 Build 595`。
+- 兩片 FPGA 均燒錄成功；Master checksum `0x30A0A429`，Slave checksum `0x30A5A091`。
+- Slave 仍為 `link_up=1`、`time_valid=0`、`spll_locked=0`、`seq_state=9`。
+- 新增唯讀欄位顯示 Slave `REF_COUNT=0`、`TAG_COUNT=0`、`VISIT_MASK=0x00000200`、`TRANSITIONS=0`、`LAST_STATE=9`；目前沒有「helper 已收到 tag 但誤差過大」的證據。
+- 本次 JTAG session 因 300 秒外層 timeout 未完成兩片各 60 個樣本：Master 55/60 accepted，Slave 到 sample 48，沒有 `SESSION_TIME_SERIES_DONE`。因此只列為「燒錄成功、取樣不完整」，不宣稱完整 60 秒實驗。
+- 原始 log：`build/artifacts/EXP-WRPC-SPLL-ACTIVITY-20260816/runtime_60samples.log`，SHA256 `a774d75e99006d9626e8f571a1e17f6ac3b33db108594b9de61948f911b90bed`。
+- 下一步：沿用同一 bitstream 做較長 timeout 的唯讀重測；不修改 PHY、PTP、servo、SoftPLL 控制或 SI5340。

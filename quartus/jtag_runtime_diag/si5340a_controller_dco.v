@@ -210,9 +210,10 @@ always @(posedge iCLK or negedge iRST_n) begin
     dpll_accept_count <= 16'd0;
     hpll_done_count <= 16'd0;
     dpll_done_count <= 16'd0;
-    // DPLL-only isolation experiment: suppress HPLL transactions.
-    hpll_done_once  <= 1'b1;
-    dpll_done_once  <= 1'b0;
+    // HPLL-only isolation experiment: keep the helper actuator running,
+    // while suppressing the DPLL/N0 actuator until the helper can be tested.
+    hpll_done_once  <= 1'b0;
+    dpll_done_once  <= 1'b1;
     dco_error        <= 1'b0;
   end else begin
     if (iDPLL_LOAD) begin
@@ -239,14 +240,14 @@ always @(posedge iCLK or negedge iRST_n) begin
     case (rt_state)
       4'd0: begin
         rt_seen_busy <= 1'b0;
-        // DPLL-only isolation experiment: issue exactly one DPLL transaction
-        // and suppress HPLL transactions.  This isolates the N0/reference
-        // path while retaining the already validated I2C start handshake.
-        if (static_controller_ready && dpll_pending && !dpll_done_once) begin
+        // HPLL-only isolation experiment: service every pending HPLL update
+        // and suppress DPLL/N0 transactions.  The helper needs repeated HPLL
+        // updates before the normal Slave sequencing can reach the main PLL.
+        if (static_controller_ready && hpll_pending) begin
           rt_state <= 4'd1;
-          rt_select_dpll <= 1'b1;
-          rt_dir <= dpll_dir;
-          dpll_pending <= 1'b0;
+          rt_select_dpll <= 1'b0;
+          rt_dir <= hpll_dir;
+          hpll_pending <= 1'b0;
         end
       end
       4'd1: begin
@@ -303,10 +304,10 @@ always @(posedge iCLK or negedge iRST_n) begin
             dpll_done_count <= dpll_done_count + 1'b1;
             dpll_done_once <= 1'b1;
           end
-          else begin
-            hpll_done_count <= hpll_done_count + 1'b1;
-            hpll_done_once <= 1'b1;
-          end
+            else begin
+              hpll_done_count <= hpll_done_count + 1'b1;
+              hpll_done_once <= 1'b0;
+            end
         end
       end
       default: rt_state <= 4'd0;

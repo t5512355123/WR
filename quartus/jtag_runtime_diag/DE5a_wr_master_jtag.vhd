@@ -250,9 +250,31 @@ architecture rtl of DE5a_wr_master_jtag is
   signal sfp_sda_i            : std_logic;
   signal sfp_scl_o            : std_logic;
   signal sfp_scl_i            : std_logic;
+  signal wr_core_reset_n      : std_logic := '0';
+  signal wr_reset_delay       : unsigned(7 downto 0) := (others => '0');
 
 begin
-  reconfig_reset(0) <= not CPU_RESET_n;
+  -- Hold WR core and PHY reset until the SI5340 static table is complete.
+  -- This prevents SoftPLL/DMTD initialization from seeing an unstable clock.
+  p_release_wr_core_reset : process(CLK_50_B2J)
+  begin
+    if rising_edge(CLK_50_B2J) then
+      if CPU_RESET_n = '0' then
+        wr_reset_delay  <= (others => '0');
+        wr_core_reset_n <= '0';
+      elsif si_config_done = '0' then
+        wr_reset_delay  <= (others => '0');
+        wr_core_reset_n <= '0';
+      elsif wr_reset_delay /= x"FF" then
+        wr_reset_delay  <= wr_reset_delay + 1;
+        wr_core_reset_n <= '0';
+      else
+        wr_core_reset_n <= '1';
+      end if;
+    end if;
+  end process;
+
+  reconfig_reset(0) <= not wr_core_reset_n;
 
   -- Read-only activity markers. Each source clock toggles one bit every
   -- 256 cycles; the markers are synchronized into the 50 MHz system clock
@@ -584,7 +606,7 @@ begin
       reconfig_clk_i         => reconfig_clk,
       reconfig_reset_i       => reconfig_reset,
       ready_o                => wr_ready,
-      drop_link_i            => (not CPU_RESET_n) or core_phy_rst,
+      drop_link_i            => (not wr_core_reset_n) or core_phy_rst,
       loopen_i               => core_phy_loopen,
       sfp_los_i              => '0',
       tx_clk_o               => wr_tx_clk,
@@ -623,7 +645,7 @@ begin
     )
     port map (
       i_clk        => CLK_50_B2J,
-      i_reset_n    => CPU_RESET_n,
+      i_reset_n    => wr_core_reset_n,
       i_wb_slave_o => core_wb_o,
       o_wb_slave_i => core_wb_i
     );
@@ -647,7 +669,7 @@ begin
       clk_dmtd_i                 => QSFPB_REFCLK_p,
       clk_ref_i                  => QSFPA_REFCLK_p,
       clk_ext_rst_o              => open,
-      rst_n_i                    => CPU_RESET_n,
+      rst_n_i                    => wr_core_reset_n,
 
       dac_hpll_load_p1_o         => dac_hpll_load,
       dac_hpll_data_o            => dac_hpll_data,

@@ -186,7 +186,8 @@ int wrc_wr_diags(void)
 				softpll.helper.pi.y,
 				wrpc_spll_state_visit_mask,
 				wrpc_spll_state_transition_count,
-				wrpc_spll_last_state);
+				wrpc_spll_last_state,
+				softpll.irq_count);
 		}
 	}
 

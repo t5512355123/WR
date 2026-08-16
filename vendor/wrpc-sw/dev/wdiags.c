@@ -119,6 +119,22 @@ void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors)
 	wdiag_write( WRC_DIAGS_WDIAG_RX_ERR_CNT, rx_errors);
 }
 
+void wdiags_write_ptp_debug(uint32_t rx_count, uint32_t tx_count,
+			    uint8_t ptp_state, uint8_t pd_state,
+			    uint8_t ext_state, uint8_t protocol_extension)
+{
+	/* AUX1/AUX2/AUX3 are not used by this one-output DE5a design's
+	 * periodic auxiliary-clock loop. Reuse them only as read-only
+	 * bring-up evidence for the PPSI receive path. */
+	wdiag_write(WRC_DIAGS_WDIAG_AUX1_DETAIL_STAT, rx_count);
+	wdiag_write(WRC_DIAGS_WDIAG_AUX2_DETAIL_STAT, tx_count);
+	wdiag_write(WRC_DIAGS_WDIAG_AUX3_DETAIL_STAT,
+		    ((uint32_t)protocol_extension << 24) |
+		    ((uint32_t)ext_state << 16) |
+		    ((uint32_t)pd_state << 8) |
+		    (uint32_t)ptp_state);
+}
+
 void wdiags_write_time(uint64_t sec, uint32_t nsec)
 {
 	wdiag_write( WRC_DIAGS_WDIAG_SEC_MSB, 0xFFFFFFFF & (sec>>32) );

@@ -77,6 +77,14 @@ int wrc_wr_diags(void)
 	9  : PPS_SLAVE
 	*/
 	wdiags_write_ptp_state((uint8_t)ppi->state);
+	/* Preserve PPSI-side counters separately from the Mini-NIC counters.
+	 * This distinguishes no PTP frame from a frame rejected by PPSI. */
+	wdiags_write_ptp_debug((uint32_t)ppi->ptp_rx_count,
+			       (uint32_t)ppi->ptp_tx_count,
+			       (uint8_t)ppi->state,
+			       (uint8_t)ppi->pdstate,
+			       (uint8_t)ppi->extState,
+			       (uint8_t)ppi->protocol_extension);
 
 	
 	/* servo state (if slave)s */

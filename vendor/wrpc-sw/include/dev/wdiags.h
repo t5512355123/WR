@@ -22,6 +22,10 @@ void wdiags_write_port_state(int link, int locked);
 void wdiags_write_ptp_state(uint8_t ptpstate);
 void wdiags_write_aux_state(uint32_t aux_states);
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors);
+/* 診斷版：保存 PPSI 收發計數與協定狀態，不改變 WR 控制流程。 */
+void wdiags_write_ptp_debug(uint32_t rx_count, uint32_t tx_count,
+                            uint8_t ptp_state, uint8_t pd_state,
+                            uint8_t ext_state, uint8_t protocol_extension);
 void wdiags_write_time(uint64_t sec, uint32_t nsec);
 void wdiags_write_temp(uint32_t temp);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );

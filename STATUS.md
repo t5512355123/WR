@@ -7,12 +7,20 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的操作：Master image `9f848ec`、Slave 重新初始化操作記錄於 `e22bb75`
-- 目前工作樹：待提交本次 Slave 重新初始化實驗紀錄；source 與 build artifact 已由明確 commit 固定
+- 目前已燒錄並完成觀測的操作：Master image `9f848ec`、Slave 重新初始化操作記錄於 `24fcc4c`
+- 目前工作樹：本次只新增 raw helper 飽和唯讀觀測紀錄；沒有新的 compile 或燒錄
 - 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-SLAVE-REINIT-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
+
+### 2026-08-17 raw helper 飽和唯讀觀測
+
+- 使用現有 bitstream、同一 JTAG session 讀取 BEGIN/END raw registers，沒有寫入控制暫存器。
+- Master/Slave 的 `TAG_VALID`、`TRR_WRITE`、`TAG_SOURCE`、`REF`、`FEEDBACK` 都在 1 秒內增加，表示 raw tag path 有活動。
+- Slave `HELPER_ERROR=+150000`、`HELPER_OUTPUT=5`；Master `HELPER_ERROR=-150000`、`HELPER_OUTPUT=0xFFFB`，兩端都在 helper 邊界且 `PSTAT.bit1=0`。
+- 這次沒有改變硬體、沒有重新 compile、沒有燒錄；完整紀錄：`docs/experiments/EXP-WRPC-HELPER-SATURATION-OBS-20260817.md`。
+- 下一個單一變因候選是修正 SI5340 runtime page/register 序列；在 compile、hash、燒錄與 runtime 證據完成前，不把它寫成已證明根因。
 
 最近一次有效燒錄的 source 變因是 `9f848ec` 的 Master 啟動命令修正；`18614cf`、`f4b7e79` 是前一輪唯讀診斷，`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 

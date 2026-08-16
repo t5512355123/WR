@@ -1,15 +1,15 @@
 # DE5a White Rabbit 目前狀態
 
-最後更新：2026-08-16
+最後更新：2026-08-17
 
 本文件描述 `exp/jtag-runtime-observability` 研究分支的現況。`main` 仍保留穩定 baseline，不在本次文件更新中修改。
 
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的 commit：`18614cf`
-- 目前工作樹：待提交本次燒錄紀錄；下一輪 EIC status 唯讀診斷尚未修改
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-IRQ-ACTIVITY-20260817.md`
+- 目前已燒錄並完成觀測的 commit：`a5d19ae`
+- 目前工作樹：待提交本次 EIC status 唯讀實驗紀錄；source 與 build artifact 已由該 commit 固定
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-EIC-ACTIVITY-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
@@ -112,6 +112,19 @@
 - Master/Slave build script 在 compile 前執行 `quartus_sh --clean`，避免 stale SOF。
 - 最近建置的 timing closure 仍為 `NO`；負 slack 與 unconstrained clocks 是獨立的 timing 工作，不與目前 servo bring-up 混改。
 - 每個新 artifact 必須保存：Git commit、branch、Master/Slave MIF SHA256、QSF/SDC SHA256、SOF SHA256、Quartus 版本、programmer checksum、JTAG 原始輸出。
+
+## 最新燒錄實驗：SoftPLL EIC 狀態唯讀診斷
+
+- 實驗 ID：`EXP-WRPC-EIC-ACTIVITY-20260817`
+- Git commit：`a5d19aec68b031c018b4e50407cb9d932cf6af7e`
+- Master/Slave 均以 Quartus 17.0 Build 595 compile 成功並實際燒錄；programmer 均回報 configuration succeeded、0 errors、0 warnings。
+- Master checksum：`0x30ABDD91`；Slave checksum：`0x30A5A13F`。
+- JTAG session 完成：Master accepted `53/60`、Slave accepted `60/60`，Tcl/SignalTap successful。
+- 有效列的 `IRQ_COUNT=0`、`REF_COUNT=0`、`TAG_COUNT=0`、`VISIT_MASK=0x200`、`TRANSITIONS=0`、`LAST_STATE=9`。
+- Slave 的 `IRQ_MASK=0x3E9`、`IRQ_STATUS=0x3E8`；依 source mapping，tag input 對應 bit 0 在取樣時沒有 pending status。
+- Slave 仍為 `link_up=1`、`wr_mode=3`、`spll_locked=0`、`time_valid=0`；不能宣稱兩端完成 WR synchronization。
+- 完整紀錄：`docs/experiments/EXP-WRPC-EIC-ACTIVITY-20260817.md`。
+- 下一步只加入 raw tag/FIFO write event 唯讀診斷，以區分 tagger、FIFO write 與 EIC route；不先改 PHY 或 WR 控制參數。
 
 ## 已完成：唯讀 JTAG 伺服器時間序列
 

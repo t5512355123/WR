@@ -60,8 +60,9 @@ proc wb_sync_toggle {} {
   set value [read_probe_data -instance_index 1 -value_in_hex]
   scan $value %x word
   set current_done [expr {(($word >> 35) & 1)}]
-  set ::wb_toggle [expr {$current_done ^ 1}]
-  puts [format "mailbox initial done=%d next_toggle=%d" $current_done $::wb_toggle]
+  # wb_read/wb_write flip the variable before sending a command.
+  set ::wb_toggle $current_done
+  puts [format "mailbox initial done=%d next_toggle=%d" $current_done [expr {$current_done ^ 1}]]
 }
 
 foreach hardware_name [get_hardware_names] {

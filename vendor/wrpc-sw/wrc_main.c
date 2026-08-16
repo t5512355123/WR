@@ -60,6 +60,9 @@
 
 struct wr_endpoint_device wrc_endpoint_dev;
 
+/* CPU-local marker used when the external diagnostics RAM is unavailable. */
+volatile uint32_t debug_boot_stage __attribute__((used));
+
 int wrc_wr_diags(void); // fixme: move the header
 
 extern char _binary__config_bin_start[];
@@ -305,6 +308,7 @@ static void create_tasks(void)
 int main(void) __attribute__ ((weak));
 int main(void)
 {
+	debug_boot_stage = 0x0000B000;
 	#ifdef CONFIG_WR_DIAG
 	/* Early markers distinguish CPU entry from task/setup failures. */
 	wdiags_write_temp(0x0000B000);
@@ -312,18 +316,22 @@ int main(void)
 
 	check_reset();
 	create_tasks();
+	debug_boot_stage = 0x0000B00A;
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B00A);
 	#endif
 	wrc_board_create_tasks();
+	debug_boot_stage = 0x0000B00B;
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B00B);
 	#endif
 
 	wrc_initialize();
+	debug_boot_stage = 0x0000B001;
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
+	debug_boot_stage = 0x0000B004;
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B004);
 	#endif

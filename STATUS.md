@@ -7,14 +7,14 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的 commit：`f4b7e79`
-- 目前工作樹：乾淨；下一輪 raw tag/IRQ 唯讀診斷尚未修改
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-CLOCK-ACTIVITY-20260816.md`
+- 目前已燒錄並完成觀測的 commit：`18614cf`
+- 目前工作樹：待提交本次燒錄紀錄；下一輪 EIC status 唯讀診斷尚未修改
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-IRQ-ACTIVITY-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
-最近一次有效燒錄的 source 變因是 `f4b7e79` 的時鐘域活動唯讀診斷；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
+最近一次有效燒錄的 source 變因是 `18614cf` 的 SoftPLL IRQ count 唯讀診斷；`f4b7e79` 是前一輪時鐘域活動唯讀診斷，`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c`、`7467e46` 與 `bae06ff` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
 ### `5483669` 實際燒錄後狀態
 
@@ -56,6 +56,14 @@
 | 14 | 雙 FPGA accelerator 同步啟動 | 尚未開始 |
 
 ## 最近一次燒錄後 runtime 證據
+
+### `18614cf` SoftPLL IRQ count 唯讀診斷
+
+- Master/Slave 以 Quartus 17.0 Build 595 compile 成功並實際燒錄；programmer 均回報 configuration succeeded、0 errors、0 warnings。
+- Master checksum：`0x30ABDD91`；Slave checksum：`0x30A5A13F`。
+- JTAG session 完成；Master accepted 57/60、Slave accepted 60/60。
+- 所有 frame-valid activity rows 的 `IRQ_COUNT` 都是 `0x00000000`；Slave 仍為 `spll_locked=0`、`time_valid=0`、`LAST_STATE=9`。
+- 完整紀錄：`docs/experiments/EXP-WRPC-IRQ-ACTIVITY-20260817.md`。
 
 ### `f4b7e79` 時鐘域活動唯讀診斷
 

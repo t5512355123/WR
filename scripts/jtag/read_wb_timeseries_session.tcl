@@ -114,8 +114,6 @@ proc read_diag_sample {hardware_name sample attempt} {
   set spll_tag_valid_count_raw [wb_read 0x00100284]
   set spll_trr_write_count_raw [wb_read 0x00100288]
   set spll_tag_source_count_raw [wb_read 0x0010028C]
-  set spll_tag_grant_count_raw [wb_read 0x00100290]
-  set spll_trr_full_count_raw [wb_read 0x00100294]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -167,8 +165,6 @@ proc read_diag_sample {hardware_name sample attempt} {
   set spll_tag_valid_count_raw_end [wb_read 0x00100284]
   set spll_trr_write_count_raw_end [wb_read 0x00100288]
   set spll_tag_source_count_raw_end [wb_read 0x0010028C]
-  set spll_tag_grant_count_raw_end [wb_read 0x00100290]
-  set spll_trr_full_count_raw_end [wb_read 0x00100294]
   set ctrl_end [wb_read 0x00100904]
   set clock_activity_end [read_probe_data -instance_index 7 -value_in_hex]
 
@@ -360,10 +356,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SPLL_EVENTS_RAW: TAG_VALID_COUNT=%s/%s TRR_WRITE_COUNT=%s/%s" \
         $spll_tag_valid_count_raw $spll_tag_valid_count_raw_end \
         $spll_trr_write_count_raw $spll_trr_write_count_raw_end]
-  puts [format "WR_SPLL_PIPE_RAW: TAG_SOURCE_COUNT=%s/%s TAG_GRANT_COUNT=%s/%s TRR_FULL_COUNT=%s/%s" \
-        $spll_tag_source_count_raw $spll_tag_source_count_raw_end \
-        $spll_tag_grant_count_raw $spll_tag_grant_count_raw_end \
-        $spll_trr_full_count_raw $spll_trr_full_count_raw_end]
+  puts [format "WR_SPLL_SOURCE_RAW: TAG_SOURCE_COUNT=%s/%s" \
+        $spll_tag_source_count_raw $spll_tag_source_count_raw_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

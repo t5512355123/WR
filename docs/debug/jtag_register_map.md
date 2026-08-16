@@ -79,7 +79,7 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x001009F0` / `0x001009F4` | `WR_SPLL_IRQ_MASK` / `WR_SPLL_IRQ_STATUS` | SoftPLL EIC 的 interrupt mask/status 唯讀 shadow；不寫入、不清除 status |
 | `0x001009F8` / `0x001009FC` | `WR_SPLL_TAG_VALID_COUNT` / `WR_SPLL_TRR_WRITE_COUNT` | SoftPLL 硬體 tag arbitration 事件與 tag FIFO write request 的 32-bit 唯讀計數器 |
 | `0x00100284` / `0x00100288` | `SPLL_TAG_VALID_COUNT` / `SPLL_TRR_WRITE_COUNT` | 直接讀 SoftPLL WB 的硬體事件計數器，不經 firmware shadow |
-| `0x0010028C` / `0x00100290` / `0x00100294` | `SPLL_TAG_SOURCE_COUNT` / `SPLL_TAG_GRANT_COUNT` / `SPLL_TRR_FULL_COUNT` | 直接讀 DMTD tag source、arbitration grant、以及 FIFO full 阻擋事件的 32-bit 唯讀計數器 |
+| `0x0010028C` | `SPLL_TAG_SOURCE_COUNT` | 直接讀 DMTD tag source strobe 的 32-bit 唯讀計數器 |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

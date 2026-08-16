@@ -129,7 +129,8 @@ pre-restructure archives are unchanged.
 ## 8. Proposed next phases after review
 
 Phase 4:
-- Create a new de5a-white-rabbit repository in a separate staging location.
+- Create a new source-of-truth repository in a separate staging location
+  (completed; the current laptop folder is `04_WR`).
 - Do not initialize Git inside the existing project root until the baseline snapshot is copied and verified.
 
 Phase 5:

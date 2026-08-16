@@ -80,13 +80,17 @@ proc read_diag_sample {hardware_name sample attempt} {
   set pps_escr [wb_read 0x0010031C]
   set spll_hy [wb_read 0x00100984]
   set spll_my [wb_read 0x00100988]
+  set spll_csr_end [wb_read 0x00100200]
+  set spll_eccr_end [wb_read 0x00100204]
+  set spll_occr_end [wb_read 0x00100210]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
   foreach value [list $ctrl_begin $ver $spll_csr $spll_eccr $spll_occr \
       $sstat $pstat $ptp $ptp_rx $ptp_tx \
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
-      $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my $ctrl_end] {
+      $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
+      $spll_csr_end $spll_eccr_end $spll_occr_end $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
@@ -98,11 +102,18 @@ proc read_diag_sample {hardware_name sample attempt} {
                            (($ctrl_end_word & 1) != 0) &&
                            ($ctrl_begin_word == $ctrl_end_word)}]
   }
+  set spll_block_valid [expr {$spll_csr == $spll_csr_end &&
+                              $spll_eccr == $spll_eccr_end &&
+                              $spll_occr == $spll_occr_end}]
+  set frame_valid [expr {$frame_valid && $spll_block_valid}]
 
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
   puts [format "FRAME_VALID: %d CTRL_BEGIN=%s CTRL_END=%s RETRY_INDEX=%d" \
         $frame_valid $ctrl_begin $ctrl_end $attempt]
+  puts [format "SPLL_BLOCK_VALID: %d A=%s/%s/%s B=%s/%s/%s" \
+        $spll_block_valid $spll_csr $spll_eccr $spll_occr \
+        $spll_csr_end $spll_eccr_end $spll_occr_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"

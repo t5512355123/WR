@@ -1162,3 +1162,52 @@ Slave  SOF SHA256: 926d4a57f50dce0e39e437af7eba164a8ca1ec327c989b59d5f6480a038eb
 ### 怎麼看待這個結果
 
 這是目前第一個證據顯示「唯一節點身份」變因已真正進入 FPGA，並讓 Slave 的 foreign/parent metadata 開始變化；先前 `c206628` 的 CPU fault 沒有重現。可是 `time_valid=1`、Slave 的完整 parent identity、Delay exchange 與 SoftPLL/DCO lock 尚未完成，因此不能宣稱 WR 時間同步成功。60 秒 runtime snapshot 完成後，會在本節追加結果；在此之前不會進行下一個 source 變因。
+
+### 追加：燒錄後 60 秒 runtime snapshot
+
+#### 實驗名稱與 Git commit
+
+`EXP-WRPC-UNIQUE-IDENTITY-RUNTIME-60S-20260816`，使用 `c88cc05` 的 clean Quartus 建置產物；本次紀錄在 `dda95a3` 後追加。
+
+#### 為了驗證什麼
+
+驗證重新燒錄後，兩片 DE5a 是否仍能穩定執行 firmware，唯一 MAC 是否真的分開，以及 PTP/parent/servo 狀態是否繼續前進。這是對前一個「唯一身份 + 清除 Quartus 快取」變因的燒錄後觀測，不修改新的硬體或軟體變因。
+
+#### 改了什麼
+
+本次沒有再改 source。使用 `c88cc05` 產生並燒錄的 Master/Slave SOF，等待 60 秒後以相同的 `read_wb_runtime.tcl` 讀取兩片 JTAG runtime registers。
+
+#### 結果
+
+- Master 與 Slave CPU 均正常：`reset=0`、`fault=0`、`im_valid=1`，兩片 `cpu_marker=0x0000B004 seen=1`。
+- 唯一身份已由 JTAG runtime 直接確認：
+  - Master：`EP_MAC_L=22334401`，即 `02:00:22:33:44:01`。
+  - Slave：`EP_MAC_L=22334402`，即 `02:00:22:33:44:02`。
+- PTP 計數持續增加：
+  - Master：`WDIAGS_PTP_RX=0xB4`、`WDIAGS_PTP_TX=0x18D`。
+  - Slave：`WDIAGS_PTP_RX=0x193`、`WDIAGS_PTP_TX=0x84`。
+- Master：`WDIAGS_MODE=2`、`WDIAGS_PTP=6`、status low byte `0xFF`，依目前 probe mapping，`time_valid=1`、`pps_valid=1`。
+- Slave：`WDIAGS_MODE=3`、`WDIAGS_PTP=9`、status low byte `0xEF`，`pps_valid=1` 但 `time_valid=0`。
+- Slave 的 `WDIAGS_FOREIGN_META=03000001`、`WDIAGS_DMS_L=0007594B`、`WDIAGS_CKO=023A7EE1`、`WDIAGS_UCNT=0000000A` 顯示 foreign/parent 與 servo 相關狀態已有活動；但目前尚未取得可獨立宣稱「已鎖定 parent 且完成 WR 同步」的完整證據。
+- 本次沒有 stall、CPU fault 或需要實體斷電的情況。
+
+#### pain terminal log 結果顯示什麼
+
+完整 60 秒燒錄後讀值保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/runtime_after_program_68s.log
+```
+
+燒錄紀錄與建置證據保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/program_clean_c88cc05.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_master_compile.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_slave_compile.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_clean_c88cc05/quartus_artifact_hashes.sha256
+```
+
+#### 怎麼看待這個結果
+
+這次燒錄後觀測證明 `c88cc05` 的 clean build 確實把不同身份帶進 FPGA，且兩片 CPU 與 PTP traffic 可以長時間運作；因此「兩片使用相同 clock identity 導致 BMC 無法區分節點」已不再是目前最主要的阻礙。可是 Slave 的 `time_valid=0`，所以目前結論是「PHY/runtime/PTP 封包與唯一身份已通，WR servo 尚未完成最終有效時間狀態」，不能宣稱兩端已完成 White Rabbit 同步。下一步仍應先讀取並確認 Slave 的實際 parent identity、delay/servo 狀態，再決定是否需要新增唯讀 JTAG observability；在該證據完成前不調整 PHY、QSFP、pre-emphasis 或 PTP filter。

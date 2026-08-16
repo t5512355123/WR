@@ -12,6 +12,13 @@ proc decode_cpu_probe {hex_value} {
         $pc $reset $fault $im_valid]
 }
 
+proc read_cpu_probe {label} {
+  set value [read_probe_data -instance_index 2 -value_in_hex]
+  puts "${label}:    $value"
+  decode_cpu_probe $value
+  return $value
+}
+
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -50,9 +57,9 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     puts "status_probe: [read_probe_data -instance_index 0 -value_in_hex]"
-    set cpu_debug [read_probe_data -instance_index 2 -value_in_hex]
-    puts "cpu_probe:    $cpu_debug"
-    decode_cpu_probe $cpu_debug
+    read_cpu_probe "cpu_probe_1"
+    after 50
+    read_cpu_probe "cpu_probe_2"
     wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"

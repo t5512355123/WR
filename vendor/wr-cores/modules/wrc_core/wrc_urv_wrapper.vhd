@@ -373,7 +373,8 @@ begin
     end if;
   end process p_im_valid;
 
-  -- 診斷 latch：記住韌體在 0x00016530 寫入的啟動標記。
+  -- 診斷 latch：記住韌體 linker map 中 debug_boot_stage 的啟動標記。
+  -- 目前 3bfa 基準版 Master/Slave 的符號位址都是 0x0001D318。
   p_boot_stage_observe : process(clk_sys_i)
   begin
     if rising_edge(clk_sys_i) then
@@ -389,7 +390,7 @@ begin
         cpu_last_store_data <= dm_data_s;
         cpu_last_store_seen <= '1';
         cpu_internal_store_count <= cpu_internal_store_count + 1;
-        if dm_addr = x"00016530" then
+        if dm_addr = x"0001D318" then
           cpu_boot_stage_value <= dm_data_s;
           cpu_boot_stage_seen  <= '1';
         end if;

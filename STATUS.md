@@ -168,3 +168,18 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 ```text
 /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-PARENT-BLOCK-20260816/runtime_60samples.log
 ```
+
+## 最新燒錄實驗：SoftPLL locking 唯讀診斷
+
+- 實驗 ID：`EXP-WRPC-LOCK-STATE-20260816`
+- commit：`3ba9db83812da1cf61a917dafc8ff228c29043fe`
+- branch：`exp/jtag-runtime-observability`
+- Master checksum：`0x30A0A429`
+- Slave checksum：`0x30A5A091`
+- 燒錄：兩端 configuration succeeded，Quartus Programmer 0 errors、0 warnings。
+- JTAG：兩張板各 60 個 accepted sample，STP Tcl evaluation successful。
+- Slave：`locking_poll` 847885 次、未鎖定 847885 次、calibration failure 0 次、`seq_state=9 (SEQ_CLEAR_DACS)`、`SEQ_READY=8` 未出現；`time_valid=0`。
+- 結論：問題目前最直接落在 Slave SoftPLL sequence/lock feedback 尚未達到 ready，尚未證明更底層根因。
+- 原始 log：`build/artifacts/EXP-WRPC-LOCK-STATE-20260816/runtime_60samples.log`。
+
+下一步是唯讀追蹤 `SEQ_CLEAR_DACS` 的進出條件、DAC clear/ack 與 channel/reference lock feedback；在新證據前不改 PHY、PTP、servo 或 SI5340 控制參數。

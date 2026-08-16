@@ -1876,3 +1876,131 @@ time_valid=0   spll_locked=0
 1. 先維持現有 bitstream、PHY 與 PTP 不變。
 2. 做下一輪唯讀 source/observability：記錄 `locking_enable`、`locking_poll` 的返回分類、timeout/retry 邊界，以及 SoftPLL sequence state；不直接修改 lock 判斷。
 3. 若能把 `WRH_SPLL_LOCKED` 的判斷鏈完整對上，再只改一個可驗證的 SoftPLL/calibration 變因，重新 compile、燒錄並建立新的實驗 ID。
+
+---
+
+## 實驗：EXP-WRPC-LOCK-STATE-20260816
+
+### 實驗名稱
+
+`3ba9db8 加入 locking_poll 與 SoftPLL sequence 唯讀診斷`：在不改變 WR state machine、PHY、PTP、servo、SoftPLL 設定或 SI5340 控制行為的前提下，確認 Slave 在 `WRS_S_LOCK` 階段的 `locking_poll()` 失敗分類，以及 SoftPLL 是否達到 `SEQ_READY`。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`3ba9db83812da1cf61a917dafc8ff228c29043fe`
+- Quartus：`17.0.0 Build 595`
+- Master MIF SHA256：`a8fbfeb9314d8d44bda00d7dcfa00e70f306e59d04e72ed1d649810400cbce55`
+- Slave MIF SHA256：`bfeb492a817e7cf065f724885a14412515689f7e26a6662fd2da9e290bd123eb`
+- Master SOF SHA256：`12319091755c719a64aaef437e56fd6a737cf180157c740e026951291b9219c9`
+- Slave SOF SHA256：`6cffd50a9666b9f661d559be44338944003126cdfd58935d293a51a7fb870237`
+- Programmer checksum：Master `0x30A0A429`；Slave `0x30A5A091`
+- Master QSF SHA256：`e9a5484048fdec5399ba9034f990565e1e52f6ea7e503fb46174d596e5e6b34b`
+- Slave QSF SHA256：`199a695e29c9e4fbf5a18bb88cfaa4079ce6858ae83e21628c9c6d2731c03f58`
+- SDC SHA256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Fitter：兩端 Successful；兩端 `TIMING_CLOSED=NO`
+
+### 這次要驗證什麼
+
+確認前一輪已觀察到的 Slave `WRS_S_LOCK` 失敗，究竟是否能由唯讀計數器直接對上：
+
+1. `locking_poll()` 是否被持續呼叫。
+2. 失敗是否是 `spll_check_lock(0)` 回傳未鎖定。
+3. 是否曾進入 `SEQ_READY`，或是在 SoftPLL 的其他 sequence state 停留。
+4. 是否為 t24p calibration failure，而不是尚未取得 SoftPLL lock。
+
+### 相較 baseline 唯一修改了什麼
+
+只增加 firmware 內部的唯讀 shadow 與既有 JTAG mailbox 顯示：`locking_poll()` 呼叫次數、`spll_check_lock(0)` 未鎖定次數、`calib_t24p()` 失敗次數、locking enable 次數、最後一次 locking 結果，以及 `softpll.seq_state`、align state、mode、delock count。
+
+沒有修改 WR 狀態機的轉移條件，也沒有修改 PHY、QSFP、PTP 封包、servo 演算法、SoftPLL 設定或 SI5340 控制。
+
+### Compile 與燒錄結果
+
+pain 從 GitHub checkout 明確 commit `3ba9db83812da1cf61a917dafc8ff228c29043fe` 後建置：
+
+```text
+Master: Quartus Prime Full Compilation was successful, 0 errors
+Slave : Quartus Prime Full Compilation was successful, 0 errors
+```
+
+兩端 programmer 原始結果都是：
+
+```text
+Configuration succeeded -- 1 device(s) configured
+Successfully performed operation(s)
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+### JTAG 原始結果與 pain terminal log
+
+執行：
+
+```text
+timeout 300s quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3
+```
+
+pain 原始 log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-LOCK-STATE-20260816/runtime_60samples.log`
+
+本機留存副本：`build/artifacts/EXP-WRPC-LOCK-STATE-20260816/runtime_60samples.log`
+
+Quartus STP 結尾為：
+
+```text
+SESSION_TIME_SERIES_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_timeseries_session.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+```
+
+兩張板各完成 60 個 accepted sample；JTAG frame invalid 由 retry 丟棄，沒有中止 session。
+
+Slave 的 accepted sample 穩定呈現：
+
+```text
+status_low=0xCF/0xEF
+time_valid=0
+link_up=1
+wr_mode=3
+fail_role=2 (WR_SLAVE)
+fail_state=2 (WRS_S_LOCK)
+fail_count=1
+```
+
+最終 Slave 的 locking 診斷為：
+
+```text
+WR_LOCK: result=1
+         spll_locked=0
+         polls=847885
+         unlocked=847885
+         calibration_fail=0
+         enable=4
+         seq_state=9
+         align_state=0
+         mode=3
+         delock_count=0
+```
+
+依 `vendor/wrpc-sw/softpll/softpll_export.h`，`SEQ_READY=8`、`SEQ_CLEAR_DACS=9`；因此這次觀測到的是 SoftPLL 尚未到 `SEQ_READY`，而且所有 `locking_poll()` 判斷都落在未鎖定分支，沒有 t24p calibration failure 計數。
+
+Master 的最終 accepted sample 為 `status_low=0xFF`、`time_valid=1`、`pps_valid=1`、`wr_mode=2`；JTAG session 完成且沒有連線中斷。
+
+### Observation
+
+這次已把 Slave 的失敗從「可能在 signaling 或 parent detection」進一步對上到 `WRS_S_LOCK` 內的 SoftPLL lock 判斷：Slave 確實收到了 Master 的 `LOCK`，`locking_poll()` 被呼叫很多次，且每一次 `spll_check_lock(0)` 都回傳未鎖定；`calib_t24p()` 沒有回報失敗。SoftPLL 仍停在 `SEQ_CLEAR_DACS=9`，沒有到達 `SEQ_READY=8`。
+
+### Conclusion
+
+證據支持以下保守結論：
+
+> **目前最直接的故障點是 Slave 的 SoftPLL sequence/lock feedback 尚未達到 `SEQ_READY`，因此 `locking_poll()` 無法回報 `WRH_SPLL_LOCKED`，WR handshake 最後失敗。**
+
+這仍不是完整根因。此資料尚不能單獨判斷是 DCO/SI5340 feedback、SoftPLL 初始化或 sequence 卡住、reference clock、lock threshold，或其他外部條件造成；也不能宣稱光模組或 PHY 已被排除到百分之百。
+
+### Next Step
+
+1. 保留目前 SOF/MIF 與所有 hash，不修改 PHY、PTP、servo 或 SI5340。
+2. 進行 source audit，對照 `SEQ_CLEAR_DACS` 的進入與離開條件，以及 SoftPLL channel/reference 的 enable、lock feedback 和 DAC clear/ack 狀態。
+3. 下一版若仍只加觀測，應記錄 sequence state transition、clear-DAC completion/timeout、lock feedback/threshold 與每個 SoftPLL channel 的 enable/locked 狀態。
+4. 只有在上述觀測指出單一明確變因後，才建立下一個「只改一個控制參數」的燒錄實驗；不能把本次 `result=1` 直接當成已證明的 SI5340 或光路根因。

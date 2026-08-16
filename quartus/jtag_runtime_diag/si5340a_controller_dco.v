@@ -26,7 +26,8 @@ output    [15:0]        oDCO_DPLL_INPUT_COUNT,
 output    [15:0]        oDCO_HPLL_ACCEPT_COUNT,
 output    [15:0]        oDCO_DPLL_ACCEPT_COUNT,
 output    [15:0]        oDCO_HPLL_DONE_COUNT,
-output    [15:0]        oDCO_DPLL_DONE_COUNT
+output    [15:0]        oDCO_DPLL_DONE_COUNT,
+output    [63:0]        oDCO_DPLL_STATE
 );
 
 wire [6:0] static_slave_addr;
@@ -110,6 +111,16 @@ assign oDCO_HPLL_ACCEPT_COUNT = hpll_accept_count;
 assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
 assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
 assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
+// Read-only DPLL request/FSM snapshot:
+// [15:0] previous loaded data, [31:16] current input data,
+// [35:32] runtime state, [36] DPLL pending, [37] HPLL pending,
+// [38] selected DPLL, [39] direction, [40] I2C bus state,
+// [41] static controller ready, [42] bus done, [43] previous data valid,
+// [44] DPLL transaction already consumed.
+assign oDCO_DPLL_STATE = {19'd0, dpll_done_once, dpll_prev_valid,
+                          bus_done, static_controller_ready, bus_state,
+                          rt_dir, rt_select_dpll, hpll_pending, dpll_pending,
+                          rt_state, iDPLL_DATA, dpll_prev_data};
 assign oPLL_I2C_ID_READ_ERROR = 1'b0;
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(

@@ -80,7 +80,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDCO_HPLL_ACCEPT_COUNT: out   std_logic_vector(15 downto 0);
       oDCO_DPLL_ACCEPT_COUNT: out   std_logic_vector(15 downto 0);
       oDCO_HPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0);
-      oDCO_DPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0)
+      oDCO_DPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0);
+      oDCO_DPLL_STATE       : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -298,8 +299,10 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_dpll_accept_count : std_logic_vector(15 downto 0);
   signal dco_hpll_done_count   : std_logic_vector(15 downto 0);
   signal dco_dpll_done_count   : std_logic_vector(15 downto 0);
+  signal dco_dpll_state        : std_logic_vector(63 downto 0);
   signal dco_hpll_diag_probe   : std_logic_vector(63 downto 0);
   signal dco_dpll_diag_probe   : std_logic_vector(63 downto 0);
+  signal dco_dpll_state_probe  : std_logic_vector(63 downto 0);
   signal dco_hpll_diag_source  : std_logic_vector(0 downto 0);
   signal dco_dpll_diag_source  : std_logic_vector(0 downto 0);
 
@@ -638,6 +641,7 @@ begin
   dco_dpll_diag_probe(31 downto 16) <= dco_dpll_input_count;
   dco_dpll_diag_probe(47 downto 32) <= dco_dpll_accept_count;
   dco_dpll_diag_probe(63 downto 48) <= dco_dpll_done_count;
+  dco_dpll_state_probe <= dco_dpll_state;
 
   u_dco_hpll_diag_probe : altsource_probe
     generic map (
@@ -665,6 +669,22 @@ begin
     port map (
       probe      => dco_dpll_diag_probe,
       source     => dco_dpll_diag_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  -- DPLL request/FSM state is read-only and does not drive the WR path.
+  u_dco_dpll_state_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_DPLL_STATE_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 10,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_dpll_state_probe,
+      source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
@@ -803,7 +823,8 @@ begin
       oDCO_HPLL_ACCEPT_COUNT => dco_hpll_accept_count,
       oDCO_DPLL_ACCEPT_COUNT => dco_dpll_accept_count,
       oDCO_HPLL_DONE_COUNT   => dco_hpll_done_count,
-      oDCO_DPLL_DONE_COUNT   => dco_dpll_done_count
+      oDCO_DPLL_DONE_COUNT   => dco_dpll_done_count,
+      oDCO_DPLL_STATE        => dco_dpll_state
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

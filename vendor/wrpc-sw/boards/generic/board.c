@@ -5,6 +5,7 @@
 #include "dev/endpoint.h"
 #include "storage.h"
 #include "board-decl.h"
+#include "de5a-identity.h"
 
 int wrc_board_early_init(void)
 {
@@ -49,13 +50,12 @@ int wrc_board_init()
 	 */
 	if (board_get_persistent_mac(mac_addr) < 0) {
 		board_dbg("Failed to get MAC address from the flash. Using fallback address.\n");
-		/* A/B control: preserve the original generic fallback identity. */
-		mac_addr[0] = 0x22;
-		mac_addr[1] = 0x33;
-		mac_addr[2] = 0x44;
-		mac_addr[3] = 0x55;
-		mac_addr[4] = 0x66;
-		mac_addr[5] = 0x77;
+		mac_addr[0] = DE5A_FALLBACK_MAC_0;
+		mac_addr[1] = DE5A_FALLBACK_MAC_1;
+		mac_addr[2] = DE5A_FALLBACK_MAC_2;
+		mac_addr[3] = DE5A_FALLBACK_MAC_3;
+		mac_addr[4] = DE5A_FALLBACK_MAC_4;
+		mac_addr[5] = DE5A_FALLBACK_MAC_5;
 	}
 	ep_set_mac_addr(&wrc_endpoint_dev, mac_addr);
 	ep_pfilter_init_default(&wrc_endpoint_dev);

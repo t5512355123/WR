@@ -72,7 +72,7 @@ Master SPLL_ECCR:    00000000
 Master SPLL_OCCR:    00000000
 Master SYSC_RSTR:    0105300F
 Master SYSC_GPSR:    0100000F
-Master CPU_RESET:    待補充
+Master CPU_RESET:    00000000
 Master CPU_DBGSTAT:  00000000
 Master CPU_DBGREADY: 00000000
 Master CPU_MBX:      00000000
@@ -85,7 +85,7 @@ Slave SPLL_ECCR:    00000000
 Slave SPLL_OCCR:    00000000
 Slave SYSC_RSTR:    0105300F
 Slave SYSC_GPSR:    0100000F
-Slave CPU_RESET:    待補充
+Slave CPU_RESET:    00000000
 Slave CPU_DBGSTAT:  00000000
 Slave CPU_DBGREADY: 00000000
 Slave CPU_MBX:      00000000
@@ -93,7 +93,18 @@ Slave CPU_MBX:      00000000
 
 狀態 probe 的低 16-bit 仍然是兩端 `0x82CF`，表示這次診斷介面沒有破壞既有 QSFP-A lane 0 的 PHY/link 基準。兩端仍是 `time_valid=0`、`pps_valid=0`，所以同步尚未完成。
 
-另外，腳本已加入 WRPC 既有 `wdiags` 區的唯讀讀取，下一次在兩板上重跑並比較間隔一秒以上的結果，才能判斷韌體是否有週期更新 PTP、伺服器與封包計數。這些欄位若完全維持零或版本不正確，優先懷疑 WRPC 韌體沒有正常執行或診斷區未接到預期位址；若欄位會更新但 lock 仍為零，才進一步集中到 PTP/SoftPLL/時鐘參考問題。
+另外，腳本已加入 WRPC 既有 `wdiags` 區的唯讀讀取。實際兩次讀取間隔約兩秒，兩片的 `WDIAGS_VER`、`WDIAGS_CTRL`、PTP 計數、伺服器狀態、`WDIAGS_UCNT` 與 SoftPLL 診斷欄位都維持零；這不是單純「尚未同步」，而是韌體沒有完成 `wdiags_init()` 或尚未進入 WRPC 主迴圈的證據。
+
+`CPU_RESET=00000000` 表示 uRV CPU 沒有被 CPU CSR（Control and Status Register，控制與狀態暫存器）的 reset bit 保持住；但這還不足以證明 CPU 已執行到 `main()`。因此下一個診斷版本會在 WRPC 初始化早期，把 `WDIAGS_TEMP` 暫時當作 boot stage：
+
+| 值 | 代表階段 |
+|---:|---|
+| `0xB001` | 進入 `wrc_initialize()` |
+| `0xB002` | 完成 `wrc_board_early_init()` |
+| `0xB003` | 完成 `wrc_board_init()` |
+| `0xB004` | 完成所有任務的初始化 |
+
+這些值只用於診斷版，因為目前設定沒有啟用板上溫度感測器；正式版本若啟用溫度感測器，該欄位恢復原本的溫度用途。
 
 ## pain terminal log
 

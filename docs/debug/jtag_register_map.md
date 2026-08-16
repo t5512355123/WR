@@ -48,6 +48,7 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100940` | `WDIAGS_CKO` | 時鐘偏移 |
 | `0x00100944` | `WDIAGS_SETP` | 相位設定值 |
 | `0x00100948` | `WDIAGS_UCNT` | 伺服器更新計數 |
+| `0x0010094C` | `WDIAGS_TEMP` | 診斷版啟動階段標記；正式溫度感測器啟用時回復為溫度欄位 |
 | `0x00100960` | `WDIAGS_RXERR` | WRPC RX 錯誤計數 |
 | `0x0010096C` | `WDIAGS_RESTART` | 伺服器重新啟動次數 |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |

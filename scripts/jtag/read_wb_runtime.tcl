@@ -58,6 +58,7 @@ foreach hardware_name [get_hardware_names] {
     puts "WDIAGS_CKO:   [wb_read 0x00100940]"
     puts "WDIAGS_SETP:  [wb_read 0x00100944]"
     puts "WDIAGS_UCNT:  [wb_read 0x00100948]"
+    puts "WDIAGS_TEMP:  [wb_read 0x0010094C]"
     puts "WDIAGS_RXERR: [wb_read 0x00100960]"
     puts "WDIAGS_RESTART:[wb_read 0x0010096C]"
     puts "WDIAGS_SLIDE: [wb_read 0x00100970]"

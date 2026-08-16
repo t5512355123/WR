@@ -93,6 +93,12 @@ const struct wrc_global wrc_global = {
 
 static void wrc_initialize(void)
 {
+	/* Diagnostic-only boot markers in the existing WRPC diagnostics RAM. */
+	#ifdef CONFIG_WR_DIAG
+	wdiags_init();
+	wdiags_write_temp(0x0000B001);
+	#endif
+
 	console_init();
 	timer_init(1);
 	spll_very_init();
@@ -104,7 +110,9 @@ static void wrc_initialize(void)
 
 	wrc_board_early_init();
 
-	wdiags_init();
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B002);
+	#endif
 
 	pp_printf("WR Core: starting up...\n");
 	get_hw_name(wrc_global_link.wrc_hw_name);
@@ -131,6 +139,10 @@ static void wrc_initialize(void)
 		temp_faketemp_init();
 
 	wrc_board_init();
+
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B003);
+	#endif
 
 	/* BSP didn't load the calibration parameters? go ahead */
 	if (!storage_is_calibration_loaded())
@@ -301,6 +313,9 @@ int main(void)
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B004);
+	#endif
 
 	for (;;) {
 		// run all pending tasks

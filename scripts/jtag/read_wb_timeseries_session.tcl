@@ -107,6 +107,28 @@ proc read_diag_sample {hardware_name sample attempt} {
                               $spll_occr == $spll_occr_end}]
   set frame_valid [expr {$frame_valid && $spll_block_valid}]
 
+  scan $status %x status_word
+  set status_low [expr {$status_word & 0xff}]
+  set time_valid [expr {($status_low >> 4) & 1}]
+  set pps_valid [expr {($status_low >> 5) & 1}]
+  scan $sstat %x sstat_word
+  set wr_valid [expr {$sstat_word & 1}]
+  set servo_state [expr {($sstat_word >> 8) & 0xf}]
+  scan $pstat %x pstat_word
+  set link_up [expr {$pstat_word & 1}]
+  set spll_locked [expr {($pstat_word >> 1) & 1}]
+  scan $ptp_meta %x ptp_meta_word
+  set wr_mode [expr {($ptp_meta_word >> 24) & 0xff}]
+  scan $foreign_meta %x foreign_word
+  set foreign_count [expr {$foreign_word & 0xff}]
+  set foreign_best [expr {($foreign_word >> 8) & 0xff}]
+  set parent_detection [expr {($foreign_word >> 16) & 0xff}]
+  set parent_wr_config [expr {($foreign_word >> 24) & 0xff}]
+  scan $parse_meta %x parse_word
+  set parent_is_wr [expr {($parse_word >> 24) & 1}]
+  set parent_wr_mode_on [expr {($parse_word >> 25) & 1}]
+  set parent_calibrated [expr {($parse_word >> 26) & 1}]
+
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
   puts [format "FRAME_VALID: %d CTRL_BEGIN=%s CTRL_END=%s RETRY_INDEX=%d" \
@@ -120,6 +142,11 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts "WDIAGS_FOREIGN_META:$foreign_meta WDIAGS_FILTER_META:$filter_meta WDIAGS_PARSE_META:$parse_meta"
   puts "WDIAGS_DMS_H:$dms_h WDIAGS_DMS_L:$dms_l WDIAGS_CKO:$cko WDIAGS_SETP:$setp WDIAGS_UCNT:$ucnt"
   puts "PPS_CR:$pps_cr PPS_ESCR:$pps_escr WDIAGS_SPLL_HY:$spll_hy WDIAGS_SPLL_MY:$spll_my"
+  puts [format "DECODE: status_low=%02X time_valid=%d pps_valid=%d wr_mode=%d sstat_wr_valid=%d servo_state=%d link_up=%d spll_locked=%d" \
+        $status_low $time_valid $pps_valid $wr_mode $wr_valid $servo_state $link_up $spll_locked]
+  puts [format "PARENT: foreign_count=%d foreign_best=%d detection=%d wr_config=%d is_wr=%d mode_on=%d calibrated=%d" \
+        $foreign_count $foreign_best $parent_detection $parent_wr_config \
+        $parent_is_wr $parent_wr_mode_on $parent_calibrated]
   flush stdout
   return $frame_valid
 }

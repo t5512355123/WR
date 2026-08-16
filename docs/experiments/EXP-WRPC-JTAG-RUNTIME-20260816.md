@@ -632,3 +632,199 @@ Slave PPS_ESCR: 00000000
 - `3bfa39d` 能正常執行並證明兩端交換 PTP 封包。
 - `af9162b` 雖然編譯與燒錄成功，但造成 CPU runtime trap，因此必須先回到 `3bfa39d` 基準再繼續診斷。
 - 尚未取得兩片 DE5a 外部 PPS 端點的示波器量測，因此不能宣稱已達到 White Rabbit 的實體次奈秒同步精度。
+
+---
+
+## 實驗：EXP-WRPC-ROLE-DIAG-20260816
+
+### 實驗名稱
+
+加入 Master/Slave 角色與 PTP 執行狀態的 JTAG 唯讀診斷。
+
+### 這次要驗證什麼
+
+確認兩片 DE5a 是否以正確角色啟動，以及 Slave 是否真的收到 PTP 封包並進入父時鐘選擇流程。這個實驗不修改 QSFP 光路、lane、極性或 pre-emphasis。
+
+### 修改內容
+
+- 在 firmware 診斷暫存器加入角色模式、PTP 狀態、PTP RX/TX 計數與 foreign master metadata。
+- 更新 `scripts/jtag/read_wb_runtime.tcl`，以兩條獨立 JTAG 連續讀取 Master 與 Slave。
+- 使用 commit `798dd99 加入角色模式的 JTAG 診斷` 建立並燒錄 Master/Slave SOF。
+
+### 結果
+
+- Quartus 17.0 Build 595 編譯成功，兩片皆成功燒錄。
+- Master：mode=2、`WDIAGS_PTP=6`（PPS master）、PTP_RX=`0x30`、PTP_TX=`0x9D`、`PPS_ESCR=0x01312D0C`。
+- Slave：mode=3、`WDIAGS_PTP=4`（PPS listening）、PTP_RX=`0x9F`、PTP_TX=`0x30`、`PPS_ESCR=0`。
+- 兩端 CPU 都是 `fault=0`，`cpu_marker=0xB004`，PC 與 instruction-memory valid 正常。
+- 兩端 `FOREIGN_META=0x0000FF00`，表示當時尚未建立可用的 foreign master 記錄或 parent。
+
+### pain terminal log 結果顯示什麼
+
+完整紀錄保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/role_diag_798dd99/runtime_after_program_8s.log
+```
+
+### 怎麼看待這個結果
+
+CPU、角色設定與雙向 PTP 封包流已經成立；但 Slave 仍停在 `PPS_LISTENING`，所以不能把「有 PTP RX/TX」解讀成「已完成 White Rabbit 同步」。下一個重點是讀出 parent identity、Announce 接受狀態與 delay exchange，不是先修改 PHY。
+
+---
+
+## 實驗：EXP-WRPC-ENDPOINT-MAC-20260816
+
+### 實驗名稱
+
+讀取兩片 DE5a 的 Endpoint MAC，確認 PTP clock identity 是否意外相同。
+
+### 這次要驗證什麼
+
+確認 Master 與 Slave 是否因使用完全相同的 fallback MAC，導致 BMC（Best Master Clock，最佳主時鐘選擇）拒絕對方的 Announce，進而使 Slave 無法選出 parent。
+
+### 修改內容
+
+- 只在 JTAG 唯讀腳本加入 endpoint MAC register 讀取，不修改硬體資料路徑。
+- 讀取 endpoint MAC high/low register 與 endpoint status。
+- 使用 commit `c9874c2 加入 Endpoint MAC 的 JTAG 診斷` 重新編譯、燒錄並讀取。
+
+### 結果
+
+兩片讀到相同的 endpoint MAC register 組合：
+
+```text
+EP_MAC_H: 02002233
+EP_MAC_L: 44556677
+```
+
+依 `ep_set_mac_addr()` 的 register byte packing，實際 fallback MAC 的有效低位元組為 `22:33:44:55:66:77`，兩片沒有不同的節點身份。這是重要的軟體身份問題候選，但尚未證明它是唯一根因。
+
+### pain terminal log 結果顯示什麼
+
+完整紀錄保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/role_diag_798dd99/runtime_mac_read_c9874c2.log
+```
+
+### 怎麼看待這個結果
+
+兩片 DE5a 使用同一個 clock identity 會讓 BMC 的 parent selection 非常可疑；因此下一個合理變因是只修正節點身份。然而，這個變更必須先用最小 A/B 證明不會破壞原本可運作的 CPU runtime。
+
+---
+
+## 實驗：EXP-WRPC-UNIQUE-MAC-20260816
+
+### 實驗名稱
+
+為 Master/Slave 建立不同的角色專用 fallback MAC。
+
+### 這次要驗證什麼
+
+驗證兩片使用不同 PTP clock identity 後，是否能讓 Slave 建立 foreign master 並進入同步流程；同時確認這個修正不會破壞 uRV firmware 的啟動。
+
+### 修改內容
+
+- 在 `vendor/wrpc-sw/Kconfig` 新增 `DE5A_NODE_ID`。
+- Master defconfig 設為 node id 1，Slave defconfig 設為 node id 2。
+- generic board fallback MAC 改為角色專用的 locally administered MAC：
+  - Master：`02:00:22:33:44:01`
+  - Slave：`02:00:22:33:44:02`
+- 使用 commit `c206628 保留 DE5a 角色身份設定` 重新產生兩份 MIF、重新編譯兩份 Quartus SOF，再分別燒錄。
+
+### 結果
+
+- firmware build 成功；Master MIF SHA-256：
+  `e56ee9f1b4d4c96f6b869ec3dcd770c8facfddc29584e67f99929a026e6a4a1a`
+- Slave MIF SHA-256：
+  `0343988a27e43c2da3485896d2395b6fcc1e6d788505c2b582aad1995a66e36`
+- Master/Slave Quartus build 都成功。
+- Master SOF SHA-256：`e64bf6ef6993a706a68680d48abdf9533acbc9db62a6d2be01e8ffe788c33808`
+- Slave SOF SHA-256：`a1bb6d2cb68b3185e1e61c2ed0d7bd87802a057938aad52ba3fe816f3cfec8b0`
+- 兩片燒錄都顯示 configuration succeeded。
+- 但是兩片 runtime 都在啟動早期進入 `fault_handler`，PC 約在 `0x15CEC`；`cpu_marker=0`、`WDIAGS_*` 全為 0、endpoint MAC 讀值為 0。
+
+### pain terminal log 結果顯示什麼
+
+完整紀錄保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/unique_mac_c206628/runtime_after_program_8s.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_c206628/program_master.log
+/home/b10504072/04_WR/build/artifacts/unique_mac_c206628/program_slave.log
+```
+
+關鍵輸出：
+
+```text
+cpu_debug: PC 約在 0x00015CEC，fault=0 的 probe 仍停在 fault handler 鄰近位置
+cpu_marker: 0x00000000 seen=0
+WDIAGS_PTP: 00000000
+EP_MAC_H: 02000000
+EP_MAC_L: 00000000
+```
+
+### 怎麼看待這個結果
+
+這次不能拿來判斷 MAC 是否成功解決 BMC，因為 firmware 根本還沒執行到 MAC 初始化與 PTP 診斷。兩片同時在相同 fault address 失敗，較像 Kconfig、firmware layout 或新 MAC runtime code 引起的回歸，而不是 QSFP 電氣問題。這個版本先保留在 artifact 目錄，不作為目前執行基準。
+
+---
+
+## 實驗：EXP-WRPC-RESTORE-BASELINE-20260816
+
+### 實驗名稱
+
+恢復已知可運作的 `e302c4d` bitstream，確認新版本失敗不是板卡永久狀態損壞。
+
+### 這次要驗證什麼
+
+確認相同兩片 DE5a、相同兩條 JTAG 與相同 QSFP 連線，在恢復 baseline 後 CPU、PTP 封包流與 JTAG 診斷能否回復。這是對 `c206628` 的安全回復與控制組實驗。
+
+### 修改內容
+
+- 沒有修改 source code。
+- 使用保存的 `fixed_marker_2e000_e302c4d` Master/Slave SOF。
+- 以 Quartus 17.0 programmer 分別燒錄 `DE5 [1-11.1]` 與 `DE5 [1-11.2]`。
+- 燒錄後等待 8 秒，執行同一份 `read_wb_runtime.tcl`。
+
+### 結果
+
+兩片都顯示：
+
+```text
+Configuration succeeded
+0 errors, 0 warnings
+```
+
+8 秒後兩端都回到正常 runtime：
+
+- Master：`fault=0`、`cpu_marker=0xB004 seen=1`、`WDIAGS_VER=2`、`WDIAGS_PTP=6`、PTP_RX=`0x0F`、PTP_TX=`0x21`。
+- Slave：`fault=0`、`cpu_marker=0xB004 seen=1`、`WDIAGS_VER=2`、`WDIAGS_PTP=0x13`、PTP_RX=`0x12`、PTP_TX=`0x08`。
+- 兩端 CPU internal store count 持續增加，`cpu_exception` 的 `mepc=0`、`mcause=0`。
+- 兩端仍讀到相同 fallback MAC `22:33:44:55:66:77`，因此身份問題尚未解決，但 baseline runtime 已恢復。
+
+### pain terminal log 結果顯示什麼
+
+完整紀錄保存在：
+
+```text
+/home/b10504072/04_WR/build/artifacts/unique_mac_c206628/control_restore_e302c4d_8s.log
+```
+
+### 怎麼看待這個結果
+
+恢復 baseline 後兩片 CPU 與 PTP 活動都正常，表示目前沒有必要先做實體斷電，也不支持把 `c206628` 的 fault 歸因於 QSFP 或板卡永久故障。下一個實驗應採用另一種不改 Kconfig/layout 的最小身份注入方式，並保留 baseline SOF 作為對照；只有在新版 runtime 正常後，才可繼續驗證 parent selection 與 `time_valid/pps_valid`。
+
+### 本階段結論
+
+目前已取得的可靠證據是：
+
+```text
+PHY/PCS：有穩定雙向 PTP 封包活動
+CPU runtime：e302c4d baseline 正常
+角色：Master/Slave 設定正確
+節點身份：兩片仍使用相同 fallback MAC
+唯一 MAC 修正：尚未成功，因 firmware 先 fault
+White Rabbit 完整同步：尚未完成，不能宣稱 time_valid=1、pps_valid=1
+```

@@ -292,3 +292,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - Slave 所有 accepted activity 列一致為 `REF_COUNT=0`、`TAG_COUNT=0`、`HELPER_ERROR=0`、`HELPER_OUTPUT=0`、`VISIT_MASK=0x200`、`TRANSITIONS=0`、`LAST_STATE=9`。
 - Slave 仍為 `link_up=1`、`spll_locked=0`、`time_valid=0`；證據把優先懷疑維持在 recovered clock/tagger 到 SoftPLL helper lock 的路徑，但尚未證明物理光路根因。
 - 完整 log：`build/artifacts/EXP-WRPC-SPLL-ACTIVITY-READONLY-20260816/runtime_60samples.log`，SHA256 `9252c96c9ce4ece0947ad25bda019cca13bf3c91d5039abe91cca2f11f1916ab`。
+## 最新燒錄實驗：DCO transaction pipeline 唯讀觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-DCO-OBS-20260817`
+- commit：`c5092ddb343a2fa50a9349468759d0cf9317b1b5`
+- 只重新燒錄 Slave；Master 沿用 `5e816ea` baseline。
+- Slave compile：Quartus 17.0，Full Compilation successful，0 errors、273 warnings；timing 尚未閉合，worst setup `-0.163 ns`、hold `-3.490 ns`。
+- Slave SOF SHA-256：`391c5c245fa53da75e685d9c4dc963f225d2aea58ce8c7d69faa490b88c1dcb1`，programmer checksum `0x30A53A47`，configuration succeeded。
+- HPLL source/destination count 可對上；但 accepted 固定 `0x0378`、done 為 `0`，DPLL accepted/done 皆為 `0`。
+- 20 秒 runtime 中 PTP、parent、tag、IRQ、UCNT 有活動，但 Slave `PSTAT.locked=0`、`time_valid=0`。
+- 結論：尚未同步；目前優先查 DCO runtime I2C start handshake 是否因單週期 pulse 被慢速 I2C state machine 遺失。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-OBS-20260817.md`。

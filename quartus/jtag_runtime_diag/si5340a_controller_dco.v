@@ -236,7 +236,9 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       4'd1: begin
-        if (runtime_start)
+        // Hold the start request until the divided I2C state machine
+        // acknowledges it by asserting bus_state.
+        if (bus_state)
           rt_state <= 4'd2;
       end
       4'd2: begin
@@ -248,7 +250,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       4'd3: begin
-        if (runtime_start)
+        if (bus_state)
           rt_state <= 4'd4;
       end
       4'd4: begin
@@ -260,7 +262,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       4'd5: begin
-        if (runtime_start)
+        if (bus_state)
           rt_state <= 4'd6;
       end
       4'd6: begin
@@ -272,7 +274,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       4'd7: begin
-        if (runtime_start)
+        if (bus_state)
           rt_state <= 4'd8;
       end
       4'd8: begin

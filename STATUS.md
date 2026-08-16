@@ -303,3 +303,12 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 20 秒 runtime 中 PTP、parent、tag、IRQ、UCNT 有活動，但 Slave `PSTAT.locked=0`、`time_valid=0`。
 - 結論：尚未同步；目前優先查 DCO runtime I2C start handshake 是否因單週期 pulse 被慢速 I2C state machine 遺失。
 - 完整紀錄：`docs/experiments/EXP-WRPC-DCO-OBS-20260817.md`。
+## 最新燒錄實驗：DCO I2C 啟動握手修正（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-DCO-START-HANDSHAKE-20260817`
+- commit：`af4a96061bcd68cb9c0f5d7a51025bc2a05286c4`
+- Slave compile 與燒錄成功；SOF checksum `0x30A34B86`。
+- DCO 短讀從 baseline `done=0` 變成 HPLL `done=2`、DPLL `done=1`，證明 start handshake 使 transaction 完成。
+- 但後續 20 秒 Slave 的 PTP、tag、IRQ、UCNT 與 parent activity 掉到 0，後段 `link_up=0`，`time_valid=0`。
+- 結論：這不是成功修正；transaction 的實際 SI5340 寫入可能破壞 clock/runtime，下一步先回到可運作 baseline 並查 page/register/readback/clock effect。
+- 完整紀錄：`docs/experiments/EXP-WRPC-DCO-START-HANDSHAKE-20260817.md`。

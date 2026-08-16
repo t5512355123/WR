@@ -320,6 +320,12 @@ uint32_t TRR_CSR;
 uint32_t TAG_VALID_COUNT;
 /* [0x88]: read-only diagnostic count of tag FIFO write requests */
 uint32_t TRR_WRITE_COUNT;
+/* [0x8c]: read-only count of cycles with a source DMTD tag strobe */
+uint32_t TAG_SOURCE_COUNT;
+/* [0x90]: read-only count of cycles with an arbitration grant */
+uint32_t TAG_GRANT_COUNT;
+/* [0x94]: read-only count of valid tags blocked by a full TRR FIFO */
+uint32_t TRR_FULL_COUNT;
 };
 
 #endif

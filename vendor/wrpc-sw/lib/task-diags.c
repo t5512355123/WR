@@ -137,6 +137,14 @@ int wrc_wr_diags(void)
 				(((uint32_t)wrp->parentDetection & 0x3u) << 19) |
 				(((uint32_t)wrp->wrMode & 0x7u) << 21);
 			wdiags_write_wr_state_debug(wr_state_debug);
+			wdiags_write_wr_signaling_debug(
+				(((uint32_t)wrpc_wr_last_rx_msg_id & 0xffffu) << 16) |
+				 (wrpc_wr_rx_signaling_count & 0xffffu),
+				(((uint32_t)wrpc_wr_last_tx_msg_id & 0xffffu) << 16) |
+				 (wrpc_wr_tx_signaling_count & 0xffffu),
+				(((uint32_t)wrpc_wr_last_fail_role & 0xffu) << 24) |
+				(((uint32_t)wrpc_wr_last_fail_state & 0xffu) << 16) |
+				 (wrpc_wr_handshake_fail_count & 0xffffu));
 		}
 	}
 

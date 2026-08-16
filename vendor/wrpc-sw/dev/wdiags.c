@@ -166,6 +166,15 @@ void wdiags_write_wr_state_debug(uint32_t state)
 	wdiag_write( WRC_DIAGS_WDIAG_TEMP, state );
 }
 
+void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
+{
+	/* These registers are not written by the DE5a diagnostic task's
+	 * normal servo path. Keep the raw message IDs and low counter words. */
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_MSB, rx);
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_LSB, tx);
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

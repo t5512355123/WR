@@ -72,6 +72,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   set filter_meta [wb_read 0x0010097C]
   set parse_meta [wb_read 0x00100980]
   set wr_state_debug [wb_read 0x0010094C]
+  set wr_rx_debug [wb_read 0x00100964]
+  set wr_tx_debug [wb_read 0x00100968]
+  set wr_fail_debug [wb_read 0x0010096C]
   set dms_h [wb_read 0x00100934]
   set dms_l [wb_read 0x00100938]
   set cko [wb_read 0x00100940]
@@ -88,6 +91,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   set foreign_meta_end [wb_read 0x00100978]
   set parse_meta_end [wb_read 0x00100980]
   set wr_state_debug_end [wb_read 0x0010094C]
+  set wr_rx_debug_end [wb_read 0x00100964]
+  set wr_tx_debug_end [wb_read 0x00100968]
+  set wr_fail_debug_end [wb_read 0x0010096C]
   set ctrl_end [wb_read 0x00100904]
 
   set frame_valid 1
@@ -95,9 +101,11 @@ proc read_diag_sample {hardware_name sample attempt} {
       $sstat $pstat $ptp $ptp_rx $ptp_tx \
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
       $wr_state_debug \
+      $wr_rx_debug $wr_tx_debug $wr_fail_debug \
       $cko $setp $ucnt $pps_cr $pps_escr $spll_hy $spll_my \
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
-      $foreign_meta_end $parse_meta_end $wr_state_debug_end $ctrl_end] {
+      $foreign_meta_end $parse_meta_end $wr_state_debug_end \
+      $wr_rx_debug_end $wr_tx_debug_end $wr_fail_debug_end $ctrl_end] {
     if {![is_u32 $value]} {
       set frame_valid 0
     }
@@ -116,7 +124,11 @@ proc read_diag_sample {hardware_name sample attempt} {
                                 $foreign_meta == $foreign_meta_end &&
                                 $parse_meta == $parse_meta_end}]
   set wr_state_block_valid [expr {$wr_state_debug == $wr_state_debug_end}]
-  set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid && $wr_state_block_valid}]
+  set wr_signal_block_valid [expr {$wr_rx_debug == $wr_rx_debug_end &&
+                                   $wr_tx_debug == $wr_tx_debug_end &&
+                                   $wr_fail_debug == $wr_fail_debug_end}]
+  set frame_valid [expr {$frame_valid && $spll_block_valid && $parent_block_valid &&
+                         $wr_state_block_valid && $wr_signal_block_valid}]
 
   scan $status %x status_word
   set status_low [expr {$status_word & 0xff}]
@@ -152,6 +164,16 @@ proc read_diag_sample {hardware_name sample attempt} {
   set local_wr_next_state [expr {($wr_debug_word >> 15) & 0xf}]
   set local_parent_detection [expr {($wr_debug_word >> 19) & 3}]
   set local_wr_mode [expr {($wr_debug_word >> 21) & 7}]
+  scan $wr_rx_debug %x wr_rx_word
+  scan $wr_tx_debug %x wr_tx_word
+  scan $wr_fail_debug %x wr_fail_word
+  set wr_rx_msg_id [expr {($wr_rx_word >> 16) & 0xffff}]
+  set wr_rx_count [expr {$wr_rx_word & 0xffff}]
+  set wr_tx_msg_id [expr {($wr_tx_word >> 16) & 0xffff}]
+  set wr_tx_count [expr {$wr_tx_word & 0xffff}]
+  set wr_fail_role [expr {($wr_fail_word >> 24) & 0xff}]
+  set wr_fail_state [expr {($wr_fail_word >> 16) & 0xff}]
+  set wr_fail_count [expr {$wr_fail_word & 0xffff}]
 
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
@@ -165,6 +187,9 @@ proc read_diag_sample {hardware_name sample attempt} {
         $ptp_meta_end $foreign_meta_end $parse_meta_end]
   puts [format "WR_STATE_BLOCK_VALID: %d A=%s B=%s" \
         $wr_state_block_valid $wr_state_debug $wr_state_debug_end]
+  puts [format "WR_SIGNAL_BLOCK_VALID: %d RX=%s/%s TX=%s/%s FAIL=%s/%s" \
+        $wr_signal_block_valid $wr_rx_debug $wr_rx_debug_end \
+        $wr_tx_debug $wr_tx_debug_end $wr_fail_debug $wr_fail_debug_end]
   puts "WDIAGS_VER:$ver SPLL_CSR:$spll_csr SPLL_ECCR:$spll_eccr SPLL_OCCR:$spll_occr"
   puts "WDIAGS_SSTAT:$sstat WDIAGS_PSTAT:$pstat WDIAGS_PTP:$ptp"
   puts "WDIAGS_PTP_RX:$ptp_rx WDIAGS_PTP_TX:$ptp_tx WDIAGS_PTP_META:$ptp_meta"
@@ -181,6 +206,9 @@ proc read_diag_sample {hardware_name sample attempt} {
         $local_parent_is_wr $local_parent_calibrated $local_wr_config \
         $local_parent_wr_config $local_wr_state $local_wr_next_state \
         $local_parent_detection $local_wr_mode]
+  puts [format "WR_SIGNAL: rx_msg=0x%04X rx_count=%d tx_msg=0x%04X tx_count=%d fail_role=%d fail_state=%d fail_count=%d" \
+        $wr_rx_msg_id $wr_rx_count $wr_tx_msg_id $wr_tx_count \
+        $wr_fail_role $wr_fail_state $wr_fail_count]
   flush stdout
   return $frame_valid
 }

@@ -94,6 +94,13 @@ volatile uint32_t wrpc_ptp_rx_signaling_count;
 volatile uint32_t wrpc_ptp_rx_announce_processed_count;
 volatile uint32_t wrpc_ptp_rx_announce_added_count;
 volatile uint32_t wrpc_ptp_rx_announce_length;
+volatile uint32_t wrpc_wr_rx_signaling_count;
+volatile uint32_t wrpc_wr_tx_signaling_count;
+volatile uint16_t wrpc_wr_last_rx_msg_id;
+volatile uint16_t wrpc_wr_last_tx_msg_id;
+volatile uint32_t wrpc_wr_handshake_fail_count;
+volatile uint8_t wrpc_wr_last_fail_state;
+volatile uint8_t wrpc_wr_last_fail_role;
 
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
@@ -306,6 +313,13 @@ int wrc_ptp_start(void)
 	wrpc_ptp_prefilter_alternate_master_count = 0;
 	wrpc_ptp_prefilter_same_port_count = 0;
 	wrpc_ptp_prefilter_same_clock_count = 0;
+	wrpc_wr_rx_signaling_count = 0;
+	wrpc_wr_tx_signaling_count = 0;
+	wrpc_wr_last_rx_msg_id = 0;
+	wrpc_wr_last_tx_msg_id = 0;
+	wrpc_wr_handshake_fail_count = 0;
+	wrpc_wr_last_fail_state = 0;
+	wrpc_wr_last_fail_role = 0;
 
 	/* sfp match was done before so read calibration data */
 

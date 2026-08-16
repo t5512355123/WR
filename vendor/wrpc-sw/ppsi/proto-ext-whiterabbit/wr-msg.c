@@ -9,6 +9,7 @@
 
 #include <ppsi/ppsi.h>
 #include "../proto-standard/common-fun.h"
+#include "../arch-wrpc/wrpc.h"
 
 /* Pack White rabbit message in the suffix of PTP announce message */
 void msg_pack_announce_wr_tlv(struct pp_instance *ppi)
@@ -208,6 +209,8 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 	}
 
 	wr_msg_id = ntohs(*(UInteger16 *)(buf + 54));
+	wrpc_wr_rx_signaling_count++;
+	wrpc_wr_last_rx_msg_id = wr_msg_id;
 
 	if (pwr_msg_id) {
 		*pwr_msg_id = wr_msg_id;
@@ -260,6 +263,11 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 int msg_issue_wrsig(struct pp_instance *ppi, Enumeration16 wr_msg_id)
 {
 	int len = msg_pack_wrsig(ppi, wr_msg_id);
+	int ret = __send_and_log(ppi, len, PP_NP_GEN,PPM_SIGNALING_FMT);
 
-	return __send_and_log(ppi, len, PP_NP_GEN,PPM_SIGNALING_FMT);
+	if (!ret) {
+		wrpc_wr_tx_signaling_count++;
+		wrpc_wr_last_tx_msg_id = wr_msg_id;
+	}
+	return ret;
 }

@@ -49,8 +49,10 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x00100944` | `WDIAGS_SETP` | 相位設定值 |
 | `0x00100948` | `WDIAGS_UCNT` | 伺服器更新計數 |
 | `0x0010094C` | `WDIAGS_TEMP` | 診斷版啟動階段標記；正式溫度感測器啟用時回復為溫度欄位 |
+| `0x00100964` | `WR_RX_SIGNAL_DEBUG` | 高 16 位為最後收到的 WR signaling message ID，低 16 位為成功解析計數 |
+| `0x00100968` | `WR_TX_SIGNAL_DEBUG` | 高 16 位為最後送出的 WR signaling message ID，低 16 位為成功送出計數 |
 | `0x00100960` | `WDIAGS_RXERR` | WRPC RX 錯誤計數 |
-| `0x0010096C` | `WDIAGS_RESTART` | 伺服器重新啟動次數 |
+| `0x0010096C` | `WR_HANDSHAKE_FAIL_DEBUG` | 高 8 位為失敗前 role，中間 8 位為失敗前 WR state，低 16 位為 failure 計數；本診斷版不使用原 restart 欄位 |
 | `0x00100970` | `WDIAGS_SLIDE` | Transceiver bitslide 值 |
 | `0x00100984` / `0x00100988` | `WDIAGS_SPLL_HY` / `WDIAGS_SPLL_MY` | SoftPLL 輔助與主 DAC 值 |
 

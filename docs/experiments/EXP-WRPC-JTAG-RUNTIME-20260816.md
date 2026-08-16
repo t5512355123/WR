@@ -1655,3 +1655,95 @@ Slave : foreign_count=1, best=0, detection=0, wr_config=3,
 1. 維持目前只讀 frame validity、SoftPLL block validity 與 parent block validity 規則。
 2. 以 source/header 追查 `parentWrModeOn` 的產生條件、Master 對外宣告的 WR mode，以及 Slave 進入 `TRACK_PHASE` 的必要條件；先不改 PHY、PTP filter、servo 或 SI5340。
 3. 下一輪若要改功能，先建立一個明確的單一變因 commit，完成 compile 與 artifact hash，再另寫燒錄後實驗紀錄。
+
+---
+
+## 實驗：EXP-WRPC-LOCAL-WR-STATE-20260816
+
+### 實驗名稱
+
+`bae06ff 加入本機 WR 狀態唯讀診斷`：燒錄含有 local WR state shadow 的 Master/Slave firmware，確認 Slave 的 fallback 是否發生在 WR handshake 的哪一段。這次是實際燒錄與板端實驗，不是單純 compile。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`bae06ff50d120ae643752e85f67af636e0d3141b`
+- Quartus：`17.0.0 Build 595`
+- Master MIF SHA256：`0a808ace82cdb5dfd6ef50733208f6d7714c33a3dee3c2bbf2bb84b668bcf84e`
+- Slave MIF SHA256：`7ed396529e3b70709ae2be808edb4fb87d190dbd2b7670124f067f9abf65a14d`
+- Master SOF SHA256：`61cc0272d27cb4c35cdff3f4b91a6472ac0ab40429b9ea95e158db7195d6dd49`
+- Slave SOF SHA256：`e70bc7dca11f3f31fb1d2724de764bdf31bc8678da891353da81b0126d4d975e`
+- Programmer checksum：Master `0x30A0A429`；Slave `0x30A5A091`
+- Quartus Fitter：兩端 Successful；兩端 timing report 的 `TIMING_CLOSED=NO`，此限制保留，不視為 timing closure。
+
+### 這次要驗證什麼
+
+確認 `parentWrModeOn=0` 是否只是 parent parser 的表面結果，或是 WR extension 已經在 handshake 過程中失敗並退回純 PTP。新增的 shadow 只讀取：
+
+```text
+wrModeOn、parentWrModeOn、calibrated、parentIsWRnode、parentCalibrated
+wrConfig、parentWrConfig、wrState、nextState、parentDetection、wrMode
+```
+
+### 相較 baseline 唯一修改了什麼
+
+只修改 firmware diagnostics 與 JTAG 讀取腳本：
+
+- 在沒有溫度感測器的 DE5a firmware 中重用 `WDIAG_TEMP` 保存 local WR state。
+- JTAG 對這個欄位做前後雙讀，納入 `WR_STATE_BLOCK_VALID`。
+- 沒有修改 PHY、QSFP lane、PTP 封包、servo 演算法、SoftPLL 或 SI5340 控制。
+
+### 燒錄結果
+
+第一次直接從 SSH 傳送的 programmer 命令因遠端 shell 把 `-o p;SOF` 的分號拆開，於 programmer 解析前失敗，沒有開始燒錄。改用已驗證的 escaped programmer 命令後重新執行：
+
+```text
+Master：Configuration succeeded；0 errors、0 warnings
+Slave ：Configuration succeeded；0 errors、0 warnings
+```
+
+### JTAG 原始結果與 pain terminal log
+
+```text
+timeout 300s /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl \
+  60 1000 3
+```
+
+Quartus STP：Tcl evaluation successful，`0 errors, 0 warnings`。兩張板各 60/60 accepted；不一致資料均由 retry 丟棄。完整 raw log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-LOCAL-WR-STATE-20260816/runtime_60samples.log
+```
+
+關鍵 accepted decode：
+
+```text
+Master:
+  PTP_META=02010306  (mode=2, extState=ACTIVE, pdstate=PDETECTED, PTP=MASTER)
+  WR_LOCAL: wrModeOn=0, parentWrModeOn=0, wrConfig=3,
+            wrState=3 (WRS_M_LOCK), nextState=3, wrMode=1
+  link=1, SoftPLL locked=0, time_valid=1
+
+Slave:
+  PTP_META=03020409  (mode=3, extState=PTP fallback, pdstate=FAILURE, PTP=SLAVE)
+  WR_LOCAL: wrModeOn=0, parentWrModeOn=0, wrConfig=2,
+            parentIsWRnode=1, parentWrConfig=3, parentCalibrated=1,
+            wrState=0 (WRS_IDLE), nextState=0, parentDetection=0, wrMode=0
+  link=1, SoftPLL locked=0, time_valid=0
+```
+
+### Observation
+
+Master 已在 WR extension active 狀態停在 `WRS_M_LOCK`，這與「Master 已開始等待 Slave 完成 lock/回覆」一致。Slave 最終呈現 `WRS_IDLE + PTP fallback + PP_PDSTATE_FAILURE`，且 parent record 仍可看到 WR parent。這與 Slave 曾進入 handshake、之後因失敗被 `wr_handshake_fail()` 清回 non-WR 的行為相符。
+
+### Conclusion
+
+這次證據支持：問題已從「parent 欄位是否讀錯」進一步收斂到 **Slave WR handshake/locking 路徑未完成**；目前不能宣稱是 PHY 故障，也不能只憑這份 log 斷言一定是 SoftPLL timeout。`WRS_S_LOCK` 的直接進入與 failure 原因仍需 sticky observability 證明。
+
+### Next Step
+
+1. 維持目前 PHY、PTP、servo 與 SI5340 不變。
+2. 新增只讀 WR signaling TX/RX 最後 message ID、計數器，以及 `wr_handshake_fail` 次數與失敗前 state/role。
+3. 重新 compile、燒錄並以同一 JTAG session 取樣；依 counters 判斷是 signaling 未抵達、message 被拒絕，或 Slave 進入 `WRS_S_LOCK` 後 PLL 沒有 lock。

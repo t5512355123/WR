@@ -59,7 +59,7 @@ SECTIONS
  *(.gnu.linkonce.b.*)
  *(COMMON)
     } > ram
-    .debug_boot 0x0002f7f0 (NOLOAD) :
+    .debug_boot 0x0002e000 (NOLOAD) :
     {
  KEEP(*(.debug_boot))
     } > ram

@@ -391,7 +391,7 @@ begin
         cpu_last_store_data <= dm_data_s;
         cpu_last_store_seen <= '1';
         cpu_internal_store_count <= cpu_internal_store_count + 1;
-        if dm_addr = x"0002F7F0" then
+        if dm_addr = x"0002E000" then
           cpu_boot_stage_value <= dm_data_s;
           cpu_boot_stage_seen  <= '1';
         end if;

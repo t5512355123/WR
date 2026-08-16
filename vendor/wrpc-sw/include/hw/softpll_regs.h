@@ -322,6 +322,10 @@ uint32_t TAG_VALID_COUNT;
 uint32_t TRR_WRITE_COUNT;
 /* [0x8c]: read-only count of cycles with a source DMTD tag strobe */
 uint32_t TAG_SOURCE_COUNT;
+/* [0x90]: read-only count of reference-channel tag strobes */
+uint32_t TAG_REF_COUNT;
+/* [0x94]: read-only count of feedback-channel tag strobes */
+uint32_t TAG_FEEDBACK_COUNT;
 };
 
 #endif

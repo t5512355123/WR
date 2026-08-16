@@ -281,6 +281,8 @@ architecture rtl of wr_softpll_ng is
   signal diag_tag_valid_count : unsigned(31 downto 0);
   signal diag_trr_write_count : unsigned(31 downto 0);
   signal diag_tag_source_count : unsigned(31 downto 0);
+  signal diag_tag_ref_count : unsigned(31 downto 0);
+  signal diag_tag_feedback_count : unsigned(31 downto 0);
 
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
@@ -607,7 +609,9 @@ begin  -- rtl
       irq_tag_i => irq_tag,
       diag_tag_valid_count_i => std_logic_vector(diag_tag_valid_count),
       diag_trr_write_count_i => std_logic_vector(diag_trr_write_count),
-      diag_tag_source_count_i => std_logic_vector(diag_tag_source_count));
+      diag_tag_source_count_i => std_logic_vector(diag_tag_source_count),
+      diag_tag_ref_count_i => std_logic_vector(diag_tag_ref_count),
+      diag_tag_feedback_count_i => std_logic_vector(diag_tag_feedback_count));
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -749,9 +753,17 @@ begin  -- rtl
         diag_tag_valid_count <= (others => '0');
         diag_trr_write_count <= (others => '0');
         diag_tag_source_count <= (others => '0');
+        diag_tag_ref_count <= (others => '0');
+        diag_tag_feedback_count <= (others => '0');
       else
         if unsigned(tags_p) /= 0 then
           diag_tag_source_count <= diag_tag_source_count + 1;
+        end if;
+        if tags_p(0) = '1' then
+          diag_tag_ref_count <= diag_tag_ref_count + 1;
+        end if;
+        if tags_p(g_num_ref_inputs) = '1' then
+          diag_tag_feedback_count <= diag_tag_feedback_count + 1;
         end if;
         if tag_valid = '1' then
           diag_tag_valid_count <= diag_tag_valid_count + 1;

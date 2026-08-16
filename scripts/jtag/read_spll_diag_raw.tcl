@@ -59,6 +59,8 @@ proc read_diag {label} {
   set raw_valid [wb_read 0x00100284]
   set raw_write [wb_read 0x00100288]
   set raw_source [wb_read 0x0010028C]
+  set raw_ref [wb_read 0x00100290]
+  set raw_feedback [wb_read 0x00100294]
   set shadow_ref [wb_read 0x001009D0]
   set shadow_tag [wb_read 0x001009D4]
   set shadow_valid [wb_read 0x001009F8]
@@ -74,8 +76,8 @@ proc read_diag {label} {
   puts [format "RAW_LOCK: RESULT=%s UNLOCKED=%s HELPER=%s MAIN=%s" \
         $lock $unlocked $helper $main]
   puts [format "RAW_HW: RCER=%s OCER=%s TRR_CSR=%s" $rcer $ocer $trr_csr]
-  puts [format "RAW_COUNTER: TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s" \
-        $raw_valid $raw_write $raw_source]
+  puts [format "RAW_COUNTER: TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
+        $raw_valid $raw_write $raw_source $raw_ref $raw_feedback]
   puts [format "SHADOW_COUNTER: REF=%s TAG=%s TAG_VALID=%s TRR_WRITE=%s" \
         $shadow_ref $shadow_tag $shadow_valid $shadow_write]
   puts [format "RAW_STATE: VISIT=%s TRANSITIONS=%s LAST_STATE=%s" \
@@ -102,4 +104,3 @@ foreach hardware_name [get_hardware_names] {
   }
   catch { end_insystem_source_probe }
 }
-

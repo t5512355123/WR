@@ -91,6 +91,9 @@ volatile uint32_t wrpc_ptp_rx_sync_count;
 volatile uint32_t wrpc_ptp_rx_announce_count;
 volatile uint32_t wrpc_ptp_rx_followup_count;
 volatile uint32_t wrpc_ptp_rx_signaling_count;
+volatile uint32_t wrpc_ptp_rx_announce_processed_count;
+volatile uint32_t wrpc_ptp_rx_announce_added_count;
+volatile uint32_t wrpc_ptp_rx_announce_length;
 
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
@@ -289,6 +292,14 @@ int wrc_ptp_start(void)
 	wrpc_ptp_rx_announce_count = 0;
 	wrpc_ptp_rx_followup_count = 0;
 	wrpc_ptp_rx_signaling_count = 0;
+	wrpc_ptp_rx_announce_processed_count = 0;
+	wrpc_ptp_rx_announce_added_count = 0;
+	wrpc_ptp_rx_announce_length = 0;
+	wrpc_ptp_frame_parse_error_count = 0;
+	wrpc_ptp_prefilter_wrong_domain_count = 0;
+	wrpc_ptp_prefilter_alternate_master_count = 0;
+	wrpc_ptp_prefilter_same_port_count = 0;
+	wrpc_ptp_prefilter_same_clock_count = 0;
 
 	/* sfp match was done before so read calibration data */
 
@@ -411,8 +422,10 @@ int wrc_ptp_update(void)
 		l = __recv_and_count(ppi, ppi->rx_frame, PP_MAX_FRAME_LENGTH - 4,
 				     &ppi->last_rcv_time);
 		if (l) {
+			uint8_t message_type = ((const uint8_t *)ppi->rx_ptp)[0] & 0x0f;
+			uint16_t foreign_before = ppi->frgn_rec_num;
 			/* rx_ptp 指向 PTP common header；低 4 bits 是 messageType。 */
-			switch (((const uint8_t *)ppi->rx_ptp)[0] & 0x0f) {
+			switch (message_type) {
 			case PPM_SYNC:
 				wrpc_ptp_rx_sync_count++;
 				break;
@@ -429,6 +442,14 @@ int wrc_ptp_update(void)
 				break;
 			}
 			delay_ms = pp_state_machine(ppi, ppi->rx_ptp, l);
+			if (message_type == PPM_ANNOUNCE) {
+				wrpc_ptp_rx_announce_processed_count++;
+				wrpc_ptp_rx_announce_length =
+					((const uint8_t *)ppi->rx_ptp)[2] << 8 |
+					((const uint8_t *)ppi->rx_ptp)[3];
+				if (ppi->frgn_rec_num > foreign_before)
+					wrpc_ptp_rx_announce_added_count++;
+			}
 			return 1;
 		}
 	}

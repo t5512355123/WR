@@ -28,7 +28,8 @@ void wdiags_write_ptp_debug(uint32_t rx_count, uint32_t tx_count,
                             uint8_t ext_state, uint8_t protocol_extension);
 void wdiags_write_ptp_debug_detail(uint32_t rx_type_counts,
                                    uint32_t foreign_master_meta,
-                                   uint32_t parent_flags);
+                                   uint32_t filter_meta,
+                                   uint32_t parse_meta);
 void wdiags_write_time(uint64_t sec, uint32_t nsec);
 void wdiags_write_temp(uint32_t temp);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );

@@ -126,5 +126,13 @@ extern volatile uint32_t wrpc_ptp_rx_sync_count;
 extern volatile uint32_t wrpc_ptp_rx_announce_count;
 extern volatile uint32_t wrpc_ptp_rx_followup_count;
 extern volatile uint32_t wrpc_ptp_rx_signaling_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_processed_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_added_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_length;
+extern volatile uint32_t wrpc_ptp_frame_parse_error_count;
+extern volatile uint32_t wrpc_ptp_prefilter_wrong_domain_count;
+extern volatile uint32_t wrpc_ptp_prefilter_alternate_master_count;
+extern volatile uint32_t wrpc_ptp_prefilter_same_port_count;
+extern volatile uint32_t wrpc_ptp_prefilter_same_clock_count;
 
 #endif /* __WRPC_H */

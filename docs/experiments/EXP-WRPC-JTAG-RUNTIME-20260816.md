@@ -1563,3 +1563,95 @@ SPLL_OCCR=00000000
 1. 保持 `SPLL_BLOCK_VALID` 與 retry 規則，加入 parent flags、PPS raw validity、servo transition 的同一列摘要。
 2. 對 `PSTAT.locked` 與 `SSTAT[11:8]` 做明確 bit-field 解碼，避免把 raw status 當 state number。
 3. 若 valid frame 長時間仍是 `state=0/lock=0`，再依 source map 查 parent/servo 初始化條件；目前不改 PHY、PTP filter、servo 或 SI5340。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-PARENT-BLOCK-20260816
+
+### 實驗名稱
+
+`7467e46 加入父節點欄位一致性檢查`：在單一 JTAG session、SoftPLL block 雙讀與 retry 框架內，對 `PTP_META/FOREIGN_META/PARSE_META` 做前後雙讀，只接受父節點欄位一致的 frame。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`7467e46`
+- 本次沒有 compile、沒有產生 MIF/SOF、沒有燒錄 FPGA；沿用最近一次有效燒錄的 `c88cc05` bitstream。
+- Quartus：`17.0.0 Build 595`。
+
+### 這次要驗證什麼
+
+確認前一輪偶爾出現的父節點欄位全零或跨欄位不一致，是否只是 JTAG mailbox 讀取時序造成；並在只接受一致 frame 的條件下，觀察 Master/Slave 的父節點宣告、伺服器 state、SoftPLL lock 與 `time_valid`。
+
+### 相較 baseline 唯一修改了什麼
+
+只修改 host-side 的 JTAG 讀取腳本：
+
+```text
+scripts/jtag/read_wb_timeseries_session.tcl
+```
+
+新增：
+
+```text
+PARENT_BLOCK_VALID =
+    (PTP_META_A == PTP_META_B) &&
+    (FOREIGN_META_A == FOREIGN_META_B) &&
+    (PARSE_META_A == PARSE_META_B)
+```
+
+只有 `FRAME_VALID=1`、`SPLL_BLOCK_VALID=1` 與 `PARENT_BLOCK_VALID=1` 的 frame 才會列入 accepted sample。整個實驗沒有寫入 `DATA_SNAPSHOT` 或任何 WR 控制 register。
+
+### 測試指令與 artifact
+
+```text
+timeout 300s /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3
+```
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-PARENT-BLOCK-20260816/runtime_60samples.log
+```
+
+本機保存副本：
+
+```text
+build/artifacts/EXP-WRPC-SERVO-PARENT-BLOCK-20260816/runtime_60samples.log
+```
+
+### 結果與 pain terminal log
+
+- Quartus STP 顯示 Tcl evaluation successful，`0 errors, 0 warnings`。
+- Master：60/60 accepted；22 次 frame 被標 invalid 並重讀，其中 9 次為 SoftPLL block 不一致、16 次為父節點 block 不一致。重試後沒有遺失 accepted sample。
+- Slave：60/60 accepted；13 次 frame 被標 invalid 並重讀，其中 3 次為 SoftPLL block 不一致、10 次為父節點 block 不一致。重試後沒有遺失 accepted sample。
+- accepted frame 的父節點欄位只有一組穩定結果：
+
+```text
+Master: foreign_count=1, best=0, detection=0, wr_config=0,
+        parentIsWRnode=0, parentWrModeOn=0, parentCalibrated=0
+Slave : foreign_count=1, best=0, detection=0, wr_config=3,
+        parentIsWRnode=1, parentWrModeOn=0, parentCalibrated=1
+```
+
+- Master accepted frame：`status_low=0xFF`、`time_valid=1`、`pps_valid=1`、`wr_mode=2`、`servo_state=0`、`PSTAT.locked=0`。
+- Slave accepted frame：`status_low=0xCF` 或 `0xEF`、`time_valid=0`、`pps_valid=0/1`、`wr_mode=3`、`servo_state=0`、`PSTAT.locked=0`。
+- Slave PTP RX/TX counter、`DMS_L`、`CKO`、`UCNT` 有活動；但 `UCNT` 活動不能單獨等同 SoftPLL lock。
+- 沒有 timeout、CPU fault、reset、stall 或實體重啟。
+
+### Observation
+
+加入父節點 block 雙讀後，accepted frame 的父節點欄位穩定，前一輪的全零或欄位互相不一致可以被辨識為 invalid frame，而不是直接拿來判斷 WR 狀態。Slave 確實已看到一筆 foreign master，`parentIsWRnode=1` 且 `parentCalibrated=1`；但 `parentWrModeOn=0` 在本輪 accepted frame 中維持為 0。
+
+同時，Slave 的 `SSTAT[11:8]=0`、`PSTAT.locked=0` 與 `time_valid=0` 仍完全一致。這代表目前尚未有進入 `TRACK_PHASE` 或 SoftPLL lock 的證據。
+
+### Conclusion
+
+本實驗只證明「父節點欄位可以透過雙讀與 retry 得到穩定觀測」，不代表 White Rabbit 已同步成功。現有證據把問題進一步優先收斂到 Slave 的 parent/servo/SoftPLL 前段；`parentWrModeOn=0` 是值得查 source/configuration 的線索，但尚不能宣稱它就是唯一根因。
+
+### Next Step
+
+1. 維持目前只讀 frame validity、SoftPLL block validity 與 parent block validity 規則。
+2. 以 source/header 追查 `parentWrModeOn` 的產生條件、Master 對外宣告的 WR mode，以及 Slave 進入 `TRACK_PHASE` 的必要條件；先不改 PHY、PTP filter、servo 或 SI5340。
+3. 下一輪若要改功能，先建立一個明確的單一變因 commit，完成 compile 與 artifact hash，再另寫燒錄後實驗紀錄。

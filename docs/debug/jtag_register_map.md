@@ -94,3 +94,14 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 ```
 
 這個版本每張板只開啟一次 JTAG source probe，並在每列輸出 `CTRL_BEGIN`、`CTRL_END`、`FRAME_VALID` 與 retry 次數。只有兩端資料有效位都為 1 且值一致時，該列才標記為有效；遇到 timeout 或 mailbox 欄位不是 32-bit 十六進位值時，最多重讀 3 次，仍失敗才標記為 invalid。這是讀取證據的品質標記，不代表 FPGA 內部 register 更新本身是硬體原子 snapshot。
+
+目前腳本另以相同方式對父節點欄位做 block 雙讀：
+
+```text
+PARENT_BLOCK_VALID =
+    (PTP_META_A == PTP_META_B) &&
+    (FOREIGN_META_A == FOREIGN_META_B) &&
+    (PARSE_META_A == PARSE_META_B)
+```
+
+只有 `PARENT_BLOCK_VALID=1` 才把 `foreign_count`、`foreign_best`、`parentDetection`、`parentWrConfig`、`parentIsWRnode`、`parentWrModeOn` 與 `parentCalibrated` 列入 accepted frame。這是 host-side 觀測一致性檢查，不會改變 WRPC 的 parent selection 或 servo 行為。

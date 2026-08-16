@@ -7,13 +7,13 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前觀測文件所在 commit：`98c9ddb`
+- 目前觀測文件所在 commit：`7467e46`
 - 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-JTAG-RUNTIME-20260816.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
-最近一次有效燒錄的 source 變因是 `c88cc05` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452` 與 `98c9ddb` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
+最近一次有效燒錄的 source 變因是 `c88cc05` 的 clean Quartus build；`d82cf9c`、`5a4def7`、`dba7d9b`、`2f1389c`、`6bff5d1`、`44ca8cf`、`b23a452`、`98c9ddb`、`3218b55`、`99bbc3c` 與 `7467e46` 都只追加實驗紀錄、Git 治理或唯讀觀測工具，沒有修改已燒錄的 WR 功能。
 
 ## 硬體限制與固定條件
 
@@ -138,3 +138,22 @@ SPLL_OCCR=00000000
 依目前 source header，Slave 的 state field 仍為 0，`PSTAT=0x1` 仍只有 link bit；目前沒有 SoftPLL lock 或 `time_valid=1` 證據。
 
 下一步應在相同的 valid-frame 機制下讀取 parent flags、PPS 與 servo transition，不應先修改 WR 功能。
+
+### 父節點欄位雙讀結果
+
+使用 `7467e46` 的 `PARENT_BLOCK_VALID` 後，兩張板各完成 60/60 accepted sample。Master 有 22 次 invalid attempt，Slave 有 13 次 invalid attempt；這些 frame 都由 retry 機制丟棄，沒有混入 accepted 統計。
+
+accepted frame 的父節點欄位已穩定：
+
+```text
+Master: foreign=1, wr_config=0, parentIsWRnode=0,
+        parentWrModeOn=0, parentCalibrated=0
+Slave : foreign=1, wr_config=3, parentIsWRnode=1,
+        parentWrModeOn=0, parentCalibrated=1
+```
+
+Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前最保守的判斷是 Slave parent/servo/SoftPLL 前段仍未完成，`parentWrModeOn=0` 只是下一步要查的線索，不是已證明的根因。完整原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-PARENT-BLOCK-20260816/runtime_60samples.log
+```

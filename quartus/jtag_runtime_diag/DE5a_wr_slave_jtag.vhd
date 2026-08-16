@@ -231,10 +231,31 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_store_count_source : std_logic_vector(0 downto 0);
   signal cpu_exception_probe   : std_logic_vector(63 downto 0);
   signal cpu_exception_source  : std_logic_vector(0 downto 0);
-  signal dac_hpll_load        : std_logic;
-  signal dac_hpll_data        : std_logic_vector(15 downto 0);
-  signal dac_dpll_load        : std_logic;
-  signal dac_dpll_data        : std_logic_vector(15 downto 0);
+  -- xwr_core runs on clk_sys_625, while the SI5340 controller runs on
+  -- CLK_50_B2J.  Keep the source event/data separate from the destination
+  -- pulse/data so the clock-domain crossing is explicit.
+  signal dac_hpll_load_core   : std_logic;
+  signal dac_hpll_data_core   : std_logic_vector(15 downto 0);
+  signal dac_dpll_load_core   : std_logic;
+  signal dac_dpll_data_core   : std_logic_vector(15 downto 0);
+  signal dac_hpll_event_625   : std_logic := '0';
+  signal dac_hpll_data_hold   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_dpll_event_625   : std_logic := '0';
+  signal dac_dpll_data_hold   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_hpll_event_meta  : std_logic := '0';
+  signal dac_hpll_event_sync  : std_logic := '0';
+  signal dac_hpll_event_seen  : std_logic := '0';
+  signal dac_hpll_data_meta   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_hpll_data_sync   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_dpll_event_meta  : std_logic := '0';
+  signal dac_dpll_event_sync  : std_logic := '0';
+  signal dac_dpll_event_seen  : std_logic := '0';
+  signal dac_dpll_data_meta   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_dpll_data_sync   : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_hpll_load        : std_logic := '0';
+  signal dac_hpll_data        : std_logic_vector(15 downto 0) := (others => '0');
+  signal dac_dpll_load        : std_logic := '0';
+  signal dac_dpll_data        : std_logic_vector(15 downto 0) := (others => '0');
   signal dac_hpll_count       : unsigned(11 downto 0) := (others => '0');
   signal dac_dpll_count       : unsigned(11 downto 0) := (others => '0');
   signal uart_txd              : std_logic := '1';
@@ -289,6 +310,77 @@ begin
         wr_core_reset_n <= '0';
       else
         wr_core_reset_n <= '1';
+      end if;
+    end if;
+  end process;
+
+  -- Convert each source-domain pulse into a level event and hold its data.
+  -- The destination sees every event that remains separated by at least one
+  -- destination service interval; the held bus is stable while the toggle
+  -- crosses the synchronizer.
+  p_dac_event_capture_625 : process(clk_sys_625)
+  begin
+    if rising_edge(clk_sys_625) then
+      if wr_core_reset_n = '0' then
+        dac_hpll_event_625 <= '0';
+        dac_hpll_data_hold <= (others => '0');
+        dac_dpll_event_625 <= '0';
+        dac_dpll_data_hold <= (others => '0');
+      else
+        if dac_hpll_load_core = '1' then
+          dac_hpll_data_hold <= dac_hpll_data_core;
+          dac_hpll_event_625 <= not dac_hpll_event_625;
+        end if;
+        if dac_dpll_load_core = '1' then
+          dac_dpll_data_hold <= dac_dpll_data_core;
+          dac_dpll_event_625 <= not dac_dpll_event_625;
+        end if;
+      end if;
+    end if;
+  end process;
+
+  -- Synchronize the event toggles and held data into the SI5340 controller
+  -- clock domain.  The controller receives a clean one-cycle load pulse.
+  p_dac_event_sync_50 : process(CLK_50_B2J)
+  begin
+    if rising_edge(CLK_50_B2J) then
+      if CPU_RESET_n = '0' then
+        dac_hpll_event_meta <= '0';
+        dac_hpll_event_sync <= '0';
+        dac_hpll_event_seen <= '0';
+        dac_hpll_data_meta  <= (others => '0');
+        dac_hpll_data_sync  <= (others => '0');
+        dac_hpll_load       <= '0';
+        dac_hpll_data       <= (others => '0');
+        dac_dpll_event_meta <= '0';
+        dac_dpll_event_sync <= '0';
+        dac_dpll_event_seen <= '0';
+        dac_dpll_data_meta  <= (others => '0');
+        dac_dpll_data_sync  <= (others => '0');
+        dac_dpll_load       <= '0';
+        dac_dpll_data       <= (others => '0');
+      else
+        dac_hpll_event_meta <= dac_hpll_event_625;
+        dac_hpll_event_sync <= dac_hpll_event_meta;
+        dac_hpll_data_meta  <= dac_hpll_data_hold;
+        dac_hpll_data_sync  <= dac_hpll_data_meta;
+        dac_hpll_load       <= '0';
+        if dac_hpll_event_sync /= dac_hpll_event_seen then
+          dac_hpll_event_seen <= dac_hpll_event_sync;
+          dac_hpll_data       <= dac_hpll_data_sync;
+          dac_hpll_load       <= '1';
+        end if;
+
+        dac_dpll_event_meta <= dac_dpll_event_625;
+        dac_dpll_event_sync <= dac_dpll_event_meta;
+        dac_dpll_data_meta  <= dac_dpll_data_hold;
+        dac_dpll_data_sync  <= dac_dpll_data_meta;
+        dac_dpll_load       <= '0';
+        if dac_dpll_event_sync /= dac_dpll_event_seen then
+          dac_dpll_event_seen <= dac_dpll_event_sync;
+          dac_dpll_data       <= dac_dpll_data_sync;
+          dac_dpll_load       <= '1';
+        end if;
       end if;
     end if;
   end process;
@@ -692,10 +784,10 @@ begin
       clk_ext_rst_o              => open,
       rst_n_i                    => wr_core_reset_n,
 
-      dac_hpll_load_p1_o         => dac_hpll_load,
-      dac_hpll_data_o            => dac_hpll_data,
-      dac_dpll_load_p1_o         => dac_dpll_load,
-      dac_dpll_data_o            => dac_dpll_data,
+      dac_hpll_load_p1_o         => dac_hpll_load_core,
+      dac_hpll_data_o            => dac_hpll_data_core,
+      dac_dpll_load_p1_o         => dac_dpll_load_core,
+      dac_dpll_data_o            => dac_dpll_data_core,
 
       phy_ref_clk_i              => QSFPA_REFCLK_p,
       phy_tx_data_o              => core_tx_data,

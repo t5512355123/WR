@@ -85,13 +85,24 @@
 - 最近建置的 timing closure 仍為 `NO`；負 slack 與 unconstrained clocks 是獨立的 timing 工作，不與目前 servo bring-up 混改。
 - 每個新 artifact 必須保存：Git commit、branch、Master/Slave MIF SHA256、QSF/SDC SHA256、SOF SHA256、Quartus 版本、programmer checksum、JTAG 原始輸出。
 
-## 下一個實驗
+## 已完成：唯讀 JTAG 伺服器時間序列
 
-只做唯讀 JTAG time-series，不修改 PHY、PTP filter、servo 演算法或 SI5340 設定：
+實驗 ID：`EXP-WRPC-SERVO-TIMESERIES-20260816`。本次使用 `dba7d9b` 的觀測腳本，沿用最近一次有效燒錄 `c88cc05` 的既有 SOF；沒有重新 compile、燒錄或修改 PHY、PTP filter、servo、SI5340。
 
-- 每 1 秒讀取一次，持續 60 秒。
-- Master/Slave：`status_probe`、`WDIAGS_SSTAT`、`WDIAGS_PSTAT`、`WDIAGS_PTP`、`time_valid`、`pps_valid`、`WDIAGS_UCNT`、`WDIAGS_CKO`、`WDIAGS_SETP`、`WDIAGS_DMS`。
-- Slave 額外觀察 `FOREIGN_META`、parent metadata 與 PTP message counters。
-- 目的：區分卡在 `TRACK_PHASE` 前、SoftPLL lock 尚未成立，或 `time_valid` gating 條件未成立。
+- 每 1 秒讀取一次，連續 60 個 sample。
+- Quartus STP 回報 Tcl script 成功，沒有 timeout、CPU fault 或 reset。
+- Master：`SSTAT=0x00000000`、`PSTAT=0x00000001`、PTP=6，status low 固定 `0x82FF`。
+- Slave：`SSTAT=0x00000001`、`PSTAT=0x00000001`、PTP=9，status low 為 `0x82CF/0x82EF`；`time_valid=0` 全程未成立，`pps_valid` 不穩定。
+- Slave `UCNT` 持續增加，DMS/CKO 有活動；foreign/parent mailbox 多數為有效值，但少數 sample 出現不一致或全零欄位。
 
-本次 `STATUS.md` 更新只是文件狀態同步，沒有 compile、燒錄或新增硬體實驗；下一次燒錄後必須立即在實驗紀錄中新增完整結果。
+### 目前判斷
+
+依現行 register mapping，Slave 仍停在 `TRACK_PHASE` 之前，SoftPLL lock 尚未成立；證據不支持目前已進入「SoftPLL 已鎖定但 time_valid gating 阻擋」的階段。少數 mailbox 欄位不一致表示現有多 register JTAG 讀取不是原子 snapshot，parent flags 暫不能只依單列值下結論。
+
+完整原始輸出：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-20260816/runtime_60samples.log
+```
+
+下一步只改善 JTAG mailbox 的讀取一致性，例如同一 JTAG session 的完整 frame、有效位重讀與欄位一致性檢查；在此之前不修改 PHY、PTP 演算法、servo 或 SI5340。

@@ -1211,3 +1211,91 @@ Slave  SOF SHA256: 926d4a57f50dce0e39e437af7eba164a8ca1ec327c989b59d5f6480a038eb
 #### 怎麼看待這個結果
 
 這次燒錄後觀測證明 `c88cc05` 的 clean build 確實把不同身份帶進 FPGA，且兩片 CPU 與 PTP traffic 可以長時間運作；因此「兩片使用相同 clock identity 導致 BMC 無法區分節點」已不再是目前最主要的阻礙。可是 Slave 的 `time_valid=0`，所以目前結論是「PHY/runtime/PTP 封包與唯一身份已通，WR servo 尚未完成最終有效時間狀態」，不能宣稱兩端已完成 White Rabbit 同步。下一步仍應先讀取並確認 Slave 的實際 parent identity、delay/servo 狀態，再決定是否需要新增唯讀 JTAG observability；在該證據完成前不調整 PHY、QSFP、pre-emphasis 或 PTP filter。
+
+---
+
+## 實驗：EXP-WRPC-SERVO-TIMESERIES-20260816
+
+### 實驗名稱
+
+`dba7d9b 更新 WR 狀態並加入唯讀時間序列觀測`：以現有已燒錄硬體執行 60 秒 JTAG read-only servo/SoftPLL 觀測。
+
+### 日期、分支與版本
+
+- 日期：2026-08-16
+- Git branch：`exp/jtag-runtime-observability`
+- Git commit：`dba7d9b`
+- GitHub：`git@github.com:t5512355123/WR.git`
+- 本次沒有產生新的 MIF 或 SOF，也沒有重新燒錄 FPGA。
+- 本次沿用的最近一次有效燒錄來源為 `c88cc05`；其 SOF 與 programmer 證據仍以 `build/artifacts/unique_mac_clean_c88cc05/` 內的既有紀錄為準。
+
+### 這次要驗證什麼
+
+在不改變硬體功能的前提下，區分 Slave 是：
+
+1. 尚未進入 `TRACK_PHASE`；
+2. 已進入相位追蹤但 SoftPLL 尚未 lock；或
+3. SoftPLL 已 lock，卻在後續條件被 `time_valid` gating 擋住。
+
+### 相較 baseline 唯一修改了什麼
+
+只新增/更新 JTAG 觀測腳本與文件：
+
+```text
+scripts/jtag/read_wb_timeseries.tcl
+STATUS.md
+docs/debug/jtag_register_map.md
+```
+
+沒有寫入 `WDIAGS_CTRL.DATA_SNAPSHOT`，沒有修改 PHY、QSFP lane、polarity、PTP filter、servo 演算法、SI5340 或 PPS 設定。觀測腳本每個 sample 會呼叫既有 `read_wb_runtime.tcl`；因此目前每次 sample 會重新建立 source probe，這也是後續要改善的讀取一致性變因。
+
+### 建置、燒錄與工具證據
+
+- 本次為 read-only runtime experiment，沒有 compile、沒有燒錄；因此本節沒有新的 MIF/SOF hash 或 programmer checksum。
+- Quartus 17：`17.0.0 Build 595`。
+- 執行指令：
+
+```text
+timeout 300s quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_timeseries.tcl 60 1000 2>&1 | tee /home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-20260816/runtime_60samples.log
+```
+
+- Quartus STP 最終回報 Tcl evaluation successful，60 個 sample 完成。
+- pain 原始 log：
+
+```text
+/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SERVO-TIMESERIES-20260816/runtime_60samples.log
+```
+
+### JTAG 原始結果摘要
+
+- Master 共 60 筆 status；`WDIAGS_SSTAT=0x00000000`、`WDIAGS_PSTAT=0x00000001`、`WDIAGS_PTP=6`，status low 固定為 `0x82FF`。
+- Slave 共 60 筆 status；`WDIAGS_SSTAT=0x00000001`、`WDIAGS_PSTAT=0x00000001`、`WDIAGS_PTP=9`。
+- 依現行 mapping，Slave `SSTAT` 的伺服器 state 為 0，`PSTAT` 的 link bit 為 1 但 SoftPLL lock bit 為 0；Slave 的 `time_valid` 全程為 0。
+- Slave 的 `pps_valid` 在 sample 間出現 0/1，不足以稱為穩定有效。
+- Slave `UCNT` 持續增加，DMS 與 CKO 有變化，表示 servo 相關資料仍有更新活動；這不等於 SoftPLL 已鎖定，也不等於 SI5340 DCO step 已完成。
+- `FOREIGN_META` 多數為 `0x03000001`，`PARSE_META` 多數為有效格式；少數 sample 出現全零或不一致欄位，因此 parent flags 必須等讀取一致性修正後再採信。
+- 兩片 CPU 沒有 fault 或 reset；PTP mode/traffic 證據維持前一輪的 Master=6、Slave=9。
+
+### Observation
+
+60 秒內 Slave 的 `SSTAT` 與 SoftPLL lock 沒有進展到下一狀態，但 `UCNT`、DMS、CKO 仍有活動。這個組合比較符合「Slave servo/SoftPLL 前段尚未完成」；不符合「已經 SoftPLL lock、只是 time_valid gating 尚未打開」的條件。
+
+另外，少數跨 register 欄位彼此不一致，顯示目前 mailbox 讀取可能不是原子 snapshot。這會限制 parent/foreign metadata 的解讀，但不會推翻 60 筆中穩定出現的 `SSTAT=state 0`、`PSTAT=lock 0` 與 `time_valid=0`。
+
+### Conclusion
+
+目前證據只能保守支持：
+
+> Slave 的 WR servo/SoftPLL 到 `time_valid` 路徑仍是主要問題範圍，而且 60 秒觀測顯示它尚未進入可證明 SoftPLL lock 的階段。
+
+目前不能宣稱根因已確定，也不能宣稱是 `time_valid` gating、PHY、PTP 封包或 parent selection 的單一根因。
+
+### Next Step
+
+下一個實驗仍保持 read-only：
+
+1. 改成同一 JTAG session 連續讀取，避免每秒重新建立 source probe。
+2. 為 mailbox 加入完整 frame 的有效位、重讀與欄位一致性檢查。
+3. 每列保留 `WDIAGS_CTRL`、完整 register frame 與讀取時間；invalid frame 不納入 parent/SoftPLL 結論。
+4. 只有當 `SSTAT` 進入 state 4/5 且 `PSTAT.locked=1` 時，才進一步檢查 `time_valid` gating。
+5. 在 mailbox 證據穩定前，不修改 PHY、PTP filter、servo、SI5340、PPS 或重新燒錄新功能版 SOF。

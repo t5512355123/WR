@@ -44,7 +44,11 @@ entity wrc_urv_wrapper is
     dwb_o     : out t_wishbone_master_out;
     dwb_i     : in  t_wishbone_master_in;
     host_slave_i : in t_wishbone_slave_in;
-    host_slave_o : out t_wishbone_slave_out
+    host_slave_o : out t_wishbone_slave_out;
+    cpu_pc_o     : out std_logic_vector(31 downto 0);
+    cpu_reset_o  : out std_logic;
+    cpu_fault_o  : out std_logic;
+    cpu_im_valid_o : out std_logic
     );
 end wrc_urv_wrapper;
 
@@ -89,6 +93,7 @@ architecture arch of wrc_urv_wrapper is
   signal im_addr  : std_logic_vector(31 downto 0);
   signal im_data  : std_logic_vector(31 downto 0);
   signal im_valid : std_logic;
+  signal cpu_fault : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -175,7 +180,7 @@ begin
       clk_i            => clk_sys_i,
       rst_i            => cpu_rst,
       irq_i            => irq_i,
-      fault_o          => open,
+      fault_o          => cpu_fault,
       im_addr_o        => im_addr,
       im_rd_o          => open,
       im_data_i        => im_data,
@@ -349,5 +354,10 @@ begin
   end process p_im_valid;
 
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
+
+  cpu_pc_o       <= im_addr;
+  cpu_reset_o    <= cpu_rst;
+  cpu_fault_o    <= cpu_fault;
+  cpu_im_valid_o <= im_valid;
 
 end architecture arch;

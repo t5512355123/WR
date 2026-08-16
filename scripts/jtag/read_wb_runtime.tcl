@@ -2,6 +2,16 @@ package require ::quartus::insystem_source_probe
 
 set ::wb_toggle 0
 
+proc decode_cpu_probe {hex_value} {
+  set value [expr {0x$hex_value}]
+  set pc [expr {$value & 0xffffffff}]
+  set reset [expr {($value >> 32) & 1}]
+  set fault [expr {($value >> 33) & 1}]
+  set im_valid [expr {($value >> 34) & 1}]
+  puts [format "cpu_debug: PC=0x%08X reset=%d fault=%d im_valid=%d" \
+        $pc $reset $fault $im_valid]
+}
+
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -40,6 +50,9 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     puts "status_probe: [read_probe_data -instance_index 0 -value_in_hex]"
+    set cpu_debug [read_probe_data -instance_index 2 -value_in_hex]
+    puts "cpu_probe:    $cpu_debug"
+    decode_cpu_probe $cpu_debug
     wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"

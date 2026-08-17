@@ -497,3 +497,15 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - DCO snapshot：HPLL `accepted=0x0003、done=0x0002`；DPLL `accepted=0x0001、done=0x0000`；I2C `errors=0`；readback `page0_0021=0x0F、device_ready_00FE=0x0F`。
 - 結論：回復後 link 恢復，支持上一輪 DPLL restore 與 link instability 相關；但 Slave 仍沒有 PTP RX、parent、SoftPLL lock 或 time-valid，因此仍未同步。下一輪只做唯讀 parent/PTP/clock observability。
 - 原始 log：`build/artifacts/EXP-WRPC-SI5340-DPLL-AB-RESTORE-20260817/dco_diag.log`、`runtime_60s.log`、`runtime_postcheck.log`；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-DPLL-AB-RESTORE-20260817.md`。
+
+## 最新燒錄實驗：SI5340 baseline 主機 reboot 冷開機重測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-BASELINE-COLDSTART-20260817`；實驗分支：`exp/jtag-runtime-observability`。
+- 硬體 source commit：`47ed3f90e0c0a91d1c71029be92a4b1360b8f4b3`；本輪沿用 known-good baseline，沒有修改 RTL、firmware、PHY、PTP、servo 或 SI5340 static table。
+- 原先核准的本機實體斷電腳本因找不到 BlueStacks 視窗而失敗，實體斷電未完成；之後使用 pain `sudo reboot`，等待約一分鐘後重新燒錄同一顆 Slave SOF。因此本輪不宣稱已完成實體 power-cycle。
+- Quartus 17.0.0 Build 595；Slave SOF SHA-256：`ee5f50d96f744ee6fa8723c103591de5593449ceb349474725a53557425e208a`；programmer checksum：`0x30A8FEFD`；JTAG ID：`0x02E660DD`；`DE5 [1-11.2]` configuration succeeded、0 errors/0 warnings。
+- 原始 log：`build/artifacts/EXP-WRPC-SI5340-BASELINE-COLDSTART-20260817/program.log`（SHA-256 `dc1d3f1ef50ab8ffce4790a89eb11e783b983cd919c5e1bd68edf1e8eb108a58`）、`dco_diag.log`（`d8f388475921852379d9f18892643db0594000bbd324d0faaed76f089a1ab532`）、`runtime_60s.log`（`c379401ad34c65148fff91098e8bd91fb32d451678ead1e771c472e72c4937f9`）、`runtime_postcheck.log`（`ca39493876f818160042905122aec56bfc9e73819568399ba38cd8aea9b611fd`）。
+- JTAG：Master `60/60 accepted`；Slave `40/60 accepted、20 rejected`，session marker 存在。冷開機後 Slave 曾短暫出現 `PTP_RX=3、5、8` 與 foreign/parse metadata，後續回到 `PTP_RX=0`。
+- postcheck：Master `status_low=FF、time_valid=1、pps_valid=1、link_up=1`；Slave `status_low=EF、time_valid=0、pps_valid=1、link_up=1、PSTAT.locked=0、SSTAT=0、PTP_RX=0`。
+- 結論：主機 reboot 與 baseline 重新燒錄未使 Slave 穩定同步；證據只支持「Slave PTP 路徑曾短暫活動但未持續」，不能宣稱 parent、SoftPLL 或 time-valid 成功。下一步維持 baseline，做唯讀 clock/reset/PHY/event-order observability，不恢復 DPLL。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-BASELINE-COLDSTART-20260817.md`。

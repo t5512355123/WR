@@ -217,3 +217,48 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 ```
 
 目前這段只證明歷史 SOF 已成功重新設定 Master；JTAG role/runtime 驗證待下一段唯讀 session 完成後再下結論。
+
+## 恢復後 Master 唯讀驗證結果（2026-08-18）
+
+- Experiment ID：`EXP-WRPC-MASTER-9F-RESTORE-RUNTIME-20260818`
+- 使用 SOF：歷史 `9f848ec` Master artifact，SHA-256 `383c1c65ce7a08ba98358f8b52a5492d70b816d87c2071f0f254c7f5589f3b93`
+- 觀測程式：`read_wb_timeseries_session.tcl 10 1000 3` 與 `read_wb_runtime.tcl`
+- 時間序列原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/runtime_master_restore_9f_10x1s.log`
+- 時間序列 SHA-256：`25ea5a45b4858a267641df4accedb67f61fe8d47bf73a294f7705c8e84c81ab2`
+- 單次 runtime 原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/runtime_restore_9f_single_full.log`
+- 單次 runtime SHA-256：`2c5523c1938854981bdcc0bf5b247127c518b1eb5418e81617957e3fde5c8a73`
+
+### Master 五項基線核對
+
+`DE5 [1-11.1]` 在 10 個 accepted samples 中均保持：
+
+```text
+status_low=FF
+time_valid=1
+pps_valid=1
+wr_mode=2
+link_up=1
+```
+
+單次 runtime 另外讀到：
+
+```text
+cpu_marker: 0x0000B004 seen=1
+WDIAGS_MODE: 2
+WDIAGS_PTP: 00000006
+WDIAGS_PTP_RX: 00000004
+WDIAGS_PTP_TX: 000000BD
+WR_SIGNAL_REJECT: 00000000
+```
+
+時間序列中 Master PTP TX 由 `0x14` 增加至 `0x4C`，PTP RX 由 `0x0` 增加至 `0x1`；因此至少觀察到 counters 有活動。JTAG session 完成 `SESSION_TIME_SERIES_DONE`，Tcl 與 SignalTap 均回報成功、0 errors、0 warnings。
+
+### 證據結論
+
+歷史 `9f848ec` Master baseline 已被重新燒錄並再次重現：`marker=B004、MODE=2、PTP=6、status=0xFF、link_up=1`，且 `time_valid=1 / pps_valid=1`。因此 Master role 與這個硬體基線現在正式 freeze；後續不得再為了配合 Slave 而發明新的 Master role 切換方法。
+
+Slave 在同一 session 仍是 `status_low=EF、wr_mode=3、WDIAGS_PTP=9、time_valid=0`，並可見 `FOREIGN_META=03000001`、`WR_SIGNAL tx_msg=0x1000/count=4`、`rx_msg=0/count=0`、`fail_role=2/fail_state=1/fail_count=1`。這支持下一步只研究 Slave signaling handshake 與 target identity/prefilter；尚不支持直接修改 DCO、SoftPLL 或 PHY。
+
+### Next Step
+
+固定 Master 使用上述歷史 SOF。下一輪只讀取並對照 Master/Slave 的 `WR_SIGNAL`、target clock identity、port number、prefilter/parser 結果，判斷 Master 是否真的產生 `LOCK`、Slave 是否收到 `LOCK`；若沒有新的只讀證據，不修改 Master、PHY、PTP filter、servo 或 DCO。

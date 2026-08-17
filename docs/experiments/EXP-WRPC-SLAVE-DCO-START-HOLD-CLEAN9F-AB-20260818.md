@@ -51,13 +51,19 @@
 
 ## 燒錄結果
 
-compile 已成功並完成 hash 核對；尚未燒錄。燒錄後立即記錄：
+compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即記錄：
 
-- Programmer command/version/cable：
-- JTAG ID：
-- SOF SHA-256/checksum：
-- configuration result：
-- 原始 programmer log 路徑與 SHA-256：
+- Programmer command：`quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- Programmer version：Quartus Prime Programmer 17.0 Build 595 Standard Edition
+- 燒錄時間：2026-08-18 06:25:12 開始，06:25:16 開始 configuration，06:25:30 完成
+- Programmer cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- SOF SHA-256：`001dc7b64afd6ae82dd086126b065f626a8f2c88d6bfa8a95aecbc6198d603ee`
+- Programmer checksum：`0x30A22D41`
+- configuration result：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer result：0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/program_slave_start_hold.log`
+- Programmer log SHA-256：`5a88c58a440a113d54892f34c771b9b35c187279d0218c06e6875b6e79ba3d69`
 
 ## JTAG/runtime 原始結果
 

@@ -20,7 +20,8 @@ output                  oPLL_I2C_ID_READ_ERROR,
 output                  oPLL_REG_CONFIG_DONE,
 output                  oDCO_BUSY,
 output                  oDCO_ERROR,
-output    [15:0]        oDCO_STEP_COUNT
+output    [15:0]        oDCO_STEP_COUNT,
+output    [63:0]        oDCO_DEBUG
 );
 
 wire [6:0] static_slave_addr;
@@ -37,6 +38,7 @@ wire       initial_start;
 wire       user_start_rise;
 wire       i2c_system_clk;
 wire       system_start;
+wire [5:0] bus_i2c_state;
 
 reg [2:0]  rt_state;
 reg        rt_dir;
@@ -86,6 +88,42 @@ assign oDCO_BUSY = (rt_state != 3'd0);
 assign oDCO_ERROR = dco_error;
 assign oDCO_STEP_COUNT = dco_step_count;
 assign oPLL_I2C_ID_READ_ERROR = 1'b0;
+// Read-only state chain for diagnosing request acceptance and completion.
+// [2:0] rt_state, [3] bus_state, [4] bus_done, [5] static_ready,
+// [6] dpll_pending, [7] hpll_pending, [8] dpll_prev_valid,
+// [9] hpll_prev_valid, [10] rt_select_dpll, [11] rt_dir,
+// [12] dpll_dir, [13] hpll_dir, [14] runtime_start, [15] bus_enable,
+// [21:16] I2C controller state, [22] bus_start, [23] static_start,
+// [24] system_start, [25] user_start_rise, [26] initial_start,
+// [27] dco_error, [28] dco_busy, [29] iDPLL_LOAD, [30] iHPLL_LOAD,
+// [47:32] completed step count, [63:48] last HPLL data.
+assign oDCO_DEBUG[2:0]   = rt_state;
+assign oDCO_DEBUG[3]     = bus_state;
+assign oDCO_DEBUG[4]     = bus_done;
+assign oDCO_DEBUG[5]     = static_controller_ready;
+assign oDCO_DEBUG[6]     = dpll_pending;
+assign oDCO_DEBUG[7]     = hpll_pending;
+assign oDCO_DEBUG[8]     = dpll_prev_valid;
+assign oDCO_DEBUG[9]     = hpll_prev_valid;
+assign oDCO_DEBUG[10]    = rt_select_dpll;
+assign oDCO_DEBUG[11]    = rt_dir;
+assign oDCO_DEBUG[12]    = dpll_dir;
+assign oDCO_DEBUG[13]    = hpll_dir;
+assign oDCO_DEBUG[14]    = runtime_start;
+assign oDCO_DEBUG[15]    = bus_enable;
+assign oDCO_DEBUG[21:16] = bus_i2c_state;
+assign oDCO_DEBUG[22]    = bus_start;
+assign oDCO_DEBUG[23]    = static_start_pulse;
+assign oDCO_DEBUG[24]    = system_start;
+assign oDCO_DEBUG[25]    = user_start_rise;
+assign oDCO_DEBUG[26]    = initial_start;
+assign oDCO_DEBUG[27]    = dco_error;
+assign oDCO_DEBUG[28]    = (rt_state != 3'd0);
+assign oDCO_DEBUG[29]    = iDPLL_LOAD;
+assign oDCO_DEBUG[30]    = iHPLL_LOAD;
+assign oDCO_DEBUG[31]    = 1'b0;
+assign oDCO_DEBUG[47:32] = dco_step_count;
+assign oDCO_DEBUG[63:48] = hpll_prev_data;
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
@@ -147,7 +185,8 @@ i2c_bus_controller_dco u_i2c_bus(
   .wr_data(bus_byte_data),
   .wr_cmd(bus_wr_cmd),
   .oSYSTEM_STATE(bus_state),
-  .oCONFIG_DONE(bus_done)
+  .oCONFIG_DONE(bus_done),
+  .i2c_state(bus_i2c_state)
 );
 
 // Serialize each WR DAC update as three page-0 I2C writes:

@@ -64,7 +64,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oPLL_REG_CONFIG_DONE  : out   std_logic;
       oDCO_BUSY             : out   std_logic;
       oDCO_ERROR            : out   std_logic;
-      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0)
+      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0);
+      oDCO_DEBUG            : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -200,6 +201,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal dco_probe            : std_logic_vector(63 downto 0);
+  signal dco_state_probe      : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -246,6 +248,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_busy              : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
+  signal dco_debug              : std_logic_vector(63 downto 0);
 
   signal reconfig_read        : std_logic_vector(0 downto 0) := (others => '0');
   signal reconfig_write       : std_logic_vector(0 downto 0) := (others => '0');
@@ -470,6 +473,7 @@ begin
   dco_probe(32)           <= dac_dpll_load;
   dco_probe(43 downto 33) <= std_logic_vector(dac_dpll_count(10 downto 0));
   dco_probe(63 downto 44) <= (others => '0');
+  dco_state_probe <= dco_debug;
 
   u_wr_sync_probe : altsource_probe
     generic map (
@@ -511,6 +515,21 @@ begin
     )
     port map (
       probe      => dco_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dco_state_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_STATE_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 9,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_state_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
@@ -644,7 +663,8 @@ begin
       oPLL_REG_CONFIG_DONE   => si_config_done,
       oDCO_BUSY              => dco_busy,
       oDCO_ERROR             => dco_error,
-      oDCO_STEP_COUNT        => dco_step_count
+      oDCO_STEP_COUNT        => dco_step_count,
+      oDCO_DEBUG             => dco_debug
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

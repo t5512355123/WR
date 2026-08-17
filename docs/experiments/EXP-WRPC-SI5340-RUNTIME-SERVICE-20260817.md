@@ -6,6 +6,7 @@
 - 日期：2026-08-17
 - 實驗分支：`exp/jtag-runtime-observability`
 - 建立前 baseline：`d75112eb5c5f299c0b80af1ce0e34d0838379012`
+- 硬體 source commit：`47ed3f90e0c0a91d1c71029be92a4b1360b8f4b3`
 
 ## 這次想驗證什麼
 
@@ -34,18 +35,23 @@
 ## 編譯與硬體識別
 
 - Quartus：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`、Version 17.0.0 Build 595
-- QSF SHA-256：待 compile 後填寫
-- SDC SHA-256：待 compile 後填寫
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
 - Master MIF SHA-256：本輪不重新燒錄 Master
-- Slave MIF SHA-256：待 compile 後填寫
-- Slave SOF SHA-256：待 compile 後填寫
-- Compile log SHA-256：待 compile 後填寫
-- Full Compilation：待 compile 後填寫
-- Timing：待 compile 後填寫
+- Slave MIF SHA-256：`578d526306bf28721412d2a7a51f928a169bc1561e20a404de726d51df669ecb`
+- Slave SOF SHA-256：`532c361c879dd7c0737532f1bb760fe9c8bf98bdf9c1c465c8be4d64a3386db8`
+- Compile log SHA-256：`78bdda77d1d761aeb5aa4871a3037bffcd8a06143e03e850ea97814e30eec54c`
+- Full Compilation：成功，0 errors、275 warnings；Fitter successful。
+- Timing：尚未 closure；setup `-0.228 ns`、hold `-3.499 ns`、recovery `1.093 ns`、removal `0.348 ns`；unconstrained clocks 4、inputs 884、outputs 87。
 
 ## 燒錄結果
 
-待 compile 成功後僅燒錄 Slave `DE5 [1-11.2]`；燒錄前不宣稱硬體實驗結果。
+- 僅燒錄 Slave `DE5 [1-11.2]`；Master 沿用原本 bitstream。
+- 燒錄時間：2026-08-17 09:39:38 至 09:39:57（Asia/Taipei）。
+- Programmer checksum：`0x30A8FEFD`。
+- JTAG ID：`0x02E660DD`。
+- Configuration：成功，1 device configured；Programmer 0 errors、0 warnings。
+- Programmer log SHA-256：`c3c10029a9ddd3b386db186048cb8c02eddf767fe3eacc1ba118bdfd627b71e3`。
 
 ## JTAG/runtime 原始結果
 

@@ -21,6 +21,7 @@
 *.json text eol=lf
 *.sha256 text eol=lf
 *.stp text eol=lf
+*.defconfig text eol=lf
 
 # 二進位檔不做換行轉換。
 *.bin binary

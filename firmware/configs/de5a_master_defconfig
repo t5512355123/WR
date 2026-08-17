@@ -43,8 +43,10 @@ CONFIG_SNMP_AUX_DIAG=y
 CONFIG_BUILD_INIT=y
 CONFIG_INIT_COMMAND="vlan off;ptp stop;mode master;ptp start"
 CONFIG_HAS_BUILD_INIT=1
-CONFIG_HAS_FLASH_INIT=1
-CONFIG_FLASH_INIT=y
+# The Master role is controlled by the built-in script above.  Do not execute
+# a persistent board-side init script that may contain a stale slave command.
+CONFIG_HAS_FLASH_INIT=0
+# CONFIG_FLASH_INIT is not set
 CONFIG_GENSDBFS=y
 CONFIG_WR_DIAG=y
 # CONFIG_WR_NODE_SIM is not set

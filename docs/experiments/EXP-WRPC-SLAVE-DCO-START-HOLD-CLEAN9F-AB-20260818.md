@@ -88,6 +88,7 @@ compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即
 - 修正 instance 8 後重新執行 `read_dco_state.tcl 1000`：Slave 成功讀到 `A=B=00A8000000D00320`，解碼為 `rt_state=0、bus_state=0、bus_done=0、ready=1、busy=0、steps=13、hold=0`；Master 沒有 DCO probe，故回報無 instance 是預期結果。固定腳本 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/dco_state_readonly_fixed.log`，SHA-256：`78FD788BDE03D221D629234C422AF8A186275B96D1A2F2C1D708E778ABCDD78E`。
 - 同一 SOF 重新燒錄後的 20 samples/1 s 雙板 session：Master `20/20 accepted`；Slave `16/20 accepted、4/20 retry-limit rejected`。Slave accepted frame 仍主要為 `status=EF、link_up=1、pps_valid=1、time_valid=0、wr_mode=3、PSTAT=1、SSTAT=0、UCNT=0、spll_locked=0`；沒有觀察到 servo state 或 SoftPLL lock 前進。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/runtime_after_repeat_20samples.log`，SHA-256：`07F05A8A2F57818D2E0C2326735522CE08D3EDED1EDB98FC0E36AD97694673F1`。
 - Servo activation correlation（不改 source、不重新燒錄）：60 筆 Slave sample 全部讀取成功；其中 `STEP_EVENT=1` 有 3 筆，DCO step 由 `63` 增至 `69`。同一份時間序列中 `TAG_SOURCE` 有 59/60 筆非零，但 `LOCK_POLLS、LOCK_ENABLE、RCER、TAG、TRR、IRQ、TAG_VALID、TRR_WRITE、REF、HELPER_ERROR、HELPER_OUTPUT、UCNT` 全部仍為 0；`PSTAT=1、SSTAT=0`。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/servo_dco_correlation_60x500ms.log`，SHA-256：`1E42F12009C266A5E7BAA7773AD813403764B52C385F5C4127828C6BA6A7B9D6`。
+- 延長唯讀 correlation：原定 120 筆、每 500 ms；因 Quartus STP mailbox 每筆包含多次 Wishbone read，`timeout 180s` 在第 111 筆結束，故這是**部分觀測**，不是完整 120 筆成功。第 111 筆以前 `LOCK_ENABLE=0、LOCK_POLLS=0、RCER=0、TAG/TRR/IRQ=0、SSTAT=0、UCNT=0` 持續不變；DCO step 在觀測期間由 `155` 增至 `165`，但沒有對應的 WR lock/valid tag/helper activity。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/servo_dco_correlation_120x500ms.log`，SHA-256：`163F4168D6ABD5717B836347D641785898A75CA515C4314C01EE71CA47A4DB16`。
 
 ## Observation
 
@@ -95,7 +96,7 @@ compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即
 
 Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`pps_valid=1`、`wr_mode=3`，但 `time_valid=0`、`PSTAT.locked=0`、`SSTAT=0`、`UCNT=0`。關聯觀測進一步顯示 raw `TAG_SOURCE` 有活動，但 lock/RCER/valid tag/TRR/IRQ/helper/UCNT 沒有活動；因此目前不能宣稱 Slave servo 已啟動或兩板已同步，也沒有證據支持現在就修改 DMTD polarity。
 
-觀測期間 JTAG frame 有 8/60 筆在 retry 上限後不接受，且少數樣本出現 link/status 暫時下降；這些列不被拿來拼接同步結論，並且已完整保留原始 log。
+觀測期間 JTAG frame 有 8/60 筆在 retry 上限後不接受，且少數樣本出現 link/status 暫時下降；這些列不被拿來拼接同步結論，並且已完整保留原始 log。延長 correlation 也出現 status/link 暫態，但不改變主要欄位長時間為零的判讀。
 
 ## Conclusion
 
@@ -103,4 +104,4 @@ Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`p
 
 ## Next Step
 
-下一輪先不改 `g_softpll_reverse_dmtds`，也不改 DMTD、FINC/FDEC、PI、threshold、lock detector、PHY、PTP 或 MIF。應針對現有 `WR lock handoff/SoftPLL activation` 做最小、可回復的單一變因驗證；變更前先建立新實驗紀錄，並保留本輪 SOF 作為 baseline。成功判準不是只看 link up，而是 Slave 能在有效 frame 中達到 `time_valid=1、pps_valid=1、PSTAT.locked=1、SSTAT` 前進且 `UCNT` 持續增加。
+下一輪先不改 `g_softpll_reverse_dmtds`，也不改 DMTD、FINC/FDEC、PI、threshold、lock detector、PHY、PTP 或 MIF。先以歷史上曾重現 `WR_LOCK/RCER/TAG/TRR/IRQ` 活動的 Slave positive-control SOF 做恢復基線，確認目前問題是否由 start-hold 版本的 RTL/時序變因引入；燒錄前另建立實驗紀錄。恢復基線成功判準仍不是只看 link up，而是先重現 `WR_LOCK enable/polls`、`RCER` 與 valid tag activity；最終同步仍需 `time_valid=1、pps_valid=1、PSTAT.locked=1、SSTAT` 前進且 `UCNT` 持續增加。

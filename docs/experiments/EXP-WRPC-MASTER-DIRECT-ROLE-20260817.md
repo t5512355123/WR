@@ -101,6 +101,15 @@ restore 原始證據保存在：
 - `restore_master_sof.sha256`
 - `restore_program_master.log`
 
+### 恢復後 runtime check
+
+2026-08-17 15:30:53 使用既有 read-only JTAG script 確認恢復版：
+
+- Master：marker=`B004`、`WDIAGS_MODE=3`、`SSTAT=0`、`PSTAT=1`、PTP RX/TX=`0x14/0x12`、CPU fault=0
+- Slave：marker=`B004`、`WDIAGS_MODE=3`、`SSTAT=1`、`PSTAT=1`、PTP RX/TX=`0x455/0x505`、CPU fault=0
+
+因此 Master 已恢復到可進入 runtime 且有 PTP 活動的 baseline 狀態；這仍不是兩端完成同步的證據。
+
 ## Conclusion
 
 本輪失敗。直接加入 `wrc_ptp_set_mode(WRC_MODE_MASTER)` 與 `wrc_ptp_start()` 的程式碼雖然成功編譯與 configuration，但 runtime 在到達該程式碼以前就停在 `B00B`；所以本輪不能判斷 direct API 是否能切換 Master，也不能宣稱任何 WR synchronization。這個結果支持「本次 firmware image/layout 使早期初始化卡住」的觀察，但尚未證明根因是程式碼本身、記憶體配置或其他硬體條件。

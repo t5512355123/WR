@@ -87,19 +87,20 @@ compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即
 - 另一次執行 `read_dco_state.tcl` 的結果是兩片板都回報 `No In-System Sources and Probes instance was found`；該腳本讀取不存在的 instance 9，因此判定為腳本/instance 編號不匹配，不列為硬體失敗證據。
 - 修正 instance 8 後重新執行 `read_dco_state.tcl 1000`：Slave 成功讀到 `A=B=00A8000000D00320`，解碼為 `rt_state=0、bus_state=0、bus_done=0、ready=1、busy=0、steps=13、hold=0`；Master 沒有 DCO probe，故回報無 instance 是預期結果。固定腳本 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/dco_state_readonly_fixed.log`，SHA-256：`78FD788BDE03D221D629234C422AF8A186275B96D1A2F2C1D708E778ABCDD78E`。
 - 同一 SOF 重新燒錄後的 20 samples/1 s 雙板 session：Master `20/20 accepted`；Slave `16/20 accepted、4/20 retry-limit rejected`。Slave accepted frame 仍主要為 `status=EF、link_up=1、pps_valid=1、time_valid=0、wr_mode=3、PSTAT=1、SSTAT=0、UCNT=0、spll_locked=0`；沒有觀察到 servo state 或 SoftPLL lock 前進。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/runtime_after_repeat_20samples.log`，SHA-256：`07F05A8A2F57818D2E0C2326735522CE08D3EDED1EDB98FC0E36AD97694673F1`。
+- Servo activation correlation（不改 source、不重新燒錄）：60 筆 Slave sample 全部讀取成功；其中 `STEP_EVENT=1` 有 3 筆，DCO step 由 `63` 增至 `69`。同一份時間序列中 `TAG_SOURCE` 有 59/60 筆非零，但 `LOCK_POLLS、LOCK_ENABLE、RCER、TAG、TRR、IRQ、TAG_VALID、TRR_WRITE、REF、HELPER_ERROR、HELPER_OUTPUT、UCNT` 全部仍為 0；`PSTAT=1、SSTAT=0`。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/servo_dco_correlation_60x500ms.log`，SHA-256：`1E42F12009C266A5E7BAA7773AD813403764B52C385F5C4127828C6BA6A7B9D6`。
 
 ## Observation
 
 本輪證據支持 DCO runtime transaction 已完成：`BUSY` 能回到 0，且 `STEP_COUNT` 由 10 經 12 增加到 14。這證明 start-hold 變因至少讓 DCO 寫入流程完成，但不是 White Rabbit 同步成功證據。
 
-Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`pps_valid=1`、`wr_mode=3`，但 `time_valid=0`、`PSTAT.locked=0`、`SSTAT=0`、`UCNT=0`。因此目前不能宣稱 Slave servo 已啟動或兩板已同步。
+Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`pps_valid=1`、`wr_mode=3`，但 `time_valid=0`、`PSTAT.locked=0`、`SSTAT=0`、`UCNT=0`。關聯觀測進一步顯示 raw `TAG_SOURCE` 有活動，但 lock/RCER/valid tag/TRR/IRQ/helper/UCNT 沒有活動；因此目前不能宣稱 Slave servo 已啟動或兩板已同步，也沒有證據支持現在就修改 DMTD polarity。
 
 觀測期間 JTAG frame 有 8/60 筆在 retry 上限後不接受，且少數樣本出現 link/status 暫時下降；這些列不被拿來拼接同步結論，並且已完整保留原始 log。
 
 ## Conclusion
 
-本輪只支持以下保守結論：`runtime_start_hold` 改善了 DCO/I²C start-accept handshake 的證據，因為交易完成且 step counter 有變化；但 Slave 仍未通過 servo/SoftPLL/time-valid 判準。現有資料尚不足以把根因唯一指定為 feedback、DMTD、signal handoff 或 time-valid gating。
+本輪只支持以下保守結論：`runtime_start_hold` 改善了 DCO/I²C start-accept handshake 的證據，因為交易完成且 step counter 有變化；但 60 筆關聯資料顯示 DCO step 並未與有效 SoftPLL lock/servo activity 同步，Slave 仍未通過 servo/SoftPLL/time-valid 判準。現階段第一優先疑點收斂到 `WR lock handoff/SoftPLL activation`，不是已證明的 DMTD mapping 或 FINC/FDEC 方向問題。
 
 ## Next Step
 
-下一輪仍只做 Slave 單一變因，不修改 Master role：先依 White Rabbit 討論結果決定是否只將 `g_softpll_reverse_dmtds` 從 `true` 改回 `false`，用來驗證 DDMTD 取樣方向；若採用此變因，其他 DCO FSM、FINC/FDEC、PI、threshold、lock detector、PHY、PTP 與 MIF 全部保持不變。成功判準不是只看 link up，而是 Slave 能在有效 frame 中達到 `time_valid=1、pps_valid=1、PSTAT.locked=1、SSTAT` 前進且 `UCNT` 持續增加。若不採用 generic 變更，則維持目前 SOF，先擴充同一 instance 8 的 DCO/servo 唯讀 correlation。
+下一輪先不改 `g_softpll_reverse_dmtds`，也不改 DMTD、FINC/FDEC、PI、threshold、lock detector、PHY、PTP 或 MIF。應針對現有 `WR lock handoff/SoftPLL activation` 做最小、可回復的單一變因驗證；變更前先建立新實驗紀錄，並保留本輪 SOF 作為 baseline。成功判準不是只看 link up，而是 Slave 能在有效 frame 中達到 `time_valid=1、pps_valid=1、PSTAT.locked=1、SSTAT` 前進且 `UCNT` 持續增加。

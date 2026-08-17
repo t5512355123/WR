@@ -400,3 +400,12 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 已燒錄至 `DE5 [1-11.2]`；checksum `0x309FFE28`、JTAG ID `0x02E660DD`、configuration succeeded、Programmer 0 errors/0 warnings。
 - 燒錄後 ACK/runtime 尚待唯讀 JTAG 取樣；目前不宣稱同步成功。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-ACK-OBS-20260817.md`。
+
+### SI5340 ACK 觀測補充
+
+- `read_dco_diag.tcl` 成功讀到 Slave ACK telemetry：`transactions=0x049A、errors=0x0000`。
+- 同一 bitstream 的 60 秒 session 完成，Slave `60/60 accepted`，但 `link_up=1、spll_locked=0、time_valid=0`，沒有 `SSTAT[11:8]=4/5`。
+- DCO snapshot：HPLL `accepted=0x000C、done=0x0008`；DPLL `accepted=0x0007、done=0x0000`；HPLL/DPLL current/previous data 仍為 `0x0000`。
+- 結論：沒有 NACK 證據，但仍沒有 register readback 或 output clock effect 證據；下一輪只做 SI5340 register readback，不恢復 DPLL。
+- 原始檔：`build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/dco_ack_diag.log`、`build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/runtime_60s.log`。
+- 原始檔 SHA-256：`f960d0d9d20dedab1d68e80e9916f60d62d7315aa71c9531e71b1106b41ea49c`、`9d090790fa230c6b48873d1ac145a5e866b4469d7137b56d44b124dc0ad7ae17`。

@@ -67,7 +67,7 @@
 
 ## JTAG/runtime 原始結果
 
-待燒錄後保存：
+燒錄後 ACK snapshot 與 60 秒 runtime 都完成：
 
 - `DCO_I2C_ACK transactions/errors/ack_bits`
 - DPLL/HPLL state snapshot
@@ -75,14 +75,25 @@
 - Slave `SSTAT`、`PSTAT.locked`、`time_valid`、`pps_valid`
 - parent、PTP、servo activity
 
+- ACK snapshot log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/dco_ack_diag.log`
+- ACK snapshot SHA-256：`f960d0d9d20dedab1d68e80e9916f60d62d7315aa71c9531e71b1106b41ea49c`
+- 60 秒 runtime log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/runtime_60s.log`
+- 60 秒 runtime SHA-256：`9d090790fa230c6b48873d1ac145a5e866b4469d7137b56d44b124dc0ad7ae17`
+- JTAG/Tcl：`SESSION_TIME_SERIES_DONE`，Quartus SignalTap Tcl 0 errors、0 warnings。
+- DCO snapshot：HPLL `accepted=0x000C、done=0x0008`；DPLL `accepted=0x0007、done=0x0000`；DPLL/HPLL state current/previous data 都為 `0x0000`。
+- ACK telemetry：`transactions=0x049A、errors=0x0000`；本輪沒有觀察到 sticky NACK。
+- Slave accepted samples：60/60；主要狀態 `link_up=1、pps_valid=1、spll_locked=0、time_valid=0`。
+- Slave `SSTAT` 主要為 `0x00000101`，沒有 `SSTAT[11:8]=4/5`；`PSTAT.locked` 與 `WR_LOCK.result` 維持 0。
+- Slave parent/PTP 狀態在取樣中有活動與重置變化，但沒有形成同步有效狀態。
+
 ## Observation
 
-待補入原始 log 與 SHA-256。
+ACK error count 保持 0，降低「SI5340 完全不回 ACK」的可能性；但目前 telemetry 的 `ack_bits` 讀取時已回到 idle/新 transaction 邊界，因此不以單次 `ack_bits=0` 宣稱最後一筆每個 byte 的 ACK。FPGA 端的 `done` 與 ACK count 都不能單獨證明 page 0x03/register 0x39、page 0x00/register 0x1D 已被正確寫入，也不能證明 N1 clock 真正改變。
 
 ## Conclusion
 
-在取得 ACK telemetry 前，不宣稱 SI5340 ACK/NACK、register page、FINC/FDEC 或 clock effect 的根因。
+本輪證據支持：目前沒有觀察到 SI5340 NACK，且 Slave link/部分 PTP activity 可維持；但 Slave 仍未取得 `spll_locked=1` 或 `time_valid=1`。因此「完全沒有 I2C 回應」不是目前最有證據的說法；真正的 register page、FINC/FDEC semantics、readback 值與輸出 clock effect 仍未被證明。不能宣稱 WR synchronization 成功。
 
 ## Next Step
 
-若 ACK bits 顯示 NACK，先修正 I2C bus/address/時序；若 ACK 全部正常但 time_valid 仍為 0，再做 register readback 或輸出 clock effect 的最小診斷。不要在本輪同時恢復 DPLL。
+下一輪只做 SI5340 register readback：在不恢復 DPLL、不改 PHY/PTP/servo 的前提下，讀回 page select、N_FSTEP_MSK 與 FINC/FDEC 相關 register，並將 read data/ACK error 納入 JTAG。若 readback 正確，再檢查輸出 clock effect；若不正確，修正 page/register sequence。

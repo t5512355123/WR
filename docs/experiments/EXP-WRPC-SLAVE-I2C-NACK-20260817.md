@@ -65,13 +65,21 @@ TimeQuest: successful, 0 errors, 7 warnings
 
 ## 燒錄結果
 
-compile 成功後只燒錄 Slave `DE5 [1-11.2]`，Master 維持 known-good baseline。燒錄後立即補上：
+compile 成功後只燒錄 Slave `DE5 [1-11.2]`，Master 維持 known-good baseline。燒錄時間為 2026-08-17 23:28（Asia/Taipei）：
 
 ```text
-Programming cable:
-JTAG ID:
-Programmer checksum:
-Configuration result:
+Programming cable: DE5 [1-11.2]
+JTAG ID: 0x02E660DD
+Programmer checksum: 0x30A2C557
+Configuration result: Configuration succeeded -- 1 device(s) configured
+Quartus Programmer: successful, 0 errors, 0 warnings
+```
+
+原始 programmer log：
+
+```text
+artifacts/EXP-WRPC-SLAVE-I2C-NACK-20260817/exp_wrpc_slave_i2c_nack_20260817_program.log
+SHA-256: e02e16d6e214fdd45c59ffd3b904d3d2a17c31e3d6e217c1de5a48d779aae207
 ```
 
 ## JTAG/runtime 原始結果
@@ -82,16 +90,76 @@ Configuration result:
 artifacts/EXP-WRPC-SLAVE-I2C-NACK-20260817/
 ```
 
-至少包含 programmer log、`read_wb_runtime.tcl`、`read_dco_state.tcl`、`read_dco_activity.tcl` 與 60 秒唯讀 time-series；並記錄 `oDCO_DEBUG[31]`、`completed_steps`、`helper_error`、`spll_locked`、`SSTAT`、`UCNT`、`time_valid`、`pps_valid`。
+至少包含 programmer log、`read_wb_runtime.tcl`、`read_dco_state.tcl`、`read_dco_activity.tcl` 與兩段 30-sample 唯讀 time-series；並記錄 `oDCO_DEBUG[31]`、`completed_steps`、`helper_error`、`spll_locked`、`SSTAT`、`UCNT`、`time_valid`、`pps_valid`。
+
+燒錄後關鍵 raw evidence：
+
+```text
+Master DE5 [1-11.1]
+  cpu_marker=B004, MODE=2, PTP=6, status=0xFF
+  PTP RX/TX=0x00006F44/0x0000FC1A
+
+Slave DE5 [1-11.2]（燒錄後第一個 snapshot）
+  cpu_marker=B004, MODE=3, PTP=4, status=0xEF
+  link_up/time_valid/pps_valid=1/0/1
+  SSTAT=0x00000000, PSTAT=0x00000001, UCNT=0
+  PTP RX/TX=0/0
+
+Slave DCO_STATE 初始讀值：0005000100000320
+  completed_steps=0x0001, rt_state=0, bus_busy=0,
+  static_ready=1, oDCO_DEBUG[31]=0
+
+Slave DCO_STATE 後續讀值：0005000700002B20
+  completed_steps=0x0007, rt_state=0, bus_busy=0,
+  static_ready=1, oDCO_DEBUG[31]=0
+```
+
+`oDCO_DEBUG[31]=0` 表示本次 sticky NACK 觀測期間沒有取到 SDA high 的 ACK slot；這是「沒有觀察到 NACK」的證據，不是 SI5340 register readback 成功的充分證明。
+
+原始檔案與 SHA-256：
+
+```text
+exp_wrpc_slave_i2c_nack_20260817_runtime_snapshot.log 0271e7e8f694010611b6f77a1d28990263124bb1408d7b79bb86473f38c1278f
+exp_wrpc_slave_i2c_nack_20260817_dco_state.log 1c534e52811f74594ee23666f99924b75db3bad8ef998c89db439615e420d2c3
+exp_wrpc_slave_i2c_nack_20260817_dco_activity.log 6355ce1671327500f53d81954f2b6b7de2bebdb553cf5bf5f21ae391bdabdc21
+exp_wrpc_slave_i2c_nack_20260817_runtime_timeseries.log 21ec70c1d9eb8826db6e04adb98757bb9e084eb36eddd327a25fdf60412359bf
+exp_wrpc_slave_i2c_nack_20260817_runtime_final.log ff3e3295cdd3d61887dda5a9f50fc12f232217f189cfa7a594b42a93a237892f
+exp_wrpc_slave_i2c_nack_20260817_dco_state_final.log 8470920f6b9aac9d354fed30f7b455c1d0ef82472ad88287f1b4f8de6188c62b
+exp_wrpc_slave_i2c_nack_20260817_dco_activity_final.log 12190302ca74bfc55492e72b100063542e8cbcc08ddc1832e82121195293ca47
+exp_wrpc_slave_i2c_nack_20260817_runtime_timeseries_2.log 6c604c2874d021915dc0c4697c685a6a5dd7661ac0f46238c41da98ed63fce43
+```
+
+第二段 time-series 的最後有效 Slave frame 為：
+
+```text
+status_low=EF, time_valid=0, pps_valid=1, wr_mode=3,
+sstat_wr_valid=1, servo_state=0, link_up=1, spll_locked=0
+WDIAGS_SSTAT=0x00000001, WDIAGS_PSTAT=0x00000001,
+WDIAGS_PTP_RX=0x000001AE, WDIAGS_PTP_TX=0x0000014A,
+WDIAGS_UCNT=0, WDIAGS_CKO=0, WDIAGS_SETP=0
+```
 
 ## Observation
 
-待燒錄後填寫。若發現 NACK，將證據解讀為「SI5340 I2C transaction 未被裝置接受」，不直接歸因於 DDMTD 或 Master role。
+本次沒有觀察到 NACK，且 `completed_steps` 從 1 增至 7；因此可以排除「每一筆交易都明確被 NACK」作為目前最直接的解釋，但仍不能宣稱 register readback 或實體頻率修正已成功。
 
 ## Conclusion
 
-待燒錄後填寫。結論只可由 ACK/NACK raw evidence 與 Slave runtime time-series 支持。
+本實驗結果為「NACK 觀測未發現錯誤，DCO FSM 可完成交易，但 Slave 同步仍未完成」。證據支持：
+
+- Slave 可配置且 CPU marker=`B004`。
+- DCO transaction completion count 有增加，最後 `completed_steps=7`。
+- `oDCO_DEBUG[31]=0`，本輪未觀察到 ACK slot 的 NACK。
+- Slave PTP RX/TX 可恢復活動，並曾進入 `SSTAT=0x101` 的前置 servo 狀態。
+
+證據不支持：
+
+- SI5340 register 已被 readback 驗證。
+- SoftPLL 已 lock。
+- Slave 已完成 White Rabbit synchronization。
+
+因此目前問題已從「FPGA FSM 是否卡住或大量 NACK」收斂到「SI5340 correction 的實際頻率效果、register semantics 或 feedback loop 是否正確」。
 
 ## Next Step
 
-若 NACK=1，先修正 SI5340 I2C 實體/位址/enable 路徑；若 NACK=0 但 helper 完全不動，再進入 register readback 或 clock frequency-effect 的單一變因實驗。Master role 永不在本輪或下一輪修改。
+下一輪不改 Master role、PTP 或 PHY。由於本輪沒有 NACK且 DCO completed 增加，先做「Slave SI5340 register readback / output frequency effect」的單一變因診斷：優先確認 page 3 `0x39` mask、page 0 `0x1D` FINC/FDEC 寫入後的實際 register value，或用可重複的時鐘頻率計數器確認 DCO step 是否改變目標 clock。只有取得 clock effect 後，才判斷 FINC/FDEC direction 或 DDMTD polarity。

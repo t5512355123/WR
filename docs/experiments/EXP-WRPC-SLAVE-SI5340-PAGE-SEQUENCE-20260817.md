@@ -69,31 +69,112 @@ Total RAM Blocks : 113
 
 ## 燒錄結果
 
-待燒錄後立即補上：
+Slave 於 2026-08-17 23:13（Asia/Taipei）使用 `DE5 [1-11.2]` 燒錄；Master 未重新燒錄，維持歷史成功 baseline。
 
 ```text
-Programming cable:
-JTAG ID:
-Programmer checksum:
-Configuration result:
+Programming cable: DE5 [1-11.2]
+JTAG ID: 0x02E660DD
+Programmer checksum: 0x30A15E22
+Configuration result: Configuration succeeded -- 1 device(s) configured
+Quartus Programmer: successful, 0 errors, 0 warnings
+```
+
+原始 programmer log：
+
+```text
+artifacts/EXP-WRPC-SLAVE-SI5340-PAGE-SEQUENCE-20260817/exp_wrpc_slave_si5340_page_sequence_20260817_program.log
+SHA-256: da787d337708c895dda67992a11012b6e424cb17be17c6fb855962d398fde497
 ```
 
 ## JTAG/runtime 原始結果
 
-待燒錄後執行既有的 `read_wb_runtime.tcl`、`read_dco_state.tcl`、`read_dco_activity.tcl` 與 `read_wb_timeseries_session.tcl`，並將原始檔案放在：
+燒錄後立即執行既有的 `read_wb_runtime.tcl`、`read_dco_state.tcl`、`read_dco_activity.tcl` 與 `read_wb_timeseries_session.tcl`。所有原始檔案均保存於：
 
 ```text
 artifacts/EXP-WRPC-SLAVE-SI5340-PAGE-SEQUENCE-20260817/
 ```
 
+主要原始檔案與 SHA-256：
+
+```text
+exp_wrpc_slave_si5340_page_sequence_20260817_runtime_snapshot.log
+f445571a119c529f77849c4e47a38273ff01a7400256bc4d2ca20a6b5dfb8537
+
+exp_wrpc_slave_si5340_page_sequence_20260817_dco_state.log
+d61ed1b26d35cdf271ac414fb759c844f7c60a608d1e1a8060113a5582f66675
+
+exp_wrpc_slave_si5340_page_sequence_20260817_dco_activity.log
+f13570eb82f6cbebb0ee9daf0a2770c10ca261738c38c0cb9c8ad32f87d577ef
+
+exp_wrpc_slave_si5340_page_sequence_20260817_dco_state_final.log
+0195183bcbabd7eee35d81152a644ba2c08cb9d3d9e29bafc578de1cf1c809a9
+
+exp_wrpc_slave_si5340_page_sequence_20260817_runtime_timeseries.log
+b8a5812eb793416b250bc00c200fb67591afa039a8ccccfe394be3a69016dfbe
+
+exp_wrpc_slave_si5340_page_sequence_20260817_runtime_final.log
+ff7e1219eade5dbb27518d87001c991b403eb14b14f9ba89df6a62c4317e08e0
+```
+
+燒錄後的關鍵 raw evidence：
+
+```text
+Master DE5 [1-11.1]
+  cpu_marker: 0x0000B004
+  WDIAGS_MODE: 2
+  WDIAGS_PTP: 6
+  link/time_valid/pps_valid: 1/1/1
+  PTP RX/TX: 0x00006EC7 / 0x0000FACE（最後 snapshot）
+
+Slave DE5 [1-11.2]
+  cpu_marker: 0x0000B004
+  WDIAGS_MODE: 3
+  WDIAGS_PTP: 6
+  status_low: 0xEF
+  link/time_valid/pps_valid: 1/0/1（有效 frame 的主要狀態）
+  WDIAGS_SSTAT: 0x00000000
+  WDIAGS_PSTAT: 0x00000001
+  WDIAGS_UCNT: 0x00000000
+  WDIAGS_CKO / WDIAGS_SETP: 0x00000000 / 0x00000000
+  PTP RX/TX: 0x00000000 / 0x00000003（最後 snapshot）
+```
+
+DCO readback：
+
+```text
+DCO_STATE final: 0005002100000320
+  completed_steps = 0x0021
+  rt_state = 0
+  bus_busy = 0
+  static_ready = 1
+  dco_error = 0
+```
+
+這表示 runtime FSM 有完成多次 transaction，且最後不在 busy/error 狀態；它證明的是 FPGA 內部交易流程完成，不等於已證明 SI5340 輸出頻率修正有效。
+
 ## Observation
 
-Compile 階段確認只有 Slave DCO page sequence 產生 RTL 變化；新的 SOF 已產生，尚未以此 SOF 燒錄，因此目前還不能對 Slave runtime 或同步狀態下結論。
+1. Quartus compile 與 Slave programming 均成功；本次實驗只改變 Slave 的 DCO page sequence，Master 沒有改動。
+2. `completed_steps` 由先前 baseline 的交易完成狀態持續增加，最終讀到 `0x0021`；`rt_state=0`、`bus_busy=0`、`dco_error=0`。因此四筆 runtime transaction 的 FSM handshake 至少已被執行並返回 idle。
+3. Slave 在有效觀測列中維持 `MODE=3`、`link_up=1`、`pps_valid=1`，但沒有進入 `SSTAT` servo state，`PSTAT.locked=0`、`UCNT=0`、`CKO=0`、`SETP=0`，`time_valid` 沒有升為 1。
+4. 60 秒雙板 session 的 Master 部分維持歷史 baseline 的 `MODE=2` 與 `status=0xFF`；Slave 部分可取得有效 frame，但也出現少量 link/runtime transient，不能把短暫的 `link_up=1` 視為同步完成。
 
 ## Conclusion
 
-目前只能確認 RTL 修正與 Quartus compile 成功。是否解除 Slave servo 卡點，必須等燒錄後以 `completed_steps`、helper error、`spll_locked`、servo state、`time_valid` 與 `pps_valid` 的原始 JTAG 證據判斷。
+本次實驗的證據支持：
+
+- Slave 的新 SOF 可以成功配置。
+- DCO runtime FSM 可以完成 transaction，且沒有顯示 busy/error。
+- Master 的已知成功 role 沒有被這次變更破壞。
+
+本次實驗的證據不支持：
+
+- Slave 已經 SoftPLL lock。
+- Slave 已進入 servo tracking。
+- 兩張 DE5a 已完成 White Rabbit 時間同步。
+
+因此本實驗結果為「compile/program 成功，功能驗證未通過」，不能標記為同步成功。由於 page sequence 修正只證明 FPGA 交易流程，不足以證明 SI5340 的實體 feedback 已被正確驅動，下一輪必須維持 Master 不變，針對 Slave 的 SI5340 feedback/方向或 DCO 寫入有效性做下一個單一變因驗證。
 
 ## Next Step
 
-只燒錄這一版 Slave SOF，Master 保持 `9f848ec` / `f19bea8` known-good baseline。燒錄完成後立即保存 programmer log，再執行至少 60 秒的唯讀 JTAG time-series；若沒有 `time_valid=1`，依證據進入下一個 Slave 單一變因，不回頭改 Master role。
+不要修改 Master role，也不要再改 PHY。下一個 Slave 實驗先利用現有 read-only evidence 確認 DCO direction 與 SI5340 feedback 是否一致；若方向仍未收斂，再只反轉 Slave DCO FINC/FDEC direction，重新 compile、燒錄並立即建立另一份實驗紀錄。若方向修正仍沒有 `SSTAT`/`UCNT` 活動，則應把焦點轉為 SI5340 I2C transaction 的 ACK/錯誤可觀測性，而不是繼續猜測 role 或 PHY。

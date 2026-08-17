@@ -23,22 +23,29 @@
 
 ## 編譯與來源完整性
 
-待 pain checkout `302ffc1` 後補入：
-
-- Master/Slave firmware build 結果
-- Master/Slave MIF SHA-256
-- Master/Slave Quartus full compilation 結果
-- Master/Slave SOF SHA-256
-- QSF/SDC SHA-256
-- Quartus 版本與 timing summary
+- Master firmware build：成功
+- Slave firmware build：成功
+- Master Quartus full compilation：`Full Compilation was successful`
+- Slave Quartus full compilation：`Full Compilation was successful`
+- Master MIF SHA-256：`b85fc3cad62ec3ea6a1bd16e8c7a55b104e25f0fab855a92fd0217ad85f079a0`
+- Slave MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- Master SOF SHA-256：`383c1c65ce7a08ba98358f8b52a5492d70b816d87c2071f0f254c7f5589f3b93`
+- Slave SOF SHA-256：`6a4357519c2c7996d28bbc2ade098ba8ab58b1f336c48953737932cf168bb225`
+- Master QSF SHA-256：`9bae9b2f2d1894d75f4e2a51621ca1052b62044c94d038ef96841a1a943e206d`
+- Slave QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- Master/Slave SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Quartus：`Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition`
+- Master timing summary：setup `-0.206 ns`、hold `-3.504 ns`、timing closed `NO`
+- Slave timing summary：setup `-0.401 ns`、hold `-3.548 ns`、timing closed `NO`
+- 原始 compile artifacts：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/`
 
 ## 燒錄結果
 
 ### Master：`DE5 [1-11.1]`
 
-- SOF checksum：待補
-- JTAG ID：待補
-- configuration 結果：待補
+- SOF checksum：待燒錄後填入
+- JTAG ID：待燒錄後填入
+- configuration 結果：待燒錄後填入
 
 ### Slave：`DE5 [1-11.2]`
 

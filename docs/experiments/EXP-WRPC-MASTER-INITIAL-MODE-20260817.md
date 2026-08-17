@@ -84,3 +84,19 @@ Slave 維持上一輪 baseline bitstream，0/10/60 秒為 `WDIAGS_MODE=3`、`SST
 ## Next Step
 
 恢復 e36a8b3 baseline。下一輪不再呼叫完整 `wrc_ptp_set_mode(MASTER)`；先保留既有 Slave 初始化與 runtime，設計不改 boot flow 的單一觀測變因，確認 shell init task 是否執行以及 mode 是否曾短暫變成 2。任何新 role 設定都必須先通過 boot 不停在 `B00B` 的條件。
+
+## 恢復燒錄證據
+
+本輪 runtime log 保存後，使用 detached worktree `e36a8b3` 重建並恢復已知 baseline：
+
+- restore worktree commit：`e36a8b3d2986e96436e6c229834f16640bd50a29`
+- restore MIF SHA-256：`409ca7097696df2324a15c1cdd65e32f73766bc6c0a9f60a5b1feca5530ef4c6`
+- restore Quartus compile：`COMPILE_RC=0`
+- restore SOF SHA-256：`9c82b2ac6496029c7eced9d8953dacc7e9b3e42f6b7859b1e7ce9434ef3d2224`
+- restore burn：2026-08-17 15:48:43 至 15:49:02（Asia/Taipei）
+- restore cable/device/JTAG ID：`DE5 [1-11.1]` / `10AX115N2F45@1` / `0x02E660DD`
+- restore checksum：`0x30A31DBA`
+- restore result：`Configuration succeeded -- 1 device(s) configured`
+- restore Programmer：`0 errors, 0 warnings`
+
+恢復的原始 logs 與 hash 位於同一 artifact 目錄的 `restore_*` 檔案；恢復動作不代表同步成功。

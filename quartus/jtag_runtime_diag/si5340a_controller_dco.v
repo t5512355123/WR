@@ -73,13 +73,13 @@ reg        hpll_done_once;
 reg        dpll_done_once;
 reg        dco_error;
 
-// One-shot diagnostic readback. It selects page 3 and reads 0x39, then
-// selects page 0 and reads the page-independent DEVICE_READY register 0xFE.
+// One-shot diagnostic readback. It selects page 0 and reads 0x21, then
+// reads the page-independent DEVICE_READY register 0xFE.
 // It does not change the DCO request path. 0x1D is self-clearing FINC/FDEC,
 // so it is not a reliable readback sanity check.
 reg [3:0]  rb_state;
 reg        rb_seen_busy;
-reg [7:0]  rb_page3_data;
+reg [7:0]  rb_page0_0021_data;
 reg [7:0]  rb_device_ready_data;
 reg [7:0]  rb_current_page;
 
@@ -87,16 +87,14 @@ wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 4'd0);
 wire       readback_bus_enable = (rb_state >= 4'd1 && rb_state <= 4'd4);
 wire       readback_is_read = (rb_state == 4'd2 || rb_state == 4'd4);
-// The static table leaves the SI5340 on page 0x0B.  N_FSTEP_MSK is
-// page-3 register 0x39, while FINC/FDEC is page-0 register 0x1D.
-// Select each page explicitly so the runtime command cannot land on
-// page-0 register 0x39 (LOS1 clear threshold).
+// The static table leaves the SI5340 on page 0x0B. Select page 0
+// explicitly so the diagnostic read is independent of that final page.
 wire [7:0] runtime_byte_addr =
   (rt_state == 4'd1 || rt_state == 4'd2) ? 8'h01 :
   (rt_state == 4'd3 || rt_state == 4'd4) ? 8'h39 :
   (rt_state == 4'd5 || rt_state == 4'd6) ? 8'h01 : 8'h1D;
-// Page select: page 3 for N_FSTEP_MSK, then page 0 for FINC/FDEC.
-// Register 0x0339 uses zero to enable a divider and one to mask it.
+// Readback sequence: page 0 register 0x21, then page-independent 0xFE.
+// The static table writes REG_0021 = 0x0F.
 // DPLL drives N0; HPLL/DMTD drives N1.  Keep the other N dividers masked.
 wire [7:0] runtime_byte_data =
   (rt_state == 4'd1 || rt_state == 4'd2) ? 8'h03 :
@@ -108,10 +106,8 @@ wire [7:0] runtime_byte_data =
   (rt_dir ? 8'h01 : 8'h02);
 wire [7:0] readback_byte_addr =
   (rb_state == 4'd1 || rb_state == 4'd3) ? 8'h01 :
-  (rb_state == 4'd2) ? 8'h39 : 8'hFE;
-wire [7:0] readback_byte_data =
-  (rb_state == 4'd1) ? 8'h03 :
-  (rb_state == 4'd3) ? 8'h00 : 8'h00;
+  (rb_state == 4'd2) ? 8'h21 : 8'hFE;
+wire [7:0] readback_byte_data = 8'h00;
 wire       runtime_start = ((rt_state == 4'd1 || rt_state == 4'd3 ||
                              rt_state == 4'd5 || rt_state == 4'd7) &&
                             !bus_state && static_controller_ready);
@@ -143,7 +139,7 @@ assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
 assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
 assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
 assign oI2C_READBACK = {35'd0, rb_current_page, rb_device_ready_data,
-                        rb_page3_data, (rb_state == 4'd5), rb_state[3:0]};
+                        rb_page0_0021_data, (rb_state == 4'd5), rb_state[3:0]};
 // Read-only HPLL request snapshot. The low fields mirror the DPLL snapshot:
 // previous data, current input, runtime state, pending/select/direction,
 // I2C state, controller readiness, previous-data validity, and done-once.
@@ -238,7 +234,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     rt_state         <= 4'd0;
     rb_state         <= 4'd0;
     rb_seen_busy     <= 1'b0;
-    rb_page3_data    <= 8'd0;
+    rb_page0_0021_data <= 8'd0;
     rb_device_ready_data <= 8'd0;
     rb_current_page  <= 8'h0B;
     rt_dir           <= 1'b0;
@@ -374,13 +370,13 @@ always @(posedge iCLK or negedge iRST_n) begin
       end
       4'd2: begin
         if (static_read_data_valid)
-          rb_page3_data <= static_read_data;
+          rb_page0_0021_data <= static_read_data;
         if (bus_state)
           rb_seen_busy <= 1'b1;
         else if (rb_seen_busy) begin
           rb_state <= 4'd3;
           rb_seen_busy <= 1'b0;
-          rb_current_page <= 8'h03;
+          rb_current_page <= 8'h00;
         end
       end
       4'd3: begin

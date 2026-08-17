@@ -64,11 +64,11 @@ proc read_i2c_readback {} {
   scan $value %x word
   set state [expr {$word & 0xf}]
   set done [expr {($word >> 4) & 0x1}]
-  set page3 [expr {($word >> 5) & 0xff}]
-  set finc [expr {($word >> 13) & 0xff}]
+  set page0_0021 [expr {($word >> 5) & 0xff}]
+  set device_ready [expr {($word >> 13) & 0xff}]
   set current_page [expr {($word >> 21) & 0xff}]
-  puts [format "DCO_I2C_READBACK state=%X done=%d page3_0039=%02X device_ready_00FE=%02X current_page=%02X raw=%016X" \
-        $state $done $page3 $finc $current_page $word]
+  puts [format "DCO_I2C_READBACK state=%X done=%d page0_0021=%02X device_ready_00FE=%02X current_page=%02X raw=%016X" \
+        $state $done $page0_0021 $device_ready $current_page $word]
 }
 
 puts [format "DCO_DIAG_CONFIG gap_ms=%d" $gap_ms]

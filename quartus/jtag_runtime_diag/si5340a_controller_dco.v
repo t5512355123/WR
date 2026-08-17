@@ -39,7 +39,7 @@ wire       user_start_rise;
 wire       i2c_system_clk;
 wire       system_start;
 
-reg [3:0]  rt_state;
+reg [2:0]  rt_state;
 reg        rt_dir;
 reg        rt_select_dpll;
 reg        rt_seen_busy;
@@ -57,27 +57,23 @@ reg        runtime_start_hold;
 reg [63:0] dco_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
-wire       runtime_bus_enable = (rt_state != 4'd0);
-// The static table leaves the SI5340 on page 0x0B.  N_FSTEP_MSK is
-// page-3 register 0x39, while FINC/FDEC is page-0 register 0x1D.
-// Select each page explicitly so the runtime command reaches the
-// intended frequency-step mask rather than page-0 register 0x39.
+wire       runtime_bus_enable = (rt_state != 3'd0);
+// Keep the corrected-SOF three-write runtime sequence as the A/B baseline.
+// This experiment changes only the request handshake below.
 wire [7:0] runtime_byte_addr =
-  (rt_state == 4'd1 || rt_state == 4'd2) ? 8'h01 :
-  (rt_state == 4'd3 || rt_state == 4'd4) ? 8'h39 :
-  (rt_state == 4'd5 || rt_state == 4'd6) ? 8'h01 : 8'h1D;
+  (rt_state == 3'd1 || rt_state == 3'd2) ? 8'h01 :
+  (rt_state == 3'd3 || rt_state == 3'd4) ? 8'h39 : 8'h1D;
 // Register 0x0339 uses zero to enable a divider and one to mask it.
 // DPLL drives N0; HPLL/DMTD drives N1.  Keep the other N dividers masked.
 wire [7:0] runtime_byte_data =
-  (rt_state == 4'd1 || rt_state == 4'd2) ? 8'h03 :
-  (rt_state == 4'd3 || rt_state == 4'd4) ?
+  (rt_state == 3'd1 || rt_state == 3'd2) ? 8'h00 :
+  (rt_state == 3'd3 || rt_state == 3'd4) ?
     (rt_select_dpll ? 8'h0E : 8'h0D) :
-  (rt_state == 4'd5 || rt_state == 4'd6) ? 8'h00 :
   // SI5340 FINC is bit 0 and FDEC is bit 1.  A larger WR DAC code is
   // treated as a request for FINC; this direction is verified on hardware.
   (rt_dir ? 8'h01 : 8'h02);
-wire       runtime_start = ((rt_state == 4'd1 || rt_state == 4'd3 ||
-                             rt_state == 4'd5 || rt_state == 4'd7) &&
+wire       runtime_start = ((rt_state == 3'd1 || rt_state == 3'd3 ||
+                              rt_state == 3'd5) &&
                             !bus_state && static_controller_ready);
 
 wire       static_bus_enable = system_start || !static_controller_ready || bus_state;
@@ -91,7 +87,7 @@ wire [7:0] bus_byte_data = runtime_bus_enable ? runtime_byte_data : static_byte_
 wire       bus_wr_cmd = runtime_bus_enable ? 1'b1 : static_wr_cmd;
 
 assign oPLL_REG_CONFIG_DONE = static_controller_ready;
-assign oDCO_BUSY = (rt_state != 4'd0);
+assign oDCO_BUSY = (rt_state != 3'd0);
 assign oDCO_ERROR = dco_error;
 assign oDCO_STEP_COUNT = dco_step_count;
 assign oPLL_I2C_ID_READ_ERROR = 1'b0;
@@ -189,12 +185,11 @@ i2c_bus_controller_dco u_i2c_bus(
   .oCONFIG_DONE(bus_done)
 );
 
-// Serialize each WR DAC update as four I2C writes:
-// select page 3, select the N0/N1 divider mask, select page 0,
-// then issue FINC/FDEC.
+// Serialize each WR DAC update as three I2C writes:
+// select page 0, select the N0/N1 divider mask, then issue FINC/FDEC.
 always @(posedge iCLK or negedge iRST_n) begin
   if (!iRST_n) begin
-    rt_state         <= 4'd0;
+    rt_state         <= 3'd0;
     rt_dir           <= 1'b0;
     rt_select_dpll   <= 1'b0;
     rt_seen_busy     <= 1'b0;
@@ -233,70 +228,58 @@ always @(posedge iCLK or negedge iRST_n) begin
     end
 
     case (rt_state)
-      4'd0: begin
+      3'd0: begin
         rt_seen_busy <= 1'b0;
         if (static_controller_ready && dpll_pending) begin
-          rt_state <= 4'd1;
+          rt_state <= 3'd1;
           rt_select_dpll <= 1'b1;
           rt_dir <= dpll_dir;
           dpll_pending <= 1'b0;
         end else if (static_controller_ready && hpll_pending) begin
-          rt_state <= 4'd1;
+          rt_state <= 3'd1;
           rt_select_dpll <= 1'b0;
           rt_dir <= hpll_dir;
           hpll_pending <= 1'b0;
         end
       end
-      4'd1: begin
+      3'd1: begin
         if (runtime_start)
-          rt_state <= 4'd2;
+          rt_state <= 3'd2;
       end
-      4'd2: begin
+      3'd2: begin
         if (bus_state)
           rt_seen_busy <= 1'b1;
         else if (rt_seen_busy) begin
-          rt_state <= 4'd3;
+          rt_state <= 3'd3;
           rt_seen_busy <= 1'b0;
         end
       end
-      4'd3: begin
+      3'd3: begin
         if (runtime_start)
-          rt_state <= 4'd4;
+          rt_state <= 3'd4;
       end
-      4'd4: begin
+      3'd4: begin
         if (bus_state)
           rt_seen_busy <= 1'b1;
         else if (rt_seen_busy) begin
-          rt_state <= 4'd5;
+          rt_state <= 3'd5;
           rt_seen_busy <= 1'b0;
         end
       end
-      4'd5: begin
+      3'd5: begin
         if (runtime_start)
-          rt_state <= 4'd6;
+          rt_state <= 3'd6;
       end
-      4'd6: begin
+      3'd6: begin
         if (bus_state)
           rt_seen_busy <= 1'b1;
         else if (rt_seen_busy) begin
-          rt_state <= 4'd7;
-          rt_seen_busy <= 1'b0;
-        end
-      end
-      4'd7: begin
-        if (runtime_start)
-          rt_state <= 4'd8;
-      end
-      4'd8: begin
-        if (bus_state)
-          rt_seen_busy <= 1'b1;
-        else if (rt_seen_busy) begin
-          rt_state <= 4'd0;
+          rt_state <= 3'd0;
           rt_seen_busy <= 1'b0;
           dco_step_count <= dco_step_count + 1'b1;
         end
       end
-      default: rt_state <= 4'd0;
+      default: rt_state <= 3'd0;
     endcase
   end
 end

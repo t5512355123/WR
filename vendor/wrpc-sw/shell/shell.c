@@ -27,6 +27,11 @@
 #include "storage.h"
 #include "lib/syslog.h"
 
+#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+/* The existing JTAG CPU marker is sticky after task initialization. */
+extern volatile uint32_t debug_boot_stage;
+#endif
+
 /* interactive shell state definitions */
 
 #define SHELL_MAX_COMMANDS 40
@@ -368,6 +373,10 @@ void shell_boot_script(void)
 	#ifndef CONFIG_FORCE_MASTER_AFTER_INIT
 	int next = 0;
 	#endif
+	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	unsigned int init_index = 0;
+	int first_error = 0;
+	#endif
 
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {
@@ -376,7 +385,18 @@ void shell_boot_script(void)
 		if (!cmd_len)
 			break;
 		pp_printf("executing: %s\n", cmd_buf);
-		shell_exec(cmd_buf);
+		{
+			int rv = shell_exec(cmd_buf);
+#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+			init_index++;
+			if (rv < 0 && first_error == 0)
+				first_error = rv;
+			/* B1xx: command count reached; low 16 bits keep first error. */
+			debug_boot_stage = 0xB1000000U |
+				((init_index & 0xffU) << 16) |
+				((unsigned int)first_error & 0xffffU);
+#endif
+		}
 	}
 #endif
 

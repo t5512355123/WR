@@ -65,8 +65,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDCO_BUSY             : out   std_logic;
       oDCO_ERROR            : out   std_logic;
       oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0);
-      oDCO_DEBUG            : out   std_logic_vector(63 downto 0);
-      oDCO_READBACK         : out   std_logic_vector(63 downto 0)
+      oDCO_DEBUG            : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -202,7 +201,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal dco_probe            : std_logic_vector(63 downto 0);
-  signal dco_state_probe      : std_logic_vector(63 downto 0);
+  signal dco_debug            : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -249,8 +248,6 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_busy              : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
-  signal dco_debug              : std_logic_vector(63 downto 0);
-  signal dco_readback           : std_logic_vector(63 downto 0);
 
   signal reconfig_read        : std_logic_vector(0 downto 0) := (others => '0');
   signal reconfig_write       : std_logic_vector(0 downto 0) := (others => '0');
@@ -464,19 +461,6 @@ begin
   sync_probe(59 downto 56) <= std_logic_vector(dac_dpll_count(3 downto 0));
   sync_probe(63 downto 60) <= std_logic_vector(dac_hpll_count(3 downto 0));
 
-  -- 唯讀 DCO/SoftPLL actuation probe。用來區分「SoftPLL 沒有產生
-  -- 調整」與「調整已產生但 SI5340 沒有完成 I2C transaction」。
-  dco_probe(15 downto 0)  <= dco_step_count;
-  dco_probe(16)           <= dco_busy;
-  dco_probe(17)           <= dco_error;
-  dco_probe(18)           <= si_config_done;
-  dco_probe(19)           <= dac_hpll_load;
-  dco_probe(31 downto 20) <= std_logic_vector(dac_hpll_count);
-  dco_probe(32)           <= dac_dpll_load;
-  dco_probe(43 downto 33) <= std_logic_vector(dac_dpll_count(10 downto 0));
-  dco_probe(63 downto 44) <= (others => '0');
-  dco_state_probe <= dco_debug;
-
   u_wr_sync_probe : altsource_probe
     generic map (
       instance_id             => "WR_SYNC_SLAVE",
@@ -507,9 +491,13 @@ begin
       source_ena => '1'
     );
 
+  -- 唯讀 DCO probe。只觀察 clean-9f controller 的 request、I2C state、
+  -- step count 與輸入資料，不參與 WR、SoftPLL 或 SI5340 控制。
+  dco_probe <= dco_debug;
+
   u_dco_probe : altsource_probe
     generic map (
-      instance_id             => "WR_DCO_ACTIVITY_SLAVE",
+      instance_id             => "WR_DCO_ACTIVITY_CLEAN9F_SLAVE",
       probe_width             => 64,
       sld_auto_instance_index => "NO",
       sld_instance_index      => 8,
@@ -517,36 +505,6 @@ begin
     )
     port map (
       probe      => dco_probe,
-      source     => open,
-      source_clk => CLK_50_B2J,
-      source_ena => '1'
-    );
-
-  u_dco_state_probe : altsource_probe
-    generic map (
-      instance_id             => "WR_DCO_STATE_SLAVE",
-      probe_width             => 64,
-      sld_auto_instance_index => "NO",
-      sld_instance_index      => 9,
-      source_width            => 1
-    )
-    port map (
-      probe      => dco_state_probe,
-      source     => open,
-      source_clk => CLK_50_B2J,
-      source_ena => '1'
-    );
-
-  u_dco_readback_probe : altsource_probe
-    generic map (
-      instance_id             => "WR_DCO_READBACK_SLAVE",
-      probe_width             => 64,
-      sld_auto_instance_index => "NO",
-      sld_instance_index      => 10,
-      source_width            => 1
-    )
-    port map (
-      probe      => dco_readback,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
@@ -681,8 +639,7 @@ begin
       oDCO_BUSY              => dco_busy,
       oDCO_ERROR             => dco_error,
       oDCO_STEP_COUNT        => dco_step_count,
-      oDCO_DEBUG             => dco_debug,
-      oDCO_READBACK          => dco_readback
+      oDCO_DEBUG             => dco_debug
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver
@@ -758,7 +715,7 @@ begin
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
       g_pcs_16bit                 => false,
-      -- Slave 恢復已知基線的 reverse DDMTD 取樣方向；Master 不變。
+      -- 本實驗唯一變因：讓 DDMTD offset clock 由 RX clock 取樣。
       g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )

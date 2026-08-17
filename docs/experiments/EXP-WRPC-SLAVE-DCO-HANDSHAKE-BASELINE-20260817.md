@@ -23,7 +23,19 @@ Master 已在相同 DCO handshake restore 版本恢復 `MODE=2/status=FF`。本�
 
 ## Build provenance
 
-待 Quartus 17 compile 完成後補入 MIF/SOF/QSF/SDC hash、timing 與 compile log hash。
+- Quartus：`Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition`
+- Project/top-level：`DE5a_wr_slave_jtag`
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Slave MIF SHA-256：`f24527afe0e7bdb5b5bd103263fb87436e317c916186fa91e933ceef05b8e8a4`
+- Slave SOF SHA-256：`fd9db251d8c81b4ef65ffed547f52bed4ebeb5fe6946ee5aaae94dd7567f5dff`
+- Fitter：`Successful`
+- Compile：`Full Compilation was successful`
+- Timing closed：`NO`
+- Worst setup/hold slack：`-0.195 ns / -3.503 ns`
+- Unconstrained clocks/inputs/outputs：`3 / 471 / 82`
+- Compile log：`/home/b10504072/04_WR/build/quartus_jtag_slave_compile.log`
+- Compile log SHA-256：`eb3905e482893c8c38ff5868ce2d4ced7e16210939d61ecd3119a11142133749`
 
 ## 燒錄結果
 

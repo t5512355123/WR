@@ -72,6 +72,12 @@ proc read_min_sample {board sample} {
   set foreign_meta [wb_read 0x00100978]
   set parse_meta [wb_read 0x00100980]
   set spll_state [wb_read 0x001009A0]
+  set spll_ocer [wb_read 0x001009A4]
+  set spll_rcer [wb_read 0x001009A8]
+  set spll_occr [wb_read 0x001009AC]
+  set spll_trr_csr [wb_read 0x001009B0]
+  set spll_eic_imr [wb_read 0x001009F0]
+  set spll_eic_isr [wb_read 0x001009F4]
   set ref_count [wb_read 0x001009D0]
   set tag_count [wb_read 0x001009D4]
   set helper_error [wb_read 0x001009D8]
@@ -82,10 +88,11 @@ proc read_min_sample {board sample} {
 
   scan $ptp_meta %x ptp_meta_word
   set mode [expr {(($ptp_meta_word >> 24) & 0xff)}]
-  puts [format "MIN_SAMPLE board=%s sample=%03d status=%02X marker=%08X seen=%d fault=%d im_valid=%d MODE=%d PTP=%s PTP_RX=%s PTP_TX=%s SSTAT=%s PSTAT=%s FOREIGN=%s PARSE=%s SPLL_STATE=%s REF=%s TAG=%s TAG_SOURCE=%s TAG_VALID=%s TRR_WRITE=%s IRQ=%s HELPER_ERROR=%s" \
+  puts [format "MIN_SAMPLE board=%s sample=%03d status=%02X marker=%08X seen=%d fault=%d im_valid=%d MODE=%d PTP=%s PTP_RX=%s PTP_TX=%s SSTAT=%s PSTAT=%s FOREIGN=%s PARSE=%s SPLL_STATE=%s OCER=%s RCER=%s OCCR=%s TRR_CSR=%s EIC_IMR=%s EIC_ISR=%s REF=%s TAG=%s TAG_SOURCE=%s TAG_VALID=%s TRR_WRITE=%s IRQ=%s HELPER_ERROR=%s" \
         $board $sample $status_low $marker $marker_seen $cpu_fault $im_valid \
         $mode $ptp $ptp_rx $ptp_tx $sstat $pstat $foreign_meta $parse_meta \
-        $spll_state $ref_count $tag_count $tag_source $tag_valid $trr_write \
+        $spll_state $spll_ocer $spll_rcer $spll_occr $spll_trr_csr \
+        $spll_eic_imr $spll_eic_isr $ref_count $tag_count $tag_source $tag_valid $trr_write \
         $irq_count $helper_error]
   flush stdout
 }

@@ -56,7 +56,19 @@ bus_done=0
 
 ## 燒錄結果
 
-尚未燒錄。下一步只把 `1211ff...` SOF 燒入 Slave cable `DE5 [1-11.2]`；Master 不動。
+- 燒錄時間：2026-08-18 05:00:32 至 05:00:50（Asia/Taipei）
+- Programmer：Quartus Prime 17.0 Build 595
+- JTAG cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- 使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- SOF SHA-256：`1211ff4d145224a865fc05aac06e49ea61f15355593f868bac06b3ec974ca978`
+- Programmer checksum：`0x30A22D41`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer：successful，0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-STRETCH-20260818/program_slave_start_hold.log`
+- Programmer log SHA-256：`3f397dc3cdf445c50493b6ef3ad4f3a0059a623bc823e44ffe2cb627f293d00a`
+
+這只證明 start-hold SOF 已成功載入；Slave runtime 與兩片同步仍待觀測。
 
 ## JTAG/runtime 原始結果
 

@@ -65,7 +65,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDCO_BUSY             : out   std_logic;
       oDCO_ERROR            : out   std_logic;
       oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0);
-      oDCO_DEBUG            : out   std_logic_vector(63 downto 0)
+      oDCO_DEBUG            : out   std_logic_vector(63 downto 0);
+      oDCO_READBACK         : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -249,6 +250,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
   signal dco_debug              : std_logic_vector(63 downto 0);
+  signal dco_readback           : std_logic_vector(63 downto 0);
 
   signal reconfig_read        : std_logic_vector(0 downto 0) := (others => '0');
   signal reconfig_write       : std_logic_vector(0 downto 0) := (others => '0');
@@ -535,6 +537,21 @@ begin
       source_ena => '1'
     );
 
+  u_dco_readback_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_READBACK_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 10,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_readback,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -664,7 +681,8 @@ begin
       oDCO_BUSY              => dco_busy,
       oDCO_ERROR             => dco_error,
       oDCO_STEP_COUNT        => dco_step_count,
-      oDCO_DEBUG             => dco_debug
+      oDCO_DEBUG             => dco_debug,
+      oDCO_READBACK          => dco_readback
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

@@ -40,7 +40,16 @@
 
 ## 燒錄結果
 
-待使用上述 SOF 燒錄 Slave 後立即補上 programmer 原始 log、JTAG ID、checksum 與結果。
+- 燒錄時間：2026-08-18 06:04:22 開始，06:04:25 執行，06:04:40 完成（pain terminal）。
+- Programmer：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm`，版本 17.0 Build 595。
+- Programmer cable：`DE5 [1-11.2]`。
+- JTAG ID：`0x02E660DD`。
+- 使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`。
+- SOF SHA-256：`60c04349cc76da8668c8c373541d031b82bdfab27197165ba7784278f5e7258b`。
+- Programmer checksum：`0x30A04DFA`。
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-HELPER-DCO-CORRELATION-CORRECT-20260818/program_slave_correct_dco.log`。
+- Programmer log SHA-256：`b346f2a2d0c9f37083f5453261bb782fdc8df647aaebcae81ec76d89020a3169`。
+- 結果：configuration succeeded，1 device configured，Quartus Programmer 回報 0 errors、0 warnings。
 
 ## JTAG/runtime 原始結果
 

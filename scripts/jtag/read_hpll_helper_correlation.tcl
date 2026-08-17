@@ -82,6 +82,18 @@ proc read_correlation_sample {hardware_name sample} {
   set helper_output [wb_read 0x001009DC]
   set pstat [wb_read 0x0010090C]
   set sstat [wb_read 0x00100908]
+  set lock_polls [wb_read 0x00100990]
+  set lock_enable [wb_read 0x0010099C]
+  set spll_state [wb_read 0x001009A0]
+  set spll_rcer [wb_read 0x001009A8]
+  set spll_trr_csr [wb_read 0x001009B0]
+  set spll_ref_count [wb_read 0x001009D0]
+  set spll_tag_count [wb_read 0x001009D4]
+  set spll_irq_count [wb_read 0x001009EC]
+  set spll_tag_valid_count [wb_read 0x001009F8]
+  set spll_trr_write_count [wb_read 0x001009FC]
+  set spll_tag_source_count [wb_read 0x0010028C]
+  set ucnt [wb_read 0x00100948]
 
   scan $status %x status_word
   scan $dco_debug %x dco_word
@@ -108,8 +120,10 @@ proc read_correlation_sample {hardware_name sample} {
     }
   }
 
-  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s SPLL_STATE=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
-        $hardware_name $sample $status $pstat $sstat $spll_state $dco_debug \
+  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s UCNT=%s LOCK_POLLS=%s LOCK_ENABLE=%s SPLL_STATE=%s RCER=%s TRR_CSR=%s REF=%s TAG=%s IRQ=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
+        $hardware_name $sample $status $pstat $sstat $ucnt $lock_polls $lock_enable \
+        $spll_state $spll_rcer $spll_trr_csr $spll_ref_count $spll_tag_count \
+        $spll_irq_count $spll_tag_valid_count $spll_trr_write_count $spll_tag_source_count $dco_debug \
         $step $step_delta $step_event $hpll_load $dco_busy \
         $dco_error $helper_state $helper_error $helper_signed $error_delta \
         [format %08X [expr {$output_word & 0xffffffff}]]]

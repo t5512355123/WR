@@ -85,6 +85,8 @@ compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即
 - Slave 60 秒主要診斷欄位：`WDIAGS_SSTAT=0`、`WDIAGS_PSTAT=1`、`WDIAGS_UCNT=0`、`spll_locked=0`；這表示尚未觀察到 servo state 前進、SoftPLL lock 或 update counter 活動。
 - DCO correlation：60 筆中 `STEP=10` 共 17 筆、`STEP=12` 共 23 筆、`STEP=14` 共 20 筆；全程 `BUSY=0`、`ERROR=0`，最後 `STEP=14`，`HELPER_ERROR=0`、`HELPER_OUTPUT=0`（以該診斷 probe 的定義為準）。
 - 另一次執行 `read_dco_state.tcl` 的結果是兩片板都回報 `No In-System Sources and Probes instance was found`；該腳本讀取不存在的 instance 9，因此判定為腳本/instance 編號不匹配，不列為硬體失敗證據。
+- 修正 instance 8 後重新執行 `read_dco_state.tcl 1000`：Slave 成功讀到 `A=B=00A8000000D00320`，解碼為 `rt_state=0、bus_state=0、bus_done=0、ready=1、busy=0、steps=13、hold=0`；Master 沒有 DCO probe，故回報無 instance 是預期結果。固定腳本 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/dco_state_readonly_fixed.log`，SHA-256：`78FD788BDE03D221D629234C422AF8A186275B96D1A2F2C1D708E778ABCDD78E`。
+- 同一 SOF 重新燒錄後的 20 samples/1 s 雙板 session：Master `20/20 accepted`；Slave `16/20 accepted、4/20 retry-limit rejected`。Slave accepted frame 仍主要為 `status=EF、link_up=1、pps_valid=1、time_valid=0、wr_mode=3、PSTAT=1、SSTAT=0、UCNT=0、spll_locked=0`；沒有觀察到 servo state 或 SoftPLL lock 前進。原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/runtime_after_repeat_20samples.log`，SHA-256：`07F05A8A2F57818D2E0C2326735522CE08D3EDED1EDB98FC0E36AD97694673F1`。
 
 ## Observation
 
@@ -100,4 +102,4 @@ Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`p
 
 ## Next Step
 
-下一輪仍只做 Slave 唯讀觀測，不修改 Master role：修正觀測腳本使用 instance 8，將 `DCO_DEBUG` 的 `bus_start/bus_state/bus_done/runtime_start_hold/rt_state/STEP` 與同一時間窗的 `SSTAT/PSTAT/UCNT/WR_SPLL_ACTIVITY/WR_SPLL_EVENTS` 對齊。若確認 transaction 已完成而 feedback/servo 訊號仍完全沒有活動，再依證據進入 feedback/DMTD signal mapping 檢查；不要先改 FINC/FDEC 或 lock detector。
+下一輪仍只做 Slave 單一變因，不修改 Master role：先依 White Rabbit 討論結果決定是否只將 `g_softpll_reverse_dmtds` 從 `true` 改回 `false`，用來驗證 DDMTD 取樣方向；若採用此變因，其他 DCO FSM、FINC/FDEC、PI、threshold、lock detector、PHY、PTP 與 MIF 全部保持不變。成功判準不是只看 link up，而是 Slave 能在有效 frame 中達到 `time_valid=1、pps_valid=1、PSTAT.locked=1、SSTAT` 前進且 `UCNT` 持續增加。若不採用 generic 變更，則維持目前 SOF，先擴充同一 instance 8 的 DCO/servo 唯讀 correlation。

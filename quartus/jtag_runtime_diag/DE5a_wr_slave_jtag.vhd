@@ -199,6 +199,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_mepc              : std_logic_vector(31 downto 0);
   signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
+  signal dco_probe            : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -458,6 +459,18 @@ begin
   sync_probe(59 downto 56) <= std_logic_vector(dac_dpll_count(3 downto 0));
   sync_probe(63 downto 60) <= std_logic_vector(dac_hpll_count(3 downto 0));
 
+  -- 唯讀 DCO/SoftPLL actuation probe。用來區分「SoftPLL 沒有產生
+  -- 調整」與「調整已產生但 SI5340 沒有完成 I2C transaction」。
+  dco_probe(15 downto 0)  <= dco_step_count;
+  dco_probe(16)           <= dco_busy;
+  dco_probe(17)           <= dco_error;
+  dco_probe(18)           <= si_config_done;
+  dco_probe(19)           <= dac_hpll_load;
+  dco_probe(31 downto 20) <= std_logic_vector(dac_hpll_count);
+  dco_probe(32)           <= dac_dpll_load;
+  dco_probe(43 downto 33) <= std_logic_vector(dac_dpll_count(10 downto 0));
+  dco_probe(63 downto 44) <= (others => '0');
+
   u_wr_sync_probe : altsource_probe
     generic map (
       instance_id             => "WR_SYNC_SLAVE",
@@ -483,6 +496,21 @@ begin
     )
     port map (
       probe      => clock_activity_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dco_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_ACTIVITY_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 8,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'

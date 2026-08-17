@@ -56,7 +56,19 @@ page 0 step  : 0x001D = FINC/FDEC
 
 ## 燒錄結果
 
-本節待完成。燒錄後立即記錄 programmer 原始輸出、JTAG cable、JTAG ID、programmer checksum、SOF hash 與 log hash。
+- 燒錄時間：2026-08-18 05:23:48 至 05:24:06（pain terminal 時間）
+- Programmer：Quartus Prime 17.0 Build 595
+- JTAG cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- 使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- SOF SHA-256：`1e315904af9033f52551a68844a4fd274a8506f13523c10cc0b3fd570c0d494b`
+- Programmer checksum：`0x30A4F803`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer：successful，0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-PAGE3-SEQUENCE-RESTORE-20260818/program_slave_page3.log`
+- Programmer log SHA-256：`98332239178f3d5b2efe2319f2602174d7f846b2bafc3ab96947aa6cd672d328`
+
+這證明 page3 sequence SOF 已成功載入 Slave；尚未證明 runtime 或時間同步成功。
 
 ## JTAG/runtime 原始結果
 

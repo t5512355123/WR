@@ -36,7 +36,19 @@
 
 ## 燒錄結果
 
-本節待完成。燒錄後立即記錄 programmer 原始輸出、JTAG cable、JTAG ID、checksum、SOF hash 與 log hash。
+- 燒錄時間：2026-08-18 05:29:02 至 05:29:21（pain terminal 時間）
+- Programmer：Quartus Prime 17.0 Build 595
+- JTAG cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- 使用 SOF：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/slave.sof`
+- SOF SHA-256：`6a4357519c2c7996d28bbc2ade098ba8ab58b1f336c48953737932cf168bb225`
+- Programmer checksum：`0x30A3C175`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer：successful，0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-RESTORE-DCO-OBS-HANDOFF-20260818/program_slave_restore_dco_obs.log`
+- Programmer log SHA-256：`f46307a14ada6d7cb5bf162efc943045e48e793c1bffe5db2d355cc6450d7cff`
+
+這證明歷史 positive-control Slave SOF 已成功載入；尚未證明 runtime handoff 或兩片同步成功。
 
 ## JTAG/runtime 原始結果
 

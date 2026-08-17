@@ -60,29 +60,43 @@ SI5340 官方手冊指出，`0x0339` 的 bit 0/1 分別對應 N0/N1，0 表示�
 
 ## JTAG/runtime 原始結果
 
-待保存以下 pain artifact：
+本輪 pain artifact 已保存：
 
 - `build/artifacts/EXP-WRPC-SI5340-DPLL-RESTORE-20260817/dco_diag.log`
 - `build/artifacts/EXP-WRPC-SI5340-DPLL-RESTORE-20260817/runtime_60s.log`
 - `build/artifacts/EXP-WRPC-SI5340-DPLL-RESTORE-20260817/runtime_postcheck.log`
+- `build/artifacts/EXP-WRPC-SI5340-DPLL-RESTORE-20260817/dco_diag_after.log`
 
-必須記錄：
+原始結果與雜湊：
 
-- DPLL/HPLL source、destination、accepted、done
-- `dpll_pending`、`hpll_pending`、`rt_state`、`select_dpll`
-- I2C transactions/errors 與 readback
-- Master/Slave 60 秒 accepted/rejected
-- Slave `SSTAT`、`PSTAT.locked`、`spll_locked`、`time_valid`、`pps_valid`
-- `UCNT`、`CKO`、`SETP`、parent metadata 與 PTP activity
+- `dco_diag.log` SHA-256：`7ed49d8d7376a73f6bb55c75ca10c376c429db15adc21caf31209d2feba3049b`
+- `runtime_60s.log` SHA-256：`71b8b498f0b64241fda322335925b4d0a0da0ebbdb253c552142f9a126e20a0b`
+- `runtime_postcheck.log` SHA-256：`634b4b8419b7f9ebd4b0dfb790b68d0e911c614b4c2971625af9c2fe3f091cf5`
+- `dco_diag_after.log` SHA-256：`9eba2af48dc6b3aa5ae21ace73526529d292e64e0201acc93f62bdf3d1e24cb9`
+
+主要原始結果：
+
+- 60 秒 session：Master `60/60 accepted、0 rejected`；Slave `58/60 accepted、2 rejected`；`SESSION_TIME_SERIES_DONE` 存在。
+- Master 在 session 前段曾讀到 `status_low=FF、time_valid=1、pps_valid=1、link_up=1`；post-check 讀到 `status_low=F3、time_valid=1、pps_valid=1、link_up=0`。
+- Slave 讀到 `status_low=E3、time_valid=0、pps_valid=1、wr_mode=3、link_up=0、spll_locked=0`；`WDIAGS_PSTAT=0`、`WDIAGS_SSTAT=0`、`WDIAGS_PTP_RX=0`。
+- DCO 診斷開始/結束均顯示 DPLL 與 HPLL transaction 有活動；post-burn after snapshot 為 DPLL `accepted=0x0017、done=0x000C`、HPLL `accepted=0x0024、done=0x0018`。
+- DCO I2C `errors=0`，readback `page0_0021=0x0F、device_ready_00FE=0x0F`。
+- `dpll_pending=0、hpll_pending=0、rt_state=0、static_ready=1`；這表示本輪的 pending request 有被服務，但不代表輸出時鐘已對 WR clock tree 產生正確效果。
 
 ## Observation
 
-燒錄後的 DCO/runtime 觀測待執行。若 DPLL counter 增加但 `PSTAT.locked` 仍為 0，必須明確記錄為「transaction 執行，但 servo lock 未成立」。
+本輪確認 DPLL runtime transaction 確實執行，且 I2C ACK/readback 沒有錯誤；但是 DPLL restore 版本沒有讓 Slave 進入 servo lock。除了 Slave 一直沒有 parent/PTP RX/link，Master 在 post-check 也從 session 前段的 `link_up=1` 變成 `link_up=0`。因此本輪出現「鏈路穩定性下降」的證據，不能把它解讀成單純的 lock 尚未完成。
+
+需要保留的證據界線：
+
+- 已證明：DPLL/HPLL runtime transaction 有被接受並完成部分 transaction；I2C error counter 為 0；DEVICE_READY/readback 值可讀。
+- 尚未證明：DPLL/N0 的 SI5340 輸出真的連到正確的 WR clock input，也尚未證明其輸出頻率/相位調整方向正確。
+- 已觀察到：Slave `PTP_RX=0、link_up=0`，以及 Master post-check `link_up=0`；這是本輪 bitstream/runtime 的失敗證據。
 
 ## Conclusion
 
-待燒錄與 JTAG 原始資料完成後填寫。只有在 Slave `PSTAT.locked=1`、`time_valid=1`、`pps_valid=1`，並於長時間取樣中穩定維持，才可宣稱兩張 DE5a 完成 WR 時間同步。
+本輪失敗。DPLL restore 確實讓 DPLL transaction 開始活動，但未完成 Slave WR synchronization；Slave 沒有 `PSTAT.locked=1`、`time_valid=1`，且 `PTP_RX=0/link_up=0`。Master post-check 亦為 `link_up=0`。因此目前最保守且由證據支持的結論是：**本變更尚未證明是缺少的 servo 校正路徑，反而引入了 WR/link clock 穩定性疑點。** 不能宣稱兩張 DE5a 已同步。
 
 ## Next Step
 
-若本輪仍未同步，保留 bitstream 與所有 artifact，依照實際證據只選一個下一個變因；不得同時修改 PHY、PTP、servo 與 SI5340。若本輪同步成功，使用同一 bitstream 做至少 60 秒以上的穩定性重測，再更新最終結論。
+保留本輪 bitstream 與所有 artifact，下一輪只做 A/B 回復：重新燒錄上一個已知可維持 `link_up=1` 的 `5a8fbf4`/`47ed3f9` 硬體版本到 Slave，不修改 Master、PHY、PTP 或 servo，確認鏈路是否恢復。若回復後鏈路恢復，才可把本輪的 DPLL restore 視為造成鏈路失效的高度可疑變因；若仍失效，則先查燒錄後初始化或板端狀態，不再繼續加 SI5340 runtime 功能。

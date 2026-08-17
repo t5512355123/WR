@@ -46,7 +46,8 @@ CONFIG_HAS_BUILD_INIT=1
 # The Master role is controlled by the built-in script above.  Do not execute
 # a persistent board-side init script that may contain a stale slave command.
 CONFIG_HAS_FLASH_INIT=0
-# CONFIG_FLASH_INIT is not set
+# Keep the init command linked; HAS_FLASH_INIT=0 disables its boot-time loop.
+CONFIG_FLASH_INIT=y
 CONFIG_GENSDBFS=y
 CONFIG_WR_DIAG=y
 # CONFIG_WR_NODE_SIM is not set

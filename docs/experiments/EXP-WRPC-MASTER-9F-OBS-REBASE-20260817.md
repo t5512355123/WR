@@ -53,20 +53,65 @@ vlan off;ptp stop;mode master;ptp start
 
 ## 燒錄結果
 
-待燒錄後立即補入 programmer 原始輸出、時間、cable、JTAG ID、SOF checksum、結果與 log hash。
+Master 使用 cable `DE5 [1-11.1]`，時間 18:00:53--18:01:12：
+
+```text
+Using programming cable "DE5 [1-11.1]"
+Using programming file .../DE5a_wr_master_jtag.sof with checksum 0x30A21D29
+Device 1 contains JTAG ID code 0x02E660DD
+Configuration succeeded -- 1 device(s) configured
+Successfully performed operation(s)
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+- Programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-OBS-REBASE-20260817/program_master.log`
+- Programmer log SHA-256：`246789cda1ae416979738445d44ddefa1646bfd259ad50c3602b0d7aed304577`
 
 ## JTAG/runtime 原始結果
 
-待燒錄後以同一 read-only JTAG session 讀取 status、marker/fault、WDIAGS_MODE/PTP、PTP RX/TX 與 clock activity probe。
+### Clock activity probe
+
+原始輸出：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-OBS-REBASE-20260817/clock_activity.log`
+
+Master `DE5 [1-11.1]`：
+
+```text
+CLOCK_ACTIVITY label=BEGIN raw=F6E9D0BE7D6C829F REF=33439 DMTD=32108 RX=53438 TOGGLE=1/0/0 PHY_READY=1 RX_LOCK_REF=0 RX_LOCK_DATA=1 SYS625_LOCKED=1 CORE_RESET_N=1 PHY_RST=0 SI_DONE=1 PPS_VALID=1 TIME_VALID=0 RX_READY=1 TX_READY=1 LINK_UP=1 LINK_OK=1
+CLOCK_ACTIVITY label=END   raw=F6EA49E2F671FBC4 REF=64452 DMTD=63089 RX=18914 TOGGLE=0/1/0 PHY_READY=1 RX_LOCK_REF=0 RX_LOCK_DATA=1 SYS625_LOCKED=1 CORE_RESET_N=1 PHY_RST=0 SI_DONE=1 PPS_VALID=1 TIME_VALID=0 RX_READY=1 TX_READY=1 LINK_UP=1 LINK_OK=1
+```
+
+這證明燒錄後 clock、PHY、reset、link 與 PPS activity 都存在，但 `TIME_VALID` 當下為 0。
+
+### 10 秒 read-only runtime session
+
+原始輸出：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-OBS-REBASE-20260817/runtime_10s.log`
+
+在 `DE5 [1-11.1]` 的有效 frame 中，代表性結果為：
+
+```text
+WDIAGS_PTP_RX:0000002D WDIAGS_PTP_TX:00000021 WDIAGS_PTP_META:03010204
+DECODE: status_low=EF time_valid=0 pps_valid=1 wr_mode=3 link_up=1 spll_locked=0
+WR_LOCK: result=0 spll_locked=0 polls=0 unlocked=0 calibration_fail=0 enable=0
+```
+
+後續有效 frame 的 `WDIAGS_PTP_RX/TX` 有增加，`WDIAGS_PTP_META` 也曾出現 `03020404` 與 `03020406`，但 `wr_mode` 仍解碼為 3，沒有達到 Master 判準 `status=FF / MODE=2 / PTP=6`。另一 cable `DE5 [1-11.2]` 同一 session 也讀到 `status=EF、wr_mode=3`，符合目前 Slave 未同步的狀態。
+
+這次 session 的部分 frame 為 `FRAME_VALID=0`，只把 `accepted=1` 的 frame 用於判讀；JTAG mailbox 取樣不完整的列不作為結論。
+
+- Clock activity log SHA-256：`11f88852f14d9860ff0e559f6171559945ac664c8d706b26ff73c904aaf2eec3`
+- Runtime log SHA-256：`d8041e4c944ff92bc89d793c07f299d306cb440f5fb4794c7035c460573a2969`
 
 ## Observation
 
-待補入實測結果。
+1. Quartus compile 與 programmer 都成功，但這次燒錄後 Master 判準沒有通過：`status=0xEF、MODE=3、PTP=4/6、time_valid=0`，不是預期的 `0xFF/2/6`。
+2. Master 的 clock activity 顯示 `PHY_READY=1、RX_LOCK_DATA=1、SYS625_LOCKED=1、CORE_RESET_N=1、SI_DONE=1、RX_READY=1、TX_READY=1、LINK_UP=1、LINK_OK=1`；因此目前證據支持 clock/PHY/link 已活著，但不支持 WR Master role 已正確生效。
+3. build tree 的 `auto.conf`、`autoconf.h` 與 source config 都仍是 `vlan off;ptp stop;mode master;ptp start`，MIF hash 也與歷史 9f baseline 相同；因此不能直接把問題寫成「source startup command 被改掉」。
+4. 目前仍未排除：歷史 SOF 與最新 observability SOF 的 A/B 差異、實際 MIF 嵌入/燒入內容、runtime 啟動後 role 被其他流程覆寫，以及 JTAG/board mapping 或 mailbox decode 問題。
 
 ## Conclusion
 
-待補入；只能根據實際燒錄與 JTAG 證據判斷，不能以 compile 成功代替 runtime 成功。
+本次實驗的 compile/program 部分成功，但 Master diagnostic baseline 失敗；不能宣稱 `9f848ec` Master role 已在這個最新 observability SOF 上重現，也不能據此宣稱兩台 DE5a 已同步。現有證據只支持「硬體 link/clock activity 正常，而 runtime role/status 不符合判準」，根因尚未確定。
 
 ## Next Step
 
-若 Master 判準全部通過，保存此 Master SOF/MIF/checksum 並固定 Master；後續只針對 Slave 做單一變因實驗。
+先不修改任何 Master role 或 firmware。使用歷史上已實際成功的 Master SOF `383c1c65ce7a08ba98358f8b52a5492d70b816d87c2071f0f254c7f5589f3b93` 做不改 source 的 A/B burn；若歷史 SOF 恢復 `status=FF、MODE=2、PTP=6`，再把差異收斂到最新 top-level observability/編譯映像；若歷史 SOF 也讀到 `MODE=3`，則優先查 runtime/board/JTAG mapping，而不是再改 role。

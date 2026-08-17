@@ -80,7 +80,26 @@ Slave 維持上一輪 bitstream，0/10/60 秒仍為 `WDIAGS_MODE=3`；`PTP_RX=0x
 
 ## 恢復動作
 
-為避免將板子留在 `B00B` boot hang 狀態，runtime log 保存後，將重新燒錄上一個已觀察過可正常進入 runtime 的 Master SOF（e36a8b3，SOF SHA-256 `74f0e9b27dfd6654913a11c3562f20ec75311fe82347c5ecf5708865311bede3`）。恢復燒錄結果會在本節補記，且不把恢復動作誤當成同步實驗成功。
+為避免將板子留在 `B00B` boot hang 狀態，runtime log 保存後，使用 Git detached worktree `e36a8b3` 重新 build/compile 已知可進入 runtime 的 Master baseline。這是恢復動作，不把它誤當成同步實驗成功。
+
+- restore worktree commit：`e36a8b3d2986e96436e6c229834f16640bd50a29`
+- restore firmware MIF SHA-256：`409ca7097696df2324a15c1cdd65e32f73766bc6c0a9f60a5b1feca5530ef4c6`
+- restore Quartus compile：`COMPILE_RC=0`
+- restore SOF SHA-256：`a2ff592aeb35bb78da66814c11787f9f8880f8a3b212fdf5469060259e3f974a`
+- restore burn time：2026-08-17 15:29:50 至 15:30:09（Asia/Taipei）
+- restore cable：`DE5 [1-11.1]`
+- restore device/JTAG ID：`10AX115N2F45@1` / `0x02E660DD`
+- restore SOF checksum：`0x30A31DBA`
+- restore result：`Configuration succeeded -- 1 device(s) configured`
+- restore Programmer：`0 errors, 0 warnings`
+
+restore 原始證據保存在：
+
+- `restore_build_master_firmware.log`
+- `restore_master_mif.sha256`
+- `restore_quartus_master_compile.log`
+- `restore_master_sof.sha256`
+- `restore_program_master.log`
 
 ## Conclusion
 
@@ -88,4 +107,4 @@ Slave 維持上一輪 bitstream，0/10/60 秒仍為 `WDIAGS_MODE=3`；`PTP_RX=0x
 
 ## Next Step
 
-完成本輪 read-only observation；若 Master 進入 mode 2，繼續以不改硬體的方式確認 Slave `PSTAT.locked`、parent flags、`time_valid=1`、`pps_valid=1` 並長時間穩定。若 Master 仍為 mode 3，保留本紀錄並回到 role 設定執行路徑的證據化診斷。
+先確認恢復版 Master 回到正常 runtime，再保留 `e36a8b3` 作為安全 baseline。下一個功能實驗不能直接重複本輪 early-init 敏感的 direct API 變更，應先以更小的、可觀測且不改變 firmware boot layout 的方式確認 shell init task 是否真的被排程執行。

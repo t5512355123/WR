@@ -430,3 +430,17 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 60 秒 session 完成：Master 60/60 accepted 且 `time_valid=1`；Slave 56/60 accepted、4/60 rejected，accepted frame 仍為 `link_up=1、SSTAT=1、PSTAT.locked=0、spll_locked=0、time_valid=0`。
 - 結論：sticky valid 提高了觀測 frame 接受率，但沒有完成 Slave synchronization，也沒有證明兩個 SI5340 readback 值為真實 register 內容。下一步只查 SDA sampling、shift 時序與 register semantics，不同時恢復 DPLL 或修改 WR 演算法。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-HANDSHAKE-20260817.md`。
+
+## 最新燒錄實驗：SI5340 DEVICE_READY 讀回驗證（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-DEVICE-READY-20260817`；branch：`exp/jtag-runtime-observability`。
+- source commit：`9f525db9c4ab290cc91bacd39bc545a51adb13d4`；實驗紀錄與結果補充 commit 另見 Git 歷史。
+- 相較 baseline 只把第二個 readback 位址由 self-clearing `0x001D FINC/FDEC` 改成 page-independent `0x00FE DEVICE_READY`，沒有改 PHY、PTP、servo 或 DCO write policy。
+- Quartus 17.0 Build 595 Full Compilation successful、0 errors；timing 尚未 closure，setup `-0.179 ns`、hold `-3.486 ns`。
+- Slave SOF SHA-256：`3da978ae4784d19fec3b170df11031827cfa8993481a14a74419eb2f08b877b5`；programmer checksum：`0x30A03673`；JTAG ID：`0x02E660DD`；configuration succeeded、0 errors/0 warnings。
+- readback：`device_ready_00FE=0x0F`、`page3_0039=0x00`、`state=5/done=1`；ACK `transactions=0x00EB、errors=0`。這證明基本 I2C readback 可取得 device-ready 值，但不證明 DCO output clock effect。
+- 60 秒唯讀 session 完成並有 `SESSION_TIME_SERIES_DONE`；Master `60/60 accepted` 且維持 `time_valid=1/pps_valid=1`；Slave `60/60 accepted`，但最後仍 `link_up=1、SSTAT=1、PSTAT.locked=0、spll_locked=0、time_valid=0、pps_valid=1`。
+- Slave 的 PTP、parent metadata、REF/TAG/UCNT activity 有增加，未見 `SSTAT=4/5` 或 `PSTAT.locked=1`。
+- 結論：I2C 完全讀不到的假設已被 `DEVICE_READY=0x0F` 排除；但 Slave servo/SoftPLL 到 `time_valid` 路徑仍未成功，尚不能宣稱兩板 WR 同步完成。
+- 原始 log：`build/artifacts/EXP-WRPC-SI5340-DEVICE-READY-20260817/dco_readback.log`、`runtime_60s.log`；runtime SHA-256：`d696f67b29b5855e6d6fed79bc930f58fb2b72d7712631acafb39578494097df`。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-DEVICE-READY-20260817.md`。

@@ -53,16 +53,22 @@
 
 ## JTAG/runtime 原始結果
 
-待燒錄後補上修正觀測腳本的 60 秒唯讀 correlation log、hash、有效樣本數與首尾值。
+- 觀測命令：`quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 60 500`。
+- 原始 correlation log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-HELPER-DCO-CORRELATION-CORRECT-20260818/hpll_helper_correlation_60s.log`。
+- correlation log SHA-256：`b5ec2f2f3c436b5d98130043b180244ce15016195bbec2b5e24fd0ed527d5329`。
+- Master：沒有 instance 8 DCO probe，腳本回報 probe 不存在；這是 Master frozen baseline 的預期介面差異，不是 Master programming failure。
+- Slave：60/60 筆 `HPLL_HELPER_SAMPLE` 成功讀取，Quartus SignalTap 腳本完成並回報 0 errors、0 warnings。
+- 首筆 Slave：`SSTAT=00000101`、`PSTAT=00000001`、`SPLL_STATE=00030004`、`DCO_DEBUG=FFB800000008A3A2`、`STEP=0`、`HPLL_LOAD=0`、`BUSY=1`、`ERROR=0`、`HELPER_ERROR_SIGNED=-150000`。
+- 末筆 Slave：`SSTAT=00000001`、`PSTAT=00000001`、`SPLL_STATE=00030004`、`DCO_DEBUG=FFB800000008A3A2`、`STEP=0`、`HPLL_LOAD=0`、`BUSY=1`、`ERROR=0`、`HELPER_ERROR_SIGNED=-150000`。
 
 ## Observation
 
-待完成。
+corrected-SOF 已排除前一輪輸出檔覆寫問題，Slave 確實進入了 active SoftPLL 路徑：`SSTAT` 的有效位為 1，`SPLL_STATE` 的 sequence state 為 4，且 `PSTAT` 的 link bit 為 1。但 60 筆中 DCO debug 完全固定，沒有 step event；`BUSY=1` 持續存在，`HPLL_LOAD=0`、`ERROR=0`，而 Helper error 多數飽和在 `-150000`，Helper output 多數也在同一個 clamp 附近。部分單次 mailbox 讀值會因不同欄位更新時序而短暫變化，因此以首尾與固定 DCO debug 欄位作主要判斷。
 
 ## Conclusion
 
-待完成；在取得正確映像的燒錄與 runtime 證據前，不宣稱 Slave servo 或兩板同步成功。
+本輪仍未同步成功，但已取得有效的定位證據：Slave 已經通過 link/parent/servo 的前段並進入 sequence state 4；目前主要阻塞點優先落在 Helper correction 到 HPLL/DCO transaction 的完成路徑。`BUSY=1`、`STEP=0`、`HPLL_LOAD=0` 表示在這 30 秒左右的有效觀測期間沒有完成 DCO step。這支持「DCO/I2C transaction 或 helper-to-DCO handoff 卡住」為領先假設，但不能僅靠這組 probe 排除 SI5340 實體回應、clock-domain crossing 或 DMTD feedback 問題，也不能宣稱已證明根因。
 
 ## Next Step
 
-燒錄前先核對 SOF/MIF hash；燒錄成功後只執行唯讀觀測。若取得 TAG/TRR/IRQ、Helper error/output、DCO step 與 lock detector 的完整關聯，再依證據選擇下一個單一 Slave 變因。Master 維持歷史成功 baseline。
+先不修改 Master、PHY、DMTD、PI、threshold 或 lock detector。下一步應在同一 corrected-SOF 上增加更直接的唯讀 DCO/I2C transaction state、ack/error、clock-divider activity 與 HPLL load 脈衝觀測；若確認 transaction state 卡在等待 ack，再只改一個 DCO controller 的 clock-domain/ack handoff 變因。若 transaction 完成但 error 不收斂，才轉向 feedback/DMTD mapping。每個分支都要重新編譯、核對 hash、燒錄後立即新增實驗紀錄。

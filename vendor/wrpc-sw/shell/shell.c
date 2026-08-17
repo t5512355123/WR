@@ -365,7 +365,9 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 
 void shell_boot_script(void)
 {
+	#ifndef CONFIG_FORCE_MASTER_AFTER_INIT
 	int next = 0;
+	#endif
 
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {

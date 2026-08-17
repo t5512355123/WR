@@ -14,7 +14,6 @@
 #include <errno.h>
 
 #include <wrc.h>
-#include "wrpc.h"
 #include "sensors.h"
 #include "dev/console.h"
 #include "dev/dac_log.h"
@@ -366,16 +365,7 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 
 void shell_boot_script(void)
 {
-	#ifndef CONFIG_FORCE_MASTER_AFTER_INIT
 	int next = 0;
-	#endif
-
-#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	/* The Master image selects its role directly after normal initialization. */
-	wrc_ptp_set_mode(WRC_MODE_MASTER);
-	wrc_ptp_start();
-	return;
-#endif
 
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {
@@ -388,7 +378,6 @@ void shell_boot_script(void)
 	}
 #endif
 
-#ifndef CONFIG_FORCE_MASTER_AFTER_INIT
 	while (CONFIG_HAS_FLASH_INIT) {
 		cmd_len = storage_init_readcmd((uint8_t *)cmd_buf,
 					      SH_MAX_LINE_LEN, next);
@@ -403,7 +392,6 @@ void shell_boot_script(void)
 		shell_exec(cmd_buf);
 		next = 1;
 	}
-#endif
 
 	return;
 }

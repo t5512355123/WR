@@ -28,7 +28,8 @@ output    [15:0]        oDCO_DPLL_ACCEPT_COUNT,
 output    [15:0]        oDCO_HPLL_DONE_COUNT,
 output    [15:0]        oDCO_DPLL_DONE_COUNT,
 output    [63:0]        oDCO_DPLL_STATE,
-output    [63:0]        oDCO_HPLL_STATE
+output    [63:0]        oDCO_HPLL_STATE,
+output    [63:0]        oI2C_ACK_DIAG
 );
 
 wire [6:0] static_slave_addr;
@@ -45,6 +46,7 @@ wire       initial_start;
 wire       user_start_rise;
 wire       i2c_system_clk;
 wire       system_start;
+wire [63:0] i2c_ack_diag;
 
 reg [3:0]  rt_state;
 reg        rt_dir;
@@ -191,8 +193,11 @@ i2c_bus_controller_dco u_i2c_bus(
   .wr_data(bus_byte_data),
   .wr_cmd(bus_wr_cmd),
   .oSYSTEM_STATE(bus_state),
-  .oCONFIG_DONE(bus_done)
+  .oCONFIG_DONE(bus_done),
+  .oACK_DIAG(i2c_ack_diag)
 );
+
+assign oI2C_ACK_DIAG = i2c_ack_diag;
 
 // Serialize each WR DAC update as four I2C writes:
 // select page 3, select the N0/N1 divider mask, select page 0,

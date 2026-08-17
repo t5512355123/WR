@@ -89,7 +89,8 @@ module i2c_bus_controller_dco(
 	test_start,
 	test_cnt,
 	wr_data_en,
-	i2c_stop_ctrl_cnt
+	i2c_stop_ctrl_cnt,
+	oACK_DIAG
 	
 				);
 
@@ -116,6 +117,7 @@ output  reg		oCONFIG_DONE;
 output	reg	[1:0]	i2c_clk_cnt;
 output	reg	[5:0]	i2c_state;
 output	reg	[2:0]	i2c_bit_cnt;
+output			[63:0]	oACK_DIAG;
 output	reg			system_clk;
 output	reg			i2c_clk_src;
 output	wire			process_en;
@@ -143,6 +145,14 @@ output 	wire			word_addr1_shift_en;
 output 	wire			data_shift_en;
 output 	wire			wr_data_en;
 output 	reg	[2:0] i2c_stop_ctrl_cnt;
+reg [15:0] ack_transaction_count;
+reg [15:0] ack_error_count;
+reg  [3:0] ack_bits;
+
+// ACK telemetry is read-only. It samples SDA during the high phase of each
+// ACK bit and does not alter the existing I2C state transitions.
+assign oACK_DIAG = {i2c_state[4:0], iSlave_addr, wr_data, iWord_addr,
+                    ack_bits, ack_error_count, ack_transaction_count};
 //=============================================================================
 // PARAMETER declarations
 //=============================================================================
@@ -262,8 +272,42 @@ always@(posedge iCLK or negedge iRST_n)
 		else if ((i2c_clk_cnt>0)&&(i2c_clk_cnt<3))
 			system_clk <= 1;
 		else
-			system_clk <= 0;
+				system_clk <= 0;
 	end			
+
+// Capture the SDA value during the high phase of each ACK bit. A high SDA
+// means NACK on I2C. This telemetry is intentionally sticky and does not
+// change the legacy state transitions.
+always @(posedge iCLK or negedge iRST_n) begin
+  if (!iRST_n) begin
+    ack_transaction_count <= 16'd0;
+    ack_error_count       <= 16'd0;
+    ack_bits              <= 4'd0;
+  end else if (i2c_clk_cnt == 2) begin
+    if (i2c_state == state_start1) begin
+      ack_bits <= 4'd0;
+    end else if (i2c_state == state_slave_addr_ack1) begin
+      ack_bits[0] <= i2c_data;
+      if (i2c_data)
+        ack_error_count <= ack_error_count + 1'b1;
+    end else if (i2c_state == state_word_addr_ack) begin
+      ack_bits[1] <= i2c_data;
+      if (i2c_data)
+        ack_error_count <= ack_error_count + 1'b1;
+    end else if (i2c_state == state_slave_addr_ack2) begin
+      ack_bits[3] <= i2c_data;
+      if (i2c_data)
+        ack_error_count <= ack_error_count + 1'b1;
+    end else if (i2c_state == state_wr_ack) begin
+      ack_bits[2] <= i2c_data;
+      if (i2c_data)
+        ack_error_count <= ack_error_count + 1'b1;
+    end else if (i2c_state == state_stop) begin
+      ack_transaction_count <= ack_transaction_count + 1'b1;
+    end
+  end
+end
+
 /////////////////////// main state control ////////////////////////
 
 always@(posedge system_clk or negedge iRST_n)

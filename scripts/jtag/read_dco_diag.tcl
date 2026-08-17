@@ -1,6 +1,7 @@
 # 讀取 SI5340 DCO pipeline 的唯讀 counters。
 # probe 8/9 欄位：source、destination input、controller accept、I2C done。
 # probe 10/11：DPLL/HPLL data、pending 與 runtime I2C FSM 的唯讀 snapshot。
+# probe 12：I2C ACK/NACK sticky telemetry。
 # 用法：quartus_stp -t read_dco_diag.tcl ?gap_ms?
 
 package require ::quartus::insystem_source_probe
@@ -44,6 +45,20 @@ proc read_request_state {instance label} {
         $direction $bus_state $static_ready $bus_done $prev_valid $done_once $word]
 }
 
+proc read_ack_diag {} {
+  set value [read_probe_data -instance_index 12 -value_in_hex]
+  scan $value %x word
+  set transactions [expr {$word & 0xffff}]
+  set errors [expr {($word >> 16) & 0xffff}]
+  set ack_bits [expr {($word >> 32) & 0xf}]
+  set word_addr [expr {($word >> 36) & 0xff}]
+  set wr_data [expr {($word >> 44) & 0xff}]
+  set slave_addr [expr {($word >> 52) & 0x7f}]
+  set state [expr {($word >> 59) & 0x1f}]
+  puts [format "DCO_I2C_ACK transactions=%04X errors=%04X ack_bits=%X word_addr=%02X wr_data=%02X slave_addr=%02X state=%02X raw=%016X" \
+        $transactions $errors $ack_bits $word_addr $wr_data $slave_addr $state $word]
+}
+
 puts [format "DCO_DIAG_CONFIG gap_ms=%d" $gap_ms]
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -57,11 +72,13 @@ foreach hardware_name [get_hardware_names] {
     read_dco_probe 9 BEGIN_DPLL
     read_request_state 10 DPLL
     read_request_state 11 HPLL
+    read_ack_diag
     after $gap_ms
     read_dco_probe 8 END_HPLL
     read_dco_probe 9 END_DPLL
     read_request_state 10 DPLL
     read_request_state 11 HPLL
+    read_ack_diag
   } error_message]} {
     puts "error: ${error_message}"
   }

@@ -14,6 +14,7 @@
 #include <errno.h>
 
 #include <wrc.h>
+#include "wrpc.h"
 #include "sensors.h"
 #include "dev/console.h"
 #include "dev/dac_log.h"

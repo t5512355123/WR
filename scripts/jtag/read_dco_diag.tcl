@@ -59,6 +59,18 @@ proc read_ack_diag {} {
         $transactions $errors $ack_bits $word_addr $wr_data $slave_addr $state $word]
 }
 
+proc read_i2c_readback {} {
+  set value [read_probe_data -instance_index 13 -value_in_hex]
+  scan $value %x word
+  set state [expr {$word & 0xf}]
+  set done [expr {($word >> 4) & 0x1}]
+  set page3 [expr {($word >> 5) & 0xff}]
+  set finc [expr {($word >> 13) & 0xff}]
+  set current_page [expr {($word >> 21) & 0xff}]
+  puts [format "DCO_I2C_READBACK state=%X done=%d page3_0039=%02X page0_001D=%02X current_page=%02X raw=%016X" \
+        $state $done $page3 $finc $current_page $word]
+}
+
 puts [format "DCO_DIAG_CONFIG gap_ms=%d" $gap_ms]
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -73,12 +85,14 @@ foreach hardware_name [get_hardware_names] {
     read_request_state 10 DPLL
     read_request_state 11 HPLL
     read_ack_diag
+    read_i2c_readback
     after $gap_ms
     read_dco_probe 8 END_HPLL
     read_dco_probe 9 END_DPLL
     read_request_state 10 DPLL
     read_request_state 11 HPLL
     read_ack_diag
+    read_i2c_readback
   } error_message]} {
     puts "error: ${error_message}"
   }

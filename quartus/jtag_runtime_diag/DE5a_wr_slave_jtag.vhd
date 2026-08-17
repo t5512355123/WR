@@ -83,7 +83,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDCO_DPLL_DONE_COUNT  : out   std_logic_vector(15 downto 0);
       oDCO_DPLL_STATE       : out   std_logic_vector(63 downto 0);
       oDCO_HPLL_STATE       : out   std_logic_vector(63 downto 0);
-      oI2C_ACK_DIAG         : out   std_logic_vector(63 downto 0)
+      oI2C_ACK_DIAG         : out   std_logic_vector(63 downto 0);
+      oI2C_READBACK         : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -303,12 +304,14 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_dpll_done_count   : std_logic_vector(15 downto 0);
   signal dco_dpll_state        : std_logic_vector(63 downto 0);
   signal dco_hpll_state        : std_logic_vector(63 downto 0);
+  signal i2c_readback          : std_logic_vector(63 downto 0);
   signal dco_hpll_diag_probe   : std_logic_vector(63 downto 0);
   signal dco_dpll_diag_probe   : std_logic_vector(63 downto 0);
   signal dco_dpll_state_probe  : std_logic_vector(63 downto 0);
   signal dco_hpll_state_probe  : std_logic_vector(63 downto 0);
   signal i2c_ack_diag           : std_logic_vector(63 downto 0);
   signal i2c_ack_diag_probe     : std_logic_vector(63 downto 0);
+  signal i2c_readback_probe     : std_logic_vector(63 downto 0);
   signal dco_hpll_diag_source  : std_logic_vector(0 downto 0);
   signal dco_dpll_diag_source  : std_logic_vector(0 downto 0);
 
@@ -650,6 +653,7 @@ begin
   dco_dpll_state_probe <= dco_dpll_state;
   dco_hpll_state_probe <= dco_hpll_state;
   i2c_ack_diag_probe <= i2c_ack_diag;
+  i2c_readback_probe <= i2c_readback;
 
   u_dco_hpll_diag_probe : altsource_probe
     generic map (
@@ -724,6 +728,22 @@ begin
     )
     port map (
       probe      => i2c_ack_diag_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  -- SI5340 register readback: page-3 0x39 and page-0 0x1D.
+  u_i2c_readback_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_I2C_READBACK_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 13,
+      source_width            => 1
+    )
+    port map (
+      probe      => i2c_readback_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
@@ -866,7 +886,8 @@ begin
       oDCO_DPLL_DONE_COUNT   => dco_dpll_done_count,
       oDCO_DPLL_STATE        => dco_dpll_state,
       oDCO_HPLL_STATE        => dco_hpll_state,
-      oI2C_ACK_DIAG          => i2c_ack_diag
+      oI2C_ACK_DIAG          => i2c_ack_diag,
+      oI2C_READBACK          => i2c_readback
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

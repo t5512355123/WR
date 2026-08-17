@@ -29,7 +29,8 @@ output    [15:0]        oDCO_HPLL_DONE_COUNT,
 output    [15:0]        oDCO_DPLL_DONE_COUNT,
 output    [63:0]        oDCO_DPLL_STATE,
 output    [63:0]        oDCO_HPLL_STATE,
-output    [63:0]        oI2C_ACK_DIAG
+output    [63:0]        oI2C_ACK_DIAG,
+output    [63:0]        oI2C_READBACK
 );
 
 wire [6:0] static_slave_addr;
@@ -71,8 +72,18 @@ reg        hpll_done_once;
 reg        dpll_done_once;
 reg        dco_error;
 
+// One-shot diagnostic readback. It selects page 3 and reads 0x39, then
+// selects page 0 and reads 0x1D. It does not change the DCO request path.
+reg [3:0]  rb_state;
+reg        rb_seen_busy;
+reg [7:0]  rb_page3_data;
+reg [7:0]  rb_finc_data;
+reg [7:0]  rb_current_page;
+
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 4'd0);
+wire       readback_bus_enable = (rb_state >= 4'd1 && rb_state <= 4'd4);
+wire       readback_is_read = (rb_state == 4'd2 || rb_state == 4'd4);
 // The static table leaves the SI5340 on page 0x0B.  N_FSTEP_MSK is
 // page-3 register 0x39, while FINC/FDEC is page-0 register 0x1D.
 // Select each page explicitly so the runtime command cannot land on
@@ -92,17 +103,31 @@ wire [7:0] runtime_byte_data =
   // SI5340 FINC is bit 0 and FDEC is bit 1.  A larger WR DAC code is
   // treated as a request for FINC; this direction is verified on hardware.
   (rt_dir ? 8'h01 : 8'h02);
+wire [7:0] readback_byte_addr =
+  (rb_state == 4'd1 || rb_state == 4'd3) ? 8'h01 :
+  (rb_state == 4'd2) ? 8'h39 : 8'h1D;
+wire [7:0] readback_byte_data =
+  (rb_state == 4'd1) ? 8'h03 :
+  (rb_state == 4'd3) ? 8'h00 : 8'h00;
 wire       runtime_start = ((rt_state == 4'd1 || rt_state == 4'd3 ||
                              rt_state == 4'd5 || rt_state == 4'd7) &&
                             !bus_state && static_controller_ready);
+wire       readback_start = ((rb_state == 4'd1 || rb_state == 4'd2 ||
+                              rb_state == 4'd3 || rb_state == 4'd4) &&
+                             !bus_state && static_controller_ready);
 
 wire       static_bus_enable = system_start || !static_controller_ready || bus_state;
-wire       bus_enable = static_bus_enable || runtime_bus_enable;
-wire       bus_start = static_start_pulse || runtime_start;
-wire [6:0] bus_slave_addr = runtime_bus_enable ? runtime_slave_addr : static_slave_addr;
-wire [7:0] bus_byte_addr = runtime_bus_enable ? runtime_byte_addr : static_byte_addr;
-wire [7:0] bus_byte_data = runtime_bus_enable ? runtime_byte_data : static_byte_data;
-wire       bus_wr_cmd = runtime_bus_enable ? 1'b1 : static_wr_cmd;
+wire       bus_enable = static_bus_enable || runtime_bus_enable || readback_bus_enable;
+wire       bus_start = static_start_pulse || runtime_start || readback_start;
+wire [6:0] bus_slave_addr = readback_bus_enable ? runtime_slave_addr :
+                            (runtime_bus_enable ? runtime_slave_addr : static_slave_addr);
+wire [7:0] bus_byte_addr = readback_bus_enable ? readback_byte_addr :
+                           (runtime_bus_enable ? runtime_byte_addr : static_byte_addr);
+wire [7:0] bus_byte_data = readback_bus_enable ? readback_byte_data :
+                           (runtime_bus_enable ? runtime_byte_data : static_byte_data);
+wire       bus_wr_cmd = readback_bus_enable ? !readback_is_read :
+                        (runtime_bus_enable ? 1'b1 : static_wr_cmd);
+wire       bus_sequential_read = readback_bus_enable ? readback_is_read : 1'b0;
 
 assign oPLL_REG_CONFIG_DONE = static_controller_ready;
 assign oDCO_BUSY = (rt_state != 4'd0);
@@ -114,6 +139,8 @@ assign oDCO_HPLL_ACCEPT_COUNT = hpll_accept_count;
 assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
 assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
 assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
+assign oI2C_READBACK = {35'd0, rb_current_page, rb_finc_data,
+                        rb_page3_data, (rb_state == 4'd5), rb_state[3:0]};
 // Read-only HPLL request snapshot. The low fields mirror the DPLL snapshot:
 // previous data, current input, runtime state, pending/select/direction,
 // I2C state, controller readiness, previous-data validity, and done-once.
@@ -184,7 +211,7 @@ i2c_bus_controller_dco u_i2c_bus(
   .iStart(bus_start),
   .iSlave_addr(bus_slave_addr),
   .iWord_addr(bus_byte_addr),
-  .iSequential_read(1'b0),
+  .iSequential_read(bus_sequential_read),
   .iRead_length(8'd1),
   .i2c_clk(I2C_CLK),
   .i2c_data(I2C_DATA),
@@ -205,6 +232,11 @@ assign oI2C_ACK_DIAG = i2c_ack_diag;
 always @(posedge iCLK or negedge iRST_n) begin
   if (!iRST_n) begin
     rt_state         <= 4'd0;
+    rb_state         <= 4'd0;
+    rb_seen_busy     <= 1'b0;
+    rb_page3_data    <= 8'd0;
+    rb_finc_data     <= 8'd0;
+    rb_current_page  <= 8'h0B;
     rt_dir           <= 1'b0;
     rt_select_dpll   <= 1'b0;
     rt_seen_busy     <= 1'b0;
@@ -256,7 +288,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         // HPLL-only isolation experiment: service every pending HPLL update
         // and suppress DPLL/N0 transactions.  The helper needs repeated HPLL
         // updates before the normal Slave sequencing can reach the main PLL.
-        if (static_controller_ready && hpll_pending) begin
+        if (static_controller_ready && rb_state == 4'd0 && hpll_pending) begin
           rt_state <= 4'd1;
           rt_select_dpll <= 1'b0;
           rt_dir <= hpll_dir;
@@ -324,6 +356,48 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       default: rt_state <= 4'd0;
+    endcase
+
+    case (rb_state)
+      4'd0: begin
+        rb_seen_busy <= 1'b0;
+        if (static_controller_ready && rt_state == 4'd0)
+          rb_state <= 4'd1;
+      end
+      4'd1: begin
+        if (bus_state)
+          rb_state <= 4'd2;
+      end
+      4'd2: begin
+        if (static_read_data_rdy)
+          rb_page3_data <= static_read_data;
+        if (bus_state)
+          rb_seen_busy <= 1'b1;
+        else if (rb_seen_busy) begin
+          rb_state <= 4'd3;
+          rb_seen_busy <= 1'b0;
+          rb_current_page <= 8'h03;
+        end
+      end
+      4'd3: begin
+        if (bus_state)
+          rb_state <= 4'd4;
+      end
+      4'd4: begin
+        if (static_read_data_rdy)
+          rb_finc_data <= static_read_data;
+        if (bus_state)
+          rb_seen_busy <= 1'b1;
+        else if (rb_seen_busy) begin
+          rb_state <= 4'd5;
+          rb_seen_busy <= 1'b0;
+          rb_current_page <= 8'h00;
+        end
+      end
+      4'd5: begin
+        rb_state <= rb_state;
+      end
+      default: rb_state <= 4'd0;
     endcase
   end
 end

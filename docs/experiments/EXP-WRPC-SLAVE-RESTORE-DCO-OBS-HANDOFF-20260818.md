@@ -52,16 +52,44 @@
 
 ## JTAG/runtime 原始結果
 
-本節待完成。至少保存 Master/Slave 的 status、role、parent、WR signaling、WR lock、SoftPLL event counters、PPS_ESCR 與 frame validity。
+- 原始 runtime log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-RESTORE-DCO-OBS-HANDOFF-20260818/runtime_restore_dco_obs_10s.log`
+- Runtime log SHA-256：`19f205bbc8c94de913a6b7d84f1d86208271698d4a7621cc56e4b953793b3047`
+- 觀測方式：同一 JTAG session 連續約 10 秒取樣；Master 10/10 通過重試，Slave 4/10 通過重試，最後一筆有效 frame 仍可解碼，因此不把失敗 frame 當成同步證據。
+
+### Master
+
+- `status=0xFF`、`WDIAGS_MODE=2`、`WDIAGS_PTP=6`
+- `time_valid=1`、`pps_valid=1`
+- `TAG_COUNT`、`TAG_VALID_COUNT`、`TRR_WRITE_COUNT` 持續增加
+- `PPS_ESCR=0x00000F0C`
+
+### Slave
+
+- `status=0xCF`、`WDIAGS_MODE=3`、`WDIAGS_PTP=9`
+- `link_up=1`，但 `time_valid=0`、`pps_valid=0`
+- `WDIAGS_SSTAT=1`、`WDIAGS_PSTAT=1`、`WDIAGS_UCNT=4`
+- `PPS_ESCR=0x00000F00`、`DMS_L=0x0008246B`、`CKO=0x00F24F41`、`SETP=0`
+- `WDIAGS_FOREIGN_META=0x03000001`、`PARSE_META=0x050126E7`
+- `WR_SIGNAL: rx_msg=0x1001, rx_count=1, tx_msg=0x1000, tx_count=1, fail_role=2, fail_state=2`
+- `WR_LOCK: result=1, spll_locked=0, polls=883644, unlocked=883644, calibration_fail=0, enable=4, seq_state=4, align_state=0, mode=3, delock_count=0`
+- `WR_SPLL_HW_BLOCK_VALID: RCER=0x00000001, OCER=0x0010A201, OCCR=0x00000101, TRR_CSR=0x0012A2D0`
+- `WR_SPLL_LOCKDET: HELPER=0x00000000, MAIN=0x00000000`
+- `WR_SPLL_ACTIVITY: REF_COUNT=0x00034BC9, TAG_COUNT=0x000336E9, LAST_STATE=0x00000004, TRANSITIONS=0x00000003, IRQ_COUNT=0x00111988`
+- `WR_SPLL_EVENTS: TAG_VALID_COUNT=0x0011A2D1/0x0011A2D1, TRR_WRITE_COUNT=0x0011A2D1/0x0011A2D1`
 
 ## Observation
 
-本節待補原始結果。
+這次正向控制確實重現了歷史上的後段路徑：Slave 收到 Master LOCK（`rx_msg=0x1001`），`WR_LOCK result=1`、`enable=4` 且 locking polls 持續增加；同時 RCER 已置位，reference/tag/TRR/IRQ 計數器都有活動。這表示目前不是「完全沒有進入 Slave lock handoff」或「tagger 完全沒有工作」。
+
+但是 Slave 的 helper/main lock detector 都仍為 0，`spll_locked=0`，且 `time_valid=0、pps_valid=0`。因此資料只支持「有效 tag 與 TRR 活動已抵達 SoftPLL 後段」，尚不能支持「SoftPLL 已閉鎖」或「SI5340 已把時鐘回授到正確頻率」。
 
 ## Conclusion
 
-本節只能依本輪實際 JTAG 證據撰寫；恢復已知 image 不等於兩片 DE5a 已同步。
+1. Master historical baseline 在本輪未改動，且仍維持 `mode=2、PTP=6、status=FF、time_valid=1、pps_valid=1`。
+2. Slave historical DCO-observability image 已成功燒錄，並重現 `WRS_S_LOCK`、`WR_LOCK enable/polls`、RCER、reference/tag/TRR/IRQ 活動。
+3. 本輪未達成兩片同步：Slave `spll_locked=0、time_valid=0、pps_valid=0`。
+4. 因此目前最有證據支持的問題區段已從 WR signaling/handoff 往後收斂到 SoftPLL lock detector 的輸入/鎖定條件或 clock-feedback/DMTD sampling；這仍是下一層待驗證的假設，不能直接宣稱根因是 SI5340 或 DCO。
 
 ## Next Step
 
-依照 positive-control 是否重現，決定是否回到 start-hold source 做更小的 handoff/DCO 變因。任何下一次燒錄另建 Experiment ID 並立即記錄。
+保留 Master `9f848ec` 角色與目前 Slave positive-control bitstream，不再改 Master role，也不重複 reverse-DMTD 實驗。下一輪先做同一顆 Slave SOF 的唯讀 correlation，將 `WR_LOCK polls、RCER、TAG_SOURCE_COUNT、REF_COUNT、TAG_VALID_COUNT、TRR_WRITE_COUNT、IRQ_COUNT、SPLL seq/last state、helper/main lock` 與 DCO step count 對齊；只有在確認 valid tag/TRR 與 lock detector 的時間關係後，才選下一個單一 Slave source 變因。任何下一次燒錄另建 Experiment ID 並立即記錄。

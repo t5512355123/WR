@@ -190,3 +190,30 @@ WDIAGS_PTP=9
 ### Next Step
 
 只燒錄歷史 Master artifact `/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/master.sof`，不改 Slave、不改 role source；燒錄完成後立即保存 programmer log，再執行唯讀 JTAG。若恢復後得到 `marker=B004`、`MODE=2`、`PTP=6`、`status=0xFF`、`link_up=1` 且 PTP RX/TX 有活動，便凍結 Master，所有後續修改只針對 Slave。
+
+## 恢復歷史 Master 基線的燒錄結果（2026-08-18）
+
+- Experiment ID：`EXP-WRPC-MASTER-9F-RESTORE-20260818`
+- Git/source baseline：歷史已驗證的 Master artifact，對應 `9f848ec` 成功基線；本次沒有重新編譯或修改 role source
+- 唯一變因：將 Master 從失敗的 signaling-observability SOF 恢復成歷史成功 SOF；Slave 保持原狀
+- SOF：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/master.sof`
+- SOF SHA-256：`383c1c65ce7a08ba98358f8b52a5492d70b816d87c2071f0f254c7f5589f3b93`
+- Quartus Programmer checksum：`0x30A46449`
+- Quartus：Version 17.0.0 Build 595，Standard Edition
+
+原始 programmer log：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/program_master_restore_9f.log
+SHA-256: 14b40e89c822748047d6f9c3d62f35d86709130a3d152b46ec41a30b8883b40c
+```
+
+原始結果：
+
+```text
+Info: Using programming file .../master.sof with checksum 0x30A46449
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+目前這段只證明歷史 SOF 已成功重新設定 Master；JTAG role/runtime 驗證待下一段唯讀 session 完成後再下結論。

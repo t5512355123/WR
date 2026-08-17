@@ -8,8 +8,8 @@
 
 - 研究分支：`exp/jtag-runtime-observability`
 - 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新確認燒錄 source 為 `933ce3e`
-- 目前工作樹：已完成 `933ce3e` 時鐘/重置唯讀診斷版的 compile、Slave 燒錄與回程封包唯讀觀測
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-RETURN-PATH-OBS-20260817.md`
+- 目前工作樹：最新完成 `5bddeda` Master probe 對齊版的 compile、Master 燒錄與 60 秒雙板唯讀觀測；本輪發現 Master MIF 角色錯誤，尚未作為有效同步實驗
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-IMAGE-CONSISTENCY-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
@@ -31,6 +31,14 @@
 - Master instance 7 的 clock activity 高位欄位與 `status_probe=...82FF` 不一致，不能直接當成同一 probe mapping 的對照，必須先核對兩端 SOF/probe 版本。
 - 本輪沒有 compile/燒錄；因此只支持回程「已接受封包」沒有增加，不足以單獨證明原始光纖 frame 完全遺失或唯一根因。
 - 原始 log：`build/artifacts/EXP-WRPC-RETURN-PATH-OBS-20260817/phy_activity_2s.log`、`runtime_counters_after_phy.log`；hash 與完整解讀見對應實驗紀錄。
+
+### `5bddeda` Master probe 對齊與角色映像核對（2026-08-17）
+
+- 唯一 RTL 變更是補齊 Master `clock_activity_probe[63:54]`，使它與 Slave 使用相同的唯讀欄位定義；沒有修改 WR firmware、PHY、DMTD、SoftPLL 或 SI5340 控制。
+- Quartus 17 compile 成功、0 errors；Master SOF checksum `0x30A31DBA`、JTAG ID `0x02E660DD`，configuration succeeded。
+- 燒錄後發現 Master runtime 讀值為 `WDIAGS_MODE=3、WDIAGS_PTP=4`，與預期 Master `MODE=2、PTP=6` 不符；Slave 為 `MODE=3、PTP=9`。
+- 60 秒 session 沒有 timeout，但 Master `42/60`、Slave `34/60` sample accepted，兩端 `time_valid=0`；本輪不視為有效的 Master/Slave synchronization A/B。
+- 結論：probe mapping 已對齊，但 Master MIF/角色建置來源必須先修正；完整紀錄與所有 hash：`docs/experiments/EXP-WRPC-IMAGE-CONSISTENCY-20260817.md`。
 
 ### `8c8b444` Slave DPLL request/FSM 唯讀觀測
 

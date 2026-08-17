@@ -73,8 +73,9 @@ proc read_correlation_sample {hardware_name sample} {
   variable previous_helper_error
 
   set status [read_probe_word 0]
-  set dco_state [read_probe_word 9]
-  set dco_readback [read_probe_word 10]
+  # The Slave diagnostic image exposes one 64-bit DCO debug probe at
+  # instance 8.  There is no separate instance 9/10 DCO probe.
+  set dco_debug [read_probe_word 8]
   set spll_state [wb_read 0x001009A0]
   set helper_state [wb_read 0x001009BC]
   set helper_error [wb_read 0x001009D8]
@@ -83,17 +84,18 @@ proc read_correlation_sample {hardware_name sample} {
   set sstat [wb_read 0x00100908]
 
   scan $status %x status_word
-  scan $dco_state %x dco_word
-  scan $dco_readback %x readback_word
+  scan $dco_debug %x dco_word
   scan $helper_error %x helper_word
   scan $helper_output %x output_word
   scan $pstat %x pstat_word
   scan $sstat %x sstat_word
 
-  set step [expr {(($dco_word >> 32) & 0xffff)}]
-  set hpll_load [expr {(($dco_word >> 30) & 1)}]
-  set dco_busy [expr {(($dco_word >> 28) & 1)}]
-  set dco_error [expr {(($dco_word >> 27) & 1)}]
+  # Keep these positions aligned with si5340a_controller_dco.v:
+  # step_count=[35:20], HPLL_LOAD=17, error=18, busy=19.
+  set step [expr {(($dco_word >> 20) & 0xffff)}]
+  set hpll_load [expr {(($dco_word >> 17) & 1)}]
+  set dco_error [expr {(($dco_word >> 18) & 1)}]
+  set dco_busy [expr {(($dco_word >> 19) & 1)}]
   set helper_signed [signed32 $helper_word]
   set step_delta 0
   set error_delta 0
@@ -106,9 +108,9 @@ proc read_correlation_sample {hardware_name sample} {
     }
   }
 
-  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s SPLL_STATE=%s DCO_STATE=%s DCO_READBACK=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
-        $hardware_name $sample $status $pstat $sstat $spll_state $dco_state \
-        $dco_readback $step $step_delta $step_event $hpll_load $dco_busy \
+  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s SPLL_STATE=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
+        $hardware_name $sample $status $pstat $sstat $spll_state $dco_debug \
+        $step $step_delta $step_event $hpll_load $dco_busy \
         $dco_error $helper_state $helper_error $helper_signed $error_delta \
         [format %08X [expr {$output_word & 0xffffffff}]]]
   flush stdout

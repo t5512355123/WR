@@ -67,14 +67,43 @@
 
 需至少記錄：status、clock/reset probe、CPU marker/fault、WDIAGS_MODE/PTP、PTP RX/TX、Slave parent、SSTAT/PSTAT、UCNT、PPS、`time_valid/pps_valid`。
 
+### 2026-08-17 clean-9f 60 秒結果
+
+- `quartus_stp` return code：`0`
+- 原始結果：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/runtime_readings.log`
+- 同一個 JTAG session 對每張板取 60 列；完整 mailbox 讀取使單列時間大於 1 秒，以下用 session 的 sample 001、010、060 作代表。
+
+#### Master：`DE5 [1-11.1]`
+
+| 代表時間 | marker/fault | status | WDIAGS_MODE | WDIAGS_PTP | PTP RX/TX | 判讀 |
+|---|---|---|---:|---:|---|---|
+| sample 001 | `B004` / 0 | `0xFF` | 2 | 6 | counter 持續增加 | Master baseline 通過 |
+| sample 010 | `B004` / 0 | `0xFF` | 2 | 6 | counter 持續增加 | 與 sample 001 一致 |
+| sample 060 | `B004` / 0 | `0xFF` | 2 | 6 | RX=`0x143`、TX=`0x2CF` | 與 sample 001 一致 |
+
+Master status 低 8 位的 `0xFF` 表示 `link_up=1、link_ok=1、time_valid=1、pps_valid=1`。`WDIAGS_PTP_META` 在 session 尾端為 `0x02020406`，其中 mode=2、PTP=6。
+
+#### Slave：`DE5 [1-11.2]`
+
+| 代表時間 | status | WDIAGS_MODE/PTP | parent/foreign | SoftPLL/servo | 判讀 |
+|---|---|---|---|---|---|
+| sample 001 | `0xCF` | 3 / 9 | `foreign=1、best=0、is_wr=1、calibrated=1` | `PSTAT.locked=0`、`UCNT` 有活動 | 已看到 Master，但未 lock |
+| sample 010 | `0xCF` | 3 / 9 | parent flags 持續有效 | `spll_locked=0` | 未完成 time-valid |
+| sample 060 | `0xCF` | 3 / 9 | `FOREIGN_META=0x03000001`、`PARSE_META=0x05019B50` | `UCNT=0x4A`、`WR_LOCK result=1` 但 `spll_locked=0` | servo 有活動但仍未 lock |
+
+Slave 的低 8 位為 `0xCF`（其中少數取樣短暫為 `0xEF`），代表 link/PHY 正常，但 `time_valid` 沒有穩定成立；完整原始欄位顯示 `SSTAT=1、PSTAT=1、WDIAGS_PTP=9、WR_LOCK seq_state=4、spll_locked=0`。
+
 ## Observation
 
-待編譯、燒錄與唯讀 session 後填入。只把原始證據支持的內容寫入結論。
+1. clean-9f 分支成功重現歷史 Master diagnostic baseline：`B004`、`status=0xFF`、`WDIAGS_MODE=2`、`WDIAGS_PTP=6`，且 PTP RX/TX counter 持續增加。
+2. 這項結果證明先前 c4 版本的 `MODE=3/PTP=4` 是後續 firmware/role 實驗疊加造成的差異；不是 QSFP link 本身無法建立。
+3. Slave 能收到 Master 的 WR/parent signaling：`foreign_count=1、foreign_best=0、parent is WR=1、parent calibrated=1`，且 `UCNT`、Raw SoftPLL tag/source counters 有活動。
+4. Slave 仍沒有 `spll_locked=1`、穩定 `time_valid=1` 或 `pps_valid=1`；`WR_LOCK` 顯示 `result=1、seq_state=4、polls=883697、unlocked=883697`，支持「Slave servo/SoftPLL 尚未 lock」但不能單獨確定根因。
 
 ## Conclusion
 
-在取得 clean `9f848ec` branch 的 compile、programming 與 runtime 證據前，不宣稱 Master role 或兩端同步成功。
+本實驗部分成功：clean `9f848ec` Master role 與 link/runtime baseline 已被實際重現並保存；但兩端 White Rabbit 時間同步尚未完成。證據支持目前的主要阻塞點已從 Master role/PHY link 收斂到 Slave parent/servo/SoftPLL-to-time-valid 路徑，尚不能宣稱根因是某一個 register、校正值或 SI5340 動作。
 
 ## Next Step
 
-若 Master 五項 baseline 全部成立，保存該 Master SOF/MIF 並停止修改 Master role，接著只追 Slave parent/servo/SoftPLL 到 `time_valid/pps_valid`。若仍為 mode 3，回查 exact 9f 的 flash/startup 狀態與實際 artifact，不再加入新的 role switching 方法。
+固定 clean-9f Master SOF/MIF，不再修改 Master role。下一個實驗只改 Slave，先做唯讀寄存器與 clock/reset/SoftPLL activity 的基準觀察；若確定 Slave 已進入 `TRACK_PHASE` 但 lock 仍為 0，再隔離 calibration/SI5340 或 parent handshake 的單一變因。

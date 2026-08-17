@@ -49,7 +49,25 @@
 
 ## 燒錄結果
 
-待 Slave-only programmer 完成後立即補入：programmer 原始輸出、checksum、log SHA-256、configuration 結果。
+- 燒錄時間：2026-08-18 04:31:40 至 04:31:59（Asia/Taipei）
+- Programmer：Quartus Prime 17.0 Build 595
+- JTAG cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- Programmer checksum：`0x30A3C175`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer：successful，0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-RESTORE-LOCK-PATH-20260818/program_slave_restore.log`
+- Programmer log SHA-256：`0434ccdb67d410d72a98e886cb1fde300445b47ab1afd2035d76c0daf387b710`
+
+原始 terminal 關鍵結果：
+
+```text
+Info (213011): Using programming file .../slave.sof with checksum 0x30A3C175
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+這只證明指定的 Slave SOF 已成功載入，不等於 Slave servo 或兩片同步成功。
 
 ## JTAG/runtime 原始結果
 

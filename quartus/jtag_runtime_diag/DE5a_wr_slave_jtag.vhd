@@ -203,6 +203,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal dco_probe            : std_logic_vector(63 downto 0);
   signal dco_state_probe      : std_logic_vector(63 downto 0);
+  signal clock_effect_probe   : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -219,9 +220,9 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal rx_activity_meta     : std_logic := '0';
   signal rx_activity_sync     : std_logic := '0';
   signal rx_activity_prev     : std_logic := '0';
-  signal ref_activity_count   : unsigned(15 downto 0) := (others => '0');
-  signal dmtd_activity_count  : unsigned(15 downto 0) := (others => '0');
-  signal rx_activity_count    : unsigned(15 downto 0) := (others => '0');
+  signal ref_activity_count   : unsigned(31 downto 0) := (others => '0');
+  signal dmtd_activity_count  : unsigned(31 downto 0) := (others => '0');
+  signal rx_activity_count    : unsigned(31 downto 0) := (others => '0');
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
   signal sync_source          : std_logic_vector(0 downto 0);
@@ -388,9 +389,9 @@ begin
     end if;
   end process;
 
-  clock_activity_probe(15 downto 0) <= std_logic_vector(ref_activity_count);
-  clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_activity_count);
-  clock_activity_probe(47 downto 32) <= std_logic_vector(rx_activity_count);
+  clock_activity_probe(15 downto 0) <= std_logic_vector(ref_activity_count(15 downto 0));
+  clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_activity_count(15 downto 0));
+  clock_activity_probe(47 downto 32) <= std_logic_vector(rx_activity_count(15 downto 0));
   clock_activity_probe(48) <= ref_activity_sync;
   clock_activity_probe(49) <= dmtd_activity_sync;
   clock_activity_probe(50) <= rx_activity_sync;
@@ -409,6 +410,12 @@ begin
   clock_activity_probe(61) <= wr_tx_ready;
   clock_activity_probe(62) <= core_tm_link_up;
   clock_activity_probe(63) <= core_link_ok;
+
+  -- Read-only clock-effect counters.  Each source-domain divider toggles
+  -- once every 256 source-clock cycles; the observer counts those toggles.
+  -- Therefore delta_count * 256 / window_seconds estimates source Hz.
+  clock_effect_probe(31 downto 0) <= std_logic_vector(ref_activity_count);
+  clock_effect_probe(63 downto 32) <= std_logic_vector(dmtd_activity_count);
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -547,6 +554,21 @@ begin
     )
     port map (
       probe      => dco_readback,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_clock_effect_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CLOCK_EFFECT_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 11,
+      source_width            => 1
+    )
+    port map (
+      probe      => clock_effect_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'

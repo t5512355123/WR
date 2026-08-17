@@ -241,11 +241,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd1: begin
-        // Hold the request until the divided I2C clock has accepted it.
-        // runtime_start is generated in iCLK, while the bus controller runs
-        // from i2c_system_clk (/128); advancing after one iCLK pulse can
-        // otherwise lose the start event and leave the DCO busy forever.
-        if (bus_state)
+        if (runtime_start)
           rt_state <= 3'd2;
       end
       3'd2: begin
@@ -257,7 +253,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd3: begin
-        if (bus_state)
+        if (runtime_start)
           rt_state <= 3'd4;
       end
       3'd4: begin
@@ -269,7 +265,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd5: begin
-        if (bus_state)
+        if (runtime_start)
           rt_state <= 3'd6;
       end
       3'd6: begin

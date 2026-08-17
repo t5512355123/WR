@@ -37,17 +37,21 @@
 
 待 compile 完成後補入：
 
-- source commit：
-- SOF 路徑、SHA-256：
-- Slave MIF 路徑、SHA-256：
-- QSF/SDC SHA-256：
-- compile log 路徑、SHA-256：
-- Errors/warnings：
-- Timing caveat：
+- source commit：`548d0b0558b0ea73f42353dbd5913e9b7036258c`
+- SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- SOF SHA-256：`001dc7b64afd6ae82dd086126b065f626a8f2c88d6bfa8a95aecbc6198d603ee`
+- Slave MIF：`/home/b10504072/04_WR/build/firmware/slave/wrc.mif`
+- Slave MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- compile log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/compile_start_hold.log`
+- compile log SHA-256：`bd144330217388f20c33f38d76ed03a853fd7e7e86efc9a8ae5c0d95d1e989d9`
+- 結果：Quartus Prime Full Compilation、Fitter、Assembler、TimeQuest 均成功，0 errors；完整流程 270 warnings。
+- Timing caveat：不同 corner 的 worst-case setup 為 `-0.832 ns`，worst-case hold 為 `-4.096 ns`；TimeQuest 明確表示 setup/hold 未完全約束，因此不宣稱 timing closure。
 
 ## 燒錄結果
 
-待 compile 成功並核對 hash 後補入。燒錄後立即記錄：
+compile 已成功並完成 hash 核對；尚未燒錄。燒錄後立即記錄：
 
 - Programmer command/version/cable：
 - JTAG ID：

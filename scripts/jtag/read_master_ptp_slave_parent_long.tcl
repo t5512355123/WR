@@ -1,0 +1,116 @@
+# White Rabbit Master PTP / Slave parent 長時間唯讀觀測。
+#
+# 用法：
+#   quartus_stp -t read_master_ptp_slave_parent_long.tcl ?samples? ?gap_ms?
+#
+# 預設為 150 筆、每筆間隔 2 秒，約 5 分鐘。只讀既有 status probe 與
+# Wishbone diagnostic mailbox，不寫入 WR 設定、不寫 DATA_SNAPSHOT，也不
+# 需要重新編譯或燒錄。欄位刻意保持精簡，以降低 JTAG 觀測本身的干擾。
+
+package require ::quartus::insystem_source_probe
+
+set samples 150
+set gap_ms 2000
+if {[llength $argv] >= 1} {
+  set samples [expr {int([lindex $argv 0])}]
+}
+if {[llength $argv] >= 2} {
+  set gap_ms [expr {int([lindex $argv 1])}]
+}
+if {$samples <= 0 || $gap_ms < 0} {
+  error "samples must be > 0 and gap_ms must be >= 0"
+}
+
+set ::wb_toggle 0
+
+proc wb_sync_toggle {} {
+  set value [read_probe_data -instance_index 1 -value_in_hex]
+  scan $value %x word
+  set current_done [expr {(($word >> 35) & 1)}]
+  set ::wb_toggle $current_done
+}
+
+proc wb_read {addr} {
+  set ::wb_toggle [expr {$::wb_toggle ^ 1}]
+  set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  after 5
+  for {set n 0} {$n < 100} {incr n} {
+    set value [read_probe_data -instance_index 1 -value_in_hex]
+    scan $value %x word
+    set done_toggle [expr {(($word >> 35) & 1)}]
+    set active [expr {(($word >> 36) & 1)}]
+    if {$done_toggle == $::wb_toggle && $active == 0} {
+      return [format %08X [expr {$word & 0xffffffff}]]
+    }
+    after 1
+  }
+  return "TIMEOUT"
+}
+
+proc read_min_sample {board sample} {
+  set status [read_probe_data -instance_index 0 -value_in_hex]
+  set marker_raw [read_probe_data -instance_index 3 -value_in_hex]
+  set cpu_raw [read_probe_data -instance_index 2 -value_in_hex]
+
+  scan $status %x status_word
+  scan $marker_raw %x marker_word
+  scan $cpu_raw %x cpu_word
+
+  set status_low [expr {$status_word & 0xff}]
+  set marker [expr {$marker_word & 0xffffffff}]
+  set marker_seen [expr {(($marker_word >> 32) & 1)}]
+  set cpu_fault [expr {(($cpu_word >> 33) & 1)}]
+  set im_valid [expr {(($cpu_word >> 34) & 1)}]
+
+  set sstat [wb_read 0x00100908]
+  set pstat [wb_read 0x0010090C]
+  set ptp [wb_read 0x00100910]
+  set ptp_rx [wb_read 0x00100954]
+  set ptp_tx [wb_read 0x00100958]
+  set ptp_meta [wb_read 0x0010095C]
+  set foreign_meta [wb_read 0x00100978]
+  set parse_meta [wb_read 0x00100980]
+  set spll_state [wb_read 0x001009A0]
+  set ref_count [wb_read 0x001009D0]
+  set tag_count [wb_read 0x001009D4]
+  set helper_error [wb_read 0x001009D8]
+  set irq_count [wb_read 0x001009EC]
+  set tag_valid [wb_read 0x001009F8]
+  set trr_write [wb_read 0x001009FC]
+  set tag_source [wb_read 0x0010028C]
+
+  scan $ptp_meta %x ptp_meta_word
+  set mode [expr {(($ptp_meta_word >> 24) & 0xff)}]
+  puts [format "MIN_SAMPLE board=%s sample=%03d status=%02X marker=%08X seen=%d fault=%d im_valid=%d MODE=%d PTP=%s PTP_RX=%s PTP_TX=%s SSTAT=%s PSTAT=%s FOREIGN=%s PARSE=%s SPLL_STATE=%s REF=%s TAG=%s TAG_SOURCE=%s TAG_VALID=%s TRR_WRITE=%s IRQ=%s HELPER_ERROR=%s" \
+        $board $sample $status_low $marker $marker_seen $cpu_fault $im_valid \
+        $mode $ptp $ptp_rx $ptp_tx $sstat $pstat $foreign_meta $parse_meta \
+        $spll_state $ref_count $tag_count $tag_source $tag_valid $trr_write \
+        $irq_count $helper_error]
+  flush stdout
+}
+
+puts [format "MINIMAL_RUNTIME_CONFIG samples=%d gap_ms=%d" $samples $gap_ms]
+
+foreach hardware_name [get_hardware_names] {
+  set device_names [get_device_names -hardware_name $hardware_name]
+  if {[llength $device_names] == 0} { continue }
+  set device_name [lindex $device_names 0]
+  puts "=== MINIMAL_BOARD ${hardware_name} ==="
+  catch { end_insystem_source_probe }
+  if {[catch {
+    start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
+    wb_sync_toggle
+    for {set sample 1} {$sample <= $samples} {incr sample} {
+      read_min_sample $hardware_name $sample
+      if {$sample < $samples && $gap_ms > 0} {
+        after $gap_ms
+      }
+    }
+  } error_message]} {
+    puts "error: ${error_message}"
+  }
+  catch { end_insystem_source_probe }
+}
+
+puts "MINIMAL_RUNTIME_DONE"

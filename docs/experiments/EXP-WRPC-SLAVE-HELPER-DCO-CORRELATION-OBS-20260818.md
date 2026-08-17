@@ -27,6 +27,7 @@
 
 - Slave diagnostic source commit：`1b52223b4bcab4f440189ce95c8219edb811675c`
 - 已有 compile record：`EXP-WRPC-SLAVE-CLEAN9F-DCO-OBS-20260818`
+- 實際燒錄檔案來自 pain 端當時已存在的編譯輸出；該輸出後來被 page-3/start-hold 編譯覆寫，因此不能把它追溯宣稱為 `1b52223b4bcab4f440189ce95c8219edb811675c` 的新編譯結果。
 - 實際使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
 - 實際 SOF SHA-256：`1e315904af9033f52551a68844a4fd274a8506f13523c10cc0b3fd570c0d494b`
 - MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
@@ -58,16 +59,22 @@
 
 ## JTAG/runtime 原始結果
 
-本節將補上燒錄後的唯讀 correlation 原始 log、hash、有效樣本數與首尾值。
+- 修正觀測腳本 commit：`588b5f8`；使用 instance 8 與 `si5340a_controller_dco.v` 的實際 bit mapping。
+- 原始 correlation log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-HELPER-DCO-CORRELATION-OBS-20260818/hpll_helper_correlation_60s_corrected.log`。
+- correlation log SHA-256：`fef7952110aa913890d95374631e895a9aeef22f805688c9652dcbdf35c654df`。
+- 觀測設定：每張板 60 筆、間隔 500 ms；Master 因沒有 DCO probe 而回報 probe 不存在，Slave 完成 60/60 筆讀取。
+- Slave 首筆與末筆的 DCO debug 都為 `00A8000002C02B20`，解碼為 `STEP=44、HPLL_LOAD=0、BUSY=0、ERROR=0`；60 筆中沒有 step 增加。
+- Slave 的 `HELPER_STATE=00000000、HELPER_ERROR=00000000、HELPER_OUTPUT=00000000、PSTAT=0、SSTAT=0` 全程沒有顯示 positive-control 曾出現的 TAG/REF/TRR/IRQ/servo 活動。
+- Quartus SignalTap 腳本本身完成，回報 0 errors、0 warnings；但這只證明腳本執行完成，不代表取得了可用的 SoftPLL correlation 證據。
 
 ## Observation
 
-待完成。
+這次實際燒錄映像可以讀到 Slave DCO probe，但讀到的是沒有 SoftPLL event 活動的狀態。`STEP=44` 固定不變，不能解讀成「Helper 誤差為零」；因為 Helper、PSTAT、SSTAT 也同時都是零。結合先前 compile provenance，實際使用的 `1e315904...` 是 page-3/start-hold 編譯輸出，而不是本實驗原本計畫的 clean-9f positive-control DCO 版本。這是實驗版本對應錯誤，不能作為 Servo 根因證據。
 
 ## Conclusion
 
-待完成；不能把診斷 probe 可讀誤寫成同步成功。
+本輪沒有取得可用的 Helper/DCO 關聯證據，也沒有同步成功。唯一可以確認的是：校正後的唯讀腳本能在 Slave instance 8 上正常讀取，但實際燒錄的映像沒有進入可觀測的 positive-control servo 活動。下一輪必須先以正確 source commit 重新編譯並核對 SOF/MIF/hash，再進行相同觀測。
 
 ## Next Step
 
-待完成；依 Helper error、DCO step 與 event counter 的實際關聯決定下一個單一 Slave 變因。
+從 `1b52223b4bcab4f440189ce95c8219edb811675c` 重新建立乾淨的 Slave DCO-observability 編譯輸出，保存新的 compile log、SOF hash、MIF hash 與 timing 結果；確認燒錄前後 source/output provenance 一致後，再重跑 60 秒唯讀 correlation。Master 維持歷史 `9f848ec` SOF，不修改 role、PHY、DMTD、PI、threshold 或 lock detector。

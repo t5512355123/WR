@@ -5,7 +5,7 @@
 - Experiment ID：`EXP-WRPC-MASTER-DCO-HANDSHAKE-RESTORE-20260817`
 - 日期：2026-08-17（Asia/Taipei）
 - Git branch：`exp/master-9f-observability`
-- Source/build commit：待本次 source commit 完成後補入
+- Source/build commit：`a334630f6b041fb076c0495b5c308dbcc199d9de`
 
 ## 實驗名稱
 
@@ -38,7 +38,19 @@
 
 ## Build provenance
 
-待 Quartus 17 compile 完成後補入：MIF/SOF/QSF/SDC hash、timing、compile log hash。
+- Quartus：`Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition`
+- Project/top-level：`DE5a_wr_master_jtag`
+- QSF SHA-256：`9bae9b2f2d1894d75f4e2a51621ca1052b62044c94d038ef96841a1a943e206d`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Master MIF SHA-256：`b85fc3cad62ec3ea6a1bd16e8c7a55b104e25f0fab855a92fd0217ad85f079a0`
+- Master SOF SHA-256：`1a3362b453b156bfb1b301870f2a0b3e3491f6cf41e9c40567ed6358dff402db`
+- Fitter：`Successful`
+- Compile：`Full Compilation was successful`
+- Timing closed：`NO`
+- Worst setup/hold slack：`-0.206 ns / -3.504 ns`
+- Unconstrained clocks/inputs/outputs：`3 / 402 / 84`
+- Compile log：`/home/b10504072/04_WR/build/quartus_jtag_master_compile.log`
+- Compile log SHA-256：`8abf28d33ed60bc512647dca38d79e949e85c06e9ea7131775ea98c657de9b08`
 
 ## 燒錄結果
 

@@ -51,6 +51,10 @@ proc u32 {value} {
   return [regexp {^[0-9A-Fa-f]{1,8}$} $value]
 }
 
+proc u64 {value} {
+  return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
+}
+
 proc read_focused_sample {hardware_name sample} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
   set ptp_meta [wb_read 0x0010095C]
@@ -69,7 +73,10 @@ proc read_focused_sample {hardware_name sample} {
   set pstat [wb_read 0x0010090C]
 
   set valid 1
-  foreach value [list $status $ptp_meta $foreign_meta $parse_meta $wr_state \
+  if {![u64 $status]} {
+    set valid 0
+  }
+  foreach value [list $ptp_meta $foreign_meta $parse_meta $wr_state \
       $wr_rx $wr_tx $wr_fail $wr_reject $wr_lock_result $wr_lock_polls \
       $wr_lock_enable $rcer $sstat $pstat] {
     if {![u32 $value]} {

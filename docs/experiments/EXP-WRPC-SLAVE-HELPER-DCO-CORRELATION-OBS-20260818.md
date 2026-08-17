@@ -6,7 +6,7 @@
 - 日期：2026-08-18
 - 實驗類型：Slave-only diagnostic observability burn；不改 White Rabbit 功能路徑
 - Git branch：`exp/master-9f-observability`
-- 建立時 commit：待本紀錄初始 commit
+- 建立時 commit：`eaffb3e`
 - Quartus：Quartus Prime 17.0 Build 595
 
 ## 這次想驗證什麼
@@ -27,8 +27,8 @@
 
 - Slave diagnostic source commit：`1b52223b4bcab4f440189ce95c8219edb811675c`
 - 已有 compile record：`EXP-WRPC-SLAVE-CLEAN9F-DCO-OBS-20260818`
-- 預定使用 SOF：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-CLEAN9F-DCO-OBS-20260818/slave.sof`
-- 預定 SOF SHA-256：`f57e2b099048a3129ff51b9760a701c1b0ea4306994dbe38b32910d7345cdc1b`
+- 實際使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- 實際 SOF SHA-256：`1e315904af9033f52551a68844a4fd274a8506f13523c10cc0b3fd570c0d494b`
 - MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
 
 ## 判準
@@ -44,11 +44,21 @@
 
 ## 燒錄結果
 
-本節待燒錄後立即補上 programmer 原始結果、時間、JTAG ID、checksum、SOF hash 與 log hash。
+- 燒錄時間：2026-08-18 05:49:18 開始，05:49:22 執行，05:49:37 完成（pain terminal）。
+- Quartus Programmer：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm`，版本 17.0 Build 595。
+- Programmer cable：`DE5 [1-11.2]`。
+- JTAG ID：`0x02E660DD`。
+- 使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`。
+- SOF SHA-256：`1e315904af9033f52551a68844a4fd274a8506f13523c10cc0b3fd570c0d494b`。
+- Programmer checksum：`0x30A4F803`。
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-HELPER-DCO-CORRELATION-OBS-20260818/program_slave_helper_dco_obs.log`。
+- Programmer log SHA-256：`b0c2384309f313e3e0f2e793f1484ba1b8060ff8f94b7809b2a88d25da2932c3`。
+- 結果：JTAG ID 正確，configuration succeeded，Quartus Programmer 回報 0 errors、0 warnings。
+- 先前一次使用相對命令名稱的嘗試只得到 `quartus_pgm: command not found`，沒有執行 programming，因此不列為本實驗的燒錄結果。
 
 ## JTAG/runtime 原始結果
 
-本節待燒錄後補上唯讀 correlation 原始 log、hash、有效樣本數與首尾值。
+本節將補上燒錄後的唯讀 correlation 原始 log、hash、有效樣本數與首尾值。
 
 ## Observation
 

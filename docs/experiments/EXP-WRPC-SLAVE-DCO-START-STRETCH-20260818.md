@@ -38,11 +38,25 @@ bus_done=0
 
 ## 編譯結果
 
-待 patch 後補入；尚未燒錄。
+- pain 從 GitHub checkout 明確 commit：`6d38dd796c2c48a599e779646325099b96d5cb0f`
+- 編譯時間：2026-08-18 04:59:04 至 04:59:46（Asia/Taipei）
+- Quartus：Version 17.0.0 Build 595 Standard Edition
+- 結果：`Full Compilation was successful`，0 errors、270 warnings
+- Fitter：`Successful`
+- 新 Slave SOF SHA-256：`1211ff4d145224a865fc05aac06e49ea61f15355593f868bac06b3ec974ca978`
+- MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Compile log：`/home/b10504072/04_WR/build/quartus_jtag_slave_compile.log`
+- Compile log SHA-256：`fbf190272ab4c8d57d223ff6376f3f8487c373a14be3d3031eebef07ba809e37`
+- Timing：`TIMING_CLOSED=NO`；worst setup `-0.423 ns`、worst hold `-3.558 ns`。
+- 主要 critical warning 仍為 timing requirements not met 與未使用 transceiver channel；本輪只改 DCO request hold，沒有宣稱 timing closure。
+
+本段只代表 compile/Fitter 成功，不代表已燒錄或同步成功。
 
 ## 燒錄結果
 
-尚未燒錄。若 compile 通過，燒錄前先提交本段 compile provenance；燒錄後立即保存 programmer log/checksum。
+尚未燒錄。下一步只把 `1211ff...` SOF 燒入 Slave cable `DE5 [1-11.2]`；Master 不動。
 
 ## JTAG/runtime 原始結果
 

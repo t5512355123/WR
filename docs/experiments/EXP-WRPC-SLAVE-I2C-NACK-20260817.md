@@ -46,17 +46,26 @@ Slave SI5340 I2C NACK 唯讀觀測
 - Slave MIF SHA-256：`f24527afe0e7bdb5b5bd103263fb87436e317c916186fa91e933ceef05b8e8a4`
 - Slave QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
 - Slave SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
-- `i2c_bus_controller_dco.v` SHA-256：待 pain 同步後確認
-- `si5340a_controller_dco.v` SHA-256：待 pain 同步後確認
-- Slave SOF SHA-256：待 compile 後確認
+- `i2c_bus_controller_dco.v` SHA-256：`d04cac3f4eb9785d3552cf9f78ae85765a604fa730c78fc89cbe7eb11b9bf3cc`
+- `si5340a_controller_dco.v` SHA-256：`a64a24dea63ff6656520efaa19a5c406540e05f6a8bc03b50cd1ee170786695e`
+- Slave SOF SHA-256：`c7c0db469b9d5908b7f21320d7a8ca699f86aa29fff2f2ede9685b164b401bae`
 
 ## Compile 結果
 
-待 pain 從 GitHub fetch `e09ddbf` 後，使用 Quartus 17.0 compile；compile-only 不視為硬體實驗成功。
+pain 從 GitHub fetch `e09ddbf` 後，使用 Quartus 17.0 Build 595 完成完整 compile：
+
+```text
+Quartus Prime Full Compilation was successful. 0 errors, 268 warnings
+Fitter: successful, 0 errors, 17 warnings
+Assembler: successful, 0 errors, 1 warning
+TimeQuest: successful, 0 errors, 7 warnings
+```
+
+時序報告仍有 requirement warning；本次 compile 的 slow corner 摘要包含 setup slack `-0.175 ns`、hold slack `-3.552 ns`。因此這是可產生 SOF 的 compile 結果，不是 timing closure，也不代表硬體同步成功。
 
 ## 燒錄結果
 
-待 compile 成功後只燒錄 Slave `DE5 [1-11.2]`，Master 維持 known-good baseline。燒錄後立即補上：
+compile 成功後只燒錄 Slave `DE5 [1-11.2]`，Master 維持 known-good baseline。燒錄後立即補上：
 
 ```text
 Programming cable:

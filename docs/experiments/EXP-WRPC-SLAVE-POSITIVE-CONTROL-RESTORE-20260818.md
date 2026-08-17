@@ -80,23 +80,33 @@ Slave : MODE=3、link_up=1、PSTAT.locked=1、SSTAT 前進、UCNT 增加、time_
 
 ## JTAG/runtime 原始結果
 
-燒錄完成後執行同一套 read-only correlation 與雙板 time-series；結果待補入。至少保存：
+燒錄完成後執行同一套 read-only correlation。這顆 restore image 的結果不是「讀到全零」，而是 JTAG 觀測端找不到 Sources and Probes instance：
 
-- `servo_dco_correlation_positive_control.log`
-- `runtime_positive_control_restore_60s.log`
-- 每份 raw log 的 SHA-256
+- 執行時間：2026-08-18 06:58:54
+- command：`quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 60 500`
+- `DE5 [1-11.1]`：`ERROR: No In-System Sources and Probes instance was found.`
+- `DE5 [1-11.2]`：`ERROR: No In-System Sources and Probes instance was found.`
+- `HPLL_HELPER_CORRELATION_DONE`：Tcl script evaluation successful，但沒有產生任何 sample
+- raw log：`artifacts/EXP-WRPC-SLAVE-POSITIVE-CONTROL-RESTORE-20260818/servo_dco_correlation_positive_control.log`
+- raw log SHA-256：`25085936ff63797e818504261d58cbb074ebc4f42b0389ebdd8b22d49ffd3fd3`
+
+因此本輪沒有 `WR_LOCK、RCER、TAG、TRR、IRQ、SSTAT、PSTAT、UCNT` 的 runtime 讀值，也沒有可用的 status/time-valid sample。這是觀測介面缺失或 image/script 不匹配，不應解讀成這些 runtime counter 確實為零。
 
 ## Observation
 
-待實驗結果填寫。若 restore image 重現 `WR_LOCK/RCER/TAG/TRR/IRQ`，表示目前 start-hold image 與歷史 positive-control 在 lock-path observability 或硬體時序上存在可辨識差異；若仍全部為零，問題更可能在目前板端外部狀態、Master/Slave link session 或 firmware/runtime handoff，不能把責任歸給 start-hold RTL。
+這顆 restore image 的 Programmer 證據完整：JTAG ID 正確，且 configuration succeeded。但燒錄後兩條 JTAG 都找不到 Sources and Probes，因此目前無法確認這顆 image 是否有進入 WR lock path，也無法確認 Slave 的 `time_valid/pps_valid` 狀態。
+
+這顆 image 與目前 read-only correlation script 的 probe 需求不相容，或它本身就是沒有 SLD Sources and Probes 的 clean image。這個結果不能用來支持「Slave lock 失敗」、也不能用來支持「Slave 已同步」。
 
 ## Conclusion
 
-只能依燒錄後原始 programmer 與 JTAG 證據填寫。沒有 `PSTAT.locked=1、time_valid=1、pps_valid=1` 的證據，不得宣稱兩片 DE5a 已完成 White Rabbit 同步。
+本輪已證明：
+
+1. 歷史 positive-control Slave SOF 可以成功配置到 `DE5 [1-11.2]`。
+2. 目前這顆 restore image 在燒錄後沒有可供本診斷腳本使用的 Sources and Probes instance。
+
+本輪沒有證明 Slave 的 WR lock、SoftPLL lock 或時間同步結果。因為缺少 `PSTAT.locked=1、time_valid=1、pps_valid=1` 的同窗證據，不能宣稱兩片 DE5a 已完成 White Rabbit 同步。
 
 ## Next Step
 
-依 restore 結果只選一個 Slave 變因：
-
-1. 若 positive-control 恢復 lock-path activity：保留該 image，下一輪只針對 DCO/clock feedback 或 start-hold 差異做 A/B。
-2. 若 positive-control 也沒有 lock-path activity：不再改 Master role，回到 Slave parent/WR signaling runtime 與板端 link/session 的證據收斂。
+下一步不改 Master role。先選用一顆已確認含有 Sources and Probes 的 Slave diagnostic image（或重新 compile 目前 diagnostic source），完成 image/probe 對應後再做同一套 read-only correlation。只有取得有效 sample，才能繼續判斷是 parent/WR signaling、SoftPLL activation 還是後段 gating。

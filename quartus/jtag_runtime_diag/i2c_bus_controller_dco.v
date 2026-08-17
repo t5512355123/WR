@@ -89,7 +89,8 @@ module i2c_bus_controller_dco(
 	test_start,
 	test_cnt,
 	wr_data_en,
-	i2c_stop_ctrl_cnt
+	i2c_stop_ctrl_cnt,
+	oACK_ERROR
 	
 				);
 
@@ -111,6 +112,7 @@ input			iSequential_read;
 inout			i2c_data;
 output 		oSYSTEM_STATE;
 output  reg		oCONFIG_DONE;
+output  reg		oACK_ERROR;
 //////////////////////////////////////////////////////////
 
 output	reg	[1:0]	i2c_clk_cnt;
@@ -554,6 +556,23 @@ always@(posedge iCLK or negedge iRST_n)    // fang
         oCONFIG_DONE <= 1'b1 ;
       else
         oCONFIG_DONE <= 1'b0 ;
+  end
+
+// The original controller ignored the ACK slots and advanced even when the
+// SI5340 left SDA high. Keep the transaction timing unchanged, but retain a
+// sticky NACK indication for hardware diagnosis. At i2c_clk_cnt=3 SCL is high
+// and an addressed device must hold SDA low for ACK.
+always@(posedge iCLK or negedge iRST_n)
+  begin
+    if (!iRST_n)
+      oACK_ERROR <= 1'b0;
+    else if ((i2c_clk_cnt == 2'd3) &&
+             ((i2c_state == state_slave_addr_ack1) ||
+              (i2c_state == state_word_addr_ack)   ||
+              (i2c_state == state_slave_addr_ack2) ||
+              (i2c_state == state_wr_ack)) &&
+             i2c_data)
+      oACK_ERROR <= 1'b1;
   end
 
 endmodule	

@@ -32,6 +32,7 @@ wire [7:0] static_read_data;
 wire       static_read_data_rdy;
 wire       bus_state;
 wire       bus_done;
+wire       bus_ack_error;
 wire       static_controller_ready;
 wire       static_start_pulse;
 wire       initial_start;
@@ -100,6 +101,7 @@ assign oPLL_I2C_ID_READ_ERROR = 1'b0;
 // [21:16] I2C controller state, [22] bus_start, [23] static_start,
 // [24] system_start, [25] user_start_rise, [26] initial_start,
 // [27] dco_error, [28] dco_busy, [29] iDPLL_LOAD, [30] iHPLL_LOAD,
+// [31] sticky I2C NACK observed on SDA,
 // [47:32] completed step count, [63:48] last HPLL data.
 assign oDCO_DEBUG[2:0]   = rt_state;
 assign oDCO_DEBUG[3]     = bus_state;
@@ -125,7 +127,7 @@ assign oDCO_DEBUG[27]    = dco_error;
 assign oDCO_DEBUG[28]    = (rt_state != 4'd0);
 assign oDCO_DEBUG[29]    = iDPLL_LOAD;
 assign oDCO_DEBUG[30]    = iHPLL_LOAD;
-assign oDCO_DEBUG[31]    = 1'b0;
+assign oDCO_DEBUG[31]    = bus_ack_error;
 assign oDCO_DEBUG[47:32] = dco_step_count;
 assign oDCO_DEBUG[63:48] = hpll_prev_data;
 
@@ -190,6 +192,7 @@ i2c_bus_controller_dco u_i2c_bus(
   .wr_cmd(bus_wr_cmd),
   .oSYSTEM_STATE(bus_state),
   .oCONFIG_DONE(bus_done),
+	.oACK_ERROR(bus_ack_error),
   .i2c_state(bus_i2c_state)
 );
 

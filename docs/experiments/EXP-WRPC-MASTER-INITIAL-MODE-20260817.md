@@ -100,3 +100,12 @@ Slave 維持上一輪 baseline bitstream，0/10/60 秒為 `WDIAGS_MODE=3`、`SST
 - restore Programmer：`0 errors, 0 warnings`
 
 恢復的原始 logs 與 hash 位於同一 artifact 目錄的 `restore_*` 檔案；恢復動作不代表同步成功。
+
+### 恢復後 runtime check
+
+2026-08-17 15:49:39 的 read-only JTAG check 顯示：
+
+- Master：marker=`B004`、`WDIAGS_MODE=3`、`SSTAT=0`、`PSTAT=1`、PTP RX/TX=`0x11/0x0F`、CPU fault=0
+- Slave：marker=`B004`、`WDIAGS_MODE=3`、`SSTAT=1`、`PSTAT=1`、PTP RX/TX=`0x5DC/0x6E4`、UCNT=0、CPU fault=0
+
+Master 已恢復到可正常完成 boot 並有 PTP 活動的 baseline；兩端仍沒有完成同步的證據。

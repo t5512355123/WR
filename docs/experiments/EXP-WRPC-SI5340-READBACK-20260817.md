@@ -5,7 +5,7 @@
 - Experiment ID：`EXP-WRPC-SI5340-READBACK-20260817`
 - 日期：2026-08-17
 - 實驗分支：`exp/jtag-runtime-observability`
-- 原始碼 commit：`b327f37`（完整 SHA 以 Git log 為準）
+- 原始碼 commit：`4fa32a30ff9fff20bf7c98f7b737d67c42751b1c`
 
 ## 這次想驗證什麼
 
@@ -31,18 +31,22 @@
 
 ## 編譯與硬體識別
 
-- Quartus：待 compile 後填入，預期 `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`、17.0.0 Build 595
-- QSF SHA-256：待 compile 後填入
-- SDC SHA-256：待 compile 後填入
-- Master MIF SHA-256：待 compile 後填入
-- Slave MIF SHA-256：待 compile 後填入
-- Slave SOF SHA-256：待 compile 後填入
+- Quartus：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`、Version 17.0.0 Build 595
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Master MIF SHA-256（未改動基線）：`9829fb3e346d16a25865698a033eb883a54c1e7e52c00238165dac680f62b6ff`
+- Slave MIF SHA-256：`72e832874562b061e1cc9e1a07bf4f03e0d11b56dc4d326dbbda1bd1f7575c1a`
+- Slave SOF SHA-256：`1766e765e8962631c787bb062ac088d18d76f71764ea03f4a3d73a1ad0647181`
+- Compile log SHA-256：`49279d3a2dbe9453fc3a4a7a9727b36b19e471d673790bb3928afd3c806819f9`
+- Full Compilation：0 errors、275 warnings，Fitter successful
+- Timing：setup `-0.361 ns`、hold `-3.503 ns`、recovery `1.213 ns`、removal `0.327 ns`
+- Unconstrained：clocks 4、inputs 872、outputs 85
 - Programmer checksum：待燒錄後填入
 - JTAG ID：待燒錄後填入
 
 ## 燒錄結果
 
-待 compile 成功後燒錄 Slave `DE5 [1-11.2]`。燒錄成功、失敗或結果不明都必須在本節保留原始紀錄與 checksum；compile 成功不等於硬體實驗成功。
+已 compile，待燒錄 Slave `DE5 [1-11.2]`。燒錄成功、失敗或結果不明都必須在本節保留原始紀錄與 checksum；compile 成功不等於硬體實驗成功。
 
 ## JTAG/runtime 原始結果
 

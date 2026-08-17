@@ -27,6 +27,7 @@ rm -f "$LOG"
   "$QUARTUS_BIN/quartus_sh" --version 2>&1 | head -3
   sha256sum "$PROJECT_DIR/$PROJECT.qsf" "$PROJECT_DIR/$PROJECT.sdc" "$MIF"
   echo "=== QUARTUS CLEAN ==="
+  cd "$PROJECT_DIR"
   "$QUARTUS_BIN/quartus_sh" --clean "$PROJECT.qpf"
   echo "=== QUARTUS COMPILE ==="
   cd "$PROJECT_DIR"

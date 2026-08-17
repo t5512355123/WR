@@ -509,3 +509,16 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - postcheck：Master `status_low=FF、time_valid=1、pps_valid=1、link_up=1`；Slave `status_low=EF、time_valid=0、pps_valid=1、link_up=1、PSTAT.locked=0、SSTAT=0、PTP_RX=0`。
 - 結論：主機 reboot 與 baseline 重新燒錄未使 Slave 穩定同步；證據只支持「Slave PTP 路徑曾短暫活動但未持續」，不能宣稱 parent、SoftPLL 或 time-valid 成功。下一步維持 baseline，做唯讀 clock/reset/PHY/event-order observability，不恢復 DPLL。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-BASELINE-COLDSTART-20260817.md`。
+
+## 最新燒錄實驗：WR 時鐘、重置與 PHY 狀態唯讀觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-CLOCK-RESET-OBS-20260817`；branch：`exp/jtag-runtime-observability`。
+- source commit：`a7f28ec27524d15878b4b554620a52dc84628b1f`；實驗紀錄提交於 `933ce3e`。唯一功能變因是把 `clock_activity_probe[63:54]` 映射到既有 clock/reset/PHY/runtime 訊號，更新 Tcl 解碼；不修改 WR、PHY、PTP、servo、SoftPLL 或 SI5340 控制。
+- pain 以明確 commit `933ce3e` checkout，Quartus 17.0.0 Build 595 compile 成功，0 errors、274 warnings；timing 尚未 closure：setup `-0.178 ns`、hold `-3.487 ns`。
+- QSF/SDC/MIF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233` / `b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8` / `578d526306bf28721412d2a7a51f928a169bc1561e20a404de726d51df669ecb`。
+- Slave SOF SHA-256：`f45a648f0e380a5ed0238f2d1030ebea9943cba93066c1f5cbc7247d40aa4a67`；`DE5 [1-11.2]` programmer checksum `0x30A152A4`、JTAG ID `0x02E660DD`、configuration succeeded、0 errors/0 warnings。
+- 六個 clock/reset 觀測窗口顯示 Slave 大多維持 `SYS625_LOCKED=1、CORE_RESET_N=1、PHY_RST=0、SI_DONE=1、RX/TX_READY=1、LINK_UP=1、LINK_OK=1`；`RX_LOCK_DATA=1` 持續，`RX_LOCK_REF` 與 `PPS_VALID` 有波動。
+- 60 秒 JTAG：Master `60/60 accepted`；Slave `47/60 accepted、13 rejected`，有 `SESSION_TIME_SERIES_DONE`。Slave accepted samples 仍為 `status_low=EF、time_valid=0、pps_valid=1、link_up=1、spll_locked=0`，且 parent `foreign_count=1、parent_is_wr=1、parent_calibrated=1`、PTP_RX 持續增加。
+- 結論：核心 clock/reset 卡死目前沒有證據；parent/PTP 已有活動，但 Slave servo/SoftPLL 沒有 lock，仍未同步。下一步比較 PTP parent、SSTAT 狀態轉移、UCNT/CKO/SETP/PPS_ESCR 的逐秒變化，不直接恢復 DPLL。
+- 原始 log：`build/artifacts/EXP-WRPC-CLOCK-RESET-OBS-20260817/program.log`（`40d3db35e2d0bca19bc824f14f9e65ab6809da008da614e1c1b324cd60760557`）、`clock_reset_runtime.log`（`f3172e63187702dc1c47f374033f5a9722f5417b6bdf4084fd14ee1e0d08462c`）、`runtime_60s.log`（`73d3751c1398dadd577f2a7c2b777d217972017f37d8a92f77be57ee17582d45`）。
+- 完整紀錄：`docs/experiments/EXP-WRPC-CLOCK-RESET-OBS-20260817.md`。

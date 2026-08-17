@@ -6,7 +6,7 @@
 - 日期：2026-08-18
 - 實驗類型：Slave-only 單一功能變因；不修改 Master role
 - Git branch：`exp/master-9f-observability`
-- 實驗狀態：先建立紀錄，待 compile/program/runtime 結果補入
+- 實驗狀態：已完成 compile、Slave 燒錄與 60 秒雙板唯讀 runtime 觀測；未達成 Slave 同步
 - Quartus：Quartus Prime 17.0 Build 595 Standard Edition
 
 ## 這次想驗證什麼
@@ -64,23 +64,40 @@ compile 已成功並完成 hash 核對；本輪已完成燒錄。燒錄後立即
 - Quartus Programmer result：0 errors、0 warnings
 - 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/program_slave_start_hold.log`
 - Programmer log SHA-256：`5a88c58a440a113d54892f34c771b9b35c187279d0218c06e6875b6e79ba3d69`
+- 為排除前一輪 JTAG session 對 runtime 狀態的干擾，於 2026-08-18 06:37:52 以**完全相同的 SOF**重新燒錄 Slave；沒有 source、MIF、QSF、role 或 PHY 變更。
+- 重複燒錄 command：`quartus_pgm -c "DE5 [1-11.2]" -m jtag -o 'p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof'`
+- 重複燒錄結果：同一 JTAG ID `0x02E660DD`、同一 Programmer checksum `0x30A22D41`、`Configuration succeeded -- 1 device(s) configured`、0 errors、0 warnings。
+- 重複燒錄原始 log：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/program_slave_start_hold_repeat.log`
+- 重複燒錄 log SHA-256：`843D4232062CAEFED73BDBCDFC40E49F6DF85DA7CE8C9F1C99C186519FB13EAF`
 
 ## JTAG/runtime 原始結果
 
-待燒錄後補入。至少保存：
+本輪完成兩組唯讀觀測，原始檔案與 SHA-256 如下：
 
-- `read_dco_state.tcl` 或等價唯讀讀值：`rt_state`、`bus_state`、`bus_done`、`runtime_start_hold`、`BUSY`、`STEP_COUNT`。
-- 60 秒 correlation：`HELPER_ERROR`、`HELPER_OUTPUT`、`DCO_STEP_COUNT`、`PSTAT`、`SSTAT`、`UCNT`、`time_valid`、`pps_valid`。
-- Master baseline sanity：`status=FF`、`MODE=2`、`PTP=6`、`time_valid=1`、`pps_valid=1`。
+- DCO correlation：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/dco_correlation_60x500ms.log`
+  - SHA-256：`8F5FD1A41C47ED92AC2C6F6FD67D0CB08C3FB0F11E4CEACC06FFAD61C2E2C5A2`
+- 雙板 60 秒 time-series：`artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/runtime_full_timeseries_60s.log`
+  - SHA-256：`AD70B69E0AA64AB4C87F23EBFA7975F276F6B8927C5910DC3DAE164DC2FA92CF`
+- JTAG 指令：`timeout 420s quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3 2>&1 | tee artifacts/EXP-WRPC-SLAVE-DCO-START-HOLD-CLEAN9F-AB-20260818/runtime_full_timeseries_60s.log`
+- JTAG 結果：SignalTap/Quartus Prime SignalTap II script 成功，0 errors、0 warnings，`SESSION_TIME_SERIES_DONE`。
+- Master：60/60 筆 `accepted=1`；有效樣本維持歷史 baseline 的 `status_low=FF`、`wr_mode=2`、`WDIAGS_PTP=6`、`time_valid=1`、`pps_valid=1`，PTP RX/TX 有活動。
+- Slave：60 筆樣本，52 筆 `accepted=1`、8 筆在 3 次 retry 後仍不接受；可接受樣本中約 46 筆為 `status_low=EF`、`link_up=1`、`pps_valid=1`、`time_valid=0`、`wr_mode=3`、`spll_locked=0`；另有 2 筆 `status_low=CF` 且 link_up=1，10 筆 `status_low=CF` 且 link_up=0。
+- Slave 60 秒主要診斷欄位：`WDIAGS_SSTAT=0`、`WDIAGS_PSTAT=1`、`WDIAGS_UCNT=0`、`spll_locked=0`；這表示尚未觀察到 servo state 前進、SoftPLL lock 或 update counter 活動。
+- DCO correlation：60 筆中 `STEP=10` 共 17 筆、`STEP=12` 共 23 筆、`STEP=14` 共 20 筆；全程 `BUSY=0`、`ERROR=0`，最後 `STEP=14`，`HELPER_ERROR=0`、`HELPER_OUTPUT=0`（以該診斷 probe 的定義為準）。
+- 另一次執行 `read_dco_state.tcl` 的結果是兩片板都回報 `No In-System Sources and Probes instance was found`；該腳本讀取不存在的 instance 9，因此判定為腳本/instance 編號不匹配，不列為硬體失敗證據。
 
 ## Observation
 
-待實測後補入，只描述原始結果，不把 frame retry 或單次取樣當成完整同步證據。
+本輪證據支持 DCO runtime transaction 已完成：`BUSY` 能回到 0，且 `STEP_COUNT` 由 10 經 12 增加到 14。這證明 start-hold 變因至少讓 DCO 寫入流程完成，但不是 White Rabbit 同步成功證據。
+
+Slave 的 PTP/PHY 基本路徑部分存在：多數有效樣本 `link_up=1`、`pps_valid=1`、`wr_mode=3`，但 `time_valid=0`、`PSTAT.locked=0`、`SSTAT=0`、`UCNT=0`。因此目前不能宣稱 Slave servo 已啟動或兩板已同步。
+
+觀測期間 JTAG frame 有 8/60 筆在 retry 上限後不接受，且少數樣本出現 link/status 暫時下降；這些列不被拿來拼接同步結論，並且已完整保留原始 log。
 
 ## Conclusion
 
-待實測後補入。若 `BUSY` 回 0 且 `STEP_COUNT` 增加，只能結論為 DCO/I²C start-accept handshake 得到支持；若仍 `BUSY=1`、`STEP_COUNT=0`，則轉向更細的 `bus_start/bus_state/bus_done/I²C state` 唯讀觀測。兩種結果都不能直接宣稱 Slave 已同步。
+本輪只支持以下保守結論：`runtime_start_hold` 改善了 DCO/I²C start-accept handshake 的證據，因為交易完成且 step counter 有變化；但 Slave 仍未通過 servo/SoftPLL/time-valid 判準。現有資料尚不足以把根因唯一指定為 feedback、DMTD、signal handoff 或 time-valid gating。
 
 ## Next Step
 
-只有在本輪 transaction completion 證據成立後，才繼續追 `HELPER_ERROR` 是否收斂、lock detector 是否累積，以及最後 `time_valid/pps_valid`。Master role 維持歷史 9f848ec，不新增 role 切換方法。
+下一輪仍只做 Slave 唯讀觀測，不修改 Master role：修正觀測腳本使用 instance 8，將 `DCO_DEBUG` 的 `bus_start/bus_state/bus_done/runtime_start_hold/rt_state/STEP` 與同一時間窗的 `SSTAT/PSTAT/UCNT/WR_SPLL_ACTIVITY/WR_SPLL_EVENTS` 對齊。若確認 transaction 已完成而 feedback/servo 訊號仍完全沒有活動，再依證據進入 feedback/DMTD signal mapping 檢查；不要先改 FINC/FDEC 或 lock detector。

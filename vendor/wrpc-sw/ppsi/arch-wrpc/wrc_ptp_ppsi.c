@@ -242,12 +242,7 @@ int wrc_ptp_set_mode(int mode)
 
 		wrpc_enable_timing_output(ppg, 1);
 		*class_ptr = PP_FRUNNING_CLOCK_CLASS;
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-		/* Commit the Master role before the free-running PLL settles. */
-		error = 0;
-	#else
 		error = wrpc_spll_check_lock_with_timeout(LOCK_TIMEOUT_FM);
-	#endif
 
 		break;
 

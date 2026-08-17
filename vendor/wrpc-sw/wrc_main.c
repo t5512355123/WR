@@ -176,10 +176,6 @@ static int is_link_up(void)
 static int wrc_check_link(void)
 {
 	static int prev_state = 0;
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	static int master_switch_attempted = 0;
-	int master_switch_rc;
-	#endif
 	int state = ep_link_up( &wrc_endpoint_dev, NULL);
 	int rv = 0;
 
@@ -187,16 +183,6 @@ static int wrc_check_link(void)
 		wrc_verbose("Link up.\n");
 		event_post( WRC_EVENT_LINK_UP );
 		sfp_match(0);
-		#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-		if (!master_switch_attempted) {
-			/* Defer the Master transition until the endpoint is link-up. */
-			debug_boot_stage = 0xB2000001;
-			master_switch_attempted = 1;
-			master_switch_rc = wrc_ptp_set_mode(WRC_MODE_MASTER);
-			debug_boot_stage = 0xB2000000 |
-				((unsigned int)master_switch_rc & 0xffffU);
-		}
-		#endif
 		wrc_ptp_start();
 		link_status = NETIF_LINK_WENT_UP;
 		rv = 1;
@@ -347,13 +333,7 @@ int main(void)
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	/* Preserve the shell diagnostic marker when the Master image records it. */
-	if ((debug_boot_stage & 0xff000000U) != 0xb1000000U)
-		debug_boot_stage = 0x0000B004;
-	#else
 	debug_boot_stage = 0x0000B004;
-	#endif
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B004);
 	#endif

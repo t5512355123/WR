@@ -72,16 +72,30 @@ page 0 step  : 0x001D = FINC/FDEC
 
 ## JTAG/runtime 原始結果
 
-本節待完成。至少保存 Master/Slave 的 `status_low`、`wr_mode`、`link_up`、`time_valid`、`pps_valid`、`WDIAGS_PTP`、`WDIAGS_SSTAT`、`WDIAGS_PSTAT`、`WDIAGS_UCNT`、`PPS_ESCR`、`TAG_VALID_COUNT`、`REF_COUNT`、`TRR_WRITE_COUNT` 與 frame validity。
+- 唯讀觀測時間：2026-08-18 05:24 後，10 次、每次間隔 1000 ms。
+- 原始 runtime log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-PAGE3-SEQUENCE-RESTORE-20260818/runtime_page3_10s.log`
+- Runtime log SHA-256：`d66281c326c93e9881fa4f0db070c915e4043205de41631022cf3bbced97906d`
+- Master：10/10 筆 frame accepted；最後一筆 `status_low=FF`、`wr_mode=2`、`link_up=1`、`time_valid=1`、`pps_valid=1`、`WDIAGS_PTP=6`，`TAG_COUNT=0x01C5446A`、`TAG_VALID_COUNT=0x01C5446A`、`TRR_WRITE_COUNT=0x01C5446A`、`PPS_ESCR=0x00000E0C`。
+- Slave：10/10 筆 frame accepted；最後一筆 `status_low=EF`、`wr_mode=3`、`link_up=1`、`time_valid=0`、`pps_valid=1`、`WDIAGS_PTP=6`，`WDIAGS_SSTAT=0`、`WDIAGS_PSTAT=1`、`WDIAGS_UCNT=0`、`PPS_ESCR=0`，主要 `REF_COUNT=0`、`TAG_COUNT=0`、`TRR_WRITE_COUNT=0`。
+- JTAG/SignalTap 讀取命令成功完成；frame retry 仍存在，但沒有因讀取失敗而把資料誤判為同步成功。
 
 ## Observation
 
-本節待補原始結果與觀察，compile 成功不能代替硬體實驗證據。
+1. page3 sequence SOF 已成功載入，且 10/10 筆 Master 與 Slave frame 都可在重試機制下接受。
+2. Master 維持歷史 baseline 的有效狀態，證明本輪沒有破壞 Master role 或其 SoftPLL 活動。
+3. Slave 的主要 SoftPLL event counters、PPS_ESCR、SSTAT、UCNT 仍沒有活動；因此 page3 register addressing 修正沒有在本次 10 秒觀測中產生可見的 servo progress。
+4. Slave 的 parent/WR flags 在不同 frame 間仍有變化，故目前不能把問題簡化成「只差一個 page address」；page sequence 不是已證實的修復。
 
 ## Conclusion
 
-本節只能依燒錄後的實際 JTAG 結果撰寫；在結果出現前，不宣稱 Slave servo 或兩台 DE5a 同步成功。
+本輪唯一變因已完成 compile、燒錄與唯讀 runtime 實驗，但結果為未改善：**尚未證明 Slave servo 成功，也尚未證明兩台 DE5a 已同步。**
+
+證據支持的結論是：
+
+- Master 仍是 `mode=2/status=FF/time_valid=1/pps_valid=1`。
+- Slave 仍停在 `mode=3/status=EF/time_valid=0`，主要 SoftPLL tag/ref/TRR event 沒有進入有效活動。
+- `runtime_start_hold` 與 page3 sequence 兩項修正目前都只證明 DCO controller/I2C transaction 層可運作，尚未證明量測事件已進入 Slave SoftPLL feedback loop。
 
 ## Next Step
 
-依照本輪結果決定是否保留此 page sequence，或回到上一個可重現 baseline。任何下一次燒錄都建立新的 Experiment ID 並立即記錄。
+保留本輪 SOF、programmer log 與 runtime log 作為負結果基線。下一輪仍只改 Slave 一個變因，優先釐清「Slave 是否真的收到並產生可供 SoftPLL 使用的 tag/ref event」，再決定是否保留 page3 sequence；不得修改 Master role。下一次燒錄另建新的 Experiment ID，並在燒錄後立即記錄。

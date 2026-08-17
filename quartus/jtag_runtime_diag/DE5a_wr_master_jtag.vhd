@@ -391,7 +391,18 @@ begin
   clock_activity_probe(51) <= wr_ready;
   clock_activity_probe(52) <= wr_rx_locked_to_ref;
   clock_activity_probe(53) <= wr_rx_locked_to_data;
-  clock_activity_probe(63 downto 54) <= (others => '0');
+  -- Keep the high status bits identical to the Slave diagnostic image.
+  -- These are read-only observability signals and do not drive WR timing.
+  clock_activity_probe(54) <= clk_sys_625_locked;
+  clock_activity_probe(55) <= wr_core_reset_n;
+  clock_activity_probe(56) <= core_phy_rst;
+  clock_activity_probe(57) <= si_config_done;
+  clock_activity_probe(58) <= core_pps_valid;
+  clock_activity_probe(59) <= core_tm_time_valid;
+  clock_activity_probe(60) <= wr_rx_ready;
+  clock_activity_probe(61) <= wr_tx_ready;
+  clock_activity_probe(62) <= core_tm_link_up;
+  clock_activity_probe(63) <= core_link_ok;
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.

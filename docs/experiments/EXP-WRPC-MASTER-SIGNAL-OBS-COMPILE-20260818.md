@@ -108,3 +108,48 @@ MIF SHA-256: 87c1fcc2de6098333e0af5e43dd6b9a9210b360210f2a771c9412529ac3d7cd0
 ### 編譯結論
 
 這次只證明 `7e0117c` 的 Master signaling observability 版本可以通過 Quartus Full Compilation 並產生可燒錄候選 `.sof`；它尚未證明 Master role、JTAG runtime 或 White Rabbit synchronization。下一步仍必須以 Master-only 方式燒錄，並用唯讀 JTAG 驗證 `marker=B004`、`MODE=2`、`PTP=6`、`status=0xFF`、PTP RX/TX 有活動與 `link_up=1`。
+
+## Master-only 燒錄結果（2026-08-18）
+
+### 實驗資訊
+
+- Experiment ID：`EXP-WRPC-MASTER-SIGNAL-OBS-PROGRAM-20260818`
+- Git branch：`exp/master-9f-observability`
+- 硬體來源 commit：`7e0117cc62e9dc23b9abb40be32315d55327a87b`
+- 紀錄推送 commit：`a1e1817`
+- 唯一變因：只將 `7e0117c` 產生的 Master observability `.sof` 燒錄到 Master；Slave 與其設定不變
+
+### 這次想驗證什麼
+
+確認加入最新 JTAG / signaling observability 的 Master bitstream 可以被 DE5a 正常設定，並在後續唯讀 JTAG 中檢查它是否仍保留歷史成功的 Master role：`MODE=2`、`PTP=6`、`status=0xFF`。
+
+### 燒錄產物
+
+- MIF SHA-256：`dc08f066668a2bc56fcf1c6a60cb1a3002ef674298549ef812f5b54d3336ea8c`
+- SOF SHA-256：`51d76eddf8f8a56b743f5d9f83885274e1706960b6dd9a73be545922a3f93b76`
+- Quartus Programmer checksum：`0x30A3363C`
+- Quartus：Version 17.0.0 Build 595，Standard Edition
+
+### 原始燒錄結果
+
+```text
+Info: Using programming cable "DE5 [1-11.1]"
+Info: Using programming file .../master_fixed.sof with checksum 0x30A3363C
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+```
+
+原始 programmer log：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/program_master_fixed.log
+SHA-256: ba9d31ff2367b9a05139e83ffc424e2899714af80aec8378eae86e47b27cca13
+```
+
+### 目前結論
+
+證據已支持：Master bitstream 成功完成 JTAG configuration。這還不能等同於 Master role 或 White Rabbit synchronization 成功；JTAG/runtime 讀值尚未在本段紀錄中完成。
+
+### Next Step
+
+立即對目前已燒錄的 Master 執行唯讀 JTAG 觀察，同時保持 Slave 不變。至少保存 `marker`、`status`、`WDIAGS_MODE`、`WDIAGS_PTP`、link/time/pps valid，以及 PTP RX/TX 活動；只有五項 Master baseline 條件全部具備，才凍結 Master 並轉向 Slave。

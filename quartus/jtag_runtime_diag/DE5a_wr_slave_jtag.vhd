@@ -692,8 +692,7 @@ begin
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
       g_pcs_16bit                 => false,
-      -- Slave 使用 WR core 預設的 direct DDMTD 取樣方向。
-      -- 本實驗唯一變因：只將 Slave 從 reverse sampling 改回 false；Master 不變。
+      -- Slave 恢復已知基線的 reverse DDMTD 取樣方向；Master 不變。
       g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )

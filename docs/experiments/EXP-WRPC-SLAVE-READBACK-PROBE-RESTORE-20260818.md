@@ -63,17 +63,23 @@ quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/EXP-W
 
 ## MIF / SOF / 燒錄結果
 
-本節於燒錄後立即補入：
-
-- Programmer start/end time
-- JTAG ID
-- Programmer checksum
-- configuration result
-- raw programmer log 路徑與 SHA-256
+- Slave SOF SHA-256：`079fade250475a6d8d9e9995f8bf4fbebe7fa122ff1972738641a0bb64b2aa13`
+- Slave MIF SHA-256：`f24527afe0e7bdb5b5bd103263fb87436e317c916186fa91e933ceef05b8e8a4`
+- Programmer command：`quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-SI5340-READBACK-20260817/DE5a_wr_slave_jtag.sof`
+- 燒錄開始：2026-08-18 07:06:25（UTC+08:00）
+- Programmer operation：07:06:29 開始 configuration，07:06:44 完成
+- Programmer version：Quartus Prime Programmer 17.0 Build 595 Standard Edition
+- Programmer cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- Programmer checksum：`0x309FA629`
+- configuration result：`Configuration succeeded -- 1 device(s) configured`
+- Programmer result：0 errors、0 warnings
+- raw programmer log：`artifacts/EXP-WRPC-SLAVE-READBACK-PROBE-RESTORE-20260818/program_slave_readback_probe_restore.log`
+- raw programmer log SHA-256：`306e2bf3a85ddb491ca489c1ba062f90ebe52fbb53713b2b3433503cdadc42fe`
 
 ## JTAG/runtime 原始結果
 
-本節於燒錄後補入：
+燒錄已成功；本節在隨後的唯讀觀測完成後補入：
 
 - `status_probe`
 - `cpu_marker`

@@ -99,6 +99,15 @@ config WR_NODE
 	bool
 	default !TARGET_WR_SWITCH
 
+config FORCE_MASTER_AFTER_INIT
+	bool "Force Master mode after all init scripts"
+	depends on WR_NODE && ARCH_RISCV
+	default n
+	help
+	  Re-apply WRC_MODE_MASTER after the built-in and persistent init
+	  scripts have completed. This is intended for a board image whose
+	  role must not be overridden by stale flash commands.
+
 # most options with no prompt here are prompted-for in the "advanced" section
 
 config STACKSIZE

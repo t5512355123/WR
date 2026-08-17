@@ -176,20 +176,8 @@ static int is_link_up(void)
 static int wrc_check_link(void)
 {
 	static int prev_state = 0;
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	static int master_role_applied;
-	#endif
 	int state = ep_link_up( &wrc_endpoint_dev, NULL);
 	int rv = 0;
-
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	if (!master_role_applied) {
-		/* Use the existing link task without consuming another task slot. */
-		wrc_ptp_set_mode(WRC_MODE_MASTER);
-		wrc_ptp_start();
-		master_role_applied = 1;
-	}
-	#endif
 
 	if (!prev_state && state) {
 		wrc_verbose("Link up.\n");

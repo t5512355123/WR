@@ -288,7 +288,10 @@ always @(posedge iCLK or negedge iRST_n) begin
         // HPLL-only isolation experiment: service every pending HPLL update
         // and suppress DPLL/N0 transactions.  The helper needs repeated HPLL
         // updates before the normal Slave sequencing can reach the main PLL.
-        if (static_controller_ready && rb_state == 4'd0 && hpll_pending) begin
+        // rb_state=5 means the one-shot readback already completed.  It must
+        // not permanently block later runtime DCO transactions.
+        if (static_controller_ready &&
+            (rb_state == 4'd0 || rb_state == 4'd5) && hpll_pending) begin
           rt_state <= 4'd1;
           rt_select_dpll <= 1'b0;
           rt_dir <= hpll_dir;

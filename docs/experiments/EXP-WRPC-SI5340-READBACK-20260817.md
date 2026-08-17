@@ -46,7 +46,17 @@
 
 ## 燒錄結果
 
-已 compile，待燒錄 Slave `DE5 [1-11.2]`。燒錄成功、失敗或結果不明都必須在本節保留原始紀錄與 checksum；compile 成功不等於硬體實驗成功。
+已燒錄至 Slave `DE5 [1-11.2]`：
+
+- Programmer checksum：`0x309CAB3C`
+- JTAG ID：`0x02E660DD`
+- Configuration：succeeded
+- Programmer：0 errors、0 warnings
+- 時間：2026-08-17 08:31:14 至 08:31:32（Asia/Taipei）
+- 原始 programmer log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-20260817/program.log`
+- programmer log SHA-256：`58bdc6d832af3b132f42b8dc8c919c6503d8e699b234581500327efea8f25226`
+
+這只證明 bitstream 已成功配置到指定 FPGA，不等於 SI5340 readback 或 WR synchronization 成功。
 
 ## JTAG/runtime 原始結果
 

@@ -64,19 +64,60 @@ Slave ：aa0825a readback exact SOF
 
 ## Runtime 結果
 
-本 commit 只完成燒錄紀錄。後續 JTAG time-series 必須另存原始 log 與 SHA-256，並追加到本文件；在 runtime 完成前，不宣稱兩片同步成功。
+- 讀取指令：`quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3`
+- 遠端原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-BASELINE-DUAL-RESTART-20260818/runtime_after_dual_restart_60s.log`
+- log SHA-256：`21dabdbc7aa67453129cace9d063aa0dea8562fc26bfb58699bc1758f2ed2ff2`
+- 執行結果：exit code `0`
+
+### Master runtime
+
+- 60 筆 accepted、0 筆 rejected。
+- 多數 accepted sample 為 `status_low=0xFF`、`time_valid=1`、`pps_valid=1`、`wr_mode=2`、`link_up=1`。
+- PTP RX/TX counter 在觀測期間有變化，不是只讀到固定殘值。
+- 證據支持 Master 維持歷史 `9f848ec` role baseline，且本輪未修改 Master role。
+
+### Slave runtime
+
+- 50 筆 accepted、10 筆 rejected。
+- accepted sample 主要為 `status_low=0xEF`、`time_valid=0`、`pps_valid=1`、`wr_mode=3`、`link_up=1`、`spll_locked=0`。
+- PTP RX/TX 出現活動，且 foreign record count 間歇出現 `1`；因此不能再把目前問題簡化成「完全沒有 PTP 封包」。
+- 但 parent 欄位沒有穩定呈現 WR parent：觀測到的 accepted 內容包含 `is_wr=0`、`mode_on=0`、`calibrated=0`、`parentWrConfig=0`、`parentDetection=0`。
+- accepted sample 中沒有可採信的穩定 `spll_locked=1`；少數 invalid/cross-boundary row 的 lock 欄位不納入結論。
+- raw TAG_SOURCE counter 有增加，但 `RCER`、`TAG_VALID`、`TRR_WRITE`、`IRQ` 與 `SSTAT` 沒有形成有效 lock path 證據。
+
+## 本輪證據解讀
+
+這輪比單獨恢復 Slave 的結果多了 Slave PTP RX/TX 與 foreign activity，但仍未證明 Slave 已選到可用的 WR parent，也未證明 SoftPLL lock 或 `time_valid`。因此目前最合理的問題邊界是：
+
+```text
+Master role / PHY / 基本 PTP 封包路徑：已有較強證據
+Slave parent WR announce / parent selection / WR signaling：仍未通過
+Slave SoftPLL lock -> time_valid：尚未能進入有效驗證
+```
+
+這是「優先順序」判斷，不是已確定的根因。下一輪仍不得修改 Master role、PHY、FINC/FDEC、PI、threshold 或 DDMTD polarity；應先完成 Slave parent/WR signaling 的 source audit，再選一個且只有一個 Slave 變因。
 
 ## Observation
 
-目前可確認：兩片 FPGA 都成功載入與既有 baseline 完全相同的 SOF。尚未確認 Slave parent acquisition 或 servo lock。
+目前可確認：兩片 FPGA 都成功載入與既有 baseline 完全相同的 SOF；Master 在 60 秒觀測中維持有效 role/time status，Slave 有部分 PTP/foreign activity，但尚未確認穩定的 WR parent acquisition 或 servo lock。
 
 ## Conclusion
 
-> 雙板 exact baseline restart 的燒錄階段成功；本實驗尚未提供 White Rabbit 時間同步成功證據。
+> 雙板 exact baseline restart 的燒錄與 JTAG 讀取均成功。Master role/status 在本輪維持正常；Slave 雖有 PTP/foreign activity，但沒有穩定 parent-WR 或 SoftPLL-lock 證據，因此本實驗不支持「兩片已完成 White Rabbit 時間同步」。
 
 ## Next Step
 
-使用同一 JTAG session 讀取：
+先對 Slave 的 parent/WR signaling source path 做唯讀稽核，特別確認：
+
+```text
+WR Announce 是否宣告 WR node/configuration
+Slave 是否接受 parent 的 WR flags
+parent detection / is_wr / mode_on / calibrated 的來源與 gating
+```
+
+稽核完成後，固定 Master `9f848ec` role，只選一個 Slave 變因做 compile、burn、runtime；每次燒錄立即新增獨立實驗紀錄。
+
+每輪仍使用同一 JTAG session 讀取：
 
 ```text
 MODE、status、PTP state、PTP RX/TX、foreign/parent flags、WR state、

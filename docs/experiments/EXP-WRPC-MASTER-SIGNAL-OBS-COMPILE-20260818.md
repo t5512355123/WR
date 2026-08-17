@@ -72,3 +72,39 @@ MIF SHA-256: 87c1fcc2de6098333e0af5e43dd6b9a9210b360210f2a771c9412529ac3d7cd0
 
 只修正 `build_jtag_master.sh` 的 Quartus project path，使 clean 與 compile 都在 `quartus/jtag_runtime_diag/` 執行；修正後重新 compile，保存新的 QSF/SDC/MIF/SOF/hash 與 timing 結果。compile 成功後才考慮 Master-only programming，且仍保留歷史 `9f848ec` SOF 作為 rollback/A-B 基準。
 
+## 修正後編譯結果（2026-08-18）
+
+上述 path bug 已在 commit `7e0117c` 修正：Quartus clean 與 compile 現在都先切換到 `quartus/jtag_runtime_diag/`。修正後產生的 build identity 為：
+
+- Git commit：`7e0117cc62e9dc23b9abb40be32315d55327a87b`
+- Quartus：Version 17.0.0 Build 595，Standard Edition
+- QSF SHA-256：`9bae9b2f2d1894d75f4e2a51621ca1052b62044c94d038ef96841a1a943e206d`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- MIF SHA-256：`dc08f066668a2bc56fcf1c6a60cb1a3002ef674298549ef812f5b54d3336ea8c`
+- SOF SHA-256：`51d76eddf8f8a56b743f5d9f83885274e1706960b6dd9a73be545922a3f93b76`
+- Fitter：Successful
+- Full Compilation：successful，0 errors，272 warnings
+- Timing：尚未閉合；worst setup `-0.462 ns`、hold `-3.493 ns`
+
+保存位置：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/master_fixed.mif
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/master_fixed.sof
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/quartus_compile_fixed.log
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/compile_fixed.log
+```
+
+原始 Quartus log SHA-256：
+
+```text
+48b15e963c9faa19623e999f31392f8c07cadffee5c189422a7e13feb884410c
+```
+
+### 證據限制
+
+本次修正後 log 與輸出檔在等待所有 Quartus 程序結束後完成核對；但本輪早先曾意外啟動過重疊的 Quartus process，因此這組檔案應視為「成功產生且可追溯的診斷 build」，不應過度宣稱為完全隔離的首次 clean build。未來若需要正式 release，應先確保沒有任何 Quartus process，再從乾淨目錄執行一次單一 build。
+
+### 編譯結論
+
+這次只證明 `7e0117c` 的 Master signaling observability 版本可以通過 Quartus Full Compilation 並產生可燒錄候選 `.sof`；它尚未證明 Master role、JTAG runtime 或 White Rabbit synchronization。下一步仍必須以 Master-only 方式燒錄，並用唯讀 JTAG 驗證 `marker=B004`、`MODE=2`、`PTP=6`、`status=0xFF`、PTP RX/TX 有活動與 `link_up=1`。

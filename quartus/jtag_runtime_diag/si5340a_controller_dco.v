@@ -74,11 +74,13 @@ reg        dpll_done_once;
 reg        dco_error;
 
 // One-shot diagnostic readback. It selects page 3 and reads 0x39, then
-// selects page 0 and reads 0x1D. It does not change the DCO request path.
+// selects page 0 and reads the page-independent DEVICE_READY register 0xFE.
+// It does not change the DCO request path. 0x1D is self-clearing FINC/FDEC,
+// so it is not a reliable readback sanity check.
 reg [3:0]  rb_state;
 reg        rb_seen_busy;
 reg [7:0]  rb_page3_data;
-reg [7:0]  rb_finc_data;
+reg [7:0]  rb_device_ready_data;
 reg [7:0]  rb_current_page;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
@@ -106,7 +108,7 @@ wire [7:0] runtime_byte_data =
   (rt_dir ? 8'h01 : 8'h02);
 wire [7:0] readback_byte_addr =
   (rb_state == 4'd1 || rb_state == 4'd3) ? 8'h01 :
-  (rb_state == 4'd2) ? 8'h39 : 8'h1D;
+  (rb_state == 4'd2) ? 8'h39 : 8'hFE;
 wire [7:0] readback_byte_data =
   (rb_state == 4'd1) ? 8'h03 :
   (rb_state == 4'd3) ? 8'h00 : 8'h00;
@@ -140,7 +142,7 @@ assign oDCO_HPLL_ACCEPT_COUNT = hpll_accept_count;
 assign oDCO_DPLL_ACCEPT_COUNT = dpll_accept_count;
 assign oDCO_HPLL_DONE_COUNT = hpll_done_count;
 assign oDCO_DPLL_DONE_COUNT = dpll_done_count;
-assign oI2C_READBACK = {35'd0, rb_current_page, rb_finc_data,
+assign oI2C_READBACK = {35'd0, rb_current_page, rb_device_ready_data,
                         rb_page3_data, (rb_state == 4'd5), rb_state[3:0]};
 // Read-only HPLL request snapshot. The low fields mirror the DPLL snapshot:
 // previous data, current input, runtime state, pending/select/direction,
@@ -237,7 +239,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     rb_state         <= 4'd0;
     rb_seen_busy     <= 1'b0;
     rb_page3_data    <= 8'd0;
-    rb_finc_data     <= 8'd0;
+    rb_device_ready_data <= 8'd0;
     rb_current_page  <= 8'h0B;
     rt_dir           <= 1'b0;
     rt_select_dpll   <= 1'b0;
@@ -387,7 +389,7 @@ always @(posedge iCLK or negedge iRST_n) begin
       end
       4'd4: begin
         if (static_read_data_valid)
-          rb_finc_data <= static_read_data;
+          rb_device_ready_data <= static_read_data;
         if (bus_state)
           rb_seen_busy <= 1'b1;
         else if (rb_seen_busy) begin

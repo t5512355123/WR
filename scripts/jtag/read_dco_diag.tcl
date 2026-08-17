@@ -67,7 +67,7 @@ proc read_i2c_readback {} {
   set page3 [expr {($word >> 5) & 0xff}]
   set finc [expr {($word >> 13) & 0xff}]
   set current_page [expr {($word >> 21) & 0xff}]
-  puts [format "DCO_I2C_READBACK state=%X done=%d page3_0039=%02X page0_001D=%02X current_page=%02X raw=%016X" \
+  puts [format "DCO_I2C_READBACK state=%X done=%d page3_0039=%02X device_ready_00FE=%02X current_page=%02X raw=%016X" \
         $state $done $page3 $finc $current_page $word]
 }
 

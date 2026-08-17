@@ -100,13 +100,13 @@ config WR_NODE
 	default !TARGET_WR_SWITCH
 
 config FORCE_MASTER_AFTER_INIT
-	bool "Ignore persistent init script for Master image"
+	bool "Start Master role without waiting for PLL lock"
 	depends on WR_NODE && ARCH_RISCV
 	default n
 	help
-	  Do not execute a persistent board-side init script for the Master
-	  image. The built-in mode master command remains the final role
-	  selection and cannot be overridden by stale flash contents.
+	  Start the Master image without blocking boot on the free-running
+	  SoftPLL lock wait. The lock state remains observable and can settle
+	  in the background while the WR master role is already active.
 
 # most options with no prompt here are prompted-for in the "advanced" section
 

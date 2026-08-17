@@ -162,7 +162,12 @@ static void wrc_initialize(void)
 
 	_endram = ENDRAM_MAGIC;
 
+	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	/* Master role must be committed before any PLL lock wait can block boot. */
+	wrc_ptp_set_mode(WRC_MODE_MASTER);
+	#else
 	wrc_ptp_set_mode(WRC_MODE_SLAVE);
+	#endif
 	wrc_ptp_start();
 
 	wrc_tasks_accounting_init();

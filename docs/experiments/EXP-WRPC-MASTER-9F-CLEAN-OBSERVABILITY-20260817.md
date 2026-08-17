@@ -52,9 +52,12 @@
 
 ### Slave：`DE5 [1-11.2]`
 
-- SOF checksum：待補
-- JTAG ID：待補
-- configuration 結果：待補
+- 燒錄時間：2026-08-17 16:39:27 至 16:39:46（Asia/Taipei）
+- SOF checksum：`0x30A3C175`
+- JTAG ID：`0x02E660DD`
+- configuration 結果：`Configuration succeeded -- 1 device(s) configured`
+- Programmer：Quartus Prime 17.0，`0 errors, 0 warnings`
+- 原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/program_slave.log`
 
 ## JTAG/runtime 原始結果
 

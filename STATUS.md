@@ -484,3 +484,16 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 但 Slave 仍為 `status_low=E3、time_valid=0、pps_valid=1、link_up=0、PSTAT.locked=0、spll_locked=0、PTP_RX=0`；Master post-check 亦為 `status_low=F3、link_up=0`。
 - 結論：DPLL transaction 已被服務，但沒有完成同步，且觀察到 link stability degradation；不能宣稱 DPLL 是正確的缺少路徑。下一輪只回復上一個 known-good hardware source 做 A/B，不同時修改其他層。
 - 原始 log：`build/artifacts/EXP-WRPC-SI5340-DPLL-RESTORE-20260817/dco_diag.log`、`runtime_60s.log`、`runtime_postcheck.log`、`dco_diag_after.log`；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-DPLL-RESTORE-20260817.md`。
+
+## 最新燒錄實驗：SI5340 DPLL restore 版本 A/B 回復（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-DPLL-AB-RESTORE-20260817`；branch：`exp/jtag-runtime-observability`。
+- 實驗紀錄 commit：`26ea6543c855ad7d47bb8bb620412acc8fa39015`；本輪硬體 source commit：`47ed3f90e0c0a91d1c71029be92a4b1360b8f4b3`。
+- 唯一變因：只把 Slave 回復到前一個 HPLL runtime service known-good source；Master、PHY、PTP、servo 與 SI5340 static table 不變。
+- Quartus 17.0 Build 595 Full Compilation successful、0 errors、275 warnings；timing 尚未 closure，setup `-0.228 ns`、hold `-3.499 ns`。
+- Slave SOF SHA-256：`ee5f50d96f744ee6fa8723c103591de5593449ceb349474725a53557425e208a`；programmer checksum：`0x30A8FEFD`；JTAG ID：`0x02E660DD`；`DE5 [1-11.2]` configuration succeeded、0 errors/0 warnings。
+- 60 秒 session：Master `60/60 accepted`；Slave `41/60 accepted、19 rejected`；`SESSION_TIME_SERIES_DONE` 存在。
+- 回復版 Slave 可接受 frame 主要為 `status_low=EF、link_up=1、time_valid=0、PSTAT.locked=0、PTP_RX=0`；post-check 為 `status_low=EF、link_up=1`。
+- DCO snapshot：HPLL `accepted=0x0003、done=0x0002`；DPLL `accepted=0x0001、done=0x0000`；I2C `errors=0`；readback `page0_0021=0x0F、device_ready_00FE=0x0F`。
+- 結論：回復後 link 恢復，支持上一輪 DPLL restore 與 link instability 相關；但 Slave 仍沒有 PTP RX、parent、SoftPLL lock 或 time-valid，因此仍未同步。下一輪只做唯讀 parent/PTP/clock observability。
+- 原始 log：`build/artifacts/EXP-WRPC-SI5340-DPLL-AB-RESTORE-20260817/dco_diag.log`、`runtime_60s.log`、`runtime_postcheck.log`；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-DPLL-AB-RESTORE-20260817.md`。

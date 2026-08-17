@@ -337,6 +337,9 @@ int main(void)
 	/* Preserve the shell diagnostic marker when the Master image records it. */
 	if ((debug_boot_stage & 0xff000000U) != 0xb1000000U)
 		debug_boot_stage = 0x0000B004;
+	/* Set the Master role after all task init scripts have completed. */
+	wrc_ptp_set_mode(WRC_MODE_MASTER);
+	wrc_ptp_start();
 	#else
 	debug_boot_stage = 0x0000B004;
 	#endif

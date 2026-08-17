@@ -369,6 +369,13 @@ void shell_boot_script(void)
 	int next = 0;
 	#endif
 
+#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	/* The Master image selects its role directly after normal initialization. */
+	wrc_ptp_set_mode(WRC_MODE_MASTER);
+	wrc_ptp_start();
+	return;
+#endif
+
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,

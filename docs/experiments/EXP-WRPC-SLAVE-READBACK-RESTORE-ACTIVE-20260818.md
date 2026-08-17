@@ -105,21 +105,84 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 
 ## 燒錄後 runtime 狀態
 
-本文件先記錄燒錄 provenance；JTAG runtime 觀測尚未在本 commit 判讀。後續觀測必須另存原始 log SHA-256，並在本文件追加結果，不可把「Configuration succeeded」誤寫成同步成功。
+### 30 秒觀測
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-READBACK-RESTORE-ACTIVE-20260818/runtime_after_program_30s.log
+```
+
+原始 log SHA-256：
+
+```text
+5b91fd47eb68d737bcf7fb275b4e26886702b32edc26bca9afc423d81eb93a78
+```
+
+本輪 30 個 Slave sample 全部 accepted，但有效 frame 仍主要顯示：
+
+```text
+Slave wr_mode=3
+time_valid=0
+pps_valid=1
+PTP_RX=0
+PTP_TX=0
+parent_is_wr=0
+parent_calibrated=0
+SSTAT=0
+RCER=0
+TAG_VALID/TRR/IRQ=0
+```
+
+Master 同一 session 維持 `wr_mode=2`、`status=0xFF`、`time_valid=1`、`pps_valid=1`；因此這次不是兩端都失去 role 的證據。
+
+### 120 秒觀測
+
+為排除短時間 acquisition 尚未完成，使用同一 bitstream 再做 120 秒唯讀觀測。
+
+原始 log：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-READBACK-RESTORE-ACTIVE-20260818/runtime_after_program_120s.log
+```
+
+原始 log SHA-256：
+
+```text
+22bf3cc2eca5d06bf53c99c2f0b52fd26459a83893bd011e06f2068bef5c05bd
+```
+
+Slave 共有 108 個 accepted sample、12 個在 retry 後未 accepted。108 個 accepted sample 中，主要結果仍為：
+
+```text
+time_valid=0
+PTP_RX=0
+PTP_TX=0
+parent_is_wr=0
+parent_calibrated=0
+SSTAT=0
+RCER=0
+TAG_VALID/TRR/IRQ=0
+spll_locked=0
+```
+
+少數跨 mailbox read 邊界的 frame 出現不一致欄位，例如 `foreign_best=0` 或事件 counter 的 begin/end 不同；這些列未通過完整一致性判定，不能拿來宣稱 parent 或 tag activity。120 秒內沒有出現一筆完整的 Slave `time_valid=1 + spll_locked=1 + parent` 證據。
 
 ## Observation
 
-目前唯一已證明的觀察是：`aa0825a` readback SOF 已成功載入 Slave。尚未對本輪 runtime 做結論。
+1. `aa0825a` readback SOF 已成功載入 Slave。
+2. 30 秒與 120 秒觀測都沒有穩定重現先前保存的 PTP/parent/tag activity。
+3. Master 在同一時段仍維持 `MODE=2` 與有效時間旗標。
 
 ## Conclusion
 
 目前只能下以下結論：
 
-> Slave readback SOF 燒錄成功；本輪尚未證明 PTP、parent、SoftPLL 或兩片 DE5a 時間同步成功。
+> Slave readback SOF 燒錄成功，但本輪 30/120 秒觀測沒有證明 PTP parent、SoftPLL 或兩片 DE5a 時間同步成功。先前 readback log 中的 parent/tag activity 目前無法在相同 bitstream 上重現，因此需要先排除雙板 runtime restart/啟動順序因素，再進行功能修改。
 
 ## Next Step
 
-使用同一 JTAG session 讀取 Master 與 Slave 的：
+下一步先重新載入兩片完全相同的已保存 exact baseline：Master `9f848ec` SOF 與 Slave `aa0825a` readback SOF，並分別保存兩份 programmer log。這不是新的 Master role 方法，只是雙板 runtime restart；燒錄後立即另立實驗紀錄，再使用同一 JTAG session 讀取：
 
 ```text
 MODE、status、PTP state、PTP RX/TX、foreign/parent flags、WR state、

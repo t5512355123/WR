@@ -333,11 +333,6 @@ int main(void)
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	/* The board-side init script may contain an old role command. */
-	wrc_ptp_set_mode(WRC_MODE_MASTER);
-	wrc_ptp_start();
-	#endif
 	debug_boot_stage = 0x0000B004;
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B004);

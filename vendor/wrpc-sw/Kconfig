@@ -100,13 +100,13 @@ config WR_NODE
 	default !TARGET_WR_SWITCH
 
 config FORCE_MASTER_AFTER_INIT
-	bool "Force Master mode after all init scripts"
+	bool "Ignore persistent init script for Master image"
 	depends on WR_NODE && ARCH_RISCV
 	default n
 	help
-	  Re-apply WRC_MODE_MASTER after the built-in and persistent init
-	  scripts have completed. This is intended for a board image whose
-	  role must not be overridden by stale flash commands.
+	  Do not execute a persistent board-side init script for the Master
+	  image. The built-in mode master command remains the final role
+	  selection and cannot be overridden by stale flash contents.
 
 # most options with no prompt here are prompted-for in the "advanced" section
 

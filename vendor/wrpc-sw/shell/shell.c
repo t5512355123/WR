@@ -378,6 +378,7 @@ void shell_boot_script(void)
 	}
 #endif
 
+#ifndef CONFIG_FORCE_MASTER_AFTER_INIT
 	while (CONFIG_HAS_FLASH_INIT) {
 		cmd_len = storage_init_readcmd((uint8_t *)cmd_buf,
 					      SH_MAX_LINE_LEN, next);
@@ -392,6 +393,7 @@ void shell_boot_script(void)
 		shell_exec(cmd_buf);
 		next = 1;
 	}
+#endif
 
 	return;
 }

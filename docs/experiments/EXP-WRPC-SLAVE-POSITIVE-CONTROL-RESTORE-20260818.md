@@ -65,19 +65,22 @@ Slave : MODE=3、link_up=1、PSTAT.locked=1、SSTAT 前進、UCNT 增加、time_
 
 ## MIF / SOF / 燒錄結果
 
-待實際核對與燒錄後立即補入：
-
-- restore SOF SHA-256：上列值
-- restore MIF SHA-256：上列值
-- Programmer checksum：待實際輸出
-- JTAG ID：待實際輸出
-- configuration result：待實際輸出
+- restore SOF SHA-256：`6a4357519c2c7996d28bbc2ade098ba8ab58b1f336c48953737932cf168bb225`
+- restore MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- Programmer command：`quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/slave.sof`
+- 燒錄時間：2026-08-18 06:57:40 開始；06:57:44 開始 configuration；06:57:59 完成
+- Programmer version：Quartus Prime Programmer 17.0 Build 595 Standard Edition
+- Programmer cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- Programmer checksum：`0x30A3C175`
+- configuration result：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer result：0 errors、0 warnings
 - Programmer raw log：`artifacts/EXP-WRPC-SLAVE-POSITIVE-CONTROL-RESTORE-20260818/program_slave_positive_control_restore.log`
-- Programmer log SHA-256：待補
+- Programmer log SHA-256：`E89764A9855F272B5A296F0D7943AB0E366BB4538718EAFDF041317AEDE2FA07`
 
 ## JTAG/runtime 原始結果
 
-待燒錄後執行同一套 read-only correlation 與雙板 time-series 後補入。至少保存：
+燒錄完成後執行同一套 read-only correlation 與雙板 time-series；結果待補入。至少保存：
 
 - `servo_dco_correlation_positive_control.log`
 - `runtime_positive_control_restore_60s.log`

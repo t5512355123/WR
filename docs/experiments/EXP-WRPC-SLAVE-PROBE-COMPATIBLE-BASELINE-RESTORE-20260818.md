@@ -112,6 +112,23 @@ Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-on
 - raw correlation log：`artifacts/EXP-WRPC-SLAVE-PROBE-COMPATIBLE-BASELINE-RESTORE-20260818/hpll_helper_correlation_60x500ms.log`
 - raw correlation log SHA-256：`6e6676ad3438ea3f3f9ce45a90c16b0d2dc4f2afcd47dd6e264c8b9658197fbf`
 
+### WR handshake focused trace：60 筆、每筆間隔 500 ms
+
+為降低完整 mailbox frame 的 retry 干擾，新增 `scripts/jtag/read_wr_handshake_focused.tcl`，只讀取 parent metadata、WR RX/TX/fail/reject、local state、WR lock 與 RCER。此腳本只做 diagnostic mailbox read request，不寫入 WR 控制設定。
+
+- 初次執行 commit：`e1f953a`
+- 初次 raw log：`artifacts/EXP-WRPC-SLAVE-PROBE-COMPATIBLE-BASELINE-RESTORE-20260818/wr_handshake_focused_60x500ms.log`
+- 初次結果：60 筆均被腳本標成 `valid=0`；事後確認是新腳本把 64-bit status probe 誤用 32-bit 格式檢查，這份 log 不列為硬體證據
+- 修正 commit：`cb2c2ef`，只把 status 驗證改為 64-bit，mailbox 地址與控制行為不變
+- 修正後 command：`quartus_stp -t scripts/jtag/read_wr_handshake_focused.tcl 60 500`
+- Slave：60/60 筆 `valid=1`
+- `parent=1/1/1`：4/60 筆；其餘多數 parent flags 不成立
+- `rx=0x0000/0`：60/60 筆，沒有看到接收 LOCK message/count
+- `lock=0/0`：60/60 筆；`enable=0`、`RCER=0x00000000` 亦為 60/60
+- `local_state=0、next_state=0`：可接受 sample 中維持 idle，沒有進入可觀察的 `S_LOCK` path
+- focused raw log：`artifacts/EXP-WRPC-SLAVE-PROBE-COMPATIBLE-BASELINE-RESTORE-20260818/wr_handshake_focused_60x500ms_fixed.log`
+- focused raw log SHA-256：`8561699cde8a218fc9b8e4302c19affd8030e9f527314c4a83e462d866e3ddb6`
+
 ## Observation
 
 1. `001dc7...` 與目前 diagnostic scripts 的 probe manifest 相容，Slave instance `0/1/7/8` 都能被現場 JTAG 讀取。
@@ -119,6 +136,7 @@ Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-on
 3. Slave 仍是 `PPS_VALID=1、TIME_VALID=0`；因此 smoke test 沒有證明 White Rabbit time synchronization。
 4. Master 的 clock probe 可讀且顯示 `TIME_VALID=1`，但 Master mailbox/HPLL probe 不存在；本輪只能把 Master clock/status 讀值當作補充，不把 mailbox 缺失誤判成 Master runtime failure。
 5. 在同一顆 `001dc7...` 上，DCO completed step 可以增加，但沒有同時出現 `WR_LOCK/RCER/valid tag/REF/TRR/IRQ/HELPER` 活動；因此 DCO step 不能被當成 SoftPLL closed-loop 已啟動的證據。
+6. 聚焦 trace 中 parent flags 只有 4/60 短暫成立，且即使成立時 `rx_count=0、lock_enable=0、RCER=0`；因此目前最前面的可疑邊界仍是 parent/WR signaling 到 LOCK message acceptance，而不是後段 DMTD/Helper。
 
 ## Conclusion
 
@@ -134,4 +152,4 @@ Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-on
 
 ## Next Step
 
-下一步仍不改 Master role、不改 DMTD polarity、不寫入控制 register。若要進行功能 A/B，唯一候選應放在 Slave 的 WR parent/signaling 到 SoftPLL lock handoff 交界；在此之前先與目前 read-only 證據一起核對 `WR_SIGNAL`、parent flags、`WR_LOCK` 與 `SSTAT/PSTAT` 的同窗關係，避免把 DCO step 誤當成 lock activity。
+下一步仍不改 Master role、不改 DMTD polarity、不寫入控制 register。先以這份 focused trace 的結果核對 parent selection 與 WR signaling acceptance 的既有 firmware/state-machine 路徑；目前還沒有足夠證據直接修改 acceptance logic。若後續確定需要新的硬體實驗，第一個功能變因應是只增加 `WR_SIGNAL_RX_SEEN/last_reject_reason` sticky observability，不改原本的 message acceptance 行為。

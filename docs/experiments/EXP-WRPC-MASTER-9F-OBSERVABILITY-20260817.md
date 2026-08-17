@@ -86,26 +86,31 @@ pain 原始來源與建置證據：
 
 | 時間 | marker | status | WDIAGS_MODE | WDIAGS_PTP | PTP RX/TX | 結果 |
 |---|---|---|---:|---:|---|---|
-| 0 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
-| 10 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
-| 60 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
+| 0 s（session sample 001） | `B004` | `0xEF` | 3 | 4 | 有活動 | link 已起來，但 role/servo 尚未符合預期 |
+| 10 s（session sample 010） | `B004` | `0xEF` | 3 | 4 | 有活動 | 與 sample 001 相同 |
+| 60 s（session sample 060） | `B004` | `0xEF` | 3 | 4 | 有活動 | 與 sample 001 相同 |
 
 ### Slave 欄位
 
 | 時間 | status | WDIAGS_MODE | WDIAGS_PTP | SSTAT/PSTAT | parent/foreign | UCNT/time_valid/pps_valid |
 |---|---|---:|---:|---|---|---|
-| 0 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
-| 10 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
-| 60 s | 待補 | 待補 | 待補 | 待補 | 待補 | 待補 |
+| 0 s（session sample 001） | `0xEF` | 3 | 4 | `SSTAT=1/PSTAT=1` | foreign record 有 | `UCNT=1`，`time_valid=0`，`pps_valid=1` |
+| 10 s（session sample 010） | `0xEF` | 3 | 4 | `SSTAT=1/PSTAT=1` | foreign record 有 | 仍未出現 lock/time_valid |
+| 60 s（session sample 060） | `0xEF` | 3 | 4 | `SSTAT=1/PSTAT=1` | `foreign_count=1` | `UCNT=1`，`time_valid=0`，`pps_valid=1` |
+
+補充：腳本在同一個 JTAG session 對每張板各取 60 列；每列完整欄位的原始輸出保存在 `runtime_readings.log`。此處的 0/10/60 秒以 sample 001/010/060 代表，因完整 register mailbox 讀取本身需要數秒。
 
 ## Observation
 
-待燒錄後填入原始 JTAG 結果。`status` 的判讀只依現有 mapping：bit2=`tm_link_up`、bit3=`link_ok`、bit4=`time_valid`、bit5=`pps_valid`。
+1. Master 與 Slave 在整個 session 都讀到低 8 位 `0xEF`：`tm_link_up=1`、`link_ok=1`、`time_valid=0`、`pps_valid=1`。因此 QSFP/PHY link 本輪已恢復，但時間同步尚未成立。
+2. Master 的 marker 為 `B004`，PTP counter 有活動，但 `WDIAGS_MODE=3`、`WDIAGS_PTP=4`，沒有重現使用者指出的 `WDIAGS_MODE=2`、`WDIAGS_PTP=6`。Master role baseline **未通過**。
+3. Slave 有 foreign record 與 PTP counter 活動，但 `PSTAT.locked=0`、`UCNT` 沒有持續增加、`time_valid=0`；不能稱為 servo/SoftPLL 已鎖定。
+4. 本次完整 session 的原始結果與 `QUARTUS_STP_RC=0` 已保存於 pain artifact。`status=0xEF` 只證明 link/pps bits，不能代替 role 或 synchronization evidence。
 
 ## Conclusion
 
-在取得 configuration 與 runtime 原始證據前，不宣稱 Master baseline 或兩端同步成功。
+本輪「兩端 baseline link 恢復」成功，但「9f848ec Master role 重現」失敗：證據只支持 `link_up=1/link_ok=1/pps_valid=1` 與 PTP activity，不支持 Master `MODE=2/PTP=6`，也不支持 Slave 完成 servo/SoftPLL 或兩端時間同步。這表示目前仍需查明歷史 `9f848ec` 成功 artifact 與本輪生成 MIF/啟動流程的差異。
 
 ## Next Step
 
-若 Master 五項 baseline 證據全部成立，固定 Master 映像，不再修改 Master role；接著只讀取 Slave parent、SSTAT/PSTAT、UCNT、PPS 與 `time_valid/pps_valid`，逐步確認 Slave servo/SoftPLL 路徑。若 Master baseline 仍不成立，停止研究 Slave，先回到 startup/PHY 的證據鏈。
+先核對 `9f848ec` 歷史成功實驗的實際 MIF/SOF、startup command、flash init 與 runtime raw log，找出為何本輪相同 role 設定只得到 `MODE=3/PTP=4`。在 Master `MODE=2/PTP=6` 重現前，不進入 Slave servo 結論。

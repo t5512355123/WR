@@ -55,26 +55,65 @@
 
 ## JTAG/runtime 原始結果
 
-預定執行：
+實際執行：
 
 1. `read_dco_diag.tcl 1000`：比較 BEGIN/END 的 HPLL/DPLL source、accepted、done、pending、`rt_state`、I2C ACK 與 readback。
 2. `read_wb_timeseries_session.tcl 60 1000 3`：觀察兩片板 runtime 及 Slave `SSTAT/PSTAT/time_valid/pps_valid`。
+3. `read_wb_timeseries_session.tcl 1 1000 3`：在 60 秒 session 未完整結束後，重新做一次唯讀 postcheck。
+
+原始檔案位於 pain：
+
+- `build/artifacts/EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817/dco_diag.log`
+- `build/artifacts/EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817/runtime_60s.log`
+- `build/artifacts/EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817/runtime_postcheck.log`
+
+檔案 SHA-256：
+
+- `dco_diag.log`：`202a3104af333ada4c3eb5941bd785c5eca8c96b167632d65614dcab01f4c8e8`
+- `runtime_60s.log`：`92ba09ab40d2fd3c96b4d6967921fced655ee3c90d976ae2e693f69b845bc8ea`
+- `runtime_postcheck.log`：`72e25f279bc5a90cf689f26619448d5a18831b160d76399a030e295d23112bc3`
+
+燒錄後的 SI5340/DCO diagnostic：
+
+```text
+DCO_DIAG label=BEGIN_HPLL source=0000 destination=0012 accepted=0009 done=0006 raw=0006000900120000
+DCO_DIAG label=BEGIN_DPLL source=0000 destination=0006 accepted=0005 done=0000 raw=0000000500060000
+DCO_I2C_ACK transactions=03AF errors=0000
+DCO_I2C_READBACK state=5 done=1 page0_0021=0F device_ready_00FE=0F current_page=00
+```
+
+這表示本輪只隔離 DPLL 的情況下，HPLL pending request 已經能完成 transaction；DPLL `done=0` 是本輪刻意隔離 DPLL 的預期結果。
+
+60 秒 session 的實際接受結果：
+
+- Master：`60` 次 accepted、`0` 次 rejected。
+- Slave：`33` 次 accepted、`27` 次 rejected；原始檔最後有 `SESSION_TIME_SERIES_DONE`，因此本輪完整完成 60 次取樣，但仍有 27 次 frame 不符合接受條件。
+- 這個 session 可作為本輪長時間觀測證據，但不能作為 Slave 長時間同步穩定的成功證據。
+
+完整 session 結束後立即執行的 postcheck 則成功完成，且兩片各 `1/1 accepted`：
+
+```text
+Master: status_low=FF time_valid=1 pps_valid=1 wr_mode=2 spll_locked=0
+Slave : status_low=EF time_valid=0 pps_valid=1 wr_mode=3 spll_locked=0
+Slave : WDIAGS_SSTAT=00000000 WDIAGS_PSTAT=00000001
+Slave : WDIAGS_PTP_RX=00000000 WDIAGS_PTP_TX=00000000
+```
 
 ## Observation
 
-待燒錄與唯讀觀測後填寫：
-
-- runtime DCO `accepted/done` 是否由 `done=0` 改變
-- `hpll_pending`、`rt_state`、`bus_state`、`bus_done`
-- I2C ACK/error counter
-- Master/Slave accepted sample 數量
-- Slave `SSTAT`、`PSTAT.locked`、`spll_locked`、`time_valid`、`pps_valid`
-- parent、PTP、REF/TAG/UCNT activity
+- HPLL `done` 已由先前的 `0` 變成 `6`，且 `accepted=9`；readback FSM 完成後停在 `state=5` 不再阻塞 HPLL service。
+- I2C ACK counter 為 `0x03AF`，error counter 為 `0`，本輪沒有觀察到 NACK。
+- `page0_0021=0x0F` 與 `device_ready_00FE=0x0F` 維持可讀；這只能證明 readback path 可讀，不能單獨證明 DCO output clock 已產生預期校正。
+- Master postcheck 維持 `time_valid=1、pps_valid=1`；Slave 維持 `time_valid=0、pps_valid=1、PSTAT.locked=0、spll_locked=0、SSTAT=0`。
+- Slave 可以看到 parent/PTP frame 的部分活動，但在本輪 postcheck 中 `PTP_RX/PTP_TX=0`，沒有看到進入 servo lock 的證據。
+- 60 秒 session 已產生 `SESSION_TIME_SERIES_DONE`；Slave 仍有 27/60 次取樣 rejected，顯示觀測 frame 穩定性仍不足，也不能解讀成 FPGA 已同步成功。
 
 ## Conclusion
 
-待取得 compile、燒錄與 JTAG 原始資料後填寫。即使 DCO transaction 完成，也只能證明 FPGA runtime service path 有執行；仍需 `PSTAT.locked=1`、Slave `time_valid=1/pps_valid=1` 並持續穩定，才能宣稱 WR 時間同步成功。
+本輪唯一修改的 gate 修正有效：即使 readback FSM 停在 `rb_state=5`，pending HPLL request 仍能進入 runtime transaction，並取得 `done=6`、I2C `errors=0` 的硬體證據。因此可以確認問題曾經存在於「readback 完成後阻塞 runtime service」這一段。
+
+但是目前證據仍不支持「Slave WR 時間同步已成功」：Slave postcheck 仍是 `status_low=EF、time_valid=0、PSTAT.locked=0、spll_locked=0、SSTAT=0`。因此較保守且符合證據的結論是：**HPLL runtime service path 已被打通，但 Slave WR servo/SoftPLL 到 time-valid 的路徑仍未完成。** 雖然 60 秒 session 已完成，27/60 次 rejected 也表示目前不能宣稱 Slave 長時間觀測穩定。
 
 ## Next Step
 
-若 `done` counter 開始增加但 Slave 仍未鎖定，下一輪只分析 SI5340 output clock effect 與 helper/servo state；若 `done` 仍為 0，先繼續查 I2C runtime FSM 的 start/busy/done handshake。
+保持本輪 bitstream 與 source 不變，下一輪只做一個變因：確認 HPLL runtime transaction 寫入的 SI5340 output clock effect 是否真的改變 WR reference/servo 所看到的時鐘。需同時保留 `DCO done`、I2C ACK、`SSTAT`、`PSTAT.locked`、`UCNT`、`CKO/SETP`、`time_valid/pps_valid`，並先修正/提高唯讀 session 的容錯，使長時間觀測能明確產生 `SESSION_TIME_SERIES_DONE`。在取得 `PSTAT.locked=1`、Slave `time_valid=1` 且持續穩定前，不恢復 DPLL、PHY 或 WR 演算法修改。

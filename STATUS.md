@@ -457,3 +457,17 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 結論：已排除「只有 DEVICE_READY 特例可讀」及明顯 page 0 address/data mapping 錯誤；但 Slave servo/SoftPLL 到 `time_valid` 仍未成功，尚不能宣稱兩板 WR 同步完成。
 - 原始 log：`build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/dco_readback.log`、`runtime_60s.log`；runtime SHA-256：`c4296ede8c597e566722bd9625452410e6f9a111862ad8592ae8cb2467c1c86c`。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-MAPPING-20260817.md`。
+
+## 最新燒錄實驗：SI5340 runtime DCO transaction service gate 修正（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817`；branch：`exp/jtag-runtime-observability`。
+- Git source commit：`47ed3f90e0c0a91d1c71029be92a4b1360b8f4b3`；結果紀錄提交於 `f9a93e5`。
+- 相較 baseline 只把 HPLL runtime service gate 從只允許 `rb_state==0` 改為允許 readback 完成後保持的 `rb_state==5`；沒有修改 PHY、PTP filter、servo、SoftPLL threshold、readback address/data 或 DPLL policy。
+- Quartus Prime 17.0.0 Build 595；Full Compilation successful、0 errors、275 warnings；timing 尚未 closure：setup `-0.228 ns`、hold `-3.499 ns`。
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`；SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`；Slave MIF SHA-256：`578d526306bf28721412d2a7a51f928a169bc1561e20a404de726d51df669ecb`。
+- Slave SOF SHA-256：`532c361c879dd7c0737532f1bb760fe9c8bf98bdf9c1c465c8be4d64a3386db8`；programmer checksum：`0x30A8FEFD`；JTAG ID：`0x02E660DD`；`DE5 [1-11.2]` configuration succeeded、0 errors/0 warnings。
+- DCO diagnostic：HPLL `accepted=0x0009、done=0x0006`；I2C `transactions=0x03AF、errors=0`；readback `page0_0021=0x0F、device_ready_00FE=0x0F`。這是 runtime service 被打通的直接證據。
+- 60 秒 session 已產生 `SESSION_TIME_SERIES_DONE`；Master `60/60 accepted`，Slave `33 accepted/27 rejected`。session 完整結束，但 rejected frame 仍多，因此不把它當作 Slave 長時間同步穩定的成功證據。
+- 立即 postcheck 成功完成 `1/1 accepted`：Master `status_low=FF、time_valid=1、pps_valid=1`；Slave `status_low=EF、time_valid=0、pps_valid=1、PSTAT.locked=0、spll_locked=0、SSTAT=0`。
+- 結論：已證明 readback 完成後的 HPLL runtime transaction gate 修正有效，但尚未證明 Slave WR synchronization 成功。Slave servo/SoftPLL 到 `time_valid` 的路徑仍是下一個待驗證問題。
+- 原始 log：`build/artifacts/EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817/dco_diag.log`、`runtime_60s.log`、`runtime_postcheck.log`；完整紀錄：`docs/experiments/EXP-WRPC-SI5340-RUNTIME-SERVICE-20260817.md`。

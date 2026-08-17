@@ -444,3 +444,16 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 結論：I2C 完全讀不到的假設已被 `DEVICE_READY=0x0F` 排除；但 Slave servo/SoftPLL 到 `time_valid` 路徑仍未成功，尚不能宣稱兩板 WR 同步完成。
 - 原始 log：`build/artifacts/EXP-WRPC-SI5340-DEVICE-READY-20260817/dco_readback.log`、`runtime_60s.log`；runtime SHA-256：`d696f67b29b5855e6d6fed79bc930f58fb2b72d7712631acafb39578494097df`。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-DEVICE-READY-20260817.md`。
+
+## 最新燒錄實驗：SI5340 一般暫存器讀回 mapping 驗證（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-READBACK-MAPPING-20260817`；branch：`exp/jtag-runtime-observability`。
+- source commit：`afb60cf199a2a7a15aeb9fb0b313fbd714ecd8e0`；燒錄結果補充 commit 另見 Git 歷史。
+- 唯一變因：第一個 readback 由 page 3 `0x0339` 改為初始化表明確寫入的 page 0 `0x0021`，預期 `0x0F`；保留 `0x00FE DEVICE_READY`。
+- Quartus 17.0 Build 595 Full Compilation successful、0 errors、275 warnings；timing 尚未 closure，setup `-0.429 ns`、hold `-3.513 ns`。
+- Slave SOF SHA-256：`51cac82700ab14ff04825ad2747c45960cf2a6045fd2638e1ed79d1ff3160a73`；programmer checksum：`0x30A13C27`；JTAG ID：`0x02E660DD`；configuration succeeded、0 errors/0 warnings。
+- DCO readback 兩次皆為 `page0_0021=0x0F、device_ready_00FE=0x0F、state=5/done=1`；ACK `transactions=0x00EB、errors=0`。一般 page 0 register mapping 與 DEVICE_READY 皆可讀。
+- 60 秒 session 完成並有 `SESSION_TIME_SERIES_DONE`；Master `60/60 accepted`；Slave `50/60 accepted、10/60 rejected`。可接受的 Slave frame 仍是 `link_up=1、SSTAT=1、PSTAT.locked=0、spll_locked=0、time_valid=0`。
+- 結論：已排除「只有 DEVICE_READY 特例可讀」及明顯 page 0 address/data mapping 錯誤；但 Slave servo/SoftPLL 到 `time_valid` 仍未成功，尚不能宣稱兩板 WR 同步完成。
+- 原始 log：`build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/dco_readback.log`、`runtime_60s.log`；runtime SHA-256：`c4296ede8c597e566722bd9625452410e6f9a111862ad8592ae8cb2467c1c86c`。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-MAPPING-20260817.md`。

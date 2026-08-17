@@ -45,25 +45,33 @@
 
 ## JTAG/runtime 原始結果
 
-預定執行：
+執行：
 
 1. `read_dco_diag.tcl 1000`：保存 ACK 與 `page0_0021/device_ready_00FE`。
 2. `read_wb_timeseries_session.tcl 60 1000 3`：確認 readback mapping 變更沒有破壞兩片板 runtime。
 
+原始 log 路徑與 SHA-256：
+
+- Compile trace：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/build_jtag_slave.log`，SHA-256：`ffbba7b261c03d9e95e0803161aabf76eb408863b8bc7f2bf52a54c03507ae0f`。
+- Programmer：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/program.log`，SHA-256：`4f3fa750fa75a25209f8d62994d905499dc8a05452f92bc2244afa7d74614ecb`。
+- DCO readback：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/dco_readback.log`，SHA-256：`00f3e93e15919678b77f7ad00c644e0c1d7eec28cb96d73d9ff337b522e2c7ea`。
+- Runtime 60 秒：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-MAPPING-20260817/runtime_60s.log`，SHA-256：`c4296ede8c597e566722bd9625452410e6f9a111862ad8592ae8cb2467c1c86c`。
+
 ## Observation
 
-待燒錄與唯讀觀測後填寫：
-
-- `page0_0021` 是否為預期 `0x0F`
-- `device_ready_00FE` 是否為 `0x0F`
-- Master/Slave accepted sample 數量
-- Slave `SSTAT`、`PSTAT.locked`、`spll_locked`、`time_valid`、`pps_valid`
-- parent、PTP、REF/TAG/UCNT activity
+- 兩次 DCO readback 皆為 `state=5 done=1 page0_0021=0F device_ready_00FE=0F current_page=00 raw=000000000001E1F5`；ACK `transactions=00EB errors=0000`。
+- `page0_0021=0x0F` 符合 `REG_0021={5'd1, IN_SEL=3, IN_SEL_REGCTRL=1}` 的初始化值；`device_ready_00FE=0x0F` 也符合 ready 預期。
+- 60 秒 session 完整結束並有 `SESSION_TIME_SERIES_DONE`：Master `60/60 accepted、0 rejected`；Slave `50/60 accepted、10 rejected`。
+- Master 維持 `status_low=FF、link_up=1、time_valid=1、pps_valid=1`。
+- Slave 最後可接受 frame 為 `status_low=CF、link_up=1、time_valid=0、pps_valid=0、SSTAT=1、PSTAT.locked=0、spll_locked=0`。
+- Slave parent metadata、PTP RX/TX、REF/TAG/UCNT activity 仍有資料；但沒有觀測到 `SSTAT=4/5` 或 `PSTAT.locked=1`。
 
 ## Conclusion
 
-待取得燒錄與 JTAG 原始資料後填寫。即使兩個 readback 都正確，也只能證明目前選定 register 的 I2C readback mapping 可用，不能單獨宣稱 SI5340 output clock effect 或 White Rabbit synchronization 成功。
+本輪證據支持一般 page 0 register `0x0021` 與 page-independent `0x00FE` 的 I2C readback mapping 都可用，且 ACK error 為 0。這排除了「只有 DEVICE_READY 特例可讀」以及「page 0 address/data mapping 明顯錯誤」這兩個假設。
+
+但本輪仍沒有證明 SI5340 output clock correction 已正確生效，也沒有證明 Slave SoftPLL 已鎖定；Slave 仍為 `PSTAT.locked=0、time_valid=0`。因此目前不能宣稱兩片 DE5a 已完成 White Rabbit 時間同步。
 
 ## Next Step
 
-若兩個 readback 都符合預期，下一輪再設計 SI5340 runtime DCO output clock effect 的單一變因實驗；若不符合，先修正 readback/page/address/data path，不修改 WR 演算法。
+既然兩個 readback 都符合預期，下一步仍只改一個變因：設計能直接觀察 SI5340 DCO write 前後 output clock effect 的硬體/唯讀 telemetry，並與 `PSTAT.locked`、`SSTAT`、`time_valid` 同步記錄；不恢復 DPLL、不修改 PHY/PTP/servo 演算法。

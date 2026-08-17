@@ -72,16 +72,61 @@ bus_done=0
 
 ## JTAG/runtime 原始結果
 
-尚未執行。
+### 燒錄後 10 秒雙板觀測
+
+- DCO 觀測原始檔：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-STRETCH-20260818/dco_activity_1s.log`
+- DCO 觀測 SHA-256：`b32d89b443abc764bcd3e837d52ab5ed72ff5eb29fa14842ee15243e33806c2c`
+- runtime 觀測原始檔：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-STRETCH-20260818/runtime_10x1s.log`
+- runtime 觀測 SHA-256：`f29fbc3c1359cf224ef6ffec7fa92dd458bdac6349ae78215d0780d1952ce37b`
+- Master：10/10 筆觀測通過讀取，維持 `status_low=FF` 為主、`wr_mode=2`、`time_valid=1`、`pps_valid=1`。
+- Slave：9/10 筆觀測讀取完成，1 筆重試後仍未接受；可讀到 `marker=0x0000B004`，但沒有得到穩定的 `spll_locked=1/time_valid=1/pps_valid=1`。
+- DCO probe 在 start-hold 版本已離開先前的 `rt_state=2` 卡住狀態；第一次燒錄後讀值曾為 `DCO_ACTIVITY A=00A8000000400320 B=00A8000000400320`，表示控制器回到 idle 且步進計數已增加。
+
+### 燒錄後唯讀重測
+
+- DCO 重測原始檔：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-STRETCH-20260818/dco_activity_post.log`
+- DCO 重測 SHA-256：`1e08d0bfc3cf91a01ac26aaf67a199e6f30e86e20af12802cf163698032607ca`
+- DCO 重測原始輸出：`DCO_ACTIVITY A=00A8000002A00320 B=00A8000002A00320`
+- DCO 重測重點：兩次讀值相同，`rt_state=0`；步進活動計數仍比前一次增加，表示 runtime request 已能被 controller 消化，但這個 probe 不等同於 SoftPLL lock。
+- runtime 單次重測原始檔：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-DCO-START-STRETCH-20260818/runtime_single_post.log`
+- runtime 單次重測 SHA-256：`4630e8db42d8c026c89d6ace67c2d942eb8a294ad6612e961c063e8068714ce4`
+
+單次重測的原始關鍵值如下：
+
+```text
+Master: marker=0x0000B004
+        WDIAGS_PTP_META=02010204
+        WDIAGS_MODE=2
+        WDIAGS_PTP_RX=00000DCA
+        WDIAGS_PTP_TX=0000239E
+        PPS_ESCR=0000090C
+
+Slave : marker=0x0000B004
+        WDIAGS_PTP_META=03010204
+        WDIAGS_MODE=3
+        WDIAGS_PTP_RX=00000003
+        WDIAGS_PTP_TX=00000003
+        PPS_ESCR=00000000
+        WDIAGS_SSTAT=00000000
+        WDIAGS_PSTAT=00000001
+        WDIAGS_UCNT=00000000
+```
+
+本次 JTAG 命令本身由 Quartus Prime SignalTap II 17.0 執行成功，沒有把「讀值成功」誤當成「Slave 同步成功」。
 
 ## Observation
 
-待 compile/burn/runtime 結果補入。
+1. runtime start hold 已改善前一輪最明確的問題：DCO controller 不再固定停留在 `rt_state=2` 且 `bus_state=0` 的表面狀態，且步進活動計數持續變化。
+2. 但是 Slave 的 `PPS_ESCR` 仍為 0，`SSTAT=0`、`PSTAT=1`、`UCNT=0`，而 PTP RX/TX 只在 3 左右；這與 Master 持續增加的 PTP RX/TX 及有效 PPS 不同。
+3. 因此目前證據支持「DCO transaction 可以被啟動/執行」，但不支持「DCO 輸出、SoftPLL feedback 與 WR time-valid gating 已形成閉迴路」。
+4. 10 秒觀測中的部分 Slave frame 不一致，且單次重測仍回到 `MODE=3`、`PPS_ESCR=0`；這些結果需要保守解讀為尚未達成穩定 servo，而不是直接判定某一個 register 或硬體根因。
 
 ## Conclusion
 
-在尚未完成 A/B 前，不宣稱 start hold 修正有效，也不宣稱同步成功。
+本輪唯一修改的 start-hold 變因已通過 compile、Fitter 與 JTAG programming，且 DCO probe 顯示 controller 可回到 idle、step counter 有活動；所以它改善了「runtime start 沒有跨到 I2C clock domain」這個候選問題。
+
+但目前仍不能宣稱 Slave servo 成功或兩片 DE5a 已同步。現有證據把問題進一步收斂到：Slave 在收到 WR lock/parent 後，DCO/時鐘回授或後續 `PPS_ESCR -> SoftPLL -> time_valid` 路徑仍未建立。Master role 沒有被修改，仍以歷史成功的 `9f848ec` baseline 為準。
 
 ## Next Step
 
-先完成 compile；若成功，再以相同 Master/Slave 測試條件燒錄並讀取 DCO probe 與雙板 time-series。
+保留目前 SOF 與 runtime log 作為基線。下一輪仍只改 Slave 一個變因，優先檢查 DCO transaction 完成後是否真的寫入預期 SI5340 runtime register，以及 DCO controller 的 completion/error 回報；不修改 Master role、PHY、PTP parser 或 servo 演算法。修改前先建立新的實驗紀錄，燒錄後立即補上 programmer 與 JTAG 原始結果。

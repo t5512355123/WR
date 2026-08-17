@@ -1,9 +1,9 @@
 # 讀取目前診斷 SOF 的 clock_activity_probe（JTAG instance 7）。
 # 這個腳本只讀取 probe，不寫入 WR、PHY、SoftPLL 或 SI5340 設定。
 # probe 欄位：
-#   [15:0]  QSFPA_REFCLK 域活動計數
-#   [31:16] QSFPB_REFCLK / DMTD 域活動計數
-#   [47:32] recovered RX clock 域活動計數
+#   [15:0]  QSFPA_REFCLK 最近完成的 1 ms window 事件數
+#   [31:16] QSFPB_REFCLK / DMTD 最近完成的 1 ms window 事件數
+#   [47:32] recovered RX clock 最近完成的 1 ms window 事件數
 #   [48]    reference toggle
 #   [49]    DMTD toggle
 #   [50]    RX toggle
@@ -20,6 +20,7 @@
 #   [61]    PHY TX ready
 #   [62]    WR timing link up
 #   [63]    WR link OK
+# 每個事件數約可用 count * 256000 估算來源頻率（Hz）。
 # 用法：quartus_stp -t read_clock_activity.tcl ?gap_ms?
 
 package require ::quartus::insystem_source_probe
@@ -54,9 +55,12 @@ proc print_activity {label} {
   set tx_ready [expr {($word >> 61) & 1}]
   set link_up [expr {($word >> 62) & 1}]
   set link_ok [expr {($word >> 63) & 1}]
-  puts [format "CLOCK_ACTIVITY label=%s raw=%016X REF=%d DMTD=%d RX=%d TOGGLE=%d/%d/%d PHY_READY=%d RX_LOCK_REF=%d RX_LOCK_DATA=%d SYS625_LOCKED=%d CORE_RESET_N=%d PHY_RST=%d SI_DONE=%d PPS_VALID=%d TIME_VALID=%d RX_READY=%d TX_READY=%d LINK_UP=%d LINK_OK=%d" \
-        $label $word $ref_count $dmtd_count $rx_count $ref_toggle $dmtd_toggle \
-        $rx_toggle $phy_ready $rx_ref_lock $rx_data_lock $sys625_locked \
+  set ref_est_hz [expr {$ref_count * 256000}]
+  set dmtd_est_hz [expr {$dmtd_count * 256000}]
+  set rx_est_hz [expr {$rx_count * 256000}]
+  puts [format "CLOCK_ACTIVITY label=%s raw=%016X WINDOW_US=1000 REF=%d REF_EST_HZ=%d DMTD=%d DMTD_EST_HZ=%d RX=%d RX_EST_HZ=%d TOGGLE=%d/%d/%d PHY_READY=%d RX_LOCK_REF=%d RX_LOCK_DATA=%d SYS625_LOCKED=%d CORE_RESET_N=%d PHY_RST=%d SI_DONE=%d PPS_VALID=%d TIME_VALID=%d RX_READY=%d TX_READY=%d LINK_UP=%d LINK_OK=%d" \
+        $label $word $ref_count $ref_est_hz $dmtd_count $dmtd_est_hz $rx_count $rx_est_hz \
+        $ref_toggle $dmtd_toggle $rx_toggle $phy_ready $rx_ref_lock $rx_data_lock $sys625_locked \
         $core_reset_n $phy_rst $si_done $pps_valid $time_valid $rx_ready \
         $tx_ready $link_up $link_ok]
   flush stdout

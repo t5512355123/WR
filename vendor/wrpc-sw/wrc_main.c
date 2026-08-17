@@ -162,12 +162,7 @@ static void wrc_initialize(void)
 
 	_endram = ENDRAM_MAGIC;
 
-	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	/* Master role must be committed before any PLL lock wait can block boot. */
-	wrc_ptp_set_mode(WRC_MODE_MASTER);
-	#else
 	wrc_ptp_set_mode(WRC_MODE_SLAVE);
-	#endif
 	wrc_ptp_start();
 
 	wrc_tasks_accounting_init();
@@ -177,6 +172,23 @@ static int is_link_up(void)
 {
 	return link_status == NETIF_LINK_UP;
 }
+
+#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+static int force_master_role(void)
+{
+	static int applied;
+
+	if (applied)
+		return 0;
+
+	if (wrc_ptp_get_mode() != WRC_MODE_MASTER) {
+		wrc_ptp_set_mode(WRC_MODE_MASTER);
+		wrc_ptp_start();
+	}
+	applied = 1;
+	return 1;
+}
+#endif
 
 static int wrc_check_link(void)
 {
@@ -259,6 +271,9 @@ static void create_tasks(void)
 	wrc_task_create( "ptp", NULL, wrc_ptp_update);
 	wrc_task_create( "ptp_bmc", NULL, wrc_ptp_bmc_update);
 	wrc_task_create( "shell+gui", shell_boot_script, ui_update );
+#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	wrc_task_create( "force-master", NULL, force_master_role );
+#endif
 	wrc_task_create( "spll-bh", NULL, spll_update );
 
 	if (HAS_TEMP_SENSORS)

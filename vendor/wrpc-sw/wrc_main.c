@@ -333,7 +333,13 @@ int main(void)
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
+	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	/* Preserve the shell diagnostic marker when the Master image records it. */
+	if ((debug_boot_stage & 0xff000000U) != 0xb1000000U)
+		debug_boot_stage = 0x0000B004;
+	#else
 	debug_boot_stage = 0x0000B004;
+	#endif
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B004);
 	#endif

@@ -5,7 +5,7 @@
 - Experiment ID：`EXP-WRPC-SI5340-READBACK-MAPPING-20260817`
 - 日期：2026-08-17
 - 實驗分支：`exp/jtag-runtime-observability`
-- 實驗紀錄建立時 source baseline：待 commit 後填寫
+- 實驗紀錄建立時 source baseline：`afb60cf199a2a7a15aeb9fb0b313fbd714ecd8e0`
 
 ## 這次想驗證什麼
 
@@ -25,18 +25,23 @@
 ## 編譯與硬體識別
 
 - Quartus：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`、Version 17.0.0 Build 595
-- QSF SHA-256：待 compile 後填寫
-- SDC SHA-256：待 compile 後填寫
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
 - Master MIF SHA-256：本輪不重新燒錄 Master
-- Slave MIF SHA-256：待 compile 後填寫
-- Slave SOF SHA-256：待 compile 後填寫
-- Compile log SHA-256：待 compile 後填寫
-- Full Compilation：待 compile 後填寫
-- Timing：待 compile 後填寫
+- Slave MIF SHA-256：`578d526306bf28721412d2a7a51f928a169bc1561e20a404de726d51df669ecb`
+- Slave SOF SHA-256：`51cac82700ab14ff04825ad2747c45960cf2a6045fd2638e1ed79d1ff3160a73`
+- Compile log SHA-256：`ffbba7b261c03d9e95e0803161aabf76eb408863b8bc7f2bf52a54c03507ae0f`
+- Full Compilation：成功，0 errors、275 warnings；Fitter successful。
+- Timing：尚未 closure；setup `-0.429 ns`、hold `-3.513 ns`、recovery `1.042 ns`、removal `0.317 ns`；unconstrained clocks 4、inputs 871、outputs 85。
 
 ## 燒錄結果
 
-待 compile 成功後僅燒錄 Slave `DE5 [1-11.2]`；在燒錄前不宣稱硬體實驗結果。
+- 僅燒錄 Slave `DE5 [1-11.2]`；Master 沿用原本 bitstream。
+- 燒錄時間：2026-08-17 09:25:36 至 09:25:54（Asia/Taipei）。
+- Programmer checksum：`0x30A13C27`。
+- JTAG ID：`0x02E660DD`。
+- Configuration：成功，1 device configured；Programmer 0 errors、0 warnings。
+- Programmer log SHA-256：`4f3fa750fa75a25209f8d62994d905499dc8a05452f92bc2244afa7d74614ecb`。
 
 ## JTAG/runtime 原始結果
 

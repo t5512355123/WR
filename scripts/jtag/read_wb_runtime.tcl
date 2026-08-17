@@ -120,6 +120,8 @@ foreach hardware_name [get_hardware_names] {
     puts "WDIAGS_PTP:   [wb_read 0x00100910]"
     puts "WDIAGS_PTP_RX:[wb_read 0x00100954]"
     puts "WDIAGS_PTP_TX:[wb_read 0x00100958]"
+    set wr_rx_reject_debug [wb_read 0x00100950]
+    puts "WR_SIGNAL_REJECT:$wr_rx_reject_debug"
     set ptp_meta [wb_read 0x0010095C]
     puts "WDIAGS_PTP_META:$ptp_meta"
     scan $ptp_meta %x ptp_meta_word

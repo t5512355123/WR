@@ -11,6 +11,21 @@
 #include "../proto-standard/common-fun.h"
 #include "../arch-wrpc/wrpc.h"
 
+enum wr_signal_reject_reason {
+	WR_SIGNAL_REJECT_NONE = 0,
+	WR_SIGNAL_REJECT_BAD_TLV_TYPE = 1,
+	WR_SIGNAL_REJECT_BAD_OUI = 2,
+	WR_SIGNAL_REJECT_BAD_MAGIC = 3,
+	WR_SIGNAL_REJECT_BAD_VERSION = 4
+};
+
+static void wr_signal_parser_reject(uint8_t reason)
+{
+	/* Read-only observability; acceptance conditions stay unchanged. */
+	wrpc_wr_rx_signal_reject_count++;
+	wrpc_wr_last_rx_signal_reject_reason = reason;
+}
+
 /* Pack White rabbit message in the suffix of PTP announce message */
 void msg_pack_announce_wr_tlv(struct pp_instance *ppi)
 {
@@ -181,6 +196,7 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 	tlv_versionNumber = 0xFF & ntohs(*(UInteger16 *)(buf + 52));
 
 	if (tlv_type != TLV_TYPE_ORG_EXTENSION) {
+		wr_signal_parser_reject(WR_SIGNAL_REJECT_BAD_TLV_TYPE);
 		/* "handle Signaling msg, failed, not organization extension TLV = 0x%x\n" */
 		pp_diag(ppi, frames, 1, "%sorganization extension TLV = 0x%x\n",
 			"handle Signaling msg, failed, not ", tlv_type);
@@ -188,6 +204,7 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 	}
 
 	if (tlv_organizationID != WR_TLV_ORGANIZATION_ID) {
+		wr_signal_parser_reject(WR_SIGNAL_REJECT_BAD_OUI);
 		/* "handle Signaling msg, failed, not CERN's OUI = 0x%x\n" */
 		pp_diag(ppi, frames, 1, "%sCERN's OUI = 0x%x\n",
 			"handle Signaling msg, failed, not ", tlv_organizationID);
@@ -195,6 +212,7 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 	}
 
 	if (tlv_magicNumber != WR_TLV_MAGIC_NUMBER) {
+		wr_signal_parser_reject(WR_SIGNAL_REJECT_BAD_MAGIC);
 		/* "handle Signaling msg, failed, not White Rabbit magic number = 0x%x\n" */
 		pp_diag(ppi, frames, 1, "%sWhite Rabbit magic number = 0x%x\n",
 			"handle Signaling msg, failed, not ", tlv_magicNumber);
@@ -202,6 +220,7 @@ int msg_unpack_wrsig(struct pp_instance *ppi, void *buf,
 	}
 
 	if (tlv_versionNumber  != WR_TLV_WR_VERSION_NUMBER ) {
+		wr_signal_parser_reject(WR_SIGNAL_REJECT_BAD_VERSION);
 		/* "handle Signaling msg, failed, not supported version number = 0x%x\n" */
 		pp_diag(ppi, frames, 1, "%ssupported version number = 0x%x\n",
 			"handle Signaling msg, failed, not ", tlv_versionNumber);

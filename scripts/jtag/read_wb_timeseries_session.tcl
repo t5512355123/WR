@@ -80,6 +80,7 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_rx_debug [wb_read 0x00100964]
   set wr_tx_debug [wb_read 0x00100968]
   set wr_fail_debug [wb_read 0x0010096C]
+  set wr_rx_reject_debug [wb_read 0x00100950]
   set wr_lock_result [wb_read 0x0010098C]
   set wr_lock_polls [wb_read 0x00100990]
   set wr_lock_unlocked [wb_read 0x00100994]
@@ -133,6 +134,7 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_rx_debug_end [wb_read 0x00100964]
   set wr_tx_debug_end [wb_read 0x00100968]
   set wr_fail_debug_end [wb_read 0x0010096C]
+  set wr_rx_reject_debug_end [wb_read 0x00100950]
   set wr_lock_result_end [wb_read 0x0010098C]
   set wr_lock_polls_end [wb_read 0x00100990]
   set wr_lock_unlocked_end [wb_read 0x00100994]
@@ -174,6 +176,7 @@ proc read_diag_sample {hardware_name sample attempt} {
       $ptp_meta $foreign_meta $filter_meta $parse_meta $dms_h $dms_l \
       $wr_state_debug \
       $wr_rx_debug $wr_tx_debug $wr_fail_debug \
+      $wr_rx_reject_debug \
       $wr_lock_result $wr_lock_polls $wr_lock_unlocked \
       $wr_lock_calibration_fail $wr_lock_enable $wr_spll_state \
       $wr_spll_ocer $wr_spll_rcer $wr_spll_occr $wr_spll_trr_csr \
@@ -190,6 +193,7 @@ proc read_diag_sample {hardware_name sample attempt} {
       $spll_csr_end $spll_eccr_end $spll_occr_end $ptp_meta_end \
       $foreign_meta_end $parse_meta_end $wr_state_debug_end \
       $wr_rx_debug_end $wr_tx_debug_end $wr_fail_debug_end \
+      $wr_rx_reject_debug_end \
       $wr_lock_result_end $wr_lock_polls_end $wr_lock_unlocked_end \
       $wr_lock_calibration_fail_end $wr_lock_enable_end $wr_spll_state_end \
       $wr_spll_ocer_end $wr_spll_rcer_end $wr_spll_occr_end $wr_spll_trr_csr_end \
@@ -226,7 +230,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_state_block_valid [expr {$wr_state_debug == $wr_state_debug_end}]
   set wr_signal_block_valid [expr {$wr_rx_debug == $wr_rx_debug_end &&
                                    $wr_tx_debug == $wr_tx_debug_end &&
-                                   $wr_fail_debug == $wr_fail_debug_end}]
+                                   $wr_fail_debug == $wr_fail_debug_end &&
+                                   $wr_rx_reject_debug == $wr_rx_reject_debug_end}]
   set wr_lock_block_valid [expr {$wr_lock_result == $wr_lock_result_end &&
                                  $wr_lock_polls == $wr_lock_polls_end &&
                                  $wr_lock_unlocked == $wr_lock_unlocked_end &&
@@ -302,6 +307,9 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_fail_role [expr {($wr_fail_word >> 24) & 0xff}]
   set wr_fail_state [expr {($wr_fail_word >> 16) & 0xff}]
   set wr_fail_count [expr {$wr_fail_word & 0xffff}]
+  scan $wr_rx_reject_debug %x wr_rx_reject_word
+  set wr_rx_reject_count [expr {($wr_rx_reject_word >> 8) & 0x00ffffff}]
+  set wr_rx_reject_reason [expr {$wr_rx_reject_word & 0xff}]
   scan $wr_lock_result %x wr_lock_result_word
   scan $wr_lock_polls %x wr_lock_polls_word
   scan $wr_lock_unlocked %x wr_lock_unlocked_word
@@ -327,9 +335,10 @@ proc read_diag_sample {hardware_name sample attempt} {
         $ptp_meta_end $foreign_meta_end $parse_meta_end]
   puts [format "WR_STATE_BLOCK_VALID: %d A=%s B=%s" \
         $wr_state_block_valid $wr_state_debug $wr_state_debug_end]
-  puts [format "WR_SIGNAL_BLOCK_VALID: %d RX=%s/%s TX=%s/%s FAIL=%s/%s" \
+  puts [format "WR_SIGNAL_BLOCK_VALID: %d RX=%s/%s TX=%s/%s FAIL=%s/%s REJECT=%s/%s" \
         $wr_signal_block_valid $wr_rx_debug $wr_rx_debug_end \
-        $wr_tx_debug $wr_tx_debug_end $wr_fail_debug $wr_fail_debug_end]
+        $wr_tx_debug $wr_tx_debug_end $wr_fail_debug $wr_fail_debug_end \
+        $wr_rx_reject_debug $wr_rx_reject_debug_end]
   puts [format "WR_CLOCK_ACTIVITY: BEGIN=%s END=%s" \
         $clock_activity_begin $clock_activity_end]
   puts [format "WR_LOCK_BLOCK_VALID: %d RESULT=%s/%s POLLS=%s/%s UNLOCKED=%s/%s CALIB_FAIL=%s/%s ENABLE=%s/%s SPLL=%s/%s" \
@@ -377,6 +386,8 @@ proc read_diag_sample {hardware_name sample attempt} {
   puts [format "WR_SIGNAL: rx_msg=0x%04X rx_count=%d tx_msg=0x%04X tx_count=%d fail_role=%d fail_state=%d fail_count=%d" \
         $wr_rx_msg_id $wr_rx_count $wr_tx_msg_id $wr_tx_count \
         $wr_fail_role $wr_fail_state $wr_fail_count]
+  puts [format "WR_SIGNAL_REJECT: count=%d reason=%d" \
+        $wr_rx_reject_count $wr_rx_reject_reason]
   puts [format "WR_LOCK: result=%d spll_locked=%d polls=%d unlocked=%d calibration_fail=%d enable=%d seq_state=%d align_state=%d mode=%d delock_count=%d" \
         $wr_lock_result_code $wr_lock_spll_locked $wr_lock_polls_word \
         $wr_lock_unlocked_word $wr_lock_calibration_fail_word $wr_lock_enable_word \

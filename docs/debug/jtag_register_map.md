@@ -54,6 +54,7 @@ WRPC（White Rabbit PTP Core，White Rabbit 精密時間同步核心）本身有
 | `0x0010094C` | `WDIAGS_TEMP` | 診斷版啟動階段標記；正式溫度感測器啟用時回復為溫度欄位 |
 | `0x00100964` | `WR_RX_SIGNAL_DEBUG` | 高 16 位為最後收到的 WR signaling message ID，低 16 位為成功解析計數 |
 | `0x00100968` | `WR_TX_SIGNAL_DEBUG` | 高 16 位為最後送出的 WR signaling message ID，低 16 位為成功送出計數 |
+| `0x00100950` | `WR_RX_SIGNAL_REJECT_DEBUG` | DE5a 單一 WR 輸出版本使用 AUX0 detail slot；高 24 位為 WR parser reject 次數，低 8 位為最後 reject reason：`0=NONE`、`1=BAD_TLV_TYPE`、`2=BAD_OUI`、`3=BAD_MAGIC`、`4=BAD_VERSION` |
 | `0x00100960` | `WDIAGS_RXERR` | WRPC RX 錯誤計數 |
 | `0x0010096C` | `WR_HANDSHAKE_FAIL_DEBUG` | 高 8 位為失敗前 role，中間 8 位為失敗前 WR state，低 16 位為 failure 計數；本診斷版不使用原 restart 欄位 |
 | `0x0010098C` | `WR_LOCK_RESULT_DEBUG` | 低 8 位為最後 locking_poll 結果（0=locked、1=unlocked、2=t24p calibration fail），bit8 為當下 spll_check_lock 結果 |

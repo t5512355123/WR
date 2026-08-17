@@ -175,6 +175,15 @@ void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
 	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
 }
 
+void wdiags_write_wr_signaling_reject_debug(uint32_t reject_count,
+                                            uint8_t reject_reason)
+{
+	/* DE5a has one WR output, so AUX0 detail (0x50) is unused here. */
+	wdiag_write(WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT,
+			((reject_count & 0x00ffffffu) << 8) |
+			((uint32_t)reject_reason & 0xffu));
+}
+
 void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
 					uint32_t unlocked, uint32_t calibration_fail,
 					uint32_t enable_count, uint32_t spll_state)

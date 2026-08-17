@@ -136,6 +136,8 @@ extern volatile uint32_t wrpc_ptp_prefilter_same_port_count;
 extern volatile uint32_t wrpc_ptp_prefilter_same_clock_count;
 /* WR extension signaling diagnostics; these never drive the state machine. */
 extern volatile uint32_t wrpc_wr_rx_signaling_count;
+extern volatile uint32_t wrpc_wr_rx_signal_reject_count;
+extern volatile uint8_t wrpc_wr_last_rx_signal_reject_reason;
 extern volatile uint32_t wrpc_wr_tx_signaling_count;
 extern volatile uint16_t wrpc_wr_last_rx_msg_id;
 extern volatile uint16_t wrpc_wr_last_tx_msg_id;

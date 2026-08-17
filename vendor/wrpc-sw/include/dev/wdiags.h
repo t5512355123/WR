@@ -35,6 +35,8 @@ void wdiags_write_temp(uint32_t temp);
 /* Read-only WR extension state shadow for DE5a bring-up diagnostics. */
 void wdiags_write_wr_state_debug(uint32_t state);
 void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure);
+void wdiags_write_wr_signaling_reject_debug(uint32_t reject_count,
+                                            uint8_t reject_reason);
 void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
 					uint32_t unlocked, uint32_t calibration_fail,
 					uint32_t enable_count, uint32_t spll_state);

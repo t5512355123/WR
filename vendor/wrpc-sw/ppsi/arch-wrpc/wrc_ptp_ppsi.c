@@ -95,6 +95,8 @@ volatile uint32_t wrpc_ptp_rx_announce_processed_count;
 volatile uint32_t wrpc_ptp_rx_announce_added_count;
 volatile uint32_t wrpc_ptp_rx_announce_length;
 volatile uint32_t wrpc_wr_rx_signaling_count;
+volatile uint32_t wrpc_wr_rx_signal_reject_count;
+volatile uint8_t wrpc_wr_last_rx_signal_reject_reason;
 volatile uint32_t wrpc_wr_tx_signaling_count;
 volatile uint16_t wrpc_wr_last_rx_msg_id;
 volatile uint16_t wrpc_wr_last_tx_msg_id;
@@ -319,6 +321,8 @@ int wrc_ptp_start(void)
 	wrpc_ptp_prefilter_same_port_count = 0;
 	wrpc_ptp_prefilter_same_clock_count = 0;
 	wrpc_wr_rx_signaling_count = 0;
+	wrpc_wr_rx_signal_reject_count = 0;
+	wrpc_wr_last_rx_signal_reject_reason = 0;
 	wrpc_wr_tx_signaling_count = 0;
 	wrpc_wr_last_rx_msg_id = 0;
 	wrpc_wr_last_tx_msg_id = 0;

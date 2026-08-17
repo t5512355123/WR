@@ -145,6 +145,9 @@ int wrc_wr_diags(void)
 				(((uint32_t)wrpc_wr_last_fail_role & 0xffu) << 24) |
 				(((uint32_t)wrpc_wr_last_fail_state & 0xffu) << 16) |
 				 (wrpc_wr_handshake_fail_count & 0xffffu));
+			wdiags_write_wr_signaling_reject_debug(
+				wrpc_wr_rx_signal_reject_count,
+				wrpc_wr_last_rx_signal_reject_reason);
 			wdiags_write_wr_lock_debug(
 				(uint32_t)wrpc_wr_lock_last_result |
 					((uint32_t)(spll_check_lock(0) ? 1u : 0u) << 8),

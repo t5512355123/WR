@@ -98,15 +98,40 @@ WR_LOCK: result=0 spll_locked=0 polls=0 unlocked=0 calibration_fail=0 enable=0
 
 這次 session 的部分 frame 為 `FRAME_VALID=0`，只把 `accepted=1` 的 frame 用於判讀；JTAG mailbox 取樣不完整的列不作為結論。
 
+另外使用單次 runtime probe 交叉確認 CPU 與 role：
+
+```text
+=== DE5 [1-11.1] ===
+status_probe: 41104441265082EF
+cpu_debug: PC=0x0000ACD8 reset=0 fault=0 im_valid=1
+cpu_debug: PC=0x0000A8C4 reset=0 fault=0 im_valid=1
+cpu_marker: 0x0000B004 seen=1
+cpu_exception: mepc=0x00000000 mcause=0x00000000
+WDIAGS_PTP:   00000004
+WDIAGS_PTP_META:03020404
+WDIAGS_MODE:   3
+
+=== DE5 [1-11.2] ===
+cpu_marker: 0x0000B004 seen=1
+cpu_exception: mepc=0x00000000 mcause=0x00000000
+WDIAGS_PTP:   00000004
+WDIAGS_PTP_META:03020404
+WDIAGS_MODE:   3
+```
+
+這個交叉讀取確認兩端 CPU 都有執行且沒有 fault；但兩端目前都不是預期的 Master diagnostic role。
+
 - Clock activity log SHA-256：`11f88852f14d9860ff0e559f6171559945ac664c8d706b26ff73c904aaf2eec3`
 - Runtime log SHA-256：`d8041e4c944ff92bc89d793c07f299d306cb440f5fb4794c7035c460573a2969`
+- Runtime probe log SHA-256：`77e0536e9b2fae967882e6d8066efb49e6fdc923fe2f667f926ed12a2f51cc7f`
 
 ## Observation
 
 1. Quartus compile 與 programmer 都成功，但這次燒錄後 Master 判準沒有通過：`status=0xEF、MODE=3、PTP=4/6、time_valid=0`，不是預期的 `0xFF/2/6`。
 2. Master 的 clock activity 顯示 `PHY_READY=1、RX_LOCK_DATA=1、SYS625_LOCKED=1、CORE_RESET_N=1、SI_DONE=1、RX_READY=1、TX_READY=1、LINK_UP=1、LINK_OK=1`；因此目前證據支持 clock/PHY/link 已活著，但不支持 WR Master role 已正確生效。
 3. build tree 的 `auto.conf`、`autoconf.h` 與 source config 都仍是 `vlan off;ptp stop;mode master;ptp start`，MIF hash 也與歷史 9f baseline 相同；因此不能直接把問題寫成「source startup command 被改掉」。
-4. 目前仍未排除：歷史 SOF 與最新 observability SOF 的 A/B 差異、實際 MIF 嵌入/燒入內容、runtime 啟動後 role 被其他流程覆寫，以及 JTAG/board mapping 或 mailbox decode 問題。
+4. CPU marker/fault 交叉 probe 顯示兩端 `marker=B004、fault=0、im_valid=1`，因此 CPU runtime alive 已有直接證據；問題更集中在 role/runtime state，而不是 CPU boot failure。
+5. 目前仍未排除：歷史 SOF 與最新 observability SOF 的 A/B 差異、實際 MIF 嵌入/燒入內容、runtime 啟動後 role 被其他流程覆寫，以及 JTAG/board mapping 或 mailbox decode 問題。
 
 ## Conclusion
 

@@ -255,10 +255,10 @@ always @(posedge iCLK or negedge iRST_n) begin
     dpll_accept_count <= 16'd0;
     hpll_done_count <= 16'd0;
     dpll_done_count <= 16'd0;
-    // HPLL-only isolation experiment: keep the helper actuator running,
-    // while suppressing the DPLL/N0 actuator until the helper can be tested.
+    // Both DPLL/N0 and HPLL/N1 runtime actuators are enabled in this
+    // experiment.  The completion flags remain diagnostic only.
     hpll_done_once  <= 1'b0;
-    dpll_done_once  <= 1'b1;
+    dpll_done_once  <= 1'b0;
     dco_error        <= 1'b0;
   end else begin
     if (iDPLL_LOAD) begin
@@ -285,17 +285,23 @@ always @(posedge iCLK or negedge iRST_n) begin
     case (rt_state)
       4'd0: begin
         rt_seen_busy <= 1'b0;
-        // HPLL-only isolation experiment: service every pending HPLL update
-        // and suppress DPLL/N0 transactions.  The helper needs repeated HPLL
-        // updates before the normal Slave sequencing can reach the main PLL.
         // rb_state=5 means the one-shot readback already completed.  It must
-        // not permanently block later runtime DCO transactions.
+        // not permanently block later runtime DCO transactions.  Prioritize
+        // DPLL/N0 when both paths are pending so the main correction path is
+        // serviced before the helper path.
         if (static_controller_ready &&
-            (rb_state == 4'd0 || rb_state == 4'd5) && hpll_pending) begin
-          rt_state <= 4'd1;
-          rt_select_dpll <= 1'b0;
-          rt_dir <= hpll_dir;
-          hpll_pending <= 1'b0;
+            (rb_state == 4'd0 || rb_state == 4'd5)) begin
+          if (dpll_pending) begin
+            rt_state <= 4'd1;
+            rt_select_dpll <= 1'b1;
+            rt_dir <= dpll_dir;
+            dpll_pending <= 1'b0;
+          end else if (hpll_pending) begin
+            rt_state <= 4'd1;
+            rt_select_dpll <= 1'b0;
+            rt_dir <= hpll_dir;
+            hpll_pending <= 1'b0;
+          end
         end
       end
       4'd1: begin

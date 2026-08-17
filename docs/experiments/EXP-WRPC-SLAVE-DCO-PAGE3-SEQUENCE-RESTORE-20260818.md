@@ -39,7 +39,20 @@ page 0 step  : 0x001D = FINC/FDEC
 
 ## 修改與編譯結果
 
-本節待完成 source commit、pain compile、SOF/MIF/QSF/SDC hash 與 Quartus timing 結果後補寫。
+- source commit：`9060e4516482e21f894833b71bd5eb0025a981dd`
+- pain checkout：detached HEAD，明確指向 `9060e45`；既有未追蹤檔案未修改。
+- 編譯時間：2026-08-18 05:17:41 至 05:20:52（pain terminal 時間）
+- Quartus：Version 17.0.0 Build 595 Standard Edition
+- 結果：`Full Compilation was successful`，0 errors、271 warnings
+- Fitter：successful，0 errors、17 warnings
+- Assembler：successful，0 errors、1 warning
+- SOF SHA-256：`1e315904af9033f52551a68844a4fd274a8506f13523c10cc0b3fd570c0d494b`
+- MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Compile log：`/home/b10504072/04_WR/build/quartus_jtag_slave_page3_compile.log`
+- Compile log SHA-256：`0f1d5e1af4bb650513f74acd61fab37ac3635942cf6ef93882178d7b15ad022f`
+- Timing：各 corner 中最差 setup `-0.825 ns`、最差 hold `-4.016 ns`；Quartus 明確報告 timing requirements not met。本輪只驗證功能變因，不宣稱 timing closure。
 
 ## 燒錄結果
 

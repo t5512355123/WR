@@ -7,9 +7,9 @@
 ## Git 與可追溯性
 
 - 研究分支：`exp/jtag-runtime-observability`
-- 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新燒錄 source 為 `8c8b444`
-- 目前工作樹：已完成 Slave DPLL request/FSM 唯讀觀測版的 compile、燒錄與 60 秒 JTAG 觀測
-- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-DCO-STATE-OBS-20260817.md`
+- 目前已燒錄並完成觀測的操作：Master 維持 `5e816ea` image；Slave 最新確認燒錄 source 為 `933ce3e`
+- 目前工作樹：已完成 `933ce3e` 時鐘/重置唯讀診斷版的 compile、Slave 燒錄與回程封包唯讀觀測
+- 最新文件與實驗紀錄：`docs/experiments/EXP-WRPC-RETURN-PATH-OBS-20260817.md`
 - GitHub：`git@github.com:t5512355123/WR.git`
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
@@ -23,6 +23,14 @@
 - Slave `SPLL LAST_STATE=7 (SEQ_DISABLED)`、`REF/TAG=0`、DCO source=0；這較像 handshake 失敗後未進入 SoftPLL，而不是已證明 DCO 先失效。
 - 結論：尚未同步；優先查 Slave -> Master 的 QSFP/PHY RX、lane/polarity/PCS、MAC filter/VLAN 或 signaling 封包丟棄，尚不能指定單一硬體根因。
 - 原始 log 與 hash 已記錄於 `docs/experiments/EXP-WRPC-RETURN-PATH-OBS-20260817.md`。
+
+### 回程 counter 與 PHY activity 交叉檢查（2026-08-17）
+
+- 兩秒唯讀 counter：Master `PTP_RX` 約維持 `0x64D8`、Slave `PTP_RX` 由約 `0x0DFF` 增至 `0x0E05`；Master `RXERR` 增加 1，Slave `RXERR=0`。
+- Slave clock activity 維持 `SYS625_LOCKED=1、CORE_RESET_N=1、PHY_RST=0、SI_DONE=1、RX/TX_READY=1、LINK_UP=1、LINK_OK=1、RX_LOCK_DATA=1`，但 `RX_LOCK_REF` 有變化。
+- Master instance 7 的 clock activity 高位欄位與 `status_probe=...82FF` 不一致，不能直接當成同一 probe mapping 的對照，必須先核對兩端 SOF/probe 版本。
+- 本輪沒有 compile/燒錄；因此只支持回程「已接受封包」沒有增加，不足以單獨證明原始光纖 frame 完全遺失或唯一根因。
+- 原始 log：`build/artifacts/EXP-WRPC-RETURN-PATH-OBS-20260817/phy_activity_2s.log`、`runtime_counters_after_phy.log`；hash 與完整解讀見對應實驗紀錄。
 
 ### `8c8b444` Slave DPLL request/FSM 唯讀觀測
 

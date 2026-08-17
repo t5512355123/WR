@@ -694,7 +694,7 @@ begin
       g_pcs_16bit                 => false,
       -- Slave 使用 WR core 預設的 direct DDMTD 取樣方向。
       -- 本實驗唯一變因：只將 Slave 從 reverse sampling 改回 false；Master 不變。
-      g_softpll_reverse_dmtds     => false,
+      g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )
     port map (

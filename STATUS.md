@@ -389,3 +389,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 已燒錄至 `DE5 [1-11.2]`；checksum `0x30A1F2A5`、JTAG ID `0x02E660DD`、configuration succeeded、Programmer 0 errors/0 warnings。
 - 燒錄後 runtime 尚待唯讀 JTAG 取樣；目前不宣稱同步成功。
 - 完整紀錄：`docs/experiments/EXP-WRPC-DCO-DATA-OBS-20260817.md`。
+
+## 最新燒錄實驗：SI5340 I2C ACK/NACK 唯讀觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-ACK-OBS-20260817`。
+- source commit：`f6646ae6458f5c58bd5c87ae16fdd7d8b3a77703`，branch：`exp/jtag-runtime-observability`。
+- 只新增 I2C ACK/NACK sticky telemetry 與 JTAG probe，沒有改變既有 I2C state transition 或 DCO 寫入內容。
+- Slave Quartus 17 compile：Full Compilation successful，0 errors、274 warnings；Fitter successful；timing 尚未 closure。
+- Slave SOF SHA-256：`ce00ec9af0e6f538df16c41ec705b09fab38f8442f6bcc0897fd1195361c3265`。
+- 已燒錄至 `DE5 [1-11.2]`；checksum `0x309FFE28`、JTAG ID `0x02E660DD`、configuration succeeded、Programmer 0 errors/0 warnings。
+- 燒錄後 ACK/runtime 尚待唯讀 JTAG 取樣；目前不宣稱同步成功。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-ACK-OBS-20260817.md`。

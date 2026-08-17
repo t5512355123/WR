@@ -43,12 +43,27 @@
 
 ### Slave（待 compile）
 
-- QSF/SDC/MIF/SOF SHA-256：待 compile 後記錄。
-- Quartus compile、timing 與 programmer 結果：待完成後記錄。
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- MIF SHA-256：`72e832874562b061e1cc9e1a07bf4f03e0d11b56dc4d326dbbda1bd1f7575c1a`
+- SOF SHA-256：`ce00ec9af0e6f538df16c41ec705b09fab38f8442f6bcc0897fd1195361c3265`
+- Quartus Full Compilation：successful，0 errors、274 warnings；Fitter successful。
+- Timing：`timing_closed=NO`；setup `-0.239 ns`、hold `-3.479 ns`、recovery `0.542 ns`、removal `0.330 ns`；unconstrained clocks/input/output `3 / 803 / 83`。
+- compile trace SHA-256：`3465f7ad831a53ed79b72b9654ce17ca538920826a555868a319e7ffb4d5b721`
+- build log SHA-256：`7abf0d4de5ce51234e30c46f9c71d36e88020a2442245dd0644f2cb058919153`
 
 ## 燒錄結果
 
-待 compile 成功後才燒錄；若 compile 失敗，不把它寫成硬體實驗成功。
+- 燒錄對象：Slave，cable `DE5 [1-11.2]`
+- 燒錄時間：2026-08-17 08:10:05–08:10:24（pain）
+- programmer checksum：`0x309FFE28`
+- Device JTAG ID：`0x02E660DD`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Programmer：`Quartus Prime Programmer was successful. 0 errors, 0 warnings`
+- programmer log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/program_slave.log`
+- programmer log SHA-256：`148e20b887f5db91561af96dfe1706ca8726a7ece062360d46287222b50917de`
+
+本節只證明 ACK diagnostic Slave image 已成功配置，不宣稱 WR synchronization 成功。
 
 ## JTAG/runtime 原始結果
 

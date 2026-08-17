@@ -153,3 +153,40 @@ SHA-256: ba9d31ff2367b9a05139e83ffc424e2899714af80aec8378eae86e47b27cca13
 ### Next Step
 
 立即對目前已燒錄的 Master 執行唯讀 JTAG 觀察，同時保持 Slave 不變。至少保存 `marker`、`status`、`WDIAGS_MODE`、`WDIAGS_PTP`、link/time/pps valid，以及 PTP RX/TX 活動；只有五項 Master baseline 條件全部具備，才凍結 Master 並轉向 Slave。
+
+## Master 診斷版燒錄後唯讀結果（2026-08-18）
+
+- Experiment ID：`EXP-WRPC-MASTER-SIGNAL-OBS-RUNTIME-20260818`
+- 實驗來源 commit：`7e0117cc62e9dc23b9abb40be32315d55327a87b`
+- 觀測方式：不寫入設定的 `read_wb_timeseries_session.tcl 10 1000 3`
+- 原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-SIGNAL-OBS-20260818/runtime_master_fixed_10x1s.log`
+- 原始 log SHA-256：`690e710096a5b641bce97f93adfb480eab5c7673b101473c74c5dd2ee11a7d9c`
+- JTAG 程式結果：`SESSION_TIME_SERIES_DONE`、Tcl evaluation successful、SignalTap successful，0 errors、0 warnings
+
+### 原始 runtime 證據摘要
+
+Master cable `DE5 [1-11.1]` 在 10 個 sample 中反覆讀到：
+
+```text
+status_low=EF
+time_valid=0
+pps_valid=1
+wr_mode=3
+link_up=1
+spll_locked=0
+WDIAGS_PTP=9
+```
+
+在同一 session 中，另一片 `DE5 [1-11.2]` 也維持 Slave `wr_mode=3`、`WDIAGS_PTP=9`。Master 端 PTP TX counters 有變化，但這不能取代 Master role 證據；目前 `WR_SIGNAL` 仍未提供可宣稱的 Master/Slave signaling handshake 成功證據。
+
+### Observation
+
+加入目前 observability 的新 MIF/SOF 雖然成功設定 FPGA、link 也維持 up，但它沒有重現歷史成功 Master 的 `MODE=2 / PTP=6 / status=0xFF`。因此本輪唯一修改的診斷 build 不可作為 Master baseline，也不能據此修改或發明另一套 role 切換方法。
+
+### Conclusion
+
+本輪證據支持：「目前新診斷版的 firmware/startup 組合沒有保留歷史 Master role」。證據不支持「Master role 已成功」或「Slave 根因已確定」。為避免污染後續 Slave 實驗，下一步必須恢復已知成功的歷史 `9f848ec` Master SOF，再重新確認五項 Master baseline 條件。
+
+### Next Step
+
+只燒錄歷史 Master artifact `/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-CLEAN-OBSERVABILITY-20260817/master.sof`，不改 Slave、不改 role source；燒錄完成後立即保存 programmer log，再執行唯讀 JTAG。若恢復後得到 `marker=B004`、`MODE=2`、`PTP=6`、`status=0xFF`、`link_up=1` 且 PTP RX/TX 有活動，便凍結 Master，所有後續修改只針對 Slave。

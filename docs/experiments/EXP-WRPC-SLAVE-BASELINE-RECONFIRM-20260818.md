@@ -47,16 +47,54 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 
 ## Runtime 原始結果
 
-本檔在 Slave 燒錄完成後立即建立；雙板重新配置完成後，使用固定唯讀 JTAG script 讀取 Master role 五項判準與 Slave parent/servo/SoftPLL 欄位，再把原始 log、hash 與解碼結果補入本紀錄。
+雙板重新配置後，使用固定唯讀 JTAG session 與 HPLL/helper correlation；沒有寫入 WR 設定，也沒有重新 compile。原始檔案：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_timeseries.log
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot.log
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot_after30s.log
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot_after90s.log
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/hpll_helper_correlation_60s.log
+```
+
+Slave 10-sample session 中有 7/10 accepted；accepted 與 retry 過程仍可見 `link_up` transient。代表性 snapshot：
+
+```text
+marker=B004 seen=1
+CPU fault=0, im_valid=1
+MODE=3
+status_low=EF
+link_up=1（部分 sample 變成 CF/01）
+time_valid=0
+pps_valid=1 或短暫為 0
+PSTAT=0x1、SSTAT=0、spll_locked=0
+PTP RX/TX：snapshot 為 0/0，session 中只有少量 RX/TX 增加
+```
+
+60 秒 `hpll_helper_correlation.tcl` 的 Slave 讀值為 60/60 筆，代表性首尾欄位如下：
+
+```text
+STEP=18、STEP_DELTA=0、STEP_EVENT=0
+PSTAT=00000001、SSTAT=00000000、SPLL_STATE=00000000
+HELPER_STATE=00000000
+HELPER_ERROR_SIGNED=0
+HELPER_OUTPUT=00000000
+```
+
+correlation log SHA-256：`86ef7bd1c5571c368fbfbc0976e5efe822c129a02092af013f41ec8f17704a08`
 
 ## Observation
 
-目前只有燒錄證據，尚未以本輪 runtime 讀值宣稱 Slave 進入同步。
+本輪沒有看到 Slave 有效 SoftPLL/Helper feedback：60 筆中沒有 DCO step event，helper error/output/state 全部保持零；這個零值不能解讀成相位誤差已經完美收斂，因為同時 `PSTAT.locked=0、SSTAT=0、time_valid=0`。
+
+Master 在同一輪維持 `MODE=2/status=FF/link_up=1`，但 `WDIAGS_PTP=6` 只在部分早期 sample 出現，後續 snapshot 為 `PTP=1`；這是 Master runtime 的觀測異常，不能用來宣稱雙板同步成功。
 
 ## Conclusion
 
-目前證據只支持：已知穩定 Slave SOF 已成功配置到 DE5a。尚未支持 Slave `time_valid=1` 或 SoftPLL lock。
+證據支持：Slave 的 CPU 已執行、SOF 已配置、PHY/link 曾有效，且目前主要阻塞仍在 Slave `TAG/TRR/IRQ → SoftPLL sequence → Helper` 的 input/feedback 路徑；尚不能把根因確定為某個 register、FINC/FDEC 方向或 physical clock。
+
+證據不支持：Slave 已完成 SoftPLL lock、`time_valid=1`，或兩張 DE5a 已完成 White Rabbit 時間同步。
 
 ## Next Step
 
-使用同一個唯讀 JTAG session 讀取兩片板：Master 的 `marker、MODE、PTP、link_up、PTP RX/TX`，以及 Slave 的 `SSTAT、PSTAT、parent flags、UCNT、DCO/HPLL/helper`。不修改任何 role 或控制參數。
+保留目前 Master/Slave SOF，不改 Master role、不反轉 FINC/FDEC、不改 PI/threshold、不新增跨 clock-domain RTL。下一步用現有 JTAG 欄位做 60～300 秒唯讀關聯，先回答 `TAG/TRR/IRQ/SoftPLL sequence/Helper` 哪一段沒有活動，再決定是否需要極小的 Slave-only functional A/B。

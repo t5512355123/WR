@@ -57,16 +57,57 @@ Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
 
 ## Runtime 原始結果
 
-本檔在 Master 燒錄完成後立即建立；為避免在 Slave 燒錄前混合兩張板的狀態，Master runtime 將在同一輪兩板重新載入後，以固定唯讀 JTAG script 讀取並補入本紀錄。
+兩片板重新配置後，使用 Quartus 17.0 `read_wb_timeseries_session.tcl 10 1000 3`，再使用 `read_wb_runtime.tcl` 做 snapshot。原始檔案與 hash：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_timeseries.log
+SHA-256: 5e407f9fec2f188e3361262b1e3707249865953f5b46b2a3b1aae378e19caf18
+
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot.log
+SHA-256: 2ad8d400a4c3c14f7ac450db9ee76603ddff2fa3621935f0049274817a7fe426
+
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot_after30s.log
+SHA-256: 6406b450b8f8bd2f86ce435a0378a1483a2880daa71db744884d28654b3c7f28
+
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/runtime_snapshot_after90s.log
+SHA-256: 398efc6baf85bf08b8439b952ee4e75de62c7e7cf30f1edfb30428f5f68a1c43
+
+/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-ROLE-RECONFIRM-20260818/hpll_helper_correlation_60s.log
+SHA-256: 86ef7bd1c5571c368fbfbc0976e5efe822c129a02092af013f41ec8f17704a08
+```
+
+Master 的唯讀 session 結果：
+
+```text
+marker=B004 seen=1
+CPU fault=0, im_valid=1
+MODE=2
+status_low=FF（time_valid=1、pps_valid=1、link_up=1）
+PTP RX/TX：由 0x1C/0x46 增加至約 0x23/0x5E
+```
+
+10-sample session 的 Master sample 全部 accepted；早期有效列曾出現 `WDIAGS_PTP=6`。但是 30 秒與 90 秒 snapshot 都是：
+
+```text
+WDIAGS_MODE=2
+WDIAGS_PTP=1
+WDIAGS_PTP_RX=0x2D
+WDIAGS_PTP_TX=0x78
+status_low=FF
+```
+
+因此本輪沒有把 `WDIAGS_PTP=6` 寫成長時間穩定結果。
 
 ## Observation
 
-目前只有燒錄證據，尚未以本輪 runtime 讀值宣稱 Master role 成功。
+歷史 Master role 的核心行為成功重現：`marker=B004`、`MODE=2`、`status_low=FF`、`link_up=1`，且 PTP counter 有活動。`WDIAGS_PTP=6` 只在部分早期有效 sample 出現，等待 30/90 秒後回到 `1`；因此 role 已固定，但五項嚴格 diagnostic baseline 尚未全部以穩定時間序列通過。
 
 ## Conclusion
 
-目前證據只支持：已知 Master SOF 已成功配置到 DE5a。尚未支持 `MODE=2/PTP=6/status=FF`，因為 runtime 讀值尚待完成。
+證據支持：這次沒有發明新的 Master role 切換方法，已知的 `9f848ec` Master role 仍可在同一 SOF 上重現 `MODE=2/status=FF`，Master 不應再被修改。
+
+證據不支持：目前已完成 White Rabbit 端到端同步，也不支持宣稱 `WDIAGS_PTP=6` 已長時間穩定。Slave 仍是 `MODE=3、time_valid=0、spll_locked=0`，因此本輪不能宣稱雙板同步成功。
 
 ## Next Step
 
-在不改任何 Master role 的前提下，燒錄已保存的 Slave readback baseline；兩片板都配置完成後，使用同一個唯讀 JTAG session 讀取 Master 五項判準與 Slave parent/servo/SoftPLL 欄位。
+固定 Master 映像與 role，不再做 role 切換實驗。下一步仍只研究 Slave 的 `TAG/TRR/IRQ/SoftPLL/Helper` input path；先用唯讀證據區分「沒有 tag」、「IRQ 沒有服務」與「helper source gating」，不要反轉 FINC/FDEC、不要新增會改變 timing 的 RTL observer。

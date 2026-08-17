@@ -79,16 +79,40 @@ quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_ru
 
 ## JTAG/runtime 原始結果
 
-本節於 probe smoke test 後補入每個 instance 的原始讀值。若 smoke test 通過，後續 correlation 另以獨立實驗紀錄保存。
+### Probe smoke test
+
+- 執行時間：2026-08-18 07:14:52（UTC+08:00）
+- 測試內容：
+  - `read_hpll_helper_correlation.tcl 1 0`：讀取 instance 0、1、8
+  - `read_dco_state.tcl 0`：讀取 instance 8
+  - `read_clock_activity.tcl 0`：讀取 instance 7
+- Slave `DE5 [1-11.2]`：三組腳本皆成功取得有效輸出，沒有 `No In-System Sources and Probes` 或 invalid instance index
+- HPLL/DCO smoke：`status=A172C0C1275082EF`、`PSTAT=1`、`SSTAT=0`、`UCNT=0`、`TAG_SOURCE=03E68293`、`DCO_DEBUG=00A8000000500320`、`STEP=5`、`BUSY=0`、`ERROR=0`
+- DCO decode：`rt_state=0、bus_state=0、bus_done=0、ready=1、busy=0、steps=5、hold=0`
+- Slave clock smoke：`PHY_READY=1、RX_LOCK_DATA=1、SYS625_LOCKED=1、CORE_RESET_N=1、SI_DONE=1、PPS_VALID=1、TIME_VALID=0、RX_READY=1、TX_READY=1、LINK_UP=1、LINK_OK=1`
+- Master clock probe：可讀到 clock activity，且當時讀值為 `PPS_VALID=1、TIME_VALID=1、LINK_UP=1、LINK_OK=1`；Master mailbox/HPLL scripts 不可讀，因現場 exact image 沒有該 mailbox probe
+- raw smoke log：`artifacts/EXP-WRPC-SLAVE-PROBE-COMPATIBLE-BASELINE-RESTORE-20260818/probe_smoke.log`
+- raw smoke log SHA-256：`fc88982d6cc023a763bb722993d47f44e56e5009fe68975837be5b9d02b9d4d7`
+
+Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-only correlation；本節的 smoke 結果本身不等於 WR synchronization 完成。
 
 ## Observation
 
-本節只記錄 probe 是否存在與讀值是否符合 manifest，不把 probe 存在誤稱為 WR link 或 time synchronization 成功。
+1. `001dc7...` 與目前 diagnostic scripts 的 probe manifest 相容，Slave instance `0/1/7/8` 都能被現場 JTAG 讀取。
+2. Slave 的 clock/PHY 基礎狀態在 smoke sample 中是可工作的：`PHY_READY=1、RX_LOCK_DATA=1、LINK_UP=1、LINK_OK=1`。
+3. Slave 仍是 `PPS_VALID=1、TIME_VALID=0`；因此 smoke test 沒有證明 White Rabbit time synchronization。
+4. Master 的 clock probe 可讀且顯示 `TIME_VALID=1`，但 Master mailbox/HPLL probe 不存在；本輪只能把 Master clock/status 讀值當作補充，不把 mailbox 缺失誤判成 Master runtime failure。
 
 ## Conclusion
 
-只有當 instance 0、1、7、8 都能在燒錄後讀取，才能說明本輪恢復了與 current diagnostic scripts 相容的觀測介面；仍須另外取得 Slave `PSTAT.locked=1、time_valid=1、pps_valid=1` 才能宣稱完成 White Rabbit synchronization。
+本輪已證明：
+
+1. `001dc7...` 成功燒錄，且 Slave 的 instance `0/1/7/8` 與 current diagnostic scripts 相容。
+2. Slave PHY/link 與 DCO diagnostic interface 可觀測；DCO smoke 顯示 controller idle/ready、沒有 error，已取得 completed step count `5`。
+3. Slave 仍只有 `PPS_VALID=1`，`TIME_VALID=0`；本輪沒有完成 White Rabbit synchronization。
+
+目前仍沒有證據支持 DMTD polarity 或 SI5340 physical effect 是根因；本輪只完成了可重複的觀測 baseline。
 
 ## Next Step
 
-若 smoke test 通過，才在同一 image 上執行 read-only correlation；若不通過，停止功能判讀，先修正 image/source/script provenance，不改 Master role。
+既然 smoke test 已通過，下一步可在同一顆 `001dc7...` image 上執行 60 秒 read-only correlation，優先觀察 `WR_SIGNAL -> WR_LOCK -> RCER -> TAG/REF/TRR/IRQ` 的同窗關係；不改 Master role、不改 DMTD polarity、不寫入控制 register。若 correlation 再次顯示 `TAG_SOURCE` 有活動但 `WR_LOCK/RCER` 仍為零，問題將持續優先落在 Slave WR parent/signaling 到 SoftPLL lock handoff 的交界。

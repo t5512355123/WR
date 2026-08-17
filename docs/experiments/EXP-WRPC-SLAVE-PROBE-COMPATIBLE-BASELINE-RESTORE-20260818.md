@@ -96,12 +96,29 @@ quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_ru
 
 Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-only correlation；本節的 smoke 結果本身不等於 WR synchronization 完成。
 
+### Read-only correlation：60 筆、每筆間隔 500 ms
+
+- command：`quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 60 500`
+- Slave `DE5 [1-11.2]`：60/60 筆 sample 成功輸出
+- `TAG_SOURCE`：58/60 筆非零，數值持續變化
+- `STEP_EVENT=1`：3 筆；DCO completed step 約由 `5` 增加至 `25`
+- `LOCK_ENABLE`：60/60 為 `0`
+- `LOCK_POLLS`：60/60 為 `0`
+- `RCER`：60/60 為 `0`
+- `REF/TAG/IRQ/TAG_VALID/TRR_WRITE`：觀測期間沒有建立活動
+- `HELPER_STATE/HELPER_ERROR/HELPER_OUTPUT`：觀測期間為 `0`
+- `SSTAT`：60/60 為 `0`
+- `UCNT`：60/60 為 `0`
+- raw correlation log：`artifacts/EXP-WRPC-SLAVE-PROBE-COMPATIBLE-BASELINE-RESTORE-20260818/hpll_helper_correlation_60x500ms.log`
+- raw correlation log SHA-256：`6e6676ad3438ea3f3f9ce45a90c16b0d2dc4f2afcd47dd6e264c8b9658197fbf`
+
 ## Observation
 
 1. `001dc7...` 與目前 diagnostic scripts 的 probe manifest 相容，Slave instance `0/1/7/8` 都能被現場 JTAG 讀取。
 2. Slave 的 clock/PHY 基礎狀態在 smoke sample 中是可工作的：`PHY_READY=1、RX_LOCK_DATA=1、LINK_UP=1、LINK_OK=1`。
 3. Slave 仍是 `PPS_VALID=1、TIME_VALID=0`；因此 smoke test 沒有證明 White Rabbit time synchronization。
 4. Master 的 clock probe 可讀且顯示 `TIME_VALID=1`，但 Master mailbox/HPLL probe 不存在；本輪只能把 Master clock/status 讀值當作補充，不把 mailbox 缺失誤判成 Master runtime failure。
+5. 在同一顆 `001dc7...` 上，DCO completed step 可以增加，但沒有同時出現 `WR_LOCK/RCER/valid tag/REF/TRR/IRQ/HELPER` 活動；因此 DCO step 不能被當成 SoftPLL closed-loop 已啟動的證據。
 
 ## Conclusion
 
@@ -111,8 +128,10 @@ Smoke test 已通過，因此後續才允許在同一顆 image 上執行 read-on
 2. Slave PHY/link 與 DCO diagnostic interface 可觀測；DCO smoke 顯示 controller idle/ready、沒有 error，已取得 completed step count `5`。
 3. Slave 仍只有 `PPS_VALID=1`，`TIME_VALID=0`；本輪沒有完成 White Rabbit synchronization。
 
-目前仍沒有證據支持 DMTD polarity 或 SI5340 physical effect 是根因；本輪只完成了可重複的觀測 baseline。
+4. 在可觀測 baseline 上，第一個明確沒有出現的環節仍是 `WR_LOCK -> RCER -> valid tag/SoftPLL helper`；目前仍沒有證據支持 DMTD polarity 或 SI5340 physical effect 是根因。
+
+本輪只完成了可重複的觀測 baseline，沒有宣稱 Slave 已同步。
 
 ## Next Step
 
-既然 smoke test 已通過，下一步可在同一顆 `001dc7...` image 上執行 60 秒 read-only correlation，優先觀察 `WR_SIGNAL -> WR_LOCK -> RCER -> TAG/REF/TRR/IRQ` 的同窗關係；不改 Master role、不改 DMTD polarity、不寫入控制 register。若 correlation 再次顯示 `TAG_SOURCE` 有活動但 `WR_LOCK/RCER` 仍為零，問題將持續優先落在 Slave WR parent/signaling 到 SoftPLL lock handoff 的交界。
+下一步仍不改 Master role、不改 DMTD polarity、不寫入控制 register。若要進行功能 A/B，唯一候選應放在 Slave 的 WR parent/signaling 到 SoftPLL lock handoff 交界；在此之前先與目前 read-only 證據一起核對 `WR_SIGNAL`、parent flags、`WR_LOCK` 與 `SSTAT/PSTAT` 的同窗關係，避免把 DCO step 誤當成 lock activity。

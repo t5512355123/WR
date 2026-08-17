@@ -14,6 +14,16 @@
 - pain 工作副本：`/home/b10504072/04_WR`
 - 所有新建置都必須從 GitHub fetch/checkout 明確 commit 後執行。
 
+## 2026-08-17 唯讀回程封包觀測
+
+- 實驗 ID：`EXP-WRPC-RETURN-PATH-OBS-20260817`；branch：`exp/jtag-runtime-observability`。
+- 使用已燒錄的 `933ce3e` 診斷版，沒有重新編譯或燒錄，只讀取 WR state、signaling、PTP、SoftPLL 與 DCO counters。
+- Slave 曾送出 `SLAVE_PRESENT` 4 次，但 `WR_SIGNAL RX=0`；Master 端沒有收到對應 signaling。
+- Slave `PTP_RX` 約由 `0x7EE` 增至 `0x7FD`，Master `PTP_RX` 維持 `0x64D8`；目前最有力的證據是 Master -> Slave 可見、Slave -> Master 回程封包不可見。
+- Slave `SPLL LAST_STATE=7 (SEQ_DISABLED)`、`REF/TAG=0`、DCO source=0；這較像 handshake 失敗後未進入 SoftPLL，而不是已證明 DCO 先失效。
+- 結論：尚未同步；優先查 Slave -> Master 的 QSFP/PHY RX、lane/polarity/PCS、MAC filter/VLAN 或 signaling 封包丟棄，尚不能指定單一硬體根因。
+- 原始 log 與 hash 已記錄於 `docs/experiments/EXP-WRPC-RETURN-PATH-OBS-20260817.md`。
+
 ### `8c8b444` Slave DPLL request/FSM 唯讀觀測
 
 - 只新增 DPLL data、pending、FSM 與 bus state 的 JTAG read-only probe；Master 不變，未修改 PHY、PTP、servo 或 SI5340 控制條件。

@@ -86,6 +86,7 @@ module i2c_bus_controller_dco(
 	i2c_read_data,
 	read_length,
 	i2c_read_data_rdy,
+	i2c_read_data_valid,
 	test_start,
 	test_cnt,
 	wr_data_en,
@@ -137,6 +138,9 @@ output	wire			i2c_read_done;
 output	reg	[7:0]	i2c_read_data;
 output	reg	[7:0]	read_length;
 output	reg 			i2c_read_data_rdy;
+// Sticky read-valid flag. It remains asserted after a read transaction until
+// the next transaction starts, so a faster parent clock cannot miss a pulse.
+output	reg 			i2c_read_data_valid;
 output 	reg	[1:0] test_cnt;
 output 	wire 			test_start ;
 output 	wire			slave_addr1_shift_en;
@@ -545,6 +549,19 @@ always@(posedge iCLK or negedge iRST_n)
 		else if ((i2c_state == state_non_ack)||(i2c_state == state_master_ack))
 			i2c_read_data <= read_data_tmp;
 	end	
+
+// The legacy ready pulse is retained for the original static controller.
+// This sticky flag is for diagnostic/readback consumers crossing from the
+// divided I2C state machine into the 50 MHz parent clock domain.
+always@(posedge iCLK or negedge iRST_n)
+	begin
+		if (!iRST_n)
+			i2c_read_data_valid <= 1'b0;
+		else if (iStart)
+			i2c_read_data_valid <= 1'b0;
+		else if ((i2c_state == state_non_ack)||(i2c_state == state_master_ack))
+			i2c_read_data_valid <= 1'b1;
+	end
 
 assign i2c_read_done = (i2c_state == state_stop) ? 1'b1 : 1'b0;
 // fang assign i2c_read_data_rdy = ((i2c_state == state_non_ack)||(i2c_state == state_master_ack)) ? 1'b1 : 1'b0;

@@ -39,6 +39,7 @@ wire [7:0] static_byte_data;
 wire       static_wr_cmd;
 wire [7:0] static_read_data;
 wire       static_read_data_rdy;
+wire       static_read_data_valid;
 wire       bus_state;
 wire       bus_done;
 wire       static_controller_ready;
@@ -217,6 +218,7 @@ i2c_bus_controller_dco u_i2c_bus(
   .i2c_data(I2C_DATA),
   .i2c_read_data(static_read_data),
   .i2c_read_data_rdy(static_read_data_rdy),
+  .i2c_read_data_valid(static_read_data_valid),
   .wr_data(bus_byte_data),
   .wr_cmd(bus_wr_cmd),
   .oSYSTEM_STATE(bus_state),
@@ -369,7 +371,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           rb_state <= 4'd2;
       end
       4'd2: begin
-        if (static_read_data_rdy)
+        if (static_read_data_valid)
           rb_page3_data <= static_read_data;
         if (bus_state)
           rb_seen_busy <= 1'b1;
@@ -384,7 +386,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           rb_state <= 4'd4;
       end
       4'd4: begin
-        if (static_read_data_rdy)
+        if (static_read_data_valid)
           rb_finc_data <= static_read_data;
         if (bus_state)
           rb_seen_busy <= 1'b1;

@@ -59,7 +59,19 @@ DCO request 有產生，但 SI5340 I2C transaction 沒完成
 
 ## 燒錄結果
 
-尚未燒錄。下一步只把本段記錄完成後的 `f57e2b...` SOF 燒入 Slave cable `DE5 [1-11.2]`；Master 不動。
+- 燒錄時間：2026-08-18 04:49:22 至 04:49:40（Asia/Taipei）
+- Programmer：Quartus Prime 17.0 Build 595
+- JTAG cable：`DE5 [1-11.2]`
+- JTAG ID：`0x02E660DD`
+- 使用 SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- SOF SHA-256：`f57e2b099048a3129ff51b9760a701c1b0ea4306994dbe38b32910d7345cdc1b`
+- Programmer checksum：`0x30A04DFA`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Quartus Programmer：successful，0 errors、0 warnings
+- 原始 programmer log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-CLEAN9F-DCO-OBS-20260818/program_slave_dco_obs.log`
+- Programmer log SHA-256：`78387eb296527f1f9e154fb62af938987803b5aa6e985905d7ad754603b2a8d6`
+
+這只證明新的 Slave SOF 已成功載入；Master 沒有重新燒錄，Slave servo/SoftPLL/兩片同步仍待 JTAG 證據。
 
 ## JTAG/runtime 原始結果
 

@@ -79,7 +79,35 @@ quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/EXP-W
 
 ## JTAG/runtime 原始結果
 
-燒錄已成功；本節在隨後的唯讀觀測完成後補入：
+燒錄後執行兩組唯讀觀測。由於本輪 Master 維持 `9f848ec` exact image，而該 image 沒有本輪 script 所需的 Sources/Probes，兩組 script 都只在 Slave 端取得有效資料；這不影響 Slave probe/image 對應的判斷，但不能把本輪的 Master 端當成新的 runtime sample。
+
+### HPLL/helper correlation：60 筆、每筆間隔 500 ms
+
+- command：`quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 60 500`
+- Master `DE5 [1-11.1]`：`No In-System Sources and Probes instance was found.`
+- Slave `DE5 [1-11.2]`：60/60 筆 `HPLL_HELPER_SAMPLE` 成功輸出
+- Slave `TAG_SOURCE`：55/60 筆非零，且數值在觀測期間變化
+- Slave `LOCK_ENABLE`：60/60 為 `0`
+- Slave `LOCK_POLLS`：60/60 為 `0`
+- Slave `RCER`：60/60 為 `0`
+- Slave `REF/TAG/IRQ/TAG_VALID/TRR_WRITE`：觀測期間均未建立有效活動
+- Slave `PSTAT`：有 `0` 與 `1` 的變化，但沒有 `PSTAT.locked=1` 的證據
+- Slave `SSTAT`：60/60 為 `0`
+- Slave `UCNT`：60/60 為 `0`
+- Slave DCO：`STEP=3`、`BUSY=0`；沒有新的 completed step event
+- correlation raw log：`artifacts/EXP-WRPC-SLAVE-READBACK-PROBE-RESTORE-20260818/hpll_helper_correlation_60x500ms.log`
+- correlation raw log SHA-256：`e3c0e64f1e23eed3343b4fcb90923d08ef811c3aae888061a014517838fb86c8`
+
+### Runtime time-series：20 筆、每筆間隔 1 秒
+
+- command：`quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 20 1000 3`
+- Master `DE5 [1-11.1]`：沒有 Sources/Probes，未形成可用 sample
+- Slave `DE5 [1-11.2]`：18/20 列 `accepted=1`，2/20 列 retry limit 後 `accepted=0`
+- Slave accepted rows：`wr_mode=3、pps_valid=1、time_valid=0、spll_locked=0`
+- Slave `link_up`：在 `0` 與 `1` 間出現 transient，沒有形成穩定同步證據
+- Slave accepted rows 沒有出現 `time_valid=1` 或 `spll_locked=1`
+- runtime raw log：`artifacts/EXP-WRPC-SLAVE-READBACK-PROBE-RESTORE-20260818/runtime_timeseries_20x1s.log`
+- runtime raw log SHA-256：`5a2cba2a7a061716dc5169349506a264538000c59b57fefea8137993aa6eef41`
 
 - `status_probe`
 - `cpu_marker`
@@ -91,12 +119,26 @@ quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/EXP-W
 
 ## Observation
 
-本節只記錄原始輸出支持的現象，區分「probe 可讀」與「WR synchronization 已完成」。
+1. `079fade...` image 與目前 JTAG scripts 的 probe mapping 確實相容：Slave 可讀到完整 60 筆 correlation，證明上一輪 `No In-System Sources and Probes` 是 image/observability mismatch，而不是本輪 Slave JTAG cable 或 script 普遍失效。
+2. Slave 有 `TAG_SOURCE` raw activity，但這個活動沒有往下游建立 `WR_LOCK -> RCER -> valid tag/REF/TRR/IRQ -> helper`。
+3. Slave `MODE=3` 且 `pps_valid=1`，但在 20 秒 runtime session 中仍沒有 `time_valid=1` 或 `spll_locked=1`；因此尚未完成 White Rabbit synchronization。
+4. `link_up` 在部分 sample 為 0，表示現場 runtime/link 狀態仍有 transient；這使本輪更不能把單一 status sample 解讀成穩定同步。
+5. Master 本輪沒有可用 Sources/Probes，因此 Master 的 role 只能引用先前 `9f848ec` 的已保存歷史證據，不能宣稱本輪重新驗證了 Master runtime。
 
 ## Conclusion
 
-本節不可因為 Programmer 成功或 `link_up=1` 就宣稱時間同步完成；必須依照同一觀測窗的 `PSTAT.locked、time_valid、pps_valid` 證據下結論。
+本輪已證明：
+
+1. Slave `079fade...` probe-bearing image 已成功燒錄，且 JTAG probe 與 read-only mailbox 觀測恢復可用。
+2. Slave 的 raw `TAG_SOURCE` 有活動，但在本輪 60×500 ms correlation 與 20×1 s runtime 中，沒有證據顯示它進入 `WR_LOCK/RCER/valid tag/SoftPLL helper` 活動。
+3. Slave 仍是 `MODE=3、pps_valid=1、time_valid=0、spll_locked=0`，所以本輪沒有完成 White Rabbit synchronization。
+
+證據目前把 Slave 問題優先收斂到：
+
+> `WR parent/signaling -> 收到 LOCK -> WRS_S_LOCK -> wrpc_spll_locking_enable()` 之前或其交界處。
+
+這不是 DMTD polarity 已被證明錯誤，也不是 SI5340 physical output 已被證明失效；目前不改 `g_softpll_reverse_dmtds`，也不改 Master role。
 
 ## Next Step
 
-若 probe 恢復但 Slave 仍停在 `time_valid=0`，不改 Master role；下一輪只依有效 correlation 結果選擇 Slave 的單一變因。若仍找不到 probe，停止功能判讀，先核對 image 與 JTAG script provenance。
+若 probe 恢復但 Slave 仍停在 `time_valid=0`，下一輪只選一個 Slave upstream lock-handoff 相關變因；不改 Master role、不改 DMTD polarity。優先使用現有 read-only evidence 進一步核對 `WR_SIGNAL`、parent flags、`WR_LOCK` 與 `SSTAT/PSTAT` 的同窗關係，必要時才建立一個只增加 upstream lock-handoff sticky observability 的 diagnostic image。若任何新 image 沒有 probe，立即停止功能判讀並先核對 image/script provenance。

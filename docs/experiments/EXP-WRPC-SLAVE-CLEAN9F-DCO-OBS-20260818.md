@@ -39,11 +39,27 @@ DCO request 有產生，但 SI5340 I2C transaction 沒完成
 
 ## 編譯結果
 
-待 source patch 與 pain Quartus compile 完成後補入。
+- pain 已從 GitHub fetch 並 checkout 明確 commit：`1b52223b4bcab4f440189ce95c8219edb811675c`
+- 編譯時間：2026-08-18 04:47:48 至 04:48:30（Asia/Taipei）
+- Quartus：Version 17.0.0 Build 595 Standard Edition
+- Project：`DE5a_wr_slave_jtag`
+- 結果：`Full Compilation was successful`，0 errors、270 warnings
+- Fitter：`Successful`
+- 新 Slave SOF：`/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`
+- 新 Slave SOF SHA-256：`f57e2b099048a3129ff51b9760a701c1b0ea4306994dbe38b32910d7345cdc1b`
+- MIF SHA-256：`9c68ac6938dcfc4cd269b3df514b04e1b8edd66fde4f7eddbc8a3e1031e59572`
+- QSF SHA-256：`4d24dc4238a5562d49d304462b54149f18f82e61cd250cafff9ec7264f22c233`
+- SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Compile log：`/home/b10504072/04_WR/build/quartus_jtag_slave_compile.log`
+- Compile log SHA-256：`1bfa74ec67a067691837a9cb4d2edbfb8af8b6bb49f4ba7571cad4622bf33efe`
+- Timing：`TIMING_CLOSED=NO`；worst setup `-0.397 ns`、worst hold `-3.537 ns`；這是現有 clean-9f baseline 的 timing 狀態，本輪沒有因 probe 增加而宣稱 timing closure。
+- 主要警告：TimeQuest critical warning 332148、3 unconstrained clocks、436 unconstrained input paths、84 unconstrained output paths，以及既有 combinational loop/latch 警告。
+
+本段只代表 compile/Fitter 成功，不代表已燒錄或同步成功。
 
 ## 燒錄結果
 
-尚未燒錄。若 compile 成功，燒錄後立即補 programmer raw log、SOF checksum、JTAG ID 與 configuration result。
+尚未燒錄。下一步只把本段記錄完成後的 `f57e2b...` SOF 燒入 Slave cable `DE5 [1-11.2]`；Master 不動。
 
 ## JTAG/runtime 原始結果
 

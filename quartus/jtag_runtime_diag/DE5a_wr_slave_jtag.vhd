@@ -219,13 +219,9 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal rx_activity_meta     : std_logic := '0';
   signal rx_activity_sync     : std_logic := '0';
   signal rx_activity_prev     : std_logic := '0';
-  signal activity_window_ticks : unsigned(15 downto 0) := (others => '0');
-  signal ref_window_count      : unsigned(15 downto 0) := (others => '0');
-  signal dmtd_window_count     : unsigned(15 downto 0) := (others => '0');
-  signal rx_window_count       : unsigned(15 downto 0) := (others => '0');
-  signal ref_window_latched    : unsigned(15 downto 0) := (others => '0');
-  signal dmtd_window_latched   : unsigned(15 downto 0) := (others => '0');
-  signal rx_window_latched     : unsigned(15 downto 0) := (others => '0');
+  signal ref_activity_count   : unsigned(15 downto 0) := (others => '0');
+  signal dmtd_activity_count  : unsigned(15 downto 0) := (others => '0');
+  signal rx_activity_count    : unsigned(15 downto 0) := (others => '0');
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
   signal sync_source          : std_logic_vector(0 downto 0);
@@ -366,13 +362,9 @@ begin
         rx_activity_meta <= '0';
         rx_activity_sync <= '0';
         rx_activity_prev <= '0';
-        activity_window_ticks <= (others => '0');
-        ref_window_count <= (others => '0');
-        dmtd_window_count <= (others => '0');
-        rx_window_count <= (others => '0');
-        ref_window_latched <= (others => '0');
-        dmtd_window_latched <= (others => '0');
-        rx_window_latched <= (others => '0');
+        ref_activity_count <= (others => '0');
+        dmtd_activity_count <= (others => '0');
+        rx_activity_count <= (others => '0');
       else
         ref_activity_meta <= ref_activity_toggle;
         ref_activity_sync <= ref_activity_meta;
@@ -383,38 +375,22 @@ begin
         rx_activity_meta <= rx_activity_toggle;
         rx_activity_sync <= rx_activity_meta;
         rx_activity_prev <= rx_activity_sync;
-        if activity_window_ticks = to_unsigned(49999, activity_window_ticks'length) then
-          activity_window_ticks <= (others => '0');
-          ref_window_latched <= ref_window_count;
-          dmtd_window_latched <= dmtd_window_count;
-          rx_window_latched <= rx_window_count;
-          ref_window_count <= (others => '0');
-          dmtd_window_count <= (others => '0');
-          rx_window_count <= (others => '0');
-        else
-          activity_window_ticks <= activity_window_ticks + 1;
-          if ref_activity_sync /= ref_activity_prev then
-            ref_window_count <= ref_window_count + 1;
-          end if;
-          if dmtd_activity_sync /= dmtd_activity_prev then
-            dmtd_window_count <= dmtd_window_count + 1;
-          end if;
-          if rx_activity_sync /= rx_activity_prev then
-            rx_window_count <= rx_window_count + 1;
-          end if;
+        if ref_activity_sync /= ref_activity_prev then
+          ref_activity_count <= ref_activity_count + 1;
         end if;
-
+        if dmtd_activity_sync /= dmtd_activity_prev then
+          dmtd_activity_count <= dmtd_activity_count + 1;
+        end if;
+        if rx_activity_sync /= rx_activity_prev then
+          rx_activity_count <= rx_activity_count + 1;
+        end if;
       end if;
     end if;
   end process;
 
-  -- Each field is the number of synchronized divider toggles in the
-  -- immediately preceding 1 ms observer window.  A source divider toggles
-  -- once every 256 source-clock cycles, so count * 256000 is an approximate
-  -- source frequency in Hz.  The cumulative counters remain internal only.
-  clock_activity_probe(15 downto 0) <= std_logic_vector(ref_window_latched);
-  clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_window_latched);
-  clock_activity_probe(47 downto 32) <= std_logic_vector(rx_window_latched);
+  clock_activity_probe(15 downto 0) <= std_logic_vector(ref_activity_count);
+  clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_activity_count);
+  clock_activity_probe(47 downto 32) <= std_logic_vector(rx_activity_count);
   clock_activity_probe(48) <= ref_activity_sync;
   clock_activity_probe(49) <= dmtd_activity_sync;
   clock_activity_probe(50) <= rx_activity_sync;

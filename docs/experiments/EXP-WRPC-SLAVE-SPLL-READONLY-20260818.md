@@ -44,16 +44,50 @@
 
 ## JTAG/runtime 原始結果
 
-待唯讀診斷完成後補入。
+- 執行時間：2026-08-18 04:38:40 至 04:38:41（Asia/Taipei）
+- `read_spll_diag_raw.tcl 1000`：exit 0；raw log SHA-256 `4e7e4b3041db0890b0953169afcc57296979dd1c576e604200b835885d5e5f6b`
+- `read_dco_state.tcl 1000`：exit 0，但兩張板都回報 `No In-System Sources and Probes instance was found`；raw log SHA-256 `c16b8ffd367600648cab6956afec3149620c9314aa38e0382480abb19abfdfd0`
+- `read_dco_activity.tcl 1000`：exit 0，但兩張板都回報 `No In-System Sources and Probes instance was found`；raw log SHA-256 `3c9e21ebe72ab9a89e45ffa0c02e00c25cb836848e66adfe88ff816579cb9514`
+- `read_hpll_helper_correlation.tcl 10 1000`：exit 0，但兩張板都回報 `No In-System Sources and Probes instance was found`；raw log SHA-256 `b4b69fc6579e15adb7fb425f69a70c66baab7558d08862dcab24ea2c75b13f70`
+- 以上 raw log 位於 `/home/b10504072/04_WR/artifacts/EXP-WRPC-SLAVE-SPLL-READONLY-20260818/`
+
+### `read_spll_diag_raw.tcl` 的主要讀值
+
+第一組為 Master、第二組為 Slave；本輪重點是 Slave 的 raw lock/feedback counters：
+
+```text
+Slave RAW_CORE:    SSTAT=00000001 PSTAT=00000001 PPS_ESCR=04423400
+Slave RAW_LOCK:    RESULT=00000001 UNLOCKED=000D7BF0 HELPER=00000000 MAIN=00000000
+Slave RAW_HW:      RCER=00000001 OCER=001CE001 TRR_CSR=001EE244
+Slave RAW_COUNTER: TAG_VALID=005FE2A2 TRR_WRITE=005FE2FE TAG_SOURCE=0743E193 REF=03EE2BFE FEEDBACK=039F861F
+Slave SHADOW:       REF=002ADE25 TAG=0029CADF TAG_VALID=005FC957 TRR_WRITE=005FC957
+Slave RAW_STATE:    VISIT=00000618 TRANSITIONS=00000003 LAST_STATE=00000004
+```
+
+對照兩次讀取，Slave 的 `TAG_VALID/TRR_WRITE/TAG_SOURCE/REF/FEEDBACK` 都有變化，代表 runtime feedback path 仍有活動；但 `PSTAT=1` 的 raw locked bit 並未變成已鎖定證據，且上一輪已確認 `spll_locked=0`。
+
+DCO/HPLL 三個腳本的原始錯誤：
+
+```text
+error: ERROR: No In-System Sources and Probes instance was found.
+```
+
+因此本輪不能從 DCO probe 判斷 SI5340 transaction 是否完成；只能確認這些探針不存在於目前歷史 Slave SOF。
 
 ## Observation
 
-待唯讀診斷完成後補入。
+1. Slave 的 raw DMTD/tag/TRR、reference 與 feedback counters 持續增加，支持 SoftPLL runtime 有資料流與計算活動。
+2. `WR_LOCK RESULT=1` 代表 lock routine 已被啟用/走過，不等同 `spll_locked=1`；`UNLOCKED=0x000D7BF0` 與上一輪的 `polls=883696` 一致支持 lock detector 長時間未接受鎖定。
+3. 目前沒有足夠證據判斷是 SI5340 DCO 沒有動、DMTD feedback 數值不合格、lock threshold 不合適，或是恢復的舊 SOF 根本沒有 DCO/JTAG observability；不能把其中任何一項寫成已證明根因。
+4. DCO/HPLL scripts 的 exit 0 只是 Tcl 外層成功處理錯誤，不代表取得有效資料；實際結果是兩張板都缺少該 probe instance。
 
 ## Conclusion
 
-在唯讀診斷完成前，不對 SoftPLL 根因下結論，也不宣稱同步成功。
+本輪沒有改變硬體，也沒有完成同步。證據支持的結論是：Slave 已進入 lock path，且 DMTD/feedback 相關 counters 有活動，但 lock detector 長時間仍未鎖定；目前仍缺少可直接觀察 DCO transaction 的硬體探針，因此 SoftPLL 到 clock actuator 的最後一段尚不能分辨。
 
 ## Next Step
 
-依 raw counters 與 lock detector 的證據，只選一個後續變因；Master 維持 frozen，不重新設計 Master role。
+1. Master 維持 `9f848ec` frozen，不重新設計 Master role。
+2. 先做 source-level audit，對照歷史 lock-path image 與目前 branch 的 DCO/SoftPLL runtime wiring、instance index 與 MIF 內容，確認是否能在不改功能的前提下建立一個包含必要 DCO probe 的 Slave diagnostic image。
+3. 若需要重新編譯，只能改 Slave 且只增加一組 DCO observability；先 compile、保存 provenance，再決定是否燒錄。燒錄前建立新的 Experiment ID，燒錄後立即補 checksum/programmer log。
+4. 在新的 diagnostic image 上，重跑本紀錄的唯讀腳本；只要看到 `spll_locked=1`、`time_valid=1`、`pps_valid=1`，再進行長時間兩板同步驗證。

@@ -10,6 +10,16 @@
 #   [51]    PHY ready
 #   [52]    RX locked to reference
 #   [53]    RX locked to data
+#   [54]    625 MHz system clock locked
+#   [55]    WR core reset released
+#   [56]    WR core PHY reset asserted
+#   [57]    SI5340 static configuration done
+#   [58]    WR PPS valid
+#   [59]    WR time valid
+#   [60]    PHY RX ready
+#   [61]    PHY TX ready
+#   [62]    WR timing link up
+#   [63]    WR link OK
 # 用法：quartus_stp -t read_clock_activity.tcl ?gap_ms?
 
 package require ::quartus::insystem_source_probe
@@ -34,9 +44,21 @@ proc print_activity {label} {
   set phy_ready [expr {($word >> 51) & 1}]
   set rx_ref_lock [expr {($word >> 52) & 1}]
   set rx_data_lock [expr {($word >> 53) & 1}]
-  puts [format "CLOCK_ACTIVITY label=%s raw=%016X REF=%d DMTD=%d RX=%d TOGGLE=%d/%d/%d PHY_READY=%d RX_LOCK_REF=%d RX_LOCK_DATA=%d" \
+  set sys625_locked [expr {($word >> 54) & 1}]
+  set core_reset_n [expr {($word >> 55) & 1}]
+  set phy_rst [expr {($word >> 56) & 1}]
+  set si_done [expr {($word >> 57) & 1}]
+  set pps_valid [expr {($word >> 58) & 1}]
+  set time_valid [expr {($word >> 59) & 1}]
+  set rx_ready [expr {($word >> 60) & 1}]
+  set tx_ready [expr {($word >> 61) & 1}]
+  set link_up [expr {($word >> 62) & 1}]
+  set link_ok [expr {($word >> 63) & 1}]
+  puts [format "CLOCK_ACTIVITY label=%s raw=%016X REF=%d DMTD=%d RX=%d TOGGLE=%d/%d/%d PHY_READY=%d RX_LOCK_REF=%d RX_LOCK_DATA=%d SYS625_LOCKED=%d CORE_RESET_N=%d PHY_RST=%d SI_DONE=%d PPS_VALID=%d TIME_VALID=%d RX_READY=%d TX_READY=%d LINK_UP=%d LINK_OK=%d" \
         $label $word $ref_count $dmtd_count $rx_count $ref_toggle $dmtd_toggle \
-        $rx_toggle $phy_ready $rx_ref_lock $rx_data_lock]
+        $rx_toggle $phy_ready $rx_ref_lock $rx_data_lock $sys625_locked \
+        $core_reset_n $phy_rst $si_done $pps_valid $time_valid $rx_ready \
+        $tx_ready $link_up $link_ok]
   flush stdout
 }
 

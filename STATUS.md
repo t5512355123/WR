@@ -419,3 +419,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - 結論：沒有完成同步；ACK=0 只能排除目前觀測到的 NACK，不能證明 SI5340 寫入生效。下一步只修正 readback data/valid 的跨 clock domain 擷取，不同時恢復 DPLL 或修改 WR 演算法。
 - 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-20260817.md`。
 - 原始檔 SHA-256：`f960d0d9d20dedab1d68e80e9916f60d62d7315aa71c9531e71b1106b41ea49c`、`9d090790fa230c6b48873d1ac145a5e866b4469d7137b56d44b124dc0ad7ae17`。
+
+## 最新燒錄實驗：SI5340 讀回資料有效握手修正（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-READBACK-HANDSHAKE-20260817`。
+- 硬體 source commit：`41024ca880f7b81c5599e4cfbe07021dc7fe2c13`；pain 實際 checkout/build commit：`543c5b3b696ef7cb21f6cc7150c71d45bc358740`。
+- 只重新燒錄 Slave；Slave SOF SHA-256：`e0eab0f2cd394fcbaf4b53bde233db5289e4b68a2348599da6460815f39abcb2`，programmer checksum：`0x30A1B8A0`，JTAG ID：`0x02E660DD`，configuration succeeded。
+- Quartus 17.0 Build 595，Full Compilation successful、0 errors；timing 尚未 closure，setup `-0.404 ns`、hold `-3.501 ns`。
+- readback snapshot：`state=5/done=1`，`page3_0039=0x00`、`page0_001D=0x00`；ACK `transactions=0x00EB、errors=0`。
+- 60 秒 session 完成：Master 60/60 accepted 且 `time_valid=1`；Slave 56/60 accepted、4/60 rejected，accepted frame 仍為 `link_up=1、SSTAT=1、PSTAT.locked=0、spll_locked=0、time_valid=0`。
+- 結論：sticky valid 提高了觀測 frame 接受率，但沒有完成 Slave synchronization，也沒有證明兩個 SI5340 readback 值為真實 register 內容。下一步只查 SDA sampling、shift 時序與 register semantics，不同時恢復 DPLL 或修改 WR 演算法。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-HANDSHAKE-20260817.md`。

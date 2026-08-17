@@ -60,11 +60,32 @@
 
 ## JTAG/runtime 原始結果
 
-待燒錄後保存：
+### 燒錄後 readback snapshot
 
-- `read_dco_diag.tcl` 的 DCO、ACK、readback snapshot
-- 60 秒唯讀 runtime session
-- 原始 log 的 SHA-256
+- 原始 log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-20260817/dco_readback.log`
+- log SHA-256：`c454193a50993f24abc8b204149c7c5a0a4f7433576d881ea7543dea955d4b7c`
+- Master `DE5 [1-11.1]`：因本輪只燒錄 Slave，沒有對應的 In-System Sources and Probes instance；原始工具回報 `No In-System Sources and Probes instance was found.`
+- Slave `DE5 [1-11.2]`：
+
+```text
+DCO_I2C_ACK transactions=00EB errors=0000
+DCO_I2C_READBACK state=5 done=1 page3_0039=00 page0_001D=00 current_page=00 raw=0000000000000015
+```
+
+readback FSM 確實走到 `state=5` 且 `done=1`，但兩個讀回欄位都是 `0x00`。這只能證明目前 readback 流程完成，不能證明 SI5340 的兩個 register 真實值就是 `0x00`；讀資料擷取可能仍有跨 clock domain 或 valid timing 問題。
+
+### 60 秒唯讀 runtime session
+
+- 指令：`quartus_stp -t scripts/jtag/read_wb_timeseries_session.tcl 60 1000 3`
+- 原始 log：`/home/b10504072/04_WR/build/artifacts/EXP-WRPC-SI5340-READBACK-20260817/runtime_60s.log`
+- log SHA-256：`09fb6007db798ce54f880d91e8be64a625e9983071b4d5ff373d440e1e824ef9`
+- session：`SESSION_TIME_SERIES_DONE`，JTAG/SignalTap 工具回傳 0 errors、0 warnings
+- Master：60/60 個 sample accepted；`link_up=1`、`time_valid=1`、`pps_valid=1`
+- Slave：1/60 個 sample accepted、59/60 因前後 frame 一致性檢查失敗而 rejected；accepted frame 顯示 `link_up=1`、`SSTAT=0x00000001`、`PSTAT=0x00000001`、`spll_locked=0`、`time_valid=0`
+- Slave `WR_LOCK`：`result=1` 是目前 probe 的結果碼，但 `spll_locked=0`、`polls=883802`、`unlocked=883802`、`calibration_fail=0`，不能把 `result=1` 當成 SoftPLL 已鎖定
+- Slave `WR_SPLL_ACTIVITY`：`REF_COUNT`、`TAG_COUNT`、`IRQ_COUNT` 與 `UCNT` 有增加，代表 runtime/servo 仍有活動；這不等於 lock 或 time valid
+
+本輪 Slave accepted sample 數量偏低，表示 mailbox 多 register frame 的重讀一致性仍會造成觀測拒絕；但在可採信的 frame 中，沒有看到 `PSTAT.locked=1` 或 `time_valid=1`。
 
 readback probe 欄位：
 
@@ -76,18 +97,21 @@ readback probe 欄位：
 
 ## Observation
 
-待實驗結果填寫。特別區分：
-
-- ACK error 是否為零
-- readback 是否完成
-- readback 值是否合理且與實際 runtime write sequence 一致
-- Slave `SSTAT` 是否進入 TRACK_PHASE 相關狀態
-- `PSTAT.locked`、`time_valid`、`pps_valid` 是否成立並穩定
+1. SI5340 I2C ACK telemetry 的 error count 是 `0`，目前沒有 NACK 證據。
+2. readback FSM 完成，但讀回 `page3_0039=0x00`、`page0_001D=0x00`；這個結果尚不能視為 register 真值。
+3. Master 維持既有同步狀態；本輪沒有重新燒錄 Master。
+4. Slave 的 link 與 PTP/servo activity 存在，但 `SSTAT=1`、`PSTAT.locked=0`、`spll_locked=0`、`time_valid=0`。
+5. Slave 的 60 秒觀測只有 1 筆 frame 通過一致性檢查，需改善觀測 read-data valid/hold 後才適合做更精細的 register 判斷。
 
 ## Conclusion
 
-待依原始 JTAG/runtime 證據填寫。若 readback 正確，只能排除部分 page/register sequence 疑慮，不能單獨宣稱 clock output 已改變，也不能單獨宣稱 WR synchronization 成功。
+本輪沒有完成 Slave WR synchronization。證據支持的結論只有：
+
+- bitstream 已成功配置，且 SI5340 I2C transaction 目前沒有觀察到 NACK。
+- Slave 的 runtime/servo 有活動，但尚未取得 SoftPLL lock，沒有 `time_valid=1` 證據。
+- readback FSM 的完成旗標正常，但兩個讀值為 `0x00`，目前不足以確認 SI5340 register 寫入與 output clock effect；因此不能把問題確定歸因於 SI5340 register 內容，也不能宣稱已排除讀回擷取時序問題。
+- 目前最保守且與證據一致的判斷仍是：Slave 的 parent/servo/SoftPLL 到 `time_valid` 路徑尚未完成；readback observability 本身也需要先修正。
 
 ## Next Step
 
-若 readback 正確但 `PSTAT.locked=0`、`time_valid=0`，下一輪再針對 SI5340 output clock effect 或 helper/parent servo 路徑設計單一變因；不在本輪同時恢復 DPLL。
+下一輪只修正 readback 的有效握手：在 I2C controller clock domain 內鎖存 read data 與 read-done，提供 sticky valid/data，再由上層於明確 valid 後取樣。不得同時恢復 DPLL、修改 PHY、PTP filter、servo 或 SoftPLL threshold。修正後需重新 compile、燒錄 Slave，並立即以相同 readback snapshot 與 60 秒唯讀 session 重測。

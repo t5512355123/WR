@@ -408,4 +408,14 @@ Slave 仍為 `SSTAT[11:8]=0`、`PSTAT.locked=0`、`time_valid=0`；因此目前�
 - DCO snapshot：HPLL `accepted=0x000C、done=0x0008`；DPLL `accepted=0x0007、done=0x0000`；HPLL/DPLL current/previous data 仍為 `0x0000`。
 - 結論：沒有 NACK 證據，但仍沒有 register readback 或 output clock effect 證據；下一輪只做 SI5340 register readback，不恢復 DPLL。
 - 原始檔：`build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/dco_ack_diag.log`、`build/artifacts/EXP-WRPC-SI5340-ACK-OBS-20260817/runtime_60s.log`。
+
+## 最新燒錄實驗：SI5340 暫存器讀回觀測（2026-08-17）
+
+- 實驗 ID：`EXP-WRPC-SI5340-READBACK-20260817`。
+- source/硬體 commit：`4fa32a30ff9fff20bf7c98f7b737d67c42751b1c`；實驗紀錄補充 commit 另見 Git 歷史。
+- 只重新燒錄 Slave；Master 未重新燒錄。Slave SOF SHA-256：`1766e765e8962631c787bb062ac088d18d76f71764ea03f4a3d73a1ad0647181`，programmer checksum：`0x309CAB3C`，JTAG ID：`0x02E660DD`，configuration succeeded。
+- `dco_readback.log` SHA-256：`c454193a50993f24abc8b204149c7c5a0a4f7433576d881ea7543dea955d4b7c`；Slave readback FSM `state=5/done=1`，但 `page3_0039=0x00`、`page0_001D=0x00`，目前不能把讀值當成 register 真值。
+- `runtime_60s.log` SHA-256：`09fb6007db798ce54f880d91e8be64a625e9983071b4d5ff373d440e1e824ef9`；session 完成。Master 60/60 accepted 且維持 `time_valid=1`；Slave 1/60 accepted、59/60 rejected，accepted frame 仍為 `link_up=1、SSTAT=1、PSTAT.locked=0、spll_locked=0、time_valid=0`。
+- 結論：沒有完成同步；ACK=0 只能排除目前觀測到的 NACK，不能證明 SI5340 寫入生效。下一步只修正 readback data/valid 的跨 clock domain 擷取，不同時恢復 DPLL 或修改 WR 演算法。
+- 完整紀錄：`docs/experiments/EXP-WRPC-SI5340-READBACK-20260817.md`。
 - 原始檔 SHA-256：`f960d0d9d20dedab1d68e80e9916f60d62d7315aa71c9531e71b1106b41ea49c`、`9d090790fa230c6b48873d1ac145a5e866b4469d7137b56d44b124dc0ad7ae17`。

@@ -69,9 +69,12 @@ pain 原始來源與建置證據：
 
 ### Slave：`DE5 [1-11.2]`
 
-- SOF checksum：待燒錄後填入
-- JTAG ID：待燒錄後填入
-- 結果：待燒錄後填入
+- 燒錄時間：2026-08-17 16:15:47 至 16:16:06（Asia/Taipei）
+- SOF checksum：`0x30A152A4`
+- JTAG ID：`0x02E660DD`
+- 結果：`Configuration succeeded -- 1 device(s) configured`
+- Programmer：Quartus Prime 17.0，`0 errors, 0 warnings`
+- 原始 log：`/home/b10504072/04_WR/artifacts/EXP-WRPC-MASTER-9F-OBSERVABILITY-20260817/program_slave.log`
 
 ## JTAG/runtime 原始結果
 

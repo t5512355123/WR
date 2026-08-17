@@ -173,28 +173,23 @@ static int is_link_up(void)
 	return link_status == NETIF_LINK_UP;
 }
 
-#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-static int force_master_role(void)
-{
-	static int applied;
-
-	if (applied)
-		return 0;
-
-	if (wrc_ptp_get_mode() != WRC_MODE_MASTER) {
-		wrc_ptp_set_mode(WRC_MODE_MASTER);
-		wrc_ptp_start();
-	}
-	applied = 1;
-	return 1;
-}
-#endif
-
 static int wrc_check_link(void)
 {
 	static int prev_state = 0;
+	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	static int master_role_applied;
+	#endif
 	int state = ep_link_up( &wrc_endpoint_dev, NULL);
 	int rv = 0;
+
+	#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
+	if (!master_role_applied) {
+		/* Use the existing link task without consuming another task slot. */
+		wrc_ptp_set_mode(WRC_MODE_MASTER);
+		wrc_ptp_start();
+		master_role_applied = 1;
+	}
+	#endif
 
 	if (!prev_state && state) {
 		wrc_verbose("Link up.\n");
@@ -271,9 +266,6 @@ static void create_tasks(void)
 	wrc_task_create( "ptp", NULL, wrc_ptp_update);
 	wrc_task_create( "ptp_bmc", NULL, wrc_ptp_bmc_update);
 	wrc_task_create( "shell+gui", shell_boot_script, ui_update );
-#ifdef CONFIG_FORCE_MASTER_AFTER_INIT
-	wrc_task_create( "force-master", NULL, force_master_role );
-#endif
 	wrc_task_create( "spll-bh", NULL, spll_update );
 
 	if (HAS_TEMP_SENSORS)

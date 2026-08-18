@@ -90,3 +90,56 @@ Slave : WDIAGS_MODE=3, WDIAGS_PTP=00000004
 2. Programming 完成後立即把完整 programmer output 保存到本實驗 artifact 目錄。
 3. 等待固定時間後執行 `read_wb_runtime.tcl`，保存單次與短時間序列原始 output。
 4. 若重現 `MODE=2/PTP=6/status=FF` 與 Slave foreign record，再凍結 Master，只針對 Slave 進行後續研究。
+
+## 燒錄與實驗結果（2026-08-18）
+
+### 燒錄結果
+
+使用 Quartus Prime 17.0 Build 595、JTAG cable `DE5 [1-11.1]` 與 `DE5 [1-11.2]`：
+
+- Master programming：成功，`0 errors, 0 warnings`，programmer checksum=`0x30A0A429`。
+- Slave programming：成功，`0 errors, 0 warnings`，programmer checksum=`0x30A5A091`。
+- 完整原始 programmer output：
+  - `/home/b10504072/04_WR/artifacts/EXP-WRPC-C88CC05-BASELINE-RECOVERY-20260818/program_master.log`
+  - `/home/b10504072/04_WR/artifacts/EXP-WRPC-C88CC05-BASELINE-RECOVERY-20260818/program_slave.log`
+- programming 前的 current SOF 已保存在：
+  - `pre_restore_master_current.sof`，SHA-256=`51d76eddf8f8a56b743f5d9f83885274e1706960b6dd9a73be545922a3f93b76`
+  - `pre_restore_slave_current.sof`，SHA-256=`001dc7b64afd6ae82dd086126b065f626a8f2c88d6bfa8a95aecbc6198d603ee`
+
+### 唯讀 JTAG 結果
+
+恢復後先做延遲觀測，再做最後單次 snapshot。最後 snapshot 原始檔 SHA-256 為 `98c0692d134f461e74041280128e364867454420767476bca047be1ce0961fcf`，讀值為：
+
+```text
+Master: status_probe=101EDC43265082FF
+        cpu_marker=B004, fault=0
+        WDIAGS_MODE=2
+        WDIAGS_PTP=6
+        WDIAGS_PTP_RX=000000EF, WDIAGS_PTP_TX=00000218
+        WDIAGS_FOREIGN_META=00000001
+
+Slave : status_probe=401EB661323C82CF
+        cpu_marker=B004, fault=0
+        WDIAGS_MODE=3
+        WDIAGS_PTP=9
+        WDIAGS_PTP_RX=0000021C, WDIAGS_PTP_TX=000000A1
+        WDIAGS_FOREIGN_META=03000001
+        WDIAGS_SSTAT=00000001, WDIAGS_UCNT=00000016
+```
+
+短時間序列原始檔為 `/home/b10504072/04_WR/artifacts/EXP-WRPC-C88CC05-BASELINE-RECOVERY-20260818/runtime_after_restore_60s.log`，SHA-256=`49898c9eaea9781336595585f8c4af6d436f4f27ae9cfb6cd4a0c4eff4498905`。序列中 Master 反覆出現 `WDIAGS_PTP=6` 且 RX/TX 增加；Slave 進入 `WDIAGS_PTP=9`、`FOREIGN_META=03000001`，並且 `UCNT`、`DMS`、`CKO` 有非零活動。少數跨多個 mailbox 欄位的 snapshot 出現暫時性欄位不一致，因此不把單一不一致列當成 role 失敗；最後 snapshot 已重新讀取並得到一致的 Master/Slave 狀態。
+
+### Observation
+
+1. exact `c88cc05` clean SOF 燒錄後，原本的 `WDIAGS_PTP=4`／`FOREIGN_META=0000FF00` 不再是穩定狀態。
+2. Master 已重現歷史 diagnostic baseline 的核心證據：`marker=B004`、`MODE=2`、`PTP=6`、低位 status=`0xFF`，且 PTP RX/TX 有活動。
+3. Slave 已看到並選到 Master 的 foreign record：`MODE=3`、`PTP=9`、`FOREIGN_META=03000001`，並有伺服器活動；這重現了 c88cc05 的 parent signaling 結果。
+4. 這次結果支持「先前 pain 上使用的 `51d76e…`／`001dc7…` current diagnostic SOF 沒有重現 c88cc05 clean runtime」；不需要發明新的 Master role 切換方法。
+
+### Conclusion（只能由目前證據支持的範圍）
+
+本實驗成功恢復並重現 `c88cc05` 的 Master role 與 Slave foreign-master/parent signaling。它證明問題主要是目前燒錄映像／建置 provenance 不一致，而不是目前證據已經證明 QSFP 光路故障。此結果仍**不等於**兩片已完成 sub-ns White Rabbit 時間同步：Slave 的 `PSTAT.locked` 尚未提供 lock=1 證據，仍需另外研究 servo/SoftPLL 到 `time_valid` 的路徑。
+
+### Next Step
+
+凍結已重現的 c88cc05 Master exact SOF，不再修改 Master role。後續研究只使用本 branch，先保存這兩份 SOF 與 hash，再針對 Slave 進行唯讀的 `SSTAT`、`PSTAT.locked`、`UCNT`、`CKO`、`SETP`、PPS validity time-series；每次若需要重新燒錄，必須立即新增同 branch 的實驗紀錄。

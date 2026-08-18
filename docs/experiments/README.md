@@ -7,6 +7,7 @@
 - `main/`：穩定 baseline 與未標示研究 branch 的歷史建置紀錄。
 - `exp-jtag-runtime-observability/`：JTAG runtime observability（執行期可觀測性）研究線。
 - `exp-master-9f-observability/`：以 `9f848ec` Master baseline 為基礎的 observability 研究線。
+- `exp-restore-c88cc05-baseline/`：恢復 `c88cc05` clean SOF 與驗證 parent signaling 的研究線。
 - `exp-<研究名稱>/`：其他 `exp/<研究名稱>` branch 的紀錄。
 - `EXP-XXX_TEMPLATE.md`：新實驗模板，不屬於任何 branch。
 

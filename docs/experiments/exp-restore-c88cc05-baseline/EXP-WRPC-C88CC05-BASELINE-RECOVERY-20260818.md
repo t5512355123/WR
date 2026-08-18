@@ -9,7 +9,9 @@
 ## Git 來源
 
 - Branch：`exp/restore-c88cc05-baseline`
-- Git commit：`d19e0a95a76ffdc0fd6904b83075793e45bc10ee`
+- 實驗準備 branch commit：`cb4932360a840ddd5af2c18eaff717811a1c7de3`
+- 燒錄當下 pain checkout：`f17c4be`（本輪只使用已保存的 c88cc05 SOF，沒有在 pain 重新編譯）。
+- 本次紀錄完成 commit：`f276133e38e64a31cd7992b6be46e62e5cbbeef8`
 - 歷史已驗證來源：`ed21eaa`（加入兩片 DE5a 唯一身份）與 `c88cc05`（Quartus compile 前清除 cache）。
 - Quartus：Quartus Prime 17.0 Build 595，Standard Edition。
 

@@ -201,6 +201,10 @@ architecture rtl of wr_softpll_ng is
       diag_tag_source_count_i : in std_logic_vector(31 downto 0);
       diag_tag_ref_count_i : in std_logic_vector(31 downto 0);
       diag_tag_feedback_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_event_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_seen_i : in std_logic_vector(31 downto 0);
       regs_i     : in  t_spll_in_registers;
       regs_o     : out t_spll_out_registers);
   end component;
@@ -285,6 +289,12 @@ architecture rtl of wr_softpll_ng is
   signal diag_tag_source_count : unsigned(31 downto 0);
   signal diag_tag_ref_count : unsigned(31 downto 0);
   signal diag_tag_feedback_count : unsigned(31 downto 0);
+  signal diag_dmtd_ref_event_count : unsigned(31 downto 0);
+  signal diag_dmtd_fb_event_count : unsigned(31 downto 0);
+  signal diag_dmtd_ref_seen : std_logic;
+  signal diag_dmtd_fb_seen : std_logic;
+
+  signal dmtd_event_sys : std_logic_vector(f_num_total_channels-1 downto 0);
 
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
@@ -394,6 +404,7 @@ begin  -- rtl
 
         tag_o                => tags(i),
         tag_stb_p1_o         => tags_p(i),
+        dbg_event_sys_o      => dmtd_event_sys(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -434,6 +445,7 @@ begin  -- rtl
 
         tag_o        => tags(i+g_num_ref_inputs),
         tag_stb_p1_o => tags_p(i+g_num_ref_inputs),
+        dbg_event_sys_o => dmtd_event_sys(i+g_num_ref_inputs),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -475,6 +487,7 @@ begin  -- rtl
 
         tag_o        => tags(g_num_ref_inputs + g_num_outputs + I),
         tag_stb_p1_o => tags_p(g_num_ref_inputs + g_num_outputs + I),
+        dbg_event_sys_o => dmtd_event_sys(g_num_ref_inputs + g_num_outputs + I),
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -613,7 +626,11 @@ begin  -- rtl
       diag_trr_write_count_i => std_logic_vector(diag_trr_write_count),
       diag_tag_source_count_i => std_logic_vector(diag_tag_source_count),
       diag_tag_ref_count_i => std_logic_vector(diag_tag_ref_count),
-      diag_tag_feedback_count_i => std_logic_vector(diag_tag_feedback_count));
+      diag_tag_feedback_count_i => std_logic_vector(diag_tag_feedback_count),
+      diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
+      diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
+      diag_dmtd_ref_seen_i => (31 downto 1 => '0') & diag_dmtd_ref_seen,
+      diag_dmtd_fb_seen_i => (31 downto 1 => '0') & diag_dmtd_fb_seen);
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -757,7 +774,19 @@ begin  -- rtl
         diag_tag_source_count <= (others => '0');
         diag_tag_ref_count <= (others => '0');
         diag_tag_feedback_count <= (others => '0');
+        diag_dmtd_ref_event_count <= (others => '0');
+        diag_dmtd_fb_event_count <= (others => '0');
+        diag_dmtd_ref_seen <= '0';
+        diag_dmtd_fb_seen <= '0';
       else
+        if dmtd_event_sys(0) = '1' then
+          diag_dmtd_ref_event_count <= diag_dmtd_ref_event_count + 1;
+          diag_dmtd_ref_seen <= '1';
+        end if;
+        if dmtd_event_sys(g_num_ref_inputs) = '1' then
+          diag_dmtd_fb_event_count <= diag_dmtd_fb_event_count + 1;
+          diag_dmtd_fb_seen <= '1';
+        end if;
         if unsigned(tags_p) /= 0 then
           diag_tag_source_count <= diag_tag_source_count + 1;
         end if;

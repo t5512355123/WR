@@ -62,6 +62,10 @@ proc read_sample {hardware_name label} {
   set tag_source [wb_read 0x0010028C]
   set tag_ref [wb_read 0x00100290]
   set tag_feedback [wb_read 0x00100294]
+  set dmtd_ref_events [wb_read 0x00100298]
+  set dmtd_fb_events [wb_read 0x0010029C]
+  set dmtd_ref_seen [wb_read 0x001002A0]
+  set dmtd_fb_seen [wb_read 0x001002A4]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -83,6 +87,8 @@ proc read_sample {hardware_name label} {
         $eic_idr $eic_ier $eic_imr $eic_isr]
   puts [format "EVENT_CHAIN_TRR: CSR=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
         $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
+  puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \
+        $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen]
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
   puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \

@@ -197,6 +197,10 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100200` | `SPLL_CSR` | SoftPLL control/status |
 | `0x00100204` | `SPLL_ECCR` | SoftPLL event/control status |
 | `0x00100210` | `SPLL_OCCR` | SoftPLL output channel control/status |
+| `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
+| `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
+| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 sticky flag，bit 0 表示 reference 曾產生 deglitched event |
+| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 sticky flag，bit 0 表示 feedback 曾產生 deglitched event |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |
@@ -207,6 +211,13 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100D90` | `CPU_MBX` | CPU mailbox |
 
 這些 register 是 Wishbone read，不是 instance 0 的 Direct Probe。單次讀值要搭配 CPU instance 2、marker instance 3 與多次採樣解讀。
+
+其中 `SPLL_DMTD_*` 是本 Step 4 診斷用的唯讀觀測值：它們只計數
+`dmtd_with_deglitcher` 已經同步到 `clk_sys`、但尚未進入 SoftPLL tag
+arbitration 的 event。`*_SEEN` 在第一次 event 後維持 1，直到 FPGA reset；這些
+register 不會讀取或消費 TRR FIFO，也不會寫入 SoftPLL 設定。若 event count/seen
+為 0，只能表示此觀測點沒有看到 event，不能單獨判定 PHY、clock source 或
+DDMTD polarity 的根因。
 
 ### 4.2 WDIAGS standard / current bring-up map
 

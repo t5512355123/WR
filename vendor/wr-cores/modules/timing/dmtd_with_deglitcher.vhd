@@ -137,6 +137,8 @@ entity dmtd_with_deglitcher is
 
     -- [clk_sys_i] pulse indicates new phase tag on tag_o
     tag_stb_p1_o : out std_logic;
+    -- [clk_sys_i] deglitched edge pulse before SoftPLL tag arbitration
+    dbg_event_sys_o : out std_logic;
     dbg_clk_d3_o : out std_logic
     );
 end dmtd_with_deglitcher;
@@ -400,8 +402,10 @@ begin  -- rtl
     if rising_edge(clk_sys_i) then
       if rst_n_sysclk_i = '0' then
         tag_stb_p1_o <= '0';
+        dbg_event_sys_o <= '0';
       else
         new_edge_p_sysclk_d0 <= new_edge_p_sysclk;
+        dbg_event_sys_o <= new_edge_p_sysclk;
         
         if new_edge_p_sysclk_d0 = '1' then
           tag_o <= tag_latched_sysclk;

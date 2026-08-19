@@ -121,7 +121,9 @@ module urv_exec
    //  Debug mailboxes.
    input [31:0]      dbg_mbx_data_i,
    input 	     dbg_mbx_write_i,
-   output [31:0]     dbg_mbx_data_o
+   output [31:0]     dbg_mbx_data_o,
+   output [31:0]     csr_mepc_o,
+   output [31:0]     csr_mcause_o
    );
 
    parameter g_with_hw_mul = 0;
@@ -235,6 +237,9 @@ module urv_exec
       .csr_mepc_o(csr_mepc),
       .csr_mcause_o(csr_mcause)
       );
+
+   assign csr_mepc_o = csr_mepc;
+   assign csr_mcause_o = csr_mcause;
 
 
    // branch condition decoding

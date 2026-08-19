@@ -289,6 +289,14 @@ static struct sdbf *scan_inputdir(char *name, struct sdbf *parent, FILE **cfgf)
 	return tree;
 }
 
+static int compare_sdbf_records(const void *left, const void *right)
+{
+	const struct sdbf *a = left;
+	const struct sdbf *b = right;
+
+	return strcmp(a->basename, b->basename);
+}
+
 static int dumpstruct(FILE *dest, char *name, void *ptr, int size)
 {
 	int ret, i;
@@ -496,6 +504,11 @@ static struct sdbf *prepare_dir(char *name, struct sdbf *parent)
 	tree = scan_inputdir(name, parent, &fcfg);
 	if (!tree)
 		return NULL;
+
+	/* readdir() order is filesystem-dependent; keep the image reproducible. */
+	if (ntohs(tree->s_i.sdb_records) > 2)
+		qsort(tree + 1, ntohs(tree->s_i.sdb_records) - 1,
+		      sizeof(*tree), compare_sdbf_records);
 
 	/* read configuration file and save its info for each file */
 	if (fcfg) {

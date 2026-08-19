@@ -5,17 +5,20 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 WRPC_SRC="$ROOT/vendor/wrpc-sw"
 CONFIG="$ROOT/firmware/configs/de5a_slave_defconfig"
+IDENTITY="$ROOT/firmware/configs/de5a_slave_identity.h"
 OUT="$ROOT/build/firmware/slave"
 WORK="$ROOT/build/firmware/work/slave"
 JOBS=${JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}
 
 test -d "$WRPC_SRC"
 test -f "$CONFIG"
+test -f "$IDENTITY"
 mkdir -p "$OUT"
 rm -rf "$WORK"
 mkdir -p "$WORK"
 cp -a "$WRPC_SRC/." "$WORK/"
 cp "$CONFIG" "$WORK/configs/de5a_slave_defconfig"
+cp "$IDENTITY" "$WORK/boards/generic/de5a-identity.h"
 
 # Keep the build independent of executable-bit loss during source transfer.
 find "$WORK" -type f -name '*.sh' -exec chmod +x {} +
@@ -36,7 +39,7 @@ export PATH="$TOOLBIN:$PATH"
   date -Is
   hostname
   git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo "GIT_COMMIT=uncommitted"
-  sha256sum "$CONFIG"
+  sha256sum "$CONFIG" "$IDENTITY"
   make -C "$WORK" de5a_slave_defconfig
   make -C "$WORK" -j"$JOBS"
 } > "$OUT/build.log" 2>&1
@@ -48,5 +51,5 @@ test -s "$WORK/wrc.mif"
 cp "$WORK/wrc.elf" "$OUT/wrc.elf"
 cp "$WORK/wrc.bin" "$OUT/wrc.bin"
 cp "$WORK/wrc.mif" "$OUT/wrc.mif"
-sha256sum "$OUT/wrc.elf" "$OUT/wrc.bin" "$OUT/wrc.mif" "$CONFIG" > "$OUT/build_hashes.sha256"
+sha256sum "$OUT/wrc.elf" "$OUT/wrc.bin" "$OUT/wrc.mif" "$CONFIG" "$IDENTITY" > "$OUT/build_hashes.sha256"
 echo "WRPC slave MIF: $OUT/wrc.mif"

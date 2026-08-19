@@ -6,6 +6,13 @@
  */
 #include <ppsi/ppsi.h>
 
+/* 診斷版：只統計封包被丟棄的原因，不改變原本的 return 條件。 */
+volatile uint32_t wrpc_ptp_frame_parse_error_count;
+volatile uint32_t wrpc_ptp_prefilter_wrong_domain_count;
+volatile uint32_t wrpc_ptp_prefilter_alternate_master_count;
+volatile uint32_t wrpc_ptp_prefilter_same_port_count;
+volatile uint32_t wrpc_ptp_prefilter_same_clock_count;
+
 unsigned long pp_global_d_flags; /* This is the only "global" file in ppsi */
 
 /*
@@ -135,6 +142,7 @@ static int pp_packet_prefilter(struct pp_instance *ppi)
 	 * shall be accepted for processing by the protocol.
 	 */
 	if (hdr->domainNumber != GDSDEF(GLBS(ppi))->domainNumber) {
+		wrpc_ptp_prefilter_wrong_domain_count++;
 		pp_diag(ppi, frames, 1, "Wrong domain %i: discard\n",
 			hdr->domainNumber);
 		return -1;
@@ -147,6 +155,7 @@ static int pp_packet_prefilter(struct pp_instance *ppi)
 	 * masters merely ignores all messages with alternateMasterFlag TRUE.
 	 */
 	if (hdr->flagField[0] & PP_ALTERNATE_MASTER_FLAG) {
+		wrpc_ptp_prefilter_alternate_master_count++;
 		pp_diag(ppi, frames, 1, "Alternate master: discard\n");
 		return -1;
 	}
@@ -158,6 +167,7 @@ static int pp_packet_prefilter(struct pp_instance *ppi)
 	if (!memcmp(&ppi->received_ptp_header.sourcePortIdentity,
 		    &DSPOR(ppi)->portIdentity,
 		    sizeof(PortIdentity))) {
+		wrpc_ptp_prefilter_same_port_count++;
 		pp_diag(ppi, frames, 1, "Looping frame: discard\n");
 		return -1;
 	}
@@ -173,6 +183,7 @@ static int pp_packet_prefilter(struct pp_instance *ppi)
 			/* Announces are handled by the BMC, since otherwise the state 
 			 * also the PASSIVE states in this case is overwritten */
 			if (hdr->messageType != PPM_ANNOUNCE) {
+				wrpc_ptp_prefilter_same_clock_count++;
 				/* ignore messages, except announce coming from its own clock */
 				return -1;	
 			}		
@@ -261,6 +272,7 @@ int pp_state_machine(struct pp_instance *ppi, void *buf, int len)
 	 */
 	err = fsm_unpack_verify_frame(ppi, buf, len);
 	if (err) {
+		wrpc_ptp_frame_parse_error_count++;
 		len = 0;
 		buf = NULL;
 	}

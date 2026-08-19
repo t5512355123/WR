@@ -119,6 +119,34 @@ void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors)
 	wdiag_write( WRC_DIAGS_WDIAG_RX_ERR_CNT, rx_errors);
 }
 
+void wdiags_write_ptp_debug(uint32_t rx_count, uint32_t tx_count,
+			    uint8_t ptp_state, uint8_t pd_state,
+			    uint8_t ext_state, uint8_t protocol_extension)
+{
+	/* AUX1/AUX2/AUX3 are not used by this one-output DE5a design's
+	 * periodic auxiliary-clock loop. Reuse them only as read-only
+	 * bring-up evidence for the PPSI receive path. */
+	wdiag_write(WRC_DIAGS_WDIAG_AUX1_DETAIL_STAT, rx_count);
+	wdiag_write(WRC_DIAGS_WDIAG_AUX2_DETAIL_STAT, tx_count);
+	wdiag_write(WRC_DIAGS_WDIAG_AUX3_DETAIL_STAT,
+		    ((uint32_t)protocol_extension << 24) |
+		    ((uint32_t)ext_state << 16) |
+		    ((uint32_t)pd_state << 8) |
+		    (uint32_t)ptp_state);
+}
+
+void wdiags_write_ptp_debug_detail(uint32_t rx_type_counts,
+				   uint32_t foreign_master_meta,
+				   uint32_t filter_meta,
+				   uint32_t parse_meta)
+{
+	/* 0x74..0x80 are unused by this build's regular diagnostic refresh. */
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_RX_M, rx_type_counts);
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_RX_S, foreign_master_meta);
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_TX_M, filter_meta);
+	wdiag_write(WRC_DIAGS_WDIAG_DELTA_TX_S, parse_meta);
+}
+
 void wdiags_write_time(uint64_t sec, uint32_t nsec)
 {
 	wdiag_write( WRC_DIAGS_WDIAG_SEC_MSB, 0xFFFFFFFF & (sec>>32) );
@@ -129,6 +157,95 @@ void wdiags_write_time(uint64_t sec, uint32_t nsec)
 void wdiags_write_temp(uint32_t temp)
 {
 	wdiag_write( WRC_DIAGS_WDIAG_TEMP, temp );
+}
+
+void wdiags_write_wr_state_debug(uint32_t state)
+{
+	/* WDIAG_TEMP is unused on the DE5a builds without temperature sensors.
+	 * The 0xA tag makes stale or unsupported values immediately visible. */
+	wdiag_write( WRC_DIAGS_WDIAG_TEMP, state );
+}
+
+void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
+{
+	/* These registers are not written by the DE5a diagnostic task's
+	 * normal servo path. Keep the raw message IDs and low counter words. */
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_MSB, rx);
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_LSB, tx);
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
+}
+
+void wdiags_write_wr_signaling_reject_debug(uint32_t reject_count,
+                                            uint8_t reject_reason)
+{
+	/* DE5a has one WR output, so AUX0 detail (0x50) is unused here. */
+	wdiag_write(WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT,
+			((reject_count & 0x00ffffffu) << 8) |
+			((uint32_t)reject_reason & 0xffu));
+}
+
+void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,
+					uint32_t unlocked, uint32_t calibration_fail,
+					uint32_t enable_count, uint32_t spll_state)
+{
+	/* The DE5a diagnostic DPRAM has unused words after the standard map.
+	 * Keep this shadow read-only: it never feeds back into WR control. */
+	wdiag_write(0x8c, result);
+	wdiag_write(0x90, polls);
+	wdiag_write(0x94, unlocked);
+	wdiag_write(0x98, calibration_fail);
+	wdiag_write(0x9c, enable_count);
+	wdiag_write(0xa0, spll_state);
+}
+
+void wdiags_write_wr_spll_hw_debug(uint32_t ocer, uint32_t rcer,
+                                   uint32_t occr, uint32_t trr_csr,
+                                   uint32_t dac_hpll, uint32_t dac_main,
+                                   uint32_t helper_state, uint32_t helper_limits,
+                                   uint32_t main_state, uint32_t main_limits,
+                                   uint32_t main_phase_limits)
+{
+	/* These words are read-only shadows. They never feed back into SoftPLL. */
+	wdiag_write(0xa4, ocer);
+	wdiag_write(0xa8, rcer);
+	wdiag_write(0xac, occr);
+	wdiag_write(0xb0, trr_csr);
+	wdiag_write(0xb4, dac_hpll);
+	wdiag_write(0xb8, dac_main);
+	wdiag_write(0xbc, helper_state);
+	wdiag_write(0xc0, helper_limits);
+	wdiag_write(0xc4, main_state);
+	wdiag_write(0xc8, main_limits);
+	wdiag_write(0xcc, main_phase_limits);
+}
+
+void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
+                                         int32_t helper_error, int32_t helper_output,
+                                         uint32_t state_visit_mask,
+                                         uint32_t state_transition_count,
+                                         uint32_t last_state,
+                                         uint32_t irq_count,
+                                         uint32_t irq_mask,
+                                         uint32_t irq_status)
+{
+	wdiag_write(0xd0, ref_count);
+	wdiag_write(0xd4, tag_count);
+	wdiag_write(0xd8, (uint32_t)helper_error);
+	wdiag_write(0xdc, (uint32_t)helper_output);
+	wdiag_write(0xe0, state_visit_mask);
+	wdiag_write(0xe4, state_transition_count);
+	wdiag_write(0xe8, last_state);
+	wdiag_write(0xec, irq_count);
+	wdiag_write(0xf0, irq_mask);
+	wdiag_write(0xf4, irq_status);
+}
+
+void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
+                                      uint32_t trr_write_count)
+{
+	/* These are read-only hardware counters exposed by SoftPLL-ng. */
+	wdiag_write(0xf8, tag_valid_count);
+	wdiag_write(0xfc, trr_write_count);
 }
 
 void wdiags_set_base_address( void *base )

@@ -427,6 +427,15 @@ config FLASH_INIT
 	default y if EMBEDDED_NODE
 	default n
 
+config STEP2_DISABLE_PERSISTENT_INIT
+	depends on WR_NODE
+	bool "Do not execute persistent flash init script for Step 2 baseline"
+	default n
+	help
+	  Keep the built-in init command while ignoring commands stored in flash.
+	  This is used to make the Step 2 diagnostic baseline independent of
+	  stale board-local startup commands.
+
 config CMD_CALIBRATION_SHOW
 	depends on WR_NODE
 	boolean "Add 'calibration show' command to print all calibration values"
@@ -859,4 +868,3 @@ config PRINTF_MINI
 config PRINTF_NONE
 	boolean
 	default PRINTF_IS_NONE
-

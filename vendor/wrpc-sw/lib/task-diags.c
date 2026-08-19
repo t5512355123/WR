@@ -77,6 +77,127 @@ int wrc_wr_diags(void)
 	9  : PPS_SLAVE
 	*/
 	wdiags_write_ptp_state((uint8_t)ppi->state);
+	/* Preserve PPSI-side counters separately from the Mini-NIC counters.
+	 * The metadata high byte carries the configured WRC mode during bring-up
+	 * so Master/Slave role selection is directly visible over JTAG. */
+	wdiags_write_ptp_debug((uint32_t)ppi->ptp_rx_count,
+			       (uint32_t)ppi->ptp_tx_count,
+			       (uint8_t)ppi->state,
+			       (uint8_t)ppi->pdstate,
+			       (uint8_t)ppi->extState,
+			       (uint8_t)wrc_ptp_get_mode());
+	/* 診斷版：拆出訊息類型與 foreign-master/WR-parent 判斷。 */
+	{
+		uint32_t rx_type_counts =
+			((uint32_t)wrpc_ptp_rx_sync_count & 0xff) |
+			(((uint32_t)wrpc_ptp_rx_announce_count & 0xff) << 8) |
+			(((uint32_t)wrpc_ptp_rx_followup_count & 0xff) << 16) |
+			(((uint32_t)wrpc_ptp_rx_signaling_count & 0xff) << 24);
+		uint32_t foreign_master_meta =
+			((uint32_t)ppi->frgn_rec_num & 0xff) |
+			(((uint32_t)(ppi->frgn_rec_best < 0 ? 0xff : ppi->frgn_rec_best) & 0xff) << 8);
+		uint32_t filter_meta =
+			((uint32_t)wrpc_ptp_prefilter_wrong_domain_count & 0xff) |
+			(((uint32_t)wrpc_ptp_prefilter_alternate_master_count & 0xff) << 8) |
+			(((uint32_t)wrpc_ptp_prefilter_same_port_count & 0xff) << 16) |
+			(((uint32_t)wrpc_ptp_prefilter_same_clock_count & 0xff) << 24);
+		uint32_t parse_meta =
+			((uint32_t)wrpc_ptp_frame_parse_error_count & 0xff) |
+			(((uint32_t)wrpc_ptp_rx_announce_processed_count & 0xff) << 8) |
+			(((uint32_t)wrpc_ptp_rx_announce_added_count & 0xff) << 16);
+#if CONFIG_HAS_EXT_WR
+		struct wr_dsport *wrp = WR_DSPOR(ppi);
+		uint32_t parent_flags =
+			(wrp->parentIsWRnode ? 1 : 0) |
+			((wrp->parentWrModeOn ? 1 : 0) << 1) |
+			((wrp->parentCalibrated ? 1 : 0) << 2);
+		foreign_master_meta |= ((uint32_t)wrp->parentDetection & 0xff) << 16;
+		foreign_master_meta |= ((uint32_t)wrp->parentWrConfig & 0xff) << 24;
+		parse_meta |= (parent_flags & 0x7) << 24;
+#endif
+		wdiags_write_ptp_debug_detail(rx_type_counts,
+					      foreign_master_meta,
+					      filter_meta,
+					      parse_meta);
+
+		/* DE5a has no temperature sensor. Reuse the otherwise idle register
+		 * as a read-only shadow of the WR extension state. This does not feed
+		 * back into PPSI, the servo, or the clock actuator. */
+		if (!HAS_TEMP_SENSORS) {
+			uint32_t wr_state_debug = 0xA0000000u |
+				((uint32_t)(wrp->wrModeOn ? 1 : 0) << 0) |
+				((uint32_t)(wrp->parentWrModeOn ? 1 : 0) << 1) |
+				((uint32_t)(wrp->calibrated ? 1 : 0) << 2) |
+				((uint32_t)(wrp->parentIsWRnode ? 1 : 0) << 3) |
+				((uint32_t)(wrp->parentCalibrated ? 1 : 0) << 4) |
+				(((uint32_t)wrp->wrConfig & 0x7u) << 5) |
+				(((uint32_t)wrp->parentWrConfig & 0x7u) << 8) |
+				(((uint32_t)wrp->state & 0xfu) << 11) |
+				(((uint32_t)wrp->next_state & 0xfu) << 15) |
+				(((uint32_t)wrp->parentDetection & 0x3u) << 19) |
+				(((uint32_t)wrp->wrMode & 0x7u) << 21);
+			wdiags_write_wr_state_debug(wr_state_debug);
+			wdiags_write_wr_signaling_debug(
+				(((uint32_t)wrpc_wr_last_rx_msg_id & 0xffffu) << 16) |
+				 (wrpc_wr_rx_signaling_count & 0xffffu),
+				(((uint32_t)wrpc_wr_last_tx_msg_id & 0xffffu) << 16) |
+				 (wrpc_wr_tx_signaling_count & 0xffffu),
+				(((uint32_t)wrpc_wr_last_fail_role & 0xffu) << 24) |
+				(((uint32_t)wrpc_wr_last_fail_state & 0xffu) << 16) |
+				 (wrpc_wr_handshake_fail_count & 0xffffu));
+			wdiags_write_wr_signaling_reject_debug(
+				wrpc_wr_rx_signal_reject_count,
+				wrpc_wr_last_rx_signal_reject_reason);
+			wdiags_write_wr_lock_debug(
+				(uint32_t)wrpc_wr_lock_last_result |
+					((uint32_t)(spll_check_lock(0) ? 1u : 0u) << 8),
+				wrpc_wr_lock_poll_count,
+				wrpc_wr_lock_unlocked_count,
+				wrpc_wr_lock_calibration_fail_count,
+				wrpc_wr_lock_enable_count,
+				((uint32_t)softpll.seq_state & 0xffu) |
+					(((uint32_t)softpll.ext.align_state & 0xffu) << 8) |
+				(((uint32_t)softpll.mode & 0xffu) << 16) |
+				(((uint32_t)softpll.delock_count & 0xffu) << 24));
+			wdiags_write_wr_spll_hw_debug(
+				SPLL->OCER,
+				SPLL->RCER,
+				SPLL->OCCR,
+				SPLL->TRR_CSR,
+				SPLL->DAC_HPLL,
+				SPLL->DAC_MAIN,
+				((uint32_t)(softpll.helper.ld.locked ? 1u : 0u)) |
+					((uint32_t)(softpll.helper.ld.lock_changed ? 1u : 0u) << 1) |
+					(((uint32_t)softpll.helper.ref_src & 0xffu) << 8) |
+					(((uint32_t)softpll.helper.ld.lock_cnt & 0xffffu) << 16),
+				((uint32_t)softpll.helper.ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.helper.ld.lock_samples & 0xffffu) << 16),
+				((uint32_t)(softpll.mpll.enabled ? 1u : 0u)) |
+					((uint32_t)(softpll.mpll.locked ? 1u : 0u) << 1) |
+					((uint32_t)(softpll.mpll.freq_ld.locked ? 1u : 0u) << 2) |
+					((uint32_t)(softpll.mpll.phase_ld.locked ? 1u : 0u) << 3) |
+					(((uint32_t)softpll.mpll.freq_ld.lock_cnt & 0xfffu) << 8) |
+					(((uint32_t)softpll.mpll.phase_ld.lock_cnt & 0xfffu) << 20),
+				((uint32_t)softpll.mpll.freq_ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.mpll.freq_ld.lock_samples & 0xffffu) << 16),
+				((uint32_t)softpll.mpll.phase_ld.threshold & 0xffffu) |
+					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
+			wdiags_write_wr_spll_activity_debug(
+				softpll.ref_count,
+				softpll.tag_count,
+				softpll.helper.pi.x,
+				softpll.helper.pi.y,
+				wrpc_spll_state_visit_mask,
+				wrpc_spll_state_transition_count,
+				wrpc_spll_last_state,
+				softpll.irq_count,
+				SPLL->EIC_IMR,
+				SPLL->EIC_ISR);
+			wdiags_write_wr_spll_event_debug(
+				SPLL->TAG_VALID_COUNT,
+				SPLL->TRR_WRITE_COUNT);
+		}
+	}
 
 	
 	/* servo state (if slave)s */

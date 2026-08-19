@@ -1,6 +1,7 @@
 package require ::quartus::insystem_source_probe
 
 set ::wb_toggle 0
+set ::boot_stage_word 0x594C
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
@@ -46,6 +47,25 @@ proc wb_write {addr data} {
   return "TIMEOUT"
 }
 
+proc wb_read_twice {addr} {
+  # The CPU UDATA path is registered: the first read can reflect the
+  # previous address while the new IRAM address is settling.
+  set first [wb_read $addr]
+  set second [wb_read $addr]
+  return "$first / $second"
+}
+
+proc wb_sync_toggle {} {
+  # The mailbox completion toggle survives between quartus_stp sessions.
+  # Start with the opposite value so the first command cannot match stale data.
+  set value [read_probe_data -instance_index 1 -value_in_hex]
+  scan $value %x word
+  set current_done [expr {(($word >> 35) & 1)}]
+  # wb_read/wb_write flip the variable before sending a command.
+  set ::wb_toggle $current_done
+  puts [format "mailbox initial done=%d next_toggle=%d" $current_done [expr {$current_done ^ 1}]]
+}
+
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
@@ -57,6 +77,7 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     puts "status_probe: [read_probe_data -instance_index 0 -value_in_hex]"
+    wb_sync_toggle
     puts "PPS_CR:       [wb_read 0x00100300]"
     puts "PPS_ESCR:     [wb_read 0x0010031c]"
     puts "SPLL_CSR:     [wb_read 0x00100200]"
@@ -69,8 +90,15 @@ foreach hardware_name [get_hardware_names] {
     puts "CPU_DBGFORCE: [wb_read 0x00100B84]"
     puts "CPU_DBGREADY: [wb_read 0x00100B88]"
     puts "CPU_MBX:      [wb_read 0x00100B90]"
+    # The CPU IRAM host mux is selected only while the CPU reset bit is set.
+    # Hold the CPU briefly so UADDR really selects IRAM address zero, then
+    # release it so the firmware can restart normally.
+    puts "CPU_HOLD:     [wb_write 0x00100B00 1]"
     puts "CPU_UADDR_WR: [wb_write 0x00100B04 0]"
-    puts "CPU_IRAM0:    [wb_read 0x00100B08]"
+    puts "CPU_IRAM0:    [wb_read_twice 0x00100B08]"
+    puts "CPU_UADDR_STAGE: [wb_write 0x00100B04 $::boot_stage_word]"
+    puts "CPU_BOOT_STAGE:  [wb_read_twice 0x00100B08]"
+    puts "CPU_RELEASE:  [wb_write 0x00100B00 0]"
   } error_message]} {
     puts "error: ${error_message}"
   }

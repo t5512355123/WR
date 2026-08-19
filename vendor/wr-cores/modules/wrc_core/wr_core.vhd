@@ -333,7 +333,20 @@ entity wr_core is
     -- DIAG to/from external modules
     -------------------------------------
     aux_diag_i : in  t_generic_word_array(g_diag_ro_size-1 downto 0) := (others=>(others=>'0'));
-    aux_diag_o : out t_generic_word_array(g_diag_rw_size-1 downto 0)
+    aux_diag_o : out t_generic_word_array(g_diag_rw_size-1 downto 0);
+
+    cpu_pc_o       : out std_logic_vector(31 downto 0);
+    cpu_reset_o    : out std_logic;
+    cpu_fault_o    : out std_logic;
+    cpu_im_valid_o : out std_logic;
+    cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
+    cpu_boot_stage_seen_o  : out std_logic;
+    cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_seen_o  : out std_logic;
+    cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
+    cpu_mepc_o : out std_logic_vector(31 downto 0);
+    cpu_mcause_o : out std_logic_vector(31 downto 0)
     );
 end wr_core;
 
@@ -870,7 +883,19 @@ begin
       dwb_o        => cpu_dwb_out,
       dwb_i        => cpu_dwb_in,
       host_slave_i => cpu_csr_wb_in,
-      host_slave_o => cpu_csr_wb_out
+      host_slave_o => cpu_csr_wb_out,
+      cpu_pc_o       => cpu_pc_o,
+      cpu_reset_o    => cpu_reset_o,
+      cpu_fault_o    => cpu_fault_o,
+      cpu_im_valid_o => cpu_im_valid_o,
+      cpu_boot_stage_value_o => cpu_boot_stage_value_o,
+      cpu_boot_stage_seen_o  => cpu_boot_stage_seen_o,
+      cpu_last_store_addr_o  => cpu_last_store_addr_o,
+      cpu_last_store_data_o  => cpu_last_store_data_o,
+      cpu_last_store_seen_o  => cpu_last_store_seen_o,
+      cpu_internal_store_count_o => cpu_internal_store_count_o,
+      cpu_mepc_o => cpu_mepc_o,
+      cpu_mcause_o => cpu_mcause_o
       );
 
   -----------------------------------------------------------------------------

@@ -169,6 +169,11 @@ component spll_wb_slave is
     wb_stall_o                               : out    std_logic;
     wb_int_o                                 : out    std_logic;
     irq_tag_i                                : in     std_logic;
+    diag_tag_valid_count_i                   : in     std_logic_vector(31 downto 0);
+    diag_trr_write_count_i                   : in     std_logic_vector(31 downto 0);
+    diag_tag_source_count_i                  : in     std_logic_vector(31 downto 0);
+    diag_tag_ref_count_i                     : in     std_logic_vector(31 downto 0);
+    diag_tag_feedback_count_i                : in     std_logic_vector(31 downto 0);
     regs_i                                   : in     t_spll_in_registers;
     regs_o                                   : out    t_spll_out_registers
   );

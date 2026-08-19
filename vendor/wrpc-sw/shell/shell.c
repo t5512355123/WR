@@ -365,8 +365,6 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 
 void shell_boot_script(void)
 {
-	int next = 0;
-
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
@@ -378,9 +376,12 @@ void shell_boot_script(void)
 	}
 #endif
 
+#ifndef CONFIG_STEP2_DISABLE_PERSISTENT_INIT
+	int next = 0;
+
 	while (CONFIG_HAS_FLASH_INIT) {
 		cmd_len = storage_init_readcmd((uint8_t *)cmd_buf,
-					      SH_MAX_LINE_LEN, next);
+						      SH_MAX_LINE_LEN, next);
 		if (cmd_len <= 0) {
 			if (next == 0)
 				pp_printf("Empty init script...\n");
@@ -392,6 +393,7 @@ void shell_boot_script(void)
 		shell_exec(cmd_buf);
 		next = 1;
 	}
+#endif
 
 	return;
 }

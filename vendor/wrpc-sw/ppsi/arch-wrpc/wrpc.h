@@ -121,4 +121,33 @@ int wrc_ptp_is_abscal(void);
 extern struct pp_globals ppg_static;
 extern struct pp_instance ppi_static;
 
+/* 診斷版：記錄收到的 PTP 訊息類型，不參與同步狀態機。 */
+extern volatile uint32_t wrpc_ptp_rx_sync_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_count;
+extern volatile uint32_t wrpc_ptp_rx_followup_count;
+extern volatile uint32_t wrpc_ptp_rx_signaling_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_processed_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_added_count;
+extern volatile uint32_t wrpc_ptp_rx_announce_length;
+extern volatile uint32_t wrpc_ptp_frame_parse_error_count;
+extern volatile uint32_t wrpc_ptp_prefilter_wrong_domain_count;
+extern volatile uint32_t wrpc_ptp_prefilter_alternate_master_count;
+extern volatile uint32_t wrpc_ptp_prefilter_same_port_count;
+extern volatile uint32_t wrpc_ptp_prefilter_same_clock_count;
+/* WR extension signaling diagnostics; these never drive the state machine. */
+extern volatile uint32_t wrpc_wr_rx_signaling_count;
+extern volatile uint32_t wrpc_wr_rx_signal_reject_count;
+extern volatile uint8_t wrpc_wr_last_rx_signal_reject_reason;
+extern volatile uint32_t wrpc_wr_tx_signaling_count;
+extern volatile uint16_t wrpc_wr_last_rx_msg_id;
+extern volatile uint16_t wrpc_wr_last_tx_msg_id;
+extern volatile uint32_t wrpc_wr_handshake_fail_count;
+extern volatile uint8_t wrpc_wr_last_fail_state;
+extern volatile uint8_t wrpc_wr_last_fail_role;
+extern volatile uint32_t wrpc_wr_lock_poll_count;
+extern volatile uint32_t wrpc_wr_lock_unlocked_count;
+extern volatile uint32_t wrpc_wr_lock_calibration_fail_count;
+extern volatile uint32_t wrpc_wr_lock_enable_count;
+extern volatile uint8_t wrpc_wr_lock_last_result;
+
 #endif /* __WRPC_H */

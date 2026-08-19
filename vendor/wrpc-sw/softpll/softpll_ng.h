@@ -193,5 +193,9 @@ extern unsigned char spll_ljd_present;
 
 extern volatile struct softpll_state softpll;
 
-#endif // __SOFTPLL_NG_H
+/* Read-only bring-up counters; they do not affect SoftPLL control. */
+extern volatile uint32_t wrpc_spll_state_visit_mask;
+extern volatile uint32_t wrpc_spll_state_transition_count;
+extern volatile uint8_t wrpc_spll_last_state;
 
+#endif // __SOFTPLL_NG_H

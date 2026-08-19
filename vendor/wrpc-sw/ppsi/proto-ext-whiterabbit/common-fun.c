@@ -5,6 +5,7 @@
  * Released according to the GNU LGPL, version 2.1 or any later version.
  */
 #include <ppsi/ppsi.h>
+#include "../arch-wrpc/wrpc.h"
 
 void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
@@ -28,6 +29,10 @@ void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 void wr_handshake_fail(struct pp_instance *ppi)
 {
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
+
+	wrpc_wr_handshake_fail_count++;
+	wrpc_wr_last_fail_state = (uint8_t)wrp->state;
+	wrpc_wr_last_fail_role = (uint8_t)wrp->wrMode;
 
 	pp_diag(ppi, ext, 1, "Handshake failure: now non-wr %s\n",
 		wrp->wrMode == WR_MASTER ? "master" : "slave");

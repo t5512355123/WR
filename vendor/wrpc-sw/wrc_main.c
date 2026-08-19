@@ -60,6 +60,11 @@
 
 struct wr_endpoint_device wrc_endpoint_dev;
 
+/* CPU-local marker used when the external diagnostics RAM is unavailable. */
+/* Keep the marker at the fixed linker section observed by the JTAG wrapper. */
+volatile uint32_t debug_boot_stage
+	__attribute__((used, section(".debug_boot")));
+
 int wrc_wr_diags(void); // fixme: move the header
 
 extern char _binary__config_bin_start[];
@@ -93,6 +98,12 @@ const struct wrc_global wrc_global = {
 
 static void wrc_initialize(void)
 {
+	/* Diagnostic-only boot markers in the existing WRPC diagnostics RAM. */
+	#ifdef CONFIG_WR_DIAG
+	wdiags_init();
+	wdiags_write_temp(0x0000B001);
+	#endif
+
 	console_init();
 	timer_init(1);
 	spll_very_init();
@@ -104,7 +115,9 @@ static void wrc_initialize(void)
 
 	wrc_board_early_init();
 
-	wdiags_init();
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B002);
+	#endif
 
 	pp_printf("WR Core: starting up...\n");
 	get_hw_name(wrc_global_link.wrc_hw_name);
@@ -131,6 +144,10 @@ static void wrc_initialize(void)
 		temp_faketemp_init();
 
 	wrc_board_init();
+
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B003);
+	#endif
 
 	/* BSP didn't load the calibration parameters? go ahead */
 	if (!storage_is_calibration_loaded())
@@ -293,14 +310,33 @@ static void create_tasks(void)
 int main(void) __attribute__ ((weak));
 int main(void)
 {
+	debug_boot_stage = 0x0000B000;
+	#ifdef CONFIG_WR_DIAG
+	/* Early markers distinguish CPU entry from task/setup failures. */
+	wdiags_write_temp(0x0000B000);
+	#endif
+
 	check_reset();
 	create_tasks();
+	debug_boot_stage = 0x0000B00A;
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B00A);
+	#endif
 	wrc_board_create_tasks();
+	debug_boot_stage = 0x0000B00B;
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B00B);
+	#endif
 
 	wrc_initialize();
+	debug_boot_stage = 0x0000B001;
 
 	/* initialization of individual tasks */
 	wrc_tasks_run_inits();
+	debug_boot_stage = 0x0000B004;
+	#ifdef CONFIG_WR_DIAG
+	wdiags_write_temp(0x0000B004);
+	#endif
 
 	for (;;) {
 		// run all pending tasks

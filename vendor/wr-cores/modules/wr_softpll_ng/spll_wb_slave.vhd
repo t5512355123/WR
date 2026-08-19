@@ -37,6 +37,11 @@ port (
   wb_stall_o                               : out    std_logic;
   wb_int_o                                 : out    std_logic;
   irq_tag_i                                : in     std_logic;
+  diag_tag_valid_count_i                   : in     std_logic_vector(31 downto 0);
+  diag_trr_write_count_i                   : in     std_logic_vector(31 downto 0);
+  diag_tag_source_count_i                  : in     std_logic_vector(31 downto 0);
+  diag_tag_ref_count_i                     : in     std_logic_vector(31 downto 0);
+  diag_tag_feedback_count_i                : in     std_logic_vector(31 downto 0);
   regs_i                                   : in     t_spll_in_registers;
   regs_o                                   : out    t_spll_out_registers
 );
@@ -750,6 +755,36 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "100001" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_valid_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "100010" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_trr_write_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "100011" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_source_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "100100" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_ref_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "100101" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_feedback_count_i;
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when others =>

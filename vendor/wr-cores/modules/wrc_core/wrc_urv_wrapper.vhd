@@ -44,7 +44,19 @@ entity wrc_urv_wrapper is
     dwb_o     : out t_wishbone_master_out;
     dwb_i     : in  t_wishbone_master_in;
     host_slave_i : in t_wishbone_slave_in;
-    host_slave_o : out t_wishbone_slave_out
+    host_slave_o : out t_wishbone_slave_out;
+    cpu_pc_o     : out std_logic_vector(31 downto 0);
+    cpu_reset_o  : out std_logic;
+    cpu_fault_o  : out std_logic;
+    cpu_im_valid_o : out std_logic;
+    cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
+    cpu_boot_stage_seen_o  : out std_logic;
+    cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
+    cpu_last_store_seen_o  : out std_logic;
+    cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
+    cpu_mepc_o : out std_logic_vector(31 downto 0);
+    cpu_mcause_o : out std_logic_vector(31 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -89,6 +101,15 @@ architecture arch of wrc_urv_wrapper is
   signal im_addr  : std_logic_vector(31 downto 0);
   signal im_data  : std_logic_vector(31 downto 0);
   signal im_valid : std_logic;
+  signal cpu_fault : std_logic;
+  signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
+  signal cpu_boot_stage_seen  : std_logic;
+  signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
+  signal cpu_last_store_data  : std_logic_vector(31 downto 0);
+  signal cpu_last_store_seen  : std_logic;
+  signal cpu_internal_store_count : unsigned(31 downto 0);
+  signal cpu_mepc : std_logic_vector(31 downto 0);
+  signal cpu_mcause : std_logic_vector(31 downto 0);
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -148,7 +169,9 @@ architecture arch of wrc_urv_wrapper is
       dbg_insn_ready_o : out std_logic;
       dbg_mbx_data_i   : in  std_logic_vector(31 downto 0);
       dbg_mbx_write_i  : in  std_logic;
-      dbg_mbx_data_o   : out std_logic_vector(31 downto 0));
+      dbg_mbx_data_o   : out std_logic_vector(31 downto 0);
+      csr_mepc_o       : out std_logic_vector(31 downto 0);
+      csr_mcause_o     : out std_logic_vector(31 downto 0));
   end component;
 
 begin
@@ -166,6 +189,8 @@ begin
 
   U_cpu_core : urv_cpu
     generic map (
+      g_timer_frequency => 1000,
+      g_clock_frequency => 62500000,
       g_with_hw_debug => 1,
       g_with_hw_mulh => 1,
       g_with_hw_mul => 1,
@@ -175,7 +200,7 @@ begin
       clk_i            => clk_sys_i,
       rst_i            => cpu_rst,
       irq_i            => irq_i,
-      fault_o          => open,
+      fault_o          => cpu_fault,
       im_addr_o        => im_addr,
       im_rd_o          => open,
       im_data_i        => im_data,
@@ -195,7 +220,9 @@ begin
       dbg_insn_ready_o => regs_out.dbg_insn_ready_i(0),
       dbg_mbx_data_i   => regs_in.dbg_core0_mbx_o,
       dbg_mbx_write_i  => regs_in.dbg_core0_mbx_load_o,
-      dbg_mbx_data_o   => regs_out.dbg_core0_mbx_i);
+      dbg_mbx_data_o   => regs_out.dbg_core0_mbx_i,
+      csr_mepc_o       => cpu_mepc,
+      csr_mcause_o     => cpu_mcause);
 
   -- 1st MByte of the mem is the IRAM
   dm_is_wishbone <= '1' when dm_addr(31 downto 20) /= x"000" else '0';
@@ -348,6 +375,45 @@ begin
     end if;
   end process p_im_valid;
 
+  -- 診斷 latch：記住固定 linker section .debug_boot 的啟動標記。
+  -- 這個位置位於 192 KiB RAM 的 stack 前保留區，避免韌體大小變化
+  -- 讓符號位址漂移。Master/Slave 共用同一個固定地址。
+  p_boot_stage_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_boot_stage_value <= (others => '0');
+        cpu_boot_stage_seen  <= '0';
+        cpu_last_store_addr  <= (others => '0');
+        cpu_last_store_data  <= (others => '0');
+        cpu_last_store_seen  <= '0';
+        cpu_internal_store_count <= (others => '0');
+      elsif dm_store = '1' and dm_is_wishbone = '0' then
+        cpu_last_store_addr <= dm_addr;
+        cpu_last_store_data <= dm_data_s;
+        cpu_last_store_seen <= '1';
+        cpu_internal_store_count <= cpu_internal_store_count + 1;
+        if dm_addr = x"0002E000" then
+          cpu_boot_stage_value <= dm_data_s;
+          cpu_boot_stage_seen  <= '1';
+        end if;
+      end if;
+    end if;
+  end process p_boot_stage_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
+
+  cpu_pc_o       <= im_addr;
+  cpu_reset_o    <= cpu_rst;
+  cpu_fault_o    <= cpu_fault;
+  cpu_im_valid_o <= im_valid;
+  cpu_boot_stage_value_o <= cpu_boot_stage_value;
+  cpu_boot_stage_seen_o  <= cpu_boot_stage_seen;
+  cpu_last_store_addr_o  <= cpu_last_store_addr;
+  cpu_last_store_data_o  <= cpu_last_store_data;
+  cpu_last_store_seen_o  <= cpu_last_store_seen;
+  cpu_internal_store_count_o <= std_logic_vector(cpu_internal_store_count);
+  cpu_mepc_o <= cpu_mepc;
+  cpu_mcause_o <= cpu_mcause;
 
 end architecture arch;

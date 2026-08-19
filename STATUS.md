@@ -1,73 +1,72 @@
-# 目前狀態
+# DE5a White Rabbit 目前狀態
 
-最後更新：2026-08-15
-Audit 內容 commit：`44e8ba48285634a39860ef5732e69317f5f7da79`
-建置主機：pain；Master/Slave 韌體與 Quartus 17 建置均已驗證
+最後更新：2026-08-19
 
-## 目前已知可用的基準版本
+目前研究分支：`exp/restore-c88cc05-baseline`
 
-- Project：`quartus/rs422_uart_diag`
-- Master SOF programmer checksum：`0x3088011E`
-- Slave SOF programmer checksum：`0x308FFC95`
-- QSFP-A lane 0 是目前使用的 WR link path。
-- Master 與 Slave 在 Quartus Programmer 都設定成功。
-- 兩片板卡的 status probe 低 16 bits 都觀察到 `0x82CF`。
-- 該 probe 顯示 `link_up=1`、`link_ok=1`，且 RX/TX encoding error 為 0。
+本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
-## 目前觀察結果
+## 目前結論
 
-- 現有 probe 證據中的 `time_valid=0`。
-- 現有 probe 證據中的 `pps_valid=0`。
-- JTAG 除錯版本中的 `PPS_CR` 與 `PPS_ESCR` 為 0。
-- 62.5 MHz clock isolation 實驗已編譯並燒錄成功，但沒有產生執行期同步證據。
+目前已經由 current branch 的 fresh HEAD 完成 firmware build、clean Quartus compile、雙板 programming 與 30 秒 JTAG time-series，並有足夠證據證明：
 
-## 遷移驗證
+- QSFP-A lane 0 的 PHY/link baseline 可工作。
+- Endpoint identity 已分離，兩端 MAC 分別為 `02:00:22:33:44:01` 與 `02:00:22:33:44:02`。
+- Master runtime 為 `MODE=2`、`PTP=6`；Slave runtime 為 `MODE=3`、`PTP=9`。
+- Master/Slave 的 PPSI-level PTP RX/TX counter 有活動。
+- Slave `FOREIGN_META=0x03000001`，表示已找到一筆 foreign master record，並讀到 parent WR configuration。
 
-- Git 原始碼來源：本機 repository 推送到 GitHub，pain 的工作副本從 `origin/main` fast-forward 更新。
-- Master 韌體：PASS；Slave 韌體：PASS。
-- Master Quartus 17：PASS，0 errors，262 warnings。
-- Slave Quartus 17：PASS，0 errors，262 warnings。
-- 乾淨的最新 commit checkout 已重新建置兩份韌體與兩份 SOF。
-- 精確 artifact commit checkout 已重新建置兩份韌體。WRPC 會嵌入 `__DATE__`/`__TIME__`，因此各次建置都記錄自己的 image hash，不把不同次執行視為 byte-identical。
-- 本次遷移驗證沒有燒錄新的 SOF。
+這些 fresh HEAD 證據足以讓 **Endpoint / MiniNIC / PTP packet path（Step 2）判定為 PASS**。但是 Slave `PSTAT.locked=0`、`status_probe bit 4 time_valid=0`，所以目前不能宣稱 White Rabbit timing synchronization 已完成。
 
-## Timing 狀態
+## 六步 milestone
 
-Quartus compilation success 與 timing closure 是兩件不同的事。記錄的
-TimeQuest report 如下：
+| Step | 目標 | 狀態 | 證據或缺口 |
+|---:|---|---|---|
+| 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
+| 2 | Endpoint/MiniNIC/PTP | **PASS** | MAC identity 分離；PTP state/counters 活動；Slave `FOREIGN_META=03000001` |
+| 3 | WR Parent/Signaling | **PARTIAL** | Slave 已進 `PTP=9` 且找到 foreign master，但 parent/WR signaling 尚未證明完成 |
+| 4 | SoftPLL Enable | **NOT DONE** | 尚無 `PSTAT.locked=1` 證據；不能以 clock activity 代替 lock |
+| 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
+| 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
-- Master: setup `-3.812 ns`, hold `0.039 ns`, recovery `-1.975 ns`, removal
-  `0.298 ns`; 3 unconstrained clocks, 1992 input paths and 83 output paths.
-- Slave: setup `-3.103 ns`, hold `0.030 ns`, recovery `-1.839 ns`, removal
-  `0.326 ns`; 3 unconstrained clocks, 2001 input paths and 83 output paths.
-- Timing closed：兩個版本皆為 **NO**。
+## 2026-08-19 fresh HEAD JTAG 證據摘要
 
-## 尚未證明
+| 節點 | MODE | WDIAGS_PTP | MAC | WDIAGS_PTP_RX | WDIAGS_PTP_TX | WDIAGS_FOREIGN_META |
+|---|---:|---:|---|---:|---:|---:|
+| Master | 2 | 6 | `02:00:22:33:44:01` | `0xB1`（snapshot） | `0x186`（snapshot） | 未提供 |
+| Slave | 3 | 9 | `02:00:22:33:44:02` | `0x174`（snapshot） | `0x7D`（snapshot） | `0x03000001` |
 
-- uRV/wrpc-sw 執行期初始化
-- PPSi state 與 Slave `TRACK_PHASE`
-- SoftPLL lock
-- 有效的 WR global time
-- 校準後的 TX/RX delay
-- 次奈秒等級的 PPS alignment
+### 證據界線
 
-## 目前技術瓶頸
+- `WDIAGS_PTP=6` 是 PPS_MASTER，`WDIAGS_PTP=9` 是 PPS_SLAVE。
+- `WDIAGS_PTP_RX/TX` 是 PPSI-level PTP counters，不是 MiniNIC frame counters。
+- `WDIAGS_TX/RX` 來自 `minic_get_stats()`，只能解讀為 MiniNIC frame-level traffic。
+- `FOREIGN_META=03000001` 是 foreign master / parent discovery 證據，不等於 SoftPLL lock。
+- `PSTAT.locked=0` 與 `time_valid=0` 是目前尚未完成 WR timing synchronization 的直接證據。
 
-建立穩定的 WRPC 執行期讀取路徑，接著在不改變基準 PHY/PTP 行為的前提下，取得 `wrc# stat`、PTP state、SoftPLL lock 與 PPS 證據。
+## 來源與硬體 provenance
 
-## 下一個實驗
+先前的恢復成功實驗使用 historical `c88cc05` clean SOF；本次 Step 2 milestone 則已改用 current branch fresh HEAD 的 SOF。兩者必須分開解讀。current fresh build provenance 如下：
 
-建立獨立的 timing/constraint 實驗，調查負值 TimeQuest slack 與 unconstrained clocks；同時保持本次遷移 commit 與保留的 RS422 artifact set 不變。
+| 節點 | SOF SHA256 | programmer checksum | MIF SHA256 |
+|---|---|---|---|
+| Master | `79cfac62ebfe86f338e5e79c6500956b6f3a06247c422508d5542f8b5912da1d` | `0x30A3010A` | `0d2e5a9468edc8fc7655c210c77e8122c5a980af5e66fa7f85ddfc319c2c5fb2` |
+| Slave | `8b5c6652fafabf2f3a6bc0fe0b870c643a6a03dfaf0f419ff52ae32475ae4dee` | `0x30A3C3D7` | `9b0cd0b6f70e5ce752cb93cd29ec333e3b8d73635c72b0f267fad17c6149fb58` |
 
-## 目前板卡 bitstream
+每次新的 runtime log 都要記錄：實際 SOF SHA256、SOF 來源 commit/branch、Master/Slave MIF SHA256、Quartus 版本、programmer checksum，以及 JTAG decode script 的 commit 或 blob SHA256。
 
-以下是保留的基準 artifact，本文件不會重新產生它們：
+## 本次文件整理範圍
 
-- Master：pain `/home/b10504072/04_WR/artifacts/EXP-BASELINE-RS422/master.sof`
-- Slave：pain `/home/b10504072/04_WR/artifacts/EXP-BASELINE-RS422/slave.sof`
+本次只更新：
 
-原始 Quartus output directory 仍保留在正式副本旁，以便追溯。正式韌體輸入位於 pain `/home/b10504072/04_WR/artifacts/EXP-BASELINE-RS422/master.mif` 與 `slave.mif`。
+- `docs/debug/jtag_register_map.md`
+- `STATUS.md`
+- `docs/MERGE_READINESS.md`
 
-## 工作流程不變條件
+本次文件更新沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control；fresh HEAD 的硬體實驗與原始輸出已在 `EXP-WRPC-STEP2-DCO-RESTORE-20260819.md` 記錄。
 
-每個新實驗都必須記錄 Git commit、精確的 Master/Slave 原始碼、MIF SHA256、Quartus 版本、QSF/SDC SHA256、SOF SHA256、建置主機與 probe output。
+## 下一步
+
+1. 等待研究者 review Step 2 milestone 的 raw logs 與 acceptance table。
+2. 經確認後再 merge 到 `main`；不要在未確認前刪除本研究分支。
+3. Step 3 另行研究 WR parent/signaling，保留 `PSTAT.locked=0` 與 `time_valid=0` 的現況證據。

@@ -84,7 +84,9 @@ module urv_cpu
 
    input [31:0]  dbg_mbx_data_i,
    input 	 dbg_mbx_write_i,
-   output [31:0] dbg_mbx_data_o
+   output [31:0] dbg_mbx_data_o,
+   output [31:0] csr_mepc_o,
+   output [31:0] csr_mcause_o
    );
 
 
@@ -166,6 +168,7 @@ module urv_cpu
 
    // misc stuff
    wire [39:0] 	 csr_time, csr_cycles;
+   wire [31:0] 	 csr_mepc, csr_mcause;
 
    //  0: no multiply, 1: 32 bit multiply, 2: mulh.
    localparam p_with_hw_mul = g_with_hw_mul ? (g_with_hw_mul | (g_with_hw_mulh ? 2 : 0)) : 0;
@@ -392,8 +395,10 @@ module urv_cpu
       // Debug mailboxes
       .dbg_mbx_data_i(dbg_mbx_data_i),
       .dbg_mbx_write_i(dbg_mbx_write_i),
-      .dbg_mbx_data_o(dbg_mbx_data_o)
-   );
+      .dbg_mbx_data_o(dbg_mbx_data_o),
+      .csr_mepc_o(csr_mepc),
+      .csr_mcause_o(csr_mcause)
+      );
 
    // Execute 2/Writeback stage
    urv_writeback
@@ -434,6 +439,8 @@ module urv_cpu
    );
 
    assign fault_o = x_fault & g_with_ecc;
+   assign csr_mepc_o = csr_mepc;
+   assign csr_mcause_o = csr_mcause;
 
    // Built-in timer
    generate

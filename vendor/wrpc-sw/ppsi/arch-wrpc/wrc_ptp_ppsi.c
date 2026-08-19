@@ -86,6 +86,29 @@ static unsigned char __rx_buffer[PP_MAX_FRAME_LENGTH];
 /* despite the name, ppi_static is not static: tests/measure_t24p.c uses it */
 struct pp_instance ppi_static;
 
+/* 診斷版：收到封包後只依 PTP header 的 messageType 計數。 */
+volatile uint32_t wrpc_ptp_rx_sync_count;
+volatile uint32_t wrpc_ptp_rx_announce_count;
+volatile uint32_t wrpc_ptp_rx_followup_count;
+volatile uint32_t wrpc_ptp_rx_signaling_count;
+volatile uint32_t wrpc_ptp_rx_announce_processed_count;
+volatile uint32_t wrpc_ptp_rx_announce_added_count;
+volatile uint32_t wrpc_ptp_rx_announce_length;
+volatile uint32_t wrpc_wr_rx_signaling_count;
+volatile uint32_t wrpc_wr_rx_signal_reject_count;
+volatile uint8_t wrpc_wr_last_rx_signal_reject_reason;
+volatile uint32_t wrpc_wr_tx_signaling_count;
+volatile uint16_t wrpc_wr_last_rx_msg_id;
+volatile uint16_t wrpc_wr_last_tx_msg_id;
+volatile uint32_t wrpc_wr_handshake_fail_count;
+volatile uint8_t wrpc_wr_last_fail_state;
+volatile uint8_t wrpc_wr_last_fail_role;
+volatile uint32_t wrpc_wr_lock_poll_count;
+volatile uint32_t wrpc_wr_lock_unlocked_count;
+volatile uint32_t wrpc_wr_lock_calibration_fail_count;
+volatile uint32_t wrpc_wr_lock_enable_count;
+volatile uint8_t wrpc_wr_lock_last_result;
+
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
 	.wrpcModeCfg = WRC_MODE_UNKNOWN
@@ -107,11 +130,17 @@ struct pp_globals ppg_static = {
 
 extern struct pp_ext_hooks const pp_hooks;
 
+#ifdef CONFIG_DETERMINISTIC_BINARY
+#define WRPC_BUILD_DATE "deterministic"
+#else
+#define WRPC_BUILD_DATE __DATE__
+#endif
+
 int wrc_ptp_init(void)
 {
 	struct pp_instance *ppi = &ppi_static;
 
-	pp_printf("PPSi for WRPC. Commit %s, built on " __DATE__ "\n",
+	pp_printf("PPSi for WRPC. Commit %s, built on " WRPC_BUILD_DATE "\n",
 		PPSI_VERSION);
 
 	ppi->glbs = &ppg_static;
@@ -278,6 +307,34 @@ int wrc_ptp_start(void)
 	TimeInterval scaledSfpDeltaTx = 0;
 	TimeInterval scaledSfpDeltaRx = 0;
 
+	/* 每次重新啟動 PTP 時重新開始統計，方便與本次 runtime 狀態對照。 */
+	wrpc_ptp_rx_sync_count = 0;
+	wrpc_ptp_rx_announce_count = 0;
+	wrpc_ptp_rx_followup_count = 0;
+	wrpc_ptp_rx_signaling_count = 0;
+	wrpc_ptp_rx_announce_processed_count = 0;
+	wrpc_ptp_rx_announce_added_count = 0;
+	wrpc_ptp_rx_announce_length = 0;
+	wrpc_ptp_frame_parse_error_count = 0;
+	wrpc_ptp_prefilter_wrong_domain_count = 0;
+	wrpc_ptp_prefilter_alternate_master_count = 0;
+	wrpc_ptp_prefilter_same_port_count = 0;
+	wrpc_ptp_prefilter_same_clock_count = 0;
+	wrpc_wr_rx_signaling_count = 0;
+	wrpc_wr_rx_signal_reject_count = 0;
+	wrpc_wr_last_rx_signal_reject_reason = 0;
+	wrpc_wr_tx_signaling_count = 0;
+	wrpc_wr_last_rx_msg_id = 0;
+	wrpc_wr_last_tx_msg_id = 0;
+	wrpc_wr_handshake_fail_count = 0;
+	wrpc_wr_last_fail_state = 0;
+	wrpc_wr_last_fail_role = 0;
+	wrpc_wr_lock_poll_count = 0;
+	wrpc_wr_lock_unlocked_count = 0;
+	wrpc_wr_lock_calibration_fail_count = 0;
+	wrpc_wr_lock_enable_count = 0;
+	wrpc_wr_lock_last_result = 0;
+
 	/* sfp match was done before so read calibration data */
 
 	wrpc_read_calibration_data(ppi,
@@ -399,7 +456,34 @@ int wrc_ptp_update(void)
 		l = __recv_and_count(ppi, ppi->rx_frame, PP_MAX_FRAME_LENGTH - 4,
 				     &ppi->last_rcv_time);
 		if (l) {
+			uint8_t message_type = ((const uint8_t *)ppi->rx_ptp)[0] & 0x0f;
+			uint16_t foreign_before = ppi->frgn_rec_num;
+			/* rx_ptp 指向 PTP common header；低 4 bits 是 messageType。 */
+			switch (message_type) {
+			case PPM_SYNC:
+				wrpc_ptp_rx_sync_count++;
+				break;
+			case PPM_ANNOUNCE:
+				wrpc_ptp_rx_announce_count++;
+				break;
+			case PPM_FOLLOW_UP:
+				wrpc_ptp_rx_followup_count++;
+				break;
+			case PPM_SIGNALING:
+				wrpc_ptp_rx_signaling_count++;
+				break;
+			default:
+				break;
+			}
 			delay_ms = pp_state_machine(ppi, ppi->rx_ptp, l);
+			if (message_type == PPM_ANNOUNCE) {
+				wrpc_ptp_rx_announce_processed_count++;
+				wrpc_ptp_rx_announce_length =
+					((const uint8_t *)ppi->rx_ptp)[2] << 8 |
+					((const uint8_t *)ppi->rx_ptp)[3];
+				if (ppi->frgn_rec_num > foreign_before)
+					wrpc_ptp_rx_announce_added_count++;
+			}
 			return 1;
 		}
 	}

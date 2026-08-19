@@ -51,12 +51,12 @@ static void wrc_writel(struct mapping_desc *desc, unsigned reg, uint32_t value)
 
 static void wrc_cpu_reset(struct mapping_desc *desc, unsigned int rst)
 {
-	wrc_writel (desc, 0xc00 + WRC_CPU_CSR_REG_RESET, rst);
+	wrc_writel (desc, 0xd00 + WRC_CPU_CSR_REG_RESET, rst);
 }
 
 static void wrc_write_uaddr(struct mapping_desc *desc, unsigned int addr)
 {
-	wrc_writel(desc, 0xc00 + WRC_CPU_CSR_REG_UADDR, addr >> 2);
+	wrc_writel(desc, 0xd00 + WRC_CPU_CSR_REG_UADDR, addr >> 2);
 }
 
 static int wrc_write_buf(struct mapping_desc *desc,
@@ -77,7 +77,7 @@ static int wrc_write_buf(struct mapping_desc *desc,
 			| (buf[2] << 8)
 			| (buf[1] << 16)
 			| (buf[0] << 24);
-		wrc_writel(desc, 0xc00 + WRC_CPU_CSR_REG_UDATA, v);
+		wrc_writel(desc, 0xd00 + WRC_CPU_CSR_REG_UDATA, v);
 
 		if (verbose)
 			printf ("Write %08x at %08x\n", v, addr);
@@ -85,7 +85,7 @@ static int wrc_write_buf(struct mapping_desc *desc,
                 if (flag_check) {
                         uint32_t r;
                         wrc_write_uaddr(desc, addr);
-                        r = wrc_readl(desc, 0xc00 + WRC_CPU_CSR_REG_UDATA);
+                        r = wrc_readl(desc, 0xd00 + WRC_CPU_CSR_REG_UDATA);
                         if (r != v) {
                                 printf ("Error at %08x: "
                                         "read %08x instead of %08x\n",
@@ -173,7 +173,7 @@ static int wrc_save_firmware(struct mapping_desc *desc, const char *filename)
 		for (off = 0; off < l; off += 4) {
 			unsigned int v;
 			wrc_write_uaddr(desc, addr);
-			v = wrc_readl(desc, 0xc00 + WRC_CPU_CSR_REG_UDATA);
+			v = wrc_readl(desc, 0xd00 + WRC_CPU_CSR_REG_UDATA);
 			/* Use BE */
 			buf[off + 0] = v >> 24;
 			buf[off + 1] = v >> 16;
@@ -208,7 +208,7 @@ static void wrc_dump(struct mapping_desc *desc, unsigned addr, unsigned len)
 
 		wrc_write_uaddr(desc, addr + off);
 
-		v = wrc_readl(desc, 0xc00 + WRC_CPU_CSR_REG_UDATA);
+		v = wrc_readl(desc, 0xd00 + WRC_CPU_CSR_REG_UDATA);
 		printf (" %08x", v);
 		if ((off & 0x0f) == 0xc)
 			printf ("\n");

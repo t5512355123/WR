@@ -41,11 +41,11 @@ proc wb_write {addr data} {
 }
 
 proc read_snapshot {label} {
-  puts "${label}: [wb_write 0x00100B00 1]"
-  puts "${label}_UPTIME: [wb_write 0x00100B04 0x00000009]; [wb_read 0x00100B08]"
-  puts "${label}_VERSION: [wb_write 0x00100B04 0x0000000A]; [wb_read 0x00100B08]"
-  puts "${label}_STATIC: [wb_write 0x00100B04 0x00000006]; [wb_read 0x00100B08]"
-  puts "${label}_CPU_RELEASE: [wb_write 0x00100B00 0]"
+  puts "${label}: [wb_write 0x00100D00 1]"
+  puts "${label}_UPTIME: [wb_write 0x00100D04 0x00000009]; [wb_read 0x00100D08]"
+  puts "${label}_VERSION: [wb_write 0x00100D04 0x0000000A]; [wb_read 0x00100D08]"
+  puts "${label}_STATIC: [wb_write 0x00100D04 0x00000006]; [wb_read 0x00100D08]"
+  puts "${label}_CPU_RELEASE: [wb_write 0x00100D00 0]"
 }
 
 foreach hardware_name [get_hardware_names] {

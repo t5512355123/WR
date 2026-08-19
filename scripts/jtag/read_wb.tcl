@@ -85,20 +85,20 @@ foreach hardware_name [get_hardware_names] {
     puts "SPLL_OCCR:    [wb_read 0x00100210]"
     puts "SYSC_RSTR:    [wb_read 0x00100400]"
     puts "SYSC_GPSR:    [wb_read 0x00100404]"
-    puts "CPU_RESET:    [wb_read 0x00100B00]"
-    puts "CPU_DBGSTAT:  [wb_read 0x00100B80]"
-    puts "CPU_DBGFORCE: [wb_read 0x00100B84]"
-    puts "CPU_DBGREADY: [wb_read 0x00100B88]"
-    puts "CPU_MBX:      [wb_read 0x00100B90]"
+    puts "CPU_RESET:    [wb_read 0x00100D00]"
+    puts "CPU_DBGSTAT:  [wb_read 0x00100D80]"
+    puts "CPU_DBGFORCE: [wb_read 0x00100D84]"
+    puts "CPU_DBGREADY: [wb_read 0x00100D88]"
+    puts "CPU_MBX:      [wb_read 0x00100D90]"
     # The CPU IRAM host mux is selected only while the CPU reset bit is set.
     # Hold the CPU briefly so UADDR really selects IRAM address zero, then
     # release it so the firmware can restart normally.
-    puts "CPU_HOLD:     [wb_write 0x00100B00 1]"
-    puts "CPU_UADDR_WR: [wb_write 0x00100B04 0]"
-    puts "CPU_IRAM0:    [wb_read_twice 0x00100B08]"
-    puts "CPU_UADDR_STAGE: [wb_write 0x00100B04 $::boot_stage_word]"
-    puts "CPU_BOOT_STAGE:  [wb_read_twice 0x00100B08]"
-    puts "CPU_RELEASE:  [wb_write 0x00100B00 0]"
+    puts "CPU_HOLD:     [wb_write 0x00100D00 1]"
+    puts "CPU_UADDR_WR: [wb_write 0x00100D04 0]"
+    puts "CPU_IRAM0:    [wb_read_twice 0x00100D08]"
+    puts "CPU_UADDR_STAGE: [wb_write 0x00100D04 $::boot_stage_word]"
+    puts "CPU_BOOT_STAGE:  [wb_read_twice 0x00100D08]"
+    puts "CPU_RELEASE:  [wb_write 0x00100D00 0]"
   } error_message]} {
     puts "error: ${error_message}"
   }

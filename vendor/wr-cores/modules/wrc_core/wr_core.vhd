@@ -50,10 +50,11 @@
 --      0x500: UART
 --      0x600: OneWire
 --      0x800: WRPC diagnostics registers (for user)
---      0x900: WRPC diagnostics registers (for firmware)
---      0xb00: freq monitor
---      0xc00: cpu csr
---      0xd00: secbar sdb
+--      0x900: unused alignment gap
+--      0xa00: WRPC diagnostics registers (for firmware)
+--      0xc00: freq monitor
+--      0xd00: cpu csr
+--      0xe00: secbar sdb
 --      0x8000: Auxillary space (Etherbone config, etc)
 
 library ieee;
@@ -445,14 +446,14 @@ architecture struct of wr_core is
      5  => f_sdb_embed_device(c_wrc_periph1_sdb,  x"00000500"),  -- UART
      6  => f_sdb_embed_device(c_wrc_periph2_sdb,  x"00000600"),  -- 1-Wire
      7  => f_sdb_embed_device(c_wrc_periph4_sdb,  x"00000800"),  -- wdiag (usr)
-     8  => f_sdb_embed_device(c_wrc_periph5_sdb,  x"00000900"),  -- wdiag (cpu)
-     9  => f_sdb_embed_device(c_wrc_periph6_sdb,  x"00000b00"),  -- freq mon
-     10 => f_sdb_embed_device(c_wrc_cpu_csr_sdb,  x"00000c00"),  -- cpu csr
-     --                     secbar sdb            x"00000d00"
+     8  => f_sdb_embed_device(c_wrc_periph5_sdb,  x"00000a00"),  -- wdiag (cpu)
+     9  => f_sdb_embed_device(c_wrc_periph6_sdb,  x"00000c00"),  -- freq mon
+     10 => f_sdb_embed_device(c_wrc_cpu_csr_sdb,  x"00000d00"),  -- cpu csr
+     --                     secbar sdb            x"00000e00"
      11 => f_sdb_embed_device(g_aux_sdb,          x"00008000")   -- aux WB bus
    );
 
-  constant c_secbar_sdb_address : t_wishbone_address := x"00000D00";
+  constant c_secbar_sdb_address : t_wishbone_address := x"00000E00";
   constant c_secbar_bridge_sdb  : t_sdb_bridge       :=
     f_xwb_bridge_layout_sdb(true, c_secbar_layout, c_secbar_sdb_address);
 

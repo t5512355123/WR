@@ -54,7 +54,7 @@
 --      0xa00: WRPC diagnostics registers (for firmware)
 --      0xc00: freq monitor
 --      0xd00: cpu csr
---      0xe00: secbar sdb
+--      0x1000: secbar sdb
 --      0x8000: Auxillary space (Etherbone config, etc)
 
 library ieee;
@@ -449,11 +449,11 @@ architecture struct of wr_core is
      8  => f_sdb_embed_device(c_wrc_periph5_sdb,  x"00000a00"),  -- wdiag (cpu)
      9  => f_sdb_embed_device(c_wrc_periph6_sdb,  x"00000c00"),  -- freq mon
      10 => f_sdb_embed_device(c_wrc_cpu_csr_sdb,  x"00000d00"),  -- cpu csr
-     --                     secbar sdb            x"00000e00"
+     --                     secbar sdb            x"00001000"
      11 => f_sdb_embed_device(g_aux_sdb,          x"00008000")   -- aux WB bus
    );
 
-  constant c_secbar_sdb_address : t_wishbone_address := x"00000E00";
+  constant c_secbar_sdb_address : t_wishbone_address := x"00001000";
   constant c_secbar_bridge_sdb  : t_sdb_bridge       :=
     f_xwb_bridge_layout_sdb(true, c_secbar_layout, c_secbar_sdb_address);
 

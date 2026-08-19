@@ -7,7 +7,7 @@
 - 實驗名稱：修正 DCO request 跨分頻 I2C 時脈的握手
 - Git branch：`exp/step4-softpll-enable`
 - 功能變更 commit：`2cf8276769301c195e63aff76caf18082be8688d`
-- 實驗狀態：exact commit 已 clean build、program；等待燒錄後 runtime 驗證
+- 實驗狀態：**NOT PASS**；exact commit 已 clean build、program，runtime 未重現 Step 2 role baseline
 
 ## 這次想驗證什麼
 

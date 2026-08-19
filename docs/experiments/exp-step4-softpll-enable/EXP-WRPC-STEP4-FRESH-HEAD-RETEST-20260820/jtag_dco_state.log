@@ -1,0 +1,32 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Aug 20 01:47:39 2026
+Info: Command: quartus_stp -t scripts/jtag/read_dco_state.tcl 1000
+Info: Quartus(args): 1000
+DCO_STATE_CONFIG gap_ms=1000
+=== DE5 [1-11.1] ===
+error: ERROR: No In-System Sources and Probes instance was found.
+
+=== DE5 [1-11.2] ===
+DCO_STATE A=0000000000000020 (rt_state=0 bus_state=0 bus_done=0 ready=1 start=0 enable=0 dpll_load=0 hpll_load=0 error=0 busy=0 steps=0 hold=0) B=0000000000000020 (rt_state=0 bus_state=0 bus_done=0 ready=1 start=0 enable=0 dpll_load=0 hpll_load=0 error=0 busy=0 steps=0 hold=0)
+Info (23030): Evaluation of Tcl script scripts/jtag/read_dco_state.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Thu Aug 20 01:47:40 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

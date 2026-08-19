@@ -110,11 +110,17 @@ proc read_sample {hardware_name label} {
         $tag_pending_ref_count $tag_pending_fb_count $tag_pending_last_tics]
   puts [format "EVENT_CHAIN_LAST: GRANT=%s VALID=%s TRR=%s" \
         $tag_grant_last_tics $tag_valid_last_tics $trr_write_last_tics]
-  puts [format "EVENT_CHAIN_DMTD_STATE: VALUE=%s REF_STATE=%d FB_STATE=%d REF_RESET=%d FB_RESET=%d" \
-        $dmtd_state [expr {($dmtd_state & 0x3)}] \
-        [expr {(($dmtd_state >> 2) & 0x3)}] \
-        [expr {(($dmtd_state >> 8) & 0x1)}] \
-        [expr {(($dmtd_state >> 9) & 0x1)}]]
+  set dmtd_state_word 0
+  if {[scan $dmtd_state %x dmtd_state_word] == 1} {
+    puts [format "EVENT_CHAIN_DMTD_STATE: VALUE=%s REF_STATE=%d FB_STATE=%d REF_RESET=%d FB_RESET=%d" \
+          $dmtd_state [expr {($dmtd_state_word & 0x3)}] \
+          [expr {(($dmtd_state_word >> 2) & 0x3)}] \
+          [expr {(($dmtd_state_word >> 8) & 0x1)}] \
+          [expr {(($dmtd_state_word >> 9) & 0x1)}]]
+  } else {
+    puts [format "EVENT_CHAIN_DMTD_STATE: VALUE=%s REF_STATE=NA FB_STATE=NA REF_RESET=NA FB_RESET=NA" \
+          $dmtd_state]
+  }
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
   puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \

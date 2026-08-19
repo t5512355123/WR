@@ -8,7 +8,7 @@
 
 ## 目前結論
 
-目前已經有足夠 JTAG 證據證明：
+目前已經由 current branch 的 fresh HEAD 完成 firmware build、clean Quartus compile、雙板 programming 與 30 秒 JTAG time-series，並有足夠證據證明：
 
 - QSFP-A lane 0 的 PHY/link baseline 可工作。
 - Endpoint identity 已分離，兩端 MAC 分別為 `02:00:22:33:44:01` 與 `02:00:22:33:44:02`。
@@ -16,7 +16,7 @@
 - Master/Slave 的 PPSI-level PTP RX/TX counter 有活動。
 - Slave `FOREIGN_META=0x03000001`，表示已找到一筆 foreign master record，並讀到 parent WR configuration。
 
-這些證據足以讓 **Endpoint / MiniNIC / PTP packet path（Step 2）判定為 PASS**。但是 Slave `PSTAT.locked=0`、`status_probe bit 4 time_valid=0`，所以目前不能宣稱 White Rabbit timing synchronization 已完成。
+這些 fresh HEAD 證據足以讓 **Endpoint / MiniNIC / PTP packet path（Step 2）判定為 PASS**。但是 Slave `PSTAT.locked=0`、`status_probe bit 4 time_valid=0`，所以目前不能宣稱 White Rabbit timing synchronization 已完成。
 
 ## 六步 milestone
 
@@ -29,12 +29,12 @@
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
-## 2026-08-19 JTAG 證據摘要
+## 2026-08-19 fresh HEAD JTAG 證據摘要
 
 | 節點 | MODE | WDIAGS_PTP | MAC | WDIAGS_PTP_RX | WDIAGS_PTP_TX | WDIAGS_FOREIGN_META |
 |---|---:|---:|---|---:|---:|---:|
-| Master | 2 | 6 | `02:00:22:33:44:01` | `0x11042` | `0x267C0` | 未提供 |
-| Slave | 3 | 9 | `02:00:22:33:44:02` | `0x267BF` | `0x062C2` | `0x03000001` |
+| Master | 2 | 6 | `02:00:22:33:44:01` | `0xB1`（snapshot） | `0x186`（snapshot） | 未提供 |
+| Slave | 3 | 9 | `02:00:22:33:44:02` | `0x174`（snapshot） | `0x7D`（snapshot） | `0x03000001` |
 
 ### 證據界線
 
@@ -46,12 +46,12 @@
 
 ## 來源與硬體 provenance
 
-目前恢復成功的硬體實驗使用 historical `c88cc05` clean SOF，而不是目前 branch HEAD 的 fresh build。保存的 artifact hash：
+先前的恢復成功實驗使用 historical `c88cc05` clean SOF；本次 Step 2 milestone 則已改用 current branch fresh HEAD 的 SOF。兩者必須分開解讀。current fresh build provenance 如下：
 
 | 節點 | SOF SHA256 | programmer checksum | MIF SHA256 |
 |---|---|---|---|
-| Master | `f565c0a209cf1567f048df25b0f3312e9db4bf45a3fc46914a87efefbf2b1abf` | `0x30A0A429` | `0705b4be17ed742fbd32860de8a8cbbebf91285c71e0e54465516a59e1b2dc7a` |
-| Slave | `926d4a57f50dce0e39e437af7eba164a8ca1ec327c989b59d5f6480a038eb2cb` | `0x30A5A091` | `dbc19106386ebca90f3460309a8b41f09e5bde0694b91484e527ed4a56ef9d35` |
+| Master | `79cfac62ebfe86f338e5e79c6500956b6f3a06247c422508d5542f8b5912da1d` | `0x30A3010A` | `0d2e5a9468edc8fc7655c210c77e8122c5a980af5e66fa7f85ddfc319c2c5fb2` |
+| Slave | `8b5c6652fafabf2f3a6bc0fe0b870c643a6a03dfaf0f419ff52ae32475ae4dee` | `0x30A3C3D7` | `9b0cd0b6f70e5ce752cb93cd29ec333e3b8d73635c72b0f267fad17c6149fb58` |
 
 每次新的 runtime log 都要記錄：實際 SOF SHA256、SOF 來源 commit/branch、Master/Slave MIF SHA256、Quartus 版本、programmer checksum，以及 JTAG decode script 的 commit 或 blob SHA256。
 
@@ -63,11 +63,10 @@
 - `STATUS.md`
 - `docs/MERGE_READINESS.md`
 
-本次沒有 compile、program、燒錄 FPGA，也沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control。因此本次不是新的硬體實驗，不會宣稱任何新的硬體成功。
+本次文件更新沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control；fresh HEAD 的硬體實驗與原始輸出已在 `EXP-WRPC-STEP2-DCO-RESTORE-20260819.md` 記錄。
 
 ## 下一步
 
-1. 先完成 current HEAD 的 fresh build，保存 Master/Slave MIF 與 SOF hash。
-2. 以 fresh HEAD SOF 重新燒錄兩片 DE5a，再執行 read-only JTAG runtime script。
-3. 比較 fresh HEAD 與 historical c88cc05 的 `MODE`、`PTP`、PTP counters、foreign/parent metadata、`PSTAT.locked` 與 `time_valid`。
-4. 在 fresh HEAD runtime reproduction 完成前，維持 merge readiness 為 `NOT READY TO MERGE`。
+1. 等待研究者 review Step 2 milestone 的 raw logs 與 acceptance table。
+2. 經確認後再 merge 到 `main`；不要在未確認前刪除本研究分支。
+3. Step 3 另行研究 WR parent/signaling，保留 `PSTAT.locked=0` 與 `time_valid=0` 的現況證據。

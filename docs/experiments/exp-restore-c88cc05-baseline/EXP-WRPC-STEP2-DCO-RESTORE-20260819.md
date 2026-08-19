@@ -6,7 +6,7 @@
 - 日期：2026-08-19（Asia/Taipei）
 - Git branch：`exp/restore-c88cc05-baseline`
 - 功能修改 commit：`a427ed3f61a54a704c46cf1e0f650ef591f35de1`
-- 實驗狀態：fresh firmware 與 clean Quartus 已完成；待雙板燒錄與 JTAG 驗證
+- 實驗狀態：fresh firmware、clean Quartus、雙板燒錄與 JTAG runtime 驗證完成
 
 ## 實驗名稱
 
@@ -41,7 +41,7 @@
 
 ## 來源與建置規劃
 
-本輪必須由 exact commit `a427ed3` 之後的最新 branch HEAD，在 pain 隔離 checkout 重新完成：
+本輪已由 exact commit `054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00` 在 pain 隔離 checkout 完成：
 
 1. firmware fresh build，重新產生 Master/Slave MIF。
 2. Quartus 17 clean compile，重新產生 Master/Slave SOF。
@@ -49,10 +49,7 @@
 4. programming 後立即保存完整 programmer output。
 5. 等待 30～60 秒後執行 JTAG snapshot 與 time-series。
 
-以下欄位待燒錄與 runtime 驗證後補入：
-
-- programmer checksum 與原始 programming log。
-- JTAG snapshot、30～60 秒 time-series 原始檔與 SHA-256。
+本輪所有 provenance 欄位均已補齊；historical `c88cc05` SOF 僅作行為參考，沒有用來完成本輪驗證。
 
 ## Fresh firmware / Quartus 建置證據
 
@@ -83,7 +80,7 @@
 - 原始 programmer log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/program_master.log`。
 - Programmer log SHA-256：`004fc1176f2d74360992eb125a980018a133044ffebb9c5374f1533be11480c3`。
 
-Master 燒錄已成功，尚未據此宣稱 runtime 或 Step 2 通過；Slave 尚待使用同一 fresh build provenance 燒錄。
+Master fresh SOF 燒錄成功；Step 2 結論仍以雙板 runtime acceptance 為準。
 
 ## Slave 燒錄結果
 
@@ -97,12 +94,45 @@ Master 燒錄已成功，尚未據此宣稱 runtime 或 Step 2 通過；Slave �
 - 原始 programmer log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/program_slave.log`。
 - Programmer log SHA-256：`8dbbb74cfc56a1c0032f123d7c7ab31b0373b3354148c8724d6f22b6bdf86ef5`。
 
-雙板 fresh SOF 燒錄均成功；接著只做唯讀 JTAG runtime 驗證。
+雙板 fresh SOF 燒錄均成功，接著完成唯讀 JTAG runtime 驗證。
 
-## 目前結論
+## Fresh HEAD JTAG runtime 驗證
 
-目前可宣稱 exact HEAD 的 firmware、Quartus compile 與雙板 programming 通過；Step 2 runtime acceptance 尚待驗證。
+- Snapshot 原始 log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/runtime_snapshot.log`。
+- Snapshot SHA-256：`a511764fa64eae7d580d28fd77f59cd33735aefdf16f7a8cfdde6a4d465851f9`。
+- 30 秒時序原始 log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/runtime_timeseries_30s.log`。
+- 30 秒時序 SHA-256：`8cdb432c69a740a830de32bae0733f64b4caefdff0d8ae674d92b1ed7eb85926`。
+- JTAG snapshot script：`scripts/jtag/read_wb_runtime.tcl`，blob SHA-1=`dae2d85faebb479d57a1732b71d0a997147dd289`。
+- JTAG time-series script：`scripts/jtag/read_wb_timeseries_session.tcl`，blob SHA-1=`2fd15298b748be97ca0e2811fa9e7afd28dedf36`。
+- Quartus STP：`Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings`。
+- 30 秒時序：Master 30/30 筆 accepted，Slave 30/30 筆 accepted；部分 mailbox frame 因跨 register snapshot 不一致而重試，accepted sample 仍完整通過驗證。時序 log 中共觀察到 9 次需要重試的 invalid frame，未將它們誤算為功能失敗。
+
+### Snapshot 關鍵結果
+
+| Gate | Master | Slave | 判定 |
+|---|---|---|---|
+| CPU runtime | `reset=0, fault=0, im_valid=1, marker=B004` | `reset=0, fault=0, im_valid=1, marker=B004` | PASS |
+| PHY/link | healthy、`RXERR=0` | healthy、`RXERR=0` | PASS |
+| Endpoint MAC | `02:00:22:33:44:01` | `02:00:22:33:44:02` | PASS |
+| MiniNIC frame activity | `WDIAGS_TX/RX` 有活動 | `WDIAGS_TX/RX` 有活動 | PASS |
+| PPSI PTP activity | `PTP_RX=0xB1, PTP_TX=0x186` | `PTP_RX=0x174, PTP_TX=0x7D` | PASS |
+| PTP role | `MODE=2, PTP=6 (PPS_MASTER)` | `MODE=3, PTP=9 (PPS_SLAVE)` | PASS |
+| Foreign Master | 不適用 | `FOREIGN_META=03000001`，解碼為 count=1、best=0 | PASS |
+
+### 證據界線
+
+本輪只驗證 Step 2 Endpoint / MiniNIC / PTP packet path。Slave 的 `PSTAT.locked=0`、`time_valid=0` 仍表示 WR timing synchronization 尚未完成；這是 Step 3～5 的後續工作，不是本輪 Step 2 failure。時序中可見 Slave 的 foreign master metadata 與 PTP counters 持續存在，支持 parent discovery 與 PTP packet path 已穩定運作。
+
+## 結論
+
+本輪已由 build checkout exact HEAD `054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00` 產生 fresh firmware/MIF 與 clean Quartus SOF，並完成雙板 programming 與 30 秒 read-only JTAG time-series。所有 Step 2 acceptance gates 均有 fresh HEAD 證據支持：
+
+> **Step 2 Endpoint / MiniNIC / PTP packet path = PASS**
+
+這個結論不延伸為 White Rabbit 完整時間同步成功；`PSTAT.locked=0` 與 `time_valid=0` 必須保留在後續 Step 3～5 研究範圍。
 
 ## Next Step
 
-在 pain 的 `/home/b10504072/04_WR_step2_head` 以 exact commit 建置，完成 clean compile、雙板 programming，並依 Step 2 acceptance gates 記錄結果。若 role 或 foreign master 仍失敗，保留本次失敗證據，不再擴大修改範圍。
+1. 將本紀錄與 `STATUS.md`、`docs/MERGE_READINESS.md` 提交至 `exp/restore-c88cc05-baseline`。
+2. 等待研究者確認後，才執行 merge 到 `main`；本輪不自行 merge。
+3. Merge 後另開 Step 3 branch，研究 WR parent/signaling，不修改本輪已驗證的 Step 2 行為。

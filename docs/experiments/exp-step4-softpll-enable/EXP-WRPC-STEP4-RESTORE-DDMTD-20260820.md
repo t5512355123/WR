@@ -148,6 +148,16 @@ Master 的 DCO probe 在本實驗 bitstream 沒有 instance，`read_dco_state.tc
 
 - `jtag_wr_handshake_focused_step4_dmtd_default_20260820.log`
 
+## Source / runtime 對照
+
+source audit 顯示：
+
+- `state-wr-present.c` 收到 Master 的 `LOCK` 後才會把 `wrp->next_state` 設為 `WRS_S_LOCK`。
+- `state-wr-s-lock.c` 進入 `WRS_S_LOCK` 時才會呼叫 `WRH_OPER()->locking_enable(ppi)`。
+- DE5a 的 `wrpc_spll_locking_enable()` 會執行 `spll_init(SPLL_MODE_SLAVE, ...)`、開啟 ptracker 並初始化 T24 calibration。
+
+因此 `LOCK_ENABLE=4` 只能證明曾經有 enable 嘗試，不能代替目前 WR state 已進入 `WRS_S_LOCK` 的證據。focused 20 samples 的 Slave `local_state=0/next_state=0`，而 `parentWrModeOn` 僅有一筆 sample 為 1、其餘為 0；目前第一個可觀察 blocker 是 WR signaling 沒有穩定完成 `WRS_PRESENT -> WRS_S_LOCK`，所以後續不應先把問題歸因到 DCO I2C controller。
+
 ## Observation
 
 1. 移除反向 DDMTD 設定後，Master 從前一輪的 `MODE=3/PTP=4` 恢復為 `MODE=2/PTP=6`；這支持 `g_softpll_reverse_dmtds => true` 是前一輪 Master role 失敗的優先可疑變因。

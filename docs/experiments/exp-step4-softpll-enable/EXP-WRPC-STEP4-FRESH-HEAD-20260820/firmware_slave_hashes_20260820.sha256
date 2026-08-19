@@ -1,0 +1,5 @@
+454ed25e420d2974ad409db65efe7b08218dc32b1b64c6e4a0d466a3104b802d  /home/b10504072/04_WR/build/firmware/slave/wrc.elf
+0756b2f5693a88513cd8c2c578485f440addd0ceaa7d0f9977bc855902a6f6d9  /home/b10504072/04_WR/build/firmware/slave/wrc.bin
+648bd967b38d05d7a705f9abbd98302bd637a271b9dcde1542f87a71ae3f972f  /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/firmware/configs/de5a_slave_defconfig
+33ded2dc62811525a395d12a5a396dda1553339119eba2f37c86cf8cf4639d55  /home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h

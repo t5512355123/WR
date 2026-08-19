@@ -87,24 +87,63 @@ pain 是從 GitHub 的 exact commit `4d96eb4c5e9e73276dca45853a4995a7657e459` �
 
 ## JTAG runtime 原始結果
 
-燒錄後立即補入：
+燒錄後以 exact commit 產生的 fresh SOF 進行 read-only 觀測。原始輸出已保存於同一實驗附件目錄：
 
-- `read_wb_runtime.tcl` 原始輸出：待補
-- time-series 原始輸出：待補
-- DCO correlation 原始輸出：待補
+- `read_wb_runtime.tcl` 原始輸出：`jtag_runtime_after_program.log`
+- DCO state 原始輸出：`jtag_dco_state_after_program.log`
+- HPLL/helper correlation 原始輸出：`jtag_hpll_helper_correlation_after_program.log`
+
+燒錄後 snapshot 的關鍵結果如下：
+
+| 項目 | DE5 [1-11.1] | DE5 [1-11.2] | 判讀 |
+|---|---:|---:|---|
+| CPU reset/fault/im_valid | `0/0/1` | `0/0/1` | 兩邊 CPU runtime 存活 |
+| boot marker | `B004`, seen=1 | `B004`, seen=1 | firmware 已執行 |
+| status PHY/link | `...82EF` | `...82EF` | snapshot 顯示共同 link/PHY 基本狀態，但仍需沿用 decode script 解碼 |
+| MAC | `02:00:22:33:44:01` | `02:00:02:00:00:02` | Slave 不是預期的 `02:00:22:33:44:02` |
+| WDIAGS_MODE | `3` | `3` | Master 未進入預期的 `2` |
+| WDIAGS_PTP | `4` | `2` | 未得到預期 `PPS_MASTER=6` / `PPS_SLAVE=9` |
+| PTP RX/TX | `0x141/0xA8` | `0xA8/0x131` | PTP counter 有活動，但 role 不符合 baseline |
+| WDIAGS_FOREIGN_META | `0x0000FF01` | `0x00000001` | 本列不能當作已建立 Step 2 Foreign Master 的 baseline 證據 |
+| MiniNIC TX/RX | `0x1D8/0x230` | `0x25F/0x194` | frame-level counter 有活動 |
+
+DCO state 唯讀結果：
+
+```text
+DE5 [1-11.1]: No In-System Sources and Probes instance was found.
+DE5 [1-11.2]: A=0x0000000000000020, B=0x0000000000000020
+rt_state=0 bus_state=0 bus_done=0 ready=1 start=0 enable=0
+dpll_load=0 hpll_load=0 error=0 busy=0 steps=0 hold=0
+```
+
+HPLL/helper correlation 在 Slave 連續 10 個 sample 中保持：
+
+```text
+UCNT=0 LOCK_ENABLE=0 SPLL_STATE=0 REF=0 TAG=0 IRQ=0
+TAG_VALID=0 TRR_WRITE=0 STEP=0 STEP_DELTA=0
+HPLL_LOAD=0 BUSY=0 ERROR=0
+```
+
+其中 raw `TAG_SOURCE` 會變動，但 `TAG`、`REF`、`UCNT` 與 DCO completed step 沒有形成可接受的活動證據；不能把它誤判成 SoftPLL 已 enable。
 
 至少記錄 Master/Slave 的 CPU marker、PHY/link、MAC、MODE、PTP、Foreign Master、`LOCK_ENABLE`、`SPLL_STATE`、`REF/TAG/IRQ/TAG_VALID/TRR_WRITE/UCNT`、`DCO_DEBUG`、`STEP`、`BUSY`、`ERROR` 與 DAC shadow。
 
 ## Observation
 
-待 pain 完成 exact commit 的 clean build、program 與 JTAG observation 後補入。
+1. exact commit 的 fresh clean build 與雙板 program 均成功，沒有 reboot、stall 或連線中斷。
+2. 兩張板 CPU 都持續執行，marker=`B004`，`reset=0`、`fault=0`、`im_valid=1`。
+3. MiniNIC frame counter 與 PTP RX/TX counter 有數值，表示此 snapshot 仍能看到 runtime/封包路徑活動。
+4. 但是這次 fresh image 沒有重現已知 Step 2 role：Master 讀到 `MODE=3/PTP=4`，Slave 讀到 `MODE=3/PTP=2`，Slave MAC 也不符合預期唯一身份。
+5. Slave DCO probe 在 1 秒前後相同，10 秒 correlation 中 `LOCK_ENABLE=0`、`SPLL_STATE=0`、`UCNT=0`、`STEP=0`；沒有證據顯示本輪握手修正已讓 SoftPLL/DCO transaction 開始。
+6. 因為 role/MAC/MIF provenance 已先不符合 baseline，本次不能把 DCO 沒活動單獨歸因於握手修正，也不能宣稱 Step 4 blocker 已被定位。
 
 ## Conclusion
 
-目前只能確認 source-level 的單一握手變因已提交、push，不能在未燒錄前宣稱 Step 4 通過。
+本次結論為 **NOT PASS / 需要先處理 role/MIF provenance 回歸**。證據支持「exact HEAD 可以 clean compile、program，且 CPU/runtime 有活動」，但不支持 Step 2 role baseline，也不支持 Step 4 SoftPLL channel 已 enable 或 DCO request 已完成。這次不能宣稱 `DCO request 握手` 修正有效，也不能從這份結果推論 SoftPLL 演算法或光路是根因。
 
 ## Next Step
 
 1. 已完成 exact commit 的 clean firmware build、`quartus_sh --clean`、Master/Slave clean compile。
 2. 已完成兩張板的 program，接著只做 read-only JTAG snapshot 與 time-series。
-3. 依 JTAG 實測判斷這個握手修正是否讓 DCO request/transaction/step activity 恢復；不以 `PSTAT.locked=1` 作為本輪必要條件。
+3. 暫停新的燒錄與 functional 修改，先在本機 audit Master/Slave firmware startup role、MIF 產生來源、MAC 設定與 programming script 的 exact input，並和 `c88cc05`/`9f848ec` known-good provenance 逐項比對。
+4. 只有重新建立正確的 Master=`MODE=2/PTP=6`、Slave=`MODE=3/PTP=9`、唯一 MAC 的 fresh image 後，才重新評估本輪 DCO request 握手變因。

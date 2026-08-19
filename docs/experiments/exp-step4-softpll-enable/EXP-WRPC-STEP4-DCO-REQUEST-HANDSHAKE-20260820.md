@@ -7,7 +7,7 @@
 - 實驗名稱：修正 DCO request 跨分頻 I2C 時脈的握手
 - Git branch：`exp/step4-softpll-enable`
 - 功能變更 commit：`2cf8276769301c195e63aff76caf18082be8688d`
-- 實驗狀態：已提交並 push；等待 pain 以此 exact commit clean build、program 與 runtime 驗證
+- 實驗狀態：exact commit 已 clean build、program；等待燒錄後 runtime 驗證
 
 ## 這次想驗證什麼
 
@@ -62,16 +62,28 @@ rt_state=2  bus_state=0  STEP=0
 
 ## 建置與燒錄 provenance
 
-本節由 pain 以 exact commit 建置後補入；若 compile 失敗或未燒錄，也要保留結果，不得寫成硬體成功。
+pain 是從 GitHub 的 exact commit `4d96eb4c5e9e73276dca45853a4995a7657e459` 建置；沒有使用 historical SOF。兩張板都先執行 clean build，Quartus fit 成功，但 timing 尚未 closure，這個限制必須與功能觀察分開記錄。
 
-- Quartus version：待補
-- Master MIF SHA256：待補
-- Slave MIF SHA256：待補
-- Master SOF SHA256：待補
-- Slave SOF SHA256：待補
-- Master programmer checksum：待補
-- Slave programmer checksum：待補
-- build/program 原始 log：待補
+- Git branch：`exp/step4-softpll-enable`
+- Git HEAD：`4d96eb4c5e9e73276dca45853a4995a7657e459`
+- Quartus version：`Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition`
+- Master QSF SHA256：`cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f`
+- Slave QSF SHA256：`c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437`
+- 共用 SDC SHA256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`
+- Master MIF SHA256：`5ab5d5f797c056ceac7a371786dd2647ce75be5cd3b8658a3d29479c64c9b857`
+- Slave MIF SHA256：`3d3c351b616d80bb49ad11869a1c09cde7cf9209ff154f4102b2da24afdf3982`
+- Master SOF SHA256：`e0ef350b260034c7d4c2abe24bde330ee368f7f50f3b3973953966d2c6ae0ffa`
+- Slave SOF SHA256：`88940c4788c7a09ade00c81736155d1404d9fe2a5c152085f6cae60441e8b770`
+- Master compile：`Full Compilation was successful`；worst setup slack `-0.180 ns`；worst hold slack `-3.468 ns`
+- Slave compile：`Full Compilation was successful`；worst setup slack `-0.176 ns`；worst hold slack `-3.488 ns`
+- Master programmer checksum：`0x30A36FF4`；`Configuration succeeded`；`0 errors, 0 warnings`
+- Slave programmer checksum：`0x309E949B`；`Configuration succeeded`；`0 errors, 0 warnings`
+- 原始附件目錄：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-DCO-REQUEST-HANDSHAKE-20260820/`
+- build log：`build_jtag_master.log`、`build_jtag_slave.log`
+- hash/build info：`sof_mif_hashes_20260820.txt`、`build_info_jtag_master.txt`、`build_info_jtag_slave.txt`
+- programmer log：`program_jtag_master_20260820.log`、`program_jtag_slave_20260820.log`
+
+本次沒有執行 reboot，也沒有觀察到 stall 或連線中斷。
 
 ## JTAG runtime 原始結果
 
@@ -93,7 +105,6 @@ rt_state=2  bus_state=0  STEP=0
 
 ## Next Step
 
-1. pain 從 GitHub fetch 並 checkout `2cf8276769301c195e63aff76caf18082be8688d`。
-2. clean firmware build、`quartus_sh --clean`、Master/Slave clean compile。
-3. 保存 MIF/SOF hash 與完整 programmer output。
-4. 燒錄後立即補齊本紀錄，再執行 read-only JTAG snapshot 與 time-series。
+1. 已完成 exact commit 的 clean firmware build、`quartus_sh --clean`、Master/Slave clean compile。
+2. 已完成兩張板的 program，接著只做 read-only JTAG snapshot 與 time-series。
+3. 依 JTAG 實測判斷這個握手修正是否讓 DCO request/transaction/step activity 恢復；不以 `PSTAT.locked=1` 作為本輪必要條件。

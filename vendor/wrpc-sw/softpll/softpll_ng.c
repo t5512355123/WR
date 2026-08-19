@@ -61,9 +61,17 @@ volatile int32_t wrpc_spll_helper_p_adder;
 volatile int32_t wrpc_spll_helper_tag_d0;
 volatile int32_t wrpc_spll_helper_p_setpoint;
 volatile int32_t wrpc_spll_helper_ref_src;
+volatile uint32_t wrpc_spll_init_count;
+volatile uint32_t wrpc_spll_clear_dacs_entry_count;
+volatile uint32_t wrpc_spll_last_init_tics;
+volatile uint32_t wrpc_spll_last_clear_dacs_tics;
 
 static inline void wrpc_spll_note_state(int state)
 {
+	if (state == SEQ_CLEAR_DACS && wrpc_spll_last_state != SEQ_CLEAR_DACS) {
+		wrpc_spll_clear_dacs_entry_count++;
+		wrpc_spll_last_clear_dacs_tics = timer_get_tics();
+	}
 	if (state >= 0 && state < 32)
 		wrpc_spll_state_visit_mask |= (uint32_t)1u << state;
 	wrpc_spll_last_state = (uint8_t)state;
@@ -339,6 +347,9 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 	int i;
 
 	struct softpll_state *s = (struct softpll_state *) &softpll;
+
+	wrpc_spll_init_count++;
+	wrpc_spll_last_init_tics = timer_get_tics();
 
 	disable_irq();
 

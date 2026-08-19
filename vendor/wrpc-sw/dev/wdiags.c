@@ -285,6 +285,22 @@ void wdiags_write_mapping_self_test(uint32_t counter)
 	wdiag_write(0x138, ~counter);
 }
 
+void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
+						uint32_t clear_dacs_count,
+						uint32_t current_tics,
+						uint32_t dac_timeout,
+						uint32_t last_init_tics,
+						uint32_t last_clear_dacs_tics)
+{
+	/* Read-only runtime context shadows. They never feed back into SoftPLL. */
+	wdiag_write(0x13c, current_tics);
+	wdiag_write(0x140, dac_timeout);
+	wdiag_write(0x144, init_count);
+	wdiag_write(0x148, clear_dacs_count);
+	wdiag_write(0x14c, last_init_tics);
+	wdiag_write(0x150, last_clear_dacs_tics);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

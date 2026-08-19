@@ -61,9 +61,9 @@ entity wrc_periph is
     g_diag_ver        : integer := 0;
     g_diag_ro_size    : integer := 0;
     g_diag_rw_size    : integer := 0;
-    -- Extra read-only words at offsets 0x100..0x138 hold DE5a
-    -- SoftPLL correlation diagnostics and the JTAG mapping self-test.
-    g_wdiags_num_words : integer := 79;
+    -- Extra read-only words at offsets 0x100..0x150 hold DE5a
+    -- SoftPLL correlation, mapping self-test and runtime-context diagnostics.
+    g_wdiags_num_words : integer := 85;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

@@ -212,4 +212,10 @@ extern volatile int32_t wrpc_spll_helper_tag_d0;
 extern volatile int32_t wrpc_spll_helper_p_setpoint;
 extern volatile int32_t wrpc_spll_helper_ref_src;
 
+/* Read-only runtime context counters; these never alter SoftPLL control. */
+extern volatile uint32_t wrpc_spll_init_count;
+extern volatile uint32_t wrpc_spll_clear_dacs_entry_count;
+extern volatile uint32_t wrpc_spll_last_init_tics;
+extern volatile uint32_t wrpc_spll_last_clear_dacs_tics;
+
 #endif // __SOFTPLL_NG_H

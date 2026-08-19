@@ -210,6 +210,13 @@ int wrc_wr_diags(void)
 					wrpc_spll_helper_p_setpoint,
 					wrpc_spll_helper_ref_src);
 			wdiags_write_mapping_self_test(++mapping_self_test_counter);
+			wdiags_write_wr_spll_runtime_debug(
+				wrpc_spll_init_count,
+				wrpc_spll_clear_dacs_entry_count,
+				timer_get_tics(),
+				softpll.dac_timeout,
+				wrpc_spll_last_init_tics,
+				wrpc_spll_last_clear_dacs_tics);
 		}
 	}
 

@@ -86,6 +86,8 @@ INVERSE_END = bitwise_not(COUNTER_END)
 
 - `jtag_wdiags_mapping_selftest_20260820_f5411fa.log`
 - decode script commit：`f5411fa23e694c61567ef98f87f0d7f6f04d2307`
+- `jtag_runtime_after_map_selftest_20260820.log`
+- `jtag_hpll_helper_step4_freshsof_20260820.log`（SHA256：`09A7E8949D9354BB8A84077445F6F3152DF4BBC7CA439C40FAB04C5C9B507A9C`）
 
 ## Observation
 
@@ -98,10 +100,23 @@ INVERSE_END = bitwise_not(COUNTER_END)
 
 第二次結果：Master 與 Slave 均出現 `begin_valid=1`、`end_valid=1`。Master BEGIN 的第一次讀列因 `MAGIC_B` 不完整而標為 `valid=0`，第二次重讀通過；其後 Master END 與 Slave 的 BEGIN/END 均通過。這表示原始問題是 Wishbone/JTAG 逐欄讀取時可能跨 refresh 的不一致列；重試判定可以排除該列，不能把 invalid 列拼接進結論。mapping self-test PASS 只代表新增欄位可被正確觀測，不代表 SoftPLL 已 lock。
 
+同一份 fresh SOF 的完整 runtime snapshot 仍保留 Step 1～3 證據：
+
+| Gate | Master | Slave | 判定 |
+|---|---|---|---|
+| CPU marker / reset / fault / im_valid | `B004 / 0 / 0 / 1` | `B004 / 0 / 0 / 1` | PASS |
+| MAC | `02:00:22:33:44:01` | `02:00:22:33:44:02` | PASS |
+| PTP role | `MODE=2, PTP=6` | `MODE=3, PTP=9` | PASS |
+| PTP RX/TX | `0x3F2 / 0x8AB` | `0x845 / 0x167` | 有活動 |
+| MiniNIC TX/RX | `0xB1B / 0x5F5` | `0x5F4 / 0xA1F` | 有活動 |
+| Foreign Master | 不適用 | `03000001` | PASS |
+
+同一份 30 秒 helper correlation 顯示 Slave `RCER=1`、`LOCK_ENABLE=4`，但 `REF/TAG/IRQ/TAG_VALID/TRR_WRITE/HELPER_UPDATE_COUNT` 全程為 0，`SPLL_STATE=00030009`、`STEP=0`、`DAC_HPLL=010003E8`、`DAC_MAIN=010002E8` 沒有主動校正活動；Master 沒有對應 correlation probe。這把 Step 4 的第一個 blocker 收斂在 raw reference/tag event 尚未進入 helper 的 A 類路徑，不能推論為 DCO actuator 故障。
+
 ## Conclusion
 
-雙板 mapping self-test PASS。這個實驗只證明新增 WDIAGS observability 的位址與 word mapping 可用，不代表 SoftPLL lock、`time_valid=1` 或 Step 4 PASS。
+雙板 mapping self-test PASS，且 Step 1～3 在同一份 fresh SOF 上仍可觀測到；但 Step 4 尚未 PASS。這個實驗證明新增 WDIAGS observability 的位址與 word mapping 可用，並提供了目前 raw event blocker 的證據，不代表 SoftPLL lock、`time_valid=1` 或 closed-loop convergence。
 
 ## Next Step
 
-使用同一份 fresh SOF 與已驗證的 mapping decode script，進行 raw helper arithmetic correlation；仍只讀取並保存 ref/tag/IRQ/TRR/helper/PI/DCO 相關欄位，不修改 SoftPLL algorithm 或 DCO functional behavior。
+下一步先與 White Rabbit 技術對話確認 A 類 blocker 的最小 read-only 分辨實驗，再只選一個 functional variable 做 A/B；在此之前不修改 PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法，也不宣稱 Step 4 完成。

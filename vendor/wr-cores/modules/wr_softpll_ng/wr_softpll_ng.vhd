@@ -219,6 +219,14 @@ architecture rtl of wr_softpll_ng is
       diag_tag_valid_last_tics_i : in std_logic_vector(31 downto 0);
       diag_trr_write_last_tics_i : in std_logic_vector(31 downto 0);
       diag_dmtd_state_i : in std_logic_vector(31 downto 0);
+      diag_tag_ref_enabled_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_feedback_enabled_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_req_ref_set_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_req_feedback_set_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_ref_enabled_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_feedback_enabled_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_req_ref_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_req_feedback_last_tics_i : in std_logic_vector(31 downto 0);
       regs_i     : in  t_spll_in_registers;
       regs_o     : out t_spll_out_registers);
   end component;
@@ -320,6 +328,14 @@ architecture rtl of wr_softpll_ng is
   signal diag_tag_grant_last_tics : unsigned(31 downto 0);
   signal diag_tag_valid_last_tics : unsigned(31 downto 0);
   signal diag_trr_write_last_tics : unsigned(31 downto 0);
+  signal diag_tag_ref_enabled_count : unsigned(31 downto 0);
+  signal diag_tag_feedback_enabled_count : unsigned(31 downto 0);
+  signal diag_tag_req_ref_set_count : unsigned(31 downto 0);
+  signal diag_tag_req_feedback_set_count : unsigned(31 downto 0);
+  signal diag_tag_ref_enabled_last_tics : unsigned(31 downto 0);
+  signal diag_tag_feedback_enabled_last_tics : unsigned(31 downto 0);
+  signal diag_tag_req_ref_last_tics : unsigned(31 downto 0);
+  signal diag_tag_req_feedback_last_tics : unsigned(31 downto 0);
 
   signal dmtd_event_sys : std_logic_vector(f_num_total_channels-1 downto 0);
   signal dmtd_ref_state : std_logic_vector(1 downto 0);
@@ -686,7 +702,15 @@ begin  -- rtl
       diag_tag_grant_last_tics_i => std_logic_vector(diag_tag_grant_last_tics),
       diag_tag_valid_last_tics_i => std_logic_vector(diag_tag_valid_last_tics),
       diag_trr_write_last_tics_i => std_logic_vector(diag_trr_write_last_tics),
-      diag_dmtd_state_i => diag_dmtd_state);
+      diag_dmtd_state_i => diag_dmtd_state,
+      diag_tag_ref_enabled_count_i => std_logic_vector(diag_tag_ref_enabled_count),
+      diag_tag_feedback_enabled_count_i => std_logic_vector(diag_tag_feedback_enabled_count),
+      diag_tag_req_ref_set_count_i => std_logic_vector(diag_tag_req_ref_set_count),
+      diag_tag_req_feedback_set_count_i => std_logic_vector(diag_tag_req_feedback_set_count),
+      diag_tag_ref_enabled_last_tics_i => std_logic_vector(diag_tag_ref_enabled_last_tics),
+      diag_tag_feedback_enabled_last_tics_i => std_logic_vector(diag_tag_feedback_enabled_last_tics),
+      diag_tag_req_ref_last_tics_i => std_logic_vector(diag_tag_req_ref_last_tics),
+      diag_tag_req_feedback_last_tics_i => std_logic_vector(diag_tag_req_feedback_last_tics));
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -847,6 +871,14 @@ begin  -- rtl
         diag_tag_grant_last_tics <= (others => '0');
         diag_tag_valid_last_tics <= (others => '0');
         diag_trr_write_last_tics <= (others => '0');
+        diag_tag_ref_enabled_count <= (others => '0');
+        diag_tag_feedback_enabled_count <= (others => '0');
+        diag_tag_req_ref_set_count <= (others => '0');
+        diag_tag_req_feedback_set_count <= (others => '0');
+        diag_tag_ref_enabled_last_tics <= (others => '0');
+        diag_tag_feedback_enabled_last_tics <= (others => '0');
+        diag_tag_req_ref_last_tics <= (others => '0');
+        diag_tag_req_feedback_last_tics <= (others => '0');
       else
         diag_current_tics <= diag_current_tics + 1;
         if dmtd_event_sys(0) = '1' then
@@ -879,10 +911,22 @@ begin  -- rtl
         if tags_p(0) = '1' then
           diag_tag_ref_count <= diag_tag_ref_count + 1;
           diag_tag_ref_last_tics <= diag_current_tics;
+          if rcer_int(0) = '1' then
+            diag_tag_ref_enabled_count <= diag_tag_ref_enabled_count + 1;
+            diag_tag_req_ref_set_count <= diag_tag_req_ref_set_count + 1;
+            diag_tag_ref_enabled_last_tics <= diag_current_tics;
+            diag_tag_req_ref_last_tics <= diag_current_tics;
+          end if;
         end if;
         if tags_p(g_num_ref_inputs) = '1' then
           diag_tag_feedback_count <= diag_tag_feedback_count + 1;
           diag_tag_feedback_last_tics <= diag_current_tics;
+          if ocer_int(0) = '1' then
+            diag_tag_feedback_enabled_count <= diag_tag_feedback_enabled_count + 1;
+            diag_tag_req_feedback_set_count <= diag_tag_req_feedback_set_count + 1;
+            diag_tag_feedback_enabled_last_tics <= diag_current_tics;
+            diag_tag_req_feedback_last_tics <= diag_current_tics;
+          end if;
         end if;
         if tag_valid = '1' then
           diag_tag_valid_count <= diag_tag_valid_count + 1;

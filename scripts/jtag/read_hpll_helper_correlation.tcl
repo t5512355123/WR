@@ -107,6 +107,14 @@ proc read_correlation_sample {hardware_name sample} {
   set helper_p_setpoint [wb_read 0x00100B24]
   set helper_ref_src [wb_read 0x00100B28]
   set ucnt [wb_read 0x00100A48]
+  set tag_ref_enabled [wb_read 0x001002E0]
+  set tag_feedback_enabled [wb_read 0x001002E4]
+  set tag_req_ref_set [wb_read 0x001002E8]
+  set tag_req_feedback_set [wb_read 0x001002EC]
+  set tag_ref_enabled_last_tics [wb_read 0x001002F0]
+  set tag_feedback_enabled_last_tics [wb_read 0x001002F4]
+  set tag_req_ref_last_tics [wb_read 0x001002F8]
+  set tag_req_feedback_last_tics [wb_read 0x001002FC]
 
   scan $status %x status_word
   scan $dco_debug %x dco_word
@@ -135,10 +143,13 @@ proc read_correlation_sample {hardware_name sample} {
     }
   }
 
-  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s UCNT=%s LOCK_POLLS=%s LOCK_ENABLE=%s SPLL_STATE=%s RCER=%s TRR_CSR=%s REF=%s TAG=%s IRQ=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s DAC_HPLL=%s DAC_MAIN=%s RAW_TAG=%s EXPECTED_TAG=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%d TAG_DELTA=%s TAG_SOURCE_RAW=%s EXPECTED_DELTA=%s HELPER_UPDATE_COUNT=%s P_ADDER=%s TAG_D0=%s P_SETPOINT=%s REF_SRC=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
+  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s UCNT=%s LOCK_POLLS=%s LOCK_ENABLE=%s SPLL_STATE=%s RCER=%s TRR_CSR=%s REF=%s TAG=%s IRQ=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s GATE_REF_EN=%s GATE_FB_EN=%s GATE_REF_REQ=%s GATE_FB_REQ=%s GATE_REF_LAST=%s GATE_FB_LAST=%s GATE_REF_REQ_LAST=%s GATE_FB_REQ_LAST=%s DAC_HPLL=%s DAC_MAIN=%s RAW_TAG=%s EXPECTED_TAG=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%d TAG_DELTA=%s TAG_SOURCE_RAW=%s EXPECTED_DELTA=%s HELPER_UPDATE_COUNT=%s P_ADDER=%s TAG_D0=%s P_SETPOINT=%s REF_SRC=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
         $hardware_name $sample $status $pstat $sstat $ucnt $lock_polls $lock_enable \
         $spll_state $spll_rcer $spll_trr_csr $spll_ref_count $spll_tag_count \
         $spll_irq_count $spll_tag_valid_count $spll_trr_write_count $spll_tag_source_count \
+        $tag_ref_enabled $tag_feedback_enabled $tag_req_ref_set $tag_req_feedback_set \
+        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics \
+        $tag_req_ref_last_tics $tag_req_feedback_last_tics \
         $spll_dac_hpll $spll_dac_main $helper_last_tag $helper_expected_tag \
         $helper_preclamp_error $helper_preclamp_signed $helper_tag_delta $helper_tag_source \
         $helper_expected_delta $helper_update_count $helper_p_adder $helper_tag_d0 \

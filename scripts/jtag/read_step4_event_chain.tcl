@@ -80,6 +80,14 @@ proc read_sample {hardware_name label} {
   set tag_valid_last_tics [wb_read 0x001002D4]
   set trr_write_last_tics [wb_read 0x001002D8]
   set dmtd_state [wb_read 0x001002DC]
+  set tag_ref_enabled [wb_read 0x001002E0]
+  set tag_feedback_enabled [wb_read 0x001002E4]
+  set tag_req_ref_set [wb_read 0x001002E8]
+  set tag_req_feedback_set [wb_read 0x001002EC]
+  set tag_ref_enabled_last_tics [wb_read 0x001002F0]
+  set tag_feedback_enabled_last_tics [wb_read 0x001002F4]
+  set tag_req_ref_last_tics [wb_read 0x001002F8]
+  set tag_req_feedback_last_tics [wb_read 0x001002FC]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -108,6 +116,11 @@ proc read_sample {hardware_name label} {
         $current_tics $dmtd_ref_last_tics $dmtd_fb_last_tics $tag_ref_last_tics $tag_feedback_last_tics]
   puts [format "EVENT_CHAIN_REQ: REF_COUNT=%s FB_COUNT=%s LAST=%s" \
         $tag_pending_ref_count $tag_pending_fb_count $tag_pending_last_tics]
+  puts [format "EVENT_CHAIN_GATE: REF_P_ENABLED=%s FB_P_ENABLED=%s REF_REQ_SET=%s FB_REQ_SET=%s" \
+        $tag_ref_enabled $tag_feedback_enabled $tag_req_ref_set $tag_req_feedback_set]
+  puts [format "EVENT_CHAIN_GATE_LAST: REF_P=%s FB_P=%s REF_REQ=%s FB_REQ=%s" \
+        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics \
+        $tag_req_ref_last_tics $tag_req_feedback_last_tics]
   puts [format "EVENT_CHAIN_LAST: GRANT=%s VALID=%s TRR=%s" \
         $tag_grant_last_tics $tag_valid_last_tics $trr_write_last_tics]
   set dmtd_state_word 0

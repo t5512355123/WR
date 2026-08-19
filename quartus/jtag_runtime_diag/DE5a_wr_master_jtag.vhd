@@ -679,7 +679,6 @@ begin
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
       g_pcs_16bit                 => false,
-      g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )
     port map (

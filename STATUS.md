@@ -2,7 +2,7 @@
 
 最後更新：2026-08-19
 
-目前研究分支：`exp/restore-c88cc05-baseline`
+目前研究分支：`exp/step3-wr-handshake`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
@@ -16,7 +16,7 @@
 - Master/Slave 的 PPSI-level PTP RX/TX counter 有活動。
 - Slave `FOREIGN_META=0x03000001`，表示已找到一筆 foreign master record，並讀到 parent WR configuration。
 
-這些 fresh HEAD 證據足以讓 **Endpoint / MiniNIC / PTP packet path（Step 2）判定為 PASS**。但是 Slave `PSTAT.locked=0`、`status_probe bit 4 time_valid=0`，所以目前不能宣稱 White Rabbit timing synchronization 已完成。
+這些 fresh HEAD 證據足以讓 **Endpoint / MiniNIC / PTP packet path（Step 2）判定為 PASS**。此外，Slave 已完成 Foreign Master discovery、`SLAVE_PRESENT`／`LOCK` signaling handshake，並進入 `WRS_S_LOCK`，因此 **WR Parent/Signaling（Step 3）判定為 PASS**。但是 Slave `PSTAT.locked=0`、`status_probe bit 4 time_valid=0`，所以目前不能宣稱 White Rabbit timing synchronization 已完成。
 
 ## 六步 milestone
 
@@ -24,7 +24,7 @@
 |---:|---|---|---|
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
 | 2 | Endpoint/MiniNIC/PTP | **PASS** | MAC identity 分離；PTP state/counters 活動；Slave `FOREIGN_META=03000001` |
-| 3 | WR Parent/Signaling | **PARTIAL** | Slave 已進 `PTP=9` 且找到 foreign master，但 parent/WR signaling 尚未證明完成 |
+| 3 | WR Parent/Signaling | **PASS** | `PTP=9`、`FOREIGN_META=03000001`、`tx_msg=0x1000`、`rx_msg=0x1001`、`fail_state=2 (WRS_S_LOCK)`；30 秒 time-series 通過 |
 | 4 | SoftPLL Enable | **NOT DONE** | 尚無 `PSTAT.locked=1` 證據；不能以 clock activity 代替 lock |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
@@ -33,8 +33,14 @@
 
 | 節點 | MODE | WDIAGS_PTP | MAC | WDIAGS_PTP_RX | WDIAGS_PTP_TX | WDIAGS_FOREIGN_META |
 |---|---:|---:|---|---:|---:|---:|
-| Master | 2 | 6 | `02:00:22:33:44:01` | `0xB1`（snapshot） | `0x186`（snapshot） | 未提供 |
-| Slave | 3 | 9 | `02:00:22:33:44:02` | `0x174`（snapshot） | `0x7D`（snapshot） | `0x03000001` |
+| Master | 2 | 6 | `02:00:22:33:44:01` | 持續增加 | 持續增加 | 不適用 |
+| Slave | 3 | 9 | `02:00:22:33:44:02` | 持續增加 | 持續增加 | `0x03000001` |
+
+Step 3 signaling accepted samples：
+
+- Master：`rx_msg=0x1000`、`tx_msg=0x1001`、`fail_state=3`
+- Slave：`rx_msg=0x1001`、`tx_msg=0x1000`、`fail_state=2`、`WR_LOCK enable=4`
+- Slave：30/30 筆 time-series samples 通過；Master：20/30 筆 accepted，其他為 frame consistency retry
 
 ### 證據界線
 
@@ -46,12 +52,12 @@
 
 ## 來源與硬體 provenance
 
-先前的恢復成功實驗使用 historical `c88cc05` clean SOF；本次 Step 2 milestone 則已改用 current branch fresh HEAD 的 SOF。兩者必須分開解讀。current fresh build provenance 如下：
+先前的恢復成功實驗使用 historical `c88cc05` clean SOF；本次 Step 3 驗證則使用 `exp/step3-wr-handshake` 的 fresh HEAD build 與 fresh SOF。兩者必須分開解讀。current fresh build provenance 如下：
 
 | 節點 | SOF SHA256 | programmer checksum | MIF SHA256 |
 |---|---|---|---|
-| Master | `79cfac62ebfe86f338e5e79c6500956b6f3a06247c422508d5542f8b5912da1d` | `0x30A3010A` | `0d2e5a9468edc8fc7655c210c77e8122c5a980af5e66fa7f85ddfc319c2c5fb2` |
-| Slave | `8b5c6652fafabf2f3a6bc0fe0b870c643a6a03dfaf0f419ff52ae32475ae4dee` | `0x30A3C3D7` | `9b0cd0b6f70e5ce752cb93cd29ec333e3b8d73635c72b0f267fad17c6149fb58` |
+| Master | `008bcf4cc8d7a9816421ab35222c284a9a657114ed57472ef39b1cd472955120` | `0x30A3010A` | `5360a85577bf8235058ac6bfe63db1dd6e5c135db99637fa69e684868868eb34` |
+| Slave | `15f2e983e86fc76900fc379ef619ea326e22b824a92d260ea40f2a9701f14248` | `0x30A3C3D7` | `bc46c529d66464acbb914b4cc325ff7489037982e7b6d32d9ed02b750feef3e5` |
 
 每次新的 runtime log 都要記錄：實際 SOF SHA256、SOF 來源 commit/branch、Master/Slave MIF SHA256、Quartus 版本、programmer checksum，以及 JTAG decode script 的 commit 或 blob SHA256。
 
@@ -62,11 +68,12 @@
 - `docs/debug/jtag_register_map.md`
 - `STATUS.md`
 - `docs/MERGE_READINESS.md`
+- `docs/experiments/exp-step3-wr-handshake/EXP-WRPC-STEP3-FRESH-HEAD-20260819.md`
 
-本次文件更新沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control；fresh HEAD 的硬體實驗與原始輸出已在 `EXP-WRPC-STEP2-DCO-RESTORE-20260819.md` 記錄。
+本次文件更新沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control；Step 3 fresh HEAD 的硬體實驗與原始輸出已在 `EXP-WRPC-STEP3-FRESH-HEAD-20260819.md` 記錄。
 
 ## 下一步
 
-1. 等待研究者 review Step 2 milestone 的 raw logs 與 acceptance table。
-2. 經確認後再 merge 到 `main`；不要在未確認前刪除本研究分支。
-3. Step 3 另行研究 WR parent/signaling，保留 `PSTAT.locked=0` 與 `time_valid=0` 的現況證據。
+1. 保留 Step 3 fresh HEAD、SOF、programmer 與 JTAG raw logs，維持完整 provenance。
+2. 保留 `exp/step3-wr-handshake` 作為 Step 3 milestone 的研究歷史。
+3. 下一階段另行研究 SoftPLL lock／`time_valid`，並維持單一功能變因；本頁的 Step 3 PASS 不代表 Step 4/5 已完成。

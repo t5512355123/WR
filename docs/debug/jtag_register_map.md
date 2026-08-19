@@ -201,6 +201,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 sticky flag，bit 0 表示 reference 曾產生 deglitched event |
 | `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 sticky flag，bit 0 表示 feedback 曾產生 deglitched event |
+| `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
+| `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |
@@ -218,6 +220,10 @@ arbitration 的 event。`*_SEEN` 在第一次 event 後維持 1，直到 FPGA re
 register 不會讀取或消費 TRR FIFO，也不會寫入 SoftPLL 設定。若 event count/seen
 為 0，只能表示此觀測點沒有看到 event，不能單獨判定 PHY、clock source 或
 DDMTD polarity 的根因。
+
+`SPLL_TAG_PENDING_COUNT` 與 `SPLL_TAG_GRANT_COUNT` 用來區分 arbitration：前者
+表示至少有 request pending，後者表示 round-robin grant 曾經發生；兩者都不是
+TRR FIFO write count，必須和既有 `TAG_VALID`、`TRR_WRITE` 一起解讀。
 
 ### 4.2 WDIAGS standard / current bring-up map
 

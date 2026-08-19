@@ -205,6 +205,8 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_seen_i : in std_logic_vector(31 downto 0);
+      diag_tag_pending_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_grant_count_i : in std_logic_vector(31 downto 0);
       regs_i     : in  t_spll_in_registers;
       regs_o     : out t_spll_out_registers);
   end component;
@@ -293,6 +295,8 @@ architecture rtl of wr_softpll_ng is
   signal diag_dmtd_fb_event_count : unsigned(31 downto 0);
   signal diag_dmtd_ref_seen : std_logic;
   signal diag_dmtd_fb_seen : std_logic;
+  signal diag_tag_pending_count : unsigned(31 downto 0);
+  signal diag_tag_grant_count : unsigned(31 downto 0);
 
   signal dmtd_event_sys : std_logic_vector(f_num_total_channels-1 downto 0);
 
@@ -630,7 +634,9 @@ begin  -- rtl
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       diag_dmtd_ref_seen_i => (31 downto 1 => '0') & diag_dmtd_ref_seen,
-      diag_dmtd_fb_seen_i => (31 downto 1 => '0') & diag_dmtd_fb_seen);
+      diag_dmtd_fb_seen_i => (31 downto 1 => '0') & diag_dmtd_fb_seen,
+      diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
+      diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count));
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -778,6 +784,8 @@ begin  -- rtl
         diag_dmtd_fb_event_count <= (others => '0');
         diag_dmtd_ref_seen <= '0';
         diag_dmtd_fb_seen <= '0';
+        diag_tag_pending_count <= (others => '0');
+        diag_tag_grant_count <= (others => '0');
       else
         if dmtd_event_sys(0) = '1' then
           diag_dmtd_ref_event_count <= diag_dmtd_ref_event_count + 1;
@@ -786,6 +794,12 @@ begin  -- rtl
         if dmtd_event_sys(g_num_ref_inputs) = '1' then
           diag_dmtd_fb_event_count <= diag_dmtd_fb_event_count + 1;
           diag_dmtd_fb_seen <= '1';
+        end if;
+        if unsigned(tags_req) /= 0 then
+          diag_tag_pending_count <= diag_tag_pending_count + 1;
+        end if;
+        if unsigned(tags_grant_p) /= 0 then
+          diag_tag_grant_count <= diag_tag_grant_count + 1;
         end if;
         if unsigned(tags_p) /= 0 then
           diag_tag_source_count <= diag_tag_source_count + 1;

@@ -66,6 +66,8 @@ proc read_sample {hardware_name label} {
   set dmtd_fb_events [wb_read 0x0010029C]
   set dmtd_ref_seen [wb_read 0x001002A0]
   set dmtd_fb_seen [wb_read 0x001002A4]
+  set tag_pending [wb_read 0x001002A8]
+  set tag_grant [wb_read 0x001002AC]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -89,6 +91,7 @@ proc read_sample {hardware_name label} {
         $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
   puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \
         $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen]
+  puts [format "EVENT_CHAIN_ARB: PENDING=%s GRANT=%s" $tag_pending $tag_grant]
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
   puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \

@@ -250,6 +250,19 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 
 **重要區分：** `WDIAGS_TX` / `WDIAGS_RX` 是 `minic_get_stats()` 回報的 MiniNIC frame-level counter，不是 PTP 封包計數。`WDIAGS_PTP_RX` / `WDIAGS_PTP_TX` 是 `ppi->ptp_rx_count` / `ppi->ptp_tx_count` 的 PPSI-level PTP counter。兩組數字的計數單位不同，不能互相比較成同一種 packet count。
 
+|  值 | PTP State      | 直覺意義                                      |
+| -: | -------------- | ----------------------------------------- |
+|  1 | `INITIALIZING` | PTP port 正在初始化                            |
+|  2 | `FAULTY`       | PTP 發生錯誤，正常運作暫停                           |
+|  3 | `DISABLED`     | PTP port 被停用                              |
+|  4 | `LISTENING`    | 正在聽 Announce、建立 Foreign Master、等待 BMCA 決策 |
+|  5 | `PRE_MASTER`   | 已準備成為 Master，但還在過渡等待期                     |
+|  6 | `MASTER`       | 正式成為 PTP Master                           |
+|  7 | `PASSIVE`      | 有參與 PTP/BMCA，但此 port 不當 Master 也不當 Slave  |
+|  8 | `UNCALIBRATED` | 已被選成 Slave，但時間同步/servo 尚未準備完成             |
+|  9 | `SLAVE`        | PTP state machine 正式進入 Slave              |
+
+
 ### 4.3 PTP 與 parent metadata packing
 
 以下定義直接來自目前 `vendor/wrpc-sw/lib/task-diags.c` 的 bit shift；各 counter 每次 firmware diagnostic refresh 寫入，且每個 byte 只保留低 8 bit，因此長時間執行可能回捲。

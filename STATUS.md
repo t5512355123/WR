@@ -2,7 +2,7 @@
 
 最後更新：2026-08-19
 
-目前研究分支：`exp/step3-wr-handshake`
+目前研究分支：`exp/step4-softpll-enable`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
@@ -25,7 +25,7 @@
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
 | 2 | Endpoint/MiniNIC/PTP | **PASS** | MAC identity 分離；PTP state/counters 活動；Slave `FOREIGN_META=03000001` |
 | 3 | WR Parent/Signaling | **PASS** | `PTP=9`、`FOREIGN_META=03000001`、`tx_msg=0x1000`、`rx_msg=0x1001`、`fail_state=2 (WRS_S_LOCK)`；30 秒 time-series 通過 |
-| 4 | SoftPLL Enable | **NOT DONE** | 尚無 `PSTAT.locked=1` 證據；不能以 clock activity 代替 lock |
+| 4 | SoftPLL Enable | **BLOCKED：helper lock 未成立** | `locking_enable()`、Slave channel、tag/TRR/IRQ/helper activity 均成立；但 sequence 停在 `SEQ_WAIT_HELPER`，helper lock detector 未成立，因此 main correction/DCO request 尚未開始 |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
@@ -60,6 +60,28 @@ Step 3 signaling accepted samples：
 | Slave | `15f2e983e86fc76900fc379ef619ea326e22b824a92d260ea40f2a9701f14248` | `0x30A3C3D7` | `bc46c529d66464acbb914b4cc325ff7489037982e7b6d32d9ed02b750feef3e5` |
 
 每次新的 runtime log 都要記錄：實際 SOF SHA256、SOF 來源 commit/branch、Master/Slave MIF SHA256、Quartus 版本、programmer checksum，以及 JTAG decode script 的 commit 或 blob SHA256。
+
+## 2026-08-19 Step 4 唯讀稽核摘要
+
+本輪在 `exp/step4-softpll-enable` 只做 source audit 與 JTAG read-only observation，沒有修改 functional RTL、firmware、PTP、SoftPLL、PHY 或 SI5340 行為，也沒有重新 compile 或 programming。
+
+已確認的鏈路：
+
+```text
+WRS_S_LOCK
+  -> locking_enable()                         PASS
+  -> spll_init(SPLL_MODE_SLAVE)               PASS
+  -> RCER/tagger/ptracker/IRQ/TRR              PASS
+  -> helper_update()                           PASS（有活動）
+  -> helper lock detector                      FAIL（locked=0）
+  -> SEQ_START_MAIN / main MPLL                BLOCKED
+  -> main correction / external DCO request    NOT OBSERVED
+```
+
+30 秒 time-series 與 1 秒 raw diagnostic 顯示 Slave 的 `seq_state=4`，依目前 source mapping 為 `SEQ_WAIT_HELPER`，不是 disabled/idle；`RCER=1`、`TAG_VALID_COUNT`、`TRR_WRITE_COUNT`、REF/TAG/IRQ counters 持續增加。可是 helper shadow 為 `locked=0`、`lock_changed=0`，helper error 長期為 `150000` clamp，main shadow 為 disabled。這表示 Step 4 的「SoftPLL 已 enable 並開始執行」部分成立，但本輪尚未達到完整 Step 4 PASS，第一個 blocker 是 helper reference tracking / lock detector。
+
+本輪 runtime image 來自遠端 `exp/step3-wr-handshake @ fb8c926cfe37b82e86300117181a6ac01e1889e2` 的既有 fresh Step 3 image；`fb8c926..b7d262b` 的功能性目錄沒有差異，但本輪沒有以 Step 4 branch 的最新 HEAD 重新編譯、燒錄，因此不得宣稱 fresh Step 4 hardware PASS。完整資料見：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-READONLY-AUDIT-20260819.md`。
 
 ## 本次文件整理範圍
 

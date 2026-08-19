@@ -53,7 +53,6 @@ reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
 reg [15:0] dco_step_count;
 reg        dco_error;
-reg        runtime_start_hold;
 reg [63:0] dco_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
@@ -78,9 +77,8 @@ wire       runtime_start = ((rt_state == 3'd1 || rt_state == 3'd3 ||
 
 wire       static_bus_enable = system_start || !static_controller_ready || bus_state;
 wire       bus_enable = static_bus_enable || runtime_bus_enable;
-// runtime_start is generated in iCLK, while the I2C controller samples
-// iStart on i2c_system_clk. Hold the request until the bus acknowledges it.
-wire       bus_start = static_start_pulse || runtime_start || runtime_start_hold;
+// Keep the known-good single-cycle runtime request handshake.
+wire       bus_start = static_start_pulse || runtime_start;
 wire [6:0] bus_slave_addr = runtime_bus_enable ? runtime_slave_addr : static_slave_addr;
 wire [7:0] bus_byte_addr = runtime_bus_enable ? runtime_byte_addr : static_byte_addr;
 wire [7:0] bus_byte_data = runtime_bus_enable ? runtime_byte_data : static_byte_data;
@@ -116,7 +114,8 @@ always @* begin
   dco_debug[19]    = oDCO_BUSY;
   dco_debug[35:20] = dco_step_count;
   dco_debug[51:36] = dpll_prev_data;
-  dco_debug[52]    = runtime_start_hold;
+  // Bit 52 is retained as zero so existing JTAG decoders remain compatible.
+  dco_debug[52]    = 1'b0;
   dco_debug[63:53] = hpll_prev_data[10:0];
 end
 
@@ -203,13 +202,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     hpll_prev_data   <= 16'd0;
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
-    runtime_start_hold <= 1'b0;
   end else begin
-    if (runtime_start)
-      runtime_start_hold <= 1'b1;
-    else if (bus_state)
-      runtime_start_hold <= 1'b0;
-
     if (iDPLL_LOAD) begin
       if (dpll_prev_valid && (iDPLL_DATA != dpll_prev_data)) begin
         dpll_pending <= 1'b1;

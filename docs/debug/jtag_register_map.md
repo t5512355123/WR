@@ -158,16 +158,7 @@ RTL 使用 concatenation 將欄位放入 `sync_probe(63 downto 0)`。最低 16 b
 | 51 | `wr_ready` |
 | 52 | `wr_rx_locked_to_ref` |
 | 53 | `wr_rx_locked_to_data` |
-| 54 | `clk_sys_625_locked` |
-| 55 | `wr_core_reset_n` |
-| 56 | `core_phy_rst` |
-| 57 | `si_config_done` |
-| 58 | `core_pps_valid` |
-| 59 | `core_tm_time_valid` |
-| 60 | `wr_rx_ready` |
-| 61 | `wr_tx_ready` |
-| 62 | `core_tm_link_up` |
-| 63 | `core_link_ok` |
+| 54..63 | 保留值，固定為 `0`；不作為 clock/reset/link 判斷依據 |
 
 counter 持續增加只能證明該 clock domain 有 activity；不能單獨證明 SoftPLL 已 lock。
 

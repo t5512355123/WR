@@ -350,4 +350,3 @@ set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/modules/wrc_core/wrc
 set_global_assignment -name VHDL_FILE ../../vendor/wr-cores/modules/wrc_core/xwr_core.vhd
 
 set_global_assignment -name LAST_QUARTUS_VERSION "17.0.0 Standard Edition"
-

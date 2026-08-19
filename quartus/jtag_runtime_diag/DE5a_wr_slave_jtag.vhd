@@ -266,7 +266,6 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal wr_reset_delay       : unsigned(7 downto 0) := (others => '0');
   signal clk_sys_625           : std_logic;
   signal clk_sys_625_locked    : std_logic;
-
 begin
   u_sys_clk_625 : wr_sys_clk_625
     port map (
@@ -276,8 +275,7 @@ begin
       o_locked  => clk_sys_625_locked
     );
 
-  -- Hold WR core and PHY reset until the SI5340 static table is complete.
-  -- This prevents SoftPLL/DMTD initialization from seeing an unstable clock.
+  -- Keep the known 9f startup clock/reset behavior for Step 2.
   p_release_wr_core_reset : process(clk_sys_625)
   begin
     if rising_edge(clk_sys_625) then
@@ -394,18 +392,7 @@ begin
   clock_activity_probe(51) <= wr_ready;
   clock_activity_probe(52) <= wr_rx_locked_to_ref;
   clock_activity_probe(53) <= wr_rx_locked_to_data;
-  -- Read-only reset/clock/runtime observability. These bits do not drive
-  -- the WR core, PHY, SoftPLL, or SI5340 controller.
-  clock_activity_probe(54) <= clk_sys_625_locked;
-  clock_activity_probe(55) <= wr_core_reset_n;
-  clock_activity_probe(56) <= core_phy_rst;
-  clock_activity_probe(57) <= si_config_done;
-  clock_activity_probe(58) <= core_pps_valid;
-  clock_activity_probe(59) <= core_tm_time_valid;
-  clock_activity_probe(60) <= wr_rx_ready;
-  clock_activity_probe(61) <= wr_tx_ready;
-  clock_activity_probe(62) <= core_tm_link_up;
-  clock_activity_probe(63) <= core_link_ok;
+  clock_activity_probe(63 downto 54) <= (others => '0');
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -715,7 +702,6 @@ begin
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
       g_pcs_16bit                 => false,
-      -- 本實驗唯一變因：讓 DDMTD offset clock 由 RX clock 取樣。
       g_softpll_reverse_dmtds     => true,
       g_with_clock_freq_monitor   => true
     )

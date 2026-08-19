@@ -119,10 +119,30 @@ HELPER_UPDATE       = 0
 
 因此這組 correlation 觀測沒有顯示 helper correction 或 HPLL/DCO request 已被 tag event 啟動；它與 A1a「停在 raw tag/TRR/IRQ 之前」的判定一致。
 
+### Clock activity 唯讀補充觀測
+
+為了確認是否只是所有來源時鐘停止，另以同一份已燒錄的 fresh SOF 執行
+`read_clock_activity.tcl 1000`。完整原始輸出保存於
+`jtag_clock_activity_step4_20260820.log`。
+
+| 板卡 | 觀測結果 | 證據解讀 |
+|---|---|---|
+| Master | `PHY_READY=1`、`RX_LOCK_DATA=1`；`RX_LOCK_REF` 由 1 變 0 | 來源時鐘/PHY data lock 並非全數停止，但 reference lock 有變化 |
+| Slave | `PHY_READY=1`、`RX_LOCK_DATA=1`；`RX_LOCK_REF` 由 1 變 0 | 來源時鐘/PHY data lock 並非全數停止，但 reference lock 有變化 |
+
+這個 probe 的 64-bit raw counter 是分次讀取，不能把 BEGIN/END 的欄位當成
+同一個原子 snapshot 直接做精確差值；而且它沒有直接觀察 DDMTD 的 deglitched
+tag event。因此本觀測只能排除「所有 clock source 都完全不動」這個假設，不能
+證明 DDMTD 已產生可供 SoftPLL FSM 使用的 tag，也不能單獨判定
+`RX_LOCK_REF` 變化就是根因。
+
 ## Conclusion
 
 本輪判定 **A1a：SoftPLL init 後沒有可觀察的 raw tag-driven IRQ/event**。目前沒有 repeated init loop 證據；第一個停點在 `TAG_VALID/TRR_WRITE` 之前或附近，而不是 helper correction/DCO actuator。Step 1～3 的 Endpoint/MiniNIC/PTP/Foreign Master 證據仍存在，但 Step 4 的「SoftPLL channel enabled、tag/TRR/servo correction path 開始工作」尚未成立，因此 **Step 4 NOT PASS**。
 
 ## Next Step
 
-下一步做 source-level tagger/clock path audit，並以同一 fresh SOF 補齊 Step 1～3 runtime gate。若必須做 functional A/B，只能選一個與 tag event enable/clock path 直接相關的最小變因；在此之前不修改 PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法。
+下一步做 source-level tagger/clock path audit，新增只讀的 DDMTD deglitched
+event seen/count observability，直接區分「DDMTD 沒有 event」與「event 有產生但
+沒有通過 tag arbitration」。不改動 SoftPLL control path，也不修改 PI gain、
+lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法。

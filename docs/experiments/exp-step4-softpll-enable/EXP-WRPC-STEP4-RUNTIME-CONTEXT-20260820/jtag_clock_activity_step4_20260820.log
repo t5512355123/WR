@@ -1,0 +1,33 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Aug 20 03:21:36 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_clock_activity.tcl 1000
+Info: Quartus(args): 1000
+CLOCK_ACTIVITY_CONFIG gap_ms=1000
+=== DE5 [1-11.1] ===
+CLOCK_ACTIVITY label=BEGIN raw=003A2C42F7A94ACC REF=19148 DMTD=63401 RX=11330 TOGGLE=0/1/0 PHY_READY=1 RX_LOCK_REF=1 RX_LOCK_DATA=1 RESERVED_HIGH=0x000
+CLOCK_ACTIVITY label=END raw=0029A53C7084C3C7 REF=50119 DMTD=28804 RX=42300 TOGGLE=1/0/0 PHY_READY=1 RX_LOCK_REF=0 RX_LOCK_DATA=1 RESERVED_HIGH=0x000
+=== DE5 [1-11.2] ===
+CLOCK_ACTIVITY label=BEGIN raw=003D56810B2A5781 REF=22401 DMTD=2858 RX=22145 TOGGLE=1/0/1 PHY_READY=1 RX_LOCK_REF=1 RX_LOCK_DATA=1 RESERVED_HIGH=0x000
+CLOCK_ACTIVITY label=END raw=002CCF2F83B8D02E REF=53294 DMTD=33720 RX=53039 TOGGLE=0/0/1 PHY_READY=1 RX_LOCK_REF=0 RX_LOCK_DATA=1 RESERVED_HIGH=0x000
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_clock_activity.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Thu Aug 20 03:21:39 2026
+    Info: Elapsed time: 00:00:03
+    Info: Total CPU time (on all processors): 00:00:00

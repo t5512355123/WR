@@ -1,0 +1,141 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Aug 20 04:47:53 2026
+Info: Command: quartus_stp -t scripts/jtag/read_wb_runtime.tcl
+=== DE5 [1-11.1] ===
+status_probe: 101E186134BC82FF
+cpu_probe_1:    0000000400003FAC
+cpu_debug: PC=0x00003FAC reset=0 fault=0 im_valid=1
+cpu_probe_2:    000000040000D120
+cpu_debug: PC=0x0000D120 reset=0 fault=0 im_valid=1
+cpu_marker: 0x0000B004 seen=1
+cpu_last_internal_store: addr=0x0001BFB8 data=0x0F19E1E0
+cpu_internal_store_count: 587125564 (0x22FED33C)
+cpu_exception: mepc=0x00000000 mcause=0x00000000
+mailbox initial done=0 next_toggle=1
+PPS_CR:       01312D06
+PPS_ESCR:     0000000C
+SPLL_CSR:     01010000
+SPLL_ECCR:    01000000
+SPLL_OCCR:    00000000
+SYSC_RSTR:    0105332F
+SYSC_GPSR:    0100032F
+EP_MAC_H:     02000200
+EP_MAC_L:     22334401
+EP_DSR:       42000000
+CPU_RESET:    00000000
+CPU_DBGSTAT:  00000000
+CPU_DBGREADY: 00000000
+CPU_MBX:      00000000
+WDIAGS_VER:   00000002
+WDIAGS_CTRL:  00000001
+WDIAGS_SSTAT: 00000000
+WDIAGS_PSTAT: 00000001
+WDIAGS_PTP:   00000006
+WDIAGS_PTP_RX:000000FC
+WDIAGS_PTP_TX:0000022A
+WR_SIGNAL_REJECT:00000000
+WDIAGS_PTP_META:02010306
+WDIAGS_MODE:   2
+WDIAGS_PTP_TYPES:01010101
+WDIAGS_FOREIGN_META:0000FF00
+WDIAGS_FILTER_META:00000000
+WDIAGS_PARSE_META:00010184
+WDIAGS_TX:    000002E3
+WDIAGS_RX:    00000191
+WDIAGS_SEC_H: 00000000
+WDIAGS_SEC_L: 000000AD
+WDIAGS_NS:    0846EA50
+WDIAGS_MU_H:  00000000
+WDIAGS_MU_L:  00000000
+WDIAGS_DMS_H: 00000000
+WDIAGS_DMS_L: 00000000
+WDIAGS_ASYM:  00000000
+WDIAGS_CKO:   00000000
+WDIAGS_SETP:  00000000
+WDIAGS_UCNT:  00000000
+WDIAGS_TEMP:  A0219864
+WDIAGS_RXERR: 00000000
+WDIAGS_RESTART:00000000
+WDIAGS_SLIDE: 00000000
+WDIAGS_SPLL_HY:00000000
+WDIAGS_SPLL_MY:00000000
+=== DE5 [1-11.2] ===
+status_probe: 3010844123D082EF
+cpu_probe_1:    000000040000F974
+cpu_debug: PC=0x0000F974 reset=0 fault=0 im_valid=1
+cpu_probe_2:    0000000400003F90
+cpu_debug: PC=0x00003F90 reset=0 fault=0 im_valid=1
+cpu_marker: 0x0000B004 seen=1
+cpu_last_internal_store: addr=0x0001BFB4 data=0x0000B44A
+cpu_internal_store_count: 184135475 (0x0AF9AF33)
+cpu_exception: mepc=0x00000000 mcause=0x00000000
+mailbox initial done=0 next_toggle=1
+PPS_CR:       01312D06
+PPS_ESCR:     00000000
+SPLL_CSR:     00000000
+SPLL_ECCR:    01000000
+SPLL_OCCR:    00000000
+SYSC_RSTR:    0105332F
+SYSC_GPSR:    0100032F
+EP_MAC_H:     02000200
+EP_MAC_L:     22334402
+EP_DSR:       42000000
+CPU_RESET:    00000000
+CPU_DBGSTAT:  00000000
+CPU_DBGREADY: 00000000
+CPU_MBX:      00000000
+WDIAGS_VER:   00000002
+WDIAGS_CTRL:  00000001
+WDIAGS_SSTAT: 00000101
+WDIAGS_PSTAT: 00000001
+WDIAGS_PTP:   00000008
+WDIAGS_PTP_RX:000000A7
+WDIAGS_PTP_TX:00000000
+WR_SIGNAL_REJECT:00000000
+WDIAGS_PTP_META:03010308
+WDIAGS_MODE:   3
+WDIAGS_PTP_TYPES:03271227
+WDIAGS_FOREIGN_META:03000001
+WDIAGS_FILTER_META:00000000
+WDIAGS_PARSE_META:050112DB
+WDIAGS_TX:    0000007F
+WDIAGS_RX:    000000D5
+WDIAGS_SEC_H: 00000000
+WDIAGS_SEC_L: 0000002D
+WDIAGS_NS:    020B16F0
+WDIAGS_MU_H:  00000000
+WDIAGS_MU_L:  00158896
+WDIAGS_DMS_H: 00000000
+WDIAGS_DMS_L: 000AC44B
+WDIAGS_ASYM:  00000000
+WDIAGS_CKO:   6EA08761
+WDIAGS_SETP:  00000000
+WDIAGS_UCNT:  0000001C
+WDIAGS_TEMP:  A041135C
+WDIAGS_RXERR: 00000000
+WDIAGS_RESTART:00000000
+WDIAGS_SLIDE: 00000000
+WDIAGS_SPLL_HY:00000000
+WDIAGS_SPLL_MY:00000000
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Thu Aug 20 04:47:54 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

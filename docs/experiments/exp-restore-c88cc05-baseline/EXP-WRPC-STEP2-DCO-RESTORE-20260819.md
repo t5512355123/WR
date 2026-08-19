@@ -71,6 +71,20 @@
 - 結果：Master/Slave 均 `Quartus Prime Full Compilation was successful`、0 errors、270 warnings、Fitter successful。
 - Timing caveat：兩片 build_info 均為 `TIMING_CLOSED=NO`；Master 摘要 worst setup/hold=`-0.177/-3.493 ns`，Slave=`-0.210/-3.488 ns`，且仍有 unconstrained clocks/ports。
 
+## Master 燒錄結果
+
+- 燒錄時間：2026-08-19 13:04:06～13:04:25（Asia/Taipei）。
+- Cable：`DE5 [1-11.1]`。
+- Programming file：`/home/b10504072/04_WR_step2_head/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof`。
+- SOF SHA-256：`79cfac62ebfe86f338e5e79c6500956b6f3a06247c422508d5542f8b5912da1d`。
+- Programmer checksum：`0x30A3010A`。
+- JTAG ID：`0x02E660DD`。
+- 結果：`Configuration succeeded -- 1 device(s) configured`；Quartus Programmer `0 errors, 0 warnings`。
+- 原始 programmer log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/program_master.log`。
+- Programmer log SHA-256：`004fc1176f2d74360992eb125a980018a133044ffebb9c5374f1533be11480c3`。
+
+Master 燒錄已成功，尚未據此宣稱 runtime 或 Step 2 通過；Slave 尚待使用同一 fresh build provenance 燒錄。
+
 ## 目前結論
 
 尚未燒錄，因此目前只能宣稱 exact HEAD 的 firmware 與 Quartus compile 通過；不能宣稱 programming 或 Step 2 通過。

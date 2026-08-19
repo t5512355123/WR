@@ -37,20 +37,34 @@
 
 ## JTAG / runtime 結果
 
-本紀錄建立時尚未執行燒錄後 JTAG snapshot 與 30--60 秒 time-series。結果欄位暫列為 `PENDING`，不得將本實驗視為 Step 2 PASS。
+燒錄約 45 秒後完成 JTAG snapshot；30--60 秒 time-series 仍待補做。結果欄位先依 snapshot 判定為 `FAIL`，不得將本實驗視為 Step 2 PASS。
 
-- JTAG snapshot：PENDING
+- JTAG snapshot：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-D749392/runtime_snapshot.log`
 - time-series：PENDING
-- Step 2 gates A--G：PENDING
+- Step 2 gates A--G：FAIL（role/foreign gate）
+
+### Snapshot 摘要
+
+| Gate | Master | Slave | 判定 |
+|---|---|---|---|
+| CPU reset/fault/im_valid/marker | `0/0/1/B004` | `0/0/1/B004` | PASS |
+| PHY/link、RX error | healthy、error=0 | healthy、error=0 | PASS |
+| Endpoint MAC | `02:00:22:33:44:01` | `02:00:22:33:44:02` | PASS |
+| MiniNIC WDIAGS_TX/RX | `0x00000001 / 0x000000FE` | `0x00000113 / 0x000000B5` | 有活動 |
+| PPSI PTP RX/TX | `0x92 / 0x4A` | `0x4A / 0x8E` | 有活動 |
+| PTP role/state | `MODE=3, PTP=4` | `MODE=3, PTP=4` | FAIL |
+| Slave Foreign Master | `0000FF01` | `0000FF01` | FAIL；不是 `03000001` |
+
+其他讀值：兩片 `cpu_marker=B004` 且 `seen=1`、`CPU fault=0`、`rx_enc_err=0`；Slave `UCNT=1`，但本輪不以此宣稱 SoftPLL lock。`time_valid`/SoftPLL 仍不屬於 Step 2 acceptance gate。
 
 ## Observation
 
-目前只有 fresh firmware、clean Quartus compile 與雙板 program 成功證據。`TIMING_CLOSED=NO` 仍是建置限制，不能省略記錄。
+fresh firmware、clean Quartus compile 與雙板 program 成功，但 runtime role/foreign gate 失敗。`TIMING_CLOSED=NO` 仍是建置限制，不能省略記錄。持久化 flash init 已被隔離，仍無法重現 Master=`PPS_MASTER`；因此不能把問題單獨歸因於板上 stale init script。
 
 ## Conclusion
 
-目前證據只支持「exact HEAD 已成功產生並燒錄到兩片 DE5a」。尚未支持 Endpoint / MiniNIC / PTP packet path 成功，也尚未支持可 merge。
+目前證據支持「exact functional HEAD 已成功產生並燒錄到兩片 DE5a，Endpoint/MiniNIC/PTP packet counter 有活動」，但不支持 Step 2 完整 PASS，因為 Master 沒有進入 `MODE=2/PTP=6`，Slave 也沒有建立 `FOREIGN_META=03000001`。目前不可 merge。
 
 ## Next Step
 
-等待 30--60 秒後執行最新版 `scripts/jtag/read_wb_runtime.tcl`，並保存至少 30--60 秒 runtime time-series；確認 CPU、PHY、MAC、MiniNIC、PPSI/PTP role 與 Slave Foreign Master 全部 acceptance gates 後，再更新本紀錄與 `STATUS.md`。
+保存至少 30--60 秒 runtime time-series，並比對 `c88cc05`、`9f848ec` 與目前 HEAD 的 startup/role functional delta；下一個實驗只處理 role reproduction，不修改 Step 3/4 的 SoftPLL 演算法。

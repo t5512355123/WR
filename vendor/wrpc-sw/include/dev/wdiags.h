@@ -65,7 +65,11 @@ void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
                                              int32_t tag_delta,
                                              int32_t tag_source,
                                              int32_t expected_delta,
-                                             uint32_t update_count);
+                                             uint32_t update_count,
+                                             int32_t p_adder,
+                                             int32_t tag_d0,
+                                             int32_t p_setpoint,
+                                             int32_t ref_src);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

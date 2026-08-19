@@ -102,6 +102,10 @@ proc read_correlation_sample {hardware_name sample} {
   set helper_tag_source [wb_read 0x00100A10]
   set helper_expected_delta [wb_read 0x00100A14]
   set helper_update_count [wb_read 0x00100A18]
+  set helper_p_adder [wb_read 0x00100A1C]
+  set helper_tag_d0 [wb_read 0x00100A20]
+  set helper_p_setpoint [wb_read 0x00100A24]
+  set helper_ref_src [wb_read 0x00100A28]
   set ucnt [wb_read 0x00100948]
 
   scan $status %x status_word
@@ -131,13 +135,14 @@ proc read_correlation_sample {hardware_name sample} {
     }
   }
 
-  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s UCNT=%s LOCK_POLLS=%s LOCK_ENABLE=%s SPLL_STATE=%s RCER=%s TRR_CSR=%s REF=%s TAG=%s IRQ=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s DAC_HPLL=%s DAC_MAIN=%s RAW_TAG=%s EXPECTED_TAG=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%d TAG_DELTA=%s TAG_SOURCE_RAW=%s EXPECTED_DELTA=%s HELPER_UPDATE_COUNT=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
+  puts [format "HPLL_HELPER_SAMPLE board=%s sample=%03d status=%016s PSTAT=%s SSTAT=%s UCNT=%s LOCK_POLLS=%s LOCK_ENABLE=%s SPLL_STATE=%s RCER=%s TRR_CSR=%s REF=%s TAG=%s IRQ=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s DAC_HPLL=%s DAC_MAIN=%s RAW_TAG=%s EXPECTED_TAG=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%d TAG_DELTA=%s TAG_SOURCE_RAW=%s EXPECTED_DELTA=%s HELPER_UPDATE_COUNT=%s P_ADDER=%s TAG_D0=%s P_SETPOINT=%s REF_SRC=%s DCO_DEBUG=%s STEP=%d STEP_DELTA=%d STEP_EVENT=%d HPLL_LOAD=%d BUSY=%d ERROR=%d HELPER_STATE=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%d HELPER_ERROR_DELTA=%d HELPER_OUTPUT=%s" \
         $hardware_name $sample $status $pstat $sstat $ucnt $lock_polls $lock_enable \
         $spll_state $spll_rcer $spll_trr_csr $spll_ref_count $spll_tag_count \
         $spll_irq_count $spll_tag_valid_count $spll_trr_write_count $spll_tag_source_count \
         $spll_dac_hpll $spll_dac_main $helper_last_tag $helper_expected_tag \
         $helper_preclamp_error $helper_preclamp_signed $helper_tag_delta $helper_tag_source \
-        $helper_expected_delta $helper_update_count $dco_debug \
+        $helper_expected_delta $helper_update_count $helper_p_adder $helper_tag_d0 \
+        $helper_p_setpoint $helper_ref_src $dco_debug \
         $step $step_delta $step_event $hpll_load $dco_busy \
         $dco_error $helper_state $helper_error $helper_signed $error_delta \
         [format %08X [expr {$output_word & 0xffffffff}]]]

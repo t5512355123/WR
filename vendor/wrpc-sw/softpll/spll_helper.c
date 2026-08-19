@@ -50,6 +50,7 @@ void helper_update(struct spll_helper_state *s, int tag,
 	wrpc_spll_helper_tag_source = source;
 	wrpc_spll_helper_expected_delta = (1 << HPLL_N);
 	wrpc_spll_helper_update_count++;
+	wrpc_spll_helper_ref_src = s->ref_src;
 	
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_TAG, tag, 0);
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_REF, s->p_setpoint, 0);
@@ -61,6 +62,9 @@ void helper_update(struct spll_helper_state *s, int tag,
 		wrpc_spll_helper_expected_tag = s->p_setpoint;
 		wrpc_spll_helper_preclamp_error = 0;
 		wrpc_spll_helper_tag_delta = 0;
+		wrpc_spll_helper_p_adder = s->p_adder;
+		wrpc_spll_helper_tag_d0 = s->tag_d0;
+		wrpc_spll_helper_p_setpoint = s->p_setpoint;
 
 		return;
 	}
@@ -113,6 +117,10 @@ void helper_update(struct spll_helper_state *s, int tag,
 	{
 		s->last_lock_duration_ms = timer_get_tics() - s->lock_start_ms;
 	}
+
+	wrpc_spll_helper_p_adder = s->p_adder;
+	wrpc_spll_helper_tag_d0 = s->tag_d0;
+	wrpc_spll_helper_p_setpoint = s->p_setpoint;
 }
 
 void helper_start(struct spll_helper_state *s)

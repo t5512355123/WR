@@ -203,7 +203,11 @@ int wrc_wr_diags(void)
 				wrpc_spll_helper_tag_delta,
 				wrpc_spll_helper_tag_source,
 				wrpc_spll_helper_expected_delta,
-				wrpc_spll_helper_update_count);
+				wrpc_spll_helper_update_count,
+				wrpc_spll_helper_p_adder,
+				wrpc_spll_helper_tag_d0,
+				wrpc_spll_helper_p_setpoint,
+				wrpc_spll_helper_ref_src);
 		}
 	}
 

@@ -57,6 +57,10 @@ volatile int32_t wrpc_spll_helper_tag_delta;
 volatile int32_t wrpc_spll_helper_tag_source;
 volatile int32_t wrpc_spll_helper_expected_delta;
 volatile uint32_t wrpc_spll_helper_update_count;
+volatile int32_t wrpc_spll_helper_p_adder;
+volatile int32_t wrpc_spll_helper_tag_d0;
+volatile int32_t wrpc_spll_helper_p_setpoint;
+volatile int32_t wrpc_spll_helper_ref_src;
 
 static inline void wrpc_spll_note_state(int state)
 {
@@ -356,6 +360,10 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 	wrpc_spll_helper_tag_source = 0;
 	wrpc_spll_helper_expected_delta = 0;
 	wrpc_spll_helper_update_count = 0;
+	wrpc_spll_helper_p_adder = 0;
+	wrpc_spll_helper_tag_d0 = 0;
+	wrpc_spll_helper_p_setpoint = 0;
+	wrpc_spll_helper_ref_src = 0;
 
 	SPLL->OCER = 0;
 	SPLL->RCER = 0;

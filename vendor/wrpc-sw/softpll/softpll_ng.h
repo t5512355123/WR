@@ -207,5 +207,9 @@ extern volatile int32_t wrpc_spll_helper_tag_delta;
 extern volatile int32_t wrpc_spll_helper_tag_source;
 extern volatile int32_t wrpc_spll_helper_expected_delta;
 extern volatile uint32_t wrpc_spll_helper_update_count;
+extern volatile int32_t wrpc_spll_helper_p_adder;
+extern volatile int32_t wrpc_spll_helper_tag_d0;
+extern volatile int32_t wrpc_spll_helper_p_setpoint;
+extern volatile int32_t wrpc_spll_helper_ref_src;
 
 #endif // __SOFTPLL_NG_H

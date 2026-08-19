@@ -6,7 +6,7 @@
 - 日期：2026-08-19（Asia/Taipei）
 - Git branch：`exp/restore-c88cc05-baseline`
 - 功能修改 commit：`a427ed3f61a54a704c46cf1e0f650ef591f35de1`
-- 實驗狀態：待 fresh firmware、clean Quartus、雙板燒錄與 JTAG 驗證
+- 實驗狀態：fresh firmware 與 clean Quartus 已完成；待雙板燒錄與 JTAG 驗證
 
 ## 實驗名稱
 
@@ -49,18 +49,31 @@
 4. programming 後立即保存完整 programmer output。
 5. 等待 30～60 秒後執行 JTAG snapshot 與 time-series。
 
-以下欄位待建置後補入：
+以下欄位待燒錄與 runtime 驗證後補入：
 
-- build HEAD、Master/Slave MIF SHA-256。
-- Master/Slave QSF、SDC SHA-256。
-- Master/Slave SOF SHA-256。
-- Quartus version、compile log 與 timing 結果。
 - programmer checksum 與原始 programming log。
 - JTAG snapshot、30～60 秒 time-series 原始檔與 SHA-256。
 
+## Fresh firmware / Quartus 建置證據
+
+- Build checkout HEAD：`054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00`。
+- Quartus：`Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition`。
+- Quartus binary：`/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`。
+- Master MIF SHA-256：`0d2e5a9468edc8fc7655c210c77e8122c5a980af5e66fa7f85ddfc319c2c5fb2`。
+- Slave MIF SHA-256：`9b0cd0b6f70e5ce752cb93cd29ec333e3b8d73635c72b0f267fad17c6149fb58`。
+- Master QSF SHA-256：`cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f`。
+- Slave QSF SHA-256：`c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437`。
+- Master/Slave SDC SHA-256：`b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8`。
+- Master SOF SHA-256：`79cfac62ebfe86f338e5e79c6500956b6f3a06247c422508d5542f8b5912da1d`。
+- Slave SOF SHA-256：`8b5c6652fafabf2f3a6bc0fe0b870c643a6a03dfaf0f419ff52ae32475ae4dee`。
+- Master compile log：`/home/b10504072/04_WR_step2_head/build/quartus_jtag_master_compile.log`。
+- Slave compile log：`/home/b10504072/04_WR_step2_head/build/quartus_jtag_slave_compile.log`。
+- 結果：Master/Slave 均 `Quartus Prime Full Compilation was successful`、0 errors、270 warnings、Fitter successful。
+- Timing caveat：兩片 build_info 均為 `TIMING_CLOSED=NO`；Master 摘要 worst setup/hold=`-0.177/-3.493 ns`，Slave=`-0.210/-3.488 ns`，且仍有 unconstrained clocks/ports。
+
 ## 目前結論
 
-尚未燒錄，因此目前只能說 source-level recovery candidate 已建立，不能宣稱 compile、programming 或 Step 2 通過。
+尚未燒錄，因此目前只能宣稱 exact HEAD 的 firmware 與 Quartus compile 通過；不能宣稱 programming 或 Step 2 通過。
 
 ## Next Step
 

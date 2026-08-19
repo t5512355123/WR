@@ -1,6 +1,6 @@
 # DE5a White Rabbit 目前狀態
 
-最後更新：2026-08-19
+最後更新：2026-08-20
 
 目前研究分支：`exp/step4-softpll-enable`
 
@@ -8,7 +8,7 @@
 
 ## 目前結論
 
-目前已經由 current branch 的 fresh HEAD 完成 firmware build、clean Quartus compile、雙板 programming 與 30 秒 JTAG time-series，並有足夠證據證明：
+目前已經由 `exp/step4-softpll-enable` 的 fresh HEAD `edd12590eef2b77cd61aed8cb182280a1fbe9fe4` 完成 firmware build、clean Quartus compile、雙板 programming 與唯讀 JTAG observation，並有足夠證據證明：
 
 - QSFP-A lane 0 的 PHY/link baseline 可工作。
 - Endpoint identity 已分離，兩端 MAC 分別為 `02:00:22:33:44:01` 與 `02:00:22:33:44:02`。
@@ -25,16 +25,16 @@
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
 | 2 | Endpoint/MiniNIC/PTP | **PASS** | MAC identity 分離；PTP state/counters 活動；Slave `FOREIGN_META=03000001` |
 | 3 | WR Parent/Signaling | **PASS** | `PTP=9`、`FOREIGN_META=03000001`、`tx_msg=0x1000`、`rx_msg=0x1001`、`fail_state=2 (WRS_S_LOCK)`；30 秒 time-series 通過 |
-| 4 | SoftPLL Enable | **BLOCKED：helper lock 未成立** | `locking_enable()`、Slave channel、tag/TRR/IRQ/helper activity 均成立；但 sequence 停在 `SEQ_WAIT_HELPER`，helper lock detector 未成立，因此 main correction/DCO request 尚未開始 |
+| 4 | SoftPLL Enable | **BLOCKED：DCO request handshake 未完成** | Slave tag/TRR/IRQ/helper/UCNT 持續活動；但 DCO debug 長期為 `rt_state=2`、`bus_state=0`、`STEP=0`，目前第一個可觀測 blocker 是 50 MHz runtime request 與分頻 I2C controller 的 handshake |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
-## 2026-08-19 fresh HEAD JTAG 證據摘要
+## 2026-08-20 fresh HEAD JTAG 證據摘要
 
 | 節點 | MODE | WDIAGS_PTP | MAC | WDIAGS_PTP_RX | WDIAGS_PTP_TX | WDIAGS_FOREIGN_META |
 |---|---:|---:|---|---:|---:|---:|
-| Master | 2 | 6 | `02:00:22:33:44:01` | 持續增加 | 持續增加 | 不適用 |
-| Slave | 3 | 9 | `02:00:22:33:44:02` | 持續增加 | 持續增加 | `0x03000001` |
+| Master | 2 | 6 | `02:00:22:33:44:01` | `0xA8` 起並持續增加 | `0x17D` 起並持續增加 | 不適用 |
+| Slave | 3 | 9 | `02:00:22:33:44:02` | `0x17F` 起並持續增加 | `0x75` 起並持續增加 | `0x03000001` |
 
 Step 3 signaling accepted samples：
 
@@ -56,14 +56,14 @@ Step 3 signaling accepted samples：
 
 | 節點 | SOF SHA256 | programmer checksum | MIF SHA256 |
 |---|---|---|---|
-| Master | `008bcf4cc8d7a9816421ab35222c284a9a657114ed57472ef39b1cd472955120` | `0x30A3010A` | `5360a85577bf8235058ac6bfe63db1dd6e5c135db99637fa69e684868868eb34` |
-| Slave | `15f2e983e86fc76900fc379ef619ea326e22b824a92d260ea40f2a9701f14248` | `0x30A3C3D7` | `bc46c529d66464acbb914b4cc325ff7489037982e7b6d32d9ed02b750feef3e5` |
+| Master | `1ac0873a3b06b5220cbfc13b6fa243be53ca4a3d7df190d26f0230e0f3df2f43` | `0x30A4A8E2` | `6989b73e3cf3d64a57cfca9f28a2d2625b0c92f90900450db2bd7f24d27c8f3e` |
+| Slave | `dbd0a2ab07b7e1b0459568da43b4b323da60055a74f63641d74070e50e705fe3` | `0x30A39139` | `3657f026b9f69cf3e321e142be886eb6cd04945a1bafd36924fa24cd64b45f81` |
 
 每次新的 runtime log 都要記錄：實際 SOF SHA256、SOF 來源 commit/branch、Master/Slave MIF SHA256、Quartus 版本、programmer checksum，以及 JTAG decode script 的 commit 或 blob SHA256。
 
-## 2026-08-19 Step 4 唯讀稽核摘要
+## 2026-08-20 Step 4 fresh HEAD 唯讀稽核摘要
 
-本輪在 `exp/step4-softpll-enable` 只做 source audit 與 JTAG read-only observation，沒有修改 functional RTL、firmware、PTP、SoftPLL、PHY 或 SI5340 行為，也沒有重新 compile 或 programming。
+本輪在 `exp/step4-softpll-enable @ edd1259` 完成 clean firmware build、Quartus 17 clean compile、雙板 fresh SOF programming，並以 JTAG 做 read-only observation。這一輪沒有修改 SoftPLL 演算法、PTP、PHY、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法。
 
 已確認的鏈路：
 
@@ -73,15 +73,18 @@ WRS_S_LOCK
   -> spll_init(SPLL_MODE_SLAVE)               PASS
   -> RCER/tagger/ptracker/IRQ/TRR              PASS
   -> helper_update()                           PASS（有活動）
-  -> helper lock detector                      FAIL（locked=0）
-  -> SEQ_START_MAIN / main MPLL                BLOCKED
-  -> main correction / external DCO request    NOT OBSERVED
+  -> helper correlation / UCNT                 PASS（輸入與 helper 有活動）
+  -> DCO runtime request                       BLOCKED（rt_state=2、bus_state=0）
+  -> I2C bus transaction completion             NOT OBSERVED
+  -> completed DCO step                        NOT OBSERVED（STEP=0）
 ```
 
-30 秒 time-series 與 1 秒 raw diagnostic 顯示 Slave 的 `seq_state=4`，依目前 source mapping 為 `SEQ_WAIT_HELPER`，不是 disabled/idle；`RCER=1`、`TAG_VALID_COUNT`、`TRR_WRITE_COUNT`、REF/TAG/IRQ counters 持續增加。可是 helper shadow 為 `locked=0`、`lock_changed=0`，helper error 長期為 `150000` clamp，main shadow 為 disabled。這表示 Step 4 的「SoftPLL 已 enable 並開始執行」部分成立，但本輪尚未達到完整 Step 4 PASS，第一個 blocker 是 helper reference tracking / lock detector。
+fresh runtime snapshot 顯示：Master `MODE=2/PTP=6/status=FF`；Slave `MODE=3/PTP=9/status=CF`、`FOREIGN_META=03000001`。Slave 的 `REF/TAG/IRQ/TAG_VALID/TRR_WRITE/UCNT` 持續增加，helper correlation 欄位也會變化；但 DCO correlation 反覆為 `DCO_DEBUG=FF6800000008A3A2`，即 `rt_state=2`、`bus_state=0`、`BUSY=1`、`STEP=0`、`HPLL_LOAD=0`、`ERROR=0`，DAC shadow 不變。
 
-本輪 runtime image 來自遠端 `exp/step3-wr-handshake @ fb8c926cfe37b82e86300117181a6ac01e1889e2` 的既有 fresh Step 3 image；`fb8c926..b7d262b` 的功能性目錄沒有差異，但本輪沒有以 Step 4 branch 的最新 HEAD 重新編譯、燒錄，因此不得宣稱 fresh Step 4 hardware PASS。完整資料見：
-`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-READONLY-AUDIT-20260819.md`。
+source audit 顯示 DCO 外層 state machine 使用 50 MHz `iCLK`，而 `i2c_bus_controller_dco` 使用 `clock_divider` 產生的較慢 clock。現行 state 1 的 `runtime_start/bus_start` 可能只存在一個 50 MHz cycle，未必被 I2C controller 看到；進入 state 2 後又等待永遠沒有出現的 `bus_state`。這支持「跨時脈 request pulse 被漏採樣」是目前優先假設，但尚不能單憑 snapshot 宣稱 I2C 實體線路故障。
+
+完整資料見：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-WDIAGS-MAP-FIX-2-20260820.md`。
 
 ## 本次文件整理範圍
 

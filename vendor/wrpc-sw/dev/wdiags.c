@@ -275,6 +275,16 @@ void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
 	wdiag_write(0x128, (uint32_t)ref_src);
 }
 
+void wdiags_write_mapping_self_test(uint32_t counter)
+{
+	/* These values validate firmware write -> DPRAM -> JTAG read mapping.
+	 * They never feed back into WR control or the SoftPLL. */
+	wdiag_write(0x12c, 0xA5A5122Cu);
+	wdiag_write(0x130, 0xA5A51330u);
+	wdiag_write(0x134, counter);
+	wdiag_write(0x138, ~counter);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

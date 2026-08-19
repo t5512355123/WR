@@ -70,6 +70,8 @@ void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
                                              int32_t tag_d0,
                                              int32_t p_setpoint,
                                              int32_t ref_src);
+/* Read-only register-map self-test for DE5a JTAG observability. */
+void wdiags_write_mapping_self_test(uint32_t counter);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

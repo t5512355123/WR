@@ -26,6 +26,7 @@
 int wrc_wr_diags(void)
 {
 	static uint32_t last_update_tick;
+	static uint32_t mapping_self_test_counter;
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
 	uint64_t sec;
@@ -206,8 +207,9 @@ int wrc_wr_diags(void)
 				wrpc_spll_helper_update_count,
 				wrpc_spll_helper_p_adder,
 				wrpc_spll_helper_tag_d0,
-				wrpc_spll_helper_p_setpoint,
-				wrpc_spll_helper_ref_src);
+					wrpc_spll_helper_p_setpoint,
+					wrpc_spll_helper_ref_src);
+			wdiags_write_mapping_self_test(++mapping_self_test_counter);
 		}
 	}
 

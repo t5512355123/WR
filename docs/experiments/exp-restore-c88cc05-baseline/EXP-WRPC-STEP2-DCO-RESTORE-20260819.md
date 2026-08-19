@@ -85,9 +85,23 @@
 
 Master 燒錄已成功，尚未據此宣稱 runtime 或 Step 2 通過；Slave 尚待使用同一 fresh build provenance 燒錄。
 
+## Slave 燒錄結果
+
+- 燒錄時間：2026-08-19 13:05:04～13:05:23（Asia/Taipei）。
+- Cable：`DE5 [1-11.2]`。
+- Programming file：`/home/b10504072/04_WR_step2_head/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`。
+- SOF SHA-256：`8b5c6652fafabf2f3a6bc0fe0b870c643a6a03dfaf0f419ff52ae32475ae4dee`。
+- Programmer checksum：`0x30A3C3D7`。
+- JTAG ID：`0x02E660DD`。
+- 結果：`Configuration succeeded -- 1 device(s) configured`；Quartus Programmer `0 errors, 0 warnings`。
+- 原始 programmer log：`/home/b10504072/04_WR_step2_head/build/artifacts/EXP-WRPC-STEP2-DCO-RESTORE-20260819/program_slave.log`。
+- Programmer log SHA-256：`8dbbb74cfc56a1c0032f123d7c7ab31b0373b3354148c8724d6f22b6bdf86ef5`。
+
+雙板 fresh SOF 燒錄均成功；接著只做唯讀 JTAG runtime 驗證。
+
 ## 目前結論
 
-尚未燒錄，因此目前只能宣稱 exact HEAD 的 firmware 與 Quartus compile 通過；不能宣稱 programming 或 Step 2 通過。
+目前可宣稱 exact HEAD 的 firmware、Quartus compile 與雙板 programming 通過；Step 2 runtime acceptance 尚待驗證。
 
 ## Next Step
 

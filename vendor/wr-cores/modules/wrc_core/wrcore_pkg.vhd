@@ -248,7 +248,9 @@ package wrcore_pkg is
     wbd_width     => x"7",                 -- 8/16/32-bit port granularity
     sdb_component => (
       addr_first  => x"0000000000000000",
-      addr_last   => x"00000000000000ff",
+      -- Private WDIAGS includes the read-only helper correlation words at
+      -- offsets 0x100..0x128.
+      addr_last   => x"00000000000001ff",
       product     => (
         vendor_id => x"000000000000CE42",  -- CERN
         device_id => x"779c544a",

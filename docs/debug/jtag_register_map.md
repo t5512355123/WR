@@ -201,10 +201,10 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |
 | `0x00100404` | `SYSC_GPSR` | system general-purpose/status register |
-| `0x00100B00` | `CPU_RESET` | CPU reset register |
-| `0x00100B80` | `CPU_DBGSTAT` | CPU debug status |
-| `0x00100B88` | `CPU_DBGREADY` | CPU debug ready |
-| `0x00100B90` | `CPU_MBX` | CPU mailbox |
+| `0x00100C00` | `CPU_RESET` | CPU reset register |
+| `0x00100C80` | `CPU_DBGSTAT` | CPU debug status |
+| `0x00100C88` | `CPU_DBGREADY` | CPU debug ready |
+| `0x00100C90` | `CPU_MBX` | CPU mailbox |
 
 這些 register 是 Wishbone read，不是 instance 0 的 Direct Probe。單次讀值要搭配 CPU instance 2、marker instance 3 與多次採樣解讀。
 
@@ -335,6 +335,19 @@ bits 27..31  = 保留
 | `0x001009A4..0x001009CC` | SoftPLL hardware registers、DAC、helper/main lock detector shadow |
 | `0x001009D0..0x001009F4` | reference/tag count、helper PI、state visit/transition、last state、IRQ mask/status |
 | `0x001009F8..0x001009FC` | hardware `TAG_VALID_COUNT` 與 `TRR_WRITE_COUNT` |
+| `0x00100A00` | `HELPER_LAST_TAG`：helper 最新一次接受的 tag |
+| `0x00100A04` | `HELPER_EXPECTED_TAG`：helper 當次 setpoint |
+| `0x00100A08` | `HELPER_PRECLAMP_ERROR`：clamp 前的 signed error |
+| `0x00100A0C` | `HELPER_TAG_DELTA`：相鄰 tag 的 delta |
+| `0x00100A10` | `HELPER_TAG_SOURCE`：tag source |
+| `0x00100A14` | `HELPER_EXPECTED_DELTA`：預期的每週期 delta |
+| `0x00100A18` | `HELPER_UPDATE_COUNT`：helper update 次數 |
+| `0x00100A1C` | `HELPER_P_ADDER`：tag wraparound 累加器 |
+| `0x00100A20` | `HELPER_TAG_D0`：前一個 tag |
+| `0x00100A24` | `HELPER_P_SETPOINT`：下一個預期 tag |
+| `0x00100A28` | `HELPER_REF_SRC`：helper reference source |
+
+這些 `0x00100A00..0x00100A28` 欄位需要 private WDIAGS 的 peripheral window 至少涵蓋 `0x000..0x1FF`。若實際 bitstream 仍使用舊的 `0x000..0x0FF` SDB window，讀值會落到後續 peripheral，造成欄位 alias；此時不能拿來判斷 helper 或 SoftPLL 行為。
 
 若要解讀這段，必須同時固定 firmware commit、RTL commit 與實際 SOF；不能只依地址名稱猜測。
 

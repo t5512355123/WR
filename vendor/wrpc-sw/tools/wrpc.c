@@ -51,7 +51,7 @@
 #define OFFSET_SYSCON		0x400
 #define OFFSET_UART		0x500
 #define OFFSET_WDIAGS		0x900
-#define OFFSET_CPU_CSR		0xb00
+#define OFFSET_CPU_CSR		0xc00
 
 #define VUART_EOL 13
 #define VUART_CMD_USLEEP 1000000

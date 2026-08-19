@@ -29,7 +29,7 @@
 #define BASE_UART               (DEV_BASE + 0x500)
 #define BASE_ONEWIRE            (DEV_BASE + 0x600)
 #define BASE_WDIAGS_PRIV        (DEV_BASE + 0x900)
-#define BASE_CLOCK_MONITOR      (DEV_BASE + 0xa00)
+#define BASE_CLOCK_MONITOR      (DEV_BASE + 0xb00)
 #define BASE_AUXWB              (DEV_BASE + 0x8000)
 
 /* Board configuration. */

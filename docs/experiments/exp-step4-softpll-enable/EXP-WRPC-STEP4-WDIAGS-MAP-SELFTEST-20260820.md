@@ -6,7 +6,7 @@
 - 日期：2026-08-20（Asia/Taipei）
 - Branch：`exp/step4-softpll-enable`
 - 功能變更 commit：`a8f08b737ae5897bf278572972e8ace572298549`
-- 實驗狀態：**雙板已完成 fresh SOF 燒錄；首次 mapping runtime 為 Master FAIL、Slave PASS，仍需重測**
+- 實驗狀態：**mapping self-test PASS；fresh SOF 仍是 `a8f08b7` build，decode script 為 `f5411fa`**
 
 ## 這次想驗證什麼
 
@@ -82,6 +82,11 @@ INVERSE_END = bitwise_not(COUNTER_END)
 - Slave Programmer 結果：`Configuration succeeded`，checksum `0x30A4A104`
 - 必要時的 Step 1～4 time-series 原始輸出
 
+修正判定重試後的第二次原始輸出：
+
+- `jtag_wdiags_mapping_selftest_20260820_f5411fa.log`
+- decode script commit：`f5411fa23e694c61567ef98f87f0d7f6f04d2307`
+
 ## Observation
 
 首次結果：
@@ -91,12 +96,12 @@ INVERSE_END = bitwise_not(COUNTER_END)
 | Master | 正確 | `0x75 -> 0x76` | BEGIN 正確；END=`0x00000076` | FAIL；END inverse 不等於 `~counter` |
 | Slave | 正確 | `0x47 -> 0x48` | `~0x48 = 0xFFFFFFB7` | PASS |
 
-Master 的 magic word 正確，表示 JTAG 位址可讀到新增欄位；但 Master END 列的 inverse 不符合 self-test。由於四個 word 是在不同 Wishbone read 之間取得，且 firmware 每秒 refresh，這筆結果可能是跨 refresh 的 torn frame；目前不把它解讀成 mapping 已修正，也不把 Slave 單板結果外推成雙板 PASS。判讀時只採用有完整 mailbox/JTAG frame 的資料；若跨 refresh 造成 torn frame，該列標為 invalid，不自行拼接。
+第二次結果：Master 與 Slave 均出現 `begin_valid=1`、`end_valid=1`。Master BEGIN 的第一次讀列因 `MAGIC_B` 不完整而標為 `valid=0`，第二次重讀通過；其後 Master END 與 Slave 的 BEGIN/END 均通過。這表示原始問題是 Wishbone/JTAG 逐欄讀取時可能跨 refresh 的不一致列；重試判定可以排除該列，不能把 invalid 列拼接進結論。mapping self-test PASS 只代表新增欄位可被正確觀測，不代表 SoftPLL 已 lock。
 
 ## Conclusion
 
-首次 runtime 尚未達雙板 PASS：Slave 符合 self-test，但 Master END inverse 不符。這個實驗目前只能證明兩板都能讀到 magic word，不能宣稱 JTAG observability mapping 已完整通過，更不代表 SoftPLL lock、`time_valid=1` 或 Step 4 PASS。
+雙板 mapping self-test PASS。這個實驗只證明新增 WDIAGS observability 的位址與 word mapping 可用，不代表 SoftPLL lock、`time_valid=1` 或 Step 4 PASS。
 
 ## Next Step
 
-先以同一份 fresh bitstream 重複 mapping self-test，確認 Master inverse 錯誤是否可重現；若重現，先修正 address/window/word alignment 或建立 atomic snapshot，暫停任何 SoftPLL algorithm 或 DCO functional 修改。若重測雙板通過，再以同一份 fresh bitstream 做 raw helper arithmetic correlation。
+使用同一份 fresh SOF 與已驗證的 mapping decode script，進行 raw helper arithmetic correlation；仍只讀取並保存 ref/tag/IRQ/TRR/helper/PI/DCO 相關欄位，不修改 SoftPLL algorithm 或 DCO functional behavior。

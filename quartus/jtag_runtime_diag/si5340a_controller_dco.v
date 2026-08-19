@@ -236,7 +236,10 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd1: begin
-        if (runtime_start)
+        // runtime_start is generated in iCLK, while the I2C controller
+        // observes iStart on its divided clock. Keep state 1 active until
+        // bus_state confirms that the request was accepted.
+        if (bus_state)
           rt_state <= 3'd2;
       end
       3'd2: begin
@@ -248,7 +251,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd3: begin
-        if (runtime_start)
+        if (bus_state)
           rt_state <= 3'd4;
       end
       3'd4: begin
@@ -260,7 +263,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end
       end
       3'd5: begin
-        if (runtime_start)
+        if (bus_state)
           rt_state <= 3'd6;
       end
       3'd6: begin

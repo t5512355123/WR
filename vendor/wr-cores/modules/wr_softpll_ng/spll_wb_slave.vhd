@@ -48,6 +48,17 @@ port (
   diag_dmtd_fb_seen_i                      : in     std_logic_vector(31 downto 0);
   diag_tag_pending_count_i                 : in     std_logic_vector(31 downto 0);
   diag_tag_grant_count_i                   : in     std_logic_vector(31 downto 0);
+  diag_current_tics_i                      : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_last_tics_i                : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_last_tics_i                 : in     std_logic_vector(31 downto 0);
+  diag_tag_ref_last_tics_i                 : in     std_logic_vector(31 downto 0);
+  diag_tag_feedback_last_tics_i            : in     std_logic_vector(31 downto 0);
+  diag_tag_pending_ref_count_i             : in     std_logic_vector(31 downto 0);
+  diag_tag_pending_fb_count_i              : in     std_logic_vector(31 downto 0);
+  diag_tag_pending_last_tics_i             : in     std_logic_vector(31 downto 0);
+  diag_tag_grant_last_tics_i               : in     std_logic_vector(31 downto 0);
+  diag_tag_valid_last_tics_i               : in     std_logic_vector(31 downto 0);
+  diag_trr_write_last_tics_i               : in     std_logic_vector(31 downto 0);
   regs_i                                   : in     t_spll_in_registers;
   regs_o                                   : out    t_spll_out_registers
 );
@@ -826,6 +837,72 @@ begin
         when "101011" =>
           if (wb_we_i = '0') then
             rddata_reg <= diag_tag_grant_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "101100" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_current_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "101101" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_dmtd_ref_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "101110" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_dmtd_fb_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "101111" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_ref_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110000" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_feedback_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110001" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_pending_ref_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110010" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_pending_fb_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110011" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_pending_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110100" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_grant_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110101" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_tag_valid_last_tics_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "110110" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_trr_write_last_tics_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

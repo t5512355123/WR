@@ -203,6 +203,17 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 sticky flag，bit 0 表示 feedback 曾產生 deglitched event |
 | `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
 | `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
+| `0x001002B0` | `SPLL_DIAG_CURRENT_TICS` | 唯讀：診斷用 `clk_sys` cycle counter；只用來和下列 last-event 欄位比較 |
+| `0x001002B4` | `SPLL_DMTD_REF_LAST_TICS` | 唯讀：最近一次 reference DDMTD event 發生時的診斷 tick |
+| `0x001002B8` | `SPLL_DMTD_FB_LAST_TICS` | 唯讀：最近一次 feedback DDMTD event 發生時的診斷 tick |
+| `0x001002BC` | `SPLL_TAG_REF_LAST_TICS` | 唯讀：最近一次 reference `tags_p` event 發生時的診斷 tick |
+| `0x001002C0` | `SPLL_TAG_FB_LAST_TICS` | 唯讀：最近一次 feedback `tags_p` event 發生時的診斷 tick |
+| `0x001002C4` | `SPLL_TAG_PENDING_REF_COUNT` | 唯讀：reference request pending 的 `clk_sys` cycle 次數 |
+| `0x001002C8` | `SPLL_TAG_PENDING_FB_COUNT` | 唯讀：feedback request pending 的 `clk_sys` cycle 次數 |
+| `0x001002CC` | `SPLL_TAG_PENDING_LAST_TICS` | 唯讀：最近一次任一 `tags_req` 非零時的診斷 tick |
+| `0x001002D0` | `SPLL_TAG_GRANT_LAST_TICS` | 唯讀：最近一次任一 `tags_grant_p` 非零時的診斷 tick |
+| `0x001002D4` | `SPLL_TAG_VALID_LAST_TICS` | 唯讀：最近一次 `tag_valid` 為 1 時的診斷 tick |
+| `0x001002D8` | `SPLL_TRR_WRITE_LAST_TICS` | 唯讀：最近一次 tag FIFO write request 成立時的診斷 tick |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |
@@ -224,6 +235,14 @@ DDMTD polarity 的根因。
 `SPLL_TAG_PENDING_COUNT` 與 `SPLL_TAG_GRANT_COUNT` 用來區分 arbitration：前者
 表示至少有 request pending，後者表示 round-robin grant 曾經發生；兩者都不是
 TRR FIFO write count，必須和既有 `TAG_VALID`、`TRR_WRITE` 一起解讀。
+
+新增的 `*_LAST_TICS` 欄位是 sticky last-event timestamp，不是 WR global time，也
+不是 PPS timestamp；它們只是用 `clk_sys` cycle counter 記錄「最後一次看到事件」的
+位置。把 `SPLL_DIAG_CURRENT_TICS` 減去某個 `*_LAST_TICS`，可以判斷事件是剛剛還在
+發生，還是只在開機早期發生過。`SPLL_TAG_PENDING_REF_COUNT` 與
+`SPLL_TAG_PENDING_FB_COUNT` 則把 request activity 分成 reference 與 feedback channel。
+這些欄位只供分類 event source、request、grant、valid、TRR write 的停點，不會驅動
+SoftPLL 狀態機、DAC 或 SI5340。
 
 ### 4.2 WDIAGS standard / current bring-up map
 

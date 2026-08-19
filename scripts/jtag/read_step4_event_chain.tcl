@@ -68,6 +68,17 @@ proc read_sample {hardware_name label} {
   set dmtd_fb_seen [wb_read 0x001002A4]
   set tag_pending [wb_read 0x001002A8]
   set tag_grant [wb_read 0x001002AC]
+  set current_tics [wb_read 0x001002B0]
+  set dmtd_ref_last_tics [wb_read 0x001002B4]
+  set dmtd_fb_last_tics [wb_read 0x001002B8]
+  set tag_ref_last_tics [wb_read 0x001002BC]
+  set tag_feedback_last_tics [wb_read 0x001002C0]
+  set tag_pending_ref_count [wb_read 0x001002C4]
+  set tag_pending_fb_count [wb_read 0x001002C8]
+  set tag_pending_last_tics [wb_read 0x001002CC]
+  set tag_grant_last_tics [wb_read 0x001002D0]
+  set tag_valid_last_tics [wb_read 0x001002D4]
+  set trr_write_last_tics [wb_read 0x001002D8]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -92,6 +103,12 @@ proc read_sample {hardware_name label} {
   puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \
         $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen]
   puts [format "EVENT_CHAIN_ARB: PENDING=%s GRANT=%s" $tag_pending $tag_grant]
+  puts [format "EVENT_CHAIN_TICS: NOW=%s DMTD_REF_LAST=%s DMTD_FB_LAST=%s TAG_REF_LAST=%s TAG_FB_LAST=%s" \
+        $current_tics $dmtd_ref_last_tics $dmtd_fb_last_tics $tag_ref_last_tics $tag_feedback_last_tics]
+  puts [format "EVENT_CHAIN_REQ: REF_COUNT=%s FB_COUNT=%s LAST=%s" \
+        $tag_pending_ref_count $tag_pending_fb_count $tag_pending_last_tics]
+  puts [format "EVENT_CHAIN_LAST: GRANT=%s VALID=%s TRR=%s" \
+        $tag_grant_last_tics $tag_valid_last_tics $trr_write_last_tics]
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
   puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \

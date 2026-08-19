@@ -207,6 +207,17 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_seen_i : in std_logic_vector(31 downto 0);
       diag_tag_pending_count_i : in std_logic_vector(31 downto 0);
       diag_tag_grant_count_i : in std_logic_vector(31 downto 0);
+      diag_current_tics_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_ref_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_feedback_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_pending_ref_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_pending_fb_count_i : in std_logic_vector(31 downto 0);
+      diag_tag_pending_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_grant_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_tag_valid_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_trr_write_last_tics_i : in std_logic_vector(31 downto 0);
       regs_i     : in  t_spll_in_registers;
       regs_o     : out t_spll_out_registers);
   end component;
@@ -297,6 +308,17 @@ architecture rtl of wr_softpll_ng is
   signal diag_dmtd_fb_seen : std_logic;
   signal diag_tag_pending_count : unsigned(31 downto 0);
   signal diag_tag_grant_count : unsigned(31 downto 0);
+  signal diag_current_tics : unsigned(31 downto 0);
+  signal diag_dmtd_ref_last_tics : unsigned(31 downto 0);
+  signal diag_dmtd_fb_last_tics : unsigned(31 downto 0);
+  signal diag_tag_ref_last_tics : unsigned(31 downto 0);
+  signal diag_tag_feedback_last_tics : unsigned(31 downto 0);
+  signal diag_tag_pending_ref_count : unsigned(31 downto 0);
+  signal diag_tag_pending_fb_count : unsigned(31 downto 0);
+  signal diag_tag_pending_last_tics : unsigned(31 downto 0);
+  signal diag_tag_grant_last_tics : unsigned(31 downto 0);
+  signal diag_tag_valid_last_tics : unsigned(31 downto 0);
+  signal diag_trr_write_last_tics : unsigned(31 downto 0);
 
   signal dmtd_event_sys : std_logic_vector(f_num_total_channels-1 downto 0);
 
@@ -636,7 +658,18 @@ begin  -- rtl
       diag_dmtd_ref_seen_i => (31 downto 1 => '0') & diag_dmtd_ref_seen,
       diag_dmtd_fb_seen_i => (31 downto 1 => '0') & diag_dmtd_fb_seen,
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
-      diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count));
+      diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
+      diag_current_tics_i => std_logic_vector(diag_current_tics),
+      diag_dmtd_ref_last_tics_i => std_logic_vector(diag_dmtd_ref_last_tics),
+      diag_dmtd_fb_last_tics_i => std_logic_vector(diag_dmtd_fb_last_tics),
+      diag_tag_ref_last_tics_i => std_logic_vector(diag_tag_ref_last_tics),
+      diag_tag_feedback_last_tics_i => std_logic_vector(diag_tag_feedback_last_tics),
+      diag_tag_pending_ref_count_i => std_logic_vector(diag_tag_pending_ref_count),
+      diag_tag_pending_fb_count_i => std_logic_vector(diag_tag_pending_fb_count),
+      diag_tag_pending_last_tics_i => std_logic_vector(diag_tag_pending_last_tics),
+      diag_tag_grant_last_tics_i => std_logic_vector(diag_tag_grant_last_tics),
+      diag_tag_valid_last_tics_i => std_logic_vector(diag_tag_valid_last_tics),
+      diag_trr_write_last_tics_i => std_logic_vector(diag_trr_write_last_tics));
 
     -- drive unused outputs
     wb_out.err   <= '0';
@@ -786,35 +819,61 @@ begin  -- rtl
         diag_dmtd_fb_seen <= '0';
         diag_tag_pending_count <= (others => '0');
         diag_tag_grant_count <= (others => '0');
+        diag_current_tics <= (others => '0');
+        diag_dmtd_ref_last_tics <= (others => '0');
+        diag_dmtd_fb_last_tics <= (others => '0');
+        diag_tag_ref_last_tics <= (others => '0');
+        diag_tag_feedback_last_tics <= (others => '0');
+        diag_tag_pending_ref_count <= (others => '0');
+        diag_tag_pending_fb_count <= (others => '0');
+        diag_tag_pending_last_tics <= (others => '0');
+        diag_tag_grant_last_tics <= (others => '0');
+        diag_tag_valid_last_tics <= (others => '0');
+        diag_trr_write_last_tics <= (others => '0');
       else
+        diag_current_tics <= diag_current_tics + 1;
         if dmtd_event_sys(0) = '1' then
           diag_dmtd_ref_event_count <= diag_dmtd_ref_event_count + 1;
           diag_dmtd_ref_seen <= '1';
+          diag_dmtd_ref_last_tics <= diag_current_tics;
         end if;
         if dmtd_event_sys(g_num_ref_inputs) = '1' then
           diag_dmtd_fb_event_count <= diag_dmtd_fb_event_count + 1;
           diag_dmtd_fb_seen <= '1';
+          diag_dmtd_fb_last_tics <= diag_current_tics;
         end if;
         if unsigned(tags_req) /= 0 then
           diag_tag_pending_count <= diag_tag_pending_count + 1;
+          diag_tag_pending_last_tics <= diag_current_tics;
+        end if;
+        if tags_req(0) = '1' then
+          diag_tag_pending_ref_count <= diag_tag_pending_ref_count + 1;
+        end if;
+        if tags_req(g_num_ref_inputs) = '1' then
+          diag_tag_pending_fb_count <= diag_tag_pending_fb_count + 1;
         end if;
         if unsigned(tags_grant_p) /= 0 then
           diag_tag_grant_count <= diag_tag_grant_count + 1;
+          diag_tag_grant_last_tics <= diag_current_tics;
         end if;
         if unsigned(tags_p) /= 0 then
           diag_tag_source_count <= diag_tag_source_count + 1;
         end if;
         if tags_p(0) = '1' then
           diag_tag_ref_count <= diag_tag_ref_count + 1;
+          diag_tag_ref_last_tics <= diag_current_tics;
         end if;
         if tags_p(g_num_ref_inputs) = '1' then
           diag_tag_feedback_count <= diag_tag_feedback_count + 1;
+          diag_tag_feedback_last_tics <= diag_current_tics;
         end if;
         if tag_valid = '1' then
           diag_tag_valid_count <= diag_tag_valid_count + 1;
+          diag_tag_valid_last_tics <= diag_current_tics;
         end if;
         if tag_valid = '1' and regs_in.trr_wr_full_o = '0' then
           diag_trr_write_count <= diag_trr_write_count + 1;
+          diag_trr_write_last_tics <= diag_current_tics;
         end if;
       end if;
     end if;

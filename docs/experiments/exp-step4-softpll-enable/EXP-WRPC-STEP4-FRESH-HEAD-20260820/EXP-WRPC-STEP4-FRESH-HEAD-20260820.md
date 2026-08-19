@@ -155,12 +155,50 @@ Master：腳本假設存在 Slave 的 instance 8，因此回報 `No In-System So
 - Slave `CURRENT_TICS` 持續增加，但 `REF_EVENTS=0x062E0278`、`FB_EVENTS=0x0621777B` 幾乎固定，`REF_STATE=0`、`FB_STATE=0`。
 - `RCER=1`、`OCER=1` 並沒有伴隨新的 DMTD events。
 
+### 追加：DMTD clock activity 與極簡 20 秒重測
+
+為了區分「DMTD offset clock 沒有輸入」與「clock 有輸入但沒有形成 deglitch event」，在同一份 fresh SOF、沒有重新燒錄的前提下，先執行 instance 7 的 clock activity 唯讀觀測，再執行只讀 10 個欄位的極簡 DMTD confirmation。
+
+clock activity 的 1 秒差分顯示兩張板的 `QSFPB_REFCLK/DMTD` 計數都在變化，且 `PHY_READY=1`、`RX_LOCK_DATA=1`：
+
+```text
+Master: REF 17242 -> 48237, DMTD 64787 -> 30215, RX 64474 -> 29932
+Slave : REF 59142 -> 24510, DMTD 41941 ->  7279, RX 58848 -> 24217
+```
+
+16-bit counter 會 wrap，因此起點大於終點不代表沒有活動；這些數值支持 `QSFPB_REFCLK` 在取樣期間有活動，不能把「沒有 DMTD clock」當成已證明根因。
+
+極簡 20 秒 confirmation 只讀 `CURRENT_TICS`、DMTD event counter、last-event ticks、DMTD state、reset bits、RCER/OCER、REF/FB tag counter，並停用 `TRR_R0` 讀取。結果是：
+
+- Master：`CURRENT_TICS` 持續增加；`REF_EVENTS` 約固定在 `0x001C930B`、`FB_EVENTS` 約固定在 `0x009E93C3`；主要樣本 `REF_STATE=2`、`FB_STATE=0`、reset bits=0，tag counters 沒有持續增加。
+- Slave：`CURRENT_TICS` 持續增加；`REF_EVENTS` 約固定在 `0x062E0278`、`FB_EVENTS` 約固定在 `0x0621777B`；主要樣本 `REF_STATE=0`、`FB_STATE=0`、reset bits=0，tag counters 沒有持續增加。
+- 個別列的 `REF_EVENTS`、`RCER` 或 `TAG_REF` 出現跨欄位樣式的跳變，與既有 JTAG mailbox cross-read noise 一致；不把孤立列當作功能活動證據。
+
+這次重測把第一個可觀察的 inactive boundary 保守收斂為：
+
+```text
+QSFPB_REFCLK 有活動
+    -> dmtd_with_deglitcher / dmtd_event_sys 沒有 sustained new event
+    -> tags_p / TRR / IRQ / helper / DCO 沒有 sustained activity
+```
+
+仍不能由此單獨判定是 DDMTD polarity、deglitch threshold、reset/resync、reference clock relationship、PHY 或 SI5340 的根因。
+
 原始 JTAG output：
 
 - [runtime snapshot](./jtag_runtime_snapshot_20260820.log)
 - [30 秒 runtime-context](./jtag_step4_runtime_context_30s_20260820.log)
 - [20 秒 HPLL/helper correlation](./jtag_step4_hpll_helper_20s_20260820.log)
 - [20 秒 direct DMTD](./jtag_step4_dmtd_minimal_20s_20260820.log)
+- [1 秒 clock activity](./jtag_clock_activity_20260820.log)
+- [追加 20 秒極簡 DMTD 重測](./jtag_step4_dmtd_minimal_20s_retest_20260820.log)
+
+追加 raw log SHA256：
+
+| 檔案 | SHA256 |
+|---|---|
+| `jtag_clock_activity_20260820.log` | `01FECBF6D0107AA7F10C1486AB56380FA09E81A9FAED33A967E8D6671D138EA8` |
+| `jtag_step4_dmtd_minimal_20s_retest_20260820.log` | `E0527802334C417C8E7CA7AE32DCB7AECB49354FC2BA9C83FB41712FDA6571DE` |
 
 ## Observation
 
@@ -200,4 +238,3 @@ DMTD event counter 不增加
 2. 確認 DMTD reference 與 feedback clock 是否真的有 activity、reset 是否解除、兩邊是否使用正確的 125 MHz/62.5 MHz domain。
 3. 若 source audit 找不到差異，再設計一次只改一個硬體觀測/clocking functional variable 的 A/B；變更前先 commit，並重新走 clean firmware build、Quartus clean compile、雙板 program 與本格式實驗紀錄。
 4. 本次不合併 `main`，也不開始 Step 5 lock/convergence 修改。
-

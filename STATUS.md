@@ -8,7 +8,7 @@
 
 ## 目前結論
 
-目前最新可追溯實驗是 `exp/step4-softpll-enable` 的 exact HEAD `31f2b518ae45e7664f3307269a0d050fb5c1f630`。此 HEAD 已完成 clean firmware build、`quartus_sh --clean`、雙板 fresh compile、program 與固定等待 60 秒的唯讀 JTAG observation；Master role 已恢復，但尚未重現 Step 2 的完整 parent baseline，因此目前不能把 Step 2、Step 3 或 Step 4 標示為 current HEAD PASS。
+目前最新可追溯實驗使用 `exp/step4-softpll-enable` 的 exact fresh build HEAD `51864b8743759bc20bea817af4bcd19ea81ab4ac`；目前文件分支 HEAD 為 `e94983b`。`51864b8` 已完成 clean firmware build、`quartus_sh --clean`、雙板 fresh compile、program 與唯讀 JTAG observation；`e94983b` 只保存該次結果與追加的唯讀 raw log，沒有修改 functional RTL/firmware。
 
 本輪已證明：
 
@@ -21,16 +21,16 @@
 - `WRS_S_LOCK` / local lock handoff；focused sample 仍為 `local_state=0/next_state=0`。
 - DCO request 進入 I2C transaction 或完成 step；最新實測 `STEP=0`、`HPLL_LOAD=0`。
 
-前一輪的 Master startup role blocker 已透過本輪單一 A/B 變因得到改善；目前 Step 4 的 blocker 應收斂到 **WR signaling 尚未進入 lock handoff，且 DCO request 尚未出現**。後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+目前 Step 4 的第一個可觀察 blocker 應收斂到 **`dmtd_with_deglitcher -> dmtd_event_sys` 沒有 sustained new event**；後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
 
 ## 六步 milestone
 
 | Step | 目標 | 狀態 | 證據或缺口 |
 |---:|---|---|---|
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
-| 2 | Endpoint/MiniNIC/PTP | **PASS（current HEAD focused evidence）** | current `31f2b51` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9`、MiniNIC/PTP counters 活動；20 次 focused sample 解碼出 Slave `foreign=1/0、detection=0、wr_config=3`，等價 `FOREIGN_META=03000001` |
+| 2 | Endpoint/MiniNIC/PTP | **PASS（fresh HEAD evidence）** | fresh `51864b8` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9`、MiniNIC/PTP counters 活動；Slave `foreign=1/0、detection=0、wr_config=3`，等價 `FOREIGN_META=03000001` |
 | 3 | WR Parent/Signaling | **PARTIAL：parent found, lock handoff not observed** | Slave `parentIsWRnode=1`、`parentCalibrated=1`，但 focused sample 的 `local_state=0/next_state=0`，尚未重現 `WRS_S_LOCK` |
-| 4 | SoftPLL Enable | **PARTIAL：入口有活動，DCO 未出現** | current `31f2b51` 的 Slave `LOCK_ENABLE=4`、`SPLL_STATE=0x00030009`、`UCNT` 增加，但 `REF/TAG/TRR_WRITE=0`、DCO `STEP=0`；尚不能標示 PASS |
+| 4 | SoftPLL Enable | **NOT PASS：DMTD event 未持續** | fresh `51864b8` 的 Slave `LOCK_ENABLE=4`、`RCER=1`，但極簡 20 秒中 `REF/FB_EVENTS`、last-event ticks、tag counters 沒有持續增加；DCO `STEP=0`；尚不能標示 PASS |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
@@ -98,6 +98,20 @@ source audit 顯示 DCO 外層 state machine 使用 50 MHz `iCLK`，而 `i2c_bus
 `docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-RESTORE-DDMTD-20260820/`
 
 本輪證據支持「Master role blocker 已改善」，不支持「Step 2/Step 4 已完成」。
+
+## 2026-08-20 Step 4 fresh HEAD DMTD blocker 更新
+
+同一份 `51864b8` fresh SOF 的 clock activity 與極簡 DMTD 20 秒重測已完成：
+
+- `QSFPB_REFCLK/DMTD` source clock 計數在 1 秒觀測中確實增加，`PHY_READY=1`、`RX_LOCK_DATA=1`。
+- `CURRENT_TICS` 在 20 秒中持續增加，表示 observer/runtime 沒有停止。
+- `REF_EVENTS`、`FB_EVENTS`、last-event ticks 與 tag counters 沒有形成持續 delta；主要 reset bits=0。
+- 因此 Step 4 目前仍是 **NOT PASS**，第一個已證明沒有 sustained activity 的節點是 `dmtd_with_deglitcher -> dmtd_event_sys`，下游 `tags_p/TRR/IRQ/helper/DCO` 也未活動。
+- 這是 observability boundary，不是已證明的 root cause；本輪沒有修改 DDMTD polarity、PI、lock threshold、DCO gain 或 SI5340。
+
+Raw log 與完整 provenance：
+
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-FRESH-HEAD-20260820/`
 
 ## 本次文件整理範圍
 

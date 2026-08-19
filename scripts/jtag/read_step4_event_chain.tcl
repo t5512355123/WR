@@ -1,0 +1,114 @@
+# Step 4 SoftPLL raw event-chain 唯讀診斷。
+#
+# 只透過既有 Wishbone mailbox 讀取：
+#   reference/tag counters -> TRR status -> tag IRQ registers -> helper state
+# 不寫入任何設定，不寫 WDIAGS snapshot，也不讀 TRR_R0。
+# TRR_R0 是 FIFO data output，讀取它可能消費 tag，因此刻意不碰。
+#
+# 用法：
+#   quartus_stp -t read_step4_event_chain.tcl ?gap_ms?
+
+package require ::quartus::insystem_source_probe
+
+set gap_ms 1000
+if {[llength $argv] >= 1} {
+  set gap_ms [expr {int([lindex $argv 0])}]
+}
+if {$gap_ms < 0} {
+  error "gap_ms must be >= 0"
+}
+
+set ::wb_toggle 0
+
+proc wb_read {addr} {
+  set ::wb_toggle [expr {$::wb_toggle ^ 1}]
+  set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  after 5
+  for {set n 0} {$n < 100} {incr n} {
+    set value [read_probe_data -instance_index 1 -value_in_hex]
+    scan $value %x word
+    set done_toggle [expr {(($word >> 35) & 1)}]
+    set active [expr {(($word >> 36) & 1)}]
+    if {$done_toggle == $::wb_toggle && $active == 0} {
+      return [format %08X [expr {$word & 0xffffffff}]]
+    }
+    after 1
+  }
+  return "TIMEOUT"
+}
+
+proc wb_sync_toggle {} {
+  set value [read_probe_data -instance_index 1 -value_in_hex]
+  scan $value %x word
+  set ::wb_toggle [expr {(($word >> 35) & 1)}]
+}
+
+proc read_sample {hardware_name label} {
+  set status [read_probe_data -instance_index 0 -value_in_hex]
+
+  set csr [wb_read 0x00100200]
+  set eccr [wb_read 0x00100204]
+  set occr [wb_read 0x00100210]
+  set rcer [wb_read 0x00100224]
+  set ocer [wb_read 0x00100228]
+  set eic_idr [wb_read 0x00100260]
+  set eic_ier [wb_read 0x00100264]
+  set eic_imr [wb_read 0x00100268]
+  set eic_isr [wb_read 0x0010026C]
+  set trr_csr [wb_read 0x00100280]
+  set tag_valid [wb_read 0x00100284]
+  set trr_write [wb_read 0x00100288]
+  set tag_source [wb_read 0x0010028C]
+  set tag_ref [wb_read 0x00100290]
+  set tag_feedback [wb_read 0x00100294]
+
+  set sstat [wb_read 0x00100A08]
+  set pstat [wb_read 0x00100A0C]
+  set lock_enable [wb_read 0x00100A9C]
+  set spll_state [wb_read 0x00100AA0]
+  set helper_state [wb_read 0x00100ABC]
+  set helper_error [wb_read 0x00100AD8]
+  set helper_output [wb_read 0x00100ADC]
+  set ref_count [wb_read 0x00100AD0]
+  set tag_count [wb_read 0x00100AD4]
+  set irq_count [wb_read 0x00100AEC]
+  set helper_update_count [wb_read 0x00100B18]
+
+  puts [format "EVENT_CHAIN_SAMPLE board=%s label=%s status=%s" \
+        $hardware_name $label $status]
+  puts [format "EVENT_CHAIN_HW: CSR=%s ECCR=%s OCCR=%s RCER=%s OCER=%s" \
+        $csr $eccr $occr $rcer $ocer]
+  puts [format "EVENT_CHAIN_EIC: IDR=%s IER=%s IMR=%s ISR=%s" \
+        $eic_idr $eic_ier $eic_imr $eic_isr]
+  puts [format "EVENT_CHAIN_TRR: CSR=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
+        $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
+  puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
+        $sstat $pstat $lock_enable $spll_state]
+  puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \
+        $helper_state $helper_error $helper_output $ref_count $tag_count \
+        $irq_count $helper_update_count]
+  flush stdout
+}
+
+puts [format "EVENT_CHAIN_CONFIG gap_ms=%d trr_r0_read=disabled" $gap_ms]
+
+foreach hardware_name [get_hardware_names] {
+  set device_names [get_device_names -hardware_name $hardware_name]
+  if {[llength $device_names] == 0} { continue }
+  set device_name [lindex $device_names 0]
+  puts "=== ${hardware_name} ==="
+  catch { end_insystem_source_probe }
+  if {[catch {
+    start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
+    wb_sync_toggle
+    read_sample $hardware_name BEGIN
+    after $gap_ms
+    read_sample $hardware_name END
+  } error_message]} {
+    puts "error: ${error_message}"
+  }
+  catch { end_insystem_source_probe }
+}
+
+puts "EVENT_CHAIN_DONE"

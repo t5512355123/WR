@@ -218,6 +218,7 @@ architecture rtl of wr_softpll_ng is
       diag_tag_grant_last_tics_i : in std_logic_vector(31 downto 0);
       diag_tag_valid_last_tics_i : in std_logic_vector(31 downto 0);
       diag_trr_write_last_tics_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_state_i : in std_logic_vector(31 downto 0);
       regs_i     : in  t_spll_in_registers;
       regs_o     : out t_spll_out_registers);
   end component;
@@ -321,6 +322,11 @@ architecture rtl of wr_softpll_ng is
   signal diag_trr_write_last_tics : unsigned(31 downto 0);
 
   signal dmtd_event_sys : std_logic_vector(f_num_total_channels-1 downto 0);
+  signal dmtd_ref_state : std_logic_vector(1 downto 0);
+  signal dmtd_fb_state : std_logic_vector(1 downto 0);
+  signal dmtd_ref_reset_sys : std_logic;
+  signal dmtd_fb_reset_sys : std_logic;
+  signal diag_dmtd_state : std_logic_vector(31 downto 0);
 
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
@@ -382,6 +388,10 @@ architecture rtl of wr_softpll_ng is
     
 begin  -- rtl
 
+  diag_dmtd_state <= (31 downto 10 => '0') & dmtd_fb_reset_sys &
+                     dmtd_ref_reset_sys & (7 downto 4 => '0') &
+                     dmtd_fb_state & dmtd_ref_state;
+
   U_Adapter : wb_slave_adapter
     generic map(
       g_master_use_struct  => true,
@@ -431,6 +441,8 @@ begin  -- rtl
         tag_o                => tags(i),
         tag_stb_p1_o         => tags_p(i),
         dbg_event_sys_o      => dmtd_event_sys(i),
+        dbg_state_sys_o      => dmtd_ref_state,
+        dbg_dmtd_reset_sys_o => dmtd_ref_reset_sys,
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -472,6 +484,8 @@ begin  -- rtl
         tag_o        => tags(i+g_num_ref_inputs),
         tag_stb_p1_o => tags_p(i+g_num_ref_inputs),
         dbg_event_sys_o => dmtd_event_sys(i+g_num_ref_inputs),
+        dbg_state_sys_o => dmtd_fb_state,
+        dbg_dmtd_reset_sys_o => dmtd_fb_reset_sys,
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -514,6 +528,8 @@ begin  -- rtl
         tag_o        => tags(g_num_ref_inputs + g_num_outputs + I),
         tag_stb_p1_o => tags_p(g_num_ref_inputs + g_num_outputs + I),
         dbg_event_sys_o => dmtd_event_sys(g_num_ref_inputs + g_num_outputs + I),
+        dbg_state_sys_o => open,
+        dbg_dmtd_reset_sys_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -669,7 +685,8 @@ begin  -- rtl
       diag_tag_pending_last_tics_i => std_logic_vector(diag_tag_pending_last_tics),
       diag_tag_grant_last_tics_i => std_logic_vector(diag_tag_grant_last_tics),
       diag_tag_valid_last_tics_i => std_logic_vector(diag_tag_valid_last_tics),
-      diag_trr_write_last_tics_i => std_logic_vector(diag_trr_write_last_tics));
+      diag_trr_write_last_tics_i => std_logic_vector(diag_trr_write_last_tics),
+      diag_dmtd_state_i => diag_dmtd_state);
 
     -- drive unused outputs
     wb_out.err   <= '0';

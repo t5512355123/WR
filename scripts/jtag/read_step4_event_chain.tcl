@@ -79,6 +79,7 @@ proc read_sample {hardware_name label} {
   set tag_grant_last_tics [wb_read 0x001002D0]
   set tag_valid_last_tics [wb_read 0x001002D4]
   set trr_write_last_tics [wb_read 0x001002D8]
+  set dmtd_state [wb_read 0x001002DC]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -109,6 +110,11 @@ proc read_sample {hardware_name label} {
         $tag_pending_ref_count $tag_pending_fb_count $tag_pending_last_tics]
   puts [format "EVENT_CHAIN_LAST: GRANT=%s VALID=%s TRR=%s" \
         $tag_grant_last_tics $tag_valid_last_tics $trr_write_last_tics]
+  puts [format "EVENT_CHAIN_DMTD_STATE: VALUE=%s REF_STATE=%d FB_STATE=%d REF_RESET=%d FB_RESET=%d" \
+        $dmtd_state [expr {($dmtd_state & 0x3)}] \
+        [expr {(($dmtd_state >> 2) & 0x3)}] \
+        [expr {(($dmtd_state >> 8) & 0x1)}] \
+        [expr {(($dmtd_state >> 9) & 0x1)}]]
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
   puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \

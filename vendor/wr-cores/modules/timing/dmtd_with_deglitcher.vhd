@@ -139,7 +139,12 @@ entity dmtd_with_deglitcher is
     tag_stb_p1_o : out std_logic;
     -- [clk_sys_i] deglitched edge pulse before SoftPLL tag arbitration
     dbg_event_sys_o : out std_logic;
-    dbg_clk_d3_o : out std_logic
+    dbg_clk_d3_o : out std_logic;
+    -- [clk_sys_i] synchronized deglitcher state: 0=WAIT_STABLE_0,
+    -- 1=WAIT_EDGE, 2=GOT_EDGE.
+    dbg_state_sys_o : out std_logic_vector(1 downto 0);
+    -- Reset status from the DMTD clock domain, for read-only diagnostics.
+    dbg_dmtd_reset_sys_o : out std_logic
     );
 end dmtd_with_deglitcher;
 
@@ -178,8 +183,26 @@ architecture rtl of dmtd_with_deglitcher is
   signal tag_latched_dmtdclk : std_logic_vector(g_counter_bits-1 downto 0);
   signal tag_latched_sysclk : std_logic_vector(g_counter_bits-1 downto 0);
   signal new_edge_p_sysclk_d0 : std_logic;
+  signal state_dbg_dmtd : std_logic_vector(1 downto 0);
+  signal state_dbg_sys : std_logic_vector(1 downto 0);
   
 begin  -- rtl
+
+  state_dbg_dmtd <= "00" when state = WAIT_STABLE_0 else
+                    "01" when state = WAIT_EDGE else
+                    "10";
+
+  U_sync_state_debug : entity work.gc_sync_register
+    generic map (
+      g_width => 2)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => state_dbg_dmtd,
+      q_o       => state_dbg_sys);
+
+  dbg_state_sys_o <= state_dbg_sys;
+  dbg_dmtd_reset_sys_o <= not rst_n_dmtdclk_i;
 
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (

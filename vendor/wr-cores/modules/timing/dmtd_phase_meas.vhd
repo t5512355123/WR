@@ -94,7 +94,9 @@ architecture syn of dmtd_phase_meas is
       tag_o                : out std_logic_vector(g_counter_bits-1 downto 0);
       tag_stb_p1_o         : out std_logic;
       dbg_event_sys_o      : out std_logic;
-      dbg_clk_d3_o         : out std_logic);
+      dbg_clk_d3_o         : out std_logic;
+      dbg_state_sys_o      : out std_logic_vector(1 downto 0);
+      dbg_dmtd_reset_sys_o : out std_logic);
   end component;
 
   type t_pd_state is (PD_WAIT_TAG, PD_WAIT_A, PD_WAIT_B);
@@ -134,6 +136,8 @@ begin  -- syn
       tag_stb_p1_o           => tag_a_p,
       dbg_event_sys_o        => open,
       dbg_clk_d3_o           => open,
+      dbg_state_sys_o        => open,
+      dbg_dmtd_reset_sys_o   => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',
       deglitch_threshold_i => std_logic_vector(to_unsigned(g_deglitcher_threshold, 16)),
@@ -152,6 +156,8 @@ begin  -- syn
       tag_stb_p1_o           => tag_b_p,
       dbg_event_sys_o        => open,
       dbg_clk_d3_o           => open,
+      dbg_state_sys_o        => open,
+      dbg_dmtd_reset_sys_o   => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',
       deglitch_threshold_i => std_logic_vector(to_unsigned(g_deglitcher_threshold, 16)),

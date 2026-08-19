@@ -191,6 +191,7 @@ component spll_wb_slave is
     diag_tag_grant_last_tics_i               : in     std_logic_vector(31 downto 0);
     diag_tag_valid_last_tics_i               : in     std_logic_vector(31 downto 0);
     diag_trr_write_last_tics_i               : in     std_logic_vector(31 downto 0);
+    diag_dmtd_state_i                        : in     std_logic_vector(31 downto 0);
     regs_i                                   : in     t_spll_in_registers;
     regs_o                                   : out    t_spll_out_registers
   );

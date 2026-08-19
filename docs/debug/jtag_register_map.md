@@ -214,6 +214,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x001002D0` | `SPLL_TAG_GRANT_LAST_TICS` | 唯讀：最近一次任一 `tags_grant_p` 非零時的診斷 tick |
 | `0x001002D4` | `SPLL_TAG_VALID_LAST_TICS` | 唯讀：最近一次 `tag_valid` 為 1 時的診斷 tick |
 | `0x001002D8` | `SPLL_TRR_WRITE_LAST_TICS` | 唯讀：最近一次 tag FIFO write request 成立時的診斷 tick |
+| `0x001002DC` | `SPLL_DMTD_STATE` | 唯讀：bits 1..0 reference state、bits 3..2 feedback state、bit 8/9 分別為 reference/feedback DMTD reset-active |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |
@@ -243,6 +244,11 @@ TRR FIFO write count，必須和既有 `TAG_VALID`、`TRR_WRITE` 一起解讀。
 `SPLL_TAG_PENDING_FB_COUNT` 則把 request activity 分成 reference 與 feedback channel。
 這些欄位只供分類 event source、request、grant、valid、TRR write 的停點，不會驅動
 SoftPLL 狀態機、DAC 或 SI5340。
+
+`SPLL_DMTD_STATE` 的 state 編碼為 `0=WAIT_STABLE_0`、`1=WAIT_EDGE`、
+`2=GOT_EDGE`；這是 `dmtd_with_deglitcher` 的 source-defined state，並已同步到
+`clk_sys` 後才提供給 Wishbone。reset-active bit 只表示 DMTD reset input 目前為低，
+不代表 reset 的歷史次數。
 
 ### 4.2 WDIAGS standard / current bring-up map
 

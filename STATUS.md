@@ -8,7 +8,7 @@
 
 ## 目前結論
 
-目前最新可追溯實驗是 `exp/step4-softpll-enable` 的 exact HEAD `ab65815e1092d9ae37830881f83b223d16d4d6cd`。此 HEAD 已完成 clean firmware build、`quartus_sh --clean`、雙板 fresh compile、program 與固定等待 60 秒的唯讀 JTAG observation；但尚未重現 Step 2 的完整 role/parent baseline，因此目前不能把 Step 2、Step 3 或 Step 4 標示為 current HEAD PASS。
+目前最新可追溯實驗是 `exp/step4-softpll-enable` 的 exact HEAD `31f2b518ae45e7664f3307269a0d050fb5c1f630`。此 HEAD 已完成 clean firmware build、`quartus_sh --clean`、雙板 fresh compile、program 與固定等待 60 秒的唯讀 JTAG observation；Master role 已恢復，但尚未重現 Step 2 的完整 parent baseline，因此目前不能把 Step 2、Step 3 或 Step 4 標示為 current HEAD PASS。
 
 本輪已證明：
 
@@ -18,20 +18,19 @@
 
 本輪未證明：
 
-- Master=`MODE=2`、`PPS_MASTER=6`；實測仍為 `MODE=3`、`PPS=4`。
-- Slave=`FOREIGN_META=0x03000001` 的 WR parent metadata。
-- Slave `LOCK_ENABLE`、SoftPLL sequence、UCNT 或 DCO completed step 有活動。
+- Slave=`FOREIGN_META=0x03000001` 的 WR parent metadata；最新實測仍為 `0x00000001`。
+- DCO request 進入 I2C transaction 或完成 step；最新實測 `STEP=0`、`HPLL_LOAD=0`。
 
-因此目前 Step 4 的第一個 blocker 應先收斂到 **Master startup role execution / Step 2 parent discovery**。在此之前不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+前一輪的 Master startup role blocker 已透過本輪單一 A/B 變因得到改善；目前 Step 4 的 blocker 應收斂到 **Slave WR parent metadata/WR signaling 與 DCO request 尚未出現**。後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
 
 ## 六步 milestone
 
 | Step | 目標 | 狀態 | 證據或缺口 |
 |---:|---|---|---|
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
-| 2 | Endpoint/MiniNIC/PTP | **NOT REPRODUCED** | current `ab65815` 的 MAC/PTP counters 有活動，但 Master 未進 `MODE=2/PPS=6`，Slave 只有 `FOREIGN_META=00000001` |
-| 3 | WR Parent/Signaling | **BLOCKED BY STEP 2** | 舊 milestone 有 `WRS_S_LOCK` 證據；current `ab65815` 尚未重現 parent metadata，不能沿用舊結果宣稱 current HEAD PASS |
-| 4 | SoftPLL Enable | **BLOCKED：先恢復 Step 2 role/parent** | current `ab65815` 的 Slave `LOCK_ENABLE=0`、`SPLL_STATE=0`、`UCNT=0`、DCO `STEP=0`；目前不能把它單獨歸因於 DCO handshake |
+| 2 | Endpoint/MiniNIC/PTP | **PARTIAL：role restored** | current `31f2b51` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9` 與 PTP counters 活動，但 Slave 只有 `FOREIGN_META=00000001` |
+| 3 | WR Parent/Signaling | **BLOCKED BY STEP 2** | current `31f2b51` 的 Slave 仍只有 `FOREIGN_META=00000001`；不能沿用舊結果宣稱 current HEAD PASS |
+| 4 | SoftPLL Enable | **PARTIAL：入口有活動，DCO 未出現** | current `31f2b51` 的 Slave `LOCK_ENABLE=4`、`SPLL_STATE=0x00030009`、`UCNT` 增加，但 `REF/TAG/TRR_WRITE=0`、DCO `STEP=0`；尚不能標示 PASS |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
@@ -92,6 +91,14 @@ source audit 顯示 DCO 外層 state machine 使用 50 MHz `iCLK`，而 `i2c_bus
 完整資料見：
 `docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-WDIAGS-MAP-FIX-2-20260820.md`。
 
+## 2026-08-20 Step 4 DDMTD 預設方向恢復實驗摘要
+
+本輪唯一 functional 變因是移除 Master/Slave 的 `g_softpll_reverse_dmtds => true`，恢復 c88 預設取樣方向。結果為 Master `MODE=2/PPS=6`、Slave `MODE=3/PPS=9`；但 Slave `FOREIGN_META=00000001`、DCO `STEP=0`。完整紀錄與 raw output 位於：
+
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-RESTORE-DDMTD-20260820/`
+
+本輪證據支持「Master role blocker 已改善」，不支持「Step 2/Step 4 已完成」。
+
 ## 本次文件整理範圍
 
 本次只更新：
@@ -101,11 +108,12 @@ source audit 顯示 DCO 外層 state machine 使用 50 MHz `iCLK`，而 `i2c_bus
 - `docs/MERGE_READINESS.md`
 - `docs/experiments/exp-step3-wr-handshake/EXP-WRPC-STEP3-FRESH-HEAD-20260819.md`
 - `docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-FRESH-HEAD-RETEST-20260820.md`
+- `docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-RESTORE-DDMTD-20260820.md`
 
 本次文件更新沒有修改 functional RTL、PTP algorithm、SoftPLL algorithm、PHY 或 SI5340 DCO control；Step 3 fresh HEAD 的硬體實驗與原始輸出已在 `EXP-WRPC-STEP3-FRESH-HEAD-20260819.md` 記錄。
 
 ## 下一步
 
-1. 先以既有 `9f848ec`/`c88cc05` Master role 行為為 reference，唯讀確認 built-in startup command 的實際執行與結果。
-2. 在 current HEAD 重現 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9`、`FOREIGN_META=03000001` 前，不進入新的 SoftPLL/DCO functional tuning。
-3. 保留 `exp/step3-wr-handshake` 與本輪 Step 4 fresh retest 作為可追溯研究歷史；下一次燒錄前先 commit/push，再由 pain pull exact commit。
+1. 保留 `31f2b51` 作為 Master role 已恢復的 reference，先唯讀追查 Slave `FOREIGN_META=00000001` 與 WR signaling/parent metadata。
+2. 在 current HEAD 重現 `FOREIGN_META=03000001` 前，不進入新的 SoftPLL/DCO functional tuning。
+3. 保留所有 Step 4 A/B 實驗與 raw logs；下一次燒錄前先 commit/push，再由 pain pull exact commit。

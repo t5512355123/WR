@@ -248,6 +248,25 @@ void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
 	wdiag_write(0xfc, trr_write_count);
 }
 
+void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
+                                             int32_t expected_tag,
+                                             int32_t preclamp_error,
+                                             int32_t tag_delta,
+                                             int32_t tag_source,
+                                             int32_t expected_delta,
+                                             uint32_t update_count)
+{
+	/* These registers are sampled shadows only. The periodic diagnostics task
+	 * writes them outside the interrupt-driven SoftPLL loop. */
+	wdiag_write(0x100, (uint32_t)last_tag);
+	wdiag_write(0x104, (uint32_t)expected_tag);
+	wdiag_write(0x108, (uint32_t)preclamp_error);
+	wdiag_write(0x10c, (uint32_t)tag_delta);
+	wdiag_write(0x110, (uint32_t)tag_source);
+	wdiag_write(0x114, (uint32_t)expected_delta);
+	wdiag_write(0x118, update_count);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

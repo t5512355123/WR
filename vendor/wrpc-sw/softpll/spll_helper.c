@@ -40,11 +40,16 @@ void helper_init(struct spll_helper_state *s, int ref_channel)
 void helper_update(struct spll_helper_state *s, int tag,
 			 int source)
 {
-	int err, y;
+	int err, y, tag_delta, raw_err;
 
 	/* Helper pll tracks the ref clock */
 	if (source != s->ref_src)
 		return;
+
+	wrpc_spll_helper_last_tag = tag;
+	wrpc_spll_helper_tag_source = source;
+	wrpc_spll_helper_expected_delta = (1 << HPLL_N);
+	wrpc_spll_helper_update_count++;
 	
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_TAG, tag, 0);
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_REF, s->p_setpoint, 0);
@@ -53,6 +58,9 @@ void helper_update(struct spll_helper_state *s, int tag,
 		/* First tag. */
 		s->p_setpoint = tag;
 		s->tag_d0 = tag;
+		wrpc_spll_helper_expected_tag = s->p_setpoint;
+		wrpc_spll_helper_preclamp_error = 0;
+		wrpc_spll_helper_tag_delta = 0;
 
 		return;
 	}
@@ -61,8 +69,16 @@ void helper_update(struct spll_helper_state *s, int tag,
 	if (s->tag_d0 > tag)
 		s->p_adder += (1 << TAG_BITS);
 
+	tag_delta = tag - s->tag_d0;
+	if (tag_delta < 0)
+		tag_delta += (1 << TAG_BITS);
+
 	/* Compute the error */
-	err = (tag + s->p_adder) - s->p_setpoint;
+	raw_err = (tag + s->p_adder) - s->p_setpoint;
+	wrpc_spll_helper_expected_tag = s->p_setpoint;
+	wrpc_spll_helper_preclamp_error = raw_err;
+	wrpc_spll_helper_tag_delta = tag_delta;
+	err = raw_err;
 
 	/* And clamp */
 	if (HELPER_ERROR_CLAMP) {

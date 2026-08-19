@@ -58,6 +58,14 @@ void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
 /* Read-only hardware event counters: tag arbitration and FIFO writes. */
 void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
                                       uint32_t trr_write_count);
+/* Read-only helper tag/error correlation shadow. */
+void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
+                                             int32_t expected_tag,
+                                             int32_t preclamp_error,
+                                             int32_t tag_delta,
+                                             int32_t tag_source,
+                                             int32_t expected_delta,
+                                             uint32_t update_count);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

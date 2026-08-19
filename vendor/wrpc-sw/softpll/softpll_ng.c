@@ -50,6 +50,13 @@ volatile struct softpll_state softpll;
 volatile uint32_t wrpc_spll_state_visit_mask;
 volatile uint32_t wrpc_spll_state_transition_count;
 volatile uint8_t wrpc_spll_last_state;
+volatile int32_t wrpc_spll_helper_last_tag;
+volatile int32_t wrpc_spll_helper_expected_tag;
+volatile int32_t wrpc_spll_helper_preclamp_error;
+volatile int32_t wrpc_spll_helper_tag_delta;
+volatile int32_t wrpc_spll_helper_tag_source;
+volatile int32_t wrpc_spll_helper_expected_delta;
+volatile uint32_t wrpc_spll_helper_update_count;
 
 static inline void wrpc_spll_note_state(int state)
 {
@@ -342,6 +349,13 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 	s->mode = mode;
 	s->delock_count = 0;
 	s->ref_count = s->tag_count = 0;
+	wrpc_spll_helper_last_tag = 0;
+	wrpc_spll_helper_expected_tag = 0;
+	wrpc_spll_helper_preclamp_error = 0;
+	wrpc_spll_helper_tag_delta = 0;
+	wrpc_spll_helper_tag_source = 0;
+	wrpc_spll_helper_expected_delta = 0;
+	wrpc_spll_helper_update_count = 0;
 
 	SPLL->OCER = 0;
 	SPLL->RCER = 0;

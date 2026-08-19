@@ -198,4 +198,14 @@ extern volatile uint32_t wrpc_spll_state_visit_mask;
 extern volatile uint32_t wrpc_spll_state_transition_count;
 extern volatile uint8_t wrpc_spll_last_state;
 
+/* Read-only helper correlation shadow. These values are sampled by the
+ * periodic diagnostics task and do not participate in the control loop. */
+extern volatile int32_t wrpc_spll_helper_last_tag;
+extern volatile int32_t wrpc_spll_helper_expected_tag;
+extern volatile int32_t wrpc_spll_helper_preclamp_error;
+extern volatile int32_t wrpc_spll_helper_tag_delta;
+extern volatile int32_t wrpc_spll_helper_tag_source;
+extern volatile int32_t wrpc_spll_helper_expected_delta;
+extern volatile uint32_t wrpc_spll_helper_update_count;
+
 #endif // __SOFTPLL_NG_H

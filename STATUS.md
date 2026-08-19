@@ -14,22 +14,22 @@
 
 - HEAD→MIF→SOF→program 的 provenance 可重現。
 - QSFP-A lane 0、CPU runtime、兩端 MAC、MiniNIC frame counter 與 PPSI PTP counter 有活動。
-- Slave 可以觀察到 `PPS=9`，但 `FOREIGN_META` 只有 `0x00000001`。
+- Slave 可以觀察到 `PPS=9`；後續 20 次 focused 唯讀 sample 依 source mapping 觀察到 `foreign=1/0、detection=0、wr_config=3、parent=1/0/1`，等價於 `FOREIGN_META=0x03000001`。
 
 本輪未證明：
 
-- Slave=`FOREIGN_META=0x03000001` 的 WR parent metadata；最新實測仍為 `0x00000001`。
+- `WRS_S_LOCK` / local lock handoff；focused sample 仍為 `local_state=0/next_state=0`。
 - DCO request 進入 I2C transaction 或完成 step；最新實測 `STEP=0`、`HPLL_LOAD=0`。
 
-前一輪的 Master startup role blocker 已透過本輪單一 A/B 變因得到改善；目前 Step 4 的 blocker 應收斂到 **Slave WR parent metadata/WR signaling 與 DCO request 尚未出現**。後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+前一輪的 Master startup role blocker 已透過本輪單一 A/B 變因得到改善；目前 Step 4 的 blocker 應收斂到 **WR signaling 尚未進入 lock handoff，且 DCO request 尚未出現**。後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
 
 ## 六步 milestone
 
 | Step | 目標 | 狀態 | 證據或缺口 |
 |---:|---|---|---|
 | 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
-| 2 | Endpoint/MiniNIC/PTP | **PARTIAL：role restored** | current `31f2b51` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9` 與 PTP counters 活動，但 Slave 只有 `FOREIGN_META=00000001` |
-| 3 | WR Parent/Signaling | **BLOCKED BY STEP 2** | current `31f2b51` 的 Slave 仍只有 `FOREIGN_META=00000001`；不能沿用舊結果宣稱 current HEAD PASS |
+| 2 | Endpoint/MiniNIC/PTP | **PASS（current HEAD focused evidence）** | current `31f2b51` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9`、MiniNIC/PTP counters 活動；20 次 focused sample 解碼出 Slave `foreign=1/0、detection=0、wr_config=3`，等價 `FOREIGN_META=03000001` |
+| 3 | WR Parent/Signaling | **PARTIAL：parent found, lock handoff not observed** | Slave `parentIsWRnode=1`、`parentCalibrated=1`，但 focused sample 的 `local_state=0/next_state=0`，尚未重現 `WRS_S_LOCK` |
 | 4 | SoftPLL Enable | **PARTIAL：入口有活動，DCO 未出現** | current `31f2b51` 的 Slave `LOCK_ENABLE=4`、`SPLL_STATE=0x00030009`、`UCNT` 增加，但 `REF/TAG/TRR_WRITE=0`、DCO `STEP=0`；尚不能標示 PASS |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
@@ -114,6 +114,6 @@ source audit 顯示 DCO 外層 state machine 使用 50 MHz `iCLK`，而 `i2c_bus
 
 ## 下一步
 
-1. 保留 `31f2b51` 作為 Master role 已恢復的 reference，先唯讀追查 Slave `FOREIGN_META=00000001` 與 WR signaling/parent metadata。
-2. 在 current HEAD 重現 `FOREIGN_META=03000001` 前，不進入新的 SoftPLL/DCO functional tuning。
+1. 保留 `31f2b51` 作為 current Step 2 fresh-program reference；其 focused raw evidence 已解碼出 Slave `FOREIGN_META=03000001` 等價狀態。
+2. 先唯讀追查 WR signaling 為何停在 `local_state=0`，再判斷 `WRS_S_LOCK` 後 SoftPLL/DCO 第一個無活動節點；不要先調 PI/lock threshold。
 3. 保留所有 Step 4 A/B 實驗與 raw logs；下一次燒錄前先 commit/push，再由 pain pull exact commit。

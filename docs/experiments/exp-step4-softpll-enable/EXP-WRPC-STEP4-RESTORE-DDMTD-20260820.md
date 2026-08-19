@@ -124,13 +124,37 @@ Master 的 DCO probe 在本實驗 bitstream 沒有 instance，`read_dco_state.tc
 - `jtag_dco_step4_dmtd_default_20260820.log`
 - `jtag_hpll_step4_dmtd_default_20260820.log`
 
+## 同一 bitstream 的後續 focused 唯讀觀察
+
+為了區分單點 snapshot 與持續 runtime 狀態，在同一份已燒錄的 `31f2b51` bitstream 上，再執行 `read_wr_handshake_focused.tcl 20 1000`。這沒有重新燒錄，也沒有寫入控制暫存器。
+
+20 次 sample 的穩定結果：
+
+| 項目 | Master | Slave |
+|---|---|---|
+| `wr_mode` | `2` | `3` |
+| PTP role | `PPS_MASTER=6` | `PPS_SLAVE=9` |
+| foreign count/best | `0/255` | `1/0` |
+| parent detection / WR config | 不適用 | `0/3` |
+| parent flags | 不適用 | `parentIsWRnode=1`, `parentWrModeOn=0`（有一筆 sample 為 1）, `parentCalibrated=1` |
+| WR signaling RX/TX | `0x1000/0x1001` | `0x1001/0x1000` |
+| WR signaling reject | 有變動，需另行分析 | `0/0` |
+| local/next WR state | `0/0` | `0/0` |
+| lock result / `spll_check_lock` | `0/0` | `1/0` |
+| lock polls / enable count | `0/0` | `953195/4` |
+| RCER | `0` | `1` |
+
+因此在 source-defined mapping 下，Slave focused observation 已持續看到 `FOREIGN_META=0x03000001` 的等價欄位；初次 runtime snapshot 的 `0x00000001` 應視為 WR parent diagnostics 尚未完成本輪 refresh 的早期讀值，不能用來否定後續穩定結果。原始輸出：
+
+- `jtag_wr_handshake_focused_step4_dmtd_default_20260820.log`
+
 ## Observation
 
 1. 移除反向 DDMTD 設定後，Master 從前一輪的 `MODE=3/PTP=4` 恢復為 `MODE=2/PTP=6`；這支持 `g_softpll_reverse_dmtds => true` 是前一輪 Master role 失敗的優先可疑變因。
 2. Slave 仍可進入 `PPS_SLAVE=9`，兩端 CPU、MAC、MiniNIC 與 PPSI PTP counters 都有活動，表示 endpoint、frame path 與 PTP packet path 仍在工作。
-3. Slave `FOREIGN_META=0x00000001`，沒有達到 Step 2 reference 的 `0x03000001`；因此不能宣稱 current HEAD 已完整重現 Step 2。
-4. Slave `LOCK_ENABLE=4` 且 `UCNT` 在 10 秒唯讀 observation 中增加，支持 SoftPLL enable/servo 入口不是完全 idle。
-5. 但是 DCO `STEP=0`、`HPLL_LOAD=0`、`BUSY=0`，而 `REF/TAG/TRR_WRITE` 沒有活動；目前不能宣稱 correction/DCO request 已成功送入 SI5340。
+3. 初次單點 runtime snapshot 的 `FOREIGN_META=0x00000001` 在後續 20 秒 focused read 中被 source-defined 欄位 `foreign=1/0, detection=0, wr_config=3, parent=1/0/1` 修正解讀為已建立 `0x03000001` 等價狀態；這是讀取時序差異，不是硬體重新燒錄。
+4. Slave `LOCK_ENABLE=4` 且 `UCNT` 在唯讀 observation 中增加，支持 SoftPLL enable/servo 入口不是完全 idle。
+5. 但是 Slave `local_state=0`、`spll_check_lock=0`，DCO `STEP=0`、`HPLL_LOAD=0`、`BUSY=0`，而 `REF/TAG/TRR_WRITE` 沒有活動；目前不能宣稱 correction/DCO request 已成功送入 SI5340。
 
 ## Conclusion
 
@@ -145,11 +169,11 @@ Master 的 DCO probe 在本實驗 bitstream 沒有 instance，`read_dco_state.tc
 
 證據不支持的內容：
 
-- current HEAD 尚未重現 `FOREIGN_META=0x03000001`。
+- 尚未證明 WR signaling 已進入 current HEAD 所需的 `WRS_S_LOCK` / local state。
 - 尚未證明 DCO request 進入 I2C bus 或完成任何 DCO step。
 - 尚未證明 `PSTAT.locked=1`、`time_valid=1` 或完整 WR timing synchronization。
 
-因此本輪不是 Step 2 或 Step 4 PASS。第一個後續 blocker 已從「Master role 未進入 PPS_MASTER」收斂為「Slave WR parent metadata/WR signaling 尚未完整建立，以及 DCO request 尚未出現」。不應在這個證據下直接調整 PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法。
+因此本輪已具備 Step 2 的 Endpoint/MiniNIC/PTP/foreign-master 證據，但不是 Step 4 PASS。第一個後續 blocker 已從「Master role 未進入 PPS_MASTER」收斂為「WR signaling 尚未進入 lock handoff，且 DCO request 尚未出現」。不應在這個證據下直接調整 PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 演算法。
 
 ## Next Step
 

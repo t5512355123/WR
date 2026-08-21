@@ -158,7 +158,7 @@ proc focus_init {board} {
       state_good first_ptp_rx last_ptp_rx first_ptp_tx last_ptp_tx \
       first_tx last_tx first_rx last_rx \
       first_rxerr last_rxerr first_mac last_mac first_mode last_mode \
-      first_ptp last_ptp ptp9_seen} {
+      first_ptp last_ptp ptp9_seen counter_decreased step3_good step3_bad} {
     set ::focus_stats($board,$field) 0
   }
   set ::focus_stats($board,step2_candidate) 1
@@ -177,6 +177,15 @@ proc focus_get {board field} {
 proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_wr \
     parent_cal rx_id rx_count tx_id tx_count state ptp_rx ptp_tx tx rx rxerr} {
   incr ::focus_stats($board,valid)
+  if {[focus_get $board valid] > 1} {
+    foreach pair [list \
+        [list ptp_rx last_ptp_rx] [list ptp_tx last_ptp_tx] \
+        [list tx last_tx] [list rx last_rx] [list rxerr last_rxerr]] {
+      set current [lindex $pair 0]
+      set previous [focus_get $board [lindex $pair 1]]
+      if {$current < $previous} { set ::focus_stats($board,counter_decreased) 1 }
+    }
+  }
   if {[focus_get $board first_mac] eq ""} {
     set ::focus_stats($board,first_mac) $mac
     set ::focus_stats($board,first_ptp_rx) $ptp_rx
@@ -205,6 +214,13 @@ proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_w
   }
   if {$mode == 3 && $ptp != 9 && $ptp != 8} {
     set ::focus_stats($board,step2_candidate) 0
+  }
+  if {$mode == 3 && ($foreign_count == 1 && $foreign_best == 0 &&
+      $parent_is_wr == 1 && $parent_cal == 1 && $rx_id == 0x1001 &&
+      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0)} {
+    incr ::focus_stats($board,step3_good)
+  } elseif {$mode == 3} {
+    incr ::focus_stats($board,step3_bad)
   }
   if {$mode == 3 && !($foreign_count == 1 && $foreign_best == 0 &&
       $parent_is_wr == 1 && $parent_cal == 1 && $rx_id == 0x1001 &&
@@ -242,11 +258,11 @@ proc focus_summary {board hardware_name} {
       $first_ptp_tx >= 0 && $last_ptp_tx > $first_ptp_tx &&
       $first_tx >= 0 && $last_tx >= $first_tx && $first_rx >= 0 && $last_rx >= $first_rx &&
       $first_rxerr >= 0 && $last_rxerr >= $first_rxerr ? "PASS" : "FAIL"}]
-    if {$invalid > 0 && $step2 eq "PASS"} { set step2 PASS }
+    if {[focus_get $board counter_decreased]} { set step2 INVALID }
     if {$last_mode == 3} {
-      if {![focus_get $board step3_candidate]} {
+      if {[focus_get $board step3_good] == 0 && [focus_get $board step3_bad] > 0} {
         set step3 FAIL
-      } elseif {[focus_get $board state_idle] > 0} {
+      } elseif {[focus_get $board step3_bad] > 0 || [focus_get $board state_idle] > 0} {
         set step3 INVALID
       } else {
         set step3 PASS
@@ -255,10 +271,11 @@ proc focus_summary {board hardware_name} {
       set step3 NA
     }
   }
-  puts [format "FOCUSED_GATE board=%s valid_samples=%d invalid_samples=%d STEP2_REGRESSION=%s STEP3_REGRESSION=%s STATE_EVIDENCE=%s state_idle=%d state_good=%d" \
-    $hardware_name $valid $invalid $step2 $step3 \
+  puts [format "FOCUSED_GATE board=%s valid_samples=%d invalid_samples=%d counter_decreased=%d STEP2_REGRESSION=%s STEP3_REGRESSION=%s STATE_EVIDENCE=%s signal_good=%d signal_bad=%d state_idle=%d state_good=%d" \
+    $hardware_name $valid $invalid [focus_get $board counter_decreased] $step2 $step3 \
     [expr {[focus_get $board state_idle] > 0 ? "READ_INCONSISTENT" : "STABLE"}] \
-    [focus_get $board state_idle] [focus_get $board state_good]]
+    [focus_get $board step3_good] \
+    [focus_get $board step3_bad] [focus_get $board state_idle] [focus_get $board state_good]]
 }
 
 proc read_focused_sample {hardware_name sample} {

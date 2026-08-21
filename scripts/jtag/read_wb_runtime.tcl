@@ -53,7 +53,7 @@ proc register_value_valid {addr value} {
   set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
   switch -- $key {
     0x00100124 {
-      return [expr {$word == 0x00000200}]
+      return [expr {$word == 0x02000200}]
     }
     0x00100128 {
       return [expr {$word == 0x22334401 || $word == 0x22334402}]
@@ -873,6 +873,7 @@ proc analyze_board {board} {
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "NA" }
+    if {$s eq "INVALID"} { set shown "MEASUREMENT_INVALID / RETEST" }
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }

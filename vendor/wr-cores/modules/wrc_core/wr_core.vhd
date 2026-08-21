@@ -911,14 +911,13 @@ begin
       cpu_last_store_seen_o  => cpu_last_store_seen_o,
       cpu_internal_store_count_o => cpu_internal_store_count_o,
       cpu_mepc_o => cpu_mepc_o,
-      cpu_mcause_o => cpu_mcause_o
+      cpu_mcause_o => cpu_mcause_o,
+      diag_dmtd_sampled_count_o => diag_dmtd_sampled_count_o,
+      diag_dmtd_accept_count_o => diag_dmtd_accept_count_o,
+      diag_dmtd_sampled_last_tics_o => diag_dmtd_sampled_last_tics_o,
+      diag_dmtd_accept_last_tics_o => diag_dmtd_accept_last_tics_o,
+      diag_dmtd_stab_state_o => diag_dmtd_stab_state_o
       );
-
-  diag_dmtd_sampled_count_o <= softpll_dmtd_sampled_count;
-  diag_dmtd_accept_count_o <= softpll_dmtd_accept_count;
-  diag_dmtd_sampled_last_tics_o <= softpll_dmtd_sampled_last_tics;
-  diag_dmtd_accept_last_tics_o <= softpll_dmtd_accept_last_tics;
-  diag_dmtd_stab_state_o <= softpll_dmtd_stab_state;
 
   -----------------------------------------------------------------------------
   -- WB Peripherials

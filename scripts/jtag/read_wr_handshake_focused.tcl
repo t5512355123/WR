@@ -82,6 +82,12 @@ proc register_value_valid {addr value} {
   if {$word < 0 || [stale_jtag_word $value]} { return 0 }
   set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
   switch -- $key {
+    0x00100124 {
+      return [expr {$word == 0x00000200}]
+    }
+    0x00100128 {
+      return [expr {$word == 0x22334401 || $word == 0x22334402}]
+    }
     0x00100A10 {
       return [expr {$word >= 1 && $word <= 9}]
     }

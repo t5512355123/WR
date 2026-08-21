@@ -297,12 +297,7 @@ entity xwr_core is
     cpu_last_store_seen_o  : out std_logic;
     cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
     cpu_mepc_o : out std_logic_vector(31 downto 0);
-    cpu_mcause_o : out std_logic_vector(31 downto 0);
-    diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0)
+    cpu_mcause_o : out std_logic_vector(31 downto 0)
     );
 end xwr_core;
 
@@ -510,11 +505,6 @@ begin
        cpu_internal_store_count_o => cpu_internal_store_count_o,
        cpu_mepc_o => cpu_mepc_o,
        cpu_mcause_o => cpu_mcause_o,
-       diag_dmtd_sampled_count_o => diag_dmtd_sampled_count_o,
-       diag_dmtd_accept_count_o => diag_dmtd_accept_count_o,
-       diag_dmtd_sampled_last_tics_o => diag_dmtd_sampled_last_tics_o,
-       diag_dmtd_accept_last_tics_o => diag_dmtd_accept_last_tics_o,
-       diag_dmtd_stab_state_o => diag_dmtd_stab_state_o,
 
        aux_diag_i => aux_diag_i,
       aux_diag_o => aux_diag_o

@@ -138,11 +138,6 @@ entity xwr_softpll_ng is
     int_o: out std_logic;
 
     debug_o        : out std_logic_vector(5 downto 0);
-    diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
-    diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0);
     dbg_fifo_irq_o : out std_logic
     );
 
@@ -205,11 +200,6 @@ begin  -- behavioral
       wb_stall_o      => slave_o.stall,
       irq_o           => int_o,
       debug_o         => debug_o,
-      diag_dmtd_sampled_count_o => diag_dmtd_sampled_count_o,
-      diag_dmtd_accept_count_o => diag_dmtd_accept_count_o,
-      diag_dmtd_sampled_last_tics_o => diag_dmtd_sampled_last_tics_o,
-      diag_dmtd_accept_last_tics_o => diag_dmtd_accept_last_tics_o,
-      diag_dmtd_stab_state_o => diag_dmtd_stab_state_o,
       dbg_fifo_irq_o  => dbg_fifo_irq_o);
 
   slave_o.err <= '0';

@@ -728,7 +728,7 @@ proc analyze_board {board} {
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "WAIT" }
     if {$s eq "PASS"} { set shown "PASS" }
-    if {$s eq "WARN"} { set shown "注意" }
+    if {$s eq "WARN"} { set shown "WARN" }
     if {$s eq "FAIL"} { set shown "FAIL" }
     puts [format "Step %d %-22s %s" $step $label $shown]
   }

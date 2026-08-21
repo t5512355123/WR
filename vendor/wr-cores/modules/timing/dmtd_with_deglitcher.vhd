@@ -144,7 +144,13 @@ entity dmtd_with_deglitcher is
     -- 1=WAIT_EDGE, 2=GOT_EDGE.
     dbg_state_sys_o : out std_logic_vector(1 downto 0);
     -- Reset status from the DMTD clock domain, for read-only diagnostics.
-    dbg_dmtd_reset_sys_o : out std_logic
+    dbg_dmtd_reset_sys_o : out std_logic;
+    -- Read-only observability. These signals do not feed the DMTD datapath.
+    dbg_sampled_transition_count_o : out std_logic_vector(31 downto 0);
+    dbg_deglitch_accept_count_o : out std_logic_vector(31 downto 0);
+    dbg_sampled_transition_last_tics_o : out std_logic_vector(31 downto 0);
+    dbg_deglitch_accept_last_tics_o : out std_logic_vector(31 downto 0);
+    dbg_stab_cntr_o : out std_logic_vector(15 downto 0)
     );
 end dmtd_with_deglitcher;
 
@@ -160,6 +166,17 @@ architecture rtl of dmtd_with_deglitcher is
 
 
   signal clk_sampled, clk_sampled_d : std_logic;
+
+  signal dbg_clk_sampled_d : std_logic;
+  signal dbg_sampled_transition_count : unsigned(31 downto 0);
+  signal dbg_deglitch_accept_count : unsigned(31 downto 0);
+  signal dbg_sampled_transition_last_tics : unsigned(31 downto 0);
+  signal dbg_deglitch_accept_last_tics : unsigned(31 downto 0);
+  signal dbg_stab_cntr_sys : std_logic_vector(15 downto 0);
+  signal dbg_sampled_transition_count_sys : std_logic_vector(31 downto 0);
+  signal dbg_deglitch_accept_count_sys : std_logic_vector(31 downto 0);
+  signal dbg_sampled_transition_last_tics_sys : std_logic_vector(31 downto 0);
+  signal dbg_deglitch_accept_last_tics_sys : std_logic_vector(31 downto 0);
 
   signal new_edge_p_dmtdclk    : std_logic;
   signal new_edge_p_sysclk    : std_logic;
@@ -203,6 +220,52 @@ begin  -- rtl
 
   dbg_state_sys_o <= state_dbg_sys;
   dbg_dmtd_reset_sys_o <= not rst_n_dmtdclk_i;
+
+  U_sync_dbg_sampled_count : entity work.gc_sync_register
+    generic map (g_width => 32)
+    port map (
+      clk_i => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i => std_logic_vector(dbg_sampled_transition_count),
+      q_o => dbg_sampled_transition_count_sys);
+
+  U_sync_dbg_accept_count : entity work.gc_sync_register
+    generic map (g_width => 32)
+    port map (
+      clk_i => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i => std_logic_vector(dbg_deglitch_accept_count),
+      q_o => dbg_deglitch_accept_count_sys);
+
+  U_sync_dbg_sampled_last_tics : entity work.gc_sync_register
+    generic map (g_width => 32)
+    port map (
+      clk_i => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i => std_logic_vector(dbg_sampled_transition_last_tics),
+      q_o => dbg_sampled_transition_last_tics_sys);
+
+  U_sync_dbg_accept_last_tics : entity work.gc_sync_register
+    generic map (g_width => 32)
+    port map (
+      clk_i => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i => std_logic_vector(dbg_deglitch_accept_last_tics),
+      q_o => dbg_deglitch_accept_last_tics_sys);
+
+  U_sync_dbg_stab_cntr : entity work.gc_sync_register
+    generic map (g_width => 16)
+    port map (
+      clk_i => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i => std_logic_vector(stab_cntr),
+      q_o => dbg_stab_cntr_sys);
+
+  dbg_sampled_transition_count_o <= dbg_sampled_transition_count_sys;
+  dbg_deglitch_accept_count_o <= dbg_deglitch_accept_count_sys;
+  dbg_sampled_transition_last_tics_o <= dbg_sampled_transition_last_tics_sys;
+  dbg_deglitch_accept_last_tics_o <= dbg_deglitch_accept_last_tics_sys;
+  dbg_stab_cntr_o <= dbg_stab_cntr_sys;
 
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
@@ -305,6 +368,33 @@ begin  -- rtl
       end if;
     end if;
   end process p_deglitch;
+
+  -- Diagnostic-only counters. They observe the sampler and deglitcher
+  -- boundary without driving any functional signal.
+  p_debug_counters : process(clk_dmtd_i)
+  begin
+    if rising_edge(clk_dmtd_i) then
+      if rst_n_dmtdclk_i = '0' or resync_p_dmtd = '1' then
+        dbg_clk_sampled_d <= clk_sampled;
+        dbg_sampled_transition_count <= (others => '0');
+        dbg_deglitch_accept_count <= (others => '0');
+        dbg_sampled_transition_last_tics <= (others => '0');
+        dbg_deglitch_accept_last_tics <= (others => '0');
+      else
+        if clk_sampled /= dbg_clk_sampled_d then
+          dbg_sampled_transition_count <= dbg_sampled_transition_count + 1;
+          dbg_sampled_transition_last_tics <= resize(free_cntr, 32);
+        end if;
+
+        if new_edge_p_dmtdclk = '1' then
+          dbg_deglitch_accept_count <= dbg_deglitch_accept_count + 1;
+          dbg_deglitch_accept_last_tics <= resize(free_cntr, 32);
+        end if;
+
+        dbg_clk_sampled_d <= clk_sampled;
+      end if;
+    end if;
+  end process p_debug_counters;
 
 
   gen_with_jitter_stats : if g_with_jitter_stats_regs generate

@@ -388,6 +388,11 @@ package wrcore_pkg is
       slave_o         : out t_wishbone_slave_out;
       int_o           : out std_logic;
       debug_o         : out std_logic_vector(5 downto 0);
+      diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0);
       dbg_fifo_irq_o  : out std_logic);
   end component;
   
@@ -548,7 +553,12 @@ package wrcore_pkg is
       link_ok_o : out std_logic;
 
       aux_diag_i : in  t_generic_word_array(g_diag_ro_size-1 downto 0) := (others=>(others=>'0'));
-      aux_diag_o : out t_generic_word_array(g_diag_rw_size-1 downto 0)
+      aux_diag_o : out t_generic_word_array(g_diag_rw_size-1 downto 0);
+      diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
+      diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0)
       );
   end component;
 

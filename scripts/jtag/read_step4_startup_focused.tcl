@@ -195,6 +195,134 @@ proc read_series {board label addr} {
         $board $label $::samples $valid $invalid $decrease $first $last $delta]
 }
 
+proc probe64_once {instance} {
+  if {[catch {read_probe_data -instance_index $instance -value_in_hex} value]} {
+    return INVALID
+  }
+  if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} { return INVALID }
+  scan $value %x word
+  return [format %016X $word]
+}
+
+proc probe_low32 {value} {
+  if {$value eq "INVALID"} { return INVALID }
+  scan $value %x word
+  return [format %08X [expr {$word & 0xffffffff}]]
+}
+
+proc probe_high32 {value} {
+  if {$value eq "INVALID"} { return INVALID }
+  scan $value %x word
+  return [format %08X [expr {($word >> 32) & 0xffffffff}]]
+}
+
+proc probe_low16 {value} {
+  if {$value eq "INVALID"} { return INVALID }
+  scan $value %x word
+  return [format %04X [expr {$word & 0xffff}]]
+}
+
+proc probe_field_int {value lsb width} {
+  if {$value eq "INVALID"} { return INVALID }
+  scan $value %x word
+  set mask [expr {(1 << $width) - 1}]
+  return [expr {($word >> $lsb) & $mask}]
+}
+
+proc read_dmtd_probe_group {board} {
+  set counter_labels {
+    DMTD_REF_SAMPLED_TRANSITIONS DMTD_FB_SAMPLED_TRANSITIONS
+    DMTD_REF_DEGLITCH_ACCEPTS DMTD_FB_DEGLITCH_ACCEPTS
+    DMTD_REF_SAMPLED_LAST_TICS DMTD_FB_SAMPLED_LAST_TICS
+    DMTD_REF_DEGLITCH_LAST_TICS DMTD_FB_DEGLITCH_LAST_TICS
+  }
+  set state_labels {
+    DMTD_REF_STAB_CNTR DMTD_FB_STAB_CNTR
+    DMTD_REF_DEGLITCH_STATE DMTD_FB_DEGLITCH_STATE
+    DMTD_REF_RESET DMTD_FB_RESET
+  }
+  array set first {}
+  array set last {}
+  array set invalid {}
+  array set decrease {}
+  foreach label [concat $counter_labels $state_labels] {
+    set first($label) ""
+    set last($label) ""
+    set invalid($label) 0
+    set decrease($label) 0
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    set sampled [probe64_once 9]
+    set accepted [probe64_once 10]
+    set sampled_tics [probe64_once 11]
+    set accepted_tics [probe64_once 12]
+    set state [probe64_once 13]
+
+    if {$::raw_mode} {
+      puts [format "STEP4_RAW_PROBE board=%s instance=9 sampled_count=%s" $board $sampled]
+      puts [format "STEP4_RAW_PROBE board=%s instance=10 accept_count=%s" $board $accepted]
+      puts [format "STEP4_RAW_PROBE board=%s instance=11 sampled_last_tics=%s" $board $sampled_tics]
+      puts [format "STEP4_RAW_PROBE board=%s instance=12 accept_last_tics=%s" $board $accepted_tics]
+      puts [format "STEP4_RAW_PROBE board=%s instance=13 stab_state=%s" $board $state]
+    }
+
+    array set values {}
+    set values(DMTD_REF_SAMPLED_TRANSITIONS) [probe_low32 $sampled]
+    set values(DMTD_FB_SAMPLED_TRANSITIONS) [probe_high32 $sampled]
+    set values(DMTD_REF_DEGLITCH_ACCEPTS) [probe_low32 $accepted]
+    set values(DMTD_FB_DEGLITCH_ACCEPTS) [probe_high32 $accepted]
+    set values(DMTD_REF_SAMPLED_LAST_TICS) [probe_low32 $sampled_tics]
+    set values(DMTD_FB_SAMPLED_LAST_TICS) [probe_high32 $sampled_tics]
+    set values(DMTD_REF_DEGLITCH_LAST_TICS) [probe_low32 $accepted_tics]
+    set values(DMTD_FB_DEGLITCH_LAST_TICS) [probe_high32 $accepted_tics]
+    set values(DMTD_REF_STAB_CNTR) [probe_low16 $state]
+    set fb_stab [probe_field_int $state 16 16]
+    if {$fb_stab eq "INVALID"} {
+      set values(DMTD_FB_STAB_CNTR) INVALID
+    } else {
+      set values(DMTD_FB_STAB_CNTR) [format %04X $fb_stab]
+    }
+    set values(DMTD_REF_DEGLITCH_STATE) [probe_field_int $state 32 2]
+    set values(DMTD_FB_DEGLITCH_STATE) [probe_field_int $state 34 2]
+    set values(DMTD_REF_RESET) [probe_field_int $state 36 1]
+    set values(DMTD_FB_RESET) [probe_field_int $state 37 1]
+
+    foreach label [concat $counter_labels $state_labels] {
+      set value $values($label)
+      if {$value eq "INVALID"} {
+        incr invalid($label)
+      } else {
+        if {$first($label) eq ""} { set first($label) $value }
+        if {$last($label) ne "" && [lsearch -exact $counter_labels $label] >= 0 &&
+            [word32 $value] < [word32 $last($label)]} {
+          set decrease($label) 1
+        }
+        set last($label) $value
+      }
+    }
+
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  foreach label [concat $counter_labels $state_labels] {
+    if {[lsearch -exact $counter_labels $label] >= 0} {
+      set delta [series_delta $first($label) $last($label) $invalid($label)]
+    } else {
+      set delta NA
+    }
+    set ::series($board,$label,valid) [expr {$::samples - $invalid($label)}]
+    set ::series($board,$label,invalid) $invalid($label)
+    set ::series($board,$label,decrease) $decrease($label)
+    set ::series($board,$label,first) $first($label)
+    set ::series($board,$label,last) $last($label)
+    set ::series($board,$label,delta) $delta
+    puts [format "STEP4_PROBE_SERIES board=%s signal=%s valid=%d invalid=%d decrease=%d first=%s last=%s delta=%s" \
+          $board $label $::series($board,$label,valid) $invalid($label) \
+          $decrease($label) $first($label) $last($label) $delta]
+  }
+}
+
 proc series_value {board label field} {
   if {[info exists ::series($board,$label,$field)]} {
     return $::series($board,$label,$field)
@@ -246,7 +374,9 @@ proc print_lock_classification {board} {
 }
 
 proc print_event_boundary {board} {
-  set labels {DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
+  set labels {DMTD_REF_SAMPLED_TRANSITIONS DMTD_FB_SAMPLED_TRANSITIONS \
+              DMTD_REF_DEGLITCH_ACCEPTS DMTD_FB_DEGLITCH_ACCEPTS \
+              DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT}
@@ -255,6 +385,10 @@ proc print_event_boundary {board} {
     return
   }
 
+  set sampled_active [expr {[delta_positive $board DMTD_REF_SAMPLED_TRANSITIONS] || \
+                             [delta_positive $board DMTD_FB_SAMPLED_TRANSITIONS]}]
+  set deglitch_active [expr {[delta_positive $board DMTD_REF_DEGLITCH_ACCEPTS] || \
+                              [delta_positive $board DMTD_FB_DEGLITCH_ACCEPTS]}]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
@@ -267,8 +401,12 @@ proc print_event_boundary {board} {
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
   set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
 
-  if {!$dmtd_active} {
-    set boundary "DMTD_EVENT_GENERATION"
+  if {!$sampled_active} {
+    set boundary "DMTD_SAMPLER_TO_CLK_SAMPLED"
+  } elseif {!$deglitch_active} {
+    set boundary "CLK_SAMPLED_TO_DEGLITCH_ACCEPT"
+  } elseif {!$dmtd_active} {
+    set boundary "DEGLITCH_TO_POST_CDC"
   } elseif {!$pending_active} {
     set boundary "DMTD_TO_TAG_REQUEST"
   } elseif {!$grant_active} {
@@ -285,8 +423,8 @@ proc print_event_boundary {board} {
     set boundary "HELPER_UPDATE_ACTIVE"
   }
 
-  puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
-        $board $dmtd_active $pending_active $grant_active $tag_active \
+  puts [format "STEP4_EVENT_ACTIVITY board=%s sampled=%d deglitch=%d dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
+        $board $sampled_active $deglitch_active $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $irq_active $state_active $helper_active]
   puts [format "STEP4_EVENT_BOUNDARY board=%s result=%s" $board $boundary]
 }
@@ -338,6 +476,7 @@ proc read_event_group {board} {
   } {
     read_series $board [lindex $item 0] [lindex $item 1]
   }
+  read_dmtd_probe_group $board
   print_event_boundary $board
 }
 

@@ -160,6 +160,14 @@ entity wr_softpll_ng is
     irq_o      : out std_logic;
     debug_o    : out std_logic_vector(5 downto 0);
 
+    -- Read-only DMTD boundary observability. These outputs do not drive
+    -- SoftPLL state, tag arbitration, or correction logic.
+    diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0);
+
 -- Debug FIFO readout interrupt
     dbg_fifo_irq_o : out std_logic
     );
@@ -344,6 +352,19 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_reset_sys : std_logic;
   signal diag_dmtd_state : std_logic_vector(31 downto 0);
 
+  type t_diag32_array is array(integer range <>) of std_logic_vector(31 downto 0);
+  type t_diag16_array is array(integer range <>) of std_logic_vector(15 downto 0);
+  signal dmtd_ref_sampled_count : t_diag32_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_sampled_count : t_diag32_array(0 to g_num_outputs-1);
+  signal dmtd_ref_accept_count : t_diag32_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_accept_count : t_diag32_array(0 to g_num_outputs-1);
+  signal dmtd_ref_sampled_last_tics : t_diag32_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_sampled_last_tics : t_diag32_array(0 to g_num_outputs-1);
+  signal dmtd_ref_accept_last_tics : t_diag32_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_accept_last_tics : t_diag32_array(0 to g_num_outputs-1);
+  signal dmtd_ref_stab_cntr : t_diag16_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_stab_cntr : t_diag16_array(0 to g_num_outputs-1);
+
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -408,6 +429,19 @@ begin  -- rtl
                      dmtd_ref_reset_sys & (7 downto 4 => '0') &
                      dmtd_fb_state & dmtd_ref_state;
 
+  diag_dmtd_sampled_count_o <= dmtd_fb_sampled_count(0) &
+                               dmtd_ref_sampled_count(0);
+  diag_dmtd_accept_count_o <= dmtd_fb_accept_count(0) &
+                              dmtd_ref_accept_count(0);
+  diag_dmtd_sampled_last_tics_o <= dmtd_fb_sampled_last_tics(0) &
+                                   dmtd_ref_sampled_last_tics(0);
+  diag_dmtd_accept_last_tics_o <= dmtd_fb_accept_last_tics(0) &
+                                  dmtd_ref_accept_last_tics(0);
+  diag_dmtd_stab_state_o <= (63 downto 38 => '0') &
+                            dmtd_fb_reset_sys & dmtd_ref_reset_sys &
+                            dmtd_fb_state & dmtd_ref_state &
+                            dmtd_fb_stab_cntr(0) & dmtd_ref_stab_cntr(0);
+
   U_Adapter : wb_slave_adapter
     generic map(
       g_master_use_struct  => true,
@@ -459,6 +493,11 @@ begin  -- rtl
         dbg_event_sys_o      => dmtd_event_sys(i),
         dbg_state_sys_o      => dmtd_ref_state,
         dbg_dmtd_reset_sys_o => dmtd_ref_reset_sys,
+        dbg_sampled_transition_count_o => dmtd_ref_sampled_count(i),
+        dbg_deglitch_accept_count_o => dmtd_ref_accept_count(i),
+        dbg_sampled_transition_last_tics_o => dmtd_ref_sampled_last_tics(i),
+        dbg_deglitch_accept_last_tics_o => dmtd_ref_accept_last_tics(i),
+        dbg_stab_cntr_o => dmtd_ref_stab_cntr(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -502,6 +541,11 @@ begin  -- rtl
         dbg_event_sys_o => dmtd_event_sys(i+g_num_ref_inputs),
         dbg_state_sys_o => dmtd_fb_state,
         dbg_dmtd_reset_sys_o => dmtd_fb_reset_sys,
+        dbg_sampled_transition_count_o => dmtd_fb_sampled_count(i),
+        dbg_deglitch_accept_count_o => dmtd_fb_accept_count(i),
+        dbg_sampled_transition_last_tics_o => dmtd_fb_sampled_last_tics(i),
+        dbg_deglitch_accept_last_tics_o => dmtd_fb_accept_last_tics(i),
+        dbg_stab_cntr_o => dmtd_fb_stab_cntr(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -546,6 +590,11 @@ begin  -- rtl
         dbg_event_sys_o => dmtd_event_sys(g_num_ref_inputs + g_num_outputs + I),
         dbg_state_sys_o => open,
         dbg_dmtd_reset_sys_o => open,
+        dbg_sampled_transition_count_o => open,
+        dbg_deglitch_accept_count_o => open,
+        dbg_sampled_transition_last_tics_o => open,
+        dbg_deglitch_accept_last_tics_o => open,
+        dbg_stab_cntr_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 

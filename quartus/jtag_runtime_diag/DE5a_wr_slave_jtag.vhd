@@ -199,6 +199,11 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_internal_store_count : std_logic_vector(31 downto 0);
   signal cpu_mepc              : std_logic_vector(31 downto 0);
   signal cpu_mcause            : std_logic_vector(31 downto 0);
+  signal dmtd_sampled_count_probe : std_logic_vector(63 downto 0);
+  signal dmtd_accept_count_probe : std_logic_vector(63 downto 0);
+  signal dmtd_sampled_last_tics_probe : std_logic_vector(63 downto 0);
+  signal dmtd_accept_last_tics_probe : std_logic_vector(63 downto 0);
+  signal dmtd_stab_state_probe : std_logic_vector(63 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal dco_probe            : std_logic_vector(63 downto 0);
   signal dco_debug            : std_logic_vector(63 downto 0);
@@ -593,6 +598,81 @@ begin
       source_ena => '1'
     );
 
+  u_dmtd_sampled_count_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DMTD_SAMPLED_COUNT_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 9,
+      source_width            => 1
+    )
+    port map (
+      probe      => dmtd_sampled_count_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dmtd_accept_count_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DMTD_ACCEPT_COUNT_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 10,
+      source_width            => 1
+    )
+    port map (
+      probe      => dmtd_accept_count_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dmtd_sampled_last_tics_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DMTD_SAMPLED_LAST_TICS_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 11,
+      source_width            => 1
+    )
+    port map (
+      probe      => dmtd_sampled_last_tics_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dmtd_accept_last_tics_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DMTD_ACCEPT_LAST_TICS_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 12,
+      source_width            => 1
+    )
+    port map (
+      probe      => dmtd_accept_last_tics_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_dmtd_stab_state_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DMTD_STAB_STATE_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 13,
+      source_width            => 1
+    )
+    port map (
+      probe      => dmtd_stab_state_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- The board's SFP I2C pins are open-drain.  WRPC drives only the output
   -- low and releases the line for a logic high.
   QSFPA_SDA <= '0' when sfp_sda_o = '0' else 'Z';
@@ -788,7 +868,12 @@ begin
       cpu_last_store_seen_o     => cpu_last_store_seen,
       cpu_internal_store_count_o => cpu_internal_store_count,
       cpu_mepc_o               => cpu_mepc,
-      cpu_mcause_o             => cpu_mcause
+      cpu_mcause_o             => cpu_mcause,
+      diag_dmtd_sampled_count_o => dmtd_sampled_count_probe,
+      diag_dmtd_accept_count_o => dmtd_accept_count_probe,
+      diag_dmtd_sampled_last_tics_o => dmtd_sampled_last_tics_probe,
+      diag_dmtd_accept_last_tics_o => dmtd_accept_last_tics_probe,
+      diag_dmtd_stab_state_o => dmtd_stab_state_probe
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

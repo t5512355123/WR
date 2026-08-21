@@ -1,6 +1,6 @@
 # DE5a White Rabbit JTAG 可觀測性與暫存器地圖
 
-最後整理：2026-08-19
+最後整理：2026-08-21
 
 本文件說明目前 DE5a bring-up 版本如何透過 JTAG 觀察 White Rabbit（WR）系統。它是**唯讀觀測介面文件**，不會改變 WR、PTP（Precision Time Protocol，精確時間協定）、SoftPLL（Software Phase-Locked Loop，軟體鎖相迴路）、PHY（Physical Layer，實體層）或 SI5340 DCO（Digitally Controlled Oscillator，數位控制振盪器）的控制行為。
 
@@ -87,8 +87,13 @@ Wishbone mailbox 是一個小型的 JTAG-to-Wishbone 轉接器。Tcl 把「讀�
 | 5 | `u_cpu_store_count_probe` | 64 bit | CPU internal store 次數 | 低 32 bit count |
 | 6 | `u_cpu_exception_probe` | 64 bit | CPU exception | 低 32 bit mepc、高 32 bit mcause |
 | 7 | `u_clock_activity_probe` | 64 bit | reference、DMTD、recovered RX clock activity | 見 2.3 |
+| 9 | `u_dmtd_sampled_count_probe` | 64 bit | DMTD sampler transition count；低 32 bit REF、高 32 bit FB | 見 2.4 |
+| 10 | `u_dmtd_accept_count_probe` | 64 bit | deglitch accepted edge count；低 32 bit REF、高 32 bit FB | 見 2.4 |
+| 11 | `u_dmtd_sampled_last_tics_probe` | 64 bit | 最後一次 sampler transition tics；低 32 bit REF、高 32 bit FB | 見 2.4 |
+| 12 | `u_dmtd_accept_last_tics_probe` | 64 bit | 最後一次 deglitch accepted edge tics；低 32 bit REF、高 32 bit FB | 見 2.4 |
+| 13 | `u_dmtd_stab_state_probe` | 64 bit | stable counter、deglitch state、DMTD reset shadow | 見 2.4 |
 
-目前 slave RTL 另外保留 instance 8 `u_dco_probe` 供 DCO 唯讀診斷；master RTL 沒有這個共用 instance，而目前 `read_wb_runtime.tcl` 也不讀 instance 8。因此本文件的共同 runtime mapping 以 0 至 7 為準。
+目前 slave RTL 另外保留 instance 8 `u_dco_probe` 供 DCO 唯讀診斷；master RTL 沒有這個共用 instance。為了讓兩張板的 Step 4 focused script 使用相同 mapping，DMTD 旁路觀測固定使用 instance 9 至 13；這些訊號不回饋到功能路徑。
 
 ### 2.1 Instance 0：status probe
 
@@ -159,6 +164,36 @@ RTL 使用 concatenation 將欄位放入 `sync_probe(63 downto 0)`。最低 16 b
 | 52 | `wr_rx_locked_to_ref` |
 | 53 | `wr_rx_locked_to_data` |
 | 54..63 | 保留值，固定為 `0`；不作為 clock/reset/link 判斷依據 |
+
+### 2.4 Instance 9 至 13：DMTD boundary observability
+
+這五個 probe 是純唯讀診斷，來源依序由 `dmtd_with_deglitcher.vhd` 的
+sampler、deglitcher 與 stable counter fan-out，再同步到 system clock domain。
+它們不是 Wishbone register，也不會改變 DMTD、tag、TRR、IRQ 或 SoftPLL
+sequencer 的行為。
+
+| Instance | 低 32 bit | 高 32 bit |
+|---:|---|---|
+| 9 | `REF_SAMPLED_TRANSITIONS` | `FB_SAMPLED_TRANSITIONS` |
+| 10 | `REF_DEGLITCH_ACCEPTS` | `FB_DEGLITCH_ACCEPTS` |
+| 11 | `REF_SAMPLED_LAST_TICS` | `FB_SAMPLED_LAST_TICS` |
+| 12 | `REF_DEGLITCH_LAST_TICS` | `FB_DEGLITCH_LAST_TICS` |
+
+Instance 13 的欄位如下：
+
+| Bits | 欄位 |
+|---:|---|
+| 0..15 | REF deglitch `stab_cntr` |
+| 16..31 | FB deglitch `stab_cntr` |
+| 32..33 | REF deglitch state：0 `WAIT_STABLE_0`、1 `WAIT_EDGE`、2 `GOT_EDGE` |
+| 34..35 | FB deglitch state：同上 |
+| 36 | REF DMTD clock-domain reset shadow |
+| 37 | FB DMTD clock-domain reset shadow |
+
+Instance 9 的 transition count 可判斷 sampler 是否看見輸入變化；instance
+10 的 accept count 可判斷 deglitcher 是否接受完整穩定邊緣。它們只能作為
+觀測證據，不能由單一 snapshot 推論長期 activity，應使用 focused Tcl 的
+多次 read 與 delta。
 
 counter 持續增加只能證明該 clock domain 有 activity；不能單獨證明 SoftPLL 已 lock。
 

@@ -347,7 +347,12 @@ entity wr_core is
     cpu_last_store_seen_o  : out std_logic;
     cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
     cpu_mepc_o : out std_logic_vector(31 downto 0);
-    cpu_mcause_o : out std_logic_vector(31 downto 0)
+    cpu_mcause_o : out std_logic_vector(31 downto 0);
+    diag_dmtd_sampled_count_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_accept_count_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_sampled_last_tics_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_accept_last_tics_o : out std_logic_vector(63 downto 0);
+    diag_dmtd_stab_state_o : out std_logic_vector(63 downto 0)
     );
 end wr_core;
 
@@ -503,6 +508,11 @@ architecture struct of wr_core is
   signal mux_class   : t_wrf_mux_class(1 downto 0);
 
   signal spll_out_locked : std_logic_vector(g_aux_clks downto 0);
+  signal softpll_dmtd_sampled_count : std_logic_vector(63 downto 0);
+  signal softpll_dmtd_accept_count : std_logic_vector(63 downto 0);
+  signal softpll_dmtd_sampled_last_tics : std_logic_vector(63 downto 0);
+  signal softpll_dmtd_accept_last_tics : std_logic_vector(63 downto 0);
+  signal softpll_dmtd_stab_state : std_logic_vector(63 downto 0);
 
   signal dac_dpll_data    : std_logic_vector(g_dac_bits-1 downto 0);
   signal dac_dpll_sel     : std_logic_vector(3 downto 0);
@@ -712,7 +722,12 @@ begin
 
       int_o => softpll_irq,
 
-      debug_o => open);
+      debug_o => open,
+      diag_dmtd_sampled_count_o => softpll_dmtd_sampled_count,
+      diag_dmtd_accept_count_o => softpll_dmtd_accept_count,
+      diag_dmtd_sampled_last_tics_o => softpll_dmtd_sampled_last_tics,
+      diag_dmtd_accept_last_tics_o => softpll_dmtd_accept_last_tics,
+      diag_dmtd_stab_state_o => softpll_dmtd_stab_state);
 
   clk_fb(0)                       <= clk_ref_i;
   clk_fb(g_aux_clks downto 1)     <= clk_aux_i;
@@ -896,7 +911,12 @@ begin
       cpu_last_store_seen_o  => cpu_last_store_seen_o,
       cpu_internal_store_count_o => cpu_internal_store_count_o,
       cpu_mepc_o => cpu_mepc_o,
-      cpu_mcause_o => cpu_mcause_o
+      cpu_mcause_o => cpu_mcause_o,
+      diag_dmtd_sampled_count_o => diag_dmtd_sampled_count_o,
+      diag_dmtd_accept_count_o => diag_dmtd_accept_count_o,
+      diag_dmtd_sampled_last_tics_o => diag_dmtd_sampled_last_tics_o,
+      diag_dmtd_accept_last_tics_o => diag_dmtd_accept_last_tics_o,
+      diag_dmtd_stab_state_o => diag_dmtd_stab_state_o
       );
 
   -----------------------------------------------------------------------------

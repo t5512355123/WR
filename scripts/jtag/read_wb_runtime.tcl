@@ -39,6 +39,14 @@ proc word32 {value} {
   return [expr {$word & 0xffffffff}]
 }
 
+proc safe_probe_read {instance} {
+  if {[catch {set value [read_probe_data -instance_index $instance -value_in_hex]}]} {
+    return "TIMEOUT"
+  }
+  if {![is_hex $value]} { return "INVALID" }
+  return $value
+}
+
 proc stale_jtag_word {value} {
   set word [word32 $value]
   if {$word < 0} { return 0 }
@@ -382,10 +390,14 @@ proc mac_from_registers {mach macl} {
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    return "TIMEOUT"
+  }
   after 5
   for {set n 0} {$n < 100} {incr n} {
-    set value [read_probe_data -instance_index 1 -value_in_hex]
+    set value [safe_probe_read 1]
     set word [probe_low32 $value]
     set done_toggle [bit64_high $value 3]
     set active [bit64_high $value 4]
@@ -454,7 +466,7 @@ proc wb_read_counter {addr} {
 
 proc wb_sync_toggle {} {
   # 只讀取 mailbox completion 狀態；不寫入控制 register。
-  set value [read_probe_data -instance_index 1 -value_in_hex]
+  set value [safe_probe_read 1]
   set current_done [bit64_high $value 3]
   if {$current_done < 0} { set current_done 0 }
   set ::wb_toggle $current_done
@@ -475,13 +487,13 @@ proc get_snap {board label field} {
 }
 
 proc collect_snapshot {board label} {
-  put_snap $board $label status [read_probe_data -instance_index 0 -value_in_hex]
-  put_snap $board $label cpu [read_probe_data -instance_index 2 -value_in_hex]
-  put_snap $board $label marker [read_probe_data -instance_index 3 -value_in_hex]
-  put_snap $board $label store [read_probe_data -instance_index 4 -value_in_hex]
-  put_snap $board $label store_count [read_probe_data -instance_index 5 -value_in_hex]
-  put_snap $board $label exception [read_probe_data -instance_index 6 -value_in_hex]
-  put_snap $board $label clock [read_probe_data -instance_index 7 -value_in_hex]
+  put_snap $board $label status [safe_probe_read 0]
+  put_snap $board $label cpu [safe_probe_read 2]
+  put_snap $board $label marker [safe_probe_read 3]
+  put_snap $board $label store [safe_probe_read 4]
+  put_snap $board $label store_count [safe_probe_read 5]
+  put_snap $board $label exception [safe_probe_read 6]
+  put_snap $board $label clock [safe_probe_read 7]
 
   put_snap $board $label pps_cr [wb_read 0x00100300]
   put_snap $board $label pps_escr [wb_read 0x0010031C]

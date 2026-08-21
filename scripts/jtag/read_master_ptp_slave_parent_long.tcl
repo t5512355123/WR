@@ -25,7 +25,10 @@ set ::wb_toggle 0
 set ::max_read_attempts 5
 
 proc wb_sync_toggle {} {
-  set value [read_probe_data -instance_index 1 -value_in_hex]
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    set ::wb_toggle 0
+    return
+  }
   if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
     set ::wb_toggle 0
     return
@@ -38,10 +41,17 @@ proc wb_sync_toggle {} {
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    return "TIMEOUT"
+  }
   after 5
   for {set n 0} {$n < 100} {incr n} {
-    set value [read_probe_data -instance_index 1 -value_in_hex]
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      after 1
+      continue
+    }
     if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
       after 1
       continue
@@ -149,9 +159,24 @@ proc wb_read_counter {addr} {
 }
 
 proc read_min_sample {board sample} {
-  set status [read_probe_data -instance_index 0 -value_in_hex]
-  set marker_raw [read_probe_data -instance_index 3 -value_in_hex]
-  set cpu_raw [read_probe_data -instance_index 2 -value_in_hex]
+  if {[catch {set status [read_probe_data -instance_index 0 -value_in_hex]}]} {
+    set status "TIMEOUT"
+  }
+  if {[catch {set marker_raw [read_probe_data -instance_index 3 -value_in_hex]}]} {
+    set marker_raw "TIMEOUT"
+  }
+  if {[catch {set cpu_raw [read_probe_data -instance_index 2 -value_in_hex]}]} {
+    set cpu_raw "TIMEOUT"
+  }
+
+  if {![regexp {^[0-9A-Fa-f]{1,16}$} $status] ||
+      ![regexp {^[0-9A-Fa-f]{1,16}$} $marker_raw] ||
+      ![regexp {^[0-9A-Fa-f]{1,16}$} $cpu_raw]} {
+    puts [format "MIN_SAMPLE board=%s sample=%03d valid=0 STATUS=%s MARKER=%s CPU=%s" \
+      $board $sample $status $marker_raw $cpu_raw]
+    flush stdout
+    return
+  }
 
   scan $status %x status_word
   scan $marker_raw %x marker_word

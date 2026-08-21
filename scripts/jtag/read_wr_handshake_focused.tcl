@@ -28,10 +28,14 @@ array set ::focus_stats {}
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    return "TIMEOUT"
+  }
   after 5
   for {set n 0} {$n < 100} {incr n} {
-    set value [read_probe_data -instance_index 1 -value_in_hex]
+    set value [safe_probe_read 1]
     if {![u64 $value]} {
       after 1
       continue
@@ -48,7 +52,7 @@ proc wb_read {addr} {
 }
 
 proc wb_sync_toggle {} {
-  set value [read_probe_data -instance_index 1 -value_in_hex]
+  set value [safe_probe_read 1]
   if {![u64 $value]} {
     set ::wb_toggle 0
     return
@@ -63,6 +67,14 @@ proc u32 {value} {
 
 proc u64 {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
+}
+
+proc safe_probe_read {instance} {
+  if {[catch {set value [read_probe_data -instance_index $instance -value_in_hex]}]} {
+    return "TIMEOUT"
+  }
+  if {![u64 $value]} { return "INVALID" }
+  return $value
 }
 
 proc word32 {value} {
@@ -346,7 +358,7 @@ proc focus_summary {board hardware_name} {
 }
 
 proc read_focused_sample {hardware_name sample} {
-  set status [read_probe_data -instance_index 0 -value_in_hex]
+  set status [safe_probe_read 0]
   set ep_mach [wb_read_critical 0x00100124]
   set ep_macl [wb_read_critical 0x00100128]
   set ptp [wb_read_critical 0x00100A10]

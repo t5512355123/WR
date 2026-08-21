@@ -138,6 +138,12 @@ proc status_text {status} {
   return $status
 }
 
+proc step_status_text {status} {
+  if {$status eq "PASS"} { return "pass" }
+  if {$status eq "WARN" || $status eq "FAIL"} { return "error" }
+  return "NA"
+}
+
 proc mark_anomaly {board step status text} {
   if {$status eq "PASS" || $status eq "INFO"} { return }
   if {![info exists ::first_anomaly($board)] || $::first_anomaly($board) eq ""} {
@@ -431,7 +437,7 @@ proc analyze_board {board} {
   }
   if {$step1 ne "PASS"} { mark_anomaly $board 1 $step1 "instance 0 status probe 的 PHY/link gate" }
   set ::step_status($board,1) $step1
-  puts [format "Step 1 %s" [string tolower $step1]]
+  puts [format "Step 1 %s" [step_status_text $step1]]
 
   # --------------------------------------------------------------
   # Step 2: endpoint / MiniNIC / PTP
@@ -449,7 +455,7 @@ proc analyze_board {board} {
   if {$mode == 2} { set role MASTER }
   if {$mode == 3} { set role SLAVE }
   set mac_status WARN
-  set mac_expected "依 WDIAGS_MODE"
+  set mac_expected "ROLE"
   if {$role eq "MASTER"} {
     set mac_expected "02:00:22:33:44:01"
     if {$mac eq "TIMEOUT"} {
@@ -483,10 +489,10 @@ proc analyze_board {board} {
   print_signal $mac_status "MAC Address" EP_MAC_H/EP_MAC_L $mac $mac_expected ""
   print_signal $mode_status "WR Mode" WDIAGS_MODE \
     [format "%s %s" [display_value $mode] [expr {$mode == 2 ? "MASTER" : ($mode == 3 ? "SLAVE" : "UNKNOWN")}]] \
-    [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "依角色")} ] ""
+    [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "ROLE")} ] ""
   print_signal $ptp_status "PTP State" WDIAGS_PTP \
     [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
-    [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE（startup 可暫時 8）" : "依角色")} ] ""
+    [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE (startup:8)" : "ROLE")} ] ""
 
   foreach counter {
     {ptp_rx "PPSI PTP RX counter" WDIAGS_PTP_RX "PPSI-level PTP RX counter"}
@@ -530,10 +536,10 @@ proc analyze_board {board} {
   set step2 [merge_status $step2 $rxerr_status]
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
     $rb $ra $rd \
-    $rxerr_explanation [expr {$rd eq "DECREASED" ? "正常應持續增加" : $rxerr_expected}]
+    $rxerr_explanation [expr {$rd eq "DECREASED" ? "DELTA>0" : "DELTA=0"}]
   if {$step2 ne "PASS"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role 或 packet activity" }
   set ::step_status($board,2) $step2
-  puts [format "Step 2 %s" [string tolower $step2]]
+  puts [format "Step 2 %s" [step_status_text $step2]]
 
   # --------------------------------------------------------------
   # Step 3: WR parent / signaling handshake
@@ -593,10 +599,10 @@ proc analyze_board {board} {
     if {$tx_id < 0} { set tx_id_display "TIMEOUT" } else { set tx_id_display [format "0x%04X" $tx_id] }
     print_signal $rx_ok "WR RX Message" WR_RX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $rx_id] [display_value $rx_count]] \
-      "LOCK 0x1001；count>0" ""
+      "LOCK 0x1001,count>0" ""
     print_signal $tx_ok "WR TX Message" WR_TX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $tx_id] [display_value $tx_count]] \
-      "SLAVE_PRESENT 0x1000；count>0" ""
+      "SLAVE_PRESENT 0x1000,count>0" ""
     set wr_state [get_snap $board $after wr_state]
     set state [field32 $wr_state 11 4]
     set next_state [field32 $wr_state 15 4]
@@ -604,7 +610,7 @@ proc analyze_board {board} {
     set step3 [merge_status $step3 $state_ok]
     print_signal $state_ok "WR State" WDIAGS_TEMP \
       [format "%s next=%s" [wr_state_name $state] [wr_state_name $next_state]] \
-      "曾觀測 WRS_S_LOCK=2" ""
+      "WRS_S_LOCK=2" ""
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
     set step3 [merge_status $step3 $lock_status]
@@ -614,7 +620,7 @@ proc analyze_board {board} {
     if {$step3 ne "PASS"} { mark_anomaly $board 3 $step3 "WR parent/signaling handshake" }
   }
   set ::step_status($board,3) $step3
-  puts [format "Step 3 %s" [string tolower $step3]]
+  puts [format "Step 3 %s" [step_status_text $step3]]
 
   # --------------------------------------------------------------
   # Step 4: SoftPLL startup, not closed-loop lock
@@ -642,7 +648,7 @@ proc analyze_board {board} {
       [format "%s %s" [display_value $spll_mode] [spll_mode_name $spll_mode]] \
       "3 SLAVE" ""
     print_signal $seq_status "Sequencer" SPLL_STATE \
-      [format "%s" [state_name $seq]] "離開 DISABLED" ""
+      [format "%s" [state_name $seq]] "NOT_DISABLED" ""
     set rcer [word32 [get_snap $board $after spll_rcer]]
     set ocer [word32 [get_snap $board $after spll_ocer]]
     set rcer_status [required_positive_status $rcer]
@@ -676,7 +682,7 @@ proc analyze_board {board} {
     if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL startup event chain" }
   }
   set ::step_status($board,4) $step4
-  puts [format "Step 4 %s" [string tolower $step4]]
+  puts [format "Step 4 %s" [step_status_text $step4]]
 
   # --------------------------------------------------------------
   # Step 5: closed-loop lock, informational until Step 4 passes
@@ -692,7 +698,7 @@ proc analyze_board {board} {
   } else {
     set step5 [exact_status $pstat_locked 1]
     print_signal $step5 "PSTAT Locked" WDIAGS_PSTAT [display_value $pstat_locked] "1" ""
-    puts [format "Step 5 %s" [string tolower $step5]]
+    puts [format "Step 5 %s" [step_status_text $step5]]
   }
   set ::step_status($board,5) $step5
   if {$step5 ne "PASS" && $step5 ne "INFO"} {
@@ -712,7 +718,7 @@ proc analyze_board {board} {
       [format "%s/%s/%s" [display_value [get_snap $board $after sec_h]] \
         [display_value [get_snap $board $after sec_l]] [display_value [get_snap $board $after ns]]] \
       "time_valid=1；execute_at(T) 尚未驗證" ""
-    puts "Step 6 info"
+    puts "Step 6 NA"
   }
 
   puts ""

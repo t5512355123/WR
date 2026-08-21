@@ -110,6 +110,25 @@ proc wb_read_validated {addr} {
   return "INVALID"
 }
 
+proc wb_read_critical {addr} {
+  # Critical enum/status fields must be source-valid and stable across two
+  # accepted mailbox reads.  A torn/stale result is kept as INVALID evidence.
+  set previous ""
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[validated_register $addr $value]} {
+      if {$previous ne "" && [word32 $previous] == [word32 $value]} {
+        return $value
+      }
+      set previous $value
+    } else {
+      set previous ""
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc read_min_sample {board sample} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
   set marker_raw [read_probe_data -instance_index 3 -value_in_hex]
@@ -127,13 +146,13 @@ proc read_min_sample {board sample} {
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
-  set ptp [wb_read_validated 0x00100A10]
+  set ptp [wb_read_critical 0x00100A10]
   set ptp_rx [wb_read 0x00100A54]
   set ptp_tx [wb_read 0x00100A58]
-  set ptp_meta [wb_read_validated 0x00100A5C]
-  set foreign_meta [wb_read_validated 0x00100A78]
-  set parse_meta [wb_read_validated 0x00100A80]
-  set spll_state [wb_read_validated 0x00100AA0]
+  set ptp_meta [wb_read_critical 0x00100A5C]
+  set foreign_meta [wb_read_critical 0x00100A78]
+  set parse_meta [wb_read_critical 0x00100A80]
+  set spll_state [wb_read_critical 0x00100AA0]
   set spll_ocer [wb_read 0x00100AA4]
   set spll_rcer [wb_read 0x00100AA8]
   set spll_occr [wb_read 0x00100AAC]

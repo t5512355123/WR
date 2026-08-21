@@ -151,6 +151,26 @@ proc wb_read_validated {addr} {
   return "INVALID"
 }
 
+proc wb_read_critical {addr} {
+  # Critical enum/status fields need two consecutive source-valid reads.
+  # If the mailbox keeps returning stale/filler data or a torn snapshot, the
+  # field is rejected as INVALID instead of becoming a hardware failure.
+  set previous ""
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[register_value_valid $addr $value]} {
+      if {$previous ne "" && [word32 $previous] == [word32 $value]} {
+        return $value
+      }
+      set previous $value
+    } else {
+      set previous ""
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc focus_mac {mach macl} {
   set hi [word32 $mach]
   set lo [word32 $macl]
@@ -249,6 +269,7 @@ proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_w
 proc focus_summary {board hardware_name} {
   set valid [focus_get $board valid]
   set invalid [focus_get $board invalid]
+  set ptx_delta -1
   if {$valid == 0} {
     set step2 INVALID
     set step3 INVALID
@@ -265,14 +286,20 @@ proc focus_summary {board hardware_name} {
     set last_rxerr [focus_get $board last_rxerr]
     set first_ptp_tx [focus_get $board first_ptp_tx]
     set last_ptp_tx [focus_get $board last_ptp_tx]
+    set ptx_delta [expr {$first_ptp_tx >= 0 && $last_ptp_tx >= $first_ptp_tx ?
+                         $last_ptp_tx - $first_ptp_tx : -1}]
+    # PTP_TX is a useful diagnostic, but a short-window zero does not prove
+    # that the packet path is broken when PTP_RX and both MiniNIC counters
+    # are active.  A decrease remains invalid/retest via counter_decreased.
+    set traffic_ok [expr {$first_ptp_rx >= 0 && $last_ptp_rx > $first_ptp_rx &&
+                          $first_tx >= 0 && $last_tx > $first_tx &&
+                          $first_rx >= 0 && $last_rx > $first_rx &&
+                          $first_rxerr >= 0 && $last_rxerr == $first_rxerr}]
     set step2 [expr {[focus_get $board step2_candidate] && $valid >= 2 &&
       $first_mode == $last_mode &&
       (($last_mode == 2 && [focus_get $board first_ptp] == 6) ||
        ($last_mode == 3 && [focus_get $board ptp9_seen])) &&
-      $first_ptp_rx >= 0 && $last_ptp_rx > $first_ptp_rx &&
-      $first_ptp_tx >= 0 && $last_ptp_tx > $first_ptp_tx &&
-      $first_tx >= 0 && $last_tx >= $first_tx && $first_rx >= 0 && $last_rx >= $first_rx &&
-      $first_rxerr >= 0 && $last_rxerr >= $first_rxerr ? "PASS" : "FAIL"}]
+      $traffic_ok ? "PASS" : "FAIL"}]
     if {[focus_get $board counter_decreased]} { set step2 INVALID }
     if {$last_mode == 3} {
       if {[focus_get $board step3_good] > 0 && [focus_get $board post_step3_timeout] > 0} {
@@ -288,8 +315,8 @@ proc focus_summary {board hardware_name} {
       set step3 NA
     }
   }
-  puts [format "FOCUSED_GATE board=%s valid_samples=%d invalid_samples=%d counter_decreased=%d STEP2_REGRESSION=%s STEP3_REGRESSION=%s POST_STEP3_LOCK_STAGE=%s STATE_EVIDENCE=%s signal_good=%d signal_bad=%d state_idle=%d state_good=%d" \
-    $hardware_name $valid $invalid [focus_get $board counter_decreased] $step2 $step3 \
+  puts [format "FOCUSED_GATE board=%s valid_samples=%d invalid_samples=%d counter_decreased=%d PTP_TX_DELTA=%d STEP2_REGRESSION=%s STEP3_REGRESSION=%s POST_STEP3_LOCK_STAGE=%s STATE_EVIDENCE=%s signal_good=%d signal_bad=%d state_idle=%d state_good=%d" \
+    $hardware_name $valid $invalid [focus_get $board counter_decreased] $ptx_delta $step2 $step3 \
     [expr {[focus_get $board post_step3_timeout] > 0 ? "TIMEOUT" : "NOT_OBSERVED"}] \
     [expr {[focus_get $board state_idle] > 0 ? "READ_INCONSISTENT" : "STABLE"}] \
     [focus_get $board step3_good] \
@@ -298,28 +325,28 @@ proc focus_summary {board hardware_name} {
 
 proc read_focused_sample {hardware_name sample} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
-  set ep_mach [wb_read_validated 0x00100124]
-  set ep_macl [wb_read_validated 0x00100128]
-  set ptp [wb_read_validated 0x00100A10]
-  set ptp_meta [wb_read_validated 0x00100A5C]
+  set ep_mach [wb_read_critical 0x00100124]
+  set ep_macl [wb_read_critical 0x00100128]
+  set ptp [wb_read_critical 0x00100A10]
+  set ptp_meta [wb_read_critical 0x00100A5C]
   set ptp_rx [wb_read 0x00100A54]
   set ptp_tx [wb_read 0x00100A58]
   set minic_tx [wb_read 0x00100A18]
   set minic_rx [wb_read 0x00100A1C]
   set rxerr [wb_read 0x00100A60]
-  set foreign_meta [wb_read_validated 0x00100A78]
-  set parse_meta [wb_read_validated 0x00100A80]
-  set wr_state [wb_read_validated 0x00100A4C]
+  set foreign_meta [wb_read_critical 0x00100A78]
+  set parse_meta [wb_read_critical 0x00100A80]
+  set wr_state [wb_read_critical 0x00100A4C]
   set wr_rx [wb_read 0x00100A64]
   set wr_tx [wb_read 0x00100A68]
-  set wr_fail [wb_read_validated 0x00100A6C]
-  set wr_reject [wb_read_validated 0x00100A50]
-  set wr_lock_result [wb_read 0x00100A8C]
-  set wr_lock_polls [wb_read 0x00100A90]
-  set wr_lock_enable [wb_read_validated 0x00100A9C]
-  set rcer [wb_read_validated 0x00100AA8]
-  set sstat [wb_read 0x00100A08]
-  set pstat [wb_read 0x00100A0C]
+  set wr_fail [wb_read_critical 0x00100A6C]
+  set wr_reject [wb_read_critical 0x00100A50]
+  set wr_lock_result [wb_read_critical 0x00100A8C]
+  set wr_lock_polls [wb_read_critical 0x00100A90]
+  set wr_lock_enable [wb_read_critical 0x00100A9C]
+  set rcer [wb_read_critical 0x00100AA8]
+  set sstat [wb_read_critical 0x00100A08]
+  set pstat [wb_read_critical 0x00100A0C]
 
   set valid 1
   if {![u64 $status]} {

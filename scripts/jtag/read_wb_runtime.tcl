@@ -236,6 +236,19 @@ proc step_status_text {status} {
   return "NA"
 }
 
+proc regression_status {status} {
+  # Dashboard WARN/INFO is not a fresh regression PASS.  It means the
+  # snapshot is incomplete or transitional and must be confirmed by the
+  # focused time-series script.  INVALID is reserved for measurement data
+  # that failed validation or could not be read consistently.
+  switch -- $status {
+    PASS { return PASS }
+    INVALID - INFO { return INVALID }
+    WARN - FAIL { return FAIL }
+  }
+  return INVALID
+}
+
 proc mark_anomaly {board step status text} {
   if {$status eq "PASS" || $status eq "INFO"} { return }
   if {![info exists ::first_anomaly($board)] || $::first_anomaly($board) eq ""} {
@@ -398,6 +411,26 @@ proc wb_read_validated {addr} {
   return "INVALID"
 }
 
+proc wb_read_critical {addr} {
+  # Critical enum/status fields must be both source-valid and stable across
+  # two accepted read transactions.  A changing counter is not used here;
+  # callers keep free-running counters on wb_read() and judge them by delta.
+  set previous ""
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[register_value_valid $addr $value]} {
+      if {$previous ne "" && [word32 $previous] == [word32 $value]} {
+        return $value
+      }
+      set previous $value
+    } else {
+      set previous ""
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc wb_sync_toggle {} {
   # 只讀取 mailbox completion 狀態；不寫入控制 register。
   set value [read_probe_data -instance_index 1 -value_in_hex]
@@ -431,24 +464,24 @@ proc collect_snapshot {board label} {
 
   put_snap $board $label pps_cr [wb_read 0x00100300]
   put_snap $board $label pps_escr [wb_read 0x0010031C]
-  put_snap $board $label ep_mach [wb_read_validated 0x00100124]
-  put_snap $board $label ep_macl [wb_read_validated 0x00100128]
+  put_snap $board $label ep_mach [wb_read_critical 0x00100124]
+  put_snap $board $label ep_macl [wb_read_critical 0x00100128]
   put_snap $board $label ep_dsr [wb_read 0x00100138]
-  put_snap $board $label ptp [wb_read_validated 0x00100A10]
+  put_snap $board $label ptp [wb_read_critical 0x00100A10]
   put_snap $board $label ptp_rx [wb_read 0x00100A54]
   put_snap $board $label ptp_tx [wb_read 0x00100A58]
-  put_snap $board $label ptp_meta [wb_read_validated 0x00100A5C]
+  put_snap $board $label ptp_meta [wb_read_critical 0x00100A5C]
   put_snap $board $label tx [wb_read 0x00100A18]
   put_snap $board $label rx [wb_read 0x00100A1C]
   put_snap $board $label rxerr [wb_read 0x00100A60]
   put_snap $board $label ptp_types [wb_read 0x00100A74]
-  put_snap $board $label foreign_meta [wb_read_validated 0x00100A78]
+  put_snap $board $label foreign_meta [wb_read_critical 0x00100A78]
   put_snap $board $label filter_meta [wb_read 0x00100A7C]
-  put_snap $board $label parse_meta [wb_read_validated 0x00100A80]
+  put_snap $board $label parse_meta [wb_read_critical 0x00100A80]
   put_snap $board $label wr_rx_signal [wb_read 0x00100A64]
   put_snap $board $label wr_tx_signal [wb_read 0x00100A68]
-  put_snap $board $label wr_failure [wb_read_validated 0x00100A6C]
-  put_snap $board $label wr_state [wb_read_validated 0x00100A4C]
+  put_snap $board $label wr_failure [wb_read_critical 0x00100A6C]
+  put_snap $board $label wr_state [wb_read_critical 0x00100A4C]
   put_snap $board $label wr_reject [wb_read_validated 0x00100A50]
   put_snap $board $label pstat [wb_read 0x00100A0C]
   put_snap $board $label sstat [wb_read 0x00100A08]
@@ -457,10 +490,10 @@ proc collect_snapshot {board label} {
   put_snap $board $label ns [wb_read 0x00100A28]
 
   # 這些地址與既有 Step 4 read-only scripts/source mapping 一致。
-  put_snap $board $label lock_enable [wb_read_validated 0x00100A9C]
-  put_snap $board $label spll_state [wb_read_validated 0x00100AA0]
-  put_snap $board $label spll_ocer [wb_read_validated 0x00100AA4]
-  put_snap $board $label spll_rcer [wb_read_validated 0x00100AA8]
+  put_snap $board $label lock_enable [wb_read_critical 0x00100A9C]
+  put_snap $board $label spll_state [wb_read_critical 0x00100AA0]
+  put_snap $board $label spll_ocer [wb_read_critical 0x00100AA4]
+  put_snap $board $label spll_rcer [wb_read_critical 0x00100AA8]
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
   put_snap $board $label dmtd_ref [wb_read 0x00100298]
   put_snap $board $label dmtd_fb [wb_read 0x0010029C]
@@ -907,6 +940,31 @@ proc analyze_board {board} {
     if {$s eq "FAIL"} { set shown "error" }
     puts [format "Step %d %-22s %s" $step $label $shown]
   }
+  set step1_reg [regression_status $::step_status($board,1)]
+  set step2_reg [regression_status $::step_status($board,2)]
+  # Step 3 is a Slave WR-handshake gate; it is not applicable to the Master.
+  if {$role eq "MASTER"} {
+    set step3_reg PASS
+  } else {
+    set step3_reg [regression_status $::step_status($board,3)]
+  }
+  set step4_allowed [expr {$step1_reg eq "PASS" &&
+                           $step2_reg eq "PASS" &&
+                           $step3_reg eq "PASS" ? "YES" : "NO"}]
+  if {$step1_reg eq "INVALID" || $step2_reg eq "INVALID" ||
+      $step3_reg eq "INVALID"} {
+    set failure_class "JTAG/DASHBOARD_MEASUREMENT_FAILURE"
+  } elseif {$step1_reg eq "FAIL" || $step2_reg eq "FAIL" ||
+            $step3_reg eq "FAIL"} {
+    set failure_class "HARDWARE/FIRMWARE_FAILURE"
+  } else {
+    set failure_class "NO_FAILURE_EVIDENCE"
+  }
+  puts [format "STEP1_REGRESSION = %s" $step1_reg]
+  puts [format "STEP2_REGRESSION = %s" $step2_reg]
+  puts [format "STEP3_REGRESSION = %s" $step3_reg]
+  puts [format "STEP4_ALLOWED = %s" $step4_allowed]
+  puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
   puts "============================================================"
 }
 

@@ -5,7 +5,8 @@
 - 實驗名稱：Step 2 / Step 3 唯讀回歸門檻重測
 - 日期：2026-08-21
 - Branch：`exp/step4-softpll-enable`
-- Git HEAD：`8935163cbc1b68d24ce21f3d02b24d645a88a05c`
+- Diagnostics execution HEAD：`8935163cbc1b68d24ce21f3d02b24d645a88a05c`
+- 本實驗紀錄保存 commit：`f7fa69d8578180ef2dae70a35335d14d0df71c78`
 - 硬體 functional baseline 參考：`51864b8743759bc20bea817af4bcd19ea81ab4ac`
 - Quartus：17.0.0 Build 595
 - 操作範圍：只執行 JTAG read-only diagnostics；沒有 Quartus compile、沒有 FPGA program、沒有 merge main。
@@ -33,6 +34,8 @@
 - `36b8300` 診斷：修正 Endpoint MAC 高位欄位驗證
 - `cd9e79f` 診斷：將重複讀值不一致標為需重測
 - `8935163` 診斷：修正 counter 下降偵測
+
+本次 JTAG 實驗是在 `8935163` 的 diagnostics 執行；raw logs 與本文件之後以 `f7fa69d` 保存。`f7fa69d` 只新增文件與 logs，沒有改變 diagnostics 行為。
 
 ## 執行方式
 
@@ -141,4 +144,3 @@ STEP4_ALLOWED     = NO
 - `regression_handshake_8935163.log`
 - `regression_long_8935163.log`
 - 先前修正過程的 dashboard/handshake logs 亦保留在本資料夾。
-

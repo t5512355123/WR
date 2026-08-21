@@ -129,6 +129,25 @@ proc wb_read_critical {addr} {
   return "INVALID"
 }
 
+proc counter_value_valid {value} {
+  set word [word32 $value]
+  return [expr {$word >= 0 && ((($word >> 16) & 0xffff) != 0xA5A5)}]
+}
+
+proc wb_read_counter {addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set first [wb_read $addr]
+    set second [wb_read $addr]
+    if {[counter_value_valid $first] && [counter_value_valid $second]} {
+      set a [word32 $first]
+      set b [word32 $second]
+      if {$b >= $a} { return [format %08X $b] }
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc read_min_sample {board sample} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
   set marker_raw [read_probe_data -instance_index 3 -value_in_hex]
@@ -147,8 +166,8 @@ proc read_min_sample {board sample} {
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
   set ptp [wb_read_critical 0x00100A10]
-  set ptp_rx [wb_read 0x00100A54]
-  set ptp_tx [wb_read 0x00100A58]
+  set ptp_rx [wb_read_counter 0x00100A54]
+  set ptp_tx [wb_read_counter 0x00100A58]
   set ptp_meta [wb_read_critical 0x00100A5C]
   set foreign_meta [wb_read_critical 0x00100A78]
   set parse_meta [wb_read_critical 0x00100A80]

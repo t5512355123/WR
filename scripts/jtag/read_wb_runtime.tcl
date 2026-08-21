@@ -431,6 +431,27 @@ proc wb_read_critical {addr} {
   return "INVALID"
 }
 
+proc counter_value_valid {value} {
+  set word [word32 $value]
+  return [expr {$word >= 0 && ![stale_jtag_word $value]}]
+}
+
+proc wb_read_counter {addr} {
+  # Read a free-running counter twice.  A stale mailbox word or an immediate
+  # decrease is rejected and retried; it must not enter a before/after delta.
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set first [wb_read $addr]
+    set second [wb_read $addr]
+    if {[counter_value_valid $first] && [counter_value_valid $second]} {
+      set a [word32 $first]
+      set b [word32 $second]
+      if {$b >= $a} { return [format %08X $b] }
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc wb_sync_toggle {} {
   # 只讀取 mailbox completion 狀態；不寫入控制 register。
   set value [read_probe_data -instance_index 1 -value_in_hex]
@@ -468,12 +489,12 @@ proc collect_snapshot {board label} {
   put_snap $board $label ep_macl [wb_read_critical 0x00100128]
   put_snap $board $label ep_dsr [wb_read 0x00100138]
   put_snap $board $label ptp [wb_read_critical 0x00100A10]
-  put_snap $board $label ptp_rx [wb_read 0x00100A54]
-  put_snap $board $label ptp_tx [wb_read 0x00100A58]
+  put_snap $board $label ptp_rx [wb_read_counter 0x00100A54]
+  put_snap $board $label ptp_tx [wb_read_counter 0x00100A58]
   put_snap $board $label ptp_meta [wb_read_critical 0x00100A5C]
-  put_snap $board $label tx [wb_read 0x00100A18]
-  put_snap $board $label rx [wb_read 0x00100A1C]
-  put_snap $board $label rxerr [wb_read 0x00100A60]
+  put_snap $board $label tx [wb_read_counter 0x00100A18]
+  put_snap $board $label rx [wb_read_counter 0x00100A1C]
+  put_snap $board $label rxerr [wb_read_counter 0x00100A60]
   put_snap $board $label ptp_types [wb_read 0x00100A74]
   put_snap $board $label foreign_meta [wb_read_critical 0x00100A78]
   put_snap $board $label filter_meta [wb_read 0x00100A7C]

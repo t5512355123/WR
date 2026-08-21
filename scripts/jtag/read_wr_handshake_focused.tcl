@@ -171,6 +171,28 @@ proc wb_read_critical {addr} {
   return "INVALID"
 }
 
+proc counter_value_valid {value} {
+  set word [word32 $value]
+  return [expr {$word >= 0 && ![stale_jtag_word $value]}]
+}
+
+proc wb_read_counter {addr} {
+  # Keep torn/stale counter values out of the time-series.  A counter must be
+  # non-decreasing across two immediate reads; otherwise retry the mailbox
+  # transaction and leave the sample invalid if it cannot be stabilized.
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set first [wb_read $addr]
+    set second [wb_read $addr]
+    if {[counter_value_valid $first] && [counter_value_valid $second]} {
+      set a [word32 $first]
+      set b [word32 $second]
+      if {$b >= $a} { return [format %08X $b] }
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
 proc focus_mac {mach macl} {
   set hi [word32 $mach]
   set lo [word32 $macl]
@@ -329,11 +351,11 @@ proc read_focused_sample {hardware_name sample} {
   set ep_macl [wb_read_critical 0x00100128]
   set ptp [wb_read_critical 0x00100A10]
   set ptp_meta [wb_read_critical 0x00100A5C]
-  set ptp_rx [wb_read 0x00100A54]
-  set ptp_tx [wb_read 0x00100A58]
-  set minic_tx [wb_read 0x00100A18]
-  set minic_rx [wb_read 0x00100A1C]
-  set rxerr [wb_read 0x00100A60]
+  set ptp_rx [wb_read_counter 0x00100A54]
+  set ptp_tx [wb_read_counter 0x00100A58]
+  set minic_tx [wb_read_counter 0x00100A18]
+  set minic_rx [wb_read_counter 0x00100A1C]
+  set rxerr [wb_read_counter 0x00100A60]
   set foreign_meta [wb_read_critical 0x00100A78]
   set parse_meta [wb_read_critical 0x00100A80]
   set wr_state [wb_read_critical 0x00100A4C]

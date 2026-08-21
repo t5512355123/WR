@@ -739,9 +739,12 @@ proc analyze_board {board} {
     print_signal $tx_ok "WR TX Message" WR_TX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $tx_id] [display_value $tx_count]] \
       "SLAVE_PRESENT 0x1000,count>0" ""
-    set failure_word [word32 [get_snap $board $after wr_failure]]
-    set fail_state [field32 $failure_word 16 8]
-    set fail_count [field32 $failure_word 0 16]
+    # Keep the mailbox text for field32().  Converting to an integer first
+    # would make field32() parse the decimal representation as hexadecimal.
+    set failure_raw [get_snap $board $after wr_failure]
+    set failure_word [word32 $failure_raw]
+    set fail_state [field32 $failure_raw 16 8]
+    set fail_count [field32 $failure_raw 0 16]
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
     set post_step3_timeout 0

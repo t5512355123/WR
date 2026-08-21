@@ -4,13 +4,13 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`da57208e6919f1bfa9483331d1b649fd9c2156ab`
+目前 diagnostics HEAD：`2394a23937838f11f63660a0465f48a88038a419`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
 ## 目前結論
 
-本輪只修改 read-only JTAG Tcl diagnostics，沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register，也沒有 Quartus compile 或 program FPGA。pain 以 exact HEAD `da57208` 執行 Quartus Prime 17.0 Build 595 的 JTAG 讀取。
+本輪只修改 read-only JTAG Tcl diagnostics，沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register，也沒有 Quartus compile 或 program FPGA。pain 以 exact HEAD `2394a23` 執行 Quartus Prime 17.0 Build 595 的 JTAG 讀取。
 
 Step 2 / Step 3 regression barrier 已重新建立並通過：
 
@@ -37,13 +37,48 @@ STEP4_ALLOWED    = YES
 | 1 | QSFP/Native PHY | **PASS** | status probe 顯示 link、PHY ready、RX/TX ready、RX lock-to-data 正常，encoding error 為 0 |
 | 2 | Endpoint/MiniNIC/PTP | **PASS（30/30 accepted samples）** | 雙板唯一 MAC、MODE/PTP role、MiniNIC/PTP counters 與 RXERR 均符合 gate |
 | 3 | WR Parent/Signaling | **PASS（30/30 accepted samples）** | foreign master、parent flags、`SLAVE_PRESENT`、`LOCK`、`LOCK_ENABLE` 均有 source-backed 證據；另記錄 post-stage timeout |
-| 4 | SoftPLL Enable | **NOT STARTED / PAUSED** | Regression barrier 已開放；本輪未修改或驗證 Step 4 functional behavior |
+| 4 | SoftPLL Enable | **NOT PASS / DMTD_EVENT_GENERATION BLOCKER** | 唯讀 30 點 lock/events series 顯示 DMTD event 與下游 tag/TRR/IRQ/helper 沒有 sustained delta；尚未修改功能行為 |
 | 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未要求或驗證 SoftPLL lock、DCO correction 或 SI5340 closed loop |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
 
 ## 當前邊界
 
 `POST_STEP3_LOCK_STAGE=TIMEOUT` 是 Step 3 之後的觀測結果，不是 Step 3 gate 失敗。`PSTAT.locked=0`、`time_valid=0` 與後續 SoftPLL event 不活躍仍屬 Step 4/5 範圍；未經下一個明確指令，不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+
+## 2026-08-21 Step 4 focused 唯讀分類
+
+本輪唯一變更是新增 `scripts/jtag/read_step4_startup_focused.tcl`，以同一 register 每 100 ms 讀取 30 次，並拒絕 mailbox invalid/stale word。未寫入 Wishbone control register，未 compile，未 program FPGA。
+
+執行：
+
+```text
+quartus_stp -t scripts/jtag/read_step4_startup_focused.tcl 30 100 lock
+quartus_stp -t scripts/jtag/read_step4_startup_focused.tcl 30 100 events
+```
+
+兩次 Tcl 均由 Quartus Prime 17.0 Build 595 回報 `Evaluation of Tcl script ... successful`、`0 errors, 0 warnings`；兩張板各組資料均為 `valid=30 invalid=0`。
+
+lock-stage classification：
+
+- Master：`WR_LOCK_RESULT=0`、`PSTAT_LOCKED bit=0`、`SPLL_STATE=00020009`，分類為 `TRANSITIONAL_OR_INCONSISTENT`，不是 LOCKED 證據。
+- Slave：`WR_LOCK_RESULT` 最後值為 `1`、`WR_LOCK_UNLOCKED_COUNT` 穩定、`WR_LOCK_CALIB_FAIL_COUNT=0`、`PSTAT_LOCKED bit=0`，分類為 `SPLL_UNLOCKED`。
+- Slave 的 `WR_LOCK_ENABLE_COUNT=4` 仍證明 Step 3 已進入 enable；`WR_LOCK_RESULT` 出現 decrease/reset 只列為讀值狀態，未直接宣稱硬體失敗。
+
+event-chain classification：
+
+- 兩張板 `CURRENT_TICS` 持續增加，代表 runtime observer 有活動。
+- Master/Slave 的 DMTD REF/FB event counter、tag pending/grant、TAG_VALID、TRR_WRITE、IRQ、helper update 在 30 點窗口都沒有正向 delta。
+- 依上游到下游的判定，第一個沒有 sustained activity 的已觀測邊界是 `DMTD_EVENT_GENERATION`；不能由此直接宣稱實體 clock、光纖或 SoftPLL 演算法根因。
+- 因為 DMTD event 未形成持續活動，Step 4 目前為 `NOT PASS`，後續 tag/TRR/IRQ/FSM/helper 不可單獨解讀為功能故障。
+
+source audit 保持現況：`xwr_core.clk_sys_i=clk_sys_625`、`clk_dmtd_i=QSFPB_REFCLK_p`、`clk_ref_i=QSFPA_REFCLK_p`、`g_use_simple_wa=true`；`wr_core` 有效 `g_softpll_reverse_dmtds=false`，而 `g_divide_input_by_2` 依 `not g_pcs_16bit and not g_softpll_reverse_dmtds` 為 true。本輪未改動這些功能設定。
+
+raw evidence：
+
+- `docs/experiments/exp-step4-softpll-enable/step4_focused_lock_2394a23_20260821.log`
+- `docs/experiments/exp-step4-softpll-enable/step4_focused_events_2394a23_20260821.log`
+
+因此目前結論是：`STEP1_REGRESSION=PASS`、`STEP2_REGRESSION=PASS`、`STEP3_REGRESSION=PASS`；`STEP4_ALLOWED=YES` 只表示可繼續 read-only/source audit，並不表示 Step 4 已通過。這一輪沒有 hardware/firmware functional change，也沒有 fresh program evidence。
 
 ## 2026-08-20 歷史 fresh HEAD JTAG 證據摘要
 

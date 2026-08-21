@@ -1,38 +1,49 @@
 # DE5a White Rabbit 目前狀態
 
-最後更新：2026-08-20
+最後更新：2026-08-21
 
 目前研究分支：`exp/step4-softpll-enable`
+
+目前 diagnostics HEAD：`da57208e6919f1bfa9483331d1b649fd9c2156ab`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
 ## 目前結論
 
-目前最新可追溯實驗使用 `exp/step4-softpll-enable` 的 exact fresh build HEAD `51864b8743759bc20bea817af4bcd19ea81ab4ac`；目前文件分支 HEAD 為 `e94983b`。`51864b8` 已完成 clean firmware build、`quartus_sh --clean`、雙板 fresh compile、program 與唯讀 JTAG observation；`e94983b` 只保存該次結果與追加的唯讀 raw log，沒有修改 functional RTL/firmware。
+本輪只修改 read-only JTAG Tcl diagnostics，沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register，也沒有 Quartus compile 或 program FPGA。pain 以 exact HEAD `da57208` 執行 Quartus Prime 17.0 Build 595 的 JTAG 讀取。
 
-本輪已證明：
+Step 2 / Step 3 regression barrier 已重新建立並通過：
 
-- HEAD→MIF→SOF→program 的 provenance 可重現。
-- QSFP-A lane 0、CPU runtime、兩端 MAC、MiniNIC frame counter 與 PPSI PTP counter 有活動。
-- Slave 可以觀察到 `PPS=9`；後續 20 次 focused 唯讀 sample 依 source mapping 觀察到 `foreign=1/0、detection=0、wr_config=3、parent=1/0/1`，等價於 `FOREIGN_META=0x03000001`。
+- Step 2：兩張板各 30/30 個有效 accepted samples 通過。Master=`MAC 02:00:22:33:44:01 / MODE=2 / PTP=6`；Slave=`MAC 02:00:22:33:44:02 / MODE=3 / PTP=9`；MiniNIC/PTP traffic 有活動，`RXERR` 沒有增加。
+- Step 3：Slave 各項 30/30 個有效取樣通過：`FOREIGN_META=03000001`、`parentIsWRnode=1`、`parentCalibrated=1`、RX=`0x1001 LOCK`、TX=`0x1000 SLAVE_PRESENT`、`LOCK_ENABLE>0`。
+- `WRS_S_LOCK` 之後曾由 `wr_handshake_fail()` 退回 `WRS_IDLE`，由 source-backed `WR_FAILURE_DEBUG=02020001` 證明；這是獨立的 `POST_STEP3_LOCK_STAGE=TIMEOUT`，不再被誤判為 Step 3 regression failure。
+- dashboard 原本的 `WDIAGS_PTP=0xA5A51330` 類 stale mailbox 值現在會被 retry/reject；counter decrease 只列 `COUNTER_RETEST`，不單獨宣稱硬體失敗。
 
-本輪未證明：
+因此目前 gate 為：
 
-- `WRS_S_LOCK` / local lock handoff；focused sample 仍為 `local_state=0/next_state=0`。
-- DCO request 進入 I2C transaction 或完成 step；最新實測 `STEP=0`、`HPLL_LOAD=0`。
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED    = YES
+```
 
-目前 Step 4 的第一個可觀察 blocker 應收斂到 **`dmtd_with_deglitcher -> dmtd_event_sys` 沒有 sustained new event**；後續仍不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+這只代表可以進入下一階段的 Step 4 read-only/functional planning；本輪沒有開始 Step 4 functional experiment，也沒有要求 SoftPLL lock 或 `time_valid=1`。
 
 ## 六步 milestone
 
 | Step | 目標 | 狀態 | 證據或缺口 |
 |---:|---|---|---|
-| 1 | QSFP/Native PHY | **PASS** | link、PHY ready、RX/TX ready 的 status probe baseline 可觀察 |
-| 2 | Endpoint/MiniNIC/PTP | **PASS（fresh HEAD evidence）** | fresh `51864b8` 已有 Master=`MODE=2/PPS=6`、Slave=`MODE=3/PPS=9`、MiniNIC/PTP counters 活動；Slave `foreign=1/0、detection=0、wr_config=3`，等價 `FOREIGN_META=03000001` |
-| 3 | WR Parent/Signaling | **PARTIAL：parent found, lock handoff not observed** | Slave `parentIsWRnode=1`、`parentCalibrated=1`，但 focused sample 的 `local_state=0/next_state=0`，尚未重現 `WRS_S_LOCK` |
-| 4 | SoftPLL Enable | **NOT PASS：DMTD event 未持續** | fresh `51864b8` 的 Slave `LOCK_ENABLE=4`、`RCER=1`，但極簡 20 秒中 `REF/FB_EVENTS`、last-event ticks、tag counters 沒有持續增加；DCO `STEP=0`；尚不能標示 PASS |
-| 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未證明 DDMTD（Digital Dual-Mixer Time Difference）到 SoftPLL、再到 SI5340 DCO 的閉迴路完成 |
+| 1 | QSFP/Native PHY | **PASS** | status probe 顯示 link、PHY ready、RX/TX ready、RX lock-to-data 正常，encoding error 為 0 |
+| 2 | Endpoint/MiniNIC/PTP | **PASS（30/30 accepted samples）** | 雙板唯一 MAC、MODE/PTP role、MiniNIC/PTP counters 與 RXERR 均符合 gate |
+| 3 | WR Parent/Signaling | **PASS（30/30 accepted samples）** | foreign master、parent flags、`SLAVE_PRESENT`、`LOCK`、`LOCK_ENABLE` 均有 source-backed 證據；另記錄 post-stage timeout |
+| 4 | SoftPLL Enable | **NOT STARTED / PAUSED** | Regression barrier 已開放；本輪未修改或驗證 Step 4 functional behavior |
+| 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未要求或驗證 SoftPLL lock、DCO correction 或 SI5340 closed loop |
 | 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
+
+## 當前邊界
+
+`POST_STEP3_LOCK_STAGE=TIMEOUT` 是 Step 3 之後的觀測結果，不是 Step 3 gate 失敗。`PSTAT.locked=0`、`time_valid=0` 與後續 SoftPLL event 不活躍仍屬 Step 4/5 範圍；未經下一個明確指令，不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
 
 ## 2026-08-20 歷史 fresh HEAD JTAG 證據摘要
 

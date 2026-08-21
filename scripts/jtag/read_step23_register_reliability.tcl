@@ -348,9 +348,15 @@ proc step3_result {board} {
   set invalid 0
   foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE \
                  WR_SIGNAL_REJECT WR_FAILURE_DEBUG WDIAGS_TEMP} {
-    if {[get_series $board $label invalid] > 0 || [get_series $board $label decrease]} {
+    if {[get_series $board $label invalid] > 0} {
       set invalid 1
     }
+  }
+  # A counter reset/decrease is a retest condition, not a hardware failure.
+  # The failure shadow also contains role/state fields, so its packed word can
+  # decrease when those fields change even if the failure evidence is valid.
+  foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE WDIAGS_TEMP} {
+    if {[get_series $board $label decrease]} { set invalid 1 }
   }
   set valid [get_series $board WDIAGS_TEMP valid]
   set idle [get_series $board WDIAGS_TEMP state_idle]

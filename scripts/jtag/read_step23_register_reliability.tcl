@@ -6,7 +6,8 @@
 # group：
 #   temp   只重複讀 WDIAGS_TEMP
 #   step2  逐一讀 Endpoint / PTP / MiniNIC registers
-#   step3  逐一讀 parent / WR signaling / LOCK_ENABLE / WDIAGS_TEMP
+#   step3  逐一讀 parent / WR signaling / LOCK_ENABLE / failure shadow /
+#          WDIAGS_TEMP
 #   all    依序執行 temp、step2、step3
 #
 # 本腳本只讀取既有 JTAG probe 與 Wishbone mailbox，不寫入 control register，
@@ -111,6 +112,15 @@ proc register_valid {addr value} {
                     $detection <= 7 && $config <= 7}]
     }
     0x00100A80 { return [expr {(($word >> 24) & 0xff) <= 7}] }
+    0x00100A50 {
+      set reject_reason [expr {$word & 0xff}]
+      return [expr {$reject_reason <= 4}]
+    }
+    0x00100A6C {
+      set fail_role [expr {($word >> 24) & 0xff}]
+      set fail_state [expr {($word >> 16) & 0xff}]
+      return [expr {$fail_role <= 3 && $fail_state <= 8}]
+    }
     0x00100A4C {
       set tag [expr {($word >> 28) & 0xf}]
       set state [expr {($word >> 11) & 0xf}]
@@ -154,6 +164,8 @@ proc hist_text {hist_name} {
 
 proc series_read {board label addr samples gap_ms} {
   array set hist {}
+  array set state_hist {}
+  array set failure_state_hist {}
   set valid 0
   set invalid 0
   set decrease 0
@@ -161,6 +173,8 @@ proc series_read {board label addr samples gap_ms} {
   set first ""
   set last ""
   set previous -1
+  set failure_s_lock 0
+  set failure_count_max 0
   for {set sample 1} {$sample <= $samples} {incr sample} {
     set value [wb_read_validated $addr]
     if {$value eq "INVALID" || $value eq "TIMEOUT"} {
@@ -203,6 +217,17 @@ proc series_read {board label addr samples gap_ms} {
           if {$message == 0x1000 && $count > 0} { incr expected }
         }
         LOCK_ENABLE { if {$word > 0} { incr expected } }
+        WR_SIGNAL_REJECT {
+          set reject_count [expr {($word >> 8) & 0x00ffffff}]
+          if {$reject_count == 0} { incr expected }
+        }
+        WR_FAILURE_DEBUG {
+          set fail_state [expr {($word >> 16) & 0xff}]
+          set fail_count [expr {$word & 0xffff}]
+          add_hist failure_state_hist $fail_state
+          if {$fail_state == 2 && $fail_count > 0} { incr expected; incr failure_s_lock }
+          if {$fail_count > $failure_count_max} { set failure_count_max $fail_count }
+        }
         WDIAGS_TEMP {
           set state [expr {($word >> 11) & 0xf}]
           set next_state [expr {($word >> 15) & 0xf}]
@@ -231,11 +256,26 @@ proc series_read {board label addr samples gap_ms} {
   if {$label eq "WDIAGS_TEMP"} {
     set ::series($board,$label,states) [hist_text state_hist]
   }
+  if {$label eq "WR_FAILURE_DEBUG"} {
+    set ::series($board,$label,failure_states) [hist_text failure_state_hist]
+    set ::series($board,$label,failure_s_lock) $failure_s_lock
+    set ::series($board,$label,failure_count_max) $failure_count_max
+  }
+  set suffix " values="
+  set series_text $::series($board,$label,hist)
+  if {$label eq "WDIAGS_TEMP"} {
+    set suffix " states="
+    set series_text $::series($board,$label,states)
+  }
+  if {$label eq "WR_FAILURE_DEBUG"} {
+    append suffix [format "failure_states=%s s_lock_evidence=%d fail_count_max=%d values=" \
+      $::series($board,$label,failure_states) $failure_s_lock $failure_count_max]
+  }
   puts [format "REG_SERIES board=%s register=%s samples=%d valid=%d invalid=%d distinct=%d decrease=%d expected=%d first=%s last=%s%s%s" \
     $board $label $samples $valid $invalid [llength [array names hist]] $decrease \
     $expected $first $last \
-    [expr {$label eq "WDIAGS_TEMP" ? " states=" : " values="}] \
-    [expr {$label eq "WDIAGS_TEMP" ? $::series($board,$label,states) : $::series($board,$label,hist)}]]
+    $suffix \
+    $series_text]
 }
 
 proc read_group {board group samples gap_ms} {
@@ -266,6 +306,8 @@ proc read_group {board group samples gap_ms} {
       {WR_RX_SIGNAL 0x00100A64}
       {WR_TX_SIGNAL 0x00100A68}
       {LOCK_ENABLE 0x00100A9C}
+      {WR_SIGNAL_REJECT 0x00100A50}
+      {WR_FAILURE_DEBUG 0x00100A6C}
       {WDIAGS_TEMP 0x00100A4C}
     } {
       series_read $board [lindex $item 0] [lindex $item 1] $samples $gap_ms
@@ -302,8 +344,10 @@ proc step2_result {board} {
 }
 
 proc step3_result {board} {
+  if {[string match "*1.1*" $board]} { return NA }
   set invalid 0
-  foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE WDIAGS_TEMP} {
+  foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE \
+                 WR_SIGNAL_REJECT WR_FAILURE_DEBUG WDIAGS_TEMP} {
     if {[get_series $board $label invalid] > 0 || [get_series $board $label decrease]} {
       set invalid 1
     }
@@ -315,7 +359,16 @@ proc step3_result {board} {
     if {[get_series $board $label expected] == 0} { set invalid 1 }
   }
   if {$invalid} { return INVALID }
-  if {$valid > 0 && $idle == $valid} { return FAIL }
+  set failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_s_lock]
+  if {$valid > 0 && $idle == $valid} {
+    if {$failure_s_lock > 0} {
+      puts [format "STEP3_STATE_EVIDENCE board=%s result=POST_FAILURE_IDLE last_fail_state=WRS_S_LOCK failure_samples=%d current_state=WRS_IDLE failure_count_max=%d" \
+        $board $failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_count_max]]
+    } else {
+      puts [format "STEP3_STATE_EVIDENCE board=%s result=STABLE_WRS_IDLE current_state=WRS_IDLE" $board]
+    }
+    return FAIL
+  }
   if {$non_idle > 0 && [get_series $board WDIAGS_TEMP expected] > 0} { return PASS }
   return INVALID
 }

@@ -734,10 +734,10 @@ proc analyze_board {board} {
     if {$state < 0 || $next_state < 0} {
       set state_ok INVALID
     } elseif {$state == 0} {
-      # A one-shot WRS_IDLE can be a torn mailbox/current-state sample when
-      # signaling counters and LOCK_ENABLE are already positive.  Do not
-      # call it a functional failure; focused repeated sampling decides it.
-      set state_ok INFO
+      # WRS_IDLE is not a Step 3 pass state.  The dashboard must retain the
+      # ambiguity as a measurement retest until an independent series proves
+      # whether this is mailbox tearing or a real post-failure idle state.
+      set state_ok INVALID
       set state_inconsistent 1
     } else {
       set state_ok [expr {$state >= 1 && $state <= 8 ? "PASS" : "WARN"}]
@@ -753,7 +753,6 @@ proc analyze_board {board} {
     print_signal $lock_status "WR lock enable 次數" LOCK_ENABLE \
       [display_value $lock_enable] "> 0" \
       "locking_enable() 已被呼叫的 read-only counter；不等於 SoftPLL 已 lock。"
-    if {$state_inconsistent && $step3 eq "PASS"} { set step3 INFO }
     if {$step3 ne "PASS" && $step3 ne "INFO" && $step3 ne "INVALID"} {
       mark_anomaly $board 3 $step3 "WR parent/signaling handshake"
     }

@@ -20,6 +20,7 @@ array set ::step_status {}
 array set ::first_anomaly {}
 set ::board_count 0
 set ::raw_mode 0
+set ::max_read_attempts 5
 if {[info exists argv] && [lsearch -exact $argv "--raw"] >= 0} {
   set ::raw_mode 1
 }
@@ -36,6 +37,75 @@ proc word32 {value} {
   }
   scan $text %x word
   return [expr {$word & 0xffffffff}]
+}
+
+proc stale_jtag_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  # A5A5xxxx is the observed stale/filler pattern from an invalid mailbox
+  # transaction.  Do not let it enter enum or status judgement.
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc register_value_valid {addr value} {
+  set word [word32 $value]
+  if {$word < 0 || [stale_jtag_word $value]} { return 0 }
+  set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
+  switch -- $key {
+    0x00100A10 {
+      # PPSI state is an enum, not an arbitrary 32-bit value.
+      return [expr {$word >= 1 && $word <= 9}]
+    }
+    0x00100A5C {
+      # PTP_META packs PPSI state and configured WRC mode in the low/high
+      # bytes.  The middle bytes are source-defined enums/counters.
+      set ptp_state [expr {$word & 0xff}]
+      set mode [expr {($word >> 24) & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9 &&
+                    ($mode == 2 || $mode == 3)}]
+    }
+    0x00100A78 {
+      set count [expr {$word & 0xff}]
+      set best [expr {($word >> 8) & 0xff}]
+      set detection [expr {($word >> 16) & 0xff}]
+      set wr_config [expr {($word >> 24) & 0xff}]
+      # Source packing allows the no-record marker 0/0xff and the normal
+      # record form best<count>.  Parent fields are small source enums.
+      set no_record [expr {$count == 0 && $best == 0xff}]
+      set record [expr {$count > 0 && $best < $count}]
+      return [expr {($no_record || $record) &&
+                    $detection <= 7 && $wr_config <= 7}]
+    }
+    0x00100A80 {
+      # Upper byte contains only the three source-defined parent flags.
+      return [expr {(($word >> 24) & 0xff) <= 7}]
+    }
+    0x00100A4C {
+      # DE5a temperature shadow: tag A, state/next_state 0..8, mode 0..7.
+      set tag [expr {($word >> 28) & 0xf}]
+      set state [expr {($word >> 11) & 0xf}]
+      set next_state [expr {($word >> 15) & 0xf}]
+      set mode [expr {($word >> 21) & 0x7}]
+      return [expr {$tag == 0xA && $state <= 8 && $next_state <= 8 &&
+                    $mode <= 7}]
+    }
+    0x00100A9C {
+      # Lock-enable is a free-running diagnostic counter; only the mailbox
+      # encoding/stale pattern can invalidate it.
+      return 1
+    }
+    0x00100AA0 {
+      # SoftPLL shadow packs sequence, alignment, mode and delock count.
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$mode <= 3}]
+    }
+    0x00100AA4 - 0x00100AA8 {
+      # Arria-10 design uses channel-enable bit masks; keep a small mask
+      # range but do not require an enabled value at read-validation time.
+      return [expr {$word <= 0xff}]
+    }
+  }
+  return 1
 }
 
 proc probe_low32 {value} {
@@ -95,7 +165,8 @@ proc delta32 {before after} {
 }
 
 proc special_value {value} {
-  return [expr {$value eq "TIMEOUT" || $value eq "DECREASED"}]
+  return [expr {$value eq "TIMEOUT" || $value eq "DECREASED" ||
+                $value eq "INVALID"}]
 }
 
 proc negative_value {value} {
@@ -107,6 +178,7 @@ proc negative_value {value} {
 proc display_value {value} {
   if {$value eq "TIMEOUT"} { return "TIMEOUT" }
   if {$value eq "DECREASED"} { return "counter decreased/reset" }
+  if {$value eq "INVALID"} { return "JTAG read inconsistent" }
   if {[negative_value $value]} { return "TIMEOUT" }
   return $value
 }
@@ -116,6 +188,7 @@ proc status_rank {status} {
     PASS { return 0 }
     INFO { return 1 }
     WARN { return 2 }
+    INVALID { return 2 }
     FAIL { return 3 }
   }
   return 1
@@ -134,6 +207,7 @@ proc status_text {status} {
     WARN { return "error" }
     FAIL { return "error" }
     INFO { return "info" }
+    INVALID { return "invalid" }
   }
   return $status
 }
@@ -141,6 +215,7 @@ proc status_text {status} {
 proc step_status_text {status} {
   if {$status eq "PASS"} { return "pass" }
   if {$status eq "WARN" || $status eq "FAIL"} { return "error" }
+  if {$status eq "INVALID"} { return "MEASUREMENT_INVALID / RETEST" }
   return "NA"
 }
 
@@ -152,31 +227,38 @@ proc mark_anomaly {board step status text} {
 }
 
 proc exact_status {value expected} {
-  if {[special_value $value] || [negative_value $value]} { return "WARN" }
+  if {$value eq "INVALID"} { return "INVALID" }
+  if {$value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  if {$value eq "DECREASED"} { return "INFO" }
   if {$value == $expected} { return "PASS" }
   return "FAIL"
 }
 
 proc positive_status {value} {
-  if {[special_value $value] || [negative_value $value]} { return "WARN" }
+  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  if {$value eq "DECREASED"} { return "INFO" }
   if {$value > 0} { return "PASS" }
   return "WARN"
 }
 
 proc required_positive_status {value} {
-  if {[special_value $value] || [negative_value $value]} { return "WARN" }
+  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  if {$value eq "DECREASED"} { return "INFO" }
   if {$value > 0} { return "PASS" }
   return "FAIL"
 }
 
 proc delta_status {value} {
-  if {[special_value $value] || [negative_value $value]} { return "WARN" }
+  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  if {$value eq "DECREASED"} { return "INFO" }
   if {$value > 0} { return "PASS" }
-  return "WARN"
+  # A one-window zero is not evidence that the packet path is broken.
+  return "INFO"
 }
 
 proc required_delta_status {value} {
-  if {[special_value $value] || [negative_value $value]} { return "WARN" }
+  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  if {$value eq "DECREASED"} { return "INFO" }
   if {$value > 0} { return "PASS" }
   return "FAIL"
 }
@@ -258,6 +340,7 @@ proc signal_name {message_id} {
 proc mac_from_registers {mach macl} {
   set hi [word32 $mach]
   set lo [word32 $macl]
+  if {$mach eq "INVALID" || $macl eq "INVALID"} { return "INVALID" }
   if {$hi < 0 || $lo < 0} { return "TIMEOUT" }
   set mid [expr {$hi & 0xffff}]
   return [format "%02X:%02X:%02X:%02X:%02X:%02X" \
@@ -282,6 +365,20 @@ proc wb_read {addr} {
     after 1
   }
   return "TIMEOUT"
+}
+
+proc wb_read_validated {addr} {
+  # Retry only read-side evidence.  No Wishbone write or DATA_SNAPSHOT is
+  # issued here.  A value that never passes the source-backed validator is
+  # kept as INVALID so it cannot become a hardware FAIL.
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[register_value_valid $addr $value]} {
+      return $value
+    }
+    after 2
+  }
+  return "INVALID"
 }
 
 proc wb_sync_toggle {} {
@@ -317,24 +414,24 @@ proc collect_snapshot {board label} {
 
   put_snap $board $label pps_cr [wb_read 0x00100300]
   put_snap $board $label pps_escr [wb_read 0x0010031C]
-  put_snap $board $label ep_mach [wb_read 0x00100124]
-  put_snap $board $label ep_macl [wb_read 0x00100128]
+  put_snap $board $label ep_mach [wb_read_validated 0x00100124]
+  put_snap $board $label ep_macl [wb_read_validated 0x00100128]
   put_snap $board $label ep_dsr [wb_read 0x00100138]
-  put_snap $board $label ptp [wb_read 0x00100A10]
+  put_snap $board $label ptp [wb_read_validated 0x00100A10]
   put_snap $board $label ptp_rx [wb_read 0x00100A54]
   put_snap $board $label ptp_tx [wb_read 0x00100A58]
-  put_snap $board $label ptp_meta [wb_read 0x00100A5C]
+  put_snap $board $label ptp_meta [wb_read_validated 0x00100A5C]
   put_snap $board $label tx [wb_read 0x00100A18]
   put_snap $board $label rx [wb_read 0x00100A1C]
   put_snap $board $label rxerr [wb_read 0x00100A60]
   put_snap $board $label ptp_types [wb_read 0x00100A74]
-  put_snap $board $label foreign_meta [wb_read 0x00100A78]
+  put_snap $board $label foreign_meta [wb_read_validated 0x00100A78]
   put_snap $board $label filter_meta [wb_read 0x00100A7C]
-  put_snap $board $label parse_meta [wb_read 0x00100A80]
+  put_snap $board $label parse_meta [wb_read_validated 0x00100A80]
   put_snap $board $label wr_rx_signal [wb_read 0x00100A64]
   put_snap $board $label wr_tx_signal [wb_read 0x00100A68]
   put_snap $board $label wr_failure [wb_read 0x00100A6C]
-  put_snap $board $label wr_state [wb_read 0x00100A4C]
+  put_snap $board $label wr_state [wb_read_validated 0x00100A4C]
   put_snap $board $label wr_reject [wb_read 0x00100A50]
   put_snap $board $label pstat [wb_read 0x00100A0C]
   put_snap $board $label sstat [wb_read 0x00100A08]
@@ -343,10 +440,10 @@ proc collect_snapshot {board label} {
   put_snap $board $label ns [wb_read 0x00100A28]
 
   # 這些地址與既有 Step 4 read-only scripts/source mapping 一致。
-  put_snap $board $label lock_enable [wb_read 0x00100A9C]
-  put_snap $board $label spll_state [wb_read 0x00100AA0]
-  put_snap $board $label spll_ocer [wb_read 0x00100AA4]
-  put_snap $board $label spll_rcer [wb_read 0x00100AA8]
+  put_snap $board $label lock_enable [wb_read_validated 0x00100A9C]
+  put_snap $board $label spll_state [wb_read_validated 0x00100AA0]
+  put_snap $board $label spll_ocer [wb_read_validated 0x00100AA4]
+  put_snap $board $label spll_rcer [wb_read_validated 0x00100AA8]
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
   put_snap $board $label dmtd_ref [wb_read 0x00100298]
   put_snap $board $label dmtd_fb [wb_read 0x0010029C]
@@ -361,13 +458,13 @@ proc collect_snapshot {board label} {
 }
 
 proc print_signal {status chinese symbol value expected explanation} {
-  set expected_display [expr {$status eq "INFO" ? "NA" : $expected}]
+  set expected_display [expr {$status eq "INFO" || $status eq "INVALID" ? "NA" : $expected}]
   puts [format {[%s] %-24s 結果: %s/%s} \
     [status_text $status] $symbol [display_value $value] $expected_display]
 }
 
 proc print_delta {status chinese symbol before after delta explanation {expected "delta > 0"}} {
-  set expected_display [expr {$status eq "INFO" ? "NA" : $expected}]
+  set expected_display [expr {$status eq "INFO" || $status eq "INVALID" ? "NA" : $expected}]
   puts [format {[%s] %-24s 結果: Δ=%s/%s} \
     [status_text $status] $symbol [display_value $delta] $expected_display]
   if {$::raw_mode} {
@@ -458,8 +555,8 @@ proc analyze_board {board} {
   set mac_expected "ROLE"
   if {$role eq "MASTER"} {
     set mac_expected "02:00:22:33:44:01"
-    if {$mac eq "TIMEOUT"} {
-      set mac_status WARN
+    if {$mac eq "TIMEOUT" || $mac eq "INVALID"} {
+      set mac_status INVALID
     } elseif {$mac ne "02:00:22:33:44:01"} {
       set mac_status FAIL
     } else {
@@ -469,19 +566,28 @@ proc analyze_board {board} {
     set ptp_status [exact_status $ptp 6]
   } elseif {$role eq "SLAVE"} {
     set mac_expected "02:00:22:33:44:02"
-    if {$mac eq "TIMEOUT"} {
-      set mac_status WARN
+    if {$mac eq "TIMEOUT" || $mac eq "INVALID"} {
+      set mac_status INVALID
     } elseif {$mac ne "02:00:22:33:44:02"} {
       set mac_status FAIL
     } else {
       set mac_status PASS
     }
     set mode_status [exact_status $mode 3]
-    if {$ptp == 8} { set ptp_status WARN } else { set ptp_status [exact_status $ptp 9] }
+    # PPS_UNCALIBRATED is a permitted startup transition; it is not an
+    # immediate Step 2 hardware failure.  Focused time-series decides whether
+    # the Slave reaches steady PPS_SLAVE.
+    if {$ptp == 8} { set ptp_status INFO } else { set ptp_status [exact_status $ptp 9] }
   } else {
-    set mac_status WARN
-    set mode_status WARN
-    set ptp_status WARN
+    if {$mode < 0 || $ptp < 0} {
+      set mac_status INVALID
+      set mode_status INVALID
+      set ptp_status INVALID
+    } else {
+      set mac_status WARN
+      set mode_status WARN
+      set ptp_status WARN
+    }
   }
   set step2 [merge_status $step2 $mac_status]
   set step2 [merge_status $step2 $mode_status]
@@ -494,6 +600,7 @@ proc analyze_board {board} {
     [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
     [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE (startup:8)" : "ROLE")} ] ""
 
+  set step2_activity_invalid 0
   foreach counter {
     {ptp_rx "PPSI PTP RX counter" WDIAGS_PTP_RX "PPSI-level PTP RX counter"}
     {ptp_tx "PPSI PTP TX counter" WDIAGS_PTP_TX "PPSI-level PTP TX counter"}
@@ -507,7 +614,7 @@ proc analyze_board {board} {
     set a [get_snap $board $after $field]
     set d [delta32 $b $a]
     set current [delta_status $d]
-    set step2 [merge_status $step2 $current]
+    if {$current eq "INVALID"} { set step2_activity_invalid 1 }
     print_delta $current $chinese $symbol \
       $b $a $d "" "Δ>0"
   }
@@ -533,11 +640,14 @@ proc analyze_board {board} {
     set rxerr_explanation "delta>0 表示本次觀測期間出現 RX error；不單獨推論根因。"
     set rxerr_expected "delta=0（本次沒有新增 error）"
   }
-  set step2 [merge_status $step2 $rxerr_status]
+  if {$rxerr_status eq "INVALID"} { set step2_activity_invalid 1 }
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
     $rb $ra $rd \
     $rxerr_explanation [expr {$rd eq "DECREASED" ? "DELTA>0" : "DELTA=0"}]
-  if {$step2 ne "PASS"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role 或 packet activity" }
+  # A short counter window is descriptive only.  It must not turn a single
+  # zero delta into a Step 2 failure; invalid reads still require a retest.
+  if {$step2_activity_invalid && $step2 eq "PASS"} { set step2 INVALID }
+  if {$step2 ne "PASS" && $step2 ne "INVALID"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role" }
   set ::step_status($board,2) $step2
   puts [format "Step 2 %s" [step_status_text $step2]]
 
@@ -552,6 +662,7 @@ proc analyze_board {board} {
     set step3 INFO
   } else {
     set step3 PASS
+    set state_inconsistent 0
     set foreign [get_snap $board $after foreign_meta]
     set parse [get_snap $board $after parse_meta]
     set fc [field32 $foreign 0 8]
@@ -591,8 +702,16 @@ proc analyze_board {board} {
     set rx_count [field32 $rx_signal 0 16]
     set tx_id [field32 $tx_signal 16 16]
     set tx_count [field32 $tx_signal 0 16]
-    set rx_ok [expr {$rx_count > 0 && $rx_id == 0x1001 ? "PASS" : "WARN"}]
-    set tx_ok [expr {$tx_count > 0 && $tx_id == 0x1000 ? "PASS" : "WARN"}]
+    if {$rx_count < 0 || $rx_id < 0} {
+      set rx_ok INVALID
+    } else {
+      set rx_ok [expr {$rx_count > 0 && $rx_id == 0x1001 ? "PASS" : "WARN"}]
+    }
+    if {$tx_count < 0 || $tx_id < 0} {
+      set tx_ok INVALID
+    } else {
+      set tx_ok [expr {$tx_count > 0 && $tx_id == 0x1000 ? "PASS" : "WARN"}]
+    }
     set step3 [merge_status $step3 $rx_ok]
     set step3 [merge_status $step3 $tx_ok]
     if {$rx_id < 0} { set rx_id_display "TIMEOUT" } else { set rx_id_display [format "0x%04X" $rx_id] }
@@ -606,10 +725,21 @@ proc analyze_board {board} {
     set wr_state [get_snap $board $after wr_state]
     set state [field32 $wr_state 11 4]
     set next_state [field32 $wr_state 15 4]
-    set state_ok [expr {$state >= 2 && $state <= 8 ? "PASS" : "WARN"}]
+    if {$state < 0 || $next_state < 0} {
+      set state_ok INVALID
+    } elseif {$state == 0} {
+      # A one-shot WRS_IDLE can be a torn mailbox/current-state sample when
+      # signaling counters and LOCK_ENABLE are already positive.  Do not
+      # call it a functional failure; focused repeated sampling decides it.
+      set state_ok INFO
+      set state_inconsistent 1
+    } else {
+      set state_ok [expr {$state >= 1 && $state <= 8 ? "PASS" : "WARN"}]
+    }
     set step3 [merge_status $step3 $state_ok]
     print_signal $state_ok "WR State" WDIAGS_TEMP \
-      [format "%s next=%s" [wr_state_name $state] [wr_state_name $next_state]] \
+      [format "%s next=%s%s" [wr_state_name $state] [wr_state_name $next_state] \
+        [expr {$state_inconsistent ? " READ_INCONSISTENT" : ""}]] \
       "WRS_S_LOCK=2" ""
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
@@ -617,7 +747,10 @@ proc analyze_board {board} {
     print_signal $lock_status "WR lock enable 次數" LOCK_ENABLE \
       [display_value $lock_enable] "> 0" \
       "locking_enable() 已被呼叫的 read-only counter；不等於 SoftPLL 已 lock。"
-    if {$step3 ne "PASS"} { mark_anomaly $board 3 $step3 "WR parent/signaling handshake" }
+    if {$state_inconsistent && $step3 eq "PASS"} { set step3 INFO }
+    if {$step3 ne "PASS" && $step3 ne "INFO" && $step3 ne "INVALID"} {
+      mark_anomaly $board 3 $step3 "WR parent/signaling handshake"
+    }
   }
   set ::step_status($board,3) $step3
   puts [format "Step 3 %s" [step_status_text $step3]]

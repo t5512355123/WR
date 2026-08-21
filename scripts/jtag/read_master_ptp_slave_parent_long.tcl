@@ -22,9 +22,14 @@ if {$samples <= 0 || $gap_ms < 0} {
 }
 
 set ::wb_toggle 0
+set ::max_read_attempts 5
 
 proc wb_sync_toggle {} {
   set value [read_probe_data -instance_index 1 -value_in_hex]
+  if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
+    set ::wb_toggle 0
+    return
+  }
   scan $value %x word
   set current_done [expr {(($word >> 35) & 1)}]
   set ::wb_toggle $current_done
@@ -37,6 +42,10 @@ proc wb_read {addr} {
   after 5
   for {set n 0} {$n < 100} {incr n} {
     set value [read_probe_data -instance_index 1 -value_in_hex]
+    if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
+      after 1
+      continue
+    }
     scan $value %x word
     set done_toggle [expr {(($word >> 35) & 1)}]
     set active [expr {(($word >> 36) & 1)}]
@@ -46,6 +55,53 @@ proc wb_read {addr} {
     after 1
   }
   return "TIMEOUT"
+}
+
+proc word32 {value} {
+  if {![regexp {^[0-9A-Fa-f]{1,8}$} $value]} { return -1 }
+  scan $value %x word
+  return [expr {$word & 0xffffffff}]
+}
+
+proc validated_register {addr value} {
+  set word [word32 $value]
+  if {$word < 0 || ((($word >> 16) & 0xffff) == 0xA5A5)} { return 0 }
+  set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
+  switch -- $key {
+    0x00100A10 {
+      return [expr {$word >= 1 && $word <= 9}]
+    }
+    0x00100A5C {
+      set state [expr {$word & 0xff}]
+      set mode [expr {($word >> 24) & 0xff}]
+      return [expr {$state >= 1 && $state <= 9 && ($mode == 2 || $mode == 3)}]
+    }
+    0x00100A78 {
+      set count [expr {$word & 0xff}]
+      set best [expr {($word >> 8) & 0xff}]
+      set detection [expr {($word >> 16) & 0xff}]
+      set config [expr {($word >> 24) & 0xff}]
+      return [expr {(($count == 0 && $best == 0xff) ||
+                    ($count > 0 && $best < $count)) &&
+                    $detection <= 7 && $config <= 7}]
+    }
+    0x00100A80 {
+      return [expr {(($word >> 24) & 0xff) <= 7}]
+    }
+    0x00100AA0 {
+      return [expr {(($word >> 16) & 0xff) <= 3}]
+    }
+  }
+  return 1
+}
+
+proc wb_read_validated {addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[validated_register $addr $value]} { return $value }
+    after 2
+  }
+  return "INVALID"
 }
 
 proc read_min_sample {board sample} {
@@ -65,13 +121,13 @@ proc read_min_sample {board sample} {
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
-  set ptp [wb_read 0x00100A10]
+  set ptp [wb_read_validated 0x00100A10]
   set ptp_rx [wb_read 0x00100A54]
   set ptp_tx [wb_read 0x00100A58]
-  set ptp_meta [wb_read 0x00100A5C]
-  set foreign_meta [wb_read 0x00100A78]
-  set parse_meta [wb_read 0x00100A80]
-  set spll_state [wb_read 0x00100AA0]
+  set ptp_meta [wb_read_validated 0x00100A5C]
+  set foreign_meta [wb_read_validated 0x00100A78]
+  set parse_meta [wb_read_validated 0x00100A80]
+  set spll_state [wb_read_validated 0x00100AA0]
   set spll_ocer [wb_read 0x00100AA4]
   set spll_rcer [wb_read 0x00100AA8]
   set spll_occr [wb_read 0x00100AAC]
@@ -85,6 +141,18 @@ proc read_min_sample {board sample} {
   set tag_valid [wb_read 0x00100AF8]
   set trr_write [wb_read 0x00100AFC]
   set tag_source [wb_read 0x0010028C]
+
+  set valid 1
+  foreach value [list $status $marker_raw $cpu_raw $ptp $ptp_meta \
+      $foreign_meta $parse_meta $spll_state] {
+    if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} { set valid 0 }
+  }
+  if {!$valid} {
+    puts [format "MIN_SAMPLE board=%s sample=%03d valid=0 STATUS=%s PTP=%s PTP_META=%s FOREIGN=%s PARSE=%s SPLL_STATE=%s" \
+      $board $sample $status $ptp $ptp_meta $foreign_meta $parse_meta $spll_state]
+    flush stdout
+    return
+  }
 
   scan $ptp_meta %x ptp_meta_word
   set mode [expr {(($ptp_meta_word >> 24) & 0xff)}]

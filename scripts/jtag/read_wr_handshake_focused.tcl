@@ -22,6 +22,8 @@ if {$samples <= 0 || $gap_ms < 0} {
 }
 
 set ::wb_toggle 0
+set ::max_read_attempts 5
+array set ::focus_stats {}
 
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
@@ -30,6 +32,10 @@ proc wb_read {addr} {
   after 5
   for {set n 0} {$n < 100} {incr n} {
     set value [read_probe_data -instance_index 1 -value_in_hex]
+    if {![u64 $value]} {
+      after 1
+      continue
+    }
     scan $value %x word
     set done_toggle [expr {(($word >> 35) & 1)}]
     set active [expr {(($word >> 36) & 1)}]
@@ -43,6 +49,10 @@ proc wb_read {addr} {
 
 proc wb_sync_toggle {} {
   set value [read_probe_data -instance_index 1 -value_in_hex]
+  if {![u64 $value]} {
+    set ::wb_toggle 0
+    return
+  }
   scan $value %x word
   set ::wb_toggle [expr {(($word >> 35) & 1)}]
 }
@@ -55,20 +65,218 @@ proc u64 {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
 }
 
+proc word32 {value} {
+  if {![u32 $value]} { return -1 }
+  scan $value %x word
+  return [expr {$word & 0xffffffff}]
+}
+
+proc stale_jtag_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc register_value_valid {addr value} {
+  set word [word32 $value]
+  if {$word < 0 || [stale_jtag_word $value]} { return 0 }
+  set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
+  switch -- $key {
+    0x00100A10 {
+      return [expr {$word >= 1 && $word <= 9}]
+    }
+    0x00100A5C {
+      set ptp_state [expr {$word & 0xff}]
+      set mode [expr {($word >> 24) & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9 &&
+                    ($mode == 2 || $mode == 3)}]
+    }
+    0x00100A78 {
+      set count [expr {$word & 0xff}]
+      set best [expr {($word >> 8) & 0xff}]
+      set detection [expr {($word >> 16) & 0xff}]
+      set wr_config [expr {($word >> 24) & 0xff}]
+      set no_record [expr {$count == 0 && $best == 0xff}]
+      set record [expr {$count > 0 && $best < $count}]
+      return [expr {($no_record || $record) &&
+                    $detection <= 7 && $wr_config <= 7}]
+    }
+    0x00100A80 {
+      return [expr {(($word >> 24) & 0xff) <= 7}]
+    }
+    0x00100A4C {
+      set tag [expr {($word >> 28) & 0xf}]
+      set state [expr {($word >> 11) & 0xf}]
+      set next_state [expr {($word >> 15) & 0xf}]
+      set mode [expr {($word >> 21) & 0x7}]
+      return [expr {$tag == 0xA && $state <= 8 && $next_state <= 8 &&
+                    $mode <= 7}]
+    }
+    0x00100A9C {
+      return 1
+    }
+    0x00100AA0 {
+      return [expr {(($word >> 16) & 0xff) <= 3}]
+    }
+    0x00100AA4 - 0x00100AA8 {
+      return [expr {$word <= 0xff}]
+    }
+  }
+  return 1
+}
+
+proc wb_read_validated {addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[register_value_valid $addr $value]} {
+      return $value
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
+proc focus_mac {mach macl} {
+  set hi [word32 $mach]
+  set lo [word32 $macl]
+  if {$hi < 0 || $lo < 0} { return "INVALID" }
+  set mid [expr {$hi & 0xffff}]
+  return [format "%02X:%02X:%02X:%02X:%02X:%02X" \
+    [expr {($mid >> 8) & 0xff}] [expr {$mid & 0xff}] \
+    [expr {($lo >> 24) & 0xff}] [expr {($lo >> 16) & 0xff}] \
+    [expr {($lo >> 8) & 0xff}] [expr {$lo & 0xff}]]
+}
+
+proc focus_init {board} {
+  foreach field {valid invalid step2_candidate step3_candidate state_idle \
+      state_good first_ptp_rx last_ptp_rx first_ptp_tx last_ptp_tx \
+      first_tx last_tx first_rx last_rx \
+      first_rxerr last_rxerr first_mac last_mac first_mode last_mode \
+      first_ptp last_ptp ptp9_seen} {
+    set ::focus_stats($board,$field) 0
+  }
+  set ::focus_stats($board,step2_candidate) 1
+  set ::focus_stats($board,step3_candidate) 1
+  set ::focus_stats($board,first_mac) ""
+  set ::focus_stats($board,last_mac) ""
+}
+
+proc focus_get {board field} {
+  if {[info exists ::focus_stats($board,$field)]} {
+    return $::focus_stats($board,$field)
+  }
+  return 0
+}
+
+proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_wr \
+    parent_cal rx_id rx_count tx_id tx_count state ptp_rx ptp_tx tx rx rxerr} {
+  incr ::focus_stats($board,valid)
+  if {[focus_get $board first_mac] eq ""} {
+    set ::focus_stats($board,first_mac) $mac
+    set ::focus_stats($board,first_ptp_rx) $ptp_rx
+    set ::focus_stats($board,first_ptp_tx) $ptp_tx
+    set ::focus_stats($board,first_tx) $tx
+    set ::focus_stats($board,first_rx) $rx
+    set ::focus_stats($board,first_rxerr) $rxerr
+    set ::focus_stats($board,first_ptp) $ptp
+    set ::focus_stats($board,first_mode) $mode
+  }
+  set ::focus_stats($board,last_mac) $mac
+  set ::focus_stats($board,last_ptp_rx) $ptp_rx
+  set ::focus_stats($board,last_ptp_tx) $ptp_tx
+  set ::focus_stats($board,last_tx) $tx
+  set ::focus_stats($board,last_rx) $rx
+  set ::focus_stats($board,last_rxerr) $rxerr
+  set ::focus_stats($board,last_ptp) $ptp
+  set ::focus_stats($board,last_mode) $mode
+  if {$mode == 3 && $ptp == 9} { set ::focus_stats($board,ptp9_seen) 1 }
+  if {$mode != 2 && $mode != 3} { set ::focus_stats($board,step2_candidate) 0 }
+  if {$mac ne "02:00:22:33:44:01" && $mac ne "02:00:22:33:44:02"} {
+    set ::focus_stats($board,step2_candidate) 0
+  }
+  if {$mode == 2 && ($ptp != 6 || $mac ne "02:00:22:33:44:01")} {
+    set ::focus_stats($board,step2_candidate) 0
+  }
+  if {$mode == 3 && $ptp != 9 && $ptp != 8} {
+    set ::focus_stats($board,step2_candidate) 0
+  }
+  if {$mode == 3 && !($foreign_count == 1 && $foreign_best == 0 &&
+      $parent_is_wr == 1 && $parent_cal == 1 && $rx_id == 0x1001 &&
+      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0)} {
+    set ::focus_stats($board,step3_candidate) 0
+  }
+  if {$mode == 3 && $state == 0} { incr ::focus_stats($board,state_idle) }
+  if {$mode == 3 && $state >= 1 && $state <= 8} { incr ::focus_stats($board,state_good) }
+}
+
+proc focus_summary {board hardware_name} {
+  set valid [focus_get $board valid]
+  set invalid [focus_get $board invalid]
+  if {$valid == 0} {
+    set step2 INVALID
+    set step3 INVALID
+  } else {
+    set first_mode [focus_get $board first_mode]
+    set last_mode [focus_get $board last_mode]
+    set first_ptp_rx [focus_get $board first_ptp_rx]
+    set last_ptp_rx [focus_get $board last_ptp_rx]
+    set first_tx [focus_get $board first_tx]
+    set last_tx [focus_get $board last_tx]
+    set first_rx [focus_get $board first_rx]
+    set last_rx [focus_get $board last_rx]
+    set first_rxerr [focus_get $board first_rxerr]
+    set last_rxerr [focus_get $board last_rxerr]
+    set first_ptp_tx [focus_get $board first_ptp_tx]
+    set last_ptp_tx [focus_get $board last_ptp_tx]
+    set step2 [expr {[focus_get $board step2_candidate] && $valid >= 2 &&
+      $first_mode == $last_mode &&
+      (($last_mode == 2 && [focus_get $board first_ptp] == 6) ||
+       ($last_mode == 3 && [focus_get $board ptp9_seen])) &&
+      $first_ptp_rx >= 0 && $last_ptp_rx > $first_ptp_rx &&
+      $first_ptp_tx >= 0 && $last_ptp_tx > $first_ptp_tx &&
+      $first_tx >= 0 && $last_tx >= $first_tx && $first_rx >= 0 && $last_rx >= $first_rx &&
+      $first_rxerr >= 0 && $last_rxerr >= $first_rxerr ? "PASS" : "FAIL"}]
+    if {$invalid > 0 && $step2 eq "PASS"} { set step2 PASS }
+    if {$last_mode == 3} {
+      if {![focus_get $board step3_candidate]} {
+        set step3 FAIL
+      } elseif {[focus_get $board state_idle] > 0} {
+        set step3 INVALID
+      } else {
+        set step3 PASS
+      }
+    } else {
+      set step3 NA
+    }
+  }
+  puts [format "FOCUSED_GATE board=%s valid_samples=%d invalid_samples=%d STEP2_REGRESSION=%s STEP3_REGRESSION=%s STATE_EVIDENCE=%s state_idle=%d state_good=%d" \
+    $hardware_name $valid $invalid $step2 $step3 \
+    [expr {[focus_get $board state_idle] > 0 ? "READ_INCONSISTENT" : "STABLE"}] \
+    [focus_get $board state_idle] [focus_get $board state_good]]
+}
+
 proc read_focused_sample {hardware_name sample} {
   set status [read_probe_data -instance_index 0 -value_in_hex]
-  set ptp_meta [wb_read 0x00100A5C]
-  set foreign_meta [wb_read 0x00100A78]
-  set parse_meta [wb_read 0x00100A80]
-  set wr_state [wb_read 0x00100A4C]
+  set ep_mach [wb_read_validated 0x00100124]
+  set ep_macl [wb_read_validated 0x00100128]
+  set ptp [wb_read_validated 0x00100A10]
+  set ptp_meta [wb_read_validated 0x00100A5C]
+  set ptp_rx [wb_read 0x00100A54]
+  set ptp_tx [wb_read 0x00100A58]
+  set minic_tx [wb_read 0x00100A18]
+  set minic_rx [wb_read 0x00100A1C]
+  set rxerr [wb_read 0x00100A60]
+  set foreign_meta [wb_read_validated 0x00100A78]
+  set parse_meta [wb_read_validated 0x00100A80]
+  set wr_state [wb_read_validated 0x00100A4C]
   set wr_rx [wb_read 0x00100A64]
   set wr_tx [wb_read 0x00100A68]
   set wr_fail [wb_read 0x00100A6C]
   set wr_reject [wb_read 0x00100A50]
   set wr_lock_result [wb_read 0x00100A8C]
   set wr_lock_polls [wb_read 0x00100A90]
-  set wr_lock_enable [wb_read 0x00100A9C]
-  set rcer [wb_read 0x00100AA8]
+  set wr_lock_enable [wb_read_validated 0x00100A9C]
+  set rcer [wb_read_validated 0x00100AA8]
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
 
@@ -76,7 +284,8 @@ proc read_focused_sample {hardware_name sample} {
   if {![u64 $status]} {
     set valid 0
   }
-  foreach value [list $ptp_meta $foreign_meta $parse_meta $wr_state \
+  foreach value [list $ep_mach $ep_macl $ptp $ptp_meta $ptp_rx $ptp_tx \
+      $minic_tx $minic_rx $rxerr $foreign_meta $parse_meta $wr_state \
       $wr_rx $wr_tx $wr_fail $wr_reject $wr_lock_result $wr_lock_polls \
       $wr_lock_enable $rcer $sstat $pstat] {
     if {![u32 $value]} {
@@ -86,7 +295,15 @@ proc read_focused_sample {hardware_name sample} {
 
   if {$valid} {
     scan $status %x status_word
+    scan $ep_mach %x ep_mach_word
+    scan $ep_macl %x ep_macl_word
+    scan $ptp %x ptp_word
     scan $ptp_meta %x ptp_meta_word
+    scan $ptp_rx %x ptp_rx_word
+    scan $ptp_tx %x ptp_tx_word
+    scan $minic_tx %x minic_tx_word
+    scan $minic_rx %x minic_rx_word
+    scan $rxerr %x rxerr_word
     scan $foreign_meta %x foreign_word
     scan $parse_meta %x parse_word
     scan $wr_state %x state_word
@@ -110,6 +327,7 @@ proc read_focused_sample {hardware_name sample} {
     set parent_mode_on [expr {($parse_word >> 25) & 1}]
     set parent_calibrated [expr {($parse_word >> 26) & 1}]
     set wr_mode [expr {($ptp_meta_word >> 24) & 0xff}]
+    set mac [focus_mac $ep_mach $ep_macl]
     set local_state [expr {($state_word >> 11) & 0xf}]
     set next_state [expr {($state_word >> 15) & 0xf}]
     set rx_msg [expr {($rx_word >> 16) & 0xffff}]
@@ -129,14 +347,21 @@ proc read_focused_sample {hardware_name sample} {
     set sstat_value $sstat_word
     set pstat_value $pstat_word
 
-    puts [format "FOCUSED_SAMPLE board=%s sample=%03d valid=1 status=%02X wr_mode=%d foreign=%d/%d detection=%d wr_config=%d parent=%d/%d/%d local_state=%d next_state=%d rx=0x%04X/%d tx=0x%04X/%d fail=%d/%d/%d reject=%d/%d lock=%d/%d polls=%d enable=%d rcer=0x%08X sstat=0x%08X pstat=0x%08X" \
-      $hardware_name $sample $status_low $wr_mode $foreign_count $foreign_best \
+    focus_note_valid $hardware_name $wr_mode $ptp_word $mac \
+      $foreign_count $foreign_best $parent_is_wr $parent_calibrated \
+      $rx_msg $rx_count $tx_msg $tx_count $local_state \
+      $ptp_rx_word $ptp_tx_word $minic_tx_word $minic_rx_word $rxerr_word
+
+    puts [format "FOCUSED_SAMPLE board=%s sample=%03d valid=1 status=%02X mac=%s mode=%d ptp=%d ptp_rx=%d ptp_tx=%d minic_tx=%d minic_rx=%d rxerr=%d foreign=%d/%d detection=%d wr_config=%d parent=%d/%d/%d local_state=%d next_state=%d rx=0x%04X/%d tx=0x%04X/%d fail=%d/%d/%d reject=%d/%d lock=%d/%d polls=%d enable=%d rcer=0x%08X sstat=0x%08X pstat=0x%08X" \
+      $hardware_name $sample $status_low $mac $wr_mode $ptp_word $ptp_rx_word $ptp_tx_word \
+      $minic_tx_word $minic_rx_word $rxerr_word $foreign_count $foreign_best \
       $parent_detection $parent_wr_config $parent_is_wr $parent_mode_on \
       $parent_calibrated $local_state $next_state $rx_msg $rx_count $tx_msg \
       $tx_count $fail_role $fail_state $fail_count $reject_reason $reject_count \
       $lock_result $spll_locked $lock_polls_value $lock_enable_value \
       $rcer_value $sstat_value $pstat_value]
   } else {
+    incr ::focus_stats($hardware_name,invalid)
     puts [format "FOCUSED_SAMPLE board=%s sample=%03d valid=0 status=%s" \
       $hardware_name $sample $status]
   }
@@ -148,6 +373,7 @@ foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
   set device_name [lindex $device_names 0]
+  focus_init $hardware_name
   puts "=== FOCUSED_BOARD ${hardware_name} ==="
   catch { end_insystem_source_probe }
   if {[catch {
@@ -162,6 +388,7 @@ foreach hardware_name [get_hardware_names] {
   } error_message]} {
     puts "error: ${error_message}"
   }
+  focus_summary $hardware_name $hardware_name
   catch { end_insystem_source_probe }
 }
 puts "FOCUSED_DONE"

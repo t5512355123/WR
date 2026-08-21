@@ -8,6 +8,8 @@
 #
 # 使用：
 #   quartus_stp -t read_wb_runtime.tcl
+#   quartus_stp -t read_wb_runtime.tcl --raw
+# 預設只輸出單行訊號結果；--raw 另外保留 before/after 與完整 raw snapshot。
 
 package require ::quartus::insystem_source_probe
 
@@ -17,6 +19,10 @@ array set ::board_name {}
 array set ::step_status {}
 array set ::first_anomaly {}
 set ::board_count 0
+set ::raw_mode 0
+if {[info exists argv] && [lsearch -exact $argv "--raw"] >= 0} {
+  set ::raw_mode 1
+}
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -88,6 +94,23 @@ proc delta32 {before after} {
   return "DECREASED"
 }
 
+proc special_value {value} {
+  return [expr {$value eq "TIMEOUT" || $value eq "DECREASED"}]
+}
+
+proc negative_value {value} {
+  if {[special_value $value]} { return 0 }
+  if {![string is integer -strict $value]} { return 0 }
+  return [expr {$value < 0}]
+}
+
+proc display_value {value} {
+  if {$value eq "TIMEOUT"} { return "TIMEOUT" }
+  if {$value eq "DECREASED"} { return "counter decreased/reset" }
+  if {[negative_value $value]} { return "TIMEOUT" }
+  return $value
+}
+
 proc status_rank {status} {
   switch -- $status {
     PASS { return 0 }
@@ -123,32 +146,31 @@ proc mark_anomaly {board step status text} {
 }
 
 proc exact_status {value expected} {
-  if {$value eq "TIMEOUT" || $value < 0} { return "WARN" }
+  if {[special_value $value] || [negative_value $value]} { return "WARN" }
   if {$value == $expected} { return "PASS" }
   return "FAIL"
 }
 
 proc positive_status {value} {
-  if {$value eq "TIMEOUT" || $value < 0} { return "WARN" }
+  if {[special_value $value] || [negative_value $value]} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "WARN"
 }
 
 proc required_positive_status {value} {
-  if {$value eq "TIMEOUT" || $value < 0} { return "WARN" }
+  if {[special_value $value] || [negative_value $value]} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "FAIL"
 }
 
 proc delta_status {value} {
-  if {$value eq "TIMEOUT" || $value eq "DECREASED" || $value < 0} { return "WARN" }
+  if {[special_value $value] || [negative_value $value]} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "WARN"
 }
 
 proc required_delta_status {value} {
-  if {$value eq "TIMEOUT" || $value eq "DECREASED"} { return "WARN" }
-  if {$value < 0} { return "WARN" }
+  if {[special_value $value] || [negative_value $value]} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "FAIL"
 }
@@ -262,7 +284,9 @@ proc wb_sync_toggle {} {
   set current_done [bit64_high $value 3]
   if {$current_done < 0} { set current_done 0 }
   set ::wb_toggle $current_done
-  puts [format {[資訊] mailbox completion toggle (wb_sync_toggle) = %d；僅同步讀取狀態} $current_done]
+  if {$::raw_mode} {
+    puts [format "RAW mailbox completion toggle wb_sync_toggle=%d" $current_done]
+  }
 }
 
 proc put_snap {board label field value} {
@@ -331,14 +355,20 @@ proc collect_snapshot {board label} {
 }
 
 proc print_signal {status chinese symbol value expected explanation} {
-  puts [format {[%s] %s (%s) = %s} [status_text $status] $chinese $symbol $value]
-  puts [format {      預期值：%s；解釋：%s} $expected $explanation]
+  puts [format {[%s] %-28s (%-24s)    結果: %-24s (預期: %s)} \
+    [status_text $status] $chinese $symbol [display_value $value] $expected]
 }
 
 proc print_delta {status chinese symbol before after delta explanation {expected "delta > 0"}} {
-  puts [format {[%s] %s (%s) = before=%s after=%s delta=%s} \
-    [status_text $status] $chinese $symbol $before $after $delta]
-  puts [format {      預期值：%s；解釋：%s} $expected $explanation]
+  set expected_display $expected
+  if {$delta eq "DECREASED"} { set expected_display "正常應持續增加" }
+  if {$delta eq "TIMEOUT"} { set expected_display "有效 snapshot" }
+  puts [format {[%s] %-28s (%-24s)    結果: Δ=%-20s (預期: %s)} \
+    [status_text $status] $chinese $symbol [display_value $delta] $expected_display]
+  if {$::raw_mode} {
+    puts [format {RAW %-24s before=%s after=%s delta=%s} $symbol \
+      [raw_display $before] [raw_display $after] [display_value $delta]]
+  }
 }
 
 proc analyze_board {board} {
@@ -347,15 +377,15 @@ proc analyze_board {board} {
   set after after
   set ::first_anomaly($board) ""
   puts ""
-  puts "================================================================"
-  puts [format "White Rabbit runtime health dashboard：%s" $name]
-  puts "================================================================"
+  puts "============================================================"
+  puts [format "White Rabbit Runtime 診斷：%s" $name]
+  puts "============================================================"
 
   # --------------------------------------------------------------
   # Step 1: status probe / PHY link
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 1\] PHY / 光纖 Link"
+  puts "## \[Step 1\] PHY / 光纖 Link"
   set step1 PASS
   set status_raw [get_snap $board $after status]
   foreach item {
@@ -378,37 +408,37 @@ proc analyze_board {board} {
     set value [bit64_low $status_raw $bit]
     set current [exact_status $value $expected]
     set step1 [merge_status $step1 $current]
-    set display [expr {$value < 0 ? "TIMEOUT" : $value}]
-    set expected_text [expr {$expected == 1 ? "1 (正常為 High)" : "0 (正常為 Low)"}]
+    set display [display_value $value]
+    set expected_text $expected
     set explanation "此欄位由 instance 0 status probe 提供；不涉及 Wishbone transaction。"
     print_signal $current $chinese $symbol $display $expected_text $explanation
   }
   set value [bit64_high $status_raw 0]
   set rx_data_lock_status [exact_status $value 1]
   print_signal $rx_data_lock_status "RX locked to data" wr_rx_locked_to_data \
-    [expr {$value < 0 ? "TIMEOUT" : $value}] "1" \
+    [display_value $value] "1" \
     "instance 0 status probe bit 32；表示 recovered RX path 已鎖到資料。"
   set step1 [merge_status $step1 $rx_data_lock_status]
   set value [bit64_high $status_raw 1]
   print_signal INFO "RX lock to reference" wr_rx_locked_to_ref \
-    [expr {$value < 0 ? "TIMEOUT" : $value}] "依當次 PHY 狀態觀察" \
+    [display_value $value] "依當次 PHY 狀態觀察" \
     "高 32 bit 的 bit 1；此欄位不是 RX lock to data 的替代品。"
   foreach raw_item {{8 MOD_PRS_n module-present pin 的原始 High/Low} {9 INTERRUPT_n interrupt pin 的原始 High/Low}} {
     set bit [lindex $raw_item 0]
     set value [bit64_low $status_raw $bit]
     print_signal INFO [lindex $raw_item 1] [lindex $raw_item 1] \
-      [expr {$value < 0 ? "TIMEOUT" : $value}] "只保留 raw pin 值" \
+      [display_value $value] "raw pin" \
       [lindex $raw_item 2]
   }
   if {$step1 ne "PASS"} { mark_anomaly $board 1 $step1 "instance 0 status probe 的 PHY/link gate" }
   set ::step_status($board,1) $step1
-  puts [format {Step 1 結果：[%s] %s} [status_text $step1] $step1]
+  puts [format "Step 1 結果：%s" $step1]
 
   # --------------------------------------------------------------
   # Step 2: endpoint / MiniNIC / PTP
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 2\] Endpoint / MiniNIC / PTP"
+  puts "## \[Step 2\] Endpoint / MiniNIC / PTP"
   set step2 PASS
   set mach [get_snap $board $after ep_mach]
   set macl [get_snap $board $after ep_macl]
@@ -419,46 +449,45 @@ proc analyze_board {board} {
   set role "UNKNOWN"
   if {$mode == 2} { set role MASTER }
   if {$mode == 3} { set role SLAVE }
-  puts [format {[資訊] Endpoint MAC address (EP_MAC_H/EP_MAC_L) = %s；raw H=%s L=%s} \
-    $mac [raw_display $mach] [raw_display $macl]]
+  set mac_status WARN
+  set mac_expected "依 WDIAGS_MODE"
   if {$role eq "MASTER"} {
-    puts "      預期值：02:00:22:33:44:01；解釋：Master 的唯一 clock identity。"
+    set mac_expected "02:00:22:33:44:01"
     if {$mac eq "TIMEOUT"} {
-      set step2 [merge_status $step2 WARN]
+      set mac_status WARN
     } elseif {$mac ne "02:00:22:33:44:01"} {
-      set step2 FAIL
+      set mac_status FAIL
+    } else {
+      set mac_status PASS
     }
     set mode_status [exact_status $mode 2]
     set ptp_status [exact_status $ptp 6]
   } elseif {$role eq "SLAVE"} {
-    puts "      預期值：02:00:22:33:44:02；解釋：Slave 的唯一 clock identity。"
+    set mac_expected "02:00:22:33:44:02"
     if {$mac eq "TIMEOUT"} {
-      set step2 [merge_status $step2 WARN]
+      set mac_status WARN
     } elseif {$mac ne "02:00:22:33:44:02"} {
-      set step2 FAIL
+      set mac_status FAIL
+    } else {
+      set mac_status PASS
     }
     set mode_status [exact_status $mode 3]
     if {$ptp == 8} { set ptp_status WARN } else { set ptp_status [exact_status $ptp 9] }
   } else {
-    puts "      預期值：依 WDIAGS_MODE 判斷 Master/Slave；解釋：目前無法從 source-backed mode 判定角色。"
+    set mac_status WARN
     set mode_status WARN
     set ptp_status WARN
   }
+  set step2 [merge_status $step2 $mac_status]
   set step2 [merge_status $step2 $mode_status]
   set step2 [merge_status $step2 $ptp_status]
-  puts [format {[%s] PTP 狀態 (WDIAGS_PTP) = %s (%s)} [status_text $ptp_status] \
-    [expr {$ptp < 0 ? "TIMEOUT" : $ptp}] [ptp_state_name $ptp]]
-  if {$role eq "MASTER"} {
-    set ptp_expectation "6 (MASTER)"
-  } elseif {$role eq "SLAVE"} {
-    set ptp_expectation "9 (SLAVE；startup 可暫時 8)"
-  } else {
-    set ptp_expectation "依角色"
-  }
-  puts [format {      預期值：%s；解釋：PTP state 由 source-backed WDIAGS_PTP 讀值解碼。} $ptp_expectation]
-  puts [format {[%s] WDIAGS_MODE (WDIAGS_MODE) = %s (%s)} [status_text $mode_status] \
-    [expr {$mode < 0 ? "TIMEOUT" : $mode}] [expr {$mode == 2 ? "MASTER" : ($mode == 3 ? "SLAVE" : "UNKNOWN")}]]
-  puts "      預期值：Master=2、Slave=3；解釋：source-backed configured WRC mode，不是 PTP state。"
+  print_signal $mac_status "MAC Address" EP_MAC_H/EP_MAC_L $mac $mac_expected ""
+  print_signal $mode_status "WR Mode" WDIAGS_MODE \
+    [format "%s %s" [display_value $mode] [expr {$mode == 2 ? "MASTER" : ($mode == 3 ? "SLAVE" : "UNKNOWN")}]] \
+    [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "依角色")} ] ""
+  print_signal $ptp_status "PTP State" WDIAGS_PTP \
+    [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
+    [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE（startup 可暫時 8）" : "依角色")} ] ""
 
   foreach counter {
     {ptp_rx "PPSI PTP RX counter" WDIAGS_PTP_RX "PPSI-level PTP RX counter"}
@@ -469,15 +498,13 @@ proc analyze_board {board} {
     set field [lindex $counter 0]
     set chinese [lindex $counter 1]
     set symbol [lindex $counter 2]
-    set explanation [lindex $counter 3]
     set b [get_snap $board $before $field]
     set a [get_snap $board $after $field]
     set d [delta32 $b $a]
     set current [delta_status $d]
     set step2 [merge_status $step2 $current]
     print_delta $current $chinese $symbol \
-      [raw_display $b] [raw_display $a] [expr {$d eq "TIMEOUT" ? "TIMEOUT" : [format "0x%08X" $d]}] \
-      "$explanation；delta > 0 才代表本次觀測期間有 activity。"
+      $b $a $d "" "Δ>0"
   }
   set rb [get_snap $board $before rxerr]
   set ra [get_snap $board $after rxerr]
@@ -503,23 +530,21 @@ proc analyze_board {board} {
   }
   set step2 [merge_status $step2 $rxerr_status]
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
-    [raw_display $rb] [raw_display $ra] [expr {$rd eq "TIMEOUT" || $rd eq "DECREASED" ? $rd : [format "0x%08X" $rd]}] \
-    $rxerr_explanation $rxerr_expected
+    $rb $ra $rd \
+    $rxerr_explanation [expr {$rd eq "DECREASED" ? "正常應持續增加" : $rxerr_expected}]
   if {$step2 ne "PASS"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role 或 packet activity" }
   set ::step_status($board,2) $step2
-  puts [format {Step 2 結果：[%s] %s} [status_text $step2] $step2]
+  puts [format "Step 2 結果：%s" $step2]
 
   # --------------------------------------------------------------
   # Step 3: WR parent / signaling handshake
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 3\] WR Parent + Signaling Handshake"
+  puts "## \[Step 3\] WR Parent / Signaling"
   if {$role eq "MASTER"} {
     set step3 INFO
-    puts "\[資訊\] Master 端不需要 foreign-master discovery；保留 raw signaling 供追蹤。"
   } elseif {$role ne "SLAVE"} {
     set step3 INFO
-    puts "\[資訊\] WDIAGS_MODE 尚未可靠判定，暫不判定 WR parent handshake。"
   } else {
     set step3 PASS
     set foreign [get_snap $board $after foreign_meta]
@@ -535,14 +560,11 @@ proc analyze_board {board} {
     set best_status [exact_status $best 0]
     set step3 [merge_status $step3 $fc_status]
     set step3 [merge_status $step3 $best_status]
-    puts [format {[%s] Foreign master count (WDIAGS_FOREIGN_META) = %s} [status_text $fc_status] [expr {$fc < 0 ? "TIMEOUT" : $fc}]]
-    puts "      預期值：1；解釋：foreign record 已建立。"
-    puts [format {[%s] Best foreign index (WDIAGS_FOREIGN_META) = %s} [status_text $best_status] [expr {$best < 0 ? "TIMEOUT" : $best}]]
-    puts "      預期值：0；解釋：目前選取第 0 筆 foreign master。"
-    puts [format {[資訊] Parent detection / WR config (WDIAGS_FOREIGN_META) = %s / %s} \
-      [expr {$parent_detection < 0 ? "TIMEOUT" : $parent_detection}] \
-      [expr {$parent_wr_config < 0 ? "TIMEOUT" : $parent_wr_config}]]
-    puts "      預期值：依 source-defined parent metadata；不以單一值猜測 calibration。"
+    print_signal $fc_status "Foreign Master" WDIAGS_FOREIGN_META [display_value $fc] "1" ""
+    print_signal $best_status "Best Foreign Index" WDIAGS_FOREIGN_META [display_value $best] "0" ""
+    print_signal INFO "Parent Metadata" WDIAGS_FOREIGN_META \
+      [format "detection=%s config=%s" [display_value $parent_detection] [display_value $parent_wr_config]] \
+      "source-defined" ""
     foreach item {{24 parentIsWRnode "Parent is WR node"} {25 parentWrModeOn "Parent WR mode on"} {26 parentCalibrated "Parent calibrated"}} {
       set bit [lindex $item 0]
       set symbol [lindex $item 1]
@@ -555,7 +577,7 @@ proc analyze_board {board} {
         set current [exact_status $value 1]
         if {$symbol ne "parentWrModeOn"} { set step3 [merge_status $step3 $current] }
       }
-      print_signal $current $chinese $symbol [expr {$value < 0 ? "TIMEOUT" : $value}] "1" \
+      print_signal $current $chinese $symbol [display_value $value] "1" \
         "WDIAGS_PARSE_META 的 source-backed parent flag。"
     }
     set rx_signal [get_snap $board $after wr_rx_signal]
@@ -570,47 +592,45 @@ proc analyze_board {board} {
     set step3 [merge_status $step3 $tx_ok]
     if {$rx_id < 0} { set rx_id_display "TIMEOUT" } else { set rx_id_display [format "0x%04X" $rx_id] }
     if {$tx_id < 0} { set tx_id_display "TIMEOUT" } else { set tx_id_display [format "0x%04X" $tx_id] }
-    puts [format {[%s] WR RX message (WR_RX_SIGNAL_DEBUG) = %s (%s), count=%s} [status_text $rx_ok] \
-      $rx_id_display [signal_name $rx_id] [expr {$rx_count < 0 ? "TIMEOUT" : $rx_count}]]
-    puts "      預期值：last RX=0x1001 (LOCK) 且 count>0；解釋：source-backed signaling shadow。"
-    puts [format {[%s] WR TX message (WR_TX_SIGNAL_DEBUG) = %s (%s), count=%s} [status_text $tx_ok] \
-      $tx_id_display [signal_name $tx_id] [expr {$tx_count < 0 ? "TIMEOUT" : $tx_count}]]
-    puts "      預期值：last TX=0x1000 (SLAVE_PRESENT) 且 count>0；解釋：source-backed signaling shadow。"
+    print_signal $rx_ok "WR RX Message" WR_RX_SIGNAL_DEBUG \
+      [format "%s count=%s" [signal_name $rx_id] [display_value $rx_count]] \
+      "LOCK 0x1001；count>0" ""
+    print_signal $tx_ok "WR TX Message" WR_TX_SIGNAL_DEBUG \
+      [format "%s count=%s" [signal_name $tx_id] [display_value $tx_count]] \
+      "SLAVE_PRESENT 0x1000；count>0" ""
     set wr_state [get_snap $board $after wr_state]
     set state [field32 $wr_state 11 4]
     set next_state [field32 $wr_state 15 4]
     set state_ok [expr {$state >= 2 && $state <= 8 ? "PASS" : "WARN"}]
     set step3 [merge_status $step3 $state_ok]
-    puts [format {[%s] WR state (WDIAGS_TEMP) = %s (%s), next=%s (%s)} [status_text $state_ok] \
-      [expr {$state < 0 ? "TIMEOUT" : $state}] [wr_state_name $state] \
-      [expr {$next_state < 0 ? "TIMEOUT" : $next_state}] [wr_state_name $next_state]]
-    puts "      預期值：已觀測或已通過 WRS_S_LOCK=2；解釋：此 shadow 是目前 WR state/next_state。"
+    print_signal $state_ok "WR State" WDIAGS_TEMP \
+      [format "%s next=%s" [wr_state_name $state] [wr_state_name $next_state]] \
+      "曾觀測 WRS_S_LOCK=2" ""
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
     set step3 [merge_status $step3 $lock_status]
     print_signal $lock_status "WR lock enable 次數" LOCK_ENABLE \
-      [expr {$lock_enable < 0 ? "TIMEOUT" : $lock_enable}] "> 0" \
+      [display_value $lock_enable] "> 0" \
       "locking_enable() 已被呼叫的 read-only counter；不等於 SoftPLL 已 lock。"
     if {$step3 ne "PASS"} { mark_anomaly $board 3 $step3 "WR parent/signaling handshake" }
   }
   set ::step_status($board,3) $step3
-  puts [format {Step 3 結果：[%s] %s} [status_text $step3] $step3]
+  puts [format "Step 3 結果：%s" $step3]
 
   # --------------------------------------------------------------
   # Step 4: SoftPLL startup, not closed-loop lock
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 4\] SoftPLL Startup（只判斷啟動，不判斷完整 lock）"
+  puts "## \[Step 4\] SoftPLL Startup"
   if {$role ne "SLAVE"} {
     set step4 INFO
-    puts "\[資訊\] 本 dashboard 的 Step 4 gate 以 Slave SoftPLL startup 為主；此板卡角色不套用該 gate。"
   } else {
     set step4 PASS
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
     set step4 [merge_status $step4 $lock_status]
     print_signal $lock_status "SoftPLL channel enable" LOCK_ENABLE \
-      [expr {$lock_enable < 0 ? "TIMEOUT" : $lock_enable}] "> 0" \
+      [display_value $lock_enable] "> 0" \
       "只表示 locking_enable() 路徑曾被啟用，不把它當成 lock。"
     set spll_word [word32 [get_snap $board $after spll_state]]
     set seq [expr {$spll_word < 0 ? -1 : ($spll_word & 0xff)}]
@@ -619,22 +639,21 @@ proc analyze_board {board} {
     set seq_status [expr {$seq < 0 ? "WARN" : ($seq == 6 ? "FAIL" : "PASS")}]
     set step4 [merge_status $step4 $mode_status]
     set step4 [merge_status $step4 $seq_status]
-    puts [format {[%s] SoftPLL mode (SPLL_STATE) = %s (%s)} [status_text $mode_status] \
-      [expr {$spll_mode < 0 ? "TIMEOUT" : $spll_mode}] [spll_mode_name $spll_mode]]
-    puts "      預期值：3 (SPLL_MODE_SLAVE)；解釋：由 softpll_export.h 定義。"
-    puts [format {[%s] SoftPLL sequencer (SPLL_STATE) = %s (%s)} [status_text $seq_status] \
-      [expr {$seq < 0 ? "TIMEOUT" : $seq}] [state_name $seq]]
-    puts "      預期值：不是 SEQ_DISABLED；解釋：本階段只要求離開 disabled/idle，不要求 helper/main locked。"
+    print_signal $mode_status "SoftPLL Mode" SPLL_STATE \
+      [format "%s %s" [display_value $spll_mode] [spll_mode_name $spll_mode]] \
+      "3 SLAVE" ""
+    print_signal $seq_status "Sequencer" SPLL_STATE \
+      [format "%s" [state_name $seq]] "離開 DISABLED" ""
     set rcer [word32 [get_snap $board $after spll_rcer]]
     set ocer [word32 [get_snap $board $after spll_ocer]]
     set rcer_status [required_positive_status $rcer]
     set ocer_status [positive_status $ocer]
     set step4 [merge_status $step4 $rcer_status]
     print_signal $rcer_status "SoftPLL reference channel enable" RCER \
-      [expr {$rcer < 0 ? "TIMEOUT" : [format "0x%08X" $rcer]}] "非零" \
+      [display_value $rcer] "> 0" \
       "既有 Step 4 shadow 的 SPLL->RCER read-only value；本階段要求 reference channel enabled。"
     print_signal $ocer_status "SoftPLL output channel enable" OCER \
-      [expr {$ocer < 0 ? "TIMEOUT" : [format "0x%08X" $ocer]}] "依當次設計" \
+      [display_value $ocer] "> 0" \
       "只顯示 source-backed shadow，不因非零自行宣稱 output lock。"
     foreach counter {
       {dmtd_ref "DMTD reference event" SPLL_DMTD_REF_EVENTS}
@@ -653,35 +672,28 @@ proc analyze_board {board} {
       set current [required_delta_status $d]
       set step4 [merge_status $step4 $current]
       print_delta $current $chinese $symbol \
-        [raw_display $b] [raw_display $a] [expr {$d eq "TIMEOUT" || $d eq "DECREASED" ? $d : [format "0x%08X" $d]}] \
-        "兩次 snapshot 的 delta > 0 才算本次觀測期間 sustained activity；孤立非零值不算。"
+        $b $a $d "" "Δ>0"
     }
     if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL startup event chain" }
   }
   set ::step_status($board,4) $step4
-  puts [format {Step 4 結果：[%s] %s} [status_text $step4] $step4]
+  puts [format "Step 4 結果：%s" $step4]
 
   # --------------------------------------------------------------
   # Step 5: closed-loop lock, informational until Step 4 passes
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 5\] Closed-loop Lock"
+  puts "## \[Step 5\] Closed-loop Lock"
   set pstat_raw [get_snap $board $after pstat]
   set pstat_locked [bit32 $pstat_raw 1]
   set time_valid [bit64_low $status_raw 4]
-  set lock_display [expr {$pstat_locked < 0 ? "TIMEOUT" : $pstat_locked}]
   if {$step4 ne "PASS"} {
     set step5 INFO
-    puts "\[資訊\] Step 4 尚未通過，本階段暫不判定。"
-    puts [format {[資訊] PSTAT.locked (WDIAGS_PSTAT bit 1) = %s} $lock_display]
+    puts "\[尚未\] Step 4 尚未通過"
   } else {
     set step5 [exact_status $pstat_locked 1]
-    puts [format {[%s] PSTAT.locked (WDIAGS_PSTAT bit 1) = %s} [status_text $step5] $lock_display]
-    puts "      預期值：1；解釋：這是 closed-loop lock evidence，不是 Step 4 startup gate。"
+    print_signal $step5 "PSTAT Locked" WDIAGS_PSTAT [display_value $pstat_locked] "1" ""
   }
-  puts [format {[資訊] time_valid (instance 0 status bit 4) = %s；PSTAT raw=%s} \
-    [expr {$time_valid < 0 ? "TIMEOUT" : $time_valid}] [raw_display $pstat_raw]]
-  puts "      預期值：Step 5 才判定；解釋：time_valid=1 不會被拿來反推 Step 4 PASS。"
   set ::step_status($board,5) $step5
   if {$step5 ne "PASS" && $step5 ne "INFO"} {
     mark_anomaly $board 5 $step5 "PSTAT.locked / closed-loop lock"
@@ -691,17 +703,21 @@ proc analyze_board {board} {
   # Step 6: global time / execute_at(T)
   # --------------------------------------------------------------
   puts ""
-  puts "\[Step 6\] Global Time / execute_at(T)"
+  puts "## \[Step 6\] Global Time"
   set ::step_status($board,6) INFO
-  puts [format {[資訊] SEC_H/SEC_L/NS (WDIAGS_SEC_H/WDIAGS_SEC_L/WDIAGS_NS) = %s / %s / %s} \
-    [raw_display [get_snap $board $after sec_h]] [raw_display [get_snap $board $after sec_l]] [raw_display [get_snap $board $after ns]]]
-  puts [format "      time_valid (status bit 4) = %s；解釋：可顯示目前 local time counter，但 deterministic execute_at(T) 尚未在本專案觀測。" \
-    [expr {$time_valid < 0 ? "TIMEOUT" : $time_valid}]]
-  puts "\[資訊\] execute_at(T) = 尚未驗證；本 Tcl 不會寫入任何 target time 或 control register。"
+  if {$step5 ne "PASS"} {
+    puts "\[尚未\] Step 5 尚未通過"
+  } else {
+    print_signal INFO "Global Time" WDIAGS_SEC_H/SEC_L/NS \
+      [format "%s/%s/%s" [display_value [get_snap $board $after sec_h]] \
+        [display_value [get_snap $board $after sec_l]] [display_value [get_snap $board $after ns]]] \
+      "time_valid=1；execute_at(T) 尚未驗證" ""
+  }
 
   puts ""
-  puts "---------------- 本板卡總結 ----------------"
-  puts [format "板卡角色：%s" $role]
+  puts "============================================================"
+  puts "White Rabbit 總結"
+  puts "============================================================"
   foreach step {1 2 3 4 5 6} {
     set s $::step_status($board,$step)
     if {$step == 1} { set label "PHY / Link" }
@@ -710,22 +726,21 @@ proc analyze_board {board} {
     if {$step == 4} { set label "SoftPLL Startup" }
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
-    if {$s eq "INFO"} { set shown "尚未判定" }
+    if {$s eq "INFO"} { set shown "WAIT" }
     if {$s eq "PASS"} { set shown "PASS" }
     if {$s eq "WARN"} { set shown "注意" }
     if {$s eq "FAIL"} { set shown "FAIL" }
-    puts [format "Step %d %-22s : %s" $step $label $shown]
+    puts [format "Step %d %-22s %s" $step $label $shown]
   }
   if {$::first_anomaly($board) eq ""} {
-    puts "第一個異常節點：本次沒有觀測到 FAIL/WARN；仍須以 raw evidence 追溯。"
+    puts "第一個異常節點：無"
   } else {
     puts [format "第一個異常節點：%s" $::first_anomaly($board)]
   }
   if {$::first_anomaly($board) ne ""} {
-    puts "建議下一個檢查：先針對上面列出的第一個異常節點做 read-only correlation，再往下游檢查；本 dashboard 不預設 DMTD 為 blocker。"
-  } else {
-    puts "建議下一個檢查：只針對本次第一個 FAIL/WARN 節點做下一個 read-only correlation。"
+    puts "下一步：先做該節點的 read-only correlation。"
   }
+  puts "============================================================"
 }
 
 proc print_raw_snapshot {board label} {
@@ -740,11 +755,6 @@ proc print_raw_snapshot {board label} {
   }
 }
 
-puts "================================================================"
-puts "White Rabbit 繁體中文 runtime health dashboard"
-puts "read-only：不寫 Wishbone control register、不 program FPGA、不改變 WR behavior"
-puts "================================================================"
-
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
@@ -753,9 +763,7 @@ foreach hardware_name [get_hardware_names] {
   incr ::board_count
   set ::board_name($board) $hardware_name
   set ::first_anomaly($board) ""
-  puts ""
-  puts [format "=== 連接 %s ===" $hardware_name]
-  catch { end_insystem_source_probe }
+    catch { end_insystem_source_probe }
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
@@ -763,17 +771,14 @@ foreach hardware_name [get_hardware_names] {
     after 750
     collect_snapshot $board after
     analyze_board $board
-    puts ""
-    puts "================ 原始 Debug 值 ================"
-    print_raw_snapshot $board before
-    print_raw_snapshot $board after
+    if {$::raw_mode} {
+      puts ""
+      puts "================ 原始 Debug 值 ================"
+      print_raw_snapshot $board before
+      print_raw_snapshot $board after
+    }
   } error_message]} {
-    puts [format {[注意] %s：JTAG 讀取流程發生例外；未將例外轉成硬體 FAIL} $error_message]
+    puts [format {[注意] JTAG 讀取例外：%s} $error_message]
   }
   catch { end_insystem_source_probe }
 }
-
-puts ""
-puts "================================================================"
-puts "White Rabbit dashboard 完成"
-puts "================================================================"

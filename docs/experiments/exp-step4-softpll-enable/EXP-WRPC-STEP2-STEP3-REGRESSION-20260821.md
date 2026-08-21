@@ -144,3 +144,89 @@ STEP4_ALLOWED     = NO
 - `regression_handshake_8935163.log`
 - `regression_long_8935163.log`
 - 先前修正過程的 dashboard/handshake logs 亦保留在本資料夾。
+
+---
+
+# 追加紀錄：80d8fa2 唯讀 regression retest
+
+## 實驗識別
+
+- 分支：`exp/step4-softpll-enable`
+- Git commit：`80d8fa2`（`強化 JTAG counter 讀值穩定性`）
+- 實驗日期：2026-08-21
+- 實驗類型：唯讀 JTAG regression；沒有燒錄 FPGA，沒有 Quartus compile
+- Quartus：17.0 Build 595（17.0.0）
+- 硬體狀態：沿用 pain 當時已載入的 bitstream；本次不宣稱 fresh SOF provenance
+
+## 本次修改與目的
+
+只修改 JTAG 唯讀 diagnostics：
+
+1. Critical enum/status register 需通過 source-backed 合法性，並取得兩次一致讀值。
+2. Free-running counter 以兩次立即讀值確認非遞減；stale 或下降時重試，無法穩定則標記 invalid。
+3. focused Step 2 不再要求短窗口 `PTP_TX delta > 0`；改以 PTP RX、MiniNIC TX/RX activity 與 RXERR 沒有增加作為主要 gate。
+4. Dashboard 新增 `STEP1_REGRESSION`、`STEP2_REGRESSION`、`STEP3_REGRESSION`、`STEP4_ALLOWED` 與 failure classification。
+
+沒有修改 RTL、firmware、MIF、PTP、WR signaling、SoftPLL、PHY、DDMTD、PI、lock threshold、DCO 或 SI5340。
+
+## 執行命令
+
+```text
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wb_runtime.tcl
+
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_wr_handshake_focused.tcl 20 500
+
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t /home/b10504072/04_WR/scripts/jtag/read_master_ptp_slave_parent_long.tcl 10 500
+```
+
+三個 Tcl 都是 read-only diagnostics；沒有寫入 Wishbone control register，也沒有寫入 `DATA_SNAPSHOT`。
+
+## 原始 log 與 SHA256
+
+| 檔案 | SHA256 |
+|---|---|
+| `regression_dashboard_80d8fa2.log` | `A9EE04B76ECED3F13244F93C9E76FE4A75ECD1A1DD18977EDEB6F6F3C312D510` |
+| `regression_handshake_80d8fa2.log` | `52F334EB9AD9785CBD1ACA32002D5ECA611CD0C10EC56B8458BFA465D11A780A` |
+| `regression_long_80d8fa2.log` | `B26960529795AE5DA4F0A0F559484CA9665DD06975F5AD69157AD4A97EF1E151` |
+
+## 結果
+
+### Dashboard
+
+- 兩片板 Step 1：PASS。
+- Master：MAC `02:00:22:33:44:01`、MODE `2`、PTP `6`、PTP/MiniNIC counters 有增加、RXERR delta `0`。
+- Slave：MAC `02:00:22:33:44:02`、MODE `3`、PTP `9`、Foreign Master `1/0`、parent flags `1/0/1`、RX `LOCK`、TX `SLAVE_PRESENT`、LOCK_ENABLE `4`。
+- Slave dashboard 的 Step 4 event counters 在短 snapshot 均為 `delta=0`，因此 Step 4 顯示 error；這不改變本輪 Step 1～3 barrier。
+- Dashboard 最終輸出：兩片板均 `STEP1_REGRESSION=PASS`、`STEP2_REGRESSION=PASS`、`STEP3_REGRESSION=PASS`、`STEP4_ALLOWED=YES`。
+- Quartus Tcl：`Evaluation of Tcl script ... was successful`、`0 errors, 0 warnings`。
+
+### 20-sample focused regression
+
+- Master：`valid_samples=20`、`invalid_samples=0`、`counter_decreased=0`、`STEP2_REGRESSION=PASS`。
+- Slave：`valid_samples=20`、`invalid_samples=0`、`counter_decreased=0`、`STEP2_REGRESSION=PASS`、`STEP3_REGRESSION=PASS`。
+- Master `PTP_TX_DELTA=63`；Slave `PTP_TX_DELTA=6`。PTP TX 不再是單一必要 gate。
+- Slave `signal_good=19`、`signal_bad=1`，但 `state_idle=20`、`STATE_EVIDENCE=READ_INCONSISTENT`；工具沒有把單一狀態衝突直接宣稱為 Step 3 硬體失敗。
+
+### 10-sample long runtime
+
+- Master 持續看到 MODE `2`、PTP `6`、PTP RX/TX 增加。
+- Slave 持續看到 MODE `3`、PTP `9`、`FOREIGN=03000001`、PTP RX/TX 增加。
+- 此 long script 作為交叉觀測，不單獨取代 focused gate。
+
+## 結論與 barrier
+
+本次 accepted read-only evidence 支持 Endpoint、MiniNIC、PPSI/PTP packet path 仍在運作；Slave 也持續看到 Foreign Master、WR RX/TX message 與 `LOCK_ENABLE=4`。之前 Master 偶發的巨大 counter 跳值，在加入 counter read filter 後，本次 20 samples 沒有再出現 counter decrease。
+
+Slave `WRS_IDLE` 與其他 handshake evidence 的衝突仍只能標記 `READ_INCONSISTENT`，不能由本輪資料確定是硬體 state regression 或 mailbox snapshot tear。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED    = YES
+```
+
+這只表示允許下一輪 Step 4 read-only investigation；不表示 SoftPLL 已 lock，也不表示 `time_valid=1`。本輪沒有 program/compile，因此仍沒有新的 SOF provenance 證據。

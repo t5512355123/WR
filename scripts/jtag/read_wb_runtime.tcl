@@ -130,10 +130,10 @@ proc merge_status {current candidate} {
 
 proc status_text {status} {
   switch -- $status {
-    PASS { return "正常" }
-    WARN { return "注意" }
-    FAIL { return "異常" }
-    INFO { return "資訊" }
+    PASS { return "pass" }
+    WARN { return "error" }
+    FAIL { return "error" }
+    INFO { return "info" }
   }
   return $status
 }
@@ -355,16 +355,15 @@ proc collect_snapshot {board label} {
 }
 
 proc print_signal {status chinese symbol value expected explanation} {
-  puts [format {[%s] %-28s (%-24s)    結果: %-24s (預期: %s)} \
-    [status_text $status] $chinese $symbol [display_value $value] $expected]
+  set expected_display [expr {$status eq "INFO" ? "NA" : $expected}]
+  puts [format {[%s] %-24s 結果: %s/%s} \
+    [status_text $status] $symbol [display_value $value] $expected_display]
 }
 
 proc print_delta {status chinese symbol before after delta explanation {expected "delta > 0"}} {
-  set expected_display $expected
-  if {$delta eq "DECREASED"} { set expected_display "正常應持續增加" }
-  if {$delta eq "TIMEOUT"} { set expected_display "有效 snapshot" }
-  puts [format {[%s] %-28s (%-24s)    結果: Δ=%-20s (預期: %s)} \
-    [status_text $status] $chinese $symbol [display_value $delta] $expected_display]
+  set expected_display [expr {$status eq "INFO" ? "NA" : $expected}]
+  puts [format {[%s] %-24s 結果: Δ=%s/%s} \
+    [status_text $status] $symbol [display_value $delta] $expected_display]
   if {$::raw_mode} {
     puts [format {RAW %-24s before=%s after=%s delta=%s} $symbol \
       [raw_display $before] [raw_display $after] [display_value $delta]]
@@ -432,7 +431,7 @@ proc analyze_board {board} {
   }
   if {$step1 ne "PASS"} { mark_anomaly $board 1 $step1 "instance 0 status probe 的 PHY/link gate" }
   set ::step_status($board,1) $step1
-  puts [format "Step 1 結果：%s" $step1]
+  puts [format "Step 1 %s" [string tolower $step1]]
 
   # --------------------------------------------------------------
   # Step 2: endpoint / MiniNIC / PTP
@@ -534,7 +533,7 @@ proc analyze_board {board} {
     $rxerr_explanation [expr {$rd eq "DECREASED" ? "正常應持續增加" : $rxerr_expected}]
   if {$step2 ne "PASS"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role 或 packet activity" }
   set ::step_status($board,2) $step2
-  puts [format "Step 2 結果：%s" $step2]
+  puts [format "Step 2 %s" [string tolower $step2]]
 
   # --------------------------------------------------------------
   # Step 3: WR parent / signaling handshake
@@ -615,7 +614,7 @@ proc analyze_board {board} {
     if {$step3 ne "PASS"} { mark_anomaly $board 3 $step3 "WR parent/signaling handshake" }
   }
   set ::step_status($board,3) $step3
-  puts [format "Step 3 結果：%s" $step3]
+  puts [format "Step 3 %s" [string tolower $step3]]
 
   # --------------------------------------------------------------
   # Step 4: SoftPLL startup, not closed-loop lock
@@ -677,7 +676,7 @@ proc analyze_board {board} {
     if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL startup event chain" }
   }
   set ::step_status($board,4) $step4
-  puts [format "Step 4 結果：%s" $step4]
+  puts [format "Step 4 %s" [string tolower $step4]]
 
   # --------------------------------------------------------------
   # Step 5: closed-loop lock, informational until Step 4 passes
@@ -689,10 +688,11 @@ proc analyze_board {board} {
   set time_valid [bit64_low $status_raw 4]
   if {$step4 ne "PASS"} {
     set step5 INFO
-    puts "\[尚未\] Step 4 尚未通過"
+    puts "Step 5 NA"
   } else {
     set step5 [exact_status $pstat_locked 1]
     print_signal $step5 "PSTAT Locked" WDIAGS_PSTAT [display_value $pstat_locked] "1" ""
+    puts [format "Step 5 %s" [string tolower $step5]]
   }
   set ::step_status($board,5) $step5
   if {$step5 ne "PASS" && $step5 ne "INFO"} {
@@ -706,12 +706,13 @@ proc analyze_board {board} {
   puts "## \[Step 6\] Global Time"
   set ::step_status($board,6) INFO
   if {$step5 ne "PASS"} {
-    puts "\[尚未\] Step 5 尚未通過"
+    puts "Step 6 NA"
   } else {
     print_signal INFO "Global Time" WDIAGS_SEC_H/SEC_L/NS \
       [format "%s/%s/%s" [display_value [get_snap $board $after sec_h]] \
         [display_value [get_snap $board $after sec_l]] [display_value [get_snap $board $after ns]]] \
       "time_valid=1；execute_at(T) 尚未驗證" ""
+    puts "Step 6 info"
   }
 
   puts ""
@@ -726,19 +727,11 @@ proc analyze_board {board} {
     if {$step == 4} { set label "SoftPLL Startup" }
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
-    if {$s eq "INFO"} { set shown "WAIT" }
-    if {$s eq "PASS"} { set shown "PASS" }
-    if {$s eq "WARN"} { set shown "WARN" }
-    if {$s eq "FAIL"} { set shown "FAIL" }
+    if {$s eq "INFO"} { set shown "NA" }
+    if {$s eq "PASS"} { set shown "pass" }
+    if {$s eq "WARN"} { set shown "error" }
+    if {$s eq "FAIL"} { set shown "error" }
     puts [format "Step %d %-22s %s" $step $label $shown]
-  }
-  if {$::first_anomaly($board) eq ""} {
-    puts "第一個異常節點：無"
-  } else {
-    puts [format "第一個異常節點：%s" $::first_anomaly($board)]
-  }
-  if {$::first_anomaly($board) ne ""} {
-    puts "下一步：先做該節點的 read-only correlation。"
   }
   puts "============================================================"
 }
@@ -773,12 +766,12 @@ foreach hardware_name [get_hardware_names] {
     analyze_board $board
     if {$::raw_mode} {
       puts ""
-      puts "================ 原始 Debug 值 ================"
+      puts "================ RAW_SNAPSHOT ================"
       print_raw_snapshot $board before
       print_raw_snapshot $board after
     }
   } error_message]} {
-    puts [format {[注意] JTAG 讀取例外：%s} $error_message]
+    puts [format {[error] JTAG_EXCEPTION 結果: %s/NA} $error_message]
   }
   catch { end_insystem_source_probe }
 }

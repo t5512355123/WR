@@ -86,6 +86,17 @@ proc register_value_valid {addr value} {
       # Upper byte contains only the three source-defined parent flags.
       return [expr {(($word >> 24) & 0xff) <= 7}]
     }
+    0x00100A50 {
+      # WR signaling reject reason is a source-defined small enum in bits 7:0.
+      set reason [expr {$word & 0xff}]
+      return [expr {$reason <= 4}]
+    }
+    0x00100A6C {
+      # WR_FAILURE_DEBUG packs role, last state and handshake failure count.
+      set role [expr {($word >> 24) & 0xff}]
+      set state [expr {($word >> 16) & 0xff}]
+      return [expr {$role <= 3 && $state <= 8}]
+    }
     0x00100A4C {
       # DE5a temperature shadow: tag A, state/next_state 0..8, mode 0..7.
       set tag [expr {($word >> 28) & 0xf}]
@@ -436,9 +447,9 @@ proc collect_snapshot {board label} {
   put_snap $board $label parse_meta [wb_read_validated 0x00100A80]
   put_snap $board $label wr_rx_signal [wb_read 0x00100A64]
   put_snap $board $label wr_tx_signal [wb_read 0x00100A68]
-  put_snap $board $label wr_failure [wb_read 0x00100A6C]
+  put_snap $board $label wr_failure [wb_read_validated 0x00100A6C]
   put_snap $board $label wr_state [wb_read_validated 0x00100A4C]
-  put_snap $board $label wr_reject [wb_read 0x00100A50]
+  put_snap $board $label wr_reject [wb_read_validated 0x00100A50]
   put_snap $board $label pstat [wb_read 0x00100A0C]
   put_snap $board $label sstat [wb_read 0x00100A08]
   put_snap $board $label sec_h [wb_read 0x00100A20]
@@ -728,31 +739,46 @@ proc analyze_board {board} {
     print_signal $tx_ok "WR TX Message" WR_TX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $tx_id] [display_value $tx_count]] \
       "SLAVE_PRESENT 0x1000,count>0" ""
+    set failure_word [word32 [get_snap $board $after wr_failure]]
+    set fail_state [field32 $failure_word 16 8]
+    set fail_count [field32 $failure_word 0 16]
+    set lock_enable [word32 [get_snap $board $after lock_enable]]
+    set lock_status [required_positive_status $lock_enable]
+    set post_step3_timeout 0
     set wr_state [get_snap $board $after wr_state]
     set state [field32 $wr_state 11 4]
     set next_state [field32 $wr_state 15 4]
     if {$state < 0 || $next_state < 0} {
       set state_ok INVALID
     } elseif {$state == 0} {
-      # WRS_IDLE is not a Step 3 pass state.  The dashboard must retain the
-      # ambiguity as a measurement retest until an independent series proves
-      # whether this is mailbox tearing or a real post-failure idle state.
-      set state_ok INVALID
-      set state_inconsistent 1
+      if {$fail_state == 2 && $fail_count > 0 && $lock_enable > 0} {
+        # The source-backed failure shadow proves that WRS_S_LOCK and
+        # locking_enable() were reached before a later handshake timeout.
+        # That later timeout belongs to the post-Step-3 boundary, not the
+        # Step 3 acceptance gate.
+        set state_ok INFO
+        set post_step3_timeout 1
+      } else {
+        set state_ok INVALID
+        set state_inconsistent 1
+      }
     } else {
       set state_ok [expr {$state >= 1 && $state <= 8 ? "PASS" : "WARN"}]
     }
-    set step3 [merge_status $step3 $state_ok]
+    if {!$post_step3_timeout} { set step3 [merge_status $step3 $state_ok] }
     print_signal $state_ok "WR State" WDIAGS_TEMP \
       [format "%s next=%s%s" [wr_state_name $state] [wr_state_name $next_state] \
-        [expr {$state_inconsistent ? " READ_INCONSISTENT" : ""}]] \
-      "WRS_S_LOCK=2" ""
-    set lock_enable [word32 [get_snap $board $after lock_enable]]
-    set lock_status [required_positive_status $lock_enable]
+        [expr {$post_step3_timeout ? " POST_STEP3_TIMEOUT" : ($state_inconsistent ? " READ_INCONSISTENT" : "")}]] \
+      [expr {$post_step3_timeout ? "NA" : "WRS_S_LOCK=2"}] ""
     set step3 [merge_status $step3 $lock_status]
     print_signal $lock_status "WR lock enable 次數" LOCK_ENABLE \
       [display_value $lock_enable] "> 0" \
       "locking_enable() 已被呼叫的 read-only counter；不等於 SoftPLL 已 lock。"
+    if {$post_step3_timeout} {
+      print_signal INFO "Post-Step3 lock stage" WR_FAILURE_DEBUG \
+        [format "TIMEOUT last_fail_state=%s failure_count=%s" [wr_state_name $fail_state] [display_value $fail_count]] \
+        "NA" ""
+    }
     if {$step3 ne "PASS" && $step3 ne "INFO" && $step3 ne "INVALID"} {
       mark_anomaly $board 3 $step3 "WR parent/signaling handshake"
     }

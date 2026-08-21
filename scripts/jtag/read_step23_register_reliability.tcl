@@ -367,12 +367,16 @@ proc step3_result {board} {
   if {$invalid} { return INVALID }
   set failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_s_lock]
   if {$valid > 0 && $idle == $valid} {
-    if {$failure_s_lock > 0} {
-      puts [format "STEP3_STATE_EVIDENCE board=%s result=POST_FAILURE_IDLE last_fail_state=WRS_S_LOCK failure_samples=%d current_state=WRS_IDLE failure_count_max=%d" \
+    if {$failure_s_lock > 0 && [get_series $board LOCK_ENABLE expected] > 0} {
+      # Step 3 ends when the WR signaling handshake reaches WRS_S_LOCK and
+      # locking_enable() is entered.  A later wr_handshake_fail() can reset
+      # the live state to WRS_IDLE; keep that post-Step-3 timeout separate
+      # from the Step 3 milestone result.
+      puts [format "POST_STEP3_LOCK_STAGE board=%s result=TIMEOUT last_fail_state=WRS_S_LOCK current_state=WRS_IDLE failure_samples=%d failure_count_max=%d" \
         $board $failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_count_max]]
-    } else {
-      puts [format "STEP3_STATE_EVIDENCE board=%s result=STABLE_WRS_IDLE current_state=WRS_IDLE" $board]
+      return PASS
     }
+    puts [format "STEP3_STATE_EVIDENCE board=%s result=STABLE_WRS_IDLE current_state=WRS_IDLE" $board]
     return FAIL
   }
   if {$non_idle > 0 && [get_series $board WDIAGS_TEMP expected] > 0} { return PASS }

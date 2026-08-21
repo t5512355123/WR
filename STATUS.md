@@ -80,6 +80,22 @@ raw evidence：
 
 因此目前結論是：`STEP1_REGRESSION=PASS`、`STEP2_REGRESSION=PASS`、`STEP3_REGRESSION=PASS`；`STEP4_ALLOWED=YES` 只表示可繼續 read-only/source audit，並不表示 Step 4 已通過。這一輪沒有 hardware/firmware functional change，也沒有 fresh program evidence。
 
+## 2026-08-21 Step 4 source-only audit
+
+針對 focused read-only 結果的第一個 inactive boundary，本輪只核對 current HEAD 的 clock/reset/data path，沒有修改任何 generic、threshold、polarity 或功能行為。
+
+- Master/Slave top-level 均將 `clk_sys_i` 接到 `clk_sys_625`、`clk_dmtd_i` 接到 `QSFPB_REFCLK_p`、`clk_ref_i` 接到 `QSFPA_REFCLK_p`，並以 `wr_core_reset_n` 作為 WR core reset。
+- 兩張板的 Arria 10 transceiver 都是 `g_use_simple_wa => true`；本輪沒有改 PHY。
+- `wr_core` 將 `clk_ref_i(0)` 接到 recovered `phy_rx_clk`，feedback 使用 `clk_fb`，DMTD 使用 top-level `clk_dmtd_i`。
+- current source 的有效 SoftPLL generic 為 `g_reverse_dmtds=false`；`g_divide_input_by_2` 由 `not g_pcs_16bit and not g_softpll_reverse_dmtds` 推導，在目前 `g_pcs_16bit=false` 下為 true。這些值只被核對，沒有切換。
+- `dmtd_with_deglitcher` 先由 `dmtd_sampler` 產生 `clk_sampled`，再在 `clk_dmtd_i` domain 由 `WAIT_STABLE_0 -> WAIT_EDGE -> GOT_EDGE` 產生 `new_edge_p_dmtdclk`；之後透過 `gc_pulse_synchronizer2` 到 `new_edge_p_sysclk`，最後才輸出 `tag_stb_p1_o`。
+- 因此現有證據可以把下一個只讀觀測點收斂到 `clk_sampled / deglitch accepted edge / post-CDC edge` 三層，但尚不能單靠 counters 證明是哪一層壞掉。
+
+完整 source line audit 見：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-SOURCE-AUDIT-20260821.md`。
+
+下一輪若仍需繼續，必須先新增 diagnostic-only observability 來分開這三層；在此之前不改 `g_divide_input_by_2`、`g_softpll_reverse_dmtds`、deglitch threshold 或其他 SoftPLL/PHY functional variable。
+
 ## 2026-08-20 歷史 fresh HEAD JTAG 證據摘要
 
 | 節點 | MODE | WDIAGS_PTP | MAC | WDIAGS_PTP_RX | WDIAGS_PTP_TX | WDIAGS_FOREIGN_META |

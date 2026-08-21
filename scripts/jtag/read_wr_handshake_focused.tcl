@@ -179,8 +179,8 @@ proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_w
   incr ::focus_stats($board,valid)
   if {[focus_get $board valid] > 1} {
     foreach pair [list \
-        [list ptp_rx last_ptp_rx] [list ptp_tx last_ptp_tx] \
-        [list tx last_tx] [list rx last_rx] [list rxerr last_rxerr]] {
+        [list $ptp_rx last_ptp_rx] [list $ptp_tx last_ptp_tx] \
+        [list $tx last_tx] [list $rx last_rx] [list $rxerr last_rxerr]] {
       set current [lindex $pair 0]
       set previous [focus_get $board [lindex $pair 1]]
       if {$current < $previous} { set ::focus_stats($board,counter_decreased) 1 }

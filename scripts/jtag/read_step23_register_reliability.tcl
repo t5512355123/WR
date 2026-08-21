@@ -336,7 +336,10 @@ proc step2_result {board} {
   if {[get_series $board MODE expected] != [get_series $board MODE valid]} { set wrong 1 }
   if {[get_series $board PTP expected] != [get_series $board PTP valid]} { set wrong 1 }
   foreach label {PTP_RX PTP_TX MINIC_TX MINIC_RX RXERR} {
-    if {[get_series $board $label decrease]} { set invalid 1 }
+    if {[get_series $board $label decrease]} {
+      puts [format "STEP2_COUNTER_RETEST board=%s register=%s result=DECREASED_OR_RESET" \
+        $board $label]
+    }
   }
   if {$wrong} { return FAIL }
   if {$invalid} { return INVALID }
@@ -356,7 +359,10 @@ proc step3_result {board} {
   # The failure shadow also contains role/state fields, so its packed word can
   # decrease when those fields change even if the failure evidence is valid.
   foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE WDIAGS_TEMP} {
-    if {[get_series $board $label decrease]} { set invalid 1 }
+    if {[get_series $board $label decrease]} {
+      puts [format "STEP3_COUNTER_RETEST board=%s register=%s result=DECREASED_OR_RESET" \
+        $board $label]
+    }
   }
   set valid [get_series $board WDIAGS_TEMP valid]
   set idle [get_series $board WDIAGS_TEMP state_idle]

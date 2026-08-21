@@ -83,7 +83,9 @@ proc delta32 {before after} {
   set b [word32 $after]
   if {$a < 0 || $b < 0} { return "TIMEOUT" }
   if {$b >= $a} { return [expr {$b - $a}] }
-  return [expr {(0x100000000 - $a) + $b}]
+  # A diagnostic counter can be reset or rewritten between snapshots.  Do
+  # not turn a decrease into a fabricated wrap-around activity delta.
+  return "DECREASED"
 }
 
 proc status_rank {status} {
@@ -139,13 +141,14 @@ proc required_positive_status {value} {
 }
 
 proc delta_status {value} {
-  if {$value eq "TIMEOUT" || $value < 0} { return "WARN" }
+  if {$value eq "TIMEOUT" || $value eq "DECREASED" || $value < 0} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "WARN"
 }
 
 proc required_delta_status {value} {
-  if {$value eq "TIMEOUT" || $value < 0} { return "WARN" }
+  if {$value eq "TIMEOUT" || $value eq "DECREASED"} { return "WARN" }
+  if {$value < 0} { return "WARN" }
   if {$value > 0} { return "PASS" }
   return "FAIL"
 }
@@ -381,11 +384,11 @@ proc analyze_board {board} {
     print_signal $current $chinese $symbol $display $expected_text $explanation
   }
   set value [bit64_high $status_raw 0]
-  print_signal [exact_status $value 1] "RX lock to data" wr_rx_locked_to_data \
+  set rx_data_lock_status [exact_status $value 1]
+  print_signal $rx_data_lock_status "RX locked to data" wr_rx_locked_to_data \
     [expr {$value < 0 ? "TIMEOUT" : $value}] "1" \
-    "高 32 bit 的 bit 0；表示 recovered RX clock 已 lock to data。"
-  if {$value < 0} { set step1 [merge_status $step1 WARN] }
-  if {$value >= 0 && $value != 1} { set step1 FAIL }
+    "instance 0 status probe bit 32；表示 recovered RX path 已鎖到資料。"
+  set step1 [merge_status $step1 $rx_data_lock_status]
   set value [bit64_high $status_raw 1]
   print_signal INFO "RX lock to reference" wr_rx_locked_to_ref \
     [expr {$value < 0 ? "TIMEOUT" : $value}] "依當次 PHY 狀態觀察" \
@@ -479,12 +482,29 @@ proc analyze_board {board} {
   set rb [get_snap $board $before rxerr]
   set ra [get_snap $board $after rxerr]
   set rd [delta32 $rb $ra]
-  set rxerr_status [expr {$rd eq "TIMEOUT" ? "WARN" : ($rd == 0 ? "PASS" : "WARN")}]
+  if {$rd eq "TIMEOUT"} {
+    set rxerr_status WARN
+    set rxerr_explanation "JTAG snapshot 至少一筆逾時，沒有足夠證據判斷新增 RX error。"
+    set rxerr_expected "兩次有效讀值且 delta=0"
+  } elseif {$rd eq "DECREASED"} {
+    # A decrease is not a new error. It is compatible with reset, clear, or
+    # a non-atomic snapshot boundary, so keep it informational for Step 2.
+    set rxerr_status INFO
+    set rxerr_explanation "after 小於 before；這表示 counter reset/clear 或 snapshot 邊界，不把它解讀成新增 error。"
+    set rxerr_expected "delta=0；若 counter 下降，僅記錄為非單調讀值"
+  } elseif {$rd == 0} {
+    set rxerr_status PASS
+    set rxerr_explanation "delta=0 表示本次沒有新增 RX error。"
+    set rxerr_expected "delta=0（本次沒有新增 error）"
+  } else {
+    set rxerr_status WARN
+    set rxerr_explanation "delta>0 表示本次觀測期間出現 RX error；不單獨推論根因。"
+    set rxerr_expected "delta=0（本次沒有新增 error）"
+  }
   set step2 [merge_status $step2 $rxerr_status]
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
-    [raw_display $rb] [raw_display $ra] [expr {$rd eq "TIMEOUT" ? "TIMEOUT" : [format "0x%08X" $rd]}] \
-    "delta=0 表示本次沒有新增 RX error；非零只標示注意，不直接推論根因。" \
-    "delta = 0（本次沒有新增 error）"
+    [raw_display $rb] [raw_display $ra] [expr {$rd eq "TIMEOUT" || $rd eq "DECREASED" ? $rd : [format "0x%08X" $rd]}] \
+    $rxerr_explanation $rxerr_expected
   if {$step2 ne "PASS"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role 或 packet activity" }
   set ::step_status($board,2) $step2
   puts [format {Step 2 結果：[%s] %s} [status_text $step2] $step2]
@@ -528,8 +548,13 @@ proc analyze_board {board} {
       set symbol [lindex $item 1]
       set chinese [lindex $item 2]
       set value [bit32 $parse $bit]
-      set current [exact_status $value 1]
-      set step3 [merge_status $step3 $current]
+      if {$symbol eq "parentWrModeOn" && $value >= 0} {
+        # This flag is useful context, but is not a minimum Step 3 gate.
+        set current INFO
+      } else {
+        set current [exact_status $value 1]
+        if {$symbol ne "parentWrModeOn"} { set step3 [merge_status $step3 $current] }
+      }
       print_signal $current $chinese $symbol [expr {$value < 0 ? "TIMEOUT" : $value}] "1" \
         "WDIAGS_PARSE_META 的 source-backed parent flag。"
     }
@@ -628,7 +653,7 @@ proc analyze_board {board} {
       set current [required_delta_status $d]
       set step4 [merge_status $step4 $current]
       print_delta $current $chinese $symbol \
-        [raw_display $b] [raw_display $a] [expr {$d eq "TIMEOUT" ? "TIMEOUT" : [format "0x%08X" $d]}] \
+        [raw_display $b] [raw_display $a] [expr {$d eq "TIMEOUT" || $d eq "DECREASED" ? $d : [format "0x%08X" $d]}] \
         "兩次 snapshot 的 delta > 0 才算本次觀測期間 sustained activity；孤立非零值不算。"
     }
     if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL startup event chain" }
@@ -696,8 +721,8 @@ proc analyze_board {board} {
   } else {
     puts [format "第一個異常節點：%s" $::first_anomaly($board)]
   }
-  if {$::step_status($board,4) eq "FAIL"} {
-    puts "建議下一個檢查：依本次上游判定往下追查；若 Step 1/2/3 已 PASS，才檢查 DMTD/deglitcher -> dmtd_event_sys。"
+  if {$::first_anomaly($board) ne ""} {
+    puts "建議下一個檢查：先針對上面列出的第一個異常節點做 read-only correlation，再往下游檢查；本 dashboard 不預設 DMTD 為 blocker。"
   } else {
     puts "建議下一個檢查：只針對本次第一個 FAIL/WARN 節點做下一個 read-only correlation。"
   }

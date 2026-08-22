@@ -349,6 +349,11 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_ref_accept_count : t_diag_counter_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_sampled_count : t_diag_counter_array(0 to g_num_outputs-1);
   signal dmtd_fb_accept_count : t_diag_counter_array(0 to g_num_outputs-1);
+  type t_diag_bucket_array is array(integer range <>) of std_logic_vector(7 downto 0);
+  signal dmtd_ref_stab_bucket : t_diag_bucket_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_stab_bucket : t_diag_bucket_array(0 to g_num_outputs-1);
+  signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
+  signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
@@ -410,7 +415,12 @@ architecture rtl of wr_softpll_ng is
     
 begin  -- rtl
 
-  diag_dmtd_state <= (31 downto 10 => '0') & dmtd_fb_reset_sys &
+  -- Existing state/reset fields are preserved. Added fields are read-only
+  -- observability and do not feed the deglitcher or SoftPLL path:
+  -- ref bucket [17:10], fb bucket [25:18], reached flags [26]/[27].
+  diag_dmtd_state <= (31 downto 28 => '0') & dmtd_fb_stab_reached(0) &
+                     dmtd_ref_stab_reached(0) & dmtd_fb_stab_bucket(0) &
+                     dmtd_ref_stab_bucket(0) & dmtd_fb_reset_sys &
                      dmtd_ref_reset_sys & (7 downto 4 => '0') &
                      dmtd_fb_state & dmtd_ref_state;
 
@@ -467,6 +477,8 @@ begin  -- rtl
         dbg_dmtd_reset_sys_o => dmtd_ref_reset_sys,
         dbg_sampled_transition_count_o => dmtd_ref_sampled_count(i),
         dbg_deglitch_accept_count_o => dmtd_ref_accept_count(i),
+        dbg_stab_bucket_o => dmtd_ref_stab_bucket(i),
+        dbg_stab_reached_o => dmtd_ref_stab_reached(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -512,6 +524,8 @@ begin  -- rtl
         dbg_dmtd_reset_sys_o => dmtd_fb_reset_sys,
         dbg_sampled_transition_count_o => dmtd_fb_sampled_count(i),
         dbg_deglitch_accept_count_o => dmtd_fb_accept_count(i),
+        dbg_stab_bucket_o => dmtd_fb_stab_bucket(i),
+        dbg_stab_reached_o => dmtd_fb_stab_reached(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -558,6 +572,8 @@ begin  -- rtl
         dbg_dmtd_reset_sys_o => open,
         dbg_sampled_transition_count_o => open,
         dbg_deglitch_accept_count_o => open,
+        dbg_stab_bucket_o => open,
+        dbg_stab_reached_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 

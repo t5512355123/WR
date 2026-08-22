@@ -280,12 +280,21 @@ proc print_event_boundary {board} {
   set ref_accept_delta [packed_boundary_delta $board DMTD_REF_SEEN 2]
   set fb_sampled_delta [packed_boundary_delta $board DMTD_FB_SEEN 17]
   set fb_accept_delta [packed_boundary_delta $board DMTD_FB_SEEN 2]
+  set packed_ambiguous [expr {
+    $ref_sampled_delta eq "INVALID" || $ref_accept_delta eq "INVALID" ||
+    $fb_sampled_delta eq "INVALID" || $fb_accept_delta eq "INVALID" ||
+    $ref_sampled_delta eq "DECREASED_OR_RESET" ||
+    $ref_accept_delta eq "DECREASED_OR_RESET" ||
+    $fb_sampled_delta eq "DECREASED_OR_RESET" ||
+    $fb_accept_delta eq "DECREASED_OR_RESET"}]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
-  set sampled_active [expr {[string is integer -strict $ref_sampled_delta] && $ref_sampled_delta > 0 || \
-                            [string is integer -strict $fb_sampled_delta] && $fb_sampled_delta > 0}]
-  set accept_active [expr {[string is integer -strict $ref_accept_delta] && $ref_accept_delta > 0 || \
-                           [string is integer -strict $fb_accept_delta] && $fb_accept_delta > 0}]
+  set sampled_active [expr {!$packed_ambiguous && \
+    (([string is integer -strict $ref_sampled_delta] && $ref_sampled_delta > 0) || \
+     ([string is integer -strict $fb_sampled_delta] && $fb_sampled_delta > 0))}]
+  set accept_active [expr {!$packed_ambiguous && \
+    (([string is integer -strict $ref_accept_delta] && $ref_accept_delta > 0) || \
+     ([string is integer -strict $fb_accept_delta] && $fb_accept_delta > 0))}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
                              [delta_positive $board TAG_PENDING_FB_COUNT]}]
@@ -296,14 +305,31 @@ proc print_event_boundary {board} {
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
   set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
 
-  if {$ref_sampled_delta eq "INVALID" || $ref_accept_delta eq "INVALID" || \
-      $fb_sampled_delta eq "INVALID" || $fb_accept_delta eq "INVALID"} {
-    set boundary "MEASUREMENT_INVALID_RETEST"
-  } elseif {$ref_sampled_delta eq "DECREASED_OR_RESET" || \
-            $ref_accept_delta eq "DECREASED_OR_RESET" || \
-            $fb_sampled_delta eq "DECREASED_OR_RESET" || \
-            $fb_accept_delta eq "DECREASED_OR_RESET"} {
-    set boundary "READ_INCONSISTENT_OR_COUNTER_RESET"
+  set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
+  set dmtd_state_word [word32 $dmtd_state_value]
+  if {$dmtd_state_word >= 0} {
+    set ref_state [expr {$dmtd_state_word & 0x3}]
+    set fb_state [expr {($dmtd_state_word >> 2) & 0x3}]
+    set ref_bucket [expr {($dmtd_state_word >> 10) & 0xff}]
+    set fb_bucket [expr {($dmtd_state_word >> 18) & 0xff}]
+    set ref_reached [expr {($dmtd_state_word >> 26) & 1}]
+    set fb_reached [expr {($dmtd_state_word >> 27) & 1}]
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d" \
+          $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached]
+  } else {
+    set ref_state NA
+    set fb_state NA
+    set ref_bucket NA
+    set fb_bucket NA
+    set ref_reached NA
+    set fb_reached NA
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
+  }
+
+  if {$packed_ambiguous} {
+    set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
+  } elseif {!$dmtd_active && !$sampled_active && !$accept_active} {
+    set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
   } elseif {!$accept_active} {

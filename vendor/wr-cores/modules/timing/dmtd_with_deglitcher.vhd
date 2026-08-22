@@ -148,7 +148,11 @@ entity dmtd_with_deglitcher is
     -- Read-only counters. They observe the DMTD/deglitcher boundary and do
     -- not drive the functional tag or SoftPLL path.
     dbg_sampled_transition_count_o : out std_logic_vector(31 downto 0);
-    dbg_deglitch_accept_count_o : out std_logic_vector(31 downto 0)
+    dbg_deglitch_accept_count_o : out std_logic_vector(31 downto 0);
+    -- Read-only deglitch qualification observability. The bucket contains
+    -- stab_cntr(15 downto 8); the sticky bit records threshold equality.
+    dbg_stab_bucket_o : out std_logic_vector(7 downto 0);
+    dbg_stab_reached_o : out std_logic
     );
 end dmtd_with_deglitcher;
 
@@ -169,6 +173,11 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_deglitch_accept_count : unsigned(31 downto 0);
   signal dbg_sampled_transition_count_sys : std_logic_vector(31 downto 0);
   signal dbg_deglitch_accept_count_sys : std_logic_vector(31 downto 0);
+  signal dbg_stab_bucket_sys : std_logic_vector(7 downto 0);
+  signal dbg_stab_reached : std_logic;
+  signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
+  signal dbg_stab_reached_sys : std_logic;
+  signal dbg_stab_reached_sys_vec : std_logic_vector(0 downto 0);
 
   signal new_edge_p_dmtdclk    : std_logic;
   signal new_edge_p_sysclk    : std_logic;
@@ -232,6 +241,27 @@ begin  -- rtl
   dbg_sampled_transition_count_o <= dbg_sampled_transition_count_sys;
   dbg_deglitch_accept_count_o <= dbg_deglitch_accept_count_sys;
 
+  U_sync_dbg_stab_bucket : entity work.gc_sync_register
+    generic map (g_width => 8)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => std_logic_vector(stab_cntr(15 downto 8)),
+      q_o       => dbg_stab_bucket_sys);
+
+  U_sync_dbg_stab_reached : entity work.gc_sync_register
+    generic map (g_width => 1)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => dbg_stab_reached_vec,
+      q_o       => dbg_stab_reached_sys_vec);
+
+  dbg_stab_reached_vec(0) <= dbg_stab_reached;
+  dbg_stab_reached_sys <= dbg_stab_reached_sys_vec(0);
+  dbg_stab_bucket_o <= dbg_stab_bucket_sys;
+  dbg_stab_reached_o <= dbg_stab_reached_sys;
+
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
       g_sync_edge => "positive")
@@ -287,6 +317,7 @@ begin  -- rtl
         state         <= WAIT_STABLE_0;
         stat_discard_p <= '0';
         new_edge_p_dmtdclk <= '0';
+        dbg_stab_reached <= '0';
       else
 
         case state is
@@ -303,6 +334,7 @@ begin  -- rtl
             -- DMTD output stable counter hit the LOW level threshold?
             if stab_cntr = unsigned(r_deglitch_threshold_i) then
               state <= WAIT_EDGE;
+              dbg_stab_reached <= '1';
             end if;
 
           when WAIT_EDGE =>
@@ -324,6 +356,7 @@ begin  -- rtl
               tag_latched_dmtdclk <= std_logic_vector(tag_int);
               stab_cntr     <= (others => '0');
               stat_discard_p <= '1';
+              dbg_stab_reached <= '1';
             elsif (clk_sampled = '0') then
               stab_cntr <= (others => '0');
             else

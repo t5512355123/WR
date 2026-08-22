@@ -199,8 +199,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100210` | `SPLL_OCCR` | SoftPLL output channel control/status |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
-| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 sticky flag，bit 0 表示 reference 曾產生 deglitched event |
-| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 sticky flag，bit 0 表示 feedback 曾產生 deglitched event |
+| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀封裝欄位：bits 31..17 為 reference `clk_sampled` transition counter 低 15 位；bits 16..2 為 reference deglitch accept counter 低 15 位；bit 1 保留；bit 0 保留原本 sticky seen 語意 |
+| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀封裝欄位：bits 31..17 為 feedback `clk_sampled` transition counter 低 15 位；bits 16..2 為 feedback deglitch accept counter 低 15 位；bit 1 保留；bit 0 保留原本 sticky seen 語意 |
 | `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
 | `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
 | `0x001002B0` | `SPLL_DIAG_CURRENT_TICS` | 唯讀：診斷用 `clk_sys` cycle counter；只用來和下列 last-event 欄位比較 |

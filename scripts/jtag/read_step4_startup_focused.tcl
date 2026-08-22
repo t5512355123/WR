@@ -208,6 +208,27 @@ proc delta_positive {board label} {
   return 0
 }
 
+proc packed_boundary_delta {board label shift} {
+  set first [series_value $board $label first]
+  set last [series_value $board $label last]
+  if {$first eq "" || $last eq "" ||
+      ![is_u32 $first] || ![is_u32 $last]} {
+    return INVALID
+  }
+  set first_word [word32 $first]
+  set last_word [word32 $last]
+  set first_count [expr {($first_word >> $shift) & 0x7fff}]
+  set last_count [expr {($last_word >> $shift) & 0x7fff}]
+  if {$last_count < $first_count} { return DECREASED_OR_RESET }
+  return [expr {$last_count - $first_count}]
+}
+
+proc packed_boundary_value {board label shift} {
+  set last [series_value $board $label last]
+  if {$last eq "" || ![is_u32 $last]} { return INVALID }
+  return [expr {([word32 $last] >> $shift) & 0x7fff}]
+}
+
 proc has_invalid {board labels} {
   foreach label $labels {
     if {[series_value $board $label invalid] > 0} { return 1 }
@@ -255,8 +276,16 @@ proc print_event_boundary {board} {
     return
   }
 
+  set ref_sampled_delta [packed_boundary_delta $board DMTD_REF_SEEN 17]
+  set ref_accept_delta [packed_boundary_delta $board DMTD_REF_SEEN 2]
+  set fb_sampled_delta [packed_boundary_delta $board DMTD_FB_SEEN 17]
+  set fb_accept_delta [packed_boundary_delta $board DMTD_FB_SEEN 2]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
+  set sampled_active [expr {[string is integer -strict $ref_sampled_delta] && $ref_sampled_delta > 0 || \
+                            [string is integer -strict $fb_sampled_delta] && $fb_sampled_delta > 0}]
+  set accept_active [expr {[string is integer -strict $ref_accept_delta] && $ref_accept_delta > 0 || \
+                           [string is integer -strict $fb_accept_delta] && $fb_accept_delta > 0}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
                              [delta_positive $board TAG_PENDING_FB_COUNT]}]
@@ -267,8 +296,20 @@ proc print_event_boundary {board} {
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
   set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
 
-  if {!$dmtd_active} {
-    set boundary "DMTD_EVENT_GENERATION"
+  if {$ref_sampled_delta eq "INVALID" || $ref_accept_delta eq "INVALID" || \
+      $fb_sampled_delta eq "INVALID" || $fb_accept_delta eq "INVALID"} {
+    set boundary "MEASUREMENT_INVALID_RETEST"
+  } elseif {$ref_sampled_delta eq "DECREASED_OR_RESET" || \
+            $ref_accept_delta eq "DECREASED_OR_RESET" || \
+            $fb_sampled_delta eq "DECREASED_OR_RESET" || \
+            $fb_accept_delta eq "DECREASED_OR_RESET"} {
+    set boundary "READ_INCONSISTENT_OR_COUNTER_RESET"
+  } elseif {!$sampled_active} {
+    set boundary "DMTD_SAMPLED_TRANSITION"
+  } elseif {!$accept_active} {
+    set boundary "DMTD_DEGLITCH_ACCEPT"
+  } elseif {!$dmtd_active} {
+    set boundary "DMTD_ACCEPT_TO_SYS_EVENT"
   } elseif {!$pending_active} {
     set boundary "DMTD_TO_TAG_REQUEST"
   } elseif {!$grant_active} {
@@ -285,6 +326,8 @@ proc print_event_boundary {board} {
     set boundary "HELPER_UPDATE_ACTIVE"
   }
 
+  puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s accept_ref=%s sampled_fb=%s accept_fb=%s" \
+        $board $ref_sampled_delta $ref_accept_delta $fb_sampled_delta $fb_accept_delta]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $irq_active $state_active $helper_active]

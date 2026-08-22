@@ -344,6 +344,12 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_reset_sys : std_logic;
   signal diag_dmtd_state : std_logic_vector(31 downto 0);
 
+  type t_diag_counter_array is array(integer range <>) of std_logic_vector(31 downto 0);
+  signal dmtd_ref_sampled_count : t_diag_counter_array(0 to g_num_ref_inputs-1);
+  signal dmtd_ref_accept_count : t_diag_counter_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_sampled_count : t_diag_counter_array(0 to g_num_outputs-1);
+  signal dmtd_fb_accept_count : t_diag_counter_array(0 to g_num_outputs-1);
+
   signal rcer_int : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal ocer_int : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -459,6 +465,8 @@ begin  -- rtl
         dbg_event_sys_o      => dmtd_event_sys(i),
         dbg_state_sys_o      => dmtd_ref_state,
         dbg_dmtd_reset_sys_o => dmtd_ref_reset_sys,
+        dbg_sampled_transition_count_o => dmtd_ref_sampled_count(i),
+        dbg_deglitch_accept_count_o => dmtd_ref_accept_count(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -502,6 +510,8 @@ begin  -- rtl
         dbg_event_sys_o => dmtd_event_sys(i+g_num_ref_inputs),
         dbg_state_sys_o => dmtd_fb_state,
         dbg_dmtd_reset_sys_o => dmtd_fb_reset_sys,
+        dbg_sampled_transition_count_o => dmtd_fb_sampled_count(i),
+        dbg_deglitch_accept_count_o => dmtd_fb_accept_count(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -546,6 +556,8 @@ begin  -- rtl
         dbg_event_sys_o => dmtd_event_sys(g_num_ref_inputs + g_num_outputs + I),
         dbg_state_sys_o => open,
         dbg_dmtd_reset_sys_o => open,
+        dbg_sampled_transition_count_o => open,
+        dbg_deglitch_accept_count_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -687,8 +699,15 @@ begin  -- rtl
       diag_tag_feedback_count_i => std_logic_vector(diag_tag_feedback_count),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
-      diag_dmtd_ref_seen_i => (31 downto 1 => '0') & diag_dmtd_ref_seen,
-      diag_dmtd_fb_seen_i => (31 downto 1 => '0') & diag_dmtd_fb_seen,
+      -- Preserve the original sticky seen bit at bit 0. The upper fields
+      -- expose low 15 bits of sampled and accepted counters respectively:
+      -- [31:17] sampled transitions, [16:2] deglitch accepts, [1] reserved.
+      diag_dmtd_ref_seen_i => dmtd_ref_sampled_count(0)(14 downto 0) &
+                              dmtd_ref_accept_count(0)(14 downto 0) &
+                              '0' & diag_dmtd_ref_seen,
+      diag_dmtd_fb_seen_i => dmtd_fb_sampled_count(0)(14 downto 0) &
+                             dmtd_fb_accept_count(0)(14 downto 0) &
+                             '0' & diag_dmtd_fb_seen,
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
       diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
       diag_current_tics_i => std_logic_vector(diag_current_tics),

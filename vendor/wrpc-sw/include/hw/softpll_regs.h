@@ -286,8 +286,12 @@ uint32_t OCCR;
 uint32_t RCER;
 /* [0x28]: REG Output Channel Tagging Enable Register */
 uint32_t OCER;
+/* [0x2c]: read-only reference DMTD deglitch accept count */
+uint32_t DMTD_REF_ACCEPT_COUNT;
+/* [0x30]: read-only feedback DMTD deglitch accept count */
+uint32_t DMTD_FB_ACCEPT_COUNT;
 /* padding to: 16 words */
-uint32_t __padding_0[5];
+uint32_t __padding_0[3];
 /* [0x40]: REG Helper DAC Output */
 uint32_t DAC_HPLL;
 /* [0x44]: REG Main DAC Output */

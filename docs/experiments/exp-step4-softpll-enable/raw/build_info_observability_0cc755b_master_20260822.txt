@@ -1,0 +1,6 @@
+HEAD=0cc755bd53914e2a3d449c3c8643b1f95c05abd5
+c52b05da936871439793cc31f80e15772104d24be6020c68c4e7694f259f5535  build/firmware/master/wrc.mif
+cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f  quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf
+sha256sum: quartus/jtag_runtime_diag/DE5a_wr.sdc: No such file or directory
+ee50ebebb04a6066c39929b81927975cf2d5ee0d55a76704523ab0903cec7037  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+bash: quartus_sh: command not found

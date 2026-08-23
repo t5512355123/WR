@@ -346,6 +346,16 @@ proc print_event_boundary {board} {
      puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
+   # This is a cumulative maximum, not an activity counter. Keep it separate
+   # from delta-based PASS/FAIL evidence and report it when the read is valid.
+   set input_run_word [word32 [series_value $board DMTD_INPUT_HIGH_RUN_MAX last]]
+   if {$input_run_word >= 0} {
+     puts [format "STEP4_INPUT_HIGH_RUN_MAX board=%s ref_max_high_run=%d fb_max_high_run=%d" \
+           $board [expr {$input_run_word & 0xffff}] [expr {($input_run_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_INPUT_HIGH_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
    set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
   if {$dmtd_state_word >= 0} {
@@ -433,6 +443,7 @@ proc read_event_group {board} {
     {DMTD_REF_SAMPLED 0x00100234}
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
+    {DMTD_INPUT_HIGH_RUN_MAX 0x00100250}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

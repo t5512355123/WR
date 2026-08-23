@@ -374,6 +374,11 @@ peripheral {
       };
    };
 
+   # Read-only diagnostic extension at reserved WB slot 0x50. Keep this
+   # outside the generated register sequence so DAC_HPLL and later addresses
+   # remain unchanged; the matching case is implemented in spll_wb_slave.vhd.
+   # Packed value: low 16 bits reference input run maximum, high 16 bits
+   # feedback input run maximum.
    reg {
 			align = 8;
 			name = "Helper DAC Output";

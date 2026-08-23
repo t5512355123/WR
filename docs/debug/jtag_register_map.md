@@ -202,6 +202,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100234` | `SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：reference `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x00100238` | `SPLL_DMTD_FB_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：feedback `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x0010023C` | `SPLL_DMTD_HIGH_QUAL_MAX_STAB` | 唯讀封裝欄位：bits 15..0 是 reference 在 `GOT_EDGE` HIGH qualification abort 前曾達到的最大 `stab_cntr`，bits 31..16 是 feedback 對應值；只觀測 abort 深度，不改 FSM 或 threshold |
+| `0x00100250` | `SPLL_DMTD_INPUT_HIGH_RUN_MAX` | 唯讀封裝欄位：bits 15..0 是 reference `dmtd_sampler` 在輸入管線前觀測到的最大連續 HIGH sample 數，bits 31..16 是 feedback 對應值；只觀測輸入長度，不改 sampler pipeline 或 deglitcher |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞。 |

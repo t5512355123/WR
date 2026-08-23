@@ -69,8 +69,14 @@ entity dmtd_sampler is
     sync_p1_i : in std_logic := '0';
 
     r_oversample_div_i : in std_logic_vector(5 downto 0) := (others => '0');
-    
-    clk_sampled_o : out std_logic
+
+    -- Read-only diagnostic reset. This does not participate in the sampler
+    -- data path; the default preserves standalone legacy instantiations.
+    rst_n_i : in std_logic := '1';
+
+    clk_sampled_o : out std_logic;
+    -- Maximum consecutive HIGH samples of clk_in before the sampler pipeline.
+    dbg_input_high_run_max_o : out std_logic_vector(15 downto 0)
     );
 
 end dmtd_sampler;
@@ -93,8 +99,70 @@ architecture rtl of dmtd_sampler is
   signal over_div_p : std_logic;
 
   signal en_i_d0 : std_logic;
+
+  signal dbg_input_high_run     : unsigned(15 downto 0) := (others => '0');
+  signal dbg_input_high_run_max : unsigned(15 downto 0) := (others => '0');
+
+  function f_sat_inc(value : unsigned) return unsigned is
+    variable result  : unsigned(value'range) := value;
+    variable maximum : unsigned(value'range);
+  begin
+    maximum := (others => '1');
+    if value /= maximum then
+      result := value + 1;
+    end if;
+    return result;
+  end function;
   
 begin  -- rtl
+
+  -- This observation is deliberately outside the functional sampler and
+  -- deglitcher logic. It records the longest run of sampled HIGH input levels
+  -- seen at the sampler clock, so a short run is distinguishable from a
+  -- later pipeline/inversion problem.
+  dbg_input_high_run_max_o <= std_logic_vector(dbg_input_high_run_max);
+
+  gen_debug_input_run_dmtd : if g_with_oversampling = false generate
+    p_debug_input_high_run : process(clk_dmtd_i)
+      variable next_run : unsigned(15 downto 0);
+    begin
+      if rising_edge(clk_dmtd_i) then
+        if rst_n_i = '0' then
+          dbg_input_high_run <= (others => '0');
+          dbg_input_high_run_max <= (others => '0');
+        elsif clk_in = '1' then
+          next_run := f_sat_inc(dbg_input_high_run);
+          dbg_input_high_run <= next_run;
+          if next_run > dbg_input_high_run_max then
+            dbg_input_high_run_max <= next_run;
+          end if;
+        else
+          dbg_input_high_run <= (others => '0');
+        end if;
+      end if;
+    end process;
+  end generate gen_debug_input_run_dmtd;
+
+  gen_debug_input_run_over : if g_with_oversampling = true generate
+    p_debug_input_high_run : process(clk_dmtd_over_i)
+      variable next_run : unsigned(15 downto 0);
+    begin
+      if rising_edge(clk_dmtd_over_i) then
+        if rst_n_i = '0' then
+          dbg_input_high_run <= (others => '0');
+          dbg_input_high_run_max <= (others => '0');
+        elsif clk_in = '1' then
+          next_run := f_sat_inc(dbg_input_high_run);
+          dbg_input_high_run <= next_run;
+          if next_run > dbg_input_high_run_max then
+            dbg_input_high_run_max <= next_run;
+          end if;
+        else
+          dbg_input_high_run <= (others => '0');
+        end if;
+      end if;
+    end process;
+  end generate gen_debug_input_run_over;
 
   gen_straight_oversampled : if( g_with_oversampling = true and g_reverse = false ) generate
 

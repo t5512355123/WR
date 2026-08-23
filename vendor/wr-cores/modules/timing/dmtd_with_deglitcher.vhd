@@ -508,7 +508,9 @@ begin  -- rtl
               dbg_stab_reached <= '1';
             elsif (clk_sampled = '0') then
              if stab_cntr /= 0 then
-                dbg_high_qual_abort_count <= f_sat_inc(dbg_high_qual_abort_count);
+                -- Diagnostic-only free-running counter.  Natural 32-bit wrap
+                -- preserves bounded-window activity after long runtimes.
+                dbg_high_qual_abort_count <= dbg_high_qual_abort_count + 1;
                 if stab_cntr > dbg_high_qual_max_stab then
                   dbg_high_qual_max_stab <= stab_cntr;
                 end if;

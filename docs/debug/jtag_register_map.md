@@ -210,8 +210,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100264` | `SPLL_DMTD_WAIT_EDGE_ENTRY_FB` | 唯讀診斷 alias：feedback deglitch FSM 完成 LOW qualification，於 `WAIT_STABLE_0` 排程進入 `WAIT_EDGE` 的累計次數。寫入側仍保留既有 `EIC_IER` 行為；本 alias 只使用原本 write-only register 的 read side。歷史 commit `c9f1f15` 的相同位址是 D1 pipeline mismatch，`4417411` 則是 D0 shadow 診斷，解碼必須依 SOF 與 Tcl 來源 commit 判斷。 |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
-| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞。 |
-| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 32-bit feedback HIGH qualification-abort counter，條件與 reference counter 相同；這兩個欄位不再是 LOW/HIGH packed value。 |
+| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞，bounded observation 必須用 modulo-32 delta。 |
+| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 32-bit feedback HIGH qualification-abort counter，條件與 reference counter 相同；同樣使用自然回繞與 modulo-32 delta，這兩個欄位不再是 LOW/HIGH packed value。 |
 | `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
 | `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
 | `0x001002B0` | `SPLL_DIAG_CURRENT_TICS` | 唯讀：診斷用 `clk_sys` cycle counter；只用來和下列 last-event 欄位比較 |

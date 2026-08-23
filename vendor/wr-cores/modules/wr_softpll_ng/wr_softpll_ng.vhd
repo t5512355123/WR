@@ -791,8 +791,8 @@ begin  -- rtl
       -- Reuse the existing read-only DMTD_SEEN words without changing the
       -- Wishbone map. The full sampled/accept counters remain available at
       -- 0x22c..0x238; these words expose the 32-bit HIGH qualification-abort
-      -- counters. The 32-bit LOW qualification-abort counters are exposed by
-      -- the read-only diagnostic aliases at 0x250 and 0x254.
+      -- wrapping counters. The 32-bit LOW qualification-abort counters are
+      -- exposed by the read-only diagnostic aliases at 0x250 and 0x254.
       diag_dmtd_ref_seen_i => dmtd_ref_high_abort_count(0),
       diag_dmtd_fb_seen_i => dmtd_fb_high_abort_count(0),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),

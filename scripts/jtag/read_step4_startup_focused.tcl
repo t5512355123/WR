@@ -152,6 +152,14 @@ proc series_delta {first last invalid} {
   return [expr {$b - $a}]
 }
 
+proc series_delta_mod32 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0xffffffff}]
+}
+
 proc init_series {board label} {
   foreach field {valid invalid timeout decrease first last previous delta hist} {
     set ::series($board,$label,$field) 0
@@ -198,7 +206,13 @@ proc finish_series {board label} {
   set invalid $::series($board,$label,invalid)
   set first $::series($board,$label,first)
   set last $::series($board,$label,last)
-  set delta [series_delta $first $last $invalid]
+  if {$label eq "DMTD_REF_SEEN" || $label eq "DMTD_FB_SEEN"} {
+    # These source-defined HIGH qualification-abort counters are 32-bit
+    # free-running diagnostics.  A decrease is an expected wrap, not reset.
+    set delta [series_delta_mod32 $first $last $invalid]
+  } else {
+    set delta [series_delta $first $last $invalid]
+  }
   set ::series($board,$label,delta) $delta
   set ::series($board,$label,hist) none
 
@@ -312,8 +326,8 @@ proc print_event_boundary {board} {
   }
 
   # DMTD_REF_SEEN/FB_SEEN now expose the source-defined 32-bit HIGH
-  # qualification-abort counters directly. Keep special delta values as
-  # strings; callers must not compare TIMEOUT/INVALID/DECREASED numerically.
+  # qualification-abort counters directly.  They are free-running modulo-32
+  # counters, so finish_series() already converts wrap into an unsigned delta.
    set ref_high_abort_delta [series_value $board DMTD_REF_SEEN delta]
    set fb_high_abort_delta [series_value $board DMTD_FB_SEEN delta]
    set max_stab_word [word32 [series_value $board DMTD_HIGH_QUAL_MAX_STAB last]]
@@ -441,7 +455,7 @@ proc print_event_boundary {board} {
         [series_value $board DMTD_REF_ACCEPT delta] \
         [series_value $board DMTD_FB_SAMPLED delta] \
         [series_value $board DMTD_FB_ACCEPT delta]]
-  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_high=%s fb_high=%s" \
+  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_high=%s fb_high=%s delta_mode=MODULO32" \
         $board $ref_high_abort_delta $fb_high_abort_delta]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \

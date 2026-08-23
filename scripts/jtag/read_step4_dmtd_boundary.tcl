@@ -66,8 +66,8 @@ proc read_boundary_sample {hardware_name sample} {
   set dmtd_ref_sampled [wb_read 0x00100234]
   set dmtd_fb_sampled [wb_read 0x00100238]
   set dmtd_high_qual_max_stab [wb_read 0x0010023C]
-  set dmtd_input_high_run_max [wb_read 0x00100250]
-  set dmtd_input_low_run_max [wb_read 0x00100254]
+  set low_qual_abort_ref [wb_read 0x00100250]
+  set low_qual_abort_fb [wb_read 0x00100254]
   set dmtd_d1_high_run_max [wb_read 0x00100258]
   set dmtd_d0_low_run_max [wb_read 0x0010025C]
   set wait_edge_entry_ref [wb_read 0x00100260]
@@ -116,14 +116,8 @@ proc read_boundary_sample {hardware_name sample} {
     set stab_ref NA
     set stab_fb NA
   }
-  set low_run_word 0
-  if {[scan $dmtd_input_low_run_max %x low_run_word] == 1} {
-    puts [format "DMTD_INPUT_LOW_RUN_MAX ref=%s fb=%s" \
-          [format %04X [expr {$low_run_word & 0xffff}]] \
-          [format %04X [expr {($low_run_word >> 16) & 0xffff}]]]
-  } else {
-    puts "DMTD_INPUT_LOW_RUN_MAX invalid"
-  }
+  puts [format "DMTD_LOW_QUAL_ABORT_COUNT ref=%s fb=%s" \
+        $low_qual_abort_ref $low_qual_abort_fb]
   set d1_high_run_word 0
   if {[scan $dmtd_d1_high_run_max %x d1_high_run_word] == 1} {
     puts [format "DMTD_D1_HIGH_RUN_MAX ref=%s fb=%s" \
@@ -150,19 +144,9 @@ proc read_boundary_sample {hardware_name sample} {
   } else {
     puts "WAIT_EDGE_ENTRY_COUNT invalid"
   }
-  set input_run_word 0
-  if {[scan $dmtd_input_high_run_max %x input_run_word] == 1} {
-    set input_run_ref [format %04X [expr {$input_run_word & 0xffff}]]
-    set input_run_fb [format %04X [expr {($input_run_word >> 16) & 0xffff}]]
-  } else {
-    set input_run_ref NA
-    set input_run_fb NA
-  }
   puts [format "DMTD_BOUNDARY_CORE: CSR=%s STAT_CR=%s STAT_VAL=%s DEGLITCH_THR=%s SAMPLED_REF=%s SAMPLED_FB=%s ACCEPT_REF=%s ACCEPT_FB=%s MAX_HIGH_REF=%s MAX_HIGH_FB=%s" \
         $csr $dmtd_stat_cr $dmtd_stat_val $deglitch_thr $dmtd_ref_sampled $dmtd_fb_sampled \
         $dmtd_ref_accept $dmtd_fb_accept $stab_ref $stab_fb]
-  puts [format "DMTD_BOUNDARY_INPUT_RUN: MAX_HIGH_REF=%s MAX_HIGH_FB=%s" \
-        $input_run_ref $input_run_fb]
   puts [format "DMTD_BOUNDARY_ENABLE: RCER=%s OCER=%s EIC_IMR=%s EIC_ISR=%s TRR_CSR=%s" \
         $rcer $ocer $eic_imr $eic_isr $trr_csr]
   puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_SEEN=%s FB_SEEN=%s REF_LAST=%s FB_LAST=%s NOW=%s" \

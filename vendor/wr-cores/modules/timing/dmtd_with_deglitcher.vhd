@@ -159,9 +159,9 @@ entity dmtd_with_deglitcher is
      -- GOT_EDGE abort. This is read-only observability and does not feed FSM.
      dbg_high_qual_max_stab_o : out std_logic_vector(15 downto 0);
      -- Cumulative qualification aborts, kept outside the functional path.
-     -- The HIGH counter is 32-bit so repeated GOT_EDGE qualification aborts
-     -- remain observable over a long runtime window without saturation.
-     dbg_low_qual_abort_count_o : out std_logic_vector(15 downto 0);
+     -- Both counters are 32-bit so repeated qualification aborts remain
+     -- observable over a bounded runtime window without early saturation.
+     dbg_low_qual_abort_count_o : out std_logic_vector(31 downto 0);
      dbg_high_qual_abort_count_o : out std_logic_vector(31 downto 0);
      -- Maximum consecutive HIGH samples at dmtd_sampler input. Read-only.
      dbg_input_high_run_max_o : out std_logic_vector(15 downto 0);
@@ -207,9 +207,9 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_stab_count_sys : std_logic_vector(15 downto 0);
    signal dbg_high_qual_max_stab : unsigned(15 downto 0);
    signal dbg_high_qual_max_stab_sys : std_logic_vector(15 downto 0);
-  signal dbg_low_qual_abort_count : unsigned(15 downto 0);
+  signal dbg_low_qual_abort_count : unsigned(31 downto 0);
   signal dbg_high_qual_abort_count : unsigned(31 downto 0);
-  signal dbg_low_qual_abort_count_sys : std_logic_vector(15 downto 0);
+  signal dbg_low_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_input_high_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
   signal dbg_input_high_run_max_sys : std_logic_vector(15 downto 0);
@@ -330,7 +330,7 @@ begin  -- rtl
    dbg_high_qual_max_stab_o <= dbg_high_qual_max_stab_sys;
 
   U_sync_dbg_low_abort : entity work.gc_sync_register
-    generic map (g_width => 16)
+    generic map (g_width => 32)
     port map (
       clk_i     => clk_sys_i,
       rst_n_a_i => rst_n_sysclk_i,

@@ -302,7 +302,8 @@ proc print_event_boundary {board} {
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
-               DMTD_HIGH_QUAL_MAX_STAB DMTD_D1_HIGH_RUN_MAX \
+               DMTD_HIGH_QUAL_MAX_STAB LOW_QUAL_ABORT_REF \
+               LOW_QUAL_ABORT_FB DMTD_D1_HIGH_RUN_MAX \
                DMTD_D0_LOW_RUN_MAX WAIT_EDGE_ENTRY_REF \
                WAIT_EDGE_ENTRY_FB}
   if {[has_invalid $board $labels]} {
@@ -348,23 +349,15 @@ proc print_event_boundary {board} {
      puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
-   # This is a cumulative maximum, not an activity counter. Keep it separate
-   # from delta-based PASS/FAIL evidence and report it when the read is valid.
-   set input_run_word [word32 [series_value $board DMTD_INPUT_HIGH_RUN_MAX last]]
-   if {$input_run_word >= 0} {
-     puts [format "STEP4_INPUT_HIGH_RUN_MAX board=%s ref_max_high_run=%d fb_max_high_run=%d" \
-           $board [expr {$input_run_word & 0xffff}] [expr {($input_run_word >> 16) & 0xffff}]]
-   } else {
-     puts [format "STEP4_INPUT_HIGH_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
-   }
-
-   set input_low_run_word [word32 [series_value $board DMTD_INPUT_LOW_RUN_MAX last]]
-   if {$input_low_run_word >= 0} {
-     puts [format "STEP4_INPUT_LOW_RUN_MAX board=%s ref_max_low_run=%d fb_max_low_run=%d" \
-           $board [expr {$input_low_run_word & 0xffff}] [expr {($input_low_run_word >> 16) & 0xffff}]]
-   } else {
-     puts [format "STEP4_INPUT_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
-   }
+   set low_abort_ref_delta [series_value $board LOW_QUAL_ABORT_REF delta]
+   set low_abort_fb_delta [series_value $board LOW_QUAL_ABORT_FB delta]
+   set low_abort_invalid [expr {
+     ![string is integer -strict $low_abort_ref_delta] ||
+     ![string is integer -strict $low_abort_fb_delta]}]
+   set low_abort_active [expr {!$low_abort_invalid &&
+     ($low_abort_ref_delta > 0 || $low_abort_fb_delta > 0)}]
+   puts [format "STEP4_LOW_QUAL_ABORT board=%s ref_delta=%s fb_delta=%s active=%d" \
+         $board $low_abort_ref_delta $low_abort_fb_delta $low_abort_active]
 
    set d1_high_run_word [word32 [series_value $board DMTD_D1_HIGH_RUN_MAX last]]
    if {$d1_high_run_word >= 0} {
@@ -411,14 +404,18 @@ proc print_event_boundary {board} {
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
   }
 
-  if {$abort_delta_invalid} {
+  if {$abort_delta_invalid || $low_abort_invalid} {
     set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
   } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
+  } elseif {!$wait_edge_active && $low_abort_active} {
+    set boundary "DMTD_WAIT_STABLE_LOW_QUAL_INTERRUPTED"
+  } elseif {!$wait_edge_active && ($ref_state eq "0" || $fb_state eq "0")} {
+    set boundary "DMTD_WAIT_STABLE_LOW_QUAL_NO_ABORT_OBSERVED"
   } elseif {!$wait_edge_active} {
-    set boundary "DMTD_WAIT_STABLE_LOW_QUALIFICATION"
+    set boundary "DMTD_WAIT_EDGE_ENTRY_INACTIVE_STATE_LATER"
   } elseif {!$accept_active} {
     set boundary "DMTD_WAIT_EDGE_TO_DEGLITCH_ACCEPT"
   } elseif {!$dmtd_active} {
@@ -479,8 +476,8 @@ proc read_event_group {board} {
     {DMTD_REF_SAMPLED 0x00100234}
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
-    {DMTD_INPUT_HIGH_RUN_MAX 0x00100250}
-    {DMTD_INPUT_LOW_RUN_MAX 0x00100254}
+    {LOW_QUAL_ABORT_REF 0x00100250}
+    {LOW_QUAL_ABORT_FB 0x00100254}
     {DMTD_D1_HIGH_RUN_MAX 0x00100258}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
     {WAIT_EDGE_ENTRY_REF 0x00100260}

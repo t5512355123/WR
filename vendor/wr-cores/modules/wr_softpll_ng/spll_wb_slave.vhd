@@ -51,6 +51,8 @@ port (
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d0_low_run_max_i         : in     std_logic_vector(31 downto 0);
+  diag_dmtd_low_qual_abort_ref_i            : in     std_logic_vector(31 downto 0);
+  diag_dmtd_low_qual_abort_fb_i             : in     std_logic_vector(31 downto 0);
   diag_dmtd_wait_edge_entry_ref_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_wait_edge_entry_fb_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
@@ -430,13 +432,13 @@ begin
           ack_in_progress <= '1';
         when "010100" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_input_high_run_max_i;
+            rddata_reg <= diag_dmtd_low_qual_abort_ref_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "010101" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_input_low_run_max_i;
+            rddata_reg <= diag_dmtd_low_qual_abort_fb_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

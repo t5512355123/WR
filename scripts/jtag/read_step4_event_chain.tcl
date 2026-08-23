@@ -52,6 +52,8 @@ proc read_sample {hardware_name label} {
   set occr [wb_read 0x00100210]
   set rcer [wb_read 0x00100224]
   set ocer [wb_read 0x00100228]
+  set low_qual_abort_ref [wb_read 0x00100250]
+  set low_qual_abort_fb [wb_read 0x00100254]
   set wait_edge_entry_ref [wb_read 0x00100260]
   set wait_edge_entry_fb [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
@@ -108,6 +110,8 @@ proc read_sample {hardware_name label} {
   puts [format "EVENT_CHAIN_EIC: IMR=%s ISR=%s" $eic_imr $eic_isr]
   puts [format "EVENT_CHAIN_WAIT_EDGE_ENTRY: REF=%s FB=%s" \
         $wait_edge_entry_ref $wait_edge_entry_fb]
+  puts [format "EVENT_CHAIN_LOW_QUAL_ABORT: REF=%s FB=%s" \
+        $low_qual_abort_ref $low_qual_abort_fb]
   puts [format "EVENT_CHAIN_TRR: CSR=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
         $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
   puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \

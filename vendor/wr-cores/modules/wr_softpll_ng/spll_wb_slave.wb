@@ -375,9 +375,10 @@ peripheral {
    };
 
     # Read-only diagnostic extensions at reserved WB slots 0x50, 0x54, 0x58
-    # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL and
-    # later addresses remain unchanged; matching cases are implemented in
-    # spll_wb_slave.vhd.
+    # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL
+    # and later addresses remain unchanged; matching cases are implemented in
+    # spll_wb_slave.vhd. For this experiment 0x50 and 0x54 expose the full-width
+    # REF/FB LOW qualification-abort counters.
     # The read-side aliases at 0x60 and 0x64 expose the full-width reference
     # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
     # EIC behavior is preserved in the hand-maintained VHDL wrapper.

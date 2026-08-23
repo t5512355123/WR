@@ -1,5 +1,42 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 HIGH qualification abort 深度總和實驗（2026-08-24，source `8ff33fe`）
+
+本輪由 exact source commit `8ff33fe7e4c212916ab8e28b355ebb561254d9bf` 完成 fresh firmware、
+Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一變因是為
+Slave/Master REF/FB 新增 64-bit HIGH-abort depth-sum 唯讀診斷；觸發條件與
+所有 functional behavior 均未修改。
+
+- Master/Slave programmer checksum：`0x30ACB311 / 0x30AC5A92`；兩片均 configuration
+  succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS。focused samples 兩片均 30/30 valid，
+  Slave `MODE=3/PTP=9`、foreign=`1/0`、RX=`0x1001`、TX=`0x1000`、
+  `LOCK_ENABLE=4`。
+- Slave live WR state 仍與其他握手證據衝突，保留
+  `STATE_EVIDENCE=READ_INCONSISTENT`，不當成 Step 3 regression。
+- Step 4 T0/T1：Slave REF 平均 HIGH-abort depth=`1.000531 / 1.000493`；
+  FB=`1.000004 / 1.000004`，視窗內最大值均為 `2/1`。
+- Slave sampled transition 持續增加，但 accept、tag/TRR、IRQ、state transition 與
+  helper update 在 T0/T1 全為 0。
+- 直接證據支持 HIGH qualification 幾乎每次只累積 1 個 HIGH sample 就被
+  LOW 中斷；尚未證明 DDMTD polarity、threshold、timing 或其他特定項目是根因。
+- Master/Slave compile 成功但 `TIMING_CLOSED=NO`；只列為 implementation caveat。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_HIGH_ABORT_DEPTH_READOUT = VALID
+SLAVE_REF_AVERAGE_ABORT_DEPTH = APPROX_1
+SLAVE_FB_AVERAGE_ABORT_DEPTH = APPROX_1
+SLAVE_ACCEPT_AND_DOWNSTREAM_ACTIVITY = NONE_OBSERVED
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-HIGH-ABORT-DEPTH-SUM64-20260824.md`
+
 ## 最新 Step 4 HIGH qualification abort 回繞計數實驗（2026-08-24，source `3b42769`）
 
 本輪由 exact source commit `3b427696d94afc927db8ce8e3a73a46570589d41` 完成 fresh firmware、

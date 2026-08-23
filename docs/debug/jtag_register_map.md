@@ -416,7 +416,7 @@ bits 27..31  = 保留
 
 ### 4.4 目前 firmware 額外的唯讀 SoftPLL shadow
 
-這些欄位由 `wdiags.c` 寫入，是觀測用 shadow；不會寫回 SoftPLL 控制邏輯。現行 `read_wb_runtime.tcl` 沒有逐一讀取它們。
+這些欄位由 `wdiags.c` 寫入，是觀測用 shadow；不會寫回 SoftPLL 控制邏輯。現行 `read_wb_runtime.tcl` 會讀取其中與 Step 3/Step 4 gate 有關的欄位，但所有結論仍須綁定實際 firmware、RTL、SOF 與 Tcl decode script commit。
 
 | 位址範圍 | 內容 |
 |---:|---|
@@ -436,9 +436,33 @@ bits 27..31  = 保留
 | `0x00100B24` | `HELPER_P_SETPOINT`：下一個預期 tag |
 | `0x00100B28` | `HELPER_REF_SRC`：helper reference source |
 
+`0x00100AA0` 的 packing 由 `task-diags.c` 定義：bits 7:0 是 `softpll.seq_state`、bits 15:8 是 `softpll.ext.align_state`、bits 23:16 是 `softpll.mode`、bits 31:24 是 `softpll.delock_count`。現行 source 的 sequencer 合法值為：
+
+| 值 | Sequencer symbol |
+|---:|---|
+| 0 | `SEQ_UNINITIALIZED`（C global 零初始化的診斷狀態；不是正式 enum） |
+| 1 | `SEQ_START_EXT` |
+| 2 | `SEQ_WAIT_EXT` |
+| 3 | `SEQ_START_HELPER` |
+| 4 | `SEQ_WAIT_HELPER` |
+| 5 | `SEQ_START_MAIN` |
+| 6 | `SEQ_WAIT_MAIN` |
+| 7 | `SEQ_DISABLED` |
+| 8 | `SEQ_READY` |
+| 9 | `SEQ_CLEAR_DACS` |
+| 10 | `SEQ_WAIT_CLEAR_DACS` |
+
+因此 dashboard 不可用 0..9 的位移表解碼，也不可把 sequence 6 誤判成 disabled。穩態 runtime 若仍為 0，表示 SoftPLL 尚未完成初始化，不是 JTAG 讀值無效。
+
 這些 `0x00100B00..0x00100B28` 欄位需要 private WDIAGS 的 peripheral window 至少涵蓋 `0x000..0x1FF`。目前 private WDIAGS base 是 `0x00100A00`，並且將 `0x00100B00` 保留給 correlation shadow；若實際 bitstream 仍使用舊的 `0x000..0x0FF` SDB window，讀值會落到後續 peripheral，造成欄位 alias；此時不能拿來判斷 helper 或 SoftPLL 行為。
 
 若要解讀這段，必須同時固定 firmware commit、RTL commit 與實際 SOF；不能只依地址名稱猜測。
+
+### 4.5 Mailbox 讀值驗證與 regression 判定
+
+`read_wb_runtime.tcl`、`read_master_ptp_slave_parent_long.tcl`、`read_wr_handshake_focused.tcl` 與 `read_step23_register_reliability.tcl` 會拒絕已觀察到的 `0xA5A5xxxx` stale/filler pattern，並對 critical enum/status register 重試。`WDIAGS_PTP` 只接受 1..9；`WDIAGS_MODE` 由 `WDIAGS_PTP_META` 解碼，只接受本設計使用的 Master 2 或 Slave 3；WR state、SoftPLL sequence、RCER/OCER 也依 source-defined 範圍驗證。
+
+重試後仍沒有一致合法值時，結果是 `INVALID` / `MEASUREMENT_INVALID`，只代表 JTAG/mailbox 證據不足，不能寫成 FPGA、firmware 或 WR protocol 已失敗。Counter 在短窗口內 delta=0 只代表本窗口未觀察到事件；counter decrease 則可能是 wrap、reset/clear 或非原子讀取邊界，兩者都不能單獨成為硬體 FAIL。Step 2/Step 3 最終 gate 應使用 20 至 30 筆以上的 focused repeated samples，而不是單一 dashboard snapshot。
 
 ## 5. 如何從 JTAG 證明 Endpoint / MiniNIC / PTP packet path
 

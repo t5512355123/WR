@@ -105,7 +105,11 @@ proc validated_register {addr value} {
       return [expr {(($word >> 24) & 0xff) <= 7}]
     }
     0x00100AA0 {
-      return [expr {(($word >> 16) & 0xff) <= 3}]
+      set sequence [expr {$word & 0xff}]
+      set alignment [expr {($word >> 8) & 0xff}]
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$sequence <= 10 &&
+                    $alignment <= 10 && $mode <= 3}]
     }
   }
   return 1

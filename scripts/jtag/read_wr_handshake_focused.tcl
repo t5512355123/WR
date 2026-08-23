@@ -122,6 +122,11 @@ proc register_value_valid {addr value} {
     0x00100A80 {
       return [expr {(($word >> 24) & 0xff) <= 7}]
     }
+    0x00100A64 - 0x00100A68 {
+      set message [expr {($word >> 16) & 0xffff}]
+      return [expr {$message == 0 ||
+                    ($message >= 0x1000 && $message <= 0x1005)}]
+    }
     0x00100A50 {
       set reason [expr {$word & 0xff}]
       return [expr {$reason <= 4}]
@@ -143,7 +148,11 @@ proc register_value_valid {addr value} {
       return 1
     }
     0x00100AA0 {
-      return [expr {(($word >> 16) & 0xff) <= 3}]
+      set sequence [expr {$word & 0xff}]
+      set alignment [expr {($word >> 8) & 0xff}]
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$sequence <= 10 &&
+                    $alignment <= 10 && $mode <= 3}]
     }
     0x00100AA4 - 0x00100AA8 {
       return [expr {$word <= 0xff}]
@@ -282,14 +291,16 @@ proc focus_note_valid {board mode ptp mac foreign_count foreign_best parent_is_w
   }
   if {$mode == 3 && ($foreign_count == 1 && $foreign_best == 0 &&
       $parent_is_wr == 1 && $parent_cal == 1 && $rx_id == 0x1001 &&
-      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0)} {
+      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0 &&
+      $lock_enable > 0)} {
     incr ::focus_stats($board,step3_good)
   } elseif {$mode == 3} {
     incr ::focus_stats($board,step3_bad)
   }
   if {$mode == 3 && !($foreign_count == 1 && $foreign_best == 0 &&
       $parent_is_wr == 1 && $parent_cal == 1 && $rx_id == 0x1001 &&
-      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0)} {
+      $rx_count > 0 && $tx_id == 0x1000 && $tx_count > 0 &&
+      $lock_enable > 0)} {
     set ::focus_stats($board,step3_candidate) 0
   }
   if {$mode == 3 && $state == 0} { incr ::focus_stats($board,state_idle) }
@@ -371,8 +382,8 @@ proc read_focused_sample {hardware_name sample} {
   set foreign_meta [wb_read_critical 0x00100A78]
   set parse_meta [wb_read_critical 0x00100A80]
   set wr_state [wb_read_critical 0x00100A4C]
-  set wr_rx [wb_read 0x00100A64]
-  set wr_tx [wb_read 0x00100A68]
+  set wr_rx [wb_read_validated 0x00100A64]
+  set wr_tx [wb_read_validated 0x00100A68]
   set wr_fail [wb_read_critical 0x00100A6C]
   set wr_reject [wb_read_critical 0x00100A50]
   set wr_lock_result [wb_read_critical 0x00100A8C]

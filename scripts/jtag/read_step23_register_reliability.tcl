@@ -57,7 +57,10 @@ proc stale_jtag_word {value} {
 }
 
 proc wb_sync_toggle {} {
-  set value [read_probe_data -instance_index 1 -value_in_hex]
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    set ::wb_toggle 0
+    return
+  }
   if {![u64 $value]} {
     set ::wb_toggle 0
     return
@@ -69,10 +72,17 @@ proc wb_sync_toggle {} {
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set command [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  write_source_data -instance_index 1 -value [format %024X $command] -value_in_hex
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $command] -value_in_hex
+  }]} {
+    return "TIMEOUT"
+  }
   after 5
   for {set n 0} {$n < 100} {incr n} {
-    set value [read_probe_data -instance_index 1 -value_in_hex]
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      after 1
+      continue
+    }
     if {![u64 $value]} {
       after 1
       continue
@@ -112,6 +122,11 @@ proc register_valid {addr value} {
                     $detection <= 7 && $config <= 7}]
     }
     0x00100A80 { return [expr {(($word >> 24) & 0xff) <= 7}] }
+    0x00100A64 - 0x00100A68 {
+      set message [expr {($word >> 16) & 0xffff}]
+      return [expr {$message == 0 ||
+                    ($message >= 0x1000 && $message <= 0x1005)}]
+    }
     0x00100A50 {
       set reject_reason [expr {$word & 0xff}]
       return [expr {$reject_reason <= 4}]
@@ -130,6 +145,14 @@ proc register_valid {addr value} {
                     $mode <= 7}]
     }
     0x00100A9C { return 1 }
+    0x00100AA0 {
+      set sequence [expr {$word & 0xff}]
+      set alignment [expr {($word >> 8) & 0xff}]
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$sequence <= 10 &&
+                    $alignment <= 10 && $mode <= 3}]
+    }
+    0x00100AA4 - 0x00100AA8 { return [expr {$word <= 0xff}] }
   }
   return 1
 }
@@ -330,31 +353,54 @@ proc get_series {board label field} {
 
 proc step2_result {board} {
   set master [string match "*1.1*" $board]
-  set expected_mac [expr {$master ? "01" : "02"}]
+  set expected_macl [expr {$master ? 0x22334401 : 0x22334402}]
+  set expected_mode [expr {$master ? 2 : 3}]
   set expected_ptp [expr {$master ? 6 : 9}]
   set invalid 0
   set wrong 0
   foreach label {EP_MAC_H EP_MAC_L MODE PTP PTP_RX PTP_TX MINIC_TX MINIC_RX RXERR} {
     if {[get_series $board $label invalid] > 0} { set invalid 1 }
   }
-  if {[get_series $board EP_MAC_H expected] != [get_series $board EP_MAC_H valid]} { set wrong 1 }
-  if {[get_series $board EP_MAC_L expected] != [get_series $board EP_MAC_L valid]} { set wrong 1 }
-  if {[get_series $board MODE expected] != [get_series $board MODE valid]} { set wrong 1 }
-  if {[get_series $board PTP expected] != [get_series $board PTP valid]} { set wrong 1 }
+  if {[word32 [get_series $board EP_MAC_H first]] != 0x02000200 ||
+      [word32 [get_series $board EP_MAC_H last]] != 0x02000200} { set wrong 1 }
+  if {[word32 [get_series $board EP_MAC_L first]] != $expected_macl ||
+      [word32 [get_series $board EP_MAC_L last]] != $expected_macl} { set wrong 1 }
+  set mode_first [word32 [get_series $board MODE first]]
+  set mode_last [word32 [get_series $board MODE last]]
+  if {$mode_first < 0 || $mode_last < 0 ||
+      (($mode_first >> 24) & 0xff) != $expected_mode ||
+      (($mode_last >> 24) & 0xff) != $expected_mode} { set wrong 1 }
+  if {[word32 [get_series $board PTP last]] != $expected_ptp} { set wrong 1 }
   foreach label {PTP_RX PTP_TX MINIC_TX MINIC_RX RXERR} {
     if {[get_series $board $label decrease]} {
       puts [format "STEP2_COUNTER_RETEST board=%s register=%s result=DECREASED_OR_RESET" \
         $board $label]
+      set invalid 1
     }
   }
-  if {$wrong} { return FAIL }
+  # PTP_TX may be quiet in a finite observation window.  Step 2 still needs
+  # sustained inbound PTP plus MiniNIC TX/RX activity.
+  foreach label {PTP_RX MINIC_TX MINIC_RX} {
+    set first [word32 [get_series $board $label first]]
+    set last [word32 [get_series $board $label last]]
+    if {$first < 0 || $last <= $first} { set invalid 1 }
+  }
+  set rxerr_first [word32 [get_series $board RXERR first]]
+  set rxerr_last [word32 [get_series $board RXERR last]]
+  if {$rxerr_first < 0 || $rxerr_last < 0} {
+    set invalid 1
+  } elseif {$rxerr_last > $rxerr_first} {
+    set wrong 1
+  }
   if {$invalid} { return INVALID }
+  if {$wrong} { return FAIL }
   return PASS
 }
 
 proc step3_result {board} {
   if {[string match "*1.1*" $board]} { return NA }
   set invalid 0
+  set wrong 0
   foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE \
                  WR_SIGNAL_REJECT WR_FAILURE_DEBUG WDIAGS_TEMP} {
     if {[get_series $board $label invalid] > 0} {
@@ -374,9 +420,10 @@ proc step3_result {board} {
   set idle [get_series $board WDIAGS_TEMP state_idle]
   set non_idle [get_series $board WDIAGS_TEMP state_non_idle]
   foreach label {FOREIGN_META PARSE_META WR_RX_SIGNAL WR_TX_SIGNAL LOCK_ENABLE} {
-    if {[get_series $board $label expected] == 0} { set invalid 1 }
+    if {[get_series $board $label expected] == 0} { set wrong 1 }
   }
   if {$invalid} { return INVALID }
+  if {$wrong} { return FAIL }
   set failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_s_lock]
   if {$valid > 0 && $idle == $valid} {
     if {$failure_s_lock > 0 && [get_series $board LOCK_ENABLE expected] > 0} {
@@ -388,8 +435,8 @@ proc step3_result {board} {
         $board $failure_s_lock [get_series $board WR_FAILURE_DEBUG failure_count_max]]
       return PASS
     }
-    puts [format "STEP3_STATE_EVIDENCE board=%s result=STABLE_WRS_IDLE current_state=WRS_IDLE" $board]
-    return FAIL
+    puts [format "STEP3_STATE_EVIDENCE board=%s result=READ_INCONSISTENT current_state=WRS_IDLE signaling_and_lock_enable=ESTABLISHED" $board]
+    return INVALID
   }
   if {$non_idle > 0 && [get_series $board WDIAGS_TEMP expected] > 0} { return PASS }
   return INVALID

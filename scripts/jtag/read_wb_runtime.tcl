@@ -21,6 +21,7 @@ array set ::first_anomaly {}
 set ::board_count 0
 set ::raw_mode 0
 set ::max_read_attempts 5
+set ::observation_gap_ms 5000
 if {[info exists argv] && [lsearch -exact $argv "--raw"] >= 0} {
   set ::raw_mode 1
 }
@@ -102,7 +103,8 @@ proc register_value_valid {addr value} {
       # WR signaling shadow: the message ID is one of the source-defined
       # 0x1000..0x1005 messages and the low half is its event count.
       set message [expr {($word >> 16) & 0xffff}]
-      return [expr {$message >= 0x1000 && $message <= 0x1005}]
+      return [expr {$message == 0 ||
+                    ($message >= 0x1000 && $message <= 0x1005)}]
     }
     0x00100A50 {
       # WR signaling reject reason is a source-defined small enum in bits 7:0.
@@ -131,8 +133,11 @@ proc register_value_valid {addr value} {
     }
     0x00100AA0 {
       # SoftPLL shadow packs sequence, alignment, mode and delock count.
+      set sequence [expr {$word & 0xff}]
+      set alignment [expr {($word >> 8) & 0xff}]
       set mode [expr {($word >> 16) & 0xff}]
-      return [expr {$mode <= 3}]
+      return [expr {$sequence <= 10 &&
+                    $alignment <= 10 && $mode <= 3}]
     }
     0x00100AA4 - 0x00100AA8 {
       # Arria-10 design uses channel-enable bit masks; keep a small mask
@@ -243,8 +248,7 @@ proc status_text {status} {
     FAIL { return "error" }
     INFO { return "info" }
     # Invalid mailbox data is a measurement issue, not a hardware verdict.
-    # Keep the default UI within the requested pass/error/info vocabulary.
-    INVALID { return "info" }
+    INVALID { return "invalid" }
   }
   return $status
 }
@@ -321,16 +325,17 @@ proc raw_display {value} {
 
 proc state_name {state} {
   switch -- $state {
-    0 { return "SEQ_START_EXT" }
-    1 { return "SEQ_WAIT_EXT" }
-    2 { return "SEQ_START_HELPER" }
-    3 { return "SEQ_WAIT_HELPER" }
-    4 { return "SEQ_START_MAIN" }
-    5 { return "SEQ_WAIT_MAIN" }
-    6 { return "SEQ_DISABLED" }
-    7 { return "SEQ_READY" }
-    8 { return "SEQ_CLEAR_DACS" }
-    9 { return "SEQ_WAIT_CLEAR_DACS" }
+    0 { return "SEQ_UNINITIALIZED" }
+    1 { return "SEQ_START_EXT" }
+    2 { return "SEQ_WAIT_EXT" }
+    3 { return "SEQ_START_HELPER" }
+    4 { return "SEQ_WAIT_HELPER" }
+    5 { return "SEQ_START_MAIN" }
+    6 { return "SEQ_WAIT_MAIN" }
+    7 { return "SEQ_DISABLED" }
+    8 { return "SEQ_READY" }
+    9 { return "SEQ_CLEAR_DACS" }
+    10 { return "SEQ_WAIT_CLEAR_DACS" }
   }
   return "UNKNOWN"
 }
@@ -696,6 +701,7 @@ proc analyze_board {board} {
     [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE (startup:8)" : "ROLE")} ] ""
 
   set step2_activity_invalid 0
+  array set step2_activity {}
   foreach counter {
     {ptp_rx "PPSI PTP RX counter" WDIAGS_PTP_RX "PPSI-level PTP RX counter"}
     {ptp_tx "PPSI PTP TX counter" WDIAGS_PTP_TX "PPSI-level PTP TX counter"}
@@ -710,6 +716,7 @@ proc analyze_board {board} {
     set d [delta32 $b $a]
     set current [delta_status $d]
     if {$current eq "INVALID"} { set step2_activity_invalid 1 }
+    set step2_activity($field) $d
     print_delta $current $chinese $symbol \
       $b $a $d "" "Δ>0"
   }
@@ -717,7 +724,7 @@ proc analyze_board {board} {
   set ra [get_snap $board $after rxerr]
   set rd [delta32 $rb $ra]
   if {$rd eq "TIMEOUT"} {
-    set rxerr_status WARN
+    set rxerr_status INVALID
     set rxerr_explanation "JTAG snapshot 至少一筆逾時，沒有足夠證據判斷新增 RX error。"
     set rxerr_expected "兩次有效讀值且 delta=0"
   } elseif {$rd eq "DECREASED"} {
@@ -739,9 +746,21 @@ proc analyze_board {board} {
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
     $rb $ra $rd \
     $rxerr_explanation [expr {$rd eq "DECREASED" ? "DELTA>0" : "DELTA=0"}]
-  # A short counter window is descriptive only.  It must not turn a single
-  # zero delta into a Step 2 failure; invalid reads still require a retest.
-  if {$step2_activity_invalid && $step2 eq "PASS"} { set step2 INVALID }
+  # PTP_TX can legitimately be quiet in one observation window.  Step 2 still
+  # needs simultaneous PTP RX and MiniNIC TX/RX activity; if those three do
+  # not all move, keep the dashboard result as measurement-incomplete/retest
+  # instead of claiming a hardware failure.
+  set packet_path_active 1
+  foreach field {ptp_rx tx rx} {
+    if {![info exists step2_activity($field)] ||
+        ![string is integer -strict $step2_activity($field)] ||
+        $step2_activity($field) <= 0} {
+      set packet_path_active 0
+    }
+  }
+  if {($step2_activity_invalid || !$packet_path_active) && $step2 eq "PASS"} {
+    set step2 INVALID
+  }
   if {$step2 ne "PASS" && $step2 ne "INVALID"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role" }
   set ::step_status($board,2) $step2
   puts [format "Step 2 %s" [step_status_text $step2]]
@@ -886,7 +905,11 @@ proc analyze_board {board} {
     set seq [expr {$spll_word < 0 ? -1 : ($spll_word & 0xff)}]
     set spll_mode [expr {$spll_word < 0 ? -1 : (($spll_word >> 16) & 0xff)}]
     set mode_status [exact_status $spll_mode 3]
-    set seq_status [expr {$seq < 0 ? "WARN" : ($seq == 6 ? "FAIL" : "PASS")}]
+    if {$seq < 0} {
+      set seq_status INVALID
+    } else {
+      set seq_status [expr {$seq == 0 || $seq == 7 ? "FAIL" : "PASS"}]
+    }
     set step4 [merge_status $step4 $mode_status]
     set step4 [merge_status $step4 $seq_status]
     print_signal $mode_status "SoftPLL Mode" SPLL_STATE \
@@ -1005,13 +1028,11 @@ proc analyze_board {board} {
   } else {
     set failure_class "NO_FAILURE_EVIDENCE"
   }
-  if {$::raw_mode} {
-    puts [format "STEP1_REGRESSION = %s" $step1_reg]
-    puts [format "STEP2_REGRESSION = %s" $step2_reg]
-    puts [format "STEP3_REGRESSION = %s" $step3_reg]
-    puts [format "STEP4_ALLOWED = %s" $step4_allowed]
-    puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
-  }
+  puts [format "STEP1_REGRESSION = %s" $step1_reg]
+  puts [format "STEP2_REGRESSION = %s" $step2_reg]
+  puts [format "STEP3_REGRESSION = %s" $step3_reg]
+  puts [format "STEP4_ALLOWED = %s" $step4_allowed]
+  puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
   puts "============================================================"
 }
 
@@ -1040,7 +1061,7 @@ foreach hardware_name [get_hardware_names] {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
     collect_snapshot $board before
-    after 750
+    after $::observation_gap_ms
     collect_snapshot $board after
     analyze_board $board
     if {$::raw_mode} {

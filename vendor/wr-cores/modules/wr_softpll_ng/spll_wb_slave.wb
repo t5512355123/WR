@@ -376,9 +376,10 @@ peripheral {
 
     # Manual read-only aliases are implemented in spll_wb_slave.vhd without
     # changing any functional write behavior.  The write-only read sides at
-    # 0x40, 0x44, and 0x4c expose REF depth-sum LO/HI and FB depth-sum LO;
-    # 0x58 exposes FB depth-sum HI.  Slots 0x50/0x54 retain the full-width
-    # REF/FB LOW qualification-abort counters.
+    # 0x40, 0x44, and 0x4c expose REF native-edge LO/HI and FB native-edge LO;
+    # 0x58 exposes FB native-edge HI. Slots 0x50/0x54 retain the full-width
+    # REF/FB LOW qualification-abort counters. Historical SOFs used these
+    # aliases for the 64-bit HIGH-abort depth sums.
     # The read-side aliases at 0x60 and 0x64 expose the full-width reference
     # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
     # EIC behavior is preserved in the hand-maintained VHDL wrapper.
@@ -396,7 +397,7 @@ peripheral {
 
     # 0x58 and 0x5c are manual read-only extensions implemented in
     # spll_wb_slave.vhd; they are intentionally not added to the generated
-    # register sequence.  Current source uses 0x58 for FB depth-sum HI and
+    # register sequence. Current source uses 0x58 for FB native-edge HI and
     # keeps 0x5c as the packed D0 LOW run maximum.
 
 	 reg {

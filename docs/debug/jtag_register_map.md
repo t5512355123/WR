@@ -202,19 +202,21 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100234` | `SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：reference `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x00100238` | `SPLL_DMTD_FB_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：feedback `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x0010023C` | `SPLL_DMTD_HIGH_QUAL_MAX_STAB` | 唯讀封裝欄位：bits 15..0 是 reference 在 `GOT_EDGE` HIGH qualification abort 前曾達到的最大 `stab_cntr`，bits 31..16 是 feedback 對應值；只觀測 abort 深度，不改 FSM 或 threshold |
-| `0x00100240` | `SPLL_REF_HIGH_ABORT_DEPTH_SUM_LO` | 唯讀 alias：reference 64-bit HIGH qualification-abort depth sum 的 bits 31..0；原本 `DAC_HPLL` 的 write side 完整保留 |
-| `0x00100244` | `SPLL_REF_HIGH_ABORT_DEPTH_SUM_HI` | 唯讀 alias：reference depth sum 的 bits 63..32；原本 `DAC_MAIN` 的 write side完整保留 |
-| `0x0010024C` | `SPLL_FB_HIGH_ABORT_DEPTH_SUM_LO` | 唯讀 alias：feedback 64-bit HIGH qualification-abort depth sum 的 bits 31..0；原本 `DFR_SPLL` 的 write side 完整保留 |
+| `0x00100240` | `SPLL_REF_NATIVE_EDGE_COUNT_LO` | 唯讀 alias：reference 原生 `clk_in_i` 64-bit edge counter 的 bits 31..0；原本 `DAC_HPLL` write side 完整保留 |
+| `0x00100244` | `SPLL_REF_NATIVE_EDGE_COUNT_HI` | 唯讀 alias：reference 原生 edge counter 的 bits 63..32；原本 `DAC_MAIN` write side 完整保留 |
+| `0x0010024C` | `SPLL_FB_NATIVE_EDGE_COUNT_LO` | 唯讀 alias：feedback 原生 `clk_in_i` 64-bit edge counter 的 bits 31..0；原本 `DFR_SPLL` write side 完整保留 |
 | `0x00100250` | `SPLL_DMTD_LOW_QUAL_ABORT_REF` | 唯讀 32-bit reference LOW qualification-abort counter。當 FSM 位於 `WAIT_STABLE_0`、`stab_cntr` 已開始累積但 `clk_sampled` 在達到 threshold 前回到 HIGH 時增加；不改 FSM、threshold 或 sampler。歷史 SOF 曾將此位址用作 input HIGH run maximum，解碼必須依 SOF 與 Tcl 來源 commit 判斷。 |
 | `0x00100254` | `SPLL_DMTD_LOW_QUAL_ABORT_FB` | 唯讀 32-bit feedback LOW qualification-abort counter，觸發條件與 reference 相同。歷史 SOF 曾將此位址用作 input LOW run maximum，解碼必須依 SOF 與 Tcl 來源 commit 判斷。 |
-| `0x00100258` | `SPLL_FB_HIGH_ABORT_DEPTH_SUM_HI` | 唯讀 alias：feedback 64-bit HIGH qualification-abort depth sum 的 bits 63..32。歷史 SOF 曾在此位址提供 packed `DMTD_INPUT_D1_HIGH_RUN_MAX`，解碼必須依實際 SOF/source commit 判斷 |
+| `0x00100258` | `SPLL_FB_NATIVE_EDGE_COUNT_HI` | 唯讀 alias：feedback 原生 edge counter 的 bits 63..32。歷史 SOF 曾在此位址提供 HIGH-abort depth sum 或 packed `DMTD_INPUT_D1_HIGH_RUN_MAX`，解碼必須依實際 SOF/source commit 判斷 |
 | `0x0010025C` | `SPLL_DMTD_INPUT_D0_LOW_RUN_MAX` | 唯讀封裝欄位：bits 15..0 是 reference `clk_i_d0` 的最大連續 LOW sample 數，bits 31..16 是 feedback 對應值；`clk_i_d0` 位於 `clk_in` 與 `clk_i_d1` 之間，用來定位 sampler 取樣邊界，不回饋 `clk_sampled_o` |
 | `0x00100260` | `SPLL_DMTD_WAIT_EDGE_ENTRY_REF` | 唯讀診斷 alias：reference deglitch FSM 完成 LOW qualification，於 `WAIT_STABLE_0` 排程進入 `WAIT_EDGE` 的累計次數。寫入側仍保留既有 `EIC_IDR` 行為；本 alias 只使用原本 write-only register 的 read side。歷史 commit `c9f1f15` 的相同位址是 D1 pipeline mismatch，`4417411` 則是 D0 shadow 診斷，解碼必須依 SOF 與 Tcl 來源 commit 判斷。 |
 | `0x00100264` | `SPLL_DMTD_WAIT_EDGE_ENTRY_FB` | 唯讀診斷 alias：feedback deglitch FSM 完成 LOW qualification，於 `WAIT_STABLE_0` 排程進入 `WAIT_EDGE` 的累計次數。寫入側仍保留既有 `EIC_IER` 行為；本 alias 只使用原本 write-only register 的 read side。歷史 commit `c9f1f15` 的相同位址是 D1 pipeline mismatch，`4417411` 則是 D0 shadow 診斷，解碼必須依 SOF 與 Tcl 來源 commit 判斷。 |
 
-`HIGH_ABORT_DEPTH_SUM` 是 64-bit 自由運行且自然回繞的唯讀診斷累加器。Tcl 必須以 `HI1 -> LO -> HI2` 順序讀取，只在 `HI1 == HI2` 時接受該筆 64-bit 值，否則重試；觀測視窗使用 modulo-2^64 delta。平均 abort 深度定義為 `delta(depth_sum64) / delta(high_abort_count32)`。若 abort delta 大於 0 但 depth-sum delta 為 0，只能標示為診斷讀回不一致，不可當成 DMTD 功能結論。
+`NATIVE_EDGE_COUNT` 在各自的原生 `clk_in_i` domain 每個 rising edge 加一，採 64-bit 自然回繞。binary counter 不直接跨時鐘域；Gray code 在原生 domain 註冊後，經 `gc_sync_register` 的兩級同步器進入 `clk_sys_i`，最後才轉回 binary。這只能證明原生 clock edge 的存在與估算頻率，不參與 DMTD、deglitch、SoftPLL 或 DCO 行為。
 
-上述 `0x240/0x244/0x24C/0x258` 配置只適用於包含這組 source 的 fresh SOF。歷史 SOF 可能在 `0x258` 提供不同診斷值；每份 log 都必須同時記錄 source commit、Tcl commit 與 SOF SHA256。
+Tcl 必須以 `HI1 -> LO -> HI2` 順序讀取，只在 `HI1 == HI2` 時接受該筆 64-bit 值，否則重試；觀測視窗使用 modulo-2^64 delta。`native_frequency_hz = native_delta / actual_elapsed_seconds`，`sampled_to_native_ratio = sampled_transition_delta / native_edge_delta`，REF 與 FB 必須分開計算。
+
+上述 `0x240/0x244/0x24C/0x258` 配置只適用於包含本段 source 的 fresh SOF。`8ff33fe` 等歷史 SOF 在同一組位址提供 64-bit HIGH-abort depth sums，更早的 SOF 在 `0x258` 可能提供其他診斷值；每份 log 都必須同時記錄 source commit、Tcl commit 與 SOF SHA256。
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞，bounded observation 必須用 modulo-32 delta。 |

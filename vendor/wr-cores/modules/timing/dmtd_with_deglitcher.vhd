@@ -166,6 +166,9 @@ entity dmtd_with_deglitcher is
      -- Sum of stab_cntr at every HIGH qualification abort. Read-only,
      -- free-running modulo 2^64, and never feeds the functional FSM.
      dbg_high_qual_abort_depth_sum_o : out std_logic_vector(63 downto 0);
+     -- Native input-clock edge count. The binary counter and Gray encoder run
+     -- in clk_in_i; only the synchronized Gray value is decoded in clk_sys_i.
+     dbg_native_edge_count_o : out std_logic_vector(63 downto 0);
      -- Maximum consecutive HIGH samples at dmtd_sampler input. Read-only.
      dbg_input_high_run_max_o : out std_logic_vector(15 downto 0);
      -- Maximum consecutive LOW samples at dmtd_sampler input. Read-only.
@@ -189,6 +192,16 @@ architecture rtl of dmtd_with_deglitcher is
     if value /= maximum then
       result := value + 1;
     end if;
+    return result;
+  end function;
+
+  function f_gray_to_binary(value : std_logic_vector) return std_logic_vector is
+    variable result : std_logic_vector(value'range);
+  begin
+    result(value'left) := value(value'left);
+    for i in value'left-1 downto value'right loop
+      result(i) := result(i+1) xor value(i);
+    end loop;
     return result;
   end function;
 
@@ -216,6 +229,9 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_low_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_depth_sum_sys : std_logic_vector(63 downto 0);
+  signal dbg_native_edge_count_bin : unsigned(63 downto 0) := (others => '0');
+  signal dbg_native_edge_count_gray : std_logic_vector(63 downto 0) := (others => '0');
+  signal dbg_native_edge_count_gray_sys : std_logic_vector(63 downto 0);
   signal dbg_input_high_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
   signal dbg_input_high_run_max_sys : std_logic_vector(15 downto 0);
    signal dbg_input_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
@@ -257,6 +273,33 @@ architecture rtl of dmtd_with_deglitcher is
   signal state_dbg_sys : std_logic_vector(1 downto 0);
   
 begin  -- rtl
+
+  -- Diagnostic-only native-domain counter. Registering the Gray code in the
+  -- same domain prevents combinational binary carry transitions from crossing
+  -- into clk_sys_i. This path never feeds the DMTD or SoftPLL logic.
+  p_debug_native_edge_count : process(clk_in_i, rst_n_dmtdclk_i)
+    variable next_count : unsigned(63 downto 0);
+  begin
+    if rst_n_dmtdclk_i = '0' then
+      dbg_native_edge_count_bin <= (others => '0');
+      dbg_native_edge_count_gray <= (others => '0');
+    elsif rising_edge(clk_in_i) then
+      next_count := dbg_native_edge_count_bin + 1;
+      dbg_native_edge_count_bin <= next_count;
+      dbg_native_edge_count_gray <=
+        std_logic_vector(next_count xor shift_right(next_count, 1));
+    end if;
+  end process p_debug_native_edge_count;
+
+  U_sync_dbg_native_edge_count : entity work.gc_sync_register
+    generic map (g_width => 64)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => dbg_native_edge_count_gray,
+      q_o       => dbg_native_edge_count_gray_sys);
+
+  dbg_native_edge_count_o <= f_gray_to_binary(dbg_native_edge_count_gray_sys);
 
   state_dbg_dmtd <= "00" when state = WAIT_STABLE_0 else
                     "01" when state = WAIT_EDGE else

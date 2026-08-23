@@ -10,6 +10,7 @@
 *.vh text eol=lf
 *.vhd text eol=lf
 *.vhdl text eol=lf
+*.wb text eol=lf
 *.tcl text eol=lf
 *.sh text eol=lf
 *.py text eol=lf

@@ -200,12 +200,14 @@ proc series_delta_mod64 {first last invalid} {
 }
 
 proc init_series {board label} {
-  foreach field {valid invalid timeout decrease first last previous delta hist} {
+  foreach field {valid invalid timeout decrease first last previous delta hist first_ms last_ms} {
     set ::series($board,$label,$field) 0
   }
   set ::series($board,$label,first) ""
   set ::series($board,$label,last) ""
   set ::series($board,$label,previous) -1
+  set ::series($board,$label,first_ms) ""
+  set ::series($board,$label,last_ms) ""
 }
 
 proc add_series_sample {board label sample value} {
@@ -272,13 +274,36 @@ proc add_series_sample64 {board label sample value} {
   }
 }
 
+proc add_timed_series_sample {board label sample value timestamp_ms} {
+  set valid_before $::series($board,$label,valid)
+  add_series_sample $board $label $sample $value
+  if {$::series($board,$label,valid) > $valid_before} {
+    if {$::series($board,$label,first_ms) eq ""} {
+      set ::series($board,$label,first_ms) $timestamp_ms
+    }
+    set ::series($board,$label,last_ms) $timestamp_ms
+  }
+}
+
+proc add_timed_series_sample64 {board label sample value timestamp_ms} {
+  set valid_before $::series($board,$label,valid)
+  add_series_sample64 $board $label $sample $value
+  if {$::series($board,$label,valid) > $valid_before} {
+    if {$::series($board,$label,first_ms) eq ""} {
+      set ::series($board,$label,first_ms) $timestamp_ms
+    }
+    set ::series($board,$label,last_ms) $timestamp_ms
+  }
+}
+
 proc finish_series {board label} {
   set valid $::series($board,$label,valid)
   set invalid $::series($board,$label,invalid)
   set first $::series($board,$label,first)
   set last $::series($board,$label,last)
   if {$label eq "DMTD_REF_SEEN" || $label eq "DMTD_FB_SEEN" ||
-      $label eq "DEPTH_REF_ABORT_COUNT" || $label eq "DEPTH_FB_ABORT_COUNT"} {
+      $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
+      $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
     # These source-defined HIGH qualification-abort counters are 32-bit
     # free-running diagnostics.  A decrease is an expected wrap, not reset.
     set delta [series_delta_mod32 $first $last $invalid]
@@ -347,52 +372,76 @@ proc read_group {board group_name items} {
         $board $group_name $group_result]
 }
 
-proc read_abort_depth_group {board} {
-  foreach label {DEPTH_REF_ABORT_COUNT REF_HIGH_ABORT_DEPTH_SUM64 \
-                 DEPTH_FB_ABORT_COUNT FB_HIGH_ABORT_DEPTH_SUM64} {
+proc read_native_edge_group {board} {
+  foreach label {REF_NATIVE_EDGE_COUNT64 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
+                 FB_NATIVE_EDGE_COUNT64 NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
 
   for {set sample 1} {$sample <= $::samples} {incr sample} {
-    add_series_sample $board DEPTH_REF_ABORT_COUNT $sample \
-      [wb_read_validated 0x001002A0]
-    add_series_sample64 $board REF_HIGH_ABORT_DEPTH_SUM64 $sample \
-      [wb_read_u64_consistent 0x00100240 0x00100244]
-    add_series_sample $board DEPTH_FB_ABORT_COUNT $sample \
-      [wb_read_validated 0x001002A4]
-    add_series_sample64 $board FB_HIGH_ABORT_DEPTH_SUM64 $sample \
-      [wb_read_u64_consistent 0x0010024C 0x00100258]
+    set value [wb_read_u64_consistent 0x00100240 0x00100244]
+    add_timed_series_sample64 $board REF_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100234]
+    add_timed_series_sample $board NATIVE_REF_SAMPLED $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x0010022C]
+    add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
+      [clock milliseconds]
+
+    set value [wb_read_u64_consistent 0x0010024C 0x00100258]
+    add_timed_series_sample64 $board FB_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100238]
+    add_timed_series_sample $board NATIVE_FB_SAMPLED $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100230]
+    add_timed_series_sample $board NATIVE_FB_ACCEPT $sample $value \
+      [clock milliseconds]
     if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
   }
 
-  finish_series $board DEPTH_REF_ABORT_COUNT
-  finish_series64 $board REF_HIGH_ABORT_DEPTH_SUM64
-  finish_series $board DEPTH_FB_ABORT_COUNT
-  finish_series64 $board FB_HIGH_ABORT_DEPTH_SUM64
+  finish_series64 $board REF_NATIVE_EDGE_COUNT64
+  finish_series $board NATIVE_REF_SAMPLED
+  finish_series $board NATIVE_REF_ACCEPT
+  finish_series64 $board FB_NATIVE_EDGE_COUNT64
+  finish_series $board NATIVE_FB_SAMPLED
+  finish_series $board NATIVE_FB_ACCEPT
 
-  set ref_count [series_value $board DEPTH_REF_ABORT_COUNT delta]
-  set ref_sum [series_value $board REF_HIGH_ABORT_DEPTH_SUM64 delta]
-  set fb_count [series_value $board DEPTH_FB_ABORT_COUNT delta]
-  set fb_sum [series_value $board FB_HIGH_ABORT_DEPTH_SUM64 delta]
-  set ref_avg NA
-  set fb_avg NA
   set result VALID
-  if {[string is integer -strict $ref_count] && $ref_count > 0 &&
-      [string is integer -strict $ref_sum]} {
-    set ref_avg [format "%.6f" [expr {double($ref_sum) / double($ref_count)}]]
-    if {$ref_sum == 0} { set result INCONSISTENT }
-  } elseif {$ref_count ne "0"} {
-    set result INVALID
+  set fields {}
+  foreach side {REF FB} {
+    set native_label ${side}_NATIVE_EDGE_COUNT64
+    set sampled_label NATIVE_${side}_SAMPLED
+    set accept_label NATIVE_${side}_ACCEPT
+    set native_delta [series_value $board $native_label delta]
+    set sampled_delta [series_value $board $sampled_label delta]
+    set accept_delta [series_value $board $accept_label delta]
+    set first_ms [series_value $board $native_label first_ms]
+    set last_ms [series_value $board $native_label last_ms]
+    set elapsed_ms NA
+    set frequency_hz NA
+    set sampled_ratio NA
+    if {[string is wideinteger -strict $native_delta] &&
+        [string is wideinteger -strict $sampled_delta] &&
+        [string is wideinteger -strict $first_ms] &&
+        [string is wideinteger -strict $last_ms] && $last_ms > $first_ms &&
+        $native_delta > 0} {
+      set elapsed_ms [expr {$last_ms - $first_ms}]
+      set frequency_hz [format "%.3f" \
+        [expr {double($native_delta) * 1000.0 / double($elapsed_ms)}]]
+      set sampled_ratio [format "%.9f" \
+        [expr {double($sampled_delta) / double($native_delta)}]]
+    } else {
+      set result INVALID
+    }
+    lappend fields [format "%s_native_delta=%s %s_elapsed_ms=%s %s_frequency_hz=%s %s_sampled_delta=%s %s_sampled_to_native_ratio=%s %s_accept_delta=%s" \
+      [string tolower $side] $native_delta [string tolower $side] $elapsed_ms \
+      [string tolower $side] $frequency_hz [string tolower $side] $sampled_delta \
+      [string tolower $side] $sampled_ratio [string tolower $side] $accept_delta]
   }
-  if {[string is integer -strict $fb_count] && $fb_count > 0 &&
-      [string is integer -strict $fb_sum]} {
-    set fb_avg [format "%.6f" [expr {double($fb_sum) / double($fb_count)}]]
-    if {$fb_sum == 0} { set result INCONSISTENT }
-  } elseif {$fb_count ne "0"} {
-    set result INVALID
-  }
-  puts [format "STEP4_HIGH_ABORT_DEPTH board=%s ref_abort=%s ref_sum=%s ref_avg=%s fb_abort=%s fb_sum=%s fb_avg=%s result=%s" \
-        $board $ref_count $ref_sum $ref_avg $fb_count $fb_sum $fb_avg $result]
+  puts [format "STEP4_NATIVE_CLOCK board=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board [lindex $fields 0] [lindex $fields 1] $result]
 }
 
 proc series_value {board label field} {
@@ -651,7 +700,7 @@ proc read_event_group {board} {
     {TRR_WRITE_LAST_TICS 0x001002D8}
   }
   read_group $board DMTD_BOUNDARY $boundary_items
-  read_abort_depth_group $board
+  read_native_edge_group $board
   read_group $board TAG_ARBITRATION $arbitration_items
   read_group $board DOWNSTREAM $downstream_items
   read_group $board EVENT_TIMING $timing_items

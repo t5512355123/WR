@@ -1,10 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 診斷摘要（2026-08-23，HEAD `52a2b65`）
+
+本輪在 branch `exp/step4-softpll-enable` 由 fresh HEAD 完成 Master/Slave clean build、Quartus compile、雙板燒錄與 read-only regression。唯一變因是新增 `DMTD_INPUT_HIGH_RUN_MAX`，觀測 `dmtd_sampler` 輸入端 `clk_in` 的最大連續 HIGH sample 長度；沒有修改任何 White Rabbit functional behavior。
+
+- Step 1：PASS
+- Step 2：PASS
+- Step 3：PASS（保留 `STATE_EVIDENCE=READ_INCONSISTENT` 作為 JTAG shadow consistency evidence）
+- Step 4：NOT PASS
+- Step 4 gate：允許繼續 read-only source audit，但尚未允許 functional experiment
+- Master/Slave SOF programmer checksum：`0x30ABDAF9` / `0x30AB0F26`
+- Master/Slave build：均 `Full Compilation was successful`，但 timing `timing_closed=NO`
+
+T0/T1 的 input HIGH-run max：Master REF/FB=`8753/4608`，Slave REF/FB=`65535/12640`～`65535/12664`；因此目前沒有證據支持「輸入 HIGH pulse 只有 1～5 個 sample」是主因。另一方面 accepted DMTD、tag、TRR、IRQ、helper 在 T1 仍無 sustained activity，所以 Step 4 仍不能標示 PASS。這輪只排除了單一解釋，尚未證明硬體/韌體根因。
+
+完整紀錄與原始證據：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-INPUT-HIGH-RUN-20260823.md`
+
 最後更新：2026-08-23
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`8c3e0393b9950501a56eb11cb20ce8d6067c7ef0`
+目前 diagnostics HEAD：`52a2b65a704631a4171574fc9d5ca2b86a4238ea`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 

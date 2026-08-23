@@ -1,5 +1,28 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 D1 同步管線實驗（2026-08-24，HEAD `c9f1f15`）
+
+本輪由 exact commit `c9f1f15005fa41b581736ec56c27e207178731ac` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是以同步域內的 `D1_PIPELINE_MISMATCH_COUNT` 取代上一輪會重複取樣非同步 `clk_in` 的 D0 shadow 診斷；沒有修改 WR signaling、PTP、SoftPLL、DDMTD polarity、PI、threshold、DCO、SI5340、PHY 或 firmware 功能行為。
+
+- Master/Slave programmer checksum：`0x30AA777D` / `0x30ADDA10`；兩片均 configuration succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Master `MODE=2/PTP=6`，Slave `MODE=3/PTP=9`。
+- Step 3：Slave PASS；30/30 valid samples、foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`。
+- D1 mismatch：Master/Slave、REF/FB、T0/T1 全為 `0`，支持 D0/en→D1 同步管線沒有觀測到不一致。
+- Step 4：NOT PASS。兩個視窗中 sampled transition 大量增加，但 accepted DMTD、event、tag、TRR、IRQ、state transition、helper 全部沒有 sustained delta。
+- 第一個未形成持續活動的觀測邊界已收斂到 deglitch acceptance；根因仍未證明。
+- Master/Slave compile 均成功，但 `TIMING_CLOSED=NO`，worst setup slack 分別為 `-0.404 ns` / `-0.223 ns`。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-D1-PIPELINE-MISMATCH-20260824.md`
+
 ## 最新 Step 4 D0 shadow mismatch 實驗（2026-08-24，HEAD `4417411`）
 
 本輪由 exact commit `441741129f160ea0535279d1ad0269540a73073d` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是 REF/FB 的 32-bit `D0_SAMPLE_MISMATCH_COUNT` 診斷，不修改 WR signaling、SoftPLL、DDMTD polarity、PI、threshold、DCO、SI5340、PHY 或 firmware 功能行為。

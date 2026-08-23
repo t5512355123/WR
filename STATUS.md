@@ -4,9 +4,35 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`c7c690bc5588a039c6fdf26606f9699ec182c9d9`
+目前 diagnostics HEAD：`688b152b2551ca51c58b8ec0a40967f5d7e8dca0`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
+
+## 2026-08-23 Step 4 HIGH qualification-abort fresh hardware experiment（688b152）
+
+本輪由 GitHub exact commit `688b152b2551ca51c58b8ec0a40967f5d7e8dca0` 建立 firmware 與 Quartus fresh SOF，完成雙板燒錄，再執行 focused Step 2/3 regression、Step 4 bounded time-series 與 dashboard。唯一 functional 變因是把既有 DMTD `GOT_EDGE` HIGH qualification-abort read-only counter 擴成 32-bit；計數條件、deglitch threshold、FSM、DDMTD、SoftPLL、WR signaling、PTP、PHY 與所有 control register 行為均未改變。
+
+- Quartus：17.0.0 Build 595；Master/Slave build wrapper 均回報 passed，`timing_closed=NO`。
+- Master/Slave MIF、QSF、SDC、SOF SHA256 與完整 build/program/JTAG raw log 見本輪實驗紀錄。
+- Master SOF programmer checksum：`0x30A72F9D`；Slave：`0x30A7AF69`；重複燒錄均 `configuration succeeded`、0 errors、0 warnings。
+- Step 1：dashboard 兩板 PASS。
+- Step 2：最後一次 fresh-SOF focused 20 samples 兩板 PASS；Master `PTP=6`，Slave `PTP=9`、`FOREIGN=1/0`，PTP/MiniNIC counter 有活動，RXERR=0。
+- Step 3：Slave focused 20 samples PASS；`parent=1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`，並保留 `STATE_EVIDENCE=READ_INCONSISTENT` / `POST_STEP3_LOCK_STAGE=TIMEOUT`。
+- Step 4：NOT PASS。立即窗口中 Slave 的 sampled/accept/event 有短暫進展；接續 30 samples 中 Slave `sampled_delta` 約 `1.17e9`、`accept_delta=0`，HIGH qualification-abort delta 為 reference `584189670`、feedback `582950225`，tag/TRR/IRQ/helper 仍為 0。第一個有直接證據的 inactive boundary 是 `GOT_EDGE -> HIGH qualification abort -> deglitch accept`。
+- JTAG/STP：所有 script 都完整結束，回報 `Evaluation ... successful` 與 0 errors/0 warnings；本輪沒有把 invalid mailbox sample 當成硬體錯誤。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+HARDWARE/FIRMWARE_FAILURE = ROOT_CAUSE_NOT_PROVEN
+JTAG/DASHBOARD_MEASUREMENT_FAILURE = NOT_OBSERVED_FOR_KEY_SAMPLES
+```
+
+完整紀錄：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-HIGH-ABORT32-20260823.md`
 
 ## 2026-08-23 Step 4 JTAG bounded-group measurement round（64341ca）
 

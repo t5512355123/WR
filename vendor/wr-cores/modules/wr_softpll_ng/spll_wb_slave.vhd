@@ -59,6 +59,10 @@ port (
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_seen_i                      : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_high_abort_depth_sum_lo_i  : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_high_abort_depth_sum_hi_i  : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_high_abort_depth_sum_lo_i   : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_high_abort_depth_sum_hi_i   : in     std_logic_vector(31 downto 0);
   diag_tag_pending_count_i                 : in     std_logic_vector(31 downto 0);
   diag_tag_grant_count_i                   : in     std_logic_vector(31 downto 0);
   diag_current_tics_i                      : in     std_logic_vector(31 downto 0);
@@ -444,7 +448,7 @@ begin
           ack_in_progress <= '1';
         when "010110" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_input_d1_high_run_max_i;
+            rddata_reg <= diag_dmtd_fb_high_abort_depth_sum_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -490,6 +494,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          if (wb_we_i = '0') then
+            -- DAC_HPLL is write-only. Preserve its write behavior and use
+            -- only the read side for the REF depth-sum low word.
+            rddata_reg <= diag_dmtd_ref_high_abort_depth_sum_lo_i;
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "010001" => 
@@ -529,6 +538,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          if (wb_we_i = '0') then
+            -- DAC_MAIN is write-only. Preserve its write behavior and use
+            -- only the read side for the REF depth-sum high word.
+            rddata_reg <= diag_dmtd_ref_high_abort_depth_sum_hi_i;
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "010010" => 
@@ -591,6 +605,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          if (wb_we_i = '0') then
+            -- DFR_SPLL is write-only. Preserve its write behavior and use
+            -- only the read side for the FB depth-sum low word.
+            rddata_reg <= diag_dmtd_fb_high_abort_depth_sum_lo_i;
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011000" => 

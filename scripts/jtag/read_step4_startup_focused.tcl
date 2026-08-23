@@ -43,6 +43,20 @@ proc word32 {value} {
   return [expr {$word & 0xffffffff}]
 }
 
+proc is_u64 {value} {
+  return [regexp {^[0-9A-Fa-f]{16}$} $value]
+}
+
+proc word64 {value} {
+  if {![is_u64 $value]} { return -1 }
+  set result 0
+  foreach digit [split [string toupper $value] ""] {
+    scan $digit %x nibble
+    set result [expr {$result * 16 + $nibble}]
+  }
+  return $result
+}
+
 proc stale_word {value} {
   set word [word32 $value]
   if {$word < 0} { return 0 }
@@ -143,6 +157,22 @@ proc wb_read_validated {addr} {
   return INVALID
 }
 
+proc wb_read_u64_consistent {lo_addr hi_addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set hi1 [wb_read_validated $hi_addr]
+    set lo [wb_read_validated $lo_addr]
+    set hi2 [wb_read_validated $hi_addr]
+    if {[is_u32 $hi1] && [is_u32 $lo] && [is_u32 $hi2] && $hi1 eq $hi2} {
+      return [string toupper "$hi2$lo"]
+    }
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
+  }
+  return INVALID
+}
+
 proc series_delta {first last invalid} {
   if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
   set a [word32 $first]
@@ -158,6 +188,15 @@ proc series_delta_mod32 {first last invalid} {
   set b [word32 $last]
   if {$a < 0 || $b < 0} { return INVALID }
   return [expr {($b - $a) & 0xffffffff}]
+}
+
+proc series_delta_mod64 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word64 $first]
+  set b [word64 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  set modulus 18446744073709551616
+  return [expr {($b - $a + $modulus) % $modulus}]
 }
 
 proc init_series {board label} {
@@ -201,12 +240,45 @@ proc add_series_sample {board label sample value} {
   }
 }
 
+proc add_series_sample64 {board label sample value} {
+  if {$value eq "TIMEOUT"} {
+    incr ::series($board,$label,timeout)
+    incr ::series($board,$label,invalid)
+    return
+  }
+  if {$value eq "INVALID"} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+
+  set word [word64 $value]
+  if {$word < 0} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+  incr ::series($board,$label,valid)
+  if {$::series($board,$label,first) eq ""} {
+    set ::series($board,$label,first) $value
+  }
+  set ::series($board,$label,last) $value
+  if {$::series($board,$label,previous) >= 0 &&
+      $word < $::series($board,$label,previous)} {
+    set ::series($board,$label,decrease) 1
+  }
+  set ::series($board,$label,previous) $word
+  if {$::raw_mode} {
+    puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
+          $board $label $sample $value]
+  }
+}
+
 proc finish_series {board label} {
   set valid $::series($board,$label,valid)
   set invalid $::series($board,$label,invalid)
   set first $::series($board,$label,first)
   set last $::series($board,$label,last)
-  if {$label eq "DMTD_REF_SEEN" || $label eq "DMTD_FB_SEEN"} {
+  if {$label eq "DMTD_REF_SEEN" || $label eq "DMTD_FB_SEEN" ||
+      $label eq "DEPTH_REF_ABORT_COUNT" || $label eq "DEPTH_FB_ABORT_COUNT"} {
     # These source-defined HIGH qualification-abort counters are 32-bit
     # free-running diagnostics.  A decrease is an expected wrap, not reset.
     set delta [series_delta_mod32 $first $last $invalid]
@@ -217,6 +289,21 @@ proc finish_series {board label} {
   set ::series($board,$label,hist) none
 
   puts [format "STEP4_SERIES board=%s register=%s samples=%d valid=%d timeout=%d invalid=%d decrease=%d first=%s last=%s delta=%s" \
+        $board $label $::samples $valid \
+        $::series($board,$label,timeout) $invalid \
+        $::series($board,$label,decrease) $first $last $delta]
+}
+
+proc finish_series64 {board label} {
+  set valid $::series($board,$label,valid)
+  set invalid $::series($board,$label,invalid)
+  set first $::series($board,$label,first)
+  set last $::series($board,$label,last)
+  set delta [series_delta_mod64 $first $last $invalid]
+  set ::series($board,$label,delta) $delta
+  set ::series($board,$label,hist) none
+
+  puts [format "STEP4_SERIES64 board=%s register=%s samples=%d valid=%d timeout=%d invalid=%d decrease=%d first=%s last=%s delta=%s delta_mode=MODULO64" \
         $board $label $::samples $valid \
         $::series($board,$label,timeout) $invalid \
         $::series($board,$label,decrease) $first $last $delta]
@@ -258,6 +345,54 @@ proc read_group {board group_name items} {
   }
   puts [format "STEP4_GROUP board=%s group=%s result=%s" \
         $board $group_name $group_result]
+}
+
+proc read_abort_depth_group {board} {
+  foreach label {DEPTH_REF_ABORT_COUNT REF_HIGH_ABORT_DEPTH_SUM64 \
+                 DEPTH_FB_ABORT_COUNT FB_HIGH_ABORT_DEPTH_SUM64} {
+    init_series $board $label
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    add_series_sample $board DEPTH_REF_ABORT_COUNT $sample \
+      [wb_read_validated 0x001002A0]
+    add_series_sample64 $board REF_HIGH_ABORT_DEPTH_SUM64 $sample \
+      [wb_read_u64_consistent 0x00100240 0x00100244]
+    add_series_sample $board DEPTH_FB_ABORT_COUNT $sample \
+      [wb_read_validated 0x001002A4]
+    add_series_sample64 $board FB_HIGH_ABORT_DEPTH_SUM64 $sample \
+      [wb_read_u64_consistent 0x0010024C 0x00100258]
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  finish_series $board DEPTH_REF_ABORT_COUNT
+  finish_series64 $board REF_HIGH_ABORT_DEPTH_SUM64
+  finish_series $board DEPTH_FB_ABORT_COUNT
+  finish_series64 $board FB_HIGH_ABORT_DEPTH_SUM64
+
+  set ref_count [series_value $board DEPTH_REF_ABORT_COUNT delta]
+  set ref_sum [series_value $board REF_HIGH_ABORT_DEPTH_SUM64 delta]
+  set fb_count [series_value $board DEPTH_FB_ABORT_COUNT delta]
+  set fb_sum [series_value $board FB_HIGH_ABORT_DEPTH_SUM64 delta]
+  set ref_avg NA
+  set fb_avg NA
+  set result VALID
+  if {[string is integer -strict $ref_count] && $ref_count > 0 &&
+      [string is integer -strict $ref_sum]} {
+    set ref_avg [format "%.6f" [expr {double($ref_sum) / double($ref_count)}]]
+    if {$ref_sum == 0} { set result INCONSISTENT }
+  } elseif {$ref_count ne "0"} {
+    set result INVALID
+  }
+  if {[string is integer -strict $fb_count] && $fb_count > 0 &&
+      [string is integer -strict $fb_sum]} {
+    set fb_avg [format "%.6f" [expr {double($fb_sum) / double($fb_count)}]]
+    if {$fb_sum == 0} { set result INCONSISTENT }
+  } elseif {$fb_count ne "0"} {
+    set result INVALID
+  }
+  puts [format "STEP4_HIGH_ABORT_DEPTH board=%s ref_abort=%s ref_sum=%s ref_avg=%s fb_abort=%s fb_sum=%s fb_avg=%s result=%s" \
+        $board $ref_count $ref_sum $ref_avg $fb_count $fb_sum $fb_avg $result]
 }
 
 proc series_value {board label field} {
@@ -317,7 +452,7 @@ proc print_event_boundary {board} {
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
                DMTD_HIGH_QUAL_MAX_STAB LOW_QUAL_ABORT_REF \
-               LOW_QUAL_ABORT_FB DMTD_D1_HIGH_RUN_MAX \
+               LOW_QUAL_ABORT_FB \
                DMTD_D0_LOW_RUN_MAX WAIT_EDGE_ENTRY_REF \
                WAIT_EDGE_ENTRY_FB}
   if {[has_invalid $board $labels]} {
@@ -372,14 +507,6 @@ proc print_event_boundary {board} {
      ($low_abort_ref_delta > 0 || $low_abort_fb_delta > 0)}]
    puts [format "STEP4_LOW_QUAL_ABORT board=%s ref_delta=%s fb_delta=%s active=%d" \
          $board $low_abort_ref_delta $low_abort_fb_delta $low_abort_active]
-
-   set d1_high_run_word [word32 [series_value $board DMTD_D1_HIGH_RUN_MAX last]]
-   if {$d1_high_run_word >= 0} {
-     puts [format "STEP4_INPUT_D1_HIGH_RUN_MAX board=%s ref_max_d1_high_run=%d fb_max_d1_high_run=%d" \
-           $board [expr {$d1_high_run_word & 0xffff}] [expr {($d1_high_run_word >> 16) & 0xffff}]]
-   } else {
-     puts [format "STEP4_INPUT_D1_HIGH_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
-   }
 
    set d0_low_run_word [word32 [series_value $board DMTD_D0_LOW_RUN_MAX last]]
    if {$d0_low_run_word >= 0} {
@@ -492,7 +619,6 @@ proc read_event_group {board} {
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
     {LOW_QUAL_ABORT_REF 0x00100250}
     {LOW_QUAL_ABORT_FB 0x00100254}
-    {DMTD_D1_HIGH_RUN_MAX 0x00100258}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
     {WAIT_EDGE_ENTRY_REF 0x00100260}
     {WAIT_EDGE_ENTRY_FB 0x00100264}
@@ -525,6 +651,7 @@ proc read_event_group {board} {
     {TRR_WRITE_LAST_TICS 0x001002D8}
   }
   read_group $board DMTD_BOUNDARY $boundary_items
+  read_abort_depth_group $board
   read_group $board TAG_ARBITRATION $arbitration_items
   read_group $board DOWNSTREAM $downstream_items
   read_group $board EVENT_TIMING $timing_items

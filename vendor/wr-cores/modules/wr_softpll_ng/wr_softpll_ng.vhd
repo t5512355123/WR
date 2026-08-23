@@ -218,6 +218,10 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_seen_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_high_abort_depth_sum_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_high_abort_depth_sum_hi_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_high_abort_depth_sum_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_high_abort_depth_sum_hi_i : in std_logic_vector(31 downto 0);
       diag_tag_pending_count_i : in std_logic_vector(31 downto 0);
       diag_tag_grant_count_i : in std_logic_vector(31 downto 0);
       diag_current_tics_i : in std_logic_vector(31 downto 0);
@@ -367,6 +371,7 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_stab_bucket : t_diag_bucket_array(0 to g_num_outputs-1);
   type t_diag_stab_count_array is array(integer range <>) of std_logic_vector(15 downto 0);
   type t_diag_abort_count_array is array(integer range <>) of std_logic_vector(31 downto 0);
+  type t_diag_depth_sum_array is array(integer range <>) of std_logic_vector(63 downto 0);
    signal dmtd_ref_stab_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
    signal dmtd_fb_stab_count : t_diag_stab_count_array(0 to g_num_outputs-1);
    signal dmtd_ref_high_qual_max_stab : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
@@ -385,6 +390,8 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_ref_high_abort_count : t_diag_abort_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_low_abort_count : t_diag_abort_count_array(0 to g_num_outputs-1);
   signal dmtd_fb_high_abort_count : t_diag_abort_count_array(0 to g_num_outputs-1);
+  signal dmtd_ref_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -521,6 +528,7 @@ begin  -- rtl
           dbg_wait_edge_entry_count_o => dmtd_ref_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
+        dbg_high_qual_abort_depth_sum_o => dmtd_ref_high_abort_depth_sum(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -577,6 +585,7 @@ begin  -- rtl
           dbg_wait_edge_entry_count_o => dmtd_fb_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
+        dbg_high_qual_abort_depth_sum_o => dmtd_fb_high_abort_depth_sum(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -634,6 +643,7 @@ begin  -- rtl
           dbg_wait_edge_entry_count_o => open,
           dbg_low_qual_abort_count_o => open,
         dbg_high_qual_abort_count_o => open,
+        dbg_high_qual_abort_depth_sum_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -793,8 +803,14 @@ begin  -- rtl
       -- 0x22c..0x238; these words expose the 32-bit HIGH qualification-abort
       -- wrapping counters. The 32-bit LOW qualification-abort counters are
       -- exposed by the read-only diagnostic aliases at 0x250 and 0x254.
+      -- REF/FB 64-bit HIGH-abort depth sums are split across the read-only
+      -- aliases at 0x240/0x244 and 0x24c/0x258, respectively.
       diag_dmtd_ref_seen_i => dmtd_ref_high_abort_count(0),
       diag_dmtd_fb_seen_i => dmtd_fb_high_abort_count(0),
+      diag_dmtd_ref_high_abort_depth_sum_lo_i => dmtd_ref_high_abort_depth_sum(0)(31 downto 0),
+      diag_dmtd_ref_high_abort_depth_sum_hi_i => dmtd_ref_high_abort_depth_sum(0)(63 downto 32),
+      diag_dmtd_fb_high_abort_depth_sum_lo_i => dmtd_fb_high_abort_depth_sum(0)(31 downto 0),
+      diag_dmtd_fb_high_abort_depth_sum_hi_i => dmtd_fb_high_abort_depth_sum(0)(63 downto 32),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
       diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
       diag_current_tics_i => std_logic_vector(diag_current_tics),

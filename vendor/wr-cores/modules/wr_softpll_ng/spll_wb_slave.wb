@@ -374,10 +374,10 @@ peripheral {
       };
    };
 
-    # Read-only diagnostic extensions at reserved WB slots 0x50, 0x54, 0x58
-    # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL
-    # and later addresses remain unchanged; matching cases are implemented in
-    # spll_wb_slave.vhd. For this experiment 0x50 and 0x54 expose the full-width
+    # Manual read-only aliases are implemented in spll_wb_slave.vhd without
+    # changing any functional write behavior.  The write-only read sides at
+    # 0x40, 0x44, and 0x4c expose REF depth-sum LO/HI and FB depth-sum LO;
+    # 0x58 exposes FB depth-sum HI.  Slots 0x50/0x54 retain the full-width
     # REF/FB LOW qualification-abort counters.
     # The read-side aliases at 0x60 and 0x64 expose the full-width reference
     # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
@@ -394,9 +394,10 @@ peripheral {
 			};
 	 };
 
-    # 0x58 and 0x5c are additional manual read-only extensions implemented in
-    # spll_wb_slave.vhd; it is intentionally not added to the generated
-    # register sequence.
+    # 0x58 and 0x5c are manual read-only extensions implemented in
+    # spll_wb_slave.vhd; they are intentionally not added to the generated
+    # register sequence.  Current source uses 0x58 for FB depth-sum HI and
+    # keeps 0x5c as the packed D0 LOW run maximum.
 
 	 reg {
 			name = "Main DAC Output";

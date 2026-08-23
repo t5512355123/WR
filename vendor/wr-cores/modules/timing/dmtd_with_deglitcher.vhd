@@ -163,6 +163,9 @@ entity dmtd_with_deglitcher is
      -- observable over a bounded runtime window without early saturation.
      dbg_low_qual_abort_count_o : out std_logic_vector(31 downto 0);
      dbg_high_qual_abort_count_o : out std_logic_vector(31 downto 0);
+     -- Sum of stab_cntr at every HIGH qualification abort. Read-only,
+     -- free-running modulo 2^64, and never feeds the functional FSM.
+     dbg_high_qual_abort_depth_sum_o : out std_logic_vector(63 downto 0);
      -- Maximum consecutive HIGH samples at dmtd_sampler input. Read-only.
      dbg_input_high_run_max_o : out std_logic_vector(15 downto 0);
      -- Maximum consecutive LOW samples at dmtd_sampler input. Read-only.
@@ -209,8 +212,10 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_high_qual_max_stab_sys : std_logic_vector(15 downto 0);
   signal dbg_low_qual_abort_count : unsigned(31 downto 0);
   signal dbg_high_qual_abort_count : unsigned(31 downto 0);
+  signal dbg_high_qual_abort_depth_sum : unsigned(63 downto 0);
   signal dbg_low_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
+  signal dbg_high_qual_abort_depth_sum_sys : std_logic_vector(63 downto 0);
   signal dbg_input_high_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
   signal dbg_input_high_run_max_sys : std_logic_vector(15 downto 0);
    signal dbg_input_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
@@ -345,8 +350,17 @@ begin  -- rtl
       d_i       => std_logic_vector(dbg_high_qual_abort_count),
       q_o       => dbg_high_qual_abort_count_sys);
 
+  U_sync_dbg_high_abort_depth_sum : entity work.gc_sync_register
+    generic map (g_width => 64)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => std_logic_vector(dbg_high_qual_abort_depth_sum),
+      q_o       => dbg_high_qual_abort_depth_sum_sys);
+
   dbg_low_qual_abort_count_o <= dbg_low_qual_abort_count_sys;
   dbg_high_qual_abort_count_o <= dbg_high_qual_abort_count_sys;
+  dbg_high_qual_abort_depth_sum_o <= dbg_high_qual_abort_depth_sum_sys;
 
   U_sync_dbg_input_high_run_max : entity work.gc_sync_register
     generic map (g_width => 16)
@@ -464,6 +478,7 @@ begin  -- rtl
          dbg_high_qual_max_stab <= (others => '0');
          dbg_low_qual_abort_count <= (others => '0');
         dbg_high_qual_abort_count <= (others => '0');
+        dbg_high_qual_abort_depth_sum <= (others => '0');
       else
 
         case state is
@@ -511,6 +526,9 @@ begin  -- rtl
                 -- Diagnostic-only free-running counter.  Natural 32-bit wrap
                 -- preserves bounded-window activity after long runtimes.
                 dbg_high_qual_abort_count <= dbg_high_qual_abort_count + 1;
+                dbg_high_qual_abort_depth_sum <=
+                  dbg_high_qual_abort_depth_sum +
+                  resize(stab_cntr, dbg_high_qual_abort_depth_sum'length);
                 if stab_cntr > dbg_high_qual_max_stab then
                   dbg_high_qual_max_stab <= stab_cntr;
                 end if;

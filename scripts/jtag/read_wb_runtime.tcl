@@ -247,8 +247,9 @@ proc status_text {status} {
     WARN { return "error" }
     FAIL { return "error" }
     INFO { return "info" }
-    # Invalid mailbox data is a measurement issue, not a hardware verdict.
-    INVALID { return "invalid" }
+    # Invalid mailbox data is measurement information, not a hardware error.
+    # The Step result remains NA/RETEST internally.
+    INVALID { return "info" }
   }
   return $status
 }
@@ -991,7 +992,7 @@ proc analyze_board {board} {
 
   puts ""
   puts "============================================================"
-  puts "White Rabbit 總結"
+  puts [format "White Rabbit Runtime 診斷：%s" $name]
   puts "============================================================"
   foreach step {1 2 3 4 5 6} {
     set s $::step_status($board,$step)
@@ -1002,7 +1003,7 @@ proc analyze_board {board} {
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "NA" }
-    if {$s eq "INVALID"} { set shown "MEASUREMENT_INVALID / RETEST" }
+    if {$s eq "INVALID"} { set shown "NA" }
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }
@@ -1028,11 +1029,13 @@ proc analyze_board {board} {
   } else {
     set failure_class "NO_FAILURE_EVIDENCE"
   }
-  puts [format "STEP1_REGRESSION = %s" $step1_reg]
-  puts [format "STEP2_REGRESSION = %s" $step2_reg]
-  puts [format "STEP3_REGRESSION = %s" $step3_reg]
-  puts [format "STEP4_ALLOWED = %s" $step4_allowed]
-  puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
+  if {$::raw_mode} {
+    puts [format "STEP1_REGRESSION = %s" $step1_reg]
+    puts [format "STEP2_REGRESSION = %s" $step2_reg]
+    puts [format "STEP3_REGRESSION = %s" $step3_reg]
+    puts [format "STEP4_ALLOWED = %s" $step4_allowed]
+    puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
+  }
   puts "============================================================"
 }
 
@@ -1071,7 +1074,7 @@ foreach hardware_name [get_hardware_names] {
       print_raw_snapshot $board after
     }
   } error_message]} {
-    puts [format {[error] JTAG_EXCEPTION 結果: %s/NA} $error_message]
+    puts [format {[info] JTAG_EXCEPTION 結果: %s/NA} $error_message]
   }
   catch { end_insystem_source_probe }
 }

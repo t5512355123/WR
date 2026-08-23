@@ -382,6 +382,8 @@ peripheral {
     # aliases for the 64-bit HIGH-abort depth sums.
     # The read-side aliases at 0x60 and 0x64 expose the full-width reference
     # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
+    # behavior is unchanged. Diagnostic offsets 0xf8/0xfc expose the DMTD
+    # sampling-clock native edge count LO/HI.
     # EIC behavior is preserved in the hand-maintained VHDL wrapper.
     reg {
       align = 8;

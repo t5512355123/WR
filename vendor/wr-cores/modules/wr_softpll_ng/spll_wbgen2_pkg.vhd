@@ -195,6 +195,8 @@ component spll_wb_slave is
     diag_dmtd_ref_native_edge_count_hi_i     : in     std_logic_vector(31 downto 0);
     diag_dmtd_fb_native_edge_count_lo_i      : in     std_logic_vector(31 downto 0);
     diag_dmtd_fb_native_edge_count_hi_i      : in     std_logic_vector(31 downto 0);
+    diag_dmtd_native_edge_count_lo_i         : in     std_logic_vector(31 downto 0);
+    diag_dmtd_native_edge_count_hi_i         : in     std_logic_vector(31 downto 0);
     diag_tag_pending_count_i                 : in     std_logic_vector(31 downto 0);
     diag_tag_grant_count_i                   : in     std_logic_vector(31 downto 0);
     diag_current_tics_i                      : in     std_logic_vector(31 downto 0);

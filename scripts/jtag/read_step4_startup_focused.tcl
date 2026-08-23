@@ -373,12 +373,17 @@ proc read_group {board group_name items} {
 }
 
 proc read_native_edge_group {board} {
-  foreach label {REF_NATIVE_EDGE_COUNT64 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
+  foreach label {DMTD_NATIVE_EDGE_COUNT64 \
+                 REF_NATIVE_EDGE_COUNT64 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
                  FB_NATIVE_EDGE_COUNT64 NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
 
   for {set sample 1} {$sample <= $::samples} {incr sample} {
+    set value [wb_read_u64_consistent 0x001002F8 0x001002FC]
+    add_timed_series_sample64 $board DMTD_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+
     set value [wb_read_u64_consistent 0x00100240 0x00100244]
     add_timed_series_sample64 $board REF_NATIVE_EDGE_COUNT64 $sample $value \
       [clock milliseconds]
@@ -401,6 +406,7 @@ proc read_native_edge_group {board} {
     if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
   }
 
+  finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
   finish_series64 $board REF_NATIVE_EDGE_COUNT64
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
@@ -410,6 +416,22 @@ proc read_native_edge_group {board} {
 
   set result VALID
   set fields {}
+  set dmtd_delta [series_value $board DMTD_NATIVE_EDGE_COUNT64 delta]
+  set dmtd_first_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 first_ms]
+  set dmtd_last_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 last_ms]
+  set dmtd_elapsed_ms NA
+  set dmtd_frequency_hz NA
+  if {[string is wideinteger -strict $dmtd_delta] &&
+      [string is wideinteger -strict $dmtd_first_ms] &&
+      [string is wideinteger -strict $dmtd_last_ms] &&
+      $dmtd_last_ms > $dmtd_first_ms && $dmtd_delta > 0} {
+    set dmtd_elapsed_ms [expr {$dmtd_last_ms - $dmtd_first_ms}]
+    set dmtd_frequency_hz [format "%.3f" \
+      [expr {double($dmtd_delta) * 1000.0 / double($dmtd_elapsed_ms)}]]
+  } else {
+    set result INVALID
+  }
+
   foreach side {REF FB} {
     set native_label ${side}_NATIVE_EDGE_COUNT64
     set sampled_label NATIVE_${side}_SAMPLED
@@ -422,6 +444,8 @@ proc read_native_edge_group {board} {
     set elapsed_ms NA
     set frequency_hz NA
     set sampled_ratio NA
+    set native_to_dmtd_ratio NA
+    set sampled_to_dmtd_ratio NA
     if {[string is wideinteger -strict $native_delta] &&
         [string is wideinteger -strict $sampled_delta] &&
         [string is wideinteger -strict $first_ms] &&
@@ -432,16 +456,28 @@ proc read_native_edge_group {board} {
         [expr {double($native_delta) * 1000.0 / double($elapsed_ms)}]]
       set sampled_ratio [format "%.9f" \
         [expr {double($sampled_delta) / double($native_delta)}]]
+      if {[string is wideinteger -strict $dmtd_delta] && $dmtd_delta > 0} {
+        set native_to_dmtd_ratio [format "%.9f" \
+          [expr {double($native_delta) / double($dmtd_delta)}]]
+        set sampled_to_dmtd_ratio [format "%.9f" \
+          [expr {double($sampled_delta) / double($dmtd_delta)}]]
+      } else {
+        set result INVALID
+      }
     } else {
       set result INVALID
     }
-    lappend fields [format "%s_native_delta=%s %s_elapsed_ms=%s %s_frequency_hz=%s %s_sampled_delta=%s %s_sampled_to_native_ratio=%s %s_accept_delta=%s" \
+    lappend fields [format "%s_native_delta=%s %s_elapsed_ms=%s %s_frequency_hz=%s %s_sampled_delta=%s %s_sampled_to_native_ratio=%s %s_native_to_dmtd_ratio=%s %s_sampled_to_dmtd_ratio=%s %s_accept_delta=%s" \
       [string tolower $side] $native_delta [string tolower $side] $elapsed_ms \
       [string tolower $side] $frequency_hz [string tolower $side] $sampled_delta \
-      [string tolower $side] $sampled_ratio [string tolower $side] $accept_delta]
+      [string tolower $side] $sampled_ratio \
+      [string tolower $side] $native_to_dmtd_ratio \
+      [string tolower $side] $sampled_to_dmtd_ratio \
+      [string tolower $side] $accept_delta]
   }
-  puts [format "STEP4_NATIVE_CLOCK board=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
-        $board [lindex $fields 0] [lindex $fields 1] $result]
+  puts [format "STEP4_NATIVE_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz \
+        [lindex $fields 0] [lindex $fields 1] $result]
 }
 
 proc series_value {board label field} {

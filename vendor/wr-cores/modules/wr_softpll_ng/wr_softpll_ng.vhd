@@ -222,6 +222,8 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_ref_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_native_edge_count_lo_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_native_edge_count_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
       diag_tag_pending_count_i : in std_logic_vector(31 downto 0);
       diag_tag_grant_count_i : in std_logic_vector(31 downto 0);
       diag_current_tics_i : in std_logic_vector(31 downto 0);
@@ -307,6 +309,16 @@ architecture rtl of wr_softpll_ng is
     tmp (x'length-1 downto 0) := x;
     return tmp;
   end resize;
+
+  function f_gray_to_binary(value : std_logic_vector) return std_logic_vector is
+    variable result : std_logic_vector(value'range);
+  begin
+    result(value'left) := value(value'left);
+    for i in value'left-1 downto value'right loop
+      result(i) := result(i+1) xor value(i);
+    end loop;
+    return result;
+  end function;
 
 
   type t_tag_array is array (0 to f_num_total_channels-1) of std_logic_vector(g_tag_bits-1 downto 0);
@@ -394,6 +406,10 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_ref_native_edge_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_native_edge_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
+  signal dmtd_native_edge_count_bin : unsigned(63 downto 0) := (others => '0');
+  signal dmtd_native_edge_count_gray : std_logic_vector(63 downto 0) := (others => '0');
+  signal dmtd_native_edge_count_gray_sys : std_logic_vector(63 downto 0);
+  signal dmtd_native_edge_count_sys : std_logic_vector(63 downto 0);
   signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -456,6 +472,33 @@ architecture rtl of wr_softpll_ng is
   
     
 begin  -- rtl
+
+  -- Diagnostic-only DMTD sampling-clock counter. The registered Gray value is
+  -- the only signal crossing into clk_sys_i; this path has no functional fanout.
+  p_diag_dmtd_native_edge_count : process(clk_dmtd_i, rst_dmtd_n_i)
+    variable next_count : unsigned(63 downto 0);
+  begin
+    if rst_dmtd_n_i = '0' then
+      dmtd_native_edge_count_bin <= (others => '0');
+      dmtd_native_edge_count_gray <= (others => '0');
+    elsif rising_edge(clk_dmtd_i) then
+      next_count := dmtd_native_edge_count_bin + 1;
+      dmtd_native_edge_count_bin <= next_count;
+      dmtd_native_edge_count_gray <=
+        std_logic_vector(next_count xor shift_right(next_count, 1));
+    end if;
+  end process p_diag_dmtd_native_edge_count;
+
+  U_SYNC_DMTD_NATIVE_EDGE_COUNT : entity work.gc_sync_register
+    generic map (g_width => 64)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_sys_n_i,
+      d_i       => dmtd_native_edge_count_gray,
+      q_o       => dmtd_native_edge_count_gray_sys);
+
+  dmtd_native_edge_count_sys <=
+    f_gray_to_binary(dmtd_native_edge_count_gray_sys);
 
   -- Existing state/reset fields are preserved. Added fields are read-only
   -- observability and do not feed the deglitcher or SoftPLL path:
@@ -817,6 +860,8 @@ begin  -- rtl
       diag_dmtd_ref_native_edge_count_hi_i => dmtd_ref_native_edge_count(0)(63 downto 32),
       diag_dmtd_fb_native_edge_count_lo_i => dmtd_fb_native_edge_count(0)(31 downto 0),
       diag_dmtd_fb_native_edge_count_hi_i => dmtd_fb_native_edge_count(0)(63 downto 32),
+      diag_dmtd_native_edge_count_lo_i => dmtd_native_edge_count_sys(31 downto 0),
+      diag_dmtd_native_edge_count_hi_i => dmtd_native_edge_count_sys(63 downto 32),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
       diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
       diag_current_tics_i => std_logic_vector(diag_current_tics),

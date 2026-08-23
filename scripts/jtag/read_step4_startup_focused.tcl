@@ -303,8 +303,8 @@ proc print_event_boundary {board} {
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D1_HIGH_RUN_MAX \
-               DMTD_D0_LOW_RUN_MAX D1_PIPELINE_MISMATCH_REF \
-               D1_PIPELINE_MISMATCH_FB}
+               DMTD_D0_LOW_RUN_MAX WAIT_EDGE_ENTRY_REF \
+               WAIT_EDGE_ENTRY_FB}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -382,14 +382,13 @@ proc print_event_boundary {board} {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
-   set mismatch_ref_word [word32 [series_value $board D1_PIPELINE_MISMATCH_REF last]]
-   set mismatch_fb_word [word32 [series_value $board D1_PIPELINE_MISMATCH_FB last]]
-   if {$mismatch_ref_word >= 0 && $mismatch_fb_word >= 0} {
-     puts [format "STEP4_D1_PIPELINE_MISMATCH_COUNT board=%s ref=%d fb=%d" \
-           $board $mismatch_ref_word $mismatch_fb_word]
-   } else {
-     puts [format "STEP4_D1_PIPELINE_MISMATCH_COUNT board=%s result=MEASUREMENT_INVALID_RETEST" $board]
-   }
+   set wait_edge_ref_delta [series_value $board WAIT_EDGE_ENTRY_REF delta]
+   set wait_edge_fb_delta [series_value $board WAIT_EDGE_ENTRY_FB delta]
+   set wait_edge_active [expr {
+     ([string is integer -strict $wait_edge_ref_delta] && $wait_edge_ref_delta > 0) ||
+     ([string is integer -strict $wait_edge_fb_delta] && $wait_edge_fb_delta > 0)}]
+   puts [format "STEP4_WAIT_EDGE_ENTRY board=%s ref_delta=%s fb_delta=%s active=%d" \
+         $board $wait_edge_ref_delta $wait_edge_fb_delta $wait_edge_active]
 
    set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
@@ -418,8 +417,10 @@ proc print_event_boundary {board} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
+  } elseif {!$wait_edge_active} {
+    set boundary "DMTD_WAIT_STABLE_LOW_QUALIFICATION"
   } elseif {!$accept_active} {
-    set boundary "DMTD_DEGLITCH_ACCEPT"
+    set boundary "DMTD_WAIT_EDGE_TO_DEGLITCH_ACCEPT"
   } elseif {!$dmtd_active} {
     set boundary "DMTD_ACCEPT_TO_SYS_EVENT"
   } elseif {!$pending_active} {
@@ -482,8 +483,8 @@ proc read_event_group {board} {
     {DMTD_INPUT_LOW_RUN_MAX 0x00100254}
     {DMTD_D1_HIGH_RUN_MAX 0x00100258}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
-    {D1_PIPELINE_MISMATCH_REF 0x00100260}
-    {D1_PIPELINE_MISMATCH_FB 0x00100264}
+    {WAIT_EDGE_ENTRY_REF 0x00100260}
+    {WAIT_EDGE_ENTRY_FB 0x00100264}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

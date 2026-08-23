@@ -378,11 +378,9 @@ peripheral {
     # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL and
     # later addresses remain unchanged; matching cases are implemented in
     # spll_wb_slave.vhd.
-    # The d0 sample mismatch counters use the read side of the existing
-    # write-only EIC_IDR/EIC_IER slots (0x60/0x64); their write behavior is preserved.
-   # The read-side aliases at 0x60 and 0x64 expose the full-width reference
-   # and feedback D0 mismatch counters. Their write-side EIC behavior is
-   # preserved in the hand-maintained VHDL wrapper.
+    # The read-side aliases at 0x60 and 0x64 expose the full-width reference
+    # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
+    # EIC behavior is preserved in the hand-maintained VHDL wrapper.
     reg {
       align = 8;
 			name = "Helper DAC Output";

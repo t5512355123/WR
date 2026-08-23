@@ -171,8 +171,8 @@ entity dmtd_with_deglitcher is
      dbg_input_d1_high_run_max_o : out std_logic_vector(15 downto 0);
      -- Maximum consecutive LOW samples at sampler clk_i_d0. Read-only.
      dbg_input_d0_low_run_max_o : out std_logic_vector(15 downto 0);
-     -- Mismatch count for the synchronous clk_i_d0/en_i_d0 -> clk_i_d1 pipeline.
-     dbg_d1_pipeline_mismatch_count_o : out std_logic_vector(31 downto 0)
+     -- Count exact WAIT_STABLE_0 -> WAIT_EDGE transitions. Read-only.
+     dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0)
      );
 end dmtd_with_deglitcher;
 
@@ -219,8 +219,8 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_input_d1_high_run_max_sys : std_logic_vector(15 downto 0);
    signal dbg_input_d0_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
    signal dbg_input_d0_low_run_max_sys : std_logic_vector(15 downto 0);
-   signal dbg_d1_pipeline_mismatch_count_dmtd : std_logic_vector(31 downto 0) := (others => '0');
-   signal dbg_d1_pipeline_mismatch_count_sys : std_logic_vector(31 downto 0);
+   signal dbg_wait_edge_entry_count : unsigned(31 downto 0) := (others => '0');
+   signal dbg_wait_edge_entry_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -388,15 +388,15 @@ begin  -- rtl
 
    dbg_input_d0_low_run_max_o <= dbg_input_d0_low_run_max_sys;
 
-   U_sync_dbg_d1_pipeline_mismatch : entity work.gc_sync_register
+   U_sync_dbg_wait_edge_entry_count : entity work.gc_sync_register
      generic map (g_width => 32)
      port map (
        clk_i => clk_sys_i,
        rst_n_a_i => rst_n_sysclk_i,
-       d_i => dbg_d1_pipeline_mismatch_count_dmtd,
-       q_o => dbg_d1_pipeline_mismatch_count_sys);
+       d_i => std_logic_vector(dbg_wait_edge_entry_count),
+       q_o => dbg_wait_edge_entry_count_sys);
 
-   dbg_d1_pipeline_mismatch_count_o <= dbg_d1_pipeline_mismatch_count_sys;
+   dbg_wait_edge_entry_count_o <= dbg_wait_edge_entry_count_sys;
 
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
@@ -426,8 +426,7 @@ begin  -- rtl
          dbg_input_high_run_max_o => dbg_input_high_run_max_dmtd,
          dbg_input_low_run_max_o => dbg_input_low_run_max_dmtd,
          dbg_d1_high_run_max_o => dbg_input_d1_high_run_max_dmtd,
-         dbg_d0_low_run_max_o => dbg_input_d0_low_run_max_dmtd,
-         dbg_d1_pipeline_mismatch_count_o => dbg_d1_pipeline_mismatch_count_dmtd );
+         dbg_d0_low_run_max_o => dbg_input_d0_low_run_max_dmtd );
 
   end generate gen_builtin;
 
@@ -435,7 +434,6 @@ begin  -- rtl
      clk_sampled <= clk_sampled_a_i;
      dbg_input_d1_high_run_max_dmtd <= (others => '0');
      dbg_input_d0_low_run_max_dmtd <= (others => '0');
-     dbg_d1_pipeline_mismatch_count_dmtd <= (others => '0');
    end generate gen_externally_sampled;
 
 
@@ -534,12 +532,17 @@ begin  -- rtl
         clk_sampled_d <= clk_sampled;
         dbg_sampled_transition_count <= (others => '0');
         dbg_deglitch_accept_count <= (others => '0');
+        dbg_wait_edge_entry_count <= (others => '0');
       else
         if clk_sampled /= clk_sampled_d then
           dbg_sampled_transition_count <= dbg_sampled_transition_count + 1;
         end if;
         if new_edge_p_dmtdclk = '1' then
           dbg_deglitch_accept_count <= dbg_deglitch_accept_count + 1;
+        end if;
+        if state = WAIT_STABLE_0 and
+           stab_cntr = unsigned(r_deglitch_threshold_i) then
+          dbg_wait_edge_entry_count <= f_sat_inc(dbg_wait_edge_entry_count);
         end if;
         clk_sampled_d <= clk_sampled;
       end if;

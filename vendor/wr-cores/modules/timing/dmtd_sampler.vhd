@@ -84,11 +84,7 @@ entity dmtd_sampler is
     dbg_d1_high_run_max_o : out std_logic_vector(15 downto 0);
     -- Maximum consecutive LOW samples of clk_i_d0 before inversion/enable.
     -- This is read-only observability and does not feed clk_sampled_o.
-    dbg_d0_low_run_max_o : out std_logic_vector(15 downto 0);
-    -- Number of mismatches in the synchronous clk_i_d0/en_i_d0 -> clk_i_d1
-    -- pipeline relation. This read-only diagnostic does not feed
-    -- clk_sampled_o.
-    dbg_d1_pipeline_mismatch_count_o : out std_logic_vector(31 downto 0)
+    dbg_d0_low_run_max_o : out std_logic_vector(15 downto 0)
     );
 
 end dmtd_sampler;
@@ -264,40 +260,6 @@ begin  -- rtl
       end if;
     end process;
   end generate gen_debug_input_run_over;
-
-  -- The straight, non-oversampled path assigns clk_i_d1 from the previous
-  -- clk_i_d0/en_i_d0 values. Recompute that expected value in the same clock
-  -- domain and compare it one edge later. Unlike the former clk_in shadow,
-  -- this check does not independently sample an asynchronous input.
-  gen_debug_d1_pipeline_mismatch : if(g_reverse = false and g_with_oversampling = false) generate
-    signal dbg_expected_d1 : std_logic := '1';
-    signal dbg_expected_d1_valid : std_logic := '0';
-    signal dbg_d1_pipeline_mismatch_count : unsigned(31 downto 0) := (others => '0');
-  begin
-    dbg_d1_pipeline_mismatch_count_o <= std_logic_vector(dbg_d1_pipeline_mismatch_count);
-
-    p_debug_d1_pipeline_mismatch : process(clk_dmtd_i)
-    begin
-      if rising_edge(clk_dmtd_i) then
-        if rst_n_i = '0' then
-          dbg_expected_d1 <= '1';
-          dbg_expected_d1_valid <= '0';
-          dbg_d1_pipeline_mismatch_count <= (others => '0');
-        else
-          if dbg_expected_d1_valid = '1' and clk_i_d1 /= dbg_expected_d1 then
-            dbg_d1_pipeline_mismatch_count <= f_sat_inc(dbg_d1_pipeline_mismatch_count);
-          end if;
-          dbg_expected_d1 <= not(clk_i_d0 and en_i_d0);
-          dbg_expected_d1_valid <= '1';
-        end if;
-      end if;
-    end process;
-  end generate gen_debug_d1_pipeline_mismatch;
-
-  gen_debug_d1_pipeline_mismatch_unused : if(g_reverse = true or g_with_oversampling = true) generate
-  begin
-    dbg_d1_pipeline_mismatch_count_o <= (others => '0');
-  end generate gen_debug_d1_pipeline_mismatch_unused;
 
   gen_straight_oversampled : if( g_with_oversampling = true and g_reverse = false ) generate
 

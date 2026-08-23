@@ -70,9 +70,9 @@ proc read_boundary_sample {hardware_name sample} {
   set dmtd_input_low_run_max [wb_read 0x00100254]
   set dmtd_d1_high_run_max [wb_read 0x00100258]
   set dmtd_d0_low_run_max [wb_read 0x0010025C]
-  set d1_pipeline_mismatch_ref [wb_read 0x00100260]
+  set wait_edge_entry_ref [wb_read 0x00100260]
   set deglitch_thr [wb_read 0x00100248]
-  set d1_pipeline_mismatch_fb [wb_read 0x00100264]
+  set wait_edge_entry_fb [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -140,15 +140,15 @@ proc read_boundary_sample {hardware_name sample} {
   } else {
     puts "DMTD_D0_LOW_RUN_MAX invalid"
   }
-  set mismatch_ref_word 0
-  set mismatch_fb_word 0
-  if {[scan $d1_pipeline_mismatch_ref %x mismatch_ref_word] == 1 && \
-      [scan $d1_pipeline_mismatch_fb %x mismatch_fb_word] == 1} {
-    puts [format "D1_PIPELINE_MISMATCH_COUNT ref=%s fb=%s" \
-          [format %08X $mismatch_ref_word] \
-          [format %08X $mismatch_fb_word]]
+  set wait_edge_ref_word 0
+  set wait_edge_fb_word 0
+  if {[scan $wait_edge_entry_ref %x wait_edge_ref_word] == 1 && \
+      [scan $wait_edge_entry_fb %x wait_edge_fb_word] == 1} {
+    puts [format "WAIT_EDGE_ENTRY_COUNT ref=%s fb=%s" \
+          [format %08X $wait_edge_ref_word] \
+          [format %08X $wait_edge_fb_word]]
   } else {
-    puts "D1_PIPELINE_MISMATCH_COUNT invalid"
+    puts "WAIT_EDGE_ENTRY_COUNT invalid"
   }
   set input_run_word 0
   if {[scan $dmtd_input_high_run_max %x input_run_word] == 1} {

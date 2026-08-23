@@ -779,7 +779,7 @@ begin  -- rtl
        diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),
        diag_dmtd_input_d1_high_run_max_i => dmtd_fb_input_d1_high_run_max(0) & dmtd_ref_input_d1_high_run_max(0),
        diag_dmtd_input_d0_low_run_max_i => dmtd_fb_input_d0_low_run_max(0) & dmtd_ref_input_d0_low_run_max(0),
-       diag_dmtd_d0_sample_mismatch_count_i => dmtd_fb_d0_sample_mismatch_count(0) & dmtd_ref_d0_sample_mismatch_count(0),
+       diag_dmtd_d0_sample_mismatch_count_i => dmtd_fb_d0_sample_mismatch_count(0)(15 downto 0) & dmtd_ref_d0_sample_mismatch_count(0)(15 downto 0),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Reuse the existing read-only DMTD_SEEN words without changing the

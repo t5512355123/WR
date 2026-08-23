@@ -6,7 +6,7 @@
 - 日期：2026/08/24
 - Branch：`exp/step4-softpll-enable`
 - 實驗 source commit：`3b427696d94afc927db8ce8e3a73a46570589d41`
-- 狀態：fresh firmware 與 Quartus clean compile 完成；等待雙板燒錄與 runtime 量測
+- 狀態：fresh firmware 與 Quartus clean compile 完成；Master 已燒錄，Slave 與 runtime 待測
 
 ## 想驗證什麼
 
@@ -46,7 +46,7 @@
 
 | Board | Cable | SOF | Programmer checksum | 結果 |
 |---|---|---|---|---|
-| Master | `DE5 [1-11.1]` | Master fresh SOF | 待測 | 待燒錄 |
+| Master | `DE5 [1-11.1]` | Master fresh SOF | `0x30ADC41E` | configuration succeeded，0 errors / 0 warnings |
 | Slave | `DE5 [1-11.2]` | Slave fresh SOF | 待測 | 待燒錄 |
 
 ## JTAG / Runtime 原始結果

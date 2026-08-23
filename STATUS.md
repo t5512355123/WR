@@ -8,6 +8,26 @@
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
+## 2026-08-23 Step 2/3 唯讀回歸關卡（本輪未燒錄）
+
+本輪只在 pain 執行既有 JTAG read-only scripts，沒有 Quartus compile、沒有 program FPGA、沒有修改 RTL/firmware 或任何 White Rabbit functional behavior。pain 當時為 detached HEAD `688b152b2551ca51c58b8ec0a40967f5d7e8dca0`；本機目前 branch HEAD 為 `6c9fe1913e3acab41a3c2ffbe15f3bd88dc2582f`。本輪沒有重新量測板上 SOF/MIF hash，因此不能把本輪 runtime 直接宣稱為指定 `51864b874...` 的 fresh image reproduction。
+
+- Step 1 PHY / Link：PASS。兩板 ready/link/RX/TX/CPU reset 正常，RX lock-to-data=1，encoding error=0。
+- Step 2 Endpoint / MiniNIC / PTP：PASS。focused script 兩板各 20/20 valid samples；Master `MAC=02:00:22:33:44:01`、`MODE=2`、`PTP=6`；Slave `MAC=02:00:22:33:44:02`、`MODE=3`、`PTP=9`、`FOREIGN_META=03000001`；PTP/MiniNIC counters 有活動，RXERR=0。
+- Step 3 WR Parent / Signaling：PASS。Slave focused 20 samples 都有 `parent=1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。`local_state=0` 與 handshake evidence 不一致，保留 `STATE_EVIDENCE=READ_INCONSISTENT`，不直接改判 hardware failure。
+- JTAG measurement：一支 register reliability script 出現跨欄位交錯輸出並標示 Slave Step 3 INVALID；同輪 focused repeated samples 沒有重現該失敗，因此記為 read-path measurement issue，不是已證明的硬體/韌體失敗。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+HARDWARE/FIRMWARE_FAILURE = NOT_ESTABLISHED
+JTAG/DASHBOARD_MEASUREMENT_FAILURE = PRESENT_IN_ONE_READ_PATH
+```
+
+完整紀錄與 raw logs：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-REGRESSION-READONLY-20260823.md`
+
 ## 2026-08-23 Step 4 HIGH qualification-abort fresh hardware experiment（688b152）
 
 本輪由 GitHub exact commit `688b152b2551ca51c58b8ec0a40967f5d7e8dca0` 建立 firmware 與 Quartus fresh SOF，完成雙板燒錄，再執行 focused Step 2/3 regression、Step 4 bounded time-series 與 dashboard。唯一 functional 變因是把既有 DMTD `GOT_EDGE` HIGH qualification-abort read-only counter 擴成 32-bit；計數條件、deglitch threshold、FSM、DDMTD、SoftPLL、WR signaling、PTP、PHY 與所有 control register 行為均未改變。

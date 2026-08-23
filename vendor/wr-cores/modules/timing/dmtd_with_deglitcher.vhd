@@ -166,7 +166,9 @@ entity dmtd_with_deglitcher is
      -- Maximum consecutive HIGH samples at dmtd_sampler input. Read-only.
      dbg_input_high_run_max_o : out std_logic_vector(15 downto 0);
      -- Maximum consecutive LOW samples at dmtd_sampler input. Read-only.
-     dbg_input_low_run_max_o : out std_logic_vector(15 downto 0)
+     dbg_input_low_run_max_o : out std_logic_vector(15 downto 0);
+     -- Maximum consecutive HIGH samples at sampler clk_i_d1. Read-only.
+     dbg_input_d1_high_run_max_o : out std_logic_vector(15 downto 0)
      );
 end dmtd_with_deglitcher;
 
@@ -207,8 +209,10 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_input_high_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
   signal dbg_input_high_run_max_sys : std_logic_vector(15 downto 0);
-  signal dbg_input_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
-  signal dbg_input_low_run_max_sys : std_logic_vector(15 downto 0);
+   signal dbg_input_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
+   signal dbg_input_low_run_max_sys : std_logic_vector(15 downto 0);
+   signal dbg_input_d1_high_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
+   signal dbg_input_d1_high_run_max_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -354,7 +358,17 @@ begin  -- rtl
       d_i       => dbg_input_low_run_max_dmtd,
       q_o       => dbg_input_low_run_max_sys);
 
-  dbg_input_low_run_max_o <= dbg_input_low_run_max_sys;
+   dbg_input_low_run_max_o <= dbg_input_low_run_max_sys;
+
+   U_sync_dbg_input_d1_high_run_max : entity work.gc_sync_register
+     generic map (g_width => 16)
+     port map (
+       clk_i     => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i       => dbg_input_d1_high_run_max_dmtd,
+       q_o       => dbg_input_d1_high_run_max_sys);
+
+   dbg_input_d1_high_run_max_o <= dbg_input_d1_high_run_max_sys;
 
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
@@ -380,15 +394,17 @@ begin  -- rtl
         clk_dmtd_i      => clk_dmtd_i,
         clk_sampled_o   => clk_sampled,
         r_oversample_div_i => r_oversample_in_div_i,
-        rst_n_i         => rst_n_dmtdclk_i,
-        dbg_input_high_run_max_o => dbg_input_high_run_max_dmtd,
-        dbg_input_low_run_max_o => dbg_input_low_run_max_dmtd );
+         rst_n_i         => rst_n_dmtdclk_i,
+         dbg_input_high_run_max_o => dbg_input_high_run_max_dmtd,
+         dbg_input_low_run_max_o => dbg_input_low_run_max_dmtd,
+         dbg_d1_high_run_max_o => dbg_input_d1_high_run_max_dmtd );
 
   end generate gen_builtin;
 
-  gen_externally_sampled : if g_use_sampled_clock generate
-    clk_sampled <= clk_sampled_a_i;
-  end generate gen_externally_sampled;
+   gen_externally_sampled : if g_use_sampled_clock generate
+     clk_sampled <= clk_sampled_a_i;
+     dbg_input_d1_high_run_max_dmtd <= (others => '0');
+   end generate gen_externally_sampled;
 
 
   p_free_counter : process(clk_dmtd_i)

@@ -49,6 +49,7 @@ port (
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
+  diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
@@ -433,6 +434,12 @@ begin
         when "010101" =>
           if (wb_we_i = '0') then
             rddata_reg <= diag_dmtd_input_low_run_max_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "010110" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_dmtd_input_d1_high_run_max_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

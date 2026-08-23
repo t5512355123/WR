@@ -51,6 +51,7 @@ port (
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d0_low_run_max_i         : in     std_logic_vector(31 downto 0);
+  diag_dmtd_d0_sample_mismatch_count_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
@@ -592,39 +593,43 @@ begin
         when "011000" => 
           if (wb_we_i = '1') then
             eic_idr_write_int <= '1';
+            rddata_reg(0) <= 'X';
+            rddata_reg(1) <= 'X';
+            rddata_reg(2) <= 'X';
+            rddata_reg(3) <= 'X';
+            rddata_reg(4) <= 'X';
+            rddata_reg(5) <= 'X';
+            rddata_reg(6) <= 'X';
+            rddata_reg(7) <= 'X';
+            rddata_reg(8) <= 'X';
+            rddata_reg(9) <= 'X';
+            rddata_reg(10) <= 'X';
+            rddata_reg(11) <= 'X';
+            rddata_reg(12) <= 'X';
+            rddata_reg(13) <= 'X';
+            rddata_reg(14) <= 'X';
+            rddata_reg(15) <= 'X';
+            rddata_reg(16) <= 'X';
+            rddata_reg(17) <= 'X';
+            rddata_reg(18) <= 'X';
+            rddata_reg(19) <= 'X';
+            rddata_reg(20) <= 'X';
+            rddata_reg(21) <= 'X';
+            rddata_reg(22) <= 'X';
+            rddata_reg(23) <= 'X';
+            rddata_reg(24) <= 'X';
+            rddata_reg(25) <= 'X';
+            rddata_reg(26) <= 'X';
+            rddata_reg(27) <= 'X';
+            rddata_reg(28) <= 'X';
+            rddata_reg(29) <= 'X';
+            rddata_reg(30) <= 'X';
+            rddata_reg(31) <= 'X';
+          else
+            -- EIC_IDR is write-only in the functional register map. Its
+            -- read side is used as a diagnostic alias; writes are unchanged.
+            rddata_reg <= diag_dmtd_d0_sample_mismatch_count_i;
           end if;
-          rddata_reg(0) <= 'X';
-          rddata_reg(1) <= 'X';
-          rddata_reg(2) <= 'X';
-          rddata_reg(3) <= 'X';
-          rddata_reg(4) <= 'X';
-          rddata_reg(5) <= 'X';
-          rddata_reg(6) <= 'X';
-          rddata_reg(7) <= 'X';
-          rddata_reg(8) <= 'X';
-          rddata_reg(9) <= 'X';
-          rddata_reg(10) <= 'X';
-          rddata_reg(11) <= 'X';
-          rddata_reg(12) <= 'X';
-          rddata_reg(13) <= 'X';
-          rddata_reg(14) <= 'X';
-          rddata_reg(15) <= 'X';
-          rddata_reg(16) <= 'X';
-          rddata_reg(17) <= 'X';
-          rddata_reg(18) <= 'X';
-          rddata_reg(19) <= 'X';
-          rddata_reg(20) <= 'X';
-          rddata_reg(21) <= 'X';
-          rddata_reg(22) <= 'X';
-          rddata_reg(23) <= 'X';
-          rddata_reg(24) <= 'X';
-          rddata_reg(25) <= 'X';
-          rddata_reg(26) <= 'X';
-          rddata_reg(27) <= 'X';
-          rddata_reg(28) <= 'X';
-          rddata_reg(29) <= 'X';
-          rddata_reg(30) <= 'X';
-          rddata_reg(31) <= 'X';
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011001" => 

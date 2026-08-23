@@ -303,7 +303,7 @@ proc print_event_boundary {board} {
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D1_HIGH_RUN_MAX \
-               DMTD_D0_LOW_RUN_MAX}
+               DMTD_D0_LOW_RUN_MAX D0_SAMPLE_MISMATCH_COUNT}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -379,6 +379,14 @@ proc print_event_boundary {board} {
            $board [expr {$d0_low_run_word & 0xffff}] [expr {($d0_low_run_word >> 16) & 0xffff}]]
    } else {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+   set mismatch_word [word32 [series_value $board D0_SAMPLE_MISMATCH_COUNT last]]
+   if {$mismatch_word >= 0} {
+     puts [format "STEP4_D0_SAMPLE_MISMATCH_COUNT board=%s ref=%d fb=%d" \
+           $board [expr {$mismatch_word & 0xffff}] [expr {($mismatch_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_D0_SAMPLE_MISMATCH_COUNT board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
    set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
@@ -472,6 +480,7 @@ proc read_event_group {board} {
     {DMTD_INPUT_LOW_RUN_MAX 0x00100254}
     {DMTD_D1_HIGH_RUN_MAX 0x00100258}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
+    {D0_SAMPLE_MISMATCH_COUNT 0x00100260}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

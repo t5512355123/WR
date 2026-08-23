@@ -52,7 +52,7 @@ proc read_sample {hardware_name label} {
   set occr [wb_read 0x00100210]
   set rcer [wb_read 0x00100224]
   set ocer [wb_read 0x00100228]
-  set eic_idr [wb_read 0x00100260]
+  set d0_sample_mismatch_count [wb_read 0x00100260]
   set eic_ier [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
@@ -105,8 +105,9 @@ proc read_sample {hardware_name label} {
         $hardware_name $label $status]
   puts [format "EVENT_CHAIN_HW: CSR=%s ECCR=%s OCCR=%s RCER=%s OCER=%s" \
         $csr $eccr $occr $rcer $ocer]
-  puts [format "EVENT_CHAIN_EIC: IDR=%s IER=%s IMR=%s ISR=%s" \
-        $eic_idr $eic_ier $eic_imr $eic_isr]
+  puts [format "EVENT_CHAIN_EIC: IER=%s IMR=%s ISR=%s" \
+        $eic_ier $eic_imr $eic_isr]
+  puts [format "EVENT_CHAIN_D0_SAMPLE_MISMATCH: %s" $d0_sample_mismatch_count]
   puts [format "EVENT_CHAIN_TRR: CSR=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
         $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
   puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \

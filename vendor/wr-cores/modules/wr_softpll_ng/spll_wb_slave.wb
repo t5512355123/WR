@@ -378,6 +378,8 @@ peripheral {
     # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL and
     # later addresses remain unchanged; matching cases are implemented in
     # spll_wb_slave.vhd.
+    # The d0 sample mismatch counter uses the read side of the existing
+    # write-only EIC_IDR slot (0x60); EIC_IDR write behavior is preserved.
    # Packed value: low 16 bits reference input run maximum, high 16 bits
    # feedback input run maximum.
     reg {

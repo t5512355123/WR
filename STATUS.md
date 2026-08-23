@@ -4,13 +4,13 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`67aa10b86951a6352659dddb55c1adba60bbe4a1`
+目前 diagnostics HEAD：`8859959bd39c7ddd1a0b50bb609b943c9a89479b`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
 ## 目前結論
 
-本輪只新增 DMTD sampled-transition 的 dedicated read-only observability，沒有修改 FPGA functional RTL、firmware functional behavior、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register。pain 以 exact HEAD `67aa10b` 完成 Quartus Prime 17.0 Build 595 clean compile、雙板 fresh SOF program 與 read-only JTAG regression。
+本輪只新增 DMTD stability-counter 的 dedicated read-only observability，並精簡 JTAG dashboard 的預設輸出；沒有修改 firmware functional behavior、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register。pain 以 exact HEAD `8859959` 完成 Quartus Prime 17.0 Build 595 clean compile、雙板 fresh SOF program 與 read-only JTAG regression。
 
 Step 2 / Step 3 regression barrier 已重新建立並通過：
 
@@ -37,6 +37,16 @@ STEP4_ALLOWED    = YES
 `docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-SAMPLED-TRANSITION-20260823.md`
 
 Step 2/3 focused regression 均 PASS；Slave 仍保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`。20 次、500 ms 間隔的 DMTD boundary observation 顯示 sampled transition counters 有大量活動，但 accept counters、直接 DMTD event、tag/TRR/IRQ/helper 沒有 delta。因此目前第一個已觀測 inactive boundary 是 `clk_sampled -> deglitch stability qualification -> new_edge_p_dmtdclk`，Step 4 為 `NOT_PASS`。這是 source-backed observability boundary，不是已證明的 hardware/firmware root cause。
+
+## 2026-08-23 Step 4 stability-counter fresh experiment
+
+本輪 exact HEAD `8859959` 重新 clean build、program 並執行 100 samples/200 ms 的 stability-counter observation。`SPLL_DMTD_STAB_COUNTERS` 主要讀值為 0/1；Master state 主要為 `REF=WAIT_STABLE_0, FB=GOT_EDGE`，Slave state 主要為 `REF=GOT_EDGE, FB=WAIT_STABLE_0`。sampled-transition activity 仍存在，但沒有形成持續 deglitch accepted edge 或下游 DMTD/tag/TRR/IRQ/helper activity。少數高值與同一 mailbox snapshot 的其他欄位一起錯位，保留為 measurement consistency evidence，不作功能結論。
+
+完整 provenance、programmer checksum、raw JTAG logs 與判定詳見：
+
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-STAB-COUNTER-20260823.md`
+
+因此目前仍為 `STEP4_RESULT=NOT_PASS`，但 Step 4 已獲 barrier 允許，且 Step 2/3 fresh regression 仍為 PASS。
 
 ## 六步 milestone
 

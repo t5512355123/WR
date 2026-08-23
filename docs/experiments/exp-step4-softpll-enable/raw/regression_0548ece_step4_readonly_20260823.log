@@ -1,0 +1,610 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Aug 23 18:43:52 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step4_startup_focused.tcl 10 500 events --raw
+Info: Quartus(args): 10 500 events --raw
+STEP4_FOCUSED_CONFIG samples=10 gap_ms=500 group=events retries=5 trr_r0_read=disabled
+=== STEP4_FOCUSED_BOARD DE5 [1-11.1] ===
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=001 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=002 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=003 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=004 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=005 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=006 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=007 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=008 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=009 value=00020009
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE sample=010 value=00020009
+STEP4_SERIES board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE samples=10 valid=10 invalid=0 decrease=0 first=00020009 last=00020009 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=RCER sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=RCER samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=001 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=002 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=003 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=004 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=005 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=006 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=007 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=008 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=009 value=00280201
+STEP4_RAW board=DE5 [1-11.1] register=OCER sample=010 value=00280201
+STEP4_SERIES board=DE5 [1-11.1] register=OCER samples=10 valid=10 invalid=0 decrease=0 first=00280201 last=00280201 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=001 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=002 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=003 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=004 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=005 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=006 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=007 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=008 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=009 value=001C89C1
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_EVENTS sample=010 value=001C89C1
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_EVENTS samples=10 valid=10 invalid=0 decrease=0 first=001C89C1 last=001C89C1 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=001 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=002 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=003 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=004 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=005 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=006 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=007 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=008 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=009 value=009E56ED
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_EVENTS sample=010 value=009E56ED
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_EVENTS samples=10 valid=10 invalid=0 decrease=0 first=009E56ED last=009E56ED delta=0
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=001 value=3D1C0EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=002 value=F8520EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=003 value=69000EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=004 value=BD260EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=005 value=8F000EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=006 value=707E0EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=007 value=68E80EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=008 value=9CAC0EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=009 value=8C960EE5
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_SEEN sample=010 value=68FE0EE5
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_SEEN samples=10 valid=10 invalid=0 decrease=1 first=3D1C0EE5 last=68FE0EE5 delta=736231424
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=001 value=95153589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=002 value=0AC93589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=003 value=42373589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=004 value=27B53589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=005 value=81E73589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=006 value=D4A93589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=007 value=E8F53589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=008 value=FEA53589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=009 value=B97F3589
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_SEEN sample=010 value=A8633589
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_SEEN samples=10 valid=10 invalid=0 decrease=1 first=95153589 last=A8633589 delta=323878912
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_GRANT_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_VALID_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TRR_WRITE_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=IRQ_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=IRQ_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=001 value=CFDD01E0
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=002 value=D1C18F4C
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=003 value=D3A70B50
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=004 value=D58C9CA9
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=005 value=D77233F8
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=006 value=D9579EC5
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=007 value=DB3CBB3A
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=008 value=DD221F36
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=009 value=DF076045
+STEP4_RAW board=DE5 [1-11.1] register=CURRENT_TICS sample=010 value=E0ECA0A3
+STEP4_SERIES board=DE5 [1-11.1] register=CURRENT_TICS samples=10 valid=10 invalid=0 decrease=0 first=CFDD01E0 last=E0ECA0A3 delta=286236355
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=001 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=002 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=003 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=004 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=005 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=006 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=007 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=008 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=009 value=048A9ABE
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS sample=010 value=048A9ABE
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=048A9ABE last=048A9ABE delta=0
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=001 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=002 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=003 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=004 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=005 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=006 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=007 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=008 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=009 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS sample=010 value=048A9ABF
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=048A9ABF last=048A9ABF delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=001 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=002 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=003 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=004 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=005 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=006 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=007 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=008 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=009 value=048A9ABF
+STEP4_RAW board=DE5 [1-11.1] register=TAG_REF_LAST_TICS sample=010 value=048A9ABF
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_REF_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=048A9ABF last=048A9ABF delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=001 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=002 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=003 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=004 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=005 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=006 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=007 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=008 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=009 value=048A9AC0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_FB_LAST_TICS sample=010 value=048A9AC0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_FB_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=048A9AC0 last=048A9AC0 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=001 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=002 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=003 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=004 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=005 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=006 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=007 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=008 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=009 value=0C000008
+STEP4_RAW board=DE5 [1-11.1] register=SPLL_DMTD_STATE sample=010 value=0C000008
+STEP4_SERIES board=DE5 [1-11.1] register=SPLL_DMTD_STATE samples=10 valid=10 invalid=0 decrease=0 first=0C000008 last=0C000008 delta=0
+STEP4_DEGLITCH_STATE board=DE5 [1-11.1] ref_state=0 fb_state=2 ref_stab_bucket=0 fb_stab_bucket=0 ref_threshold_reached=1 fb_threshold_reached=1
+STEP4_DMTD_BOUNDARY board=DE5 [1-11.1] sampled_ref=5617 accept_ref=0 sampled_fb=2471 accept_fb=0
+STEP4_EVENT_ACTIVITY board=DE5 [1-11.1] dmtd=0 pending=0 grant=0 tag_valid=0 trr_write=0 irq=0 state_transition=0 helper_update=0
+STEP4_EVENT_BOUNDARY board=DE5 [1-11.1] result=DMTD_DEGLITCH_ACCEPT
+=== STEP4_FOCUSED_BOARD DE5 [1-11.2] ===
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=001 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=002 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=003 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=004 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=005 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=006 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=007 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=008 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=009 value=00030009
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE sample=010 value=00030009
+STEP4_SERIES board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE samples=10 valid=10 invalid=0 decrease=0 first=00030009 last=00030009 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=001 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=002 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=003 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=004 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=005 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=006 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=007 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=008 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=009 value=00000001
+STEP4_RAW board=DE5 [1-11.2] register=RCER sample=010 value=00000001
+STEP4_SERIES board=DE5 [1-11.2] register=RCER samples=10 valid=10 invalid=0 decrease=0 first=00000001 last=00000001 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=001 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=002 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=003 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=004 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=005 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=006 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=007 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=008 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=009 value=03248801
+STEP4_RAW board=DE5 [1-11.2] register=OCER sample=010 value=03248801
+STEP4_SERIES board=DE5 [1-11.2] register=OCER samples=10 valid=10 invalid=0 decrease=0 first=03248801 last=03248801 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=001 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=002 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=003 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=004 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=005 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=006 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=007 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=008 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=009 value=05578F40
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_EVENTS sample=010 value=05578F40
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_EVENTS samples=10 valid=10 invalid=0 decrease=0 first=05578F40 last=05578F40 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=001 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=002 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=003 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=004 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=005 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=006 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=007 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=008 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=009 value=0547F6F2
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_EVENTS sample=010 value=0547F6F2
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_EVENTS samples=10 valid=10 invalid=0 decrease=0 first=0547F6F2 last=0547F6F2 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=001 value=D8762289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=002 value=B1262289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=003 value=65522289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=004 value=60B42289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=005 value=65942289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=006 value=46782289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=007 value=BDAC2289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=008 value=FE3E2289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=009 value=D3942289
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_SEEN sample=010 value=8FCC2289
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_SEEN samples=10 valid=10 invalid=0 decrease=1 first=D8762289 last=8FCC2289 delta=DECREASED_OR_RESET
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=001 value=3CD6FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=002 value=A600FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=003 value=3C10FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=004 value=E0A8FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=005 value=776CFF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=006 value=3B2AFF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=007 value=8D88FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=008 value=40B0FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=009 value=5598FF75
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_SEEN sample=010 value=494CFF75
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_SEEN samples=10 valid=10 invalid=0 decrease=1 first=3CD6FF75 last=494CFF75 delta=209059840
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_GRANT_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_VALID_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TRR_WRITE_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=IRQ_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=IRQ_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=001 value=28DCC9B0
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=002 value=2AC1B211
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=003 value=2CA71D5F
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=004 value=2E8CC84E
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=005 value=307299D7
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=006 value=32586303
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=007 value=343DBBF5
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=008 value=36237B14
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=009 value=3808CFB2
+STEP4_RAW board=DE5 [1-11.2] register=CURRENT_TICS sample=010 value=39EE105B
+STEP4_SERIES board=DE5 [1-11.2] register=CURRENT_TICS samples=10 valid=10 invalid=0 decrease=0 first=28DCC9B0 last=39EE105B delta=286344875
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=001 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=002 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=003 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=004 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=005 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=006 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=007 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=008 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=009 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS sample=010 value=26981E0F
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=26981E0F last=26981E0F delta=0
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=001 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=002 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=003 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=004 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=005 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=006 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=007 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=008 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=009 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS sample=010 value=26981E0F
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=26981E0F last=26981E0F delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=001 value=26981E0F
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=002 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=003 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=004 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=005 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=006 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=007 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=008 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=009 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_REF_LAST_TICS sample=010 value=26981E10
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_REF_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=26981E0F last=26981E10 delta=1
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=001 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=002 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=003 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=004 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=005 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=006 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=007 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=008 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=009 value=26981E10
+STEP4_RAW board=DE5 [1-11.2] register=TAG_FB_LAST_TICS sample=010 value=26981E10
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_FB_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=26981E10 last=26981E10 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=001 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=002 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=003 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=004 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=005 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=006 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=007 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=008 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=009 value=00000000
+STEP4_RAW board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS sample=010 value=00000000
+STEP4_SERIES board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS samples=10 valid=10 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=001 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=002 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=003 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=004 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=005 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=006 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=007 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=008 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=009 value=0C000002
+STEP4_RAW board=DE5 [1-11.2] register=SPLL_DMTD_STATE sample=010 value=0C000002
+STEP4_SERIES board=DE5 [1-11.2] register=SPLL_DMTD_STATE samples=10 valid=10 invalid=0 decrease=0 first=0C000002 last=0C000002 delta=0
+STEP4_DEGLITCH_STATE board=DE5 [1-11.2] ref_state=2 fb_state=0 ref_stab_bucket=0 fb_stab_bucket=0 ref_threshold_reached=1 fb_threshold_reached=1
+STEP4_DMTD_BOUNDARY board=DE5 [1-11.2] sampled_ref=DECREASED_OR_RESET accept_ref=0 sampled_fb=1595 accept_fb=0
+STEP4_EVENT_ACTIVITY board=DE5 [1-11.2] dmtd=0 pending=0 grant=0 tag_valid=0 trr_write=0 irq=0 state_transition=0 helper_update=0
+STEP4_EVENT_BOUNDARY board=DE5 [1-11.2] result=DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS
+STEP4_FOCUSED_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_step4_startup_focused.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sun Aug 23 18:47:51 2026
+    Info: Elapsed time: 00:03:59
+    Info: Total CPU time (on all processors): 00:00:01

@@ -4,9 +4,32 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`618ca6ad3681e302e9a67edf6c3d995e76f3bd41`
+目前 diagnostics HEAD：`0548ece1499d06b793b7fc58fd255250af1a1cf7`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
+
+## 2026-08-23 最新 read-only regression（0548ece）
+
+本輪只修改 `scripts/jtag/read_wb_runtime.tcl` 的 read validation：PSTAT、WR RX/TX signaling shadow 改用 source-backed validator 與 retry。沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何 functional control register；沒有 Quartus compile，也沒有 program FPGA。
+
+pain 已 checkout exact commit `0548ece1499d06b793b7fc58fd255250af1a1cf7`。JTAG 使用 Quartus Prime `17.0.0 Build 595`，板上仍是前一輪 `8859959` fresh SOF。
+
+回歸結果：
+
+- Step 1：兩板 PASS。
+- Step 2：`read_step23_register_reliability.tcl` 兩板各 `valid=30/30`；focused script 兩板 Step 2 PASS。Master=`MAC 02:00:22:33:44:01 / MODE=2 / PTP=6`；Slave=`MAC 02:00:22:33:44:02 / MODE=3 / PTP=9`；MiniNIC/PTP 有 activity，RXERR=0；Slave `FOREIGN_META=03000001`。
+- Step 3：Slave focused 30 samples PASS；`LOCK=0x1001`、`SLAVE_PRESENT=0x1000`、`LOCK_ENABLE=4` 持續成立。`WRS_IDLE` 與這些證據並存，故保留 `STATE_EVIDENCE=READ_INCONSISTENT`、`POST_STEP3_LOCK_STAGE=TIMEOUT`，不宣稱 Step 3 失敗。
+- Step 4：仍 NOT PASS。dashboard 與 focused event-chain 都看到 DMTD accept/event 及下游 tag/TRR/IRQ/helper 沒有 sustained delta；本輪沒有修改功能行為。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED    = YES
+STEP4_RESULT     = NOT_PASS
+```
+
+完整 raw logs 與判讀見：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP23-REGRESSION-READONLY-0548ECE-20260823.md`。
 
 ## 目前結論
 

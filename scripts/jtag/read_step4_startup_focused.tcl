@@ -374,8 +374,10 @@ proc read_group {board group_name items} {
 
 proc read_native_edge_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
-                 REF_NATIVE_EDGE_COUNT64 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
-                 FB_NATIVE_EDGE_COUNT64 NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
+                 REF_NATIVE_EDGE_COUNT64 REF_D0_TRANSITION_COUNT64 \
+                 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
+                 FB_NATIVE_EDGE_COUNT64 FB_D0_TRANSITION_COUNT64 \
+                 NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
 
@@ -387,6 +389,9 @@ proc read_native_edge_group {board} {
     set value [wb_read_u64_consistent 0x00100240 0x00100244]
     add_timed_series_sample64 $board REF_NATIVE_EDGE_COUNT64 $sample $value \
       [clock milliseconds]
+    set value [wb_read_u64_consistent 0x00100250 0x00100254]
+    add_timed_series_sample64 $board REF_D0_TRANSITION_COUNT64 $sample $value \
+      [clock milliseconds]
     set value [wb_read_validated 0x00100234]
     add_timed_series_sample $board NATIVE_REF_SAMPLED $sample $value \
       [clock milliseconds]
@@ -396,6 +401,9 @@ proc read_native_edge_group {board} {
 
     set value [wb_read_u64_consistent 0x0010024C 0x00100258]
     add_timed_series_sample64 $board FB_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x00100260 0x00100264]
+    add_timed_series_sample64 $board FB_D0_TRANSITION_COUNT64 $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x00100238]
     add_timed_series_sample $board NATIVE_FB_SAMPLED $sample $value \
@@ -408,14 +416,17 @@ proc read_native_edge_group {board} {
 
   finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
   finish_series64 $board REF_NATIVE_EDGE_COUNT64
+  finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
   finish_series64 $board FB_NATIVE_EDGE_COUNT64
+  finish_series64 $board FB_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
 
   set result VALID
   set fields {}
+  set d0_fields {}
   set dmtd_delta [series_value $board DMTD_NATIVE_EDGE_COUNT64 delta]
   set dmtd_first_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 first_ms]
   set dmtd_last_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 last_ms]
@@ -434,9 +445,11 @@ proc read_native_edge_group {board} {
 
   foreach side {REF FB} {
     set native_label ${side}_NATIVE_EDGE_COUNT64
+    set d0_label ${side}_D0_TRANSITION_COUNT64
     set sampled_label NATIVE_${side}_SAMPLED
     set accept_label NATIVE_${side}_ACCEPT
     set native_delta [series_value $board $native_label delta]
+    set d0_delta [series_value $board $d0_label delta]
     set sampled_delta [series_value $board $sampled_label delta]
     set accept_delta [series_value $board $accept_label delta]
     set first_ms [series_value $board $native_label first_ms]
@@ -446,6 +459,8 @@ proc read_native_edge_group {board} {
     set sampled_ratio NA
     set native_to_dmtd_ratio NA
     set sampled_to_dmtd_ratio NA
+    set d0_to_dmtd_ratio NA
+    set sampled_to_d0_ratio NA
     if {[string is wideinteger -strict $native_delta] &&
         [string is wideinteger -strict $sampled_delta] &&
         [string is wideinteger -strict $first_ms] &&
@@ -461,6 +476,16 @@ proc read_native_edge_group {board} {
           [expr {double($native_delta) / double($dmtd_delta)}]]
         set sampled_to_dmtd_ratio [format "%.9f" \
           [expr {double($sampled_delta) / double($dmtd_delta)}]]
+        if {[string is wideinteger -strict $d0_delta]} {
+          set d0_to_dmtd_ratio [format "%.9f" \
+            [expr {double($d0_delta) / double($dmtd_delta)}]]
+          if {$d0_delta > 0} {
+            set sampled_to_d0_ratio [format "%.9f" \
+              [expr {double($sampled_delta) / double($d0_delta)}]]
+          }
+        } else {
+          set result INVALID
+        }
       } else {
         set result INVALID
       }
@@ -474,10 +499,16 @@ proc read_native_edge_group {board} {
       [string tolower $side] $native_to_dmtd_ratio \
       [string tolower $side] $sampled_to_dmtd_ratio \
       [string tolower $side] $accept_delta]
+    lappend d0_fields [format "%s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s" \
+      [string tolower $side] $d0_delta \
+      [string tolower $side] $d0_to_dmtd_ratio \
+      [string tolower $side] $sampled_to_d0_ratio]
   }
   puts [format "STEP4_NATIVE_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
         $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz \
         [lindex $fields 0] [lindex $fields 1] $result]
+  puts [format "STEP4_D0_TRANSITION board=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board [lindex $d0_fields 0] [lindex $d0_fields 1] $result]
 }
 
 proc series_value {board label field} {
@@ -536,10 +567,7 @@ proc print_event_boundary {board} {
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
-               DMTD_HIGH_QUAL_MAX_STAB LOW_QUAL_ABORT_REF \
-               LOW_QUAL_ABORT_FB \
-               DMTD_D0_LOW_RUN_MAX WAIT_EDGE_ENTRY_REF \
-               WAIT_EDGE_ENTRY_FB}
+               DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -583,16 +611,6 @@ proc print_event_boundary {board} {
      puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
-   set low_abort_ref_delta [series_value $board LOW_QUAL_ABORT_REF delta]
-   set low_abort_fb_delta [series_value $board LOW_QUAL_ABORT_FB delta]
-   set low_abort_invalid [expr {
-     ![string is integer -strict $low_abort_ref_delta] ||
-     ![string is integer -strict $low_abort_fb_delta]}]
-   set low_abort_active [expr {!$low_abort_invalid &&
-     ($low_abort_ref_delta > 0 || $low_abort_fb_delta > 0)}]
-   puts [format "STEP4_LOW_QUAL_ABORT board=%s ref_delta=%s fb_delta=%s active=%d" \
-         $board $low_abort_ref_delta $low_abort_fb_delta $low_abort_active]
-
    set d0_low_run_word [word32 [series_value $board DMTD_D0_LOW_RUN_MAX last]]
    if {$d0_low_run_word >= 0} {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s ref_max_d0_low_run=%d fb_max_d0_low_run=%d" \
@@ -600,14 +618,6 @@ proc print_event_boundary {board} {
    } else {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
-
-   set wait_edge_ref_delta [series_value $board WAIT_EDGE_ENTRY_REF delta]
-   set wait_edge_fb_delta [series_value $board WAIT_EDGE_ENTRY_FB delta]
-   set wait_edge_active [expr {
-     ([string is integer -strict $wait_edge_ref_delta] && $wait_edge_ref_delta > 0) ||
-     ([string is integer -strict $wait_edge_fb_delta] && $wait_edge_fb_delta > 0)}]
-   puts [format "STEP4_WAIT_EDGE_ENTRY board=%s ref_delta=%s fb_delta=%s active=%d" \
-         $board $wait_edge_ref_delta $wait_edge_fb_delta $wait_edge_active]
 
    set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
@@ -630,20 +640,14 @@ proc print_event_boundary {board} {
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
   }
 
-  if {$abort_delta_invalid || $low_abort_invalid} {
+  if {$abort_delta_invalid} {
     set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
   } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
-  } elseif {!$wait_edge_active && $low_abort_active} {
-    set boundary "DMTD_WAIT_STABLE_LOW_QUAL_INTERRUPTED"
-  } elseif {!$wait_edge_active && ($ref_state eq "0" || $fb_state eq "0")} {
-    set boundary "DMTD_WAIT_STABLE_LOW_QUAL_NO_ABORT_OBSERVED"
-  } elseif {!$wait_edge_active} {
-    set boundary "DMTD_WAIT_EDGE_ENTRY_INACTIVE_STATE_LATER"
   } elseif {!$accept_active} {
-    set boundary "DMTD_WAIT_EDGE_TO_DEGLITCH_ACCEPT"
+    set boundary "DMTD_SAMPLED_TRANSITION_TO_DEGLITCH_ACCEPT"
   } elseif {!$dmtd_active} {
     set boundary "DMTD_ACCEPT_TO_SYS_EVENT"
   } elseif {!$pending_active} {
@@ -702,11 +706,7 @@ proc read_event_group {board} {
     {DMTD_REF_SAMPLED 0x00100234}
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
-    {LOW_QUAL_ABORT_REF 0x00100250}
-    {LOW_QUAL_ABORT_FB 0x00100254}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
-    {WAIT_EDGE_ENTRY_REF 0x00100260}
-    {WAIT_EDGE_ENTRY_FB 0x00100264}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

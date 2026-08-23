@@ -377,12 +377,11 @@ peripheral {
     # Manual read-only aliases are implemented in spll_wb_slave.vhd without
     # changing any functional write behavior.  The write-only read sides at
     # 0x40, 0x44, and 0x4c expose REF native-edge LO/HI and FB native-edge LO;
-    # 0x58 exposes FB native-edge HI. Slots 0x50/0x54 retain the full-width
-    # REF/FB LOW qualification-abort counters. Historical SOFs used these
-    # aliases for the 64-bit HIGH-abort depth sums.
-    # The read-side aliases at 0x60 and 0x64 expose the full-width reference
-    # and feedback WAIT_STABLE_0 -> WAIT_EDGE entry counters. Their write-side
-    # behavior is unchanged. Diagnostic offsets 0xf8/0xfc expose the DMTD
+    # 0x58 exposes FB native-edge HI. Historical SOFs used these aliases for
+    # other read-only Step 4 diagnostics.
+    # Read-side aliases at 0x50/0x54 expose REF D0 transition count LO/HI;
+    # 0x60/0x64 expose FB D0 transition count LO/HI. Their write-side behavior
+    # is unchanged. Diagnostic offsets 0xf8/0xfc expose the DMTD
     # sampling-clock native edge count LO/HI.
     # EIC behavior is preserved in the hand-maintained VHDL wrapper.
     reg {

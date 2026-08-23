@@ -210,10 +210,10 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);
       diag_dmtd_input_d1_high_run_max_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_d0_low_run_max_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_low_qual_abort_ref_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_low_qual_abort_fb_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_wait_edge_entry_ref_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_wait_edge_entry_fb_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_d0_transition_count_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_d0_transition_count_hi_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_d0_transition_count_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_d0_transition_count_hi_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
@@ -406,6 +406,8 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_ref_native_edge_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_native_edge_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
+  signal dmtd_ref_d0_transition_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_d0_transition_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_native_edge_count_bin : unsigned(63 downto 0) := (others => '0');
   signal dmtd_native_edge_count_gray : std_logic_vector(63 downto 0) := (others => '0');
   signal dmtd_native_edge_count_gray_sys : std_logic_vector(63 downto 0);
@@ -570,6 +572,7 @@ begin  -- rtl
           dbg_input_low_run_max_o => dmtd_ref_input_low_run_max(i),
           dbg_input_d1_high_run_max_o => dmtd_ref_input_d1_high_run_max(i),
           dbg_input_d0_low_run_max_o => dmtd_ref_input_d0_low_run_max(i),
+          dbg_d0_transition_count_o => dmtd_ref_d0_transition_count(i),
           dbg_wait_edge_entry_count_o => dmtd_ref_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
@@ -628,6 +631,7 @@ begin  -- rtl
           dbg_input_low_run_max_o => dmtd_fb_input_low_run_max(i),
           dbg_input_d1_high_run_max_o => dmtd_fb_input_d1_high_run_max(i),
           dbg_input_d0_low_run_max_o => dmtd_fb_input_d0_low_run_max(i),
+          dbg_d0_transition_count_o => dmtd_fb_d0_transition_count(i),
           dbg_wait_edge_entry_count_o => dmtd_fb_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
@@ -687,6 +691,7 @@ begin  -- rtl
           dbg_input_low_run_max_o => open,
          dbg_input_d1_high_run_max_o => open,
           dbg_input_d0_low_run_max_o => open,
+          dbg_d0_transition_count_o => open,
           dbg_wait_edge_entry_count_o => open,
           dbg_low_qual_abort_count_o => open,
         dbg_high_qual_abort_count_o => open,
@@ -840,17 +845,17 @@ begin  -- rtl
        diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),
        diag_dmtd_input_d1_high_run_max_i => dmtd_fb_input_d1_high_run_max(0) & dmtd_ref_input_d1_high_run_max(0),
        diag_dmtd_input_d0_low_run_max_i => dmtd_fb_input_d0_low_run_max(0) & dmtd_ref_input_d0_low_run_max(0),
-       diag_dmtd_low_qual_abort_ref_i => dmtd_ref_low_abort_count(0),
-       diag_dmtd_low_qual_abort_fb_i => dmtd_fb_low_abort_count(0),
-       diag_dmtd_wait_edge_entry_ref_i => dmtd_ref_wait_edge_entry_count(0),
-       diag_dmtd_wait_edge_entry_fb_i => dmtd_fb_wait_edge_entry_count(0),
+       diag_dmtd_ref_d0_transition_count_lo_i => dmtd_ref_d0_transition_count(0)(31 downto 0),
+       diag_dmtd_ref_d0_transition_count_hi_i => dmtd_ref_d0_transition_count(0)(63 downto 32),
+       diag_dmtd_fb_d0_transition_count_lo_i => dmtd_fb_d0_transition_count(0)(31 downto 0),
+       diag_dmtd_fb_d0_transition_count_hi_i => dmtd_fb_d0_transition_count(0)(63 downto 32),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Reuse the existing read-only DMTD_SEEN words without changing the
       -- Wishbone map. The full sampled/accept counters remain available at
       -- 0x22c..0x238; these words expose the 32-bit HIGH qualification-abort
-      -- wrapping counters. The 32-bit LOW qualification-abort counters are
-      -- exposed by the read-only diagnostic aliases at 0x250 and 0x254.
+      -- wrapping counters. REF/FB D0-transition counters use read-only
+      -- diagnostic aliases at 0x250/0x254 and 0x260/0x264 respectively.
       -- REF/FB native-edge counters are split across the read-only aliases at
       -- 0x240/0x244 and 0x24c/0x258. Functional writes at those addresses are
       -- unchanged; only their otherwise-unused read sides are diagnostic.

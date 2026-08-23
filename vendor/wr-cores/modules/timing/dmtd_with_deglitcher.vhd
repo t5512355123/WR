@@ -177,6 +177,9 @@ entity dmtd_with_deglitcher is
      dbg_input_d1_high_run_max_o : out std_logic_vector(15 downto 0);
      -- Maximum consecutive LOW samples at sampler clk_i_d0. Read-only.
      dbg_input_d0_low_run_max_o : out std_logic_vector(15 downto 0);
+     -- Count of transitions between consecutive sampler clk_i_d0 values.
+     -- The sampler emits registered Gray; decode occurs in clk_sys_i.
+     dbg_d0_transition_count_o : out std_logic_vector(63 downto 0);
      -- Count exact WAIT_STABLE_0 -> WAIT_EDGE transitions. Read-only.
      dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0)
      );
@@ -240,6 +243,8 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_input_d1_high_run_max_sys : std_logic_vector(15 downto 0);
    signal dbg_input_d0_low_run_max_dmtd : std_logic_vector(15 downto 0) := (others => '0');
    signal dbg_input_d0_low_run_max_sys : std_logic_vector(15 downto 0);
+   signal dbg_d0_transition_count_gray_dmtd : std_logic_vector(63 downto 0) := (others => '0');
+   signal dbg_d0_transition_count_gray_sys : std_logic_vector(63 downto 0);
    signal dbg_wait_edge_entry_count : unsigned(31 downto 0) := (others => '0');
    signal dbg_wait_edge_entry_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_reached : std_logic;
@@ -445,6 +450,17 @@ begin  -- rtl
 
    dbg_input_d0_low_run_max_o <= dbg_input_d0_low_run_max_sys;
 
+   U_sync_dbg_d0_transition_count : entity work.gc_sync_register
+     generic map (g_width => 64)
+     port map (
+       clk_i     => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i       => dbg_d0_transition_count_gray_dmtd,
+       q_o       => dbg_d0_transition_count_gray_sys);
+
+   dbg_d0_transition_count_o <=
+     f_gray_to_binary(dbg_d0_transition_count_gray_sys);
+
    U_sync_dbg_wait_edge_entry_count : entity work.gc_sync_register
      generic map (g_width => 32)
      port map (
@@ -483,7 +499,8 @@ begin  -- rtl
          dbg_input_high_run_max_o => dbg_input_high_run_max_dmtd,
          dbg_input_low_run_max_o => dbg_input_low_run_max_dmtd,
          dbg_d1_high_run_max_o => dbg_input_d1_high_run_max_dmtd,
-         dbg_d0_low_run_max_o => dbg_input_d0_low_run_max_dmtd );
+         dbg_d0_low_run_max_o => dbg_input_d0_low_run_max_dmtd,
+         dbg_d0_transition_count_gray_o => dbg_d0_transition_count_gray_dmtd );
 
   end generate gen_builtin;
 
@@ -491,6 +508,7 @@ begin  -- rtl
      clk_sampled <= clk_sampled_a_i;
      dbg_input_d1_high_run_max_dmtd <= (others => '0');
      dbg_input_d0_low_run_max_dmtd <= (others => '0');
+     dbg_d0_transition_count_gray_dmtd <= (others => '0');
    end generate gen_externally_sampled;
 
 

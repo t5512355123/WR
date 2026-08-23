@@ -84,7 +84,10 @@ entity dmtd_sampler is
     dbg_d1_high_run_max_o : out std_logic_vector(15 downto 0);
     -- Maximum consecutive LOW samples of clk_i_d0 before inversion/enable.
     -- This is read-only observability and does not feed clk_sampled_o.
-    dbg_d0_low_run_max_o : out std_logic_vector(15 downto 0)
+    dbg_d0_low_run_max_o : out std_logic_vector(15 downto 0);
+    -- Gray-coded count of transitions between consecutive clk_i_d0 samples.
+    -- The binary counter and Gray encoder remain in the sampler clock domain.
+    dbg_d0_transition_count_gray_o : out std_logic_vector(63 downto 0)
     );
 
 end dmtd_sampler;
@@ -116,6 +119,9 @@ architecture rtl of dmtd_sampler is
   signal dbg_d1_high_run_max    : unsigned(15 downto 0) := (others => '0');
   signal dbg_d0_low_run         : unsigned(15 downto 0) := (others => '0');
   signal dbg_d0_low_run_max     : unsigned(15 downto 0) := (others => '0');
+  signal dbg_d0_transition_count : unsigned(63 downto 0) := (others => '0');
+  signal dbg_d0_transition_gray  : std_logic_vector(63 downto 0) := (others => '0');
+  signal dbg_d0_previous         : std_logic := '0';
 
   function f_sat_inc(value : unsigned) return unsigned is
     variable result  : unsigned(value'range) := value;
@@ -138,6 +144,55 @@ begin  -- rtl
   dbg_input_low_run_max_o <= std_logic_vector(dbg_input_low_run_max);
   dbg_d1_high_run_max_o <= std_logic_vector(dbg_d1_high_run_max);
   dbg_d0_low_run_max_o <= std_logic_vector(dbg_d0_low_run_max);
+  dbg_d0_transition_count_gray_o <= dbg_d0_transition_gray;
+
+  -- This diagnostic observes the existing first-stage sample. It does not
+  -- resample clk_in_i and has no fanout into the functional sampler path.
+  gen_debug_d0_transition_dmtd : if g_with_oversampling = false generate
+    p_debug_d0_transition : process(clk_dmtd_i)
+      variable next_count : unsigned(63 downto 0);
+    begin
+      if rising_edge(clk_dmtd_i) then
+        if rst_n_i = '0' then
+          dbg_d0_transition_count <= (others => '0');
+          dbg_d0_transition_gray <= (others => '0');
+          dbg_d0_previous <= '0';
+        else
+          next_count := dbg_d0_transition_count;
+          if clk_i_d0 /= dbg_d0_previous then
+            next_count := next_count + 1;
+          end if;
+          dbg_d0_transition_count <= next_count;
+          dbg_d0_transition_gray <=
+            std_logic_vector(next_count xor shift_right(next_count, 1));
+          dbg_d0_previous <= clk_i_d0;
+        end if;
+      end if;
+    end process p_debug_d0_transition;
+  end generate gen_debug_d0_transition_dmtd;
+
+  gen_debug_d0_transition_over : if g_with_oversampling = true generate
+    p_debug_d0_transition : process(clk_dmtd_over_i)
+      variable next_count : unsigned(63 downto 0);
+    begin
+      if rising_edge(clk_dmtd_over_i) then
+        if rst_n_i = '0' then
+          dbg_d0_transition_count <= (others => '0');
+          dbg_d0_transition_gray <= (others => '0');
+          dbg_d0_previous <= '0';
+        else
+          next_count := dbg_d0_transition_count;
+          if clk_i_d0 /= dbg_d0_previous then
+            next_count := next_count + 1;
+          end if;
+          dbg_d0_transition_count <= next_count;
+          dbg_d0_transition_gray <=
+            std_logic_vector(next_count xor shift_right(next_count, 1));
+          dbg_d0_previous <= clk_i_d0;
+        end if;
+      end if;
+    end process p_debug_d0_transition;
+  end generate gen_debug_d0_transition_over;
 
   gen_debug_input_run_dmtd : if g_with_oversampling = false generate
     p_debug_input_run : process(clk_dmtd_i)

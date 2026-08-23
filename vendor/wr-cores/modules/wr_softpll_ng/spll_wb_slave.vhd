@@ -51,10 +51,10 @@ port (
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d0_low_run_max_i         : in     std_logic_vector(31 downto 0);
-  diag_dmtd_low_qual_abort_ref_i            : in     std_logic_vector(31 downto 0);
-  diag_dmtd_low_qual_abort_fb_i             : in     std_logic_vector(31 downto 0);
-  diag_dmtd_wait_edge_entry_ref_i           : in     std_logic_vector(31 downto 0);
-  diag_dmtd_wait_edge_entry_fb_i            : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_d0_transition_count_lo_i    : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_d0_transition_count_hi_i    : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_d0_transition_count_lo_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_d0_transition_count_hi_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
@@ -438,13 +438,13 @@ begin
           ack_in_progress <= '1';
         when "010100" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_low_qual_abort_ref_i;
+            rddata_reg <= diag_dmtd_ref_d0_transition_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "010101" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_low_qual_abort_fb_i;
+            rddata_reg <= diag_dmtd_ref_d0_transition_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -652,7 +652,7 @@ begin
           else
             -- EIC_IDR is write-only in the functional register map. Its
             -- read side is used as a diagnostic alias; writes are unchanged.
-            rddata_reg <= diag_dmtd_wait_edge_entry_ref_i;
+            rddata_reg <= diag_dmtd_fb_d0_transition_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -693,7 +693,7 @@ begin
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_wait_edge_entry_fb_i;
+            rddata_reg <= diag_dmtd_fb_d0_transition_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

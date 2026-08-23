@@ -6,7 +6,7 @@
 - 日期：2026/08/24
 - Branch：`exp/step4-softpll-enable`
 - 實驗 source commit：`3b427696d94afc927db8ce8e3a73a46570589d41`
-- 狀態：fresh firmware 與 Quartus clean compile 完成；Master/Slave 已燒錄，runtime 待測
+- 狀態：fresh firmware、Quartus clean compile、雙板燒錄與 runtime 量測均已完成
 
 ## 想驗證什麼
 
@@ -51,21 +51,78 @@
 
 ## JTAG / Runtime 原始結果
 
-雙板 fresh SOF 均已燒錄完成。等待固定啟動時間後執行 Step 1～3 regression barrier
-與 Step 4 T0/T1；目前尚未對 runtime 結果下結論。
+### Dashboard
+
+- Tcl 正常結束，0 errors / 0 warnings。
+- Master：Step 1/2 PASS，`MAC=02:00:22:33:44:01`、`MODE=2`、`PTP=6`。
+- Slave：Step 1 與 Step 3 PASS；單次 dashboard 在啟動過渡期間讀到 `PTP=8`
+  (`UNCALIBRATED`)，因此該次 Step 2 是 `NA`，未把 transitional sample 當成 regression。
+
+### Step 1～3 regression barrier
+
+`read_wr_handshake_focused.tcl 30 1000` 結果：
+
+| Board | Valid/Invalid | Step 2 | Step 3 | PTP TX delta | 主要證據 |
+|---|---:|---|---|---:|---|
+| Master | 30/0 | PASS | NA | 165 | `MAC ...:01`、`MODE=2`、`PTP=6` |
+| Slave | 30/0 | PASS | PASS | 16 | `MAC ...:02`、`MODE=3`、`PTP=9`、foreign=`1/0`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4` |
+
+Slave 30/30 samples 都有 WR signaling success evidence。單獨的 live WR state 讀值持續為
+`WRS_IDLE`，與 LOCK、SLAVE_PRESENT、LOCK_ENABLE 及既有 failure shadow 衝突，因此依既定
+regression 規則保留為 `STATE_EVIDENCE=READ_INCONSISTENT`，不把它誤判成 Step 3 regression。
+
+### Step 4 focused T0/T1
+
+兩次量測均為 `10 samples x 500 ms`，中間等待 10 秒。下列 HIGH-abort delta
+使用 unsigned modulo-32 計算：
+
+| Slave signal | T0 delta | T1 delta |
+|---|---:|---:|
+| REF sampled transition | 689,533,914 | 689,360,637 |
+| FB sampled transition | 688,719,357 | 688,512,742 |
+| REF HIGH qualification abort | 344,766,461 | 344,677,586 |
+| FB HIGH qualification abort | 344,367,796 | 344,253,442 |
+| REF/FB accept | 0 / 0 | 0 / 0 |
+| tag/TRR/IRQ/helper update | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+
+其他 bounded evidence：
+
+- Slave T0/T1 current deglitch state 都是 `GOT_EDGE/GOT_EDGE`。
+- `ref_max_before_abort/fb_max_before_abort`：T0=`22/4`，T1=`26/4`。
+- LOW qualification abort 與 WAIT_EDGE entry 在 T0/T1 都沒有 sustained delta。
+- 所有 focused register series 都有 10/10 valid samples；本輪關鍵 HIGH-abort 結果不是
+  JTAG timeout、invalid sample 或飽和值造成。
+- Master 的 HIGH-abort delta 為 0；本輪問題定位以 Slave 為主，不用 Master 的 inactive
+  channel 推論 Slave 根因。
 
 ## Raw evidence
 
-目前 build evidence 位於：
+完整 build、program 與 runtime evidence 位於：
 
 `docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-HIGH-ABORT-WRAP32-20260824/`
 
-燒錄與 runtime logs 將在每個操作完成後立即加入同一資料夾。
+- `program_master.log` / `program_slave.log`
+- `dashboard.log`
+- `step123_focused.log`
+- `step4_t0.log` / `step4_t1.log`
 
 ## Conclusion
 
 ```text
-STEP4_RESULT = NOT_YET_EVALUATED
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_HIGH_QUAL_ABORT_ACTIVE = YES
+SLAVE_CURRENT_DEGLITCH_STATE = GOT_EDGE/GOT_EDGE
+SLAVE_ACCEPT_AND_DOWNSTREAM_ACTIVITY = NONE_OBSERVED
+ROOT_CAUSE = NOT_PROVEN
 ```
 
-compile 成功不等於硬體實驗成功；必須等待 fresh SOF 雙板 program 與 JTAG runtime evidence。
+本輪已排除「HIGH-abort counter 飽和所以看不見目前活動」這個診斷限制。直接證據支持：
+Slave sampled input 持續活動，deglitcher 位於 `GOT_EDGE`，而 HIGH qualification 反覆被 LOW
+sample 中斷，沒有形成新的 accepted DMTD event，所以下游 tag/TRR/IRQ/helper 沒有活動。
+
+這仍不能單獨證明 DDMTD polarity、qualification threshold、時序違反或其他特定項目就是
+根因；下一步需維持單一變因，依 reviewer 對這份 fresh runtime evidence 的判讀再決定。

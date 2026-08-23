@@ -1,5 +1,41 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 HIGH qualification abort 回繞計數實驗（2026-08-24，source `3b42769`）
+
+本輪由 exact source commit `3b427696d94afc927db8ce8e3a73a46570589d41` 完成 fresh firmware、
+Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一變因是把既有
+32-bit HIGH qualification-abort 診斷由 saturating 改成 free-running wrapping arithmetic；
+functional trigger condition、deglitch FSM 與 WR/SoftPLL 行為均未修改。
+
+- Master/Slave programmer checksum：`0x30ADC41E / 0x30AD7EE3`；兩片均 configuration
+  succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS。Master/Slave focused samples 均為 30/30
+  valid，Slave `MODE=3/PTP=9`、foreign=`1/0`、RX=`0x1001`、TX=`0x1000`、
+  `LOCK_ENABLE=4`。
+- Slave live WR state 與其他握手證據仍衝突，保留 `STATE_EVIDENCE=READ_INCONSISTENT`，
+  不當成 Step 3 regression。
+- Step 4 T0：Slave REF/FB HIGH-abort modulo-32 delta=`344,766,461 / 344,367,796`；
+  T1=`344,677,586 / 344,253,442`。
+- Slave T0/T1 都是 `GOT_EDGE/GOT_EDGE`；sampled transition 每視窗約增加 `6.89e8`，
+  但 accept、tag/TRR、IRQ、state transition、helper delta 全為 0。
+- 本輪證明 HIGH qualification abort 正在持續發生，並排除舊 32-bit counter 飽和造成的
+  measurement invalid；尚未證明 DDMTD polarity、threshold、timing 或其他特定項目是根因。
+- Master/Slave compile 成功但 `TIMING_CLOSED=NO`；只列為 implementation caveat。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_HIGH_QUAL_ABORT_ACTIVE = YES
+SLAVE_CURRENT_DEGLITCH_STATE = GOT_EDGE/GOT_EDGE
+SLAVE_ACCEPT_AND_DOWNSTREAM_ACTIVITY = NONE_OBSERVED
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-HIGH-ABORT-WRAP32-20260824.md`
+
 ## 最新 Step 4 HIGH qualification abort 唯讀回讀（2026-08-24，diagnostics `51f874a`）
 
 本輪沿用 source commit `126dda8550db3f8de33c9e37303e4a16aa730350` 的現有 Master/Slave SOF，只以 diagnostics commit `51f874ab052c770d8e35e678f535892c38502847` 執行 read-only JTAG；沒有 firmware build、Quartus compile 或 FPGA program。

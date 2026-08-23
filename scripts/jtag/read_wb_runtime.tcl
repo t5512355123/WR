@@ -70,6 +70,10 @@ proc register_value_valid {addr value} {
       # PPSI state is an enum, not an arbitrary 32-bit value.
       return [expr {$word >= 1 && $word <= 9}]
     }
+    0x00100A0C {
+      # PSTAT currently exposes link and SoftPLL-lock bits only.
+      return [expr {($word & 0xfffffffc) == 0}]
+    }
     0x00100A5C {
       # PTP_META packs PPSI state and configured WRC mode in the low/high
       # bytes.  The middle bytes are source-defined enums/counters.
@@ -93,6 +97,12 @@ proc register_value_valid {addr value} {
     0x00100A80 {
       # Upper byte contains only the three source-defined parent flags.
       return [expr {(($word >> 24) & 0xff) <= 7}]
+    }
+    0x00100A64 - 0x00100A68 {
+      # WR signaling shadow: the message ID is one of the source-defined
+      # 0x1000..0x1005 messages and the low half is its event count.
+      set message [expr {($word >> 16) & 0xffff}]
+      return [expr {$message >= 0x1000 && $message <= 0x1005}]
     }
     0x00100A50 {
       # WR signaling reject reason is a source-defined small enum in bits 7:0.
@@ -513,12 +523,12 @@ proc collect_snapshot {board label} {
   put_snap $board $label foreign_meta [wb_read_critical 0x00100A78]
   put_snap $board $label filter_meta [wb_read 0x00100A7C]
   put_snap $board $label parse_meta [wb_read_critical 0x00100A80]
-  put_snap $board $label wr_rx_signal [wb_read 0x00100A64]
-  put_snap $board $label wr_tx_signal [wb_read 0x00100A68]
+  put_snap $board $label wr_rx_signal [wb_read_validated 0x00100A64]
+  put_snap $board $label wr_tx_signal [wb_read_validated 0x00100A68]
   put_snap $board $label wr_failure [wb_read_critical 0x00100A6C]
   put_snap $board $label wr_state [wb_read_critical 0x00100A4C]
   put_snap $board $label wr_reject [wb_read_validated 0x00100A50]
-  put_snap $board $label pstat [wb_read 0x00100A0C]
+  put_snap $board $label pstat [wb_read_validated 0x00100A0C]
   put_snap $board $label sstat [wb_read 0x00100A08]
   put_snap $board $label sec_h [wb_read 0x00100A20]
   put_snap $board $label sec_l [wb_read 0x00100A24]

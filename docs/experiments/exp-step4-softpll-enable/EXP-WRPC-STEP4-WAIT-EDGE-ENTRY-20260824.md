@@ -91,7 +91,7 @@ Dashboard 再次確認兩板 Step 1/2 PASS、Slave Step 3 PASS、Slave Step 4 er
 - `provenance.txt`
 - `firmware_build.log`
 - `quartus_master_build.log`、`quartus_slave_build.log`
-- `master_sta.summary`、`slave_sta.summary`
+- `master_sta_summary.txt`、`slave_sta_summary.txt`
 - `program_master.log`、`program_slave.log`
 - `step23_focused_30x1s.log`
 - `step4_t0_10x500ms.log`、`step4_t1_10x500ms.log`

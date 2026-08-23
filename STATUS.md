@@ -1,5 +1,44 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 D0 transition 64-bit 觀測實驗（2026-08-24，source `63fd80a`）
+
+本輪由 exact source commit `63fd80ad080a951cc8e7ae9d4c7f35d0d3f558ef` 完成 fresh
+firmware、Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一
+變因是在 REF/FB sampler domain 計數既有 `clk_i_d0` 相鄰樣本的轉換，再以
+registered Gray code 與兩級 CDC 提供 64-bit 唯讀回讀；沒有修改 WR、PTP、
+SoftPLL、DDMTD、DCO、SI5340 或 PHY functional behavior。
+
+- Master/Slave programmer checksum：`0x30AF1037 / 0x30AE4903`；兩片均
+  configuration succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS。兩片 focused samples 均為 30/30
+  valid，Master/Slave PTP TX delta 為 `169/23`。
+- Slave handshake 30/30 符合既有 acceptance gate；live WR state 衝突仍保留
+  `STATE_EVIDENCE=READ_INCONSISTENT`，不當成 Step 3 regression。
+- Slave T0/T1 的 REF `D0/DMTD=0.991962/0.992194`，FB=
+  `0.987580/0.987611`；REF `sampled/D0=1.000010/1.000005`，FB=
+  `0.999998/0.999979`。
+- 結果支持 D0 到 sampled 計數管線近似一比一；相對 DMTD 的轉換比例差異已在
+  `clk_i_d0` 出現。REF/FB accept 與下游 event 仍沒有 sustained activity。
+- Master T1 有一筆 `NATIVE_FB_SAMPLED=0` 的不可信 mailbox sample，未用於根因
+  推論；Slave 兩個視窗結果一致。
+- Master/Slave compile 成功但 `TIMING_CLOSED=NO`；整體 setup WNS 為
+  `-0.287/-0.177 ns`，因此 timing 仍是 caveat。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_REF_FB_D0_TRANSITION = ACTIVE
+SLAVE_D0_TO_SAMPLED_PIPELINE = PRESERVED_APPROX_1_TO_1
+SLAVE_DEGLITCH_ACCEPT_AND_DOWNSTREAM = NONE_OBSERVED
+FIRST_INACTIVE_BOUNDARY = DMTD_SAMPLED_TRANSITION_TO_DEGLITCH_ACCEPT
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-D0-TRANSITION-COUNT64-20260824.md`
+
 ## 最新 Step 4 DMTD 取樣時鐘 64-bit edge count 實驗（2026-08-24，source `ecf5bba`）
 
 本輪由 exact source commit `ecf5bbad40306a345c611ec9f27388e876fc0911` 完成 fresh

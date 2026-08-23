@@ -4,7 +4,7 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`8859959bd39c7ddd1a0b50bb609b943c9a89479b`
+目前 diagnostics HEAD：`618ca6ad3681e302e9a67edf6c3d995e76f3bd41`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
@@ -27,6 +27,28 @@ STEP2_REGRESSION = PASS
 STEP3_REGRESSION = PASS
 STEP4_ALLOWED    = YES
 ```
+
+## 2026-08-23 Step 2/3 read-only regression barrier
+
+本次在 branch `exp/step4-softpll-enable` 的 exact commit `618ca6ad3681e302e9a67edf6c3d995e76f3bd41` 執行唯讀 regression。沒有 Quartus compile、沒有 program FPGA；板上仍是前一輪 `8859959` fresh SOF。這個 provenance 邊界已完整記錄於：
+
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP23-REGRESSION-READONLY-20260823.md`
+
+結果如下：
+
+- Step 1：兩板 PHY/link PASS。
+- Step 2：兩板 30/30 valid samples PASS；唯一 MAC、MODE/PTP role、MiniNIC/PTP activity 與 RXERR=0 均成立。
+- Step 3：Slave focused 30 samples PASS；`FOREIGN_META=03000001`、parent WR/calibrated、`LOCK`、`SLAVE_PRESENT`、`LOCK_ENABLE=4` 均有證據。current state 同時呈現 `WRS_IDLE`，因此保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`，不把它直接改判為 failure。
+- Dashboard 對 stale/invalid read 的處理在本次完整執行中沒有 Tcl exception；短窗口 PTP_TX=0 只列資訊，不單獨使 Step 2 fail。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED    = YES
+```
+
+這次只重新建立 regression barrier，沒有新增 hardware/firmware functional evidence；Step 4 仍維持 `NOT PASS`，不可解讀為 SoftPLL 已 lock。
 
 這只代表可以繼續單一變因的 Step 4 read-only 診斷；本輪 Step 4 尚未通過，也沒有要求 SoftPLL lock 或 `time_valid=1`。
 

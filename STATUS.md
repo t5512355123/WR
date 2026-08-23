@@ -1,26 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
-## 最新 Step 4 診斷摘要（2026-08-23，HEAD `52a2b65`）
+## 最新 Step 4 診斷摘要（2026-08-23，HEAD `e923426`）
 
-本輪在 branch `exp/step4-softpll-enable` 由 fresh HEAD 完成 Master/Slave clean build、Quartus compile、雙板燒錄與 read-only regression。唯一變因是新增 `DMTD_INPUT_HIGH_RUN_MAX`，觀測 `dmtd_sampler` 輸入端 `clk_in` 的最大連續 HIGH sample 長度；沒有修改任何 White Rabbit functional behavior。
+本輪在 branch `exp/step4-softpll-enable` 由 fresh HEAD 完成 Master/Slave clean build、Quartus compile、雙板燒錄與 read-only regression。唯一變因是新增 `DMTD_INPUT_LOW_RUN_MAX`，觀測 `dmtd_sampler` 輸入端 `clk_in=0` 的最大連續 LOW sample 長度；沒有修改任何 White Rabbit functional behavior。
 
 - Step 1：PASS
 - Step 2：PASS
 - Step 3：PASS（保留 `STATE_EVIDENCE=READ_INCONSISTENT` 作為 JTAG shadow consistency evidence）
 - Step 4：NOT PASS
 - Step 4 gate：允許繼續 read-only source audit，但尚未允許 functional experiment
-- Master/Slave SOF programmer checksum：`0x30ABDAF9` / `0x30AB0F26`
+- Master/Slave SOF programmer checksum：`0x30A9E6EE` / `0x30AE5AD7`
 - Master/Slave build：均 `Full Compilation was successful`，但 timing `timing_closed=NO`
 
-T0/T1 的 input HIGH-run max：Master REF/FB=`8753/4608`，Slave REF/FB=`65535/12640`～`65535/12664`；因此目前沒有證據支持「輸入 HIGH pulse 只有 1～5 個 sample」是主因。另一方面 accepted DMTD、tag、TRR、IRQ、helper 在 T1 仍無 sustained activity，所以 Step 4 仍不能標示 PASS。這輪只排除了單一解釋，尚未證明硬體/韌體根因。
+T0/T1 的 input HIGH/LOW-run max：Master HIGH=`15/53644`、LOW=`65535/12796`；Slave HIGH=`65535/28862`、LOW=`4/8703`（REF/FB）。Slave REF 的 LOW=`4` 與 HIGH qualification max=`2`～`3` 方向一致，但 FB 仍不一致；因此目前只能縮小 unresolved region，尚未證明 sampler、clock 或 polarity 根因。accepted DMTD、tag、TRR、IRQ、helper 在 T1 仍無 sustained activity，所以 Step 4 仍不能標示 PASS。
 
-完整紀錄與原始證據：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-INPUT-HIGH-RUN-20260823.md`
+完整紀錄與原始證據：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-INPUT-LOW-RUN-20260823.md`
 
 最後更新：2026-08-23
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`52a2b65a704631a4171574fc9d5ca2b86a4238ea`
+目前 diagnostics HEAD：`e9234266024157085affd070953c1d4aa0788c2a`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 

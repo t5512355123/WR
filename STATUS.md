@@ -4,9 +4,33 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`688b152b2551ca51c58b8ec0a40967f5d7e8dca0`
+目前 diagnostics HEAD：`8c3e0393b9950501a56eb11cb20ce8d6067c7ef0`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
+
+## 2026-08-23 Step 4 HIGH qualification max-depth fresh hardware experiment（8c3e039）
+
+本輪從 GitHub exact commit `8c3e0393b9950501a56eb11cb20ce8d6067c7ef0` 重新建置 Master/Slave firmware、執行 Quartus 17 clean compile、燒錄兩片 fresh SOF，再執行 read-only regression。唯一變因是新增 DMTD HIGH qualification 中止前最大 stability depth 的 read-only observability；沒有修改任何 Master/Slave role、PTP、WR signaling、SoftPLL、DDMTD polarity、PI、lock threshold、DCO、SI5340、PHY 或 firmware functional behavior。
+
+- Master / Slave compile 均 `Full Compilation was successful`，但兩份 timing report 都記錄 `timing_closed=NO`。
+- Master programmer checksum：`0x309FC2A0`；Slave：`0x30A7D749`；兩片均 `Configuration succeeded`、0 errors、0 warnings。
+- 早期 startup window 的 Slave `PTP=8` 只標為 transitional，沒有拿來作 final regression PASS。
+- 等待後的 20 samples / 1000 ms focused window：Master `MAC=...01 / MODE=2 / PTP=6`；Slave `MAC=...02 / MODE=3 / PTP=9`、`FOREIGN=1/0`，PTP/MiniNIC activity 有增加，RXERR=0。
+- Step 3 final focused gate：Slave `parent=1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`，因此 PASS；`STATE_EVIDENCE=READ_INCONSISTENT` 保留為 shadow/read consistency evidence。
+- Step 4 T0/T1：REF/FB HIGH max depth 僅為 Master `0/3`→`0/5`、Slave `0/1`→`0/1`；sampled transition 有活動，但 accepted DMTD、DMTD event、tag、helper 沒有 sustained delta。Slave T0 曾有單次 TRR activity，T1 沒有持續增加，故不足以 PASS。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+HARDWARE/FIRMWARE_FAILURE = ROOT_CAUSE_NOT_PROVEN
+JTAG/DASHBOARD_MEASUREMENT_FAILURE = STATE_SHADOW_INCONSISTENCY_RETAINED
+```
+
+完整 provenance、programmer log、Step 2/3 regression、T0/T1 raw output 與判讀：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-HIGH-MAX-STAB-20260823.md`
 
 ## 2026-08-23 Step 2/3 唯讀回歸關卡（本輪未燒錄）
 

@@ -51,7 +51,8 @@ port (
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d0_low_run_max_i         : in     std_logic_vector(31 downto 0);
-  diag_dmtd_d0_sample_mismatch_count_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_d0_sample_mismatch_ref_i       : in     std_logic_vector(31 downto 0);
+  diag_dmtd_d0_sample_mismatch_fb_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
@@ -628,7 +629,7 @@ begin
           else
             -- EIC_IDR is write-only in the functional register map. Its
             -- read side is used as a diagnostic alias; writes are unchanged.
-            rddata_reg <= diag_dmtd_d0_sample_mismatch_count_i;
+            rddata_reg <= diag_dmtd_d0_sample_mismatch_ref_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -668,6 +669,9 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_dmtd_d0_sample_mismatch_fb_i;
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011010" => 

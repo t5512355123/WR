@@ -372,11 +372,12 @@ proc read_group {board group_name items} {
         $board $group_name $group_result]
 }
 
-proc read_native_edge_group {board} {
+proc read_d0_stable_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
-                 REF_NATIVE_EDGE_COUNT64 REF_D0_TRANSITION_COUNT64 \
+                 DEGLITCH_THRESHOLD \
+                 REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
-                 FB_NATIVE_EDGE_COUNT64 FB_D0_TRANSITION_COUNT64 \
+                 FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
                  NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
@@ -386,8 +387,11 @@ proc read_native_edge_group {board} {
     add_timed_series_sample64 $board DMTD_NATIVE_EDGE_COUNT64 $sample $value \
       [clock milliseconds]
 
+    set value [wb_read_validated 0x00100248]
+    add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
+      [clock milliseconds]
     set value [wb_read_u64_consistent 0x00100240 0x00100244]
-    add_timed_series_sample64 $board REF_NATIVE_EDGE_COUNT64 $sample $value \
+    add_timed_series_sample64 $board REF_D0_STABLE_HIT_COUNT64 $sample $value \
       [clock milliseconds]
     set value [wb_read_u64_consistent 0x00100250 0x00100254]
     add_timed_series_sample64 $board REF_D0_TRANSITION_COUNT64 $sample $value \
@@ -400,7 +404,7 @@ proc read_native_edge_group {board} {
       [clock milliseconds]
 
     set value [wb_read_u64_consistent 0x0010024C 0x00100258]
-    add_timed_series_sample64 $board FB_NATIVE_EDGE_COUNT64 $sample $value \
+    add_timed_series_sample64 $board FB_D0_STABLE_HIT_COUNT64 $sample $value \
       [clock milliseconds]
     set value [wb_read_u64_consistent 0x00100260 0x00100264]
     add_timed_series_sample64 $board FB_D0_TRANSITION_COUNT64 $sample $value \
@@ -415,18 +419,18 @@ proc read_native_edge_group {board} {
   }
 
   finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
-  finish_series64 $board REF_NATIVE_EDGE_COUNT64
+  finish_series $board DEGLITCH_THRESHOLD
+  finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
-  finish_series64 $board FB_NATIVE_EDGE_COUNT64
+  finish_series64 $board FB_D0_STABLE_HIT_COUNT64
   finish_series64 $board FB_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
 
   set result VALID
   set fields {}
-  set d0_fields {}
   set dmtd_delta [series_value $board DMTD_NATIVE_EDGE_COUNT64 delta]
   set dmtd_first_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 first_ms]
   set dmtd_last_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 last_ms]
@@ -443,72 +447,65 @@ proc read_native_edge_group {board} {
     set result INVALID
   }
 
+  set threshold_word [word32 [series_value $board DEGLITCH_THRESHOLD last]]
+  set threshold_delta [series_value $board DEGLITCH_THRESHOLD delta]
+  set threshold NA
+  set hit_length NA
+  if {$threshold_word >= 0 &&
+      [string is wideinteger -strict $threshold_delta] &&
+      $threshold_delta == 0} {
+    set threshold [expr {$threshold_word & 0xffff}]
+    set hit_length [expr {$threshold + 1}]
+  } else {
+    set result INVALID
+  }
+
   foreach side {REF FB} {
-    set native_label ${side}_NATIVE_EDGE_COUNT64
+    set hit_label ${side}_D0_STABLE_HIT_COUNT64
     set d0_label ${side}_D0_TRANSITION_COUNT64
     set sampled_label NATIVE_${side}_SAMPLED
     set accept_label NATIVE_${side}_ACCEPT
-    set native_delta [series_value $board $native_label delta]
+    set hit_delta [series_value $board $hit_label delta]
     set d0_delta [series_value $board $d0_label delta]
     set sampled_delta [series_value $board $sampled_label delta]
     set accept_delta [series_value $board $accept_label delta]
-    set first_ms [series_value $board $native_label first_ms]
-    set last_ms [series_value $board $native_label last_ms]
-    set elapsed_ms NA
-    set frequency_hz NA
-    set sampled_ratio NA
-    set native_to_dmtd_ratio NA
     set sampled_to_dmtd_ratio NA
     set d0_to_dmtd_ratio NA
     set sampled_to_d0_ratio NA
-    if {[string is wideinteger -strict $native_delta] &&
+    set hit_per_million_d0 NA
+    if {[string is wideinteger -strict $hit_delta] &&
+        [string is wideinteger -strict $d0_delta] &&
         [string is wideinteger -strict $sampled_delta] &&
-        [string is wideinteger -strict $first_ms] &&
-        [string is wideinteger -strict $last_ms] && $last_ms > $first_ms &&
-        $native_delta > 0} {
-      set elapsed_ms [expr {$last_ms - $first_ms}]
-      set frequency_hz [format "%.3f" \
-        [expr {double($native_delta) * 1000.0 / double($elapsed_ms)}]]
-      set sampled_ratio [format "%.9f" \
-        [expr {double($sampled_delta) / double($native_delta)}]]
-      if {[string is wideinteger -strict $dmtd_delta] && $dmtd_delta > 0} {
-        set native_to_dmtd_ratio [format "%.9f" \
-          [expr {double($native_delta) / double($dmtd_delta)}]]
+        [string is wideinteger -strict $accept_delta] &&
+        [string is wideinteger -strict $dmtd_delta] && $dmtd_delta > 0} {
         set sampled_to_dmtd_ratio [format "%.9f" \
           [expr {double($sampled_delta) / double($dmtd_delta)}]]
-        if {[string is wideinteger -strict $d0_delta]} {
-          set d0_to_dmtd_ratio [format "%.9f" \
-            [expr {double($d0_delta) / double($dmtd_delta)}]]
-          if {$d0_delta > 0} {
-            set sampled_to_d0_ratio [format "%.9f" \
-              [expr {double($sampled_delta) / double($d0_delta)}]]
-          }
-        } else {
-          set result INVALID
+        set d0_to_dmtd_ratio [format "%.9f" \
+          [expr {double($d0_delta) / double($dmtd_delta)}]]
+        if {$d0_delta > 0} {
+          set sampled_to_d0_ratio [format "%.9f" \
+            [expr {double($sampled_delta) / double($d0_delta)}]]
+          set hit_per_million_d0 [format "%.6f" \
+            [expr {double($hit_delta) * 1000000.0 / double($d0_delta)}]]
         }
-      } else {
-        set result INVALID
-      }
     } else {
       set result INVALID
     }
-    lappend fields [format "%s_native_delta=%s %s_elapsed_ms=%s %s_frequency_hz=%s %s_sampled_delta=%s %s_sampled_to_native_ratio=%s %s_native_to_dmtd_ratio=%s %s_sampled_to_dmtd_ratio=%s %s_accept_delta=%s" \
-      [string tolower $side] $native_delta [string tolower $side] $elapsed_ms \
-      [string tolower $side] $frequency_hz [string tolower $side] $sampled_delta \
-      [string tolower $side] $sampled_ratio \
-      [string tolower $side] $native_to_dmtd_ratio \
-      [string tolower $side] $sampled_to_dmtd_ratio \
-      [string tolower $side] $accept_delta]
-    lappend d0_fields [format "%s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s" \
+    lappend fields [format "%s_hit_delta=%s %s_hit_per_million_d0=%s %s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_delta=%s %s_sampled_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s %s_accept_delta=%s" \
+      [string tolower $side] $hit_delta \
+      [string tolower $side] $hit_per_million_d0 \
       [string tolower $side] $d0_delta \
       [string tolower $side] $d0_to_dmtd_ratio \
-      [string tolower $side] $sampled_to_d0_ratio]
+      [string tolower $side] $sampled_delta \
+      [string tolower $side] $sampled_to_dmtd_ratio \
+      [string tolower $side] $sampled_to_d0_ratio \
+      [string tolower $side] $accept_delta]
   }
-  puts [format "STEP4_NATIVE_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
-        $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz \
+  puts [format "STEP4_DMTD_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s result=%s" \
+        $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz $result]
+  puts [format "STEP4_D0_STABLE_THRESHOLD board=%s threshold=%s threshold_delta=%s hit_length=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board $threshold $threshold_delta $hit_length \
         [lindex $fields 0] [lindex $fields 1] $result]
-  puts [format "STEP4_D0_TRANSITION board=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
-        $board [lindex $d0_fields 0] [lindex $d0_fields 1] $result]
 }
 
 proc series_value {board label field} {
@@ -736,7 +733,7 @@ proc read_event_group {board} {
     {TRR_WRITE_LAST_TICS 0x001002D8}
   }
   read_group $board DMTD_BOUNDARY $boundary_items
-  read_native_edge_group $board
+  read_d0_stable_group $board
   read_group $board TAG_ARBITRATION $arbitration_items
   read_group $board DOWNSTREAM $downstream_items
   read_group $board EVENT_TIMING $timing_items

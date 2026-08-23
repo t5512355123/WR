@@ -218,10 +218,10 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_seen_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_ref_native_edge_count_lo_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_ref_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_fb_native_edge_count_lo_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_fb_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_d0_stable_hit_count_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_d0_stable_hit_count_hi_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_d0_stable_hit_count_lo_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_d0_stable_hit_count_hi_i : in std_logic_vector(31 downto 0);
       diag_dmtd_native_edge_count_lo_i : in std_logic_vector(31 downto 0);
       diag_dmtd_native_edge_count_hi_i : in std_logic_vector(31 downto 0);
       diag_tag_pending_count_i : in std_logic_vector(31 downto 0);
@@ -408,6 +408,8 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_native_edge_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_ref_d0_transition_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_d0_transition_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
+  signal dmtd_ref_d0_stable_hit_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_d0_stable_hit_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_native_edge_count_bin : unsigned(63 downto 0) := (others => '0');
   signal dmtd_native_edge_count_gray : std_logic_vector(63 downto 0) := (others => '0');
   signal dmtd_native_edge_count_gray_sys : std_logic_vector(63 downto 0);
@@ -573,6 +575,7 @@ begin  -- rtl
           dbg_input_d1_high_run_max_o => dmtd_ref_input_d1_high_run_max(i),
           dbg_input_d0_low_run_max_o => dmtd_ref_input_d0_low_run_max(i),
           dbg_d0_transition_count_o => dmtd_ref_d0_transition_count(i),
+          dbg_d0_stable_hit_count_o => dmtd_ref_d0_stable_hit_count(i),
           dbg_wait_edge_entry_count_o => dmtd_ref_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
@@ -632,6 +635,7 @@ begin  -- rtl
           dbg_input_d1_high_run_max_o => dmtd_fb_input_d1_high_run_max(i),
           dbg_input_d0_low_run_max_o => dmtd_fb_input_d0_low_run_max(i),
           dbg_d0_transition_count_o => dmtd_fb_d0_transition_count(i),
+          dbg_d0_stable_hit_count_o => dmtd_fb_d0_stable_hit_count(i),
           dbg_wait_edge_entry_count_o => dmtd_fb_wait_edge_entry_count(i),
           dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
@@ -692,6 +696,7 @@ begin  -- rtl
          dbg_input_d1_high_run_max_o => open,
           dbg_input_d0_low_run_max_o => open,
           dbg_d0_transition_count_o => open,
+          dbg_d0_stable_hit_count_o => open,
           dbg_wait_edge_entry_count_o => open,
           dbg_low_qual_abort_count_o => open,
         dbg_high_qual_abort_count_o => open,
@@ -861,10 +866,10 @@ begin  -- rtl
       -- unchanged; only their otherwise-unused read sides are diagnostic.
       diag_dmtd_ref_seen_i => dmtd_ref_high_abort_count(0),
       diag_dmtd_fb_seen_i => dmtd_fb_high_abort_count(0),
-      diag_dmtd_ref_native_edge_count_lo_i => dmtd_ref_native_edge_count(0)(31 downto 0),
-      diag_dmtd_ref_native_edge_count_hi_i => dmtd_ref_native_edge_count(0)(63 downto 32),
-      diag_dmtd_fb_native_edge_count_lo_i => dmtd_fb_native_edge_count(0)(31 downto 0),
-      diag_dmtd_fb_native_edge_count_hi_i => dmtd_fb_native_edge_count(0)(63 downto 32),
+      diag_dmtd_ref_d0_stable_hit_count_lo_i => dmtd_ref_d0_stable_hit_count(0)(31 downto 0),
+      diag_dmtd_ref_d0_stable_hit_count_hi_i => dmtd_ref_d0_stable_hit_count(0)(63 downto 32),
+      diag_dmtd_fb_d0_stable_hit_count_lo_i => dmtd_fb_d0_stable_hit_count(0)(31 downto 0),
+      diag_dmtd_fb_d0_stable_hit_count_hi_i => dmtd_fb_d0_stable_hit_count(0)(63 downto 32),
       diag_dmtd_native_edge_count_lo_i => dmtd_native_edge_count_sys(31 downto 0),
       diag_dmtd_native_edge_count_hi_i => dmtd_native_edge_count_sys(63 downto 32),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),

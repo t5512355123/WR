@@ -1,5 +1,29 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 WAIT_EDGE 入口實驗（2026-08-24，HEAD `5dcc361`）
+
+本輪由 exact commit `5dcc36190093369f36eee81207ae8e10399360ff` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是新增 REF/FB `WAIT_STABLE_0 -> WAIT_EDGE` 唯讀飽和計數器；沒有修改 WR signaling、PTP、SoftPLL、DDMTD polarity、PI gain、lock threshold、DCO、SI5340、PHY 或 firmware 功能行為。
+
+- Master/Slave programmer checksum：`0x30A9E382 / 0x30AA1EE1`；兩片均 configuration succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Master `MODE=2/PTP=6`，Slave `MODE=3/PTP=9`。
+- Step 3：Slave PASS；30/30 valid samples、foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`。
+- Step 4 T0/T1：兩板 sampled transition 每個視窗約增加 `6.85e8`，但 WAIT_EDGE entry、accept、event、tag/TRR、IRQ、state transition、helper 全部 delta=0。
+- Slave 兩路 deglitch state 都固定為 `WAIT_STABLE_0`，因此目前第一個 source-backed inactive boundary 是 LOW qualification；Master 固定於 `GOT_EDGE`，其 inactive side 不可誤寫成 LOW qualification。
+- WAIT_EDGE/accept 累計值非零，表示啟動早期曾有活動；本輪只證明目前沒有 sustained activity。
+- Master/Slave compile 均成功，但 `TIMING_CLOSED=NO`；worst setup slack 為 `-0.818 ns / -0.606 ns`，只列為 caveat，尚未證明是根因。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_FIRST_INACTIVE_BOUNDARY = WAIT_STABLE_0_LOW_QUALIFICATION
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-WAIT-EDGE-ENTRY-20260824.md`
+
 ## 最新 Step 1～3 唯讀回歸關卡（2026-08-24，diagnostics `9811e3c`）
 
 本輪只修 JTAG Tcl reliability/dashboard 判定並在 current hardware 上執行 read-only regression；沒有修改 RTL/firmware functional behavior、沒有 Quartus compile、沒有 program FPGA。板上 image 沿用上一筆 `c9f1f15` D1 observability 燒錄紀錄，其 White Rabbit functional behavior 沿用使用者指定的 `51864b8` baseline。

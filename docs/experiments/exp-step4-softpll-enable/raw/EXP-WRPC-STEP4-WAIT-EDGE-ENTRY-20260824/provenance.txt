@@ -1,0 +1,20 @@
+EXPERIMENT_ID=EXP-WRPC-STEP4-WAIT-EDGE-ENTRY-20260824
+DATE=2026-08-24T02:09:04+08:00
+BRANCH=exp/step4-softpll-enable
+HEAD=5dcc36190093369f36eee81207ae8e10399360ff
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+MASTER_TIMING_CLOSED=NO
+MASTER_WORST_SETUP_WNS=-0.818ns
+MASTER_WORST_HOLD_WNS=-0.499ns
+SLAVE_TIMING_CLOSED=NO
+SLAVE_WORST_SETUP_WNS=-0.606ns
+SLAVE_WORST_HOLD_WNS=-0.465ns
+06fabbdfbb69c14910c2d31b019daf89005045c99ed03010a3fe8f9471b31973  build/firmware/master/wrc.mif
+bc7996532fe5a1872bb4264291c68b7c709726d919e63bc56d716bb4c8fe6af5  build/firmware/slave/wrc.mif
+cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f  quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf
+c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf
+b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8  quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc
+b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc
+5590811cc1c2c94045789fe58f11568a433e9c7bd5bb76ca14e5cf26ad92dea0  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+f72f1bd3374de8abddec122dad7c4de37aa64559296bf0b05f09c9dceb4aa24a  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

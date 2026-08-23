@@ -119,8 +119,18 @@ proc read_boundary_sample {hardware_name sample} {
   puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_SEEN=%s FB_SEEN=%s REF_LAST=%s FB_LAST=%s NOW=%s" \
         $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen \
         $dmtd_ref_last_tics $dmtd_fb_last_tics $current_tics]
-  puts [format "DMTD_BOUNDARY_QUAL_ABORT: REF_HIGH=%s FB_HIGH=%s" \
-        $dmtd_ref_seen $dmtd_fb_seen]
+  set ref_seen_word 0
+  set fb_seen_word 0
+  if {[scan $dmtd_ref_seen %x ref_seen_word] == 1 &&
+      [scan $dmtd_fb_seen %x fb_seen_word] == 1} {
+    puts [format "DMTD_BOUNDARY_QUAL_ABORT: REF_LOW=%04X REF_HIGH=%04X FB_LOW=%04X FB_HIGH=%04X" \
+          [expr {($ref_seen_word >> 16) & 0xffff}] \
+          [expr {$ref_seen_word & 0xffff}] \
+          [expr {($fb_seen_word >> 16) & 0xffff}] \
+          [expr {$fb_seen_word & 0xffff}]]
+  } else {
+    puts "DMTD_BOUNDARY_QUAL_ABORT: REF_LOW=INVALID REF_HIGH=INVALID FB_LOW=INVALID FB_HIGH=INVALID"
+  }
   puts [format "DMTD_BOUNDARY_TAG: SOURCE=%s REF=%s FB=%s REF_LAST=%s FB_LAST=%s" \
         $tag_source $tag_ref $tag_feedback $tag_ref_last_tics $tag_feedback_last_tics]
   puts [format "DMTD_BOUNDARY_ARB: PENDING=%s GRANT=%s PENDING_LAST=%s GRANT_LAST=%s" \

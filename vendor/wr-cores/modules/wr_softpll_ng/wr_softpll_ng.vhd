@@ -361,10 +361,9 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_ref_stab_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_stab_count : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_low_abort_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+  signal dmtd_ref_high_abort_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_low_abort_count : t_diag_stab_count_array(0 to g_num_outputs-1);
-  type t_diag_abort_count_array is array(integer range <>) of std_logic_vector(31 downto 0);
-  signal dmtd_ref_high_abort_count : t_diag_abort_count_array(0 to g_num_ref_inputs-1);
-  signal dmtd_fb_high_abort_count : t_diag_abort_count_array(0 to g_num_outputs-1);
+  signal dmtd_fb_high_abort_count : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -744,10 +743,12 @@ begin  -- rtl
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Reuse the existing read-only DMTD_SEEN words without changing the
       -- Wishbone map. The full sampled/accept counters remain available at
-      -- 0x22c..0x238; these words expose the full 32-bit HIGH qualification
-      -- abort counters. The LOW counter remains internal diagnostic context.
-      diag_dmtd_ref_seen_i => dmtd_ref_high_abort_count(0),
-      diag_dmtd_fb_seen_i => dmtd_fb_high_abort_count(0),
+      -- 0x22c..0x238; these packed words expose qualification aborts.
+      -- [31:16] LOW qualification aborts, [15:0] HIGH qualification aborts.
+      diag_dmtd_ref_seen_i => dmtd_ref_low_abort_count(0) &
+                              dmtd_ref_high_abort_count(0),
+      diag_dmtd_fb_seen_i => dmtd_fb_low_abort_count(0) &
+                             dmtd_fb_high_abort_count(0),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
       diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
       diag_current_tics_i => std_logic_vector(diag_current_tics),

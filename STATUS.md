@@ -1,5 +1,25 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 1～3 唯讀回歸關卡（2026-08-24，diagnostics `9811e3c`）
+
+本輪只修 JTAG Tcl reliability/dashboard 判定並在 current hardware 上執行 read-only regression；沒有修改 RTL/firmware functional behavior、沒有 Quartus compile、沒有 program FPGA。板上 image 沿用上一筆 `c9f1f15` D1 observability 燒錄紀錄，其 White Rabbit functional behavior 沿用使用者指定的 `51864b8` baseline。
+
+- Dashboard 5 s：兩板 Step 1/2 PASS；Slave Step 3 PASS。
+- Focused 30 x 1 s：兩板各 30/30 valid、0 invalid、0 counter decrease；Master Step 2 PASS，Slave Step 2/3 PASS。
+- Independent register reliability：Step 2/3 critical registers 各 20/20 valid、0 invalid、0 decrease；Master Step 2 PASS，Slave Step 2/3 PASS。
+- Slave 30/30 保持 foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。
+- Slave live state 與 failure shadow 仍呈 `WRS_IDLE` / historical `WRS_S_LOCK` 衝突；保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`，不把它誤判成 Step 3 regression。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+FAILURE_CLASSIFICATION = NO_FAILURE_EVIDENCE_FOR_STEP1_TO_STEP3
+```
+
+完整紀錄：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP23-REGRESSION-GATE-20260824.md`
+
 ## 最新 Step 4 D1 同步管線實驗（2026-08-24，HEAD `c9f1f15`）
 
 本輪由 exact commit `c9f1f15005fa41b581736ec56c27e207178731ac` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是以同步域內的 `D1_PIPELINE_MISMATCH_COUNT` 取代上一輪會重複取樣非同步 `clk_in` 的 D0 shadow 診斷；沒有修改 WR signaling、PTP、SoftPLL、DDMTD polarity、PI、threshold、DCO、SI5340、PHY 或 firmware 功能行為。

@@ -208,7 +208,7 @@ proc delta_positive {board label} {
   return 0
 }
 
-proc packed_boundary_delta {board label shift} {
+proc packed_abort_delta {board label shift} {
   set first [series_value $board $label first]
   set last [series_value $board $label last]
   if {$first eq "" || $last eq "" ||
@@ -217,16 +217,16 @@ proc packed_boundary_delta {board label shift} {
   }
   set first_word [word32 $first]
   set last_word [word32 $last]
-  set first_count [expr {($first_word >> $shift) & 0x7fff}]
-  set last_count [expr {($last_word >> $shift) & 0x7fff}]
+  set first_count [expr {($first_word >> $shift) & 0xffff}]
+  set last_count [expr {($last_word >> $shift) & 0xffff}]
   if {$last_count < $first_count} { return DECREASED_OR_RESET }
   return [expr {$last_count - $first_count}]
 }
 
-proc packed_boundary_value {board label shift} {
+proc packed_abort_value {board label shift} {
   set last [series_value $board $label last]
   if {$last eq "" || ![is_u32 $last]} { return INVALID }
-  return [expr {([word32 $last] >> $shift) & 0x7fff}]
+  return [expr {([word32 $last] >> $shift) & 0xffff}]
 }
 
 proc has_invalid {board labels} {
@@ -270,31 +270,36 @@ proc print_event_boundary {board} {
   set labels {DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
-              STATE_TRANSITION_COUNT}
+              STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
+              DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
   }
 
-  set ref_sampled_delta [packed_boundary_delta $board DMTD_REF_SEEN 17]
-  set ref_accept_delta [packed_boundary_delta $board DMTD_REF_SEEN 2]
-  set fb_sampled_delta [packed_boundary_delta $board DMTD_FB_SEEN 17]
-  set fb_accept_delta [packed_boundary_delta $board DMTD_FB_SEEN 2]
+  set ref_low_abort_delta [packed_abort_delta $board DMTD_REF_SEEN 16]
+  set ref_high_abort_delta [packed_abort_delta $board DMTD_REF_SEEN 0]
+  set fb_low_abort_delta [packed_abort_delta $board DMTD_FB_SEEN 16]
+  set fb_high_abort_delta [packed_abort_delta $board DMTD_FB_SEEN 0]
   set packed_ambiguous [expr {
-    $ref_sampled_delta eq "INVALID" || $ref_accept_delta eq "INVALID" ||
-    $fb_sampled_delta eq "INVALID" || $fb_accept_delta eq "INVALID" ||
-    $ref_sampled_delta eq "DECREASED_OR_RESET" ||
-    $ref_accept_delta eq "DECREASED_OR_RESET" ||
-    $fb_sampled_delta eq "DECREASED_OR_RESET" ||
-    $fb_accept_delta eq "DECREASED_OR_RESET"}]
+    $ref_low_abort_delta eq "INVALID" || $ref_high_abort_delta eq "INVALID" ||
+    $fb_low_abort_delta eq "INVALID" || $fb_high_abort_delta eq "INVALID" ||
+    $ref_low_abort_delta eq "DECREASED_OR_RESET" ||
+    $ref_high_abort_delta eq "DECREASED_OR_RESET" ||
+    $fb_low_abort_delta eq "DECREASED_OR_RESET" ||
+    $fb_high_abort_delta eq "DECREASED_OR_RESET"}]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
-  set sampled_active [expr {!$packed_ambiguous && \
-    (([string is integer -strict $ref_sampled_delta] && $ref_sampled_delta > 0) || \
-     ([string is integer -strict $fb_sampled_delta] && $fb_sampled_delta > 0))}]
-  set accept_active [expr {!$packed_ambiguous && \
-    (([string is integer -strict $ref_accept_delta] && $ref_accept_delta > 0) || \
-     ([string is integer -strict $fb_accept_delta] && $fb_accept_delta > 0))}]
+  # Full sampled/accept counters remain the authoritative boundary evidence.
+  set sampled_active [expr {[delta_positive $board DMTD_REF_SAMPLED] || \
+                            [delta_positive $board DMTD_FB_SAMPLED]}]
+  set accept_active [expr {[delta_positive $board DMTD_REF_ACCEPT] || \
+                           [delta_positive $board DMTD_FB_ACCEPT]}]
+  set qualification_abort_active [expr {!$packed_ambiguous && \
+    (([string is integer -strict $ref_low_abort_delta] && $ref_low_abort_delta > 0) || \
+     ([string is integer -strict $ref_high_abort_delta] && $ref_high_abort_delta > 0) || \
+     ([string is integer -strict $fb_low_abort_delta] && $fb_low_abort_delta > 0) || \
+     ([string is integer -strict $fb_high_abort_delta] && $fb_high_abort_delta > 0))}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
                              [delta_positive $board TAG_PENDING_FB_COUNT]}]
@@ -328,7 +333,7 @@ proc print_event_boundary {board} {
 
   if {$packed_ambiguous} {
     set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
-  } elseif {!$dmtd_active && !$sampled_active && !$accept_active} {
+  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
@@ -353,7 +358,13 @@ proc print_event_boundary {board} {
   }
 
   puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s accept_ref=%s sampled_fb=%s accept_fb=%s" \
-        $board $ref_sampled_delta $ref_accept_delta $fb_sampled_delta $fb_accept_delta]
+        $board [series_value $board DMTD_REF_SAMPLED delta] \
+        [series_value $board DMTD_REF_ACCEPT delta] \
+        [series_value $board DMTD_FB_SAMPLED delta] \
+        [series_value $board DMTD_FB_ACCEPT delta]]
+  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_low=%s ref_high=%s fb_low=%s fb_high=%s" \
+        $board $ref_low_abort_delta $ref_high_abort_delta \
+        $fb_low_abort_delta $fb_high_abort_delta]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $irq_active $state_active $helper_active]
@@ -383,6 +394,10 @@ proc read_event_group {board} {
     {OCER 0x00100228}
     {DMTD_REF_EVENTS 0x00100298}
     {DMTD_FB_EVENTS 0x0010029C}
+    {DMTD_REF_ACCEPT 0x0010022C}
+    {DMTD_FB_ACCEPT 0x00100230}
+    {DMTD_REF_SAMPLED 0x00100234}
+    {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {TAG_PENDING_COUNT 0x001002A8}

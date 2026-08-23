@@ -360,6 +360,10 @@ architecture rtl of wr_softpll_ng is
   type t_diag_stab_count_array is array(integer range <>) of std_logic_vector(15 downto 0);
   signal dmtd_ref_stab_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_stab_count : t_diag_stab_count_array(0 to g_num_outputs-1);
+  signal dmtd_ref_low_abort_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+  signal dmtd_ref_high_abort_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_low_abort_count : t_diag_stab_count_array(0 to g_num_outputs-1);
+  signal dmtd_fb_high_abort_count : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -488,6 +492,8 @@ begin  -- rtl
         dbg_stab_bucket_o => dmtd_ref_stab_bucket(i),
         dbg_stab_reached_o => dmtd_ref_stab_reached(i),
         dbg_stab_count_o => dmtd_ref_stab_count(i),
+        dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
+        dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -536,6 +542,8 @@ begin  -- rtl
         dbg_stab_bucket_o => dmtd_fb_stab_bucket(i),
         dbg_stab_reached_o => dmtd_fb_stab_reached(i),
         dbg_stab_count_o => dmtd_fb_stab_count(i),
+        dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
+        dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -585,6 +593,8 @@ begin  -- rtl
         dbg_stab_bucket_o => open,
         dbg_stab_reached_o => open,
         dbg_stab_count_o => open,
+        dbg_low_qual_abort_count_o => open,
+        dbg_high_qual_abort_count_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -731,15 +741,14 @@ begin  -- rtl
       diag_dmtd_stab_counter_i => dmtd_fb_stab_count(0) & dmtd_ref_stab_count(0),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
-      -- Preserve the original sticky seen bit at bit 0. The upper fields
-      -- expose low 15 bits of sampled and accepted counters respectively:
-      -- [31:17] sampled transitions, [16:2] deglitch accepts, [1] reserved.
-      diag_dmtd_ref_seen_i => dmtd_ref_sampled_count(0)(14 downto 0) &
-                              dmtd_ref_accept_count(0)(14 downto 0) &
-                              '0' & diag_dmtd_ref_seen,
-      diag_dmtd_fb_seen_i => dmtd_fb_sampled_count(0)(14 downto 0) &
-                             dmtd_fb_accept_count(0)(14 downto 0) &
-                             '0' & diag_dmtd_fb_seen,
+      -- Reuse the existing read-only DMTD_SEEN words without changing the
+      -- Wishbone map. The full sampled/accept counters remain available at
+      -- 0x22c..0x238; these packed words expose qualification aborts.
+      -- [31:16] LOW qualification aborts, [15:0] HIGH qualification aborts.
+      diag_dmtd_ref_seen_i => dmtd_ref_low_abort_count(0) &
+                              dmtd_ref_high_abort_count(0),
+      diag_dmtd_fb_seen_i => dmtd_fb_low_abort_count(0) &
+                             dmtd_fb_high_abort_count(0),
       diag_tag_pending_count_i => std_logic_vector(diag_tag_pending_count),
       diag_tag_grant_count_i => std_logic_vector(diag_tag_grant_count),
       diag_current_tics_i => std_logic_vector(diag_current_tics),

@@ -152,14 +152,27 @@ entity dmtd_with_deglitcher is
     -- Read-only deglitch qualification observability. The bucket contains
     -- stab_cntr(15 downto 8); the sticky bit records threshold equality.
     dbg_stab_bucket_o : out std_logic_vector(7 downto 0);
-    dbg_stab_reached_o : out std_logic;
-    -- Full current deglitch stability counter, synchronized to clk_sys_i.
-    dbg_stab_count_o : out std_logic_vector(15 downto 0)
-    );
+     dbg_stab_reached_o : out std_logic;
+     -- Full current deglitch stability counter, synchronized to clk_sys_i.
+     dbg_stab_count_o : out std_logic_vector(15 downto 0);
+     -- Cumulative qualification aborts, kept outside the functional path.
+     dbg_low_qual_abort_count_o : out std_logic_vector(15 downto 0);
+     dbg_high_qual_abort_count_o : out std_logic_vector(15 downto 0)
+     );
 end dmtd_with_deglitcher;
 
 architecture rtl of dmtd_with_deglitcher is
 
+  function f_sat_inc(value : unsigned) return unsigned is
+    variable result : unsigned(value'range) := value;
+    variable maximum : unsigned(value'range);
+  begin
+    maximum := (others => '1');
+    if value /= maximum then
+      result := value + 1;
+    end if;
+    return result;
+  end function;
 
   type t_state is (WAIT_STABLE_0, WAIT_EDGE, GOT_EDGE);
 
@@ -177,6 +190,10 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_deglitch_accept_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_bucket_sys : std_logic_vector(7 downto 0);
   signal dbg_stab_count_sys : std_logic_vector(15 downto 0);
+  signal dbg_low_qual_abort_count : unsigned(15 downto 0);
+  signal dbg_high_qual_abort_count : unsigned(15 downto 0);
+  signal dbg_low_qual_abort_count_sys : std_logic_vector(15 downto 0);
+  signal dbg_high_qual_abort_count_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -275,6 +292,25 @@ begin  -- rtl
 
   dbg_stab_count_o <= dbg_stab_count_sys;
 
+  U_sync_dbg_low_abort : entity work.gc_sync_register
+    generic map (g_width => 16)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => std_logic_vector(dbg_low_qual_abort_count),
+      q_o       => dbg_low_qual_abort_count_sys);
+
+  U_sync_dbg_high_abort : entity work.gc_sync_register
+    generic map (g_width => 16)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => std_logic_vector(dbg_high_qual_abort_count),
+      q_o       => dbg_high_qual_abort_count_sys);
+
+  dbg_low_qual_abort_count_o <= dbg_low_qual_abort_count_sys;
+  dbg_high_qual_abort_count_o <= dbg_high_qual_abort_count_sys;
+
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
       g_sync_edge => "positive")
@@ -331,6 +367,8 @@ begin  -- rtl
         stat_discard_p <= '0';
         new_edge_p_dmtdclk <= '0';
         dbg_stab_reached <= '0';
+        dbg_low_qual_abort_count <= (others => '0');
+        dbg_high_qual_abort_count <= (others => '0');
       else
 
         case state is
@@ -339,6 +377,9 @@ begin  -- rtl
             new_edge_p_dmtdclk <= '0';
 
             if clk_sampled /= '0' then
+              if stab_cntr /= 0 then
+                dbg_low_qual_abort_count <= f_sat_inc(dbg_low_qual_abort_count);
+              end if;
               stab_cntr <= (others => '0');
             else
               stab_cntr <= stab_cntr + 1;
@@ -371,6 +412,9 @@ begin  -- rtl
               stat_discard_p <= '1';
               dbg_stab_reached <= '1';
             elsif (clk_sampled = '0') then
+              if stab_cntr /= 0 then
+                dbg_high_qual_abort_count <= f_sat_inc(dbg_high_qual_abort_count);
+              end if;
               stab_cntr <= (others => '0');
             else
               stab_cntr <= stab_cntr + 1;

@@ -352,11 +352,11 @@ peripheral {
    };
 
    reg {
-      name = "DMTD Deglitch Stability Counters";
-      prefix = "DMTD_STAB_COUNTERS";
+       name = "DMTD HIGH Qualification Maximum Before Abort";
+       prefix = "DMTD_HIGH_QUAL_MAX_STAB";
 
       field {
-         name = "Reference current stability counter";
+          name = "Reference maximum HIGH qualification depth before abort";
          prefix = "REF";
          type = SLV;
          size = 16;
@@ -365,7 +365,7 @@ peripheral {
       };
 
       field {
-         name = "Feedback current stability counter";
+          name = "Feedback maximum HIGH qualification depth before abort";
          prefix = "FB";
          type = SLV;
          size = 16;

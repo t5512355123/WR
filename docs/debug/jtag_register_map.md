@@ -201,7 +201,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100230` | `SPLL_DMTD_FB_ACCEPT_COUNT` | 唯讀、完整 32-bit：feedback `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
 | `0x00100234` | `SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：reference `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x00100238` | `SPLL_DMTD_FB_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：feedback `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
-| `0x0010023C` | `SPLL_DMTD_STAB_COUNTERS` | 唯讀封裝欄位：bits 15..0 是 reference 目前 `stab_cntr`，bits 31..16 是 feedback 目前 `stab_cntr`；直接觀測 deglitch qualification，不改 FSM 或 threshold |
+| `0x0010023C` | `SPLL_DMTD_HIGH_QUAL_MAX_STAB` | 唯讀封裝欄位：bits 15..0 是 reference 在 `GOT_EDGE` HIGH qualification abort 前曾達到的最大 `stab_cntr`，bits 31..16 是 feedback 對應值；只觀測 abort 深度，不改 FSM 或 threshold |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞。 |
@@ -250,10 +250,12 @@ domain 的 `new_edge_p_dmtdclk` accept 點，後者位於同步到 `clk_sys` 後
 直接讀取既有 sampler transition counter。它們位於 `clk_sampled` transition
 觀測點，早於 deglitch accept counter；因此可用三層 delta 分辨：
 
-`SPLL_DMTD_STAB_COUNTERS` 提供目前 deglitch stability counter 的完整 16-bit
-瞬時值。低 16 位是 reference、高 16 位是 feedback；它不是 counter delta，必須
-搭配同一筆的 `SPLL_DMTD_STATE` 與多次取樣的 min/max/distribution 解讀。這個欄位
-只 fan-out 既有 `stab_cntr`，不會回饋到 deglitch FSM、SoftPLL 或 threshold。
+`SPLL_DMTD_HIGH_QUAL_MAX_STAB` 提供 DMTD reset 以來，每個 channel 在
+`GOT_EDGE` HIGH qualification 被 `clk_sampled=0` 中止前曾達到的最大
+`stab_cntr`。低 16 位是 reference、高 16 位是 feedback；它不是目前瞬時
+counter，也不是 abort 次數，必須搭配 `SPLL_DMTD_STATE`、threshold 與多次
+取樣解讀。這個欄位只 fan-out 診斷值，不會回饋到 deglitch FSM、SoftPLL 或
+threshold。
 
 ```text
 sampled transition > 0, accept = 0

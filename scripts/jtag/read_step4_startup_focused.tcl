@@ -301,7 +301,8 @@ proc print_event_boundary {board} {
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
-              DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN}
+              DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
+              DMTD_HIGH_QUAL_MAX_STAB}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -310,8 +311,9 @@ proc print_event_boundary {board} {
   # DMTD_REF_SEEN/FB_SEEN now expose the source-defined 32-bit HIGH
   # qualification-abort counters directly. Keep special delta values as
   # strings; callers must not compare TIMEOUT/INVALID/DECREASED numerically.
-  set ref_high_abort_delta [series_value $board DMTD_REF_SEEN delta]
-  set fb_high_abort_delta [series_value $board DMTD_FB_SEEN delta]
+   set ref_high_abort_delta [series_value $board DMTD_REF_SEEN delta]
+   set fb_high_abort_delta [series_value $board DMTD_FB_SEEN delta]
+   set max_stab_word [word32 [series_value $board DMTD_HIGH_QUAL_MAX_STAB last]]
   set abort_delta_invalid [expr {
     $ref_high_abort_delta eq "INVALID" ||
     $fb_high_abort_delta eq "INVALID" ||
@@ -335,9 +337,16 @@ proc print_event_boundary {board} {
   set trr_active [delta_positive $board TRR_WRITE_COUNT]
   set irq_active [delta_positive $board IRQ_COUNT]
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
-  set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
+   set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
 
-  set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
+   if {$max_stab_word >= 0} {
+     puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s ref_max_before_abort=%d fb_max_before_abort=%d" \
+           $board [expr {$max_stab_word & 0xffff}] [expr {($max_stab_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+   set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
   if {$dmtd_state_word >= 0} {
     set ref_state [expr {$dmtd_state_word & 0x3}]
@@ -423,6 +432,7 @@ proc read_event_group {board} {
     {DMTD_FB_ACCEPT 0x00100230}
     {DMTD_REF_SAMPLED 0x00100234}
     {DMTD_FB_SAMPLED 0x00100238}
+    {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

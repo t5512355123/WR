@@ -175,6 +175,9 @@ proc series_read {board label addr samples gap_ms} {
   set previous -1
   set failure_s_lock 0
   set failure_count_max 0
+  set state_idle 0
+  set state_non_idle 0
+  set state_transition 0
   for {set sample 1} {$sample <= $samples} {incr sample} {
     set value [wb_read_validated $addr]
     if {$value eq "INVALID" || $value eq "TIMEOUT"} {
@@ -233,9 +236,9 @@ proc series_read {board label addr samples gap_ms} {
           set next_state [expr {($word >> 15) & 0xf}]
           add_hist state_hist $state
           if {$state == 2} { incr expected }
-          if {$state == 0} { incr ::series($board,$label,state_idle) }
-          if {$state >= 1 && $state <= 8} { incr ::series($board,$label,state_non_idle) }
-          if {$next_state != $state} { incr ::series($board,$label,state_transition) }
+          if {$state == 0} { incr state_idle }
+          if {$state >= 1 && $state <= 8} { incr state_non_idle }
+          if {$next_state != $state} { incr state_transition }
         }
       }
       if {$::raw_mode} {
@@ -255,6 +258,9 @@ proc series_read {board label addr samples gap_ms} {
   set ::series($board,$label,hist) [hist_text hist]
   if {$label eq "WDIAGS_TEMP"} {
     set ::series($board,$label,states) [hist_text state_hist]
+    set ::series($board,$label,state_idle) $state_idle
+    set ::series($board,$label,state_non_idle) $state_non_idle
+    set ::series($board,$label,state_transition) $state_transition
   }
   if {$label eq "WR_FAILURE_DEBUG"} {
     set ::series($board,$label,failure_states) [hist_text failure_state_hist]

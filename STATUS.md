@@ -4,11 +4,32 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`0548ece1499d06b793b7fc58fd255250af1a1cf7`
+目前 diagnostics HEAD：`0c3fbea10f8c7ac99f64b6386c6c22226af8e36f`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
-## 2026-08-23 最新 read-only regression（0548ece）
+## 2026-08-23 最新 fresh Step 2/3 regression 與 Step 4 qualification-abort 實驗（0c3fbea）
+
+本輪由 exact commit `0c3fbea10f8c7ac99f64b6386c6c22226af8e36f` fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，再執行 read-only JTAG。沒有修改 Master/Slave role、PTP、WR signaling、SoftPLL、DDMTD polarity、PI、lock threshold、DCO、SI5340 或 PHY functional behavior。
+
+- Master programmer checksum：`0x30A761CC`；Slave programmer checksum：`0x30AA2B3F`；兩片均 configuration succeeded、0 errors、0 warnings。
+- Step 1：PASS。兩板 ready/link/RX/TX/CPU reset 正常，encoding error=0。
+- Step 2：PASS。20-sample focused regression 通過唯一 MAC、MODE/PTP role、PTP/MiniNIC activity、RXERR=0；Slave `FOREIGN=1/0`。
+- Step 3：PASS。Slave 20 samples 都有 parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`；`local_state=0` 的 shadow 與 handshake 證據不一致，保留為 `READ_INCONSISTENT`，不改判 Step 3 failure。
+- Step 4：NOT PASS。30 samples 中 sampled transition 有活動，但 accept、DMTD event、tag、TRR、IRQ、helper update 沒有 delta。新 `DMTD_REF_SEEN/FB_SEEN=0x0000FFFF` 解碼為 LOW abort=0、HIGH abort=65535；HIGH abort counter 已飽和，本次窗口 delta=0，不能當成即時 fault rate。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+```
+
+完整 provenance、programmer log、JTAG raw log 與判讀：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-QUALIFICATION-ABORT-20260823.md`
+
+## 歷史 read-only regression（0548ece，已由 0c3fbea fresh experiment 更新）
 
 本輪只修改 `scripts/jtag/read_wb_runtime.tcl` 的 read validation：PSTAT、WR RX/TX signaling shadow 改用 source-backed validator 與 retry。沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何 functional control register；沒有 Quartus compile，也沒有 program FPGA。
 

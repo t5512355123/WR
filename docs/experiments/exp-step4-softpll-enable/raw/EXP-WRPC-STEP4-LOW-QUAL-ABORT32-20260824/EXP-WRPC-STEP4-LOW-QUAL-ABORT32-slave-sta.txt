@@ -1,0 +1,23 @@
+; Unconstrained Clocks            ; 3     ; 3    ;
+; Unconstrained Input Port Paths  ; 439   ; 439  ;
+; Unconstrained Output Port Paths ; 83    ; 83   ;
+Info (332146): Worst-case setup slack is -0.216
+Info (332146): Worst-case hold slack is 0.038
+Info (332146): Worst-case recovery slack is -0.166
+Info (332146): Worst-case removal slack is 0.336
+Info (332146): Worst-case minimum pulse width slack is 3.620
+Info (332146): Worst-case setup slack is -0.639
+Info (332146): Worst-case hold slack is 0.034
+Info (332146): Worst-case recovery slack is 0.684
+Info (332146): Worst-case removal slack is 0.329
+Info (332146): Worst-case minimum pulse width slack is 3.596
+Info (332146): Worst-case setup slack is 0.863
+Info (332146): Worst-case hold slack is -0.512
+Info (332146): Worst-case recovery slack is 1.373
+Info (332146): Worst-case removal slack is 0.191
+Info (332146): Worst-case minimum pulse width slack is 3.657
+Info (332146): Worst-case setup slack is 1.478
+Info (332146): Worst-case hold slack is 0.012
+Info (332146): Worst-case recovery slack is 3.156
+Info (332146): Worst-case removal slack is 0.167
+Info (332146): Worst-case minimum pulse width slack is 3.691

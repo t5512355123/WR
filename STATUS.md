@@ -1,5 +1,31 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 LOW qualification abort 實驗（2026-08-24，HEAD `126dda8`）
+
+本輪由 exact source commit `126dda8550db3f8de33c9e37303e4a16aa730350` 完成 fresh firmware、Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一變因是把既有 LOW qualification abort 診斷擴成 32-bit，並分別讀回 REF/FB；functional abort 條件、deglitch FSM 與所有 WR/SoftPLL 行為均未修改。
+
+- Master/Slave programmer checksum：`0x30A84EF1 / 0x30B13132`；兩片均 configuration succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS，30/30 focused samples 有效。
+- Step 4 T0/T1：sampled transition 每個視窗約增加 `6.85e8`，但 WAIT_EDGE entry、accept、event、tag/TRR、IRQ、state transition、helper 全部 delta=0。
+- Slave REF/FB LOW-abort 累計值與 T0/T1 delta 都是 0；不支持 LOW qualification 反覆累積後被中斷的假設。
+- Slave current deglitch state 在兩個視窗都是 `GOT_EDGE/GOT_EDGE`，所以不能沿用上一輪 `WAIT_STABLE_0` 的 current-state 定位。
+- Master FB LOW-abort 已飽和為 `0xFFFFFFFF`，其 delta=0 不代表沒有活動；Master REF 為 0。
+- Slave T0 sampled counter 跨越 32-bit 邊界；modulo delta 與 T1 一致，記為 counter wrap，不當成硬體 reset。
+- Master/Slave compile 均成功但 `TIMING_CLOSED=NO`；這仍只列為 caveat。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_LOW_QUAL_ABORT_ACTIVE = NO_EVIDENCE
+SLAVE_CURRENT_DEGLITCH_STATE = GOT_EDGE/GOT_EDGE
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-LOW-QUAL-ABORT32-20260824.md`
+
 ## 最新 Step 4 WAIT_EDGE 入口實驗（2026-08-24，HEAD `5dcc361`）
 
 本輪由 exact commit `5dcc36190093369f36eee81207ae8e10399360ff` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是新增 REF/FB `WAIT_STABLE_0 -> WAIT_EDGE` 唯讀飽和計數器；沒有修改 WR signaling、PTP、SoftPLL、DDMTD polarity、PI gain、lock threshold、DCO、SI5340、PHY 或 firmware 功能行為。

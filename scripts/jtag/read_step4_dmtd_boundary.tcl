@@ -67,6 +67,7 @@ proc read_boundary_sample {hardware_name sample} {
   set dmtd_fb_sampled [wb_read 0x00100238]
   set dmtd_high_qual_max_stab [wb_read 0x0010023C]
   set dmtd_input_high_run_max [wb_read 0x00100250]
+  set dmtd_input_low_run_max [wb_read 0x00100254]
   set deglitch_thr [wb_read 0x00100248]
   set eic_ier [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
@@ -111,6 +112,14 @@ proc read_boundary_sample {hardware_name sample} {
   } else {
     set stab_ref NA
     set stab_fb NA
+  }
+  set low_run_word 0
+  if {[scan $dmtd_input_low_run_max %x low_run_word] == 1} {
+    puts [format "DMTD_INPUT_LOW_RUN_MAX ref=%s fb=%s" \
+          [format %04X [expr {$low_run_word & 0xffff}]] \
+          [format %04X [expr {($low_run_word >> 16) & 0xffff}]]]
+  } else {
+    puts "DMTD_INPUT_LOW_RUN_MAX invalid"
   }
   set input_run_word 0
   if {[scan $dmtd_input_high_run_max %x input_run_word] == 1} {

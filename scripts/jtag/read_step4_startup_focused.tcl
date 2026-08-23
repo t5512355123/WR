@@ -356,6 +356,14 @@ proc print_event_boundary {board} {
      puts [format "STEP4_INPUT_HIGH_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
+   set input_low_run_word [word32 [series_value $board DMTD_INPUT_LOW_RUN_MAX last]]
+   if {$input_low_run_word >= 0} {
+     puts [format "STEP4_INPUT_LOW_RUN_MAX board=%s ref_max_low_run=%d fb_max_low_run=%d" \
+           $board [expr {$input_low_run_word & 0xffff}] [expr {($input_low_run_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_INPUT_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
    set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
   if {$dmtd_state_word >= 0} {
@@ -444,6 +452,7 @@ proc read_event_group {board} {
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
     {DMTD_INPUT_HIGH_RUN_MAX 0x00100250}
+    {DMTD_INPUT_LOW_RUN_MAX 0x00100254}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}

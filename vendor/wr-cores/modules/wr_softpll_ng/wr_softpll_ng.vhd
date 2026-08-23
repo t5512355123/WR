@@ -207,6 +207,7 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_sampled_transition_count_i : in std_logic_vector(31 downto 0);
        diag_dmtd_high_qual_max_stab_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_high_run_max_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
@@ -366,6 +367,8 @@ architecture rtl of wr_softpll_ng is
    signal dmtd_fb_high_qual_max_stab : t_diag_stab_count_array(0 to g_num_outputs-1);
    signal dmtd_ref_input_high_run_max : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
    signal dmtd_fb_input_high_run_max : t_diag_stab_count_array(0 to g_num_outputs-1);
+   signal dmtd_ref_input_low_run_max : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+   signal dmtd_fb_input_low_run_max : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_low_abort_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_ref_high_abort_count : t_diag_abort_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_low_abort_count : t_diag_stab_count_array(0 to g_num_outputs-1);
@@ -500,6 +503,7 @@ begin  -- rtl
          dbg_stab_count_o => dmtd_ref_stab_count(i),
          dbg_high_qual_max_stab_o => dmtd_ref_high_qual_max_stab(i),
          dbg_input_high_run_max_o => dmtd_ref_input_high_run_max(i),
+         dbg_input_low_run_max_o => dmtd_ref_input_low_run_max(i),
          dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
@@ -552,6 +556,7 @@ begin  -- rtl
          dbg_stab_count_o => dmtd_fb_stab_count(i),
          dbg_high_qual_max_stab_o => dmtd_fb_high_qual_max_stab(i),
          dbg_input_high_run_max_o => dmtd_fb_input_high_run_max(i),
+         dbg_input_low_run_max_o => dmtd_fb_input_low_run_max(i),
          dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
 
@@ -605,6 +610,7 @@ begin  -- rtl
          dbg_stab_count_o => open,
          dbg_high_qual_max_stab_o => open,
          dbg_input_high_run_max_o => open,
+         dbg_input_low_run_max_o => open,
          dbg_low_qual_abort_count_o => open,
         dbg_high_qual_abort_count_o => open,
 
@@ -751,7 +757,8 @@ begin  -- rtl
       diag_dmtd_ref_sampled_transition_count_i => dmtd_ref_sampled_count(0),
       diag_dmtd_fb_sampled_transition_count_i => dmtd_fb_sampled_count(0),
        diag_dmtd_high_qual_max_stab_i => dmtd_fb_high_qual_max_stab(0) & dmtd_ref_high_qual_max_stab(0),
-      diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),
+       diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),
+       diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Reuse the existing read-only DMTD_SEEN words without changing the

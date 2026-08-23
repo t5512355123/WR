@@ -1,8 +1,9 @@
 # Step 4 SoftPLL startup focused read-only diagnostic.
 #
-# This script deliberately reads one address repeatedly before moving to the
-# next address.  It does not write WDIAGS_CTRL/DATA_SNAPSHOT, read TRR_R0, or
-# write any SoftPLL/WR control register.
+# This script samples bounded register groups. It does not write
+# WDIAGS_CTRL/DATA_SNAPSHOT, read TRR_R0, or write any SoftPLL/WR control
+# register. A mailbox timeout is recorded for the affected field/group and
+# does not abort the remaining read-only groups.
 #
 # Usage:
 #   quartus_stp -t read_step4_startup_focused.tcl ?samples? ?gap_ms? ?group?
@@ -49,22 +50,32 @@ proc stale_word {value} {
 }
 
 proc wb_sync_toggle {} {
-  set value [read_probe_data -instance_index 1 -value_in_hex]
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    set ::wb_toggle 0
+    return 0
+  }
   if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
     set ::wb_toggle 0
-    return
+    return 0
   }
   scan $value %x word
   set ::wb_toggle [expr {(($word >> 35) & 1)}]
+  return 1
 }
 
 proc wb_read_once {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
   set command [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  write_source_data -instance_index 1 -value [format %024X $command] -value_in_hex
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $command] -value_in_hex
+  }]} {
+    return TIMEOUT
+  }
   after 5
   for {set n 0} {$n < 100} {incr n} {
-    set value [read_probe_data -instance_index 1 -value_in_hex]
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      return TIMEOUT
+    }
     if {[regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
       scan $value %x word
       set done_toggle [expr {(($word >> 35) & 1)}]
@@ -124,24 +135,12 @@ proc wb_read_validated {addr} {
   for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
     set value [wb_read_once $addr]
     if {[register_valid $addr $value]} { return $value }
-    after 2
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
   }
   return INVALID
-}
-
-proc add_hist {hist_name key} {
-  upvar 1 $hist_name hist
-  if {[info exists hist($key)]} { incr hist($key) } else { set hist($key) 1 }
-}
-
-proc hist_text {hist_name} {
-  upvar 1 $hist_name hist
-  set parts {}
-  foreach key [lsort -dictionary [array names hist]] {
-    lappend parts [format "%s:%d" $key $hist($key)]
-  }
-  if {[llength $parts] == 0} { return none }
-  return [join $parts ","]
 }
 
 proc series_delta {first last invalid} {
@@ -153,46 +152,98 @@ proc series_delta {first last invalid} {
   return [expr {$b - $a}]
 }
 
-proc read_series {board label addr} {
-  array set hist {}
-  set valid 0
-  set invalid 0
-  set decrease 0
-  set first ""
-  set last ""
-  set previous -1
+proc init_series {board label} {
+  foreach field {valid invalid timeout decrease first last previous delta hist} {
+    set ::series($board,$label,$field) 0
+  }
+  set ::series($board,$label,first) ""
+  set ::series($board,$label,last) ""
+  set ::series($board,$label,previous) -1
+}
+
+proc add_series_sample {board label sample value} {
+  if {$value eq "TIMEOUT"} {
+    incr ::series($board,$label,timeout)
+    incr ::series($board,$label,invalid)
+    return
+  }
+  if {$value eq "INVALID"} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+
+  set word [word32 $value]
+  if {$word < 0} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+  incr ::series($board,$label,valid)
+  if {$::series($board,$label,first) eq ""} {
+    set ::series($board,$label,first) $value
+  }
+  set ::series($board,$label,last) $value
+  if {$::series($board,$label,previous) >= 0 &&
+      $word < $::series($board,$label,previous)} {
+    set ::series($board,$label,decrease) 1
+  }
+  set ::series($board,$label,previous) $word
+  if {$::raw_mode} {
+    puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
+          $board $label $sample $value]
+  }
+}
+
+proc finish_series {board label} {
+  set valid $::series($board,$label,valid)
+  set invalid $::series($board,$label,invalid)
+  set first $::series($board,$label,first)
+  set last $::series($board,$label,last)
+  set delta [series_delta $first $last $invalid]
+  set ::series($board,$label,delta) $delta
+  set ::series($board,$label,hist) none
+
+  puts [format "STEP4_SERIES board=%s register=%s samples=%d valid=%d timeout=%d invalid=%d decrease=%d first=%s last=%s delta=%s" \
+        $board $label $::samples $valid \
+        $::series($board,$label,timeout) $invalid \
+        $::series($board,$label,decrease) $first $last $delta]
+}
+
+proc read_group {board group_name items} {
+  foreach item $items {
+    init_series $board [lindex $item 0]
+  }
 
   for {set sample 1} {$sample <= $::samples} {incr sample} {
-    set value [wb_read_validated $addr]
-    if {$value eq "INVALID" || $value eq "TIMEOUT"} {
-      incr invalid
-    } else {
-      set word [word32 $value]
-      incr valid
-      if {$first eq ""} { set first $value }
-      set last $value
-      add_hist hist $value
-      if {$previous >= 0 && $word < $previous} { set decrease 1 }
-      set previous $word
-      if {$::raw_mode} {
-        puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
-              $board $label $sample $value]
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      if {[catch {set value [wb_read_validated $addr]}]} {
+        set value TIMEOUT
+        puts [format "STEP4_READ_EXCEPTION board=%s group=%s register=%s sample=%03d" \
+              $board $group_name $label $sample]
       }
+      add_series_sample $board $label $sample $value
     }
     if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
   }
 
-  set delta [series_delta $first $last $invalid]
-  set ::series($board,$label,valid) $valid
-  set ::series($board,$label,invalid) $invalid
-  set ::series($board,$label,decrease) $decrease
-  set ::series($board,$label,first) $first
-  set ::series($board,$label,last) $last
-  set ::series($board,$label,delta) $delta
-  set ::series($board,$label,hist) [hist_text hist]
-
-  puts [format "STEP4_SERIES board=%s register=%s samples=%d valid=%d invalid=%d decrease=%d first=%s last=%s delta=%s" \
-        $board $label $::samples $valid $invalid $decrease $first $last $delta]
+  set group_result VALID
+  foreach item $items {
+    set label [lindex $item 0]
+    finish_series $board $label
+    if {$::series($board,$label,timeout) > 0} {
+      if {$::series($board,$label,valid) > 0} {
+        set group_result PARTIAL
+      } else {
+        set group_result TIMEOUT
+      }
+    } elseif {$::series($board,$label,invalid) > 0} {
+      set group_result PARTIAL
+      if {$::series($board,$label,valid) == 0} { set group_result INVALID }
+    }
+  }
+  puts [format "STEP4_GROUP board=%s group=%s result=%s" \
+        $board $group_name $group_result]
 }
 
 proc series_value {board label field} {
@@ -372,7 +423,7 @@ proc print_event_boundary {board} {
 }
 
 proc read_lock_group {board} {
-  foreach item {
+  set items {
     {WR_FAILURE_DEBUG 0x00100A6C}
     {WR_LOCK_RESULT 0x00100A8C}
     {WR_LOCK_POLL_COUNT 0x00100A90}
@@ -381,14 +432,13 @@ proc read_lock_group {board} {
     {WR_LOCK_ENABLE_COUNT 0x00100A9C}
     {SPLL_STATE 0x00100AA0}
     {PSTAT_LOCKED 0x00100A0C}
-  } {
-    read_series $board [lindex $item 0] [lindex $item 1]
   }
+  read_group $board LOCK $items
   print_lock_classification $board
 }
 
 proc read_event_group {board} {
-  foreach item {
+  set boundary_items {
     {SPLL_MODE_SEQUENCE 0x00100AA0}
     {RCER 0x00100224}
     {OCER 0x00100228}
@@ -400,15 +450,22 @@ proc read_event_group {board} {
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_REF_SEEN 0x001002A0}
     {DMTD_FB_SEEN 0x001002A4}
+    {SPLL_DMTD_STATE 0x001002DC}
+  }
+  set arbitration_items {
     {TAG_PENDING_COUNT 0x001002A8}
     {TAG_PENDING_REF_COUNT 0x001002C4}
     {TAG_PENDING_FB_COUNT 0x001002C8}
     {TAG_GRANT_COUNT 0x001002AC}
     {TAG_VALID_COUNT 0x00100284}
     {TRR_WRITE_COUNT 0x00100288}
+  }
+  set downstream_items {
     {IRQ_COUNT 0x00100AEC}
     {HELPER_UPDATE_COUNT 0x00100B18}
     {STATE_TRANSITION_COUNT 0x00100AE4}
+  }
+  set timing_items {
     {CURRENT_TICS 0x001002B0}
     {DMTD_REF_LAST_TICS 0x001002B4}
     {DMTD_FB_LAST_TICS 0x001002B8}
@@ -418,10 +475,11 @@ proc read_event_group {board} {
     {TAG_GRANT_LAST_TICS 0x001002D0}
     {TAG_VALID_LAST_TICS 0x001002D4}
     {TRR_WRITE_LAST_TICS 0x001002D8}
-    {SPLL_DMTD_STATE 0x001002DC}
-  } {
-    read_series $board [lindex $item 0] [lindex $item 1]
   }
+  read_group $board DMTD_BOUNDARY $boundary_items
+  read_group $board TAG_ARBITRATION $arbitration_items
+  read_group $board DOWNSTREAM $downstream_items
+  read_group $board EVENT_TIMING $timing_items
   print_event_boundary $board
 }
 

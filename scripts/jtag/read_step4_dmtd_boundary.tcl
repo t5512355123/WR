@@ -63,6 +63,8 @@ proc read_boundary_sample {hardware_name sample} {
   set ocer [wb_read 0x00100228]
   set dmtd_ref_accept [wb_read 0x0010022C]
   set dmtd_fb_accept [wb_read 0x00100230]
+  set dmtd_ref_sampled [wb_read 0x00100234]
+  set dmtd_fb_sampled [wb_read 0x00100238]
   set deglitch_thr [wb_read 0x00100248]
   set eic_ier [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
@@ -100,8 +102,9 @@ proc read_boundary_sample {hardware_name sample} {
 
   puts [format "DMTD_BOUNDARY_SAMPLE board=%s sample=%03d STATUS=%s" \
         $hardware_name $sample $status]
-  puts [format "DMTD_BOUNDARY_CORE: CSR=%s STAT_CR=%s STAT_VAL=%s DEGLITCH_THR=%s ACCEPT_REF=%s ACCEPT_FB=%s" \
-        $csr $dmtd_stat_cr $dmtd_stat_val $deglitch_thr $dmtd_ref_accept $dmtd_fb_accept]
+  puts [format "DMTD_BOUNDARY_CORE: CSR=%s STAT_CR=%s STAT_VAL=%s DEGLITCH_THR=%s SAMPLED_REF=%s SAMPLED_FB=%s ACCEPT_REF=%s ACCEPT_FB=%s" \
+        $csr $dmtd_stat_cr $dmtd_stat_val $deglitch_thr $dmtd_ref_sampled $dmtd_fb_sampled \
+        $dmtd_ref_accept $dmtd_fb_accept]
   puts [format "DMTD_BOUNDARY_ENABLE: RCER=%s OCER=%s EIC_IER=%s EIC_IMR=%s EIC_ISR=%s TRR_CSR=%s" \
         $rcer $ocer $eic_ier $eic_imr $eic_isr $trr_csr]
   puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_SEEN=%s FB_SEEN=%s REF_LAST=%s FB_LAST=%s NOW=%s" \

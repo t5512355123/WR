@@ -199,6 +199,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100210` | `SPLL_OCCR` | SoftPLL output channel control/status |
 | `0x0010022C` | `SPLL_DMTD_REF_ACCEPT_COUNT` | 唯讀、完整 32-bit：reference `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
 | `0x00100230` | `SPLL_DMTD_FB_ACCEPT_COUNT` | 唯讀、完整 32-bit：feedback `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
+| `0x00100234` | `SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：reference `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
+| `0x00100238` | `SPLL_DMTD_FB_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：feedback `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀封裝欄位：bits 31..17 為 reference `clk_sampled` transition counter 低 15 位；bits 16..2 為 reference deglitch accept counter 低 15 位；bit 1 保留；bit 0 保留原本 sticky seen 語意 |
@@ -241,6 +243,25 @@ DDMTD polarity 的根因。
 domain 的 `new_edge_p_dmtdclk` accept 點，後者位於同步到 `clk_sys` 後的 event 點。
 因此可用兩個 counter 的 delta 把 `deglitch accept` 與 `post-CDC event` 分開；本欄位
 仍然只是觀測，不會驅動 deglitch FSM、tag arbitration、servo 或 DCO。
+
+`SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` 與
+`SPLL_DMTD_FB_SAMPLED_TRANSITION_COUNT` 是下一層的完整 32-bit 唯讀出口，
+直接讀取既有 sampler transition counter。它們位於 `clk_sampled` transition
+觀測點，早於 deglitch accept counter；因此可用三層 delta 分辨：
+
+```text
+sampled transition > 0, accept = 0
+    -> deglitch qualification / FSM 邊界
+
+sampled transition = 0, accept = 0
+    -> dmtd sampler -> clk_sampled 邊界
+
+accept > 0, post-CDC event = 0
+    -> new_edge_p_dmtdclk -> new_edge_p_sysclk 邊界
+```
+
+這兩個欄位同樣只作 read-only observability，不回饋 sampler、deglitch FSM、
+tag arbitration、servo 或 DCO。
 
 `SPLL_TAG_PENDING_COUNT` 與 `SPLL_TAG_GRANT_COUNT` 用來區分 arbitration：前者
 表示至少有 request pending，後者表示 round-robin grant 曾經發生；兩者都不是

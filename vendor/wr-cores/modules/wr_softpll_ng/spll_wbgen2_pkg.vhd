@@ -176,6 +176,8 @@ component spll_wb_slave is
     diag_tag_feedback_count_i                : in     std_logic_vector(31 downto 0);
     diag_dmtd_ref_accept_count_i             : in     std_logic_vector(31 downto 0);
     diag_dmtd_fb_accept_count_i              : in     std_logic_vector(31 downto 0);
+    diag_dmtd_ref_sampled_transition_count_i : in     std_logic_vector(31 downto 0);
+    diag_dmtd_fb_sampled_transition_count_i  : in     std_logic_vector(31 downto 0);
     diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
     diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
     diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);

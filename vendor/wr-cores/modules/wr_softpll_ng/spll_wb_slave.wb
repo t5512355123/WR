@@ -326,6 +326,32 @@ peripheral {
    };
 
    reg {
+      name = "DMTD Reference Sampled Transition Count";
+      prefix = "DMTD_REF_SAMPLED_TRANSITION_COUNT";
+
+      field {
+         name = "Reference sampled transition count";
+         type = SLV;
+         size = 32;
+         access_bus = READ_ONLY;
+         access_dev = WRITE_ONLY;
+      };
+   };
+
+   reg {
+      name = "DMTD Feedback Sampled Transition Count";
+      prefix = "DMTD_FB_SAMPLED_TRANSITION_COUNT";
+
+      field {
+         name = "Feedback sampled transition count";
+         type = SLV;
+         size = 32;
+         access_bus = READ_ONLY;
+         access_dev = WRITE_ONLY;
+      };
+   };
+
+   reg {
 			align = 8;
 			name = "Helper DAC Output";
 			prefix = "DAC_HPLL";

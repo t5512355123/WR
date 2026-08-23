@@ -290,8 +290,12 @@ uint32_t OCER;
 uint32_t DMTD_REF_ACCEPT_COUNT;
 /* [0x30]: read-only feedback DMTD deglitch accept count */
 uint32_t DMTD_FB_ACCEPT_COUNT;
+/* [0x34]: read-only reference DMTD sampled transition count */
+uint32_t DMTD_REF_SAMPLED_TRANSITION_COUNT;
+/* [0x38]: read-only feedback DMTD sampled transition count */
+uint32_t DMTD_FB_SAMPLED_TRANSITION_COUNT;
 /* padding to: 16 words */
-uint32_t __padding_0[3];
+uint32_t __padding_0[1];
 /* [0x40]: REG Helper DAC Output */
 uint32_t DAC_HPLL;
 /* [0x44]: REG Main DAC Output */

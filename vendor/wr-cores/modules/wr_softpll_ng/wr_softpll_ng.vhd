@@ -203,6 +203,8 @@ architecture rtl of wr_softpll_ng is
       diag_tag_feedback_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_accept_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_accept_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_sampled_transition_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_sampled_transition_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
@@ -717,6 +719,8 @@ begin  -- rtl
       diag_tag_feedback_count_i => std_logic_vector(diag_tag_feedback_count),
       diag_dmtd_ref_accept_count_i => dmtd_ref_accept_count(0),
       diag_dmtd_fb_accept_count_i => dmtd_fb_accept_count(0),
+      diag_dmtd_ref_sampled_transition_count_i => dmtd_ref_sampled_count(0),
+      diag_dmtd_fb_sampled_transition_count_i => dmtd_fb_sampled_count(0),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Preserve the original sticky seen bit at bit 0. The upper fields

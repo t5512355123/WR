@@ -1,5 +1,28 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 D0 shadow mismatch 實驗（2026-08-24，HEAD `4417411`）
+
+本輪由 exact commit `441741129f160ea0535279d1ad0269540a73073d` 完成 Master/Slave fresh firmware build、Quartus 17 clean compile、雙板 fresh SOF program，以及 Step 1～4 read-only runtime 量測。唯一變因是 REF/FB 的 32-bit `D0_SAMPLE_MISMATCH_COUNT` 診斷，不修改 WR signaling、SoftPLL、DDMTD polarity、PI、threshold、DCO、SI5340、PHY 或 firmware 功能行為。
+
+- Master/Slave programmer checksum：`0x30AC2C0F` / `0x30AC2FC7`；兩片均 configuration succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Master `MODE=2/PTP=6`，Slave `MODE=3/PTP=9`。
+- Step 3：Slave PASS；foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。保留 `POST_STEP3_LOCK_STAGE=TIMEOUT` 與 `STATE_EVIDENCE=READ_INCONSISTENT`。
+- Step 4：NOT PASS。T0/T1 中 sampled counters 大量增加，但 accepted DMTD、event、tag、TRR、IRQ、helper 全部沒有 sustained delta。
+- D0 mismatch T0/T1 delta：Master REF `28,219,398 / 28,217,927`、FB `23,900,259 / 23,978,711`；Slave REF `74,889,343 / 2,804,355`、FB `15,699,087 / 15,722,369`。
+- interpretation caveat：功能 `clk_i_d0` 與 diagnostic `dbg_clk_in_d` 是兩顆獨立暫存器，取樣非同步 `clk_in` 時可能在轉換附近解析不同。counter 增加不能直接證明 functional RTL assignment 壞掉或已找到 Step 4 根因。
+- Master/Slave compile 均成功，但 `TIMING_CLOSED=NO`；這仍只是 caveat，不是已證明根因。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-D0-SAMPLE-MISMATCH-20260824.md`
+
 ## 最新 Step 2 / Step 3 regression barrier（2026-08-24，Tcl HEAD `f4d47d7`）
 
 本輪只修正 `read_step23_register_reliability.tcl` 的 read-only state 統計保存，並在目前板上 bitstream 執行 repeated JTAG regression；沒有 program FPGA。Master/Slave 各取得 reliability `10/10 valid` samples，exact `f4d47d7` focused Step 2/3 各取得 `20/20 valid` samples；Slave focused gate 為 `signal_good=19`、`signal_bad=1`，仍判定 Step 3 PASS 並保留 state inconsistency。

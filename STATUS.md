@@ -8,6 +8,19 @@
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
+## 2026-08-23 Step 4 JTAG bounded-group measurement round（64341ca）
+
+本輪只修改 `scripts/jtag/read_step4_startup_focused.tcl` 的 read-only measurement reliability：將 register reads 改為 sample-major bounded groups；單一 mailbox timeout 只標記欄位並繼續其餘 group，最後輸出 `VALID/TIMEOUT/INVALID/PARTIAL`。沒有修改 RTL、firmware、MIF、register address、SoftPLL 或任何 control register；沒有 Quartus compile、沒有 program FPGA。
+
+- `read_step4_startup_focused.tcl 10 500 events` 兩板完整結束，總耗時約 41 秒。
+- DMTD boundary、tag arbitration、downstream、event timing 四個 group 在兩板均為 `VALID`，所有 series `timeout=0`、`invalid=0`。
+- Master/Slave sampled transition 有活動，accept、DMTD event、tag、TRR、IRQ、helper update 仍為 delta=0；因此 Step 4 仍 `NOT_PASS`，但這次已是完整 measurement evidence。
+- `read_wr_handshake_focused.tcl` 20 samples 兩板有效；Step 2 PASS、Slave Step 3 PASS。
+- dashboard 完整執行且 Quartus STP 回報 successful、0 errors、0 warnings。
+
+完整紀錄：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-JTAG-BOUNDED-20260823.md`
+
 ## 2026-08-23 Step 2/3 read-only regression barrier（c7c690b）
 
 本輪 pain 由 GitHub exact commit `c7c690bc5588a039c6fdf26606f9699ec182c9d9` checkout；只執行既有 JTAG read-only scripts，沒有 Quartus compile，也沒有 program FPGA。因而本輪不能把 `c7c690b` 宣稱為板上 SOF；實際硬體仍沿用前一輪 `0c3fbea` fresh SOF，SOF/MIF provenance 請以 `EXP-WRPC-STEP4-QUALIFICATION-ABORT-20260823.md` 為準。

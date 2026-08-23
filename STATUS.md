@@ -1,5 +1,24 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 2 / Step 3 regression barrier（2026-08-24，Tcl HEAD `f4d47d7`）
+
+本輪只修正 `read_step23_register_reliability.tcl` 的 read-only state 統計保存，並在目前板上 bitstream 執行 repeated JTAG regression；沒有 program FPGA。Master/Slave 各取得 reliability `10/10 valid` samples，exact `f4d47d7` focused Step 2/3 各取得 `20/20 valid` samples；Slave focused gate 為 `signal_good=19`、`signal_bad=1`，仍判定 Step 3 PASS 並保留 state inconsistency。
+
+- Step 1 PHY / Link：PASS
+- Step 2 Endpoint / MiniNIC / PTP：PASS
+- Step 3 WR Parent / Signaling：PASS；Slave 保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`
+- Step 4：本輪未進行 functional experiment；dashboard 旁證仍為 event delta=0，因此不能宣稱 Step 4 已通過
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_EVALUATED_IN_THIS_REGRESSION
+```
+
+本輪沒有重新取得板上 SOF/MIF provenance；fresh compile 產物只作未燒錄參考，不能代表 current hardware。完整紀錄與 raw log：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP2-3-REGRESSION-20260824.md`
+
 ## 最新 Step 4 診斷摘要（2026-08-23，HEAD `ec3f7cc`）
 
 本輪在 branch `exp/step4-softpll-enable` 由 exact HEAD `ec3f7cc19baec94afc3a98d2a162f9583ce67efd` 完成 Master/Slave clean build、Quartus compile、雙板燒錄與兩個時間點的 read-only regression。唯一變因是新增 `DMTD d0 LOW-run max` 觀測，沒有修改任何 White Rabbit functional behavior。

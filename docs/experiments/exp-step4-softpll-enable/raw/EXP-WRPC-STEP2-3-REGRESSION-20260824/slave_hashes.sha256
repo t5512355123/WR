@@ -1,0 +1,4 @@
+450f64e4e3ecf67379738350895d43e5ac7e8dfcc11645da9b1f036a01d9adf1  /home/b10504072/04_WR_untracked_backup/EXP-WRPC-STEP4-D0-MISMATCH-FULL-20260824/slave.wrc.mif
+390a3b2900d48a102deb1bfb1be0ba8e8ae45ab31808b1ea2edb7ac8e35d8ec9  /home/b10504072/04_WR_untracked_backup/EXP-WRPC-STEP4-D0-MISMATCH-FULL-20260824/slave.sof
+c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf
+b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc

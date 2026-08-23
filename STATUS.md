@@ -4,9 +4,30 @@
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`0c3fbea10f8c7ac99f64b6386c6c22226af8e36f`
+目前 diagnostics HEAD：`c7c690bc5588a039c6fdf26606f9699ec182c9d9`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
+
+## 2026-08-23 Step 2/3 read-only regression barrier（c7c690b）
+
+本輪 pain 由 GitHub exact commit `c7c690bc5588a039c6fdf26606f9699ec182c9d9` checkout；只執行既有 JTAG read-only scripts，沒有 Quartus compile，也沒有 program FPGA。因而本輪不能把 `c7c690b` 宣稱為板上 SOF；實際硬體仍沿用前一輪 `0c3fbea` fresh SOF，SOF/MIF provenance 請以 `EXP-WRPC-STEP4-QUALIFICATION-ABORT-20260823.md` 為準。
+
+- Step 1：dashboard 兩板均 PASS；ready/link/RX/TX、RX lock-to-data 正常，encoding error=0。
+- Step 2：focused script 兩板各 `valid_samples=20`、`invalid_samples=0`、`counter_decreased=0`，Master `PTP_TX_DELTA=43`、Slave `PTP_TX_DELTA=4`，兩板 Step 2 PASS。
+- Step 3：Slave focused 20 samples PASS；`FOREIGN=1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。`STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT` 保留為觀測資訊，不直接改判 Step 3 failure。
+- Step 4：本輪只做 read-only focused 讀取。script 在 Master 已完成 sampled/accept/seen 與部分下游 series 後，於後續 mailbox 讀取超過三分鐘沒有完成；已停止並保存 partial log。這是 JTAG script timeout，不能當成硬體/SoftPLL failure。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+HARDWARE/FIRMWARE_FAILURE = NOT_ESTABLISHED
+JTAG_MEASUREMENT_ISSUE = STEP4_FOCUSED_SCRIPT_TIMEOUT
+```
+
+完整紀錄與 raw evidence：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP2-3-READONLY-20260823.md`
 
 ## 2026-08-23 最新 fresh Step 2/3 regression 與 Step 4 qualification-abort 實驗（0c3fbea）
 

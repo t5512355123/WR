@@ -232,7 +232,9 @@ proc status_text {status} {
     WARN { return "error" }
     FAIL { return "error" }
     INFO { return "info" }
-    INVALID { return "invalid" }
+    # Invalid mailbox data is a measurement issue, not a hardware verdict.
+    # Keep the default UI within the requested pass/error/info vocabulary.
+    INVALID { return "info" }
   }
   return $status
 }
@@ -240,7 +242,7 @@ proc status_text {status} {
 proc step_status_text {status} {
   if {$status eq "PASS"} { return "pass" }
   if {$status eq "WARN" || $status eq "FAIL"} { return "error" }
-  if {$status eq "INVALID"} { return "MEASUREMENT_INVALID / RETEST" }
+  if {$status eq "INVALID"} { return "NA" }
   return "NA"
 }
 
@@ -993,11 +995,13 @@ proc analyze_board {board} {
   } else {
     set failure_class "NO_FAILURE_EVIDENCE"
   }
-  puts [format "STEP1_REGRESSION = %s" $step1_reg]
-  puts [format "STEP2_REGRESSION = %s" $step2_reg]
-  puts [format "STEP3_REGRESSION = %s" $step3_reg]
-  puts [format "STEP4_ALLOWED = %s" $step4_allowed]
-  puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
+  if {$::raw_mode} {
+    puts [format "STEP1_REGRESSION = %s" $step1_reg]
+    puts [format "STEP2_REGRESSION = %s" $step2_reg]
+    puts [format "STEP3_REGRESSION = %s" $step3_reg]
+    puts [format "STEP4_ALLOWED = %s" $step4_allowed]
+    puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
+  }
   puts "============================================================"
 }
 

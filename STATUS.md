@@ -1,5 +1,27 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 HIGH qualification abort 唯讀回讀（2026-08-24，diagnostics `51f874a`）
+
+本輪沿用 source commit `126dda8550db3f8de33c9e37303e4a16aa730350` 的現有 Master/Slave SOF，只以 diagnostics commit `51f874ab052c770d8e35e678f535892c38502847` 執行 read-only JTAG；沒有 firmware build、Quartus compile 或 FPGA program。
+
+- Step 1/2：兩片 PASS；Step 3：Slave PASS，20/20 focused samples 有效。
+- Slave REF/FB deglitch state 在 T0/T1 都是 `GOT_EDGE/GOT_EDGE`；sampled transition 持續大量增加，但 accept 與 downstream chain 仍無 sustained activity。
+- Slave REF/FB 32-bit HIGH qualification-abort counter 在 T0/T1 的所有 accepted samples 都是 `0xFFFFFFFF`。
+- 因 counter 已飽和，`delta=0` 不能判定目前沒有 HIGH qualification abort；這是診斷動態範圍不足，不是 JTAG read failure，也不是已證明的 hardware functional failure。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_HIGH_ABORT32_READBACK = SATURATED
+SLAVE_HIGH_ABORT_SUSTAINED_ACTIVITY = MEASUREMENT_INVALID
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-HIGH-ABORT-READBACK-20260824.md`
+
 ## 最新 Step 4 LOW qualification abort 實驗（2026-08-24，HEAD `126dda8`）
 
 本輪由 exact source commit `126dda8550db3f8de33c9e37303e4a16aa730350` 完成 fresh firmware、Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一變因是把既有 LOW qualification abort 診斷擴成 32-bit，並分別讀回 REF/FB；functional abort 條件、deglitch FSM 與所有 WR/SoftPLL 行為均未修改。

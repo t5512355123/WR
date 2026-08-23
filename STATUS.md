@@ -1,5 +1,44 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 原生時鐘 64-bit edge count 實驗（2026-08-24，source `3c8e202`）
+
+本輪由 exact source commit `3c8e2027903274dcdb5d21ec8ebca6d3eea24cb5` 完成 fresh
+firmware、Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一
+變因是在 REF/FB 各自原生 `clk_in_i` domain 新增 64-bit binary edge counter、registered
+Gray code 與兩級 CDC readout；沒有改變 WR、PTP、SoftPLL、DDMTD、DCO、SI5340 或 PHY
+functional behavior。
+
+- Master/Slave programmer checksum：`0x30AD7A4C / 0x30B171B0`；兩片均 configuration
+  succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS。兩片 focused samples 均為 30/30 valid，
+  Slave `MODE=3/PTP=9`、foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、
+  `LOCK_ENABLE=4`。
+- Slave live WR state 仍與握手證據衝突，保留 `STATE_EVIDENCE=READ_INCONSISTENT`，不當成
+  Step 3 regression。
+- Slave T0：REF/FB native frequency=`124.986 / 125.016 MHz`；T1=`124.974 / 125.001 MHz`。
+- Slave sampled/native ratio 在兩視窗約為 REF `0.9948/0.9950`、FB `0.9940/0.9941`，
+  證明原生 clock 與 sampled transition 都持續存在。
+- Slave T0/T1 的 REF/FB accept、DMTD event、tag/TRR、IRQ、state transition、helper
+  update delta 全部為 0；第一個 source-backed inactive boundary 位於 sampled transition
+  之後、DMTD deglitch acceptance 之前。
+- Master/Slave compile 成功但 `TIMING_CLOSED=NO`；新增 native counter 的 dedicated setup
+  report worst slack 為 `+5.570 ns`。整體 timing 仍列為 caveat，不宣稱已排除 timing 根因。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_REF_FB_NATIVE_CLOCK = ACTIVE_APPROX_125MHZ
+SLAVE_SAMPLED_ACTIVITY = ACTIVE
+SLAVE_ACCEPT_AND_DOWNSTREAM_ACTIVITY = NONE_OBSERVED
+FIRST_INACTIVE_BOUNDARY = DMTD_DEGLITCH_ACCEPTANCE
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-NATIVE-EDGE-COUNT64-20260824.md`
+
 ## 最新 Step 4 HIGH qualification abort 深度總和實驗（2026-08-24，source `8ff33fe`）
 
 本輪由 exact source commit `8ff33fe7e4c212916ab8e28b355ebb561254d9bf` 完成 fresh firmware、

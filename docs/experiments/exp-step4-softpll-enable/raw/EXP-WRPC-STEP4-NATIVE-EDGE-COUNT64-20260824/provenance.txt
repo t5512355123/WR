@@ -1,0 +1,25 @@
+Experiment ID: EXP-WRPC-STEP4-NATIVE-EDGE-COUNT64-20260824
+Branch: exp/step4-softpll-enable
+Source commit: 3c8e2027903274dcdb5d21ec8ebca6d3eea24cb5
+Quartus: 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+
+Master MIF SHA256: 243154b470967082b82a9c309c17be3555fd20323f1d1cd6fa23c07bed787034
+Slave MIF SHA256: a9e260607ebabda7932b029a39b1c7ba05463aafe2cb0867450391514908b23e
+Master QSF SHA256: cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f
+Slave QSF SHA256: c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437
+SDC SHA256: b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8
+Master SOF SHA256: ea6a0ede2f8b11aa912aa7df6f4eff3d4e08c28a595748e5f76ff3f8c6d4b9b1
+Slave SOF SHA256: 99bd8c7e29c676d834918531e45c22c2659fb85ce6dedca736f73cdaa72eda2f
+Master programmer checksum: 0x30AD7A4C
+Slave programmer checksum: 0x30B171B0
+
+read_wb_runtime.tcl SHA256: 95cf3d27fd2d99951c801eabaa0cb2d4068c90f49eb6c9ead569a85aefa2c8cf
+read_wr_handshake_focused.tcl SHA256: e9a531ff776d991992b5875cb8a94182d8daed35fb68b020631dc538a1b5605b
+read_step4_startup_focused.tcl SHA256: 0cf0a6459fbe87262231ec5d182c190c41a6a5ed5ededd03b53a6864dbffeeca
+
+Master program result: Configuration succeeded, 0 errors, 0 warnings
+Slave program result: Configuration succeeded, 0 errors, 0 warnings
+Step 1 regression: PASS
+Step 2 regression: PASS
+Step 3 regression: PASS
+Step 4 result: NOT_PASS

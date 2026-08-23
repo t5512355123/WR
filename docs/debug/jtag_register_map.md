@@ -204,8 +204,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x0010023C` | `SPLL_DMTD_STAB_COUNTERS` | 唯讀封裝欄位：bits 15..0 是 reference 目前 `stab_cntr`，bits 31..16 是 feedback 目前 `stab_cntr`；直接觀測 deglitch qualification，不改 FSM 或 threshold |
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
-| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀封裝欄位：bits 31..16 為 reference LOW qualification abort 次數，bits 15..0 為 HIGH qualification abort 次數；兩者皆為 16-bit 飽和計數器。這兩個 abort 計數器只在已開始累積穩定週期後被相反電位中止時增加。 |
-| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀封裝欄位：bits 31..16 為 feedback LOW qualification abort 次數，bits 15..0 為 HIGH qualification abort 次數；兩者皆為 16-bit 飽和計數器。 |
+| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀、完整 32-bit reference HIGH qualification abort 累計值。當 deglitcher 位於 `GOT_EDGE` 且 `clk_sampled=0`、中止既有 HIGH qualification 時增加；計數器自然回捲，Tcl regression 會將回捲或 reset 標成 measurement ambiguous。 |
+| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀、完整 32-bit feedback HIGH qualification abort 累計值，語義與 `SPLL_DMTD_REF_SEEN` 相同。 |
 | `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
 | `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
 | `0x001002B0` | `SPLL_DIAG_CURRENT_TICS` | 唯讀：診斷用 `clk_sys` cycle counter；只用來和下列 last-event 欄位比較 |

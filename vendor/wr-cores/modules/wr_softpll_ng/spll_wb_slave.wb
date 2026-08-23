@@ -352,6 +352,29 @@ peripheral {
    };
 
    reg {
+      name = "DMTD Deglitch Stability Counters";
+      prefix = "DMTD_STAB_COUNTERS";
+
+      field {
+         name = "Reference current stability counter";
+         prefix = "REF";
+         type = SLV;
+         size = 16;
+         access_bus = READ_ONLY;
+         access_dev = WRITE_ONLY;
+      };
+
+      field {
+         name = "Feedback current stability counter";
+         prefix = "FB";
+         type = SLV;
+         size = 16;
+         access_bus = READ_ONLY;
+         access_dev = WRITE_ONLY;
+      };
+   };
+
+   reg {
 			align = 8;
 			name = "Helper DAC Output";
 			prefix = "DAC_HPLL";

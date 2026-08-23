@@ -152,7 +152,9 @@ entity dmtd_with_deglitcher is
     -- Read-only deglitch qualification observability. The bucket contains
     -- stab_cntr(15 downto 8); the sticky bit records threshold equality.
     dbg_stab_bucket_o : out std_logic_vector(7 downto 0);
-    dbg_stab_reached_o : out std_logic
+    dbg_stab_reached_o : out std_logic;
+    -- Full current deglitch stability counter, synchronized to clk_sys_i.
+    dbg_stab_count_o : out std_logic_vector(15 downto 0)
     );
 end dmtd_with_deglitcher;
 
@@ -174,6 +176,7 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_sampled_transition_count_sys : std_logic_vector(31 downto 0);
   signal dbg_deglitch_accept_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_bucket_sys : std_logic_vector(7 downto 0);
+  signal dbg_stab_count_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -261,6 +264,16 @@ begin  -- rtl
   dbg_stab_reached_sys <= dbg_stab_reached_sys_vec(0);
   dbg_stab_bucket_o <= dbg_stab_bucket_sys;
   dbg_stab_reached_o <= dbg_stab_reached_sys;
+
+  U_sync_dbg_stab_count : entity work.gc_sync_register
+    generic map (g_width => 16)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => std_logic_vector(stab_cntr),
+      q_o       => dbg_stab_count_sys);
+
+  dbg_stab_count_o <= dbg_stab_count_sys;
 
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (

@@ -205,6 +205,7 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_accept_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_sampled_transition_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_sampled_transition_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_stab_counter_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_event_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_seen_i : in std_logic_vector(31 downto 0);
@@ -356,6 +357,9 @@ architecture rtl of wr_softpll_ng is
   type t_diag_bucket_array is array(integer range <>) of std_logic_vector(7 downto 0);
   signal dmtd_ref_stab_bucket : t_diag_bucket_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_stab_bucket : t_diag_bucket_array(0 to g_num_outputs-1);
+  type t_diag_stab_count_array is array(integer range <>) of std_logic_vector(15 downto 0);
+  signal dmtd_ref_stab_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+  signal dmtd_fb_stab_count : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_stab_reached : std_logic_vector(g_num_ref_inputs-1 downto 0);
   signal dmtd_fb_stab_reached : std_logic_vector(g_num_outputs-1 downto 0);
 
@@ -483,6 +487,7 @@ begin  -- rtl
         dbg_deglitch_accept_count_o => dmtd_ref_accept_count(i),
         dbg_stab_bucket_o => dmtd_ref_stab_bucket(i),
         dbg_stab_reached_o => dmtd_ref_stab_reached(i),
+        dbg_stab_count_o => dmtd_ref_stab_count(i),
         r_deglitch_threshold_i => deglitch_thr_slv,
         r_low_o => r_stat_low_ref(i),
         r_high_o => r_stat_high_ref(i),
@@ -530,6 +535,7 @@ begin  -- rtl
         dbg_deglitch_accept_count_o => dmtd_fb_accept_count(i),
         dbg_stab_bucket_o => dmtd_fb_stab_bucket(i),
         dbg_stab_reached_o => dmtd_fb_stab_reached(i),
+        dbg_stab_count_o => dmtd_fb_stab_count(i),
 
         r_deglitch_threshold_i => deglitch_thr_slv,
         dbg_dmtdout_o        => open,
@@ -578,6 +584,7 @@ begin  -- rtl
         dbg_deglitch_accept_count_o => open,
         dbg_stab_bucket_o => open,
         dbg_stab_reached_o => open,
+        dbg_stab_count_o => open,
 
         r_deglitch_threshold_i => deglitch_thr_slv);
 
@@ -721,6 +728,7 @@ begin  -- rtl
       diag_dmtd_fb_accept_count_i => dmtd_fb_accept_count(0),
       diag_dmtd_ref_sampled_transition_count_i => dmtd_ref_sampled_count(0),
       diag_dmtd_fb_sampled_transition_count_i => dmtd_fb_sampled_count(0),
+      diag_dmtd_stab_counter_i => dmtd_fb_stab_count(0) & dmtd_ref_stab_count(0),
       diag_dmtd_ref_event_count_i => std_logic_vector(diag_dmtd_ref_event_count),
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Preserve the original sticky seen bit at bit 0. The upper fields

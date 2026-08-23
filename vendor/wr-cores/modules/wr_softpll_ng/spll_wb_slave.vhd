@@ -46,6 +46,7 @@ port (
   diag_dmtd_fb_accept_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_sampled_transition_count_i : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_sampled_transition_count_i  : in     std_logic_vector(31 downto 0);
+  diag_dmtd_stab_counter_i                 : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_event_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_event_count_i               : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_seen_i                     : in     std_logic_vector(31 downto 0);
@@ -412,6 +413,12 @@ begin
         when "001110" =>
           if (wb_we_i = '0') then
             rddata_reg <= diag_dmtd_fb_sampled_transition_count_i;
+          end if;
+          ack_sreg(0) <= '1';
+          ack_in_progress <= '1';
+        when "001111" =>
+          if (wb_we_i = '0') then
+            rddata_reg <= diag_dmtd_stab_counter_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

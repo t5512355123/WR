@@ -1,5 +1,46 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 DMTD 取樣時鐘 64-bit edge count 實驗（2026-08-24，source `ecf5bba`）
+
+本輪由 exact source commit `ecf5bbad40306a345c611ec9f27388e876fc0911` 完成 fresh
+firmware、Quartus 17 clean compile、雙板 program 與 read-only runtime 量測。唯一
+變因是在 `clk_dmtd_i` domain 新增 64-bit binary edge counter、registered Gray code、
+兩級 CDC 與唯讀 Wishbone readout；沒有改變 WR、PTP、SoftPLL、DDMTD、DCO、SI5340
+或 PHY functional behavior。
+
+- Master/Slave programmer checksum：`0x30B050AB / 0x30B02EDD`；兩片均 configuration
+  succeeded、0 errors、0 warnings。
+- Step 1/2：兩片 PASS；Step 3：Slave PASS。兩片 focused samples 均為 30/30 valid，
+  Slave `MODE=3/PTP=9`、foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、TX=`0x1000`、
+  `LOCK_ENABLE=4`。
+- Slave live WR state 仍與握手證據衝突，保留 `STATE_EVIDENCE=READ_INCONSISTENT`，不當成
+  Step 3 regression。
+- Slave T0：DMTD/REF/FB=`124.987 / 124.991 / 124.996 MHz`；T1=
+  `124.998 / 124.994 / 125.016 MHz`。三組 counter 均 10/10 valid。
+- Slave REF/FB sampled transition 持續增加，但 T0/T1 的 accept、DMTD event、tag/TRR、
+  IRQ、state transition、helper update delta 全部為 0。
+- 本輪排除 `clk_dmtd_i` 完全停止；目前第一個 source-backed inactive boundary 仍位於
+  sampled transition 之後、DMTD deglitch acceptance 之前，未證明特定 root cause。
+- Master/Slave compile 成功但 `TIMING_CLOSED=NO`；整體 setup WNS 為
+  `-0.281/-0.179 ns`。新增 DMTD counter 的 dedicated worst slack 為
+  `+5.318/+5.450 ns`，只排除該 focused counter path，不能代表整體 timing closed。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+SLAVE_DMTD_NATIVE_CLOCK = ACTIVE_APPROX_125MHZ
+SLAVE_REF_FB_NATIVE_CLOCK = ACTIVE_APPROX_125MHZ
+SLAVE_SAMPLED_ACTIVITY = ACTIVE
+SLAVE_ACCEPT_AND_DOWNSTREAM_ACTIVITY = NONE_OBSERVED
+FIRST_INACTIVE_BOUNDARY = DMTD_DEGLITCH_ACCEPTANCE
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-DMTD-NATIVE-EDGE-COUNT64-20260824.md`
+
 ## 最新 Step 4 原生時鐘 64-bit edge count 實驗（2026-08-24，source `3c8e202`）
 
 本輪由 exact source commit `3c8e2027903274dcdb5d21ec8ebca6d3eea24cb5` 完成 fresh

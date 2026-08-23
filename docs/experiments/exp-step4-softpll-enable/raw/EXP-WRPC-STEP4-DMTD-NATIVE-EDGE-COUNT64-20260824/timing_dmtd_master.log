@@ -1,0 +1,254 @@
+Info: *******************************************************************
+Info: Running Quartus Prime TimeQuest Timing Analyzer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Aug 24 04:55:17 2026
+Info: Command: quartus_sta -t /tmp/dmtd_sta_tmp.tcl DE5a_wr_master_jtag
+Info: Quartus(args): DE5a_wr_master_jtag
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
+Info (21076): Core supply voltage operating condition is not set. Assuming a default value of '0.9V'.
+Info (21076): High junction temperature operating condition is not set. Assuming a default value of '100'.
+Info (21076): Low junction temperature operating condition is not set. Assuming a default value of '0'.
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_master_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|ref_iqclk[1]} -invert -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+Info: DMTD_NATIVE_BIN_REG_COUNT=64
+Info: DMTD_NATIVE_GRAY_REG_COUNT=63
+Info (332115): Report Timing: Found 10 setup paths (0 violated).  Worst case slack is 5.646
+    Info (332115): -from [get_registers {*dmtd_native_edge_count_bin*}]
+    Info (332115): -to [get_registers {*dmtd_native_edge_count_bin*}]
+    Info (332115): -setup
+    Info (332115): -npaths 10
+    Info (332115): -detail summary
+    Info (332115): -stdout
+Info (332115): Path #1: Setup slack is 5.646 
+    Info (332115):    Slack        : 5.646 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.387
+Info (332115): Path #2: Setup slack is 5.773 
+    Info (332115):    Slack        : 5.773 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[2]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.260
+Info (332115): Path #3: Setup slack is 5.831 
+    Info (332115):    Slack        : 5.831 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[0]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.202
+Info (332115): Path #4: Setup slack is 5.870 
+    Info (332115):    Slack        : 5.870 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[3]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.163
+Info (332115): Path #5: Setup slack is 5.879 
+    Info (332115):    Slack        : 5.879 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[4]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.154
+Info (332115): Path #6: Setup slack is 5.879 
+    Info (332115):    Slack        : 5.879 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[11]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.046
+    Info (332115):    Data Delay   : 2.151
+Info (332115): Path #7: Setup slack is 5.891 
+    Info (332115):    Slack        : 5.891 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[7]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.142
+Info (332115): Path #8: Setup slack is 5.937 
+    Info (332115):    Slack        : 5.937 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[23]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.046
+    Info (332115):    Data Delay   : 2.093
+Info (332115): Path #9: Setup slack is 5.962 
+    Info (332115):    Slack        : 5.962 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[6]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[63]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.071
+Info (332115): Path #10: Setup slack is 5.970 
+    Info (332115):    Slack        : 5.970 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[59]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.043
+    Info (332115):    Data Delay   : 2.221
+Info (332115): Report Timing: Found 10 setup paths (0 violated).  Worst case slack is 5.318
+    Info (332115): -from [get_registers {*dmtd_native_edge_count_bin*}]
+    Info (332115): -to [get_registers {*dmtd_native_edge_count_gray*}]
+    Info (332115): -setup
+    Info (332115): -npaths 10
+    Info (332115): -detail summary
+    Info (332115): -stdout
+Info (332115): Path #1: Setup slack is 5.318 
+    Info (332115):    Slack        : 5.318 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[56]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.814
+Info (332115): Path #2: Setup slack is 5.410 
+    Info (332115):    Slack        : 5.410 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[53]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.707
+Info (332115): Path #3: Setup slack is 5.411 
+    Info (332115):    Slack        : 5.411 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[52]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.706
+Info (332115): Path #4: Setup slack is 5.449 
+    Info (332115):    Slack        : 5.449 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[2]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[56]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.683
+Info (332115): Path #5: Setup slack is 5.475 
+    Info (332115):    Slack        : 5.475 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[38]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.051
+    Info (332115):    Data Delay   : 2.640
+Info (332115): Path #6: Setup slack is 5.480 
+    Info (332115):    Slack        : 5.480 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[54]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.638
+Info (332115): Path #7: Setup slack is 5.484 
+    Info (332115):    Slack        : 5.484 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[49]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.045
+    Info (332115):    Data Delay   : 2.646
+Info (332115): Path #8: Setup slack is 5.490 
+    Info (332115):    Slack        : 5.490 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[39]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.051
+    Info (332115):    Data Delay   : 2.648
+Info (332115): Path #9: Setup slack is 5.491 
+    Info (332115):    Slack        : 5.491 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[38]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.051
+    Info (332115):    Data Delay   : 2.639
+Info (332115): Path #10: Setup slack is 5.491 
+    Info (332115):    Slack        : 5.491 
+    Info (332115):    From Node    : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_bin[1]
+    Info (332115):    To Node      : xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_native_edge_count_gray[55]
+    Info (332115):    Launch Clock : qsfp_dmtd_124m992
+    Info (332115):    Latch Clock  : qsfp_dmtd_124m992
+    Info (332115):    Relationship : 8.000
+    Info (332115):    Clock Skew   : -0.049
+    Info (332115):    Data Delay   : 2.626
+Info (23030): Evaluation of Tcl script /tmp/dmtd_sta_tmp.tcl was successful
+Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 6 warnings
+    Info: Peak virtual memory: 2742 megabytes
+    Info: Processing ended: Mon Aug 24 04:55:22 2026
+    Info: Elapsed time: 00:00:05
+    Info: Total CPU time (on all processors): 00:00:06

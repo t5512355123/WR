@@ -1,16 +1,16 @@
 # DE5a White Rabbit 目前狀態
 
-最後更新：2026-08-21
+最後更新：2026-08-23
 
 目前研究分支：`exp/step4-softpll-enable`
 
-目前 diagnostics HEAD：`2394a23937838f11f63660a0465f48a88038a419`
+目前 diagnostics HEAD：`67aa10b86951a6352659dddb55c1adba60bbe4a1`
 
 本頁只整理目前證據與下一個研究 gate。既有燒錄實驗與 raw log 保留在 `docs/experiments/`，沒有刪除或改寫任何既有實驗紀錄。
 
 ## 目前結論
 
-本輪只修改 read-only JTAG Tcl diagnostics，沒有修改 FPGA RTL、firmware、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register，也沒有 Quartus compile 或 program FPGA。pain 以 exact HEAD `2394a23` 執行 Quartus Prime 17.0 Build 595 的 JTAG 讀取。
+本輪只新增 DMTD sampled-transition 的 dedicated read-only observability，沒有修改 FPGA functional RTL、firmware functional behavior、MIF、SoftPLL、PTP、WR signaling、PHY 或任何控制 register。pain 以 exact HEAD `67aa10b` 完成 Quartus Prime 17.0 Build 595 clean compile、雙板 fresh SOF program 與 read-only JTAG regression。
 
 Step 2 / Step 3 regression barrier 已重新建立並通過：
 
@@ -28,7 +28,15 @@ STEP3_REGRESSION = PASS
 STEP4_ALLOWED    = YES
 ```
 
-這只代表可以進入下一階段的 Step 4 read-only/functional planning；本輪沒有開始 Step 4 functional experiment，也沒有要求 SoftPLL lock 或 `time_valid=1`。
+這只代表可以繼續單一變因的 Step 4 read-only 診斷；本輪 Step 4 尚未通過，也沒有要求 SoftPLL lock 或 `time_valid=1`。
+
+## 2026-08-23 Step 4 sampled-transition fresh experiment
+
+本輪 exact HEAD `67aa10b` 的 fresh build/program 證據已記錄於：
+
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-SAMPLED-TRANSITION-20260823.md`
+
+Step 2/3 focused regression 均 PASS；Slave 仍保留 `STATE_EVIDENCE=READ_INCONSISTENT` 與 `POST_STEP3_LOCK_STAGE=TIMEOUT`。20 次、500 ms 間隔的 DMTD boundary observation 顯示 sampled transition counters 有大量活動，但 accept counters、直接 DMTD event、tag/TRR/IRQ/helper 沒有 delta。因此目前第一個已觀測 inactive boundary 是 `clk_sampled -> deglitch stability qualification -> new_edge_p_dmtdclk`，Step 4 為 `NOT_PASS`。這是 source-backed observability boundary，不是已證明的 hardware/firmware root cause。
 
 ## 六步 milestone
 

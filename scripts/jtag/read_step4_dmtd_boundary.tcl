@@ -70,9 +70,9 @@ proc read_boundary_sample {hardware_name sample} {
   set dmtd_input_low_run_max [wb_read 0x00100254]
   set dmtd_d1_high_run_max [wb_read 0x00100258]
   set dmtd_d0_low_run_max [wb_read 0x0010025C]
-  set d0_sample_mismatch_ref [wb_read 0x00100260]
+  set d1_pipeline_mismatch_ref [wb_read 0x00100260]
   set deglitch_thr [wb_read 0x00100248]
-  set d0_sample_mismatch_fb [wb_read 0x00100264]
+  set d1_pipeline_mismatch_fb [wb_read 0x00100264]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -142,13 +142,13 @@ proc read_boundary_sample {hardware_name sample} {
   }
   set mismatch_ref_word 0
   set mismatch_fb_word 0
-  if {[scan $d0_sample_mismatch_ref %x mismatch_ref_word] == 1 && \
-      [scan $d0_sample_mismatch_fb %x mismatch_fb_word] == 1} {
-    puts [format "D0_SAMPLE_MISMATCH_COUNT ref=%s fb=%s" \
+  if {[scan $d1_pipeline_mismatch_ref %x mismatch_ref_word] == 1 && \
+      [scan $d1_pipeline_mismatch_fb %x mismatch_fb_word] == 1} {
+    puts [format "D1_PIPELINE_MISMATCH_COUNT ref=%s fb=%s" \
           [format %08X $mismatch_ref_word] \
           [format %08X $mismatch_fb_word]]
   } else {
-    puts "D0_SAMPLE_MISMATCH_COUNT invalid"
+    puts "D1_PIPELINE_MISMATCH_COUNT invalid"
   }
   set input_run_word 0
   if {[scan $dmtd_input_high_run_max %x input_run_word] == 1} {

@@ -156,8 +156,10 @@ entity dmtd_with_deglitcher is
      -- Full current deglitch stability counter, synchronized to clk_sys_i.
      dbg_stab_count_o : out std_logic_vector(15 downto 0);
      -- Cumulative qualification aborts, kept outside the functional path.
+     -- The HIGH counter is 32-bit so repeated GOT_EDGE qualification aborts
+     -- remain observable over a long runtime window without saturation.
      dbg_low_qual_abort_count_o : out std_logic_vector(15 downto 0);
-     dbg_high_qual_abort_count_o : out std_logic_vector(15 downto 0)
+     dbg_high_qual_abort_count_o : out std_logic_vector(31 downto 0)
      );
 end dmtd_with_deglitcher;
 
@@ -191,9 +193,9 @@ architecture rtl of dmtd_with_deglitcher is
   signal dbg_stab_bucket_sys : std_logic_vector(7 downto 0);
   signal dbg_stab_count_sys : std_logic_vector(15 downto 0);
   signal dbg_low_qual_abort_count : unsigned(15 downto 0);
-  signal dbg_high_qual_abort_count : unsigned(15 downto 0);
+  signal dbg_high_qual_abort_count : unsigned(31 downto 0);
   signal dbg_low_qual_abort_count_sys : std_logic_vector(15 downto 0);
-  signal dbg_high_qual_abort_count_sys : std_logic_vector(15 downto 0);
+  signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -301,7 +303,7 @@ begin  -- rtl
       q_o       => dbg_low_qual_abort_count_sys);
 
   U_sync_dbg_high_abort : entity work.gc_sync_register
-    generic map (g_width => 16)
+    generic map (g_width => 32)
     port map (
       clk_i     => clk_sys_i,
       rst_n_a_i => rst_n_sysclk_i,

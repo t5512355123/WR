@@ -259,27 +259,6 @@ proc delta_positive {board label} {
   return 0
 }
 
-proc packed_abort_delta {board label shift} {
-  set first [series_value $board $label first]
-  set last [series_value $board $label last]
-  if {$first eq "" || $last eq "" ||
-      ![is_u32 $first] || ![is_u32 $last]} {
-    return INVALID
-  }
-  set first_word [word32 $first]
-  set last_word [word32 $last]
-  set first_count [expr {($first_word >> $shift) & 0xffff}]
-  set last_count [expr {($last_word >> $shift) & 0xffff}]
-  if {$last_count < $first_count} { return DECREASED_OR_RESET }
-  return [expr {$last_count - $first_count}]
-}
-
-proc packed_abort_value {board label shift} {
-  set last [series_value $board $label last]
-  if {$last eq "" || ![is_u32 $last]} { return INVALID }
-  return [expr {([word32 $last] >> $shift) & 0xffff}]
-}
-
 proc has_invalid {board labels} {
   foreach label $labels {
     if {[series_value $board $label invalid] > 0} { return 1 }
@@ -328,16 +307,15 @@ proc print_event_boundary {board} {
     return
   }
 
-  set ref_low_abort_delta [packed_abort_delta $board DMTD_REF_SEEN 16]
-  set ref_high_abort_delta [packed_abort_delta $board DMTD_REF_SEEN 0]
-  set fb_low_abort_delta [packed_abort_delta $board DMTD_FB_SEEN 16]
-  set fb_high_abort_delta [packed_abort_delta $board DMTD_FB_SEEN 0]
-  set packed_ambiguous [expr {
-    $ref_low_abort_delta eq "INVALID" || $ref_high_abort_delta eq "INVALID" ||
-    $fb_low_abort_delta eq "INVALID" || $fb_high_abort_delta eq "INVALID" ||
-    $ref_low_abort_delta eq "DECREASED_OR_RESET" ||
+  # DMTD_REF_SEEN/FB_SEEN now expose the source-defined 32-bit HIGH
+  # qualification-abort counters directly. Keep special delta values as
+  # strings; callers must not compare TIMEOUT/INVALID/DECREASED numerically.
+  set ref_high_abort_delta [series_value $board DMTD_REF_SEEN delta]
+  set fb_high_abort_delta [series_value $board DMTD_FB_SEEN delta]
+  set abort_delta_invalid [expr {
+    $ref_high_abort_delta eq "INVALID" ||
+    $fb_high_abort_delta eq "INVALID" ||
     $ref_high_abort_delta eq "DECREASED_OR_RESET" ||
-    $fb_low_abort_delta eq "DECREASED_OR_RESET" ||
     $fb_high_abort_delta eq "DECREASED_OR_RESET"}]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
@@ -346,10 +324,8 @@ proc print_event_boundary {board} {
                             [delta_positive $board DMTD_FB_SAMPLED]}]
   set accept_active [expr {[delta_positive $board DMTD_REF_ACCEPT] || \
                            [delta_positive $board DMTD_FB_ACCEPT]}]
-  set qualification_abort_active [expr {!$packed_ambiguous && \
-    (([string is integer -strict $ref_low_abort_delta] && $ref_low_abort_delta > 0) || \
-     ([string is integer -strict $ref_high_abort_delta] && $ref_high_abort_delta > 0) || \
-     ([string is integer -strict $fb_low_abort_delta] && $fb_low_abort_delta > 0) || \
+  set qualification_abort_active [expr {!$abort_delta_invalid && \
+    (([string is integer -strict $ref_high_abort_delta] && $ref_high_abort_delta > 0) || \
      ([string is integer -strict $fb_high_abort_delta] && $fb_high_abort_delta > 0))}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
@@ -382,7 +358,7 @@ proc print_event_boundary {board} {
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
   }
 
-  if {$packed_ambiguous} {
+  if {$abort_delta_invalid} {
     set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
   } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
@@ -413,9 +389,8 @@ proc print_event_boundary {board} {
         [series_value $board DMTD_REF_ACCEPT delta] \
         [series_value $board DMTD_FB_SAMPLED delta] \
         [series_value $board DMTD_FB_ACCEPT delta]]
-  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_low=%s ref_high=%s fb_low=%s fb_high=%s" \
-        $board $ref_low_abort_delta $ref_high_abort_delta \
-        $fb_low_abort_delta $fb_high_abort_delta]
+  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_high=%s fb_high=%s" \
+        $board $ref_high_abort_delta $fb_high_abort_delta]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $irq_active $state_active $helper_active]

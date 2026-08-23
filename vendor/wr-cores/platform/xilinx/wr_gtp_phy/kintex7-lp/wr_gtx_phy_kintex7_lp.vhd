@@ -359,7 +359,8 @@ begin  -- rtl
       clk_sampled_o => rx_rec_clk_sampled,
       dbg_input_high_run_max_o => open,
       dbg_input_low_run_max_o => open,
-      dbg_d1_high_run_max_o => open);
+      dbg_d1_high_run_max_o => open,
+      dbg_d0_low_run_max_o => open);
 
   U_Sampler_TX : entity work.dmtd_sampler
     generic map (
@@ -371,7 +372,8 @@ begin  -- rtl
       clk_sampled_o => tx_out_clk_sampled,
       dbg_input_high_run_max_o => open,
       dbg_input_low_run_max_o => open,
-      dbg_d1_high_run_max_o => open);
+      dbg_d1_high_run_max_o => open,
+      dbg_d0_low_run_max_o => open);
 
   U_Sampler_REFCLK : entity work.dmtd_sampler
     generic map (
@@ -383,7 +385,8 @@ begin  -- rtl
       clk_sampled_o => clk_ref_sampled_o,
       dbg_input_high_run_max_o => open,
       dbg_input_low_run_max_o => open,
-      dbg_d1_high_run_max_o => open);
+      dbg_d1_high_run_max_o => open,
+      dbg_d0_low_run_max_o => open);
 
   process(clk_rx_62m5, rx_gearbox_pll_locked)
   begin

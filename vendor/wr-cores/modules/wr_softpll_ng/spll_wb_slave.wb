@@ -374,8 +374,8 @@ peripheral {
       };
    };
 
-    # Read-only diagnostic extensions at reserved WB slots 0x50, 0x54 and
-    # 0x58. Keep these outside the generated register sequence so DAC_HPLL and
+    # Read-only diagnostic extensions at reserved WB slots 0x50, 0x54, 0x58
+    # and 0x5c. Keep these outside the generated register sequence so DAC_HPLL and
     # later addresses remain unchanged; matching cases are implemented in
     # spll_wb_slave.vhd.
    # Packed value: low 16 bits reference input run maximum, high 16 bits
@@ -392,7 +392,7 @@ peripheral {
 			};
 	 };
 
-    # 0x58 is an additional manual read-only extension implemented in
+    # 0x58 and 0x5c are additional manual read-only extensions implemented in
     # spll_wb_slave.vhd; it is intentionally not added to the generated
     # register sequence.
 

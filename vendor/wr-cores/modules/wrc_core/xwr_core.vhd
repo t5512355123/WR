@@ -100,6 +100,7 @@ entity xwr_core is
     g_softpll_reverse_dmtds : boolean := false;
     g_vuart_fifo_size           : integer                        := 1024;
     g_pcs_16bit                 : boolean                        := false;
+    g_softpll_divide_input_by_2 : boolean := not g_pcs_16bit and not g_softpll_reverse_dmtds;
     g_records_for_phy           : boolean                        := false;
     g_diag_id                   : integer                        := 0;
     g_diag_ver                  : integer                        := 0;
@@ -329,6 +330,7 @@ begin
       g_softpll_enable_debugger   => g_softpll_enable_debugger,
       g_softpll_use_sampled_ref_clocks => g_softpll_use_sampled_ref_clocks,
       g_softpll_reverse_dmtds => g_softpll_reverse_dmtds,
+      g_softpll_divide_input_by_2 => g_softpll_divide_input_by_2,
       g_vuart_fifo_size           => g_vuart_fifo_size,
       g_pcs_16bit                 => g_pcs_16bit,
       g_records_for_phy           => g_records_for_phy,

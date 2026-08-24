@@ -56,6 +56,8 @@ port (
   diag_dmtd_fb_high_qual_reached_8_count_i  : in     std_logic_vector(15 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_wait_stable0_max_stab_i        : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_wait_stable0_low_sample_count_i : in std_logic_vector(31 downto 0);
+  diag_dmtd_fb_wait_stable0_low_sample_count_i  : in std_logic_vector(31 downto 0);
   diag_dmtd_ref_low_qual_abort_count_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_low_qual_abort_count_i      : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
@@ -259,33 +261,10 @@ begin
           rddata_reg(2) <= regs_i.eccr_ext_ref_locked_i;
           rddata_reg(3) <= regs_i.eccr_ext_ref_stopped_i;
           rddata_reg(31) <= spll_eccr_ext_ref_pllrst_int;
-          rddata_reg(4) <= 'X';
-          rddata_reg(5) <= 'X';
-          rddata_reg(6) <= 'X';
-          rddata_reg(7) <= 'X';
-          rddata_reg(8) <= 'X';
-          rddata_reg(9) <= 'X';
-          rddata_reg(10) <= 'X';
-          rddata_reg(11) <= 'X';
-          rddata_reg(12) <= 'X';
-          rddata_reg(13) <= 'X';
-          rddata_reg(14) <= 'X';
-          rddata_reg(15) <= 'X';
-          rddata_reg(16) <= 'X';
-          rddata_reg(17) <= 'X';
-          rddata_reg(18) <= 'X';
-          rddata_reg(19) <= 'X';
-          rddata_reg(20) <= 'X';
-          rddata_reg(21) <= 'X';
-          rddata_reg(22) <= 'X';
-          rddata_reg(23) <= 'X';
-          rddata_reg(24) <= 'X';
-          rddata_reg(25) <= 'X';
-          rddata_reg(26) <= 'X';
-          rddata_reg(27) <= 'X';
-          rddata_reg(28) <= 'X';
-          rddata_reg(29) <= 'X';
-          rddata_reg(30) <= 'X';
+           -- ECCR bits 4..30 are otherwise undefined on read. Expose the
+           -- lower 27 bits of the REF WAIT_STABLE_0 LOW sample counter there.
+           rddata_reg(30 downto 4) <=
+             diag_dmtd_ref_wait_stable0_low_sample_count_i(26 downto 0);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "000010" => 
@@ -369,22 +348,13 @@ begin
           end if;
           rddata_reg(15 downto 8) <= regs_i.occr_out_en_i;
           rddata_reg(23 downto 16) <= spll_occr_out_lock_int;
-          rddata_reg(0) <= 'X';
-          rddata_reg(1) <= 'X';
-          rddata_reg(2) <= 'X';
-          rddata_reg(3) <= 'X';
-          rddata_reg(4) <= 'X';
-          rddata_reg(5) <= 'X';
-          rddata_reg(6) <= 'X';
-          rddata_reg(7) <= 'X';
-          rddata_reg(24) <= 'X';
-          rddata_reg(25) <= 'X';
-          rddata_reg(26) <= 'X';
-          rddata_reg(27) <= 'X';
-          rddata_reg(28) <= 'X';
-          rddata_reg(29) <= 'X';
-          rddata_reg(30) <= 'X';
-          rddata_reg(31) <= 'X';
+           -- OCCR bits 7..0 and 31..24 are otherwise undefined on read.
+           -- Preserve the functional fields and expose the FB counter as
+           -- two contiguous bytes in those undefined regions.
+           rddata_reg(7 downto 0) <=
+             diag_dmtd_fb_wait_stable0_low_sample_count_i(7 downto 0);
+           rddata_reg(31 downto 24) <=
+             diag_dmtd_fb_wait_stable0_low_sample_count_i(15 downto 8);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "001001" => 

@@ -11,7 +11,8 @@
 # group: lock, events, mapping, low_abort, or all (default).  The default is 30 samples at 100 ms.
 # All addresses below are already used by the repository's Step 4 scripts and
 # jtag_register_map.md; the low_abort group uses read-side diagnostic aliases
-# and does not introduce a functional control map.
+# and does not introduce a functional control map. The LOW_SAMPLE counters use
+# otherwise undefined read bits in ECCR/OCCR while preserving their writes.
 
 package require ::quartus::insystem_source_probe
 
@@ -216,6 +217,22 @@ proc series_delta_mod32 {first last invalid} {
   return [expr {($b - $a) & 0xffffffff}]
 }
 
+proc series_delta_mod27 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0x07ffffff}]
+}
+
+proc series_delta_mod16 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0xffff}]
+}
+
 proc series_delta_mod64 {first last invalid} {
   if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
   set a [word64 $first]
@@ -351,7 +368,11 @@ proc finish_series {board label} {
   set invalid $::series($board,$label,invalid)
   set first $::series($board,$label,first)
   set last $::series($board,$label,last)
-  if {$label eq "DMTD_REF_WAIT_EDGE_ENTRY" || $label eq "DMTD_FB_WAIT_EDGE_ENTRY" ||
+  if {$label eq "DMTD_REF_WAIT_STABLE0_LOW_SAMPLE"} {
+    set delta [series_delta_mod27 $first $last $invalid]
+  } elseif {$label eq "DMTD_FB_WAIT_STABLE0_LOW_SAMPLE"} {
+    set delta [series_delta_mod16 $first $last $invalid]
+  } elseif {$label eq "DMTD_REF_WAIT_EDGE_ENTRY" || $label eq "DMTD_FB_WAIT_EDGE_ENTRY" ||
       $label eq "DMTD_REF_GOT_EDGE_ENTRY" || $label eq "DMTD_FB_GOT_EDGE_ENTRY" ||
       $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
       $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
@@ -427,6 +448,7 @@ proc read_d0_stable_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
                  DEGLITCH_THRESHOLD \
                  WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
+                 DMTD_REF_WAIT_STABLE0_LOW_SAMPLE DMTD_FB_WAIT_STABLE0_LOW_SAMPLE \
                  REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
                  DMTD_REF_WAIT_EDGE_ENTRY DMTD_REF_GOT_EDGE_ENTRY \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
@@ -475,6 +497,38 @@ proc read_d0_stable_group {board} {
     }
     add_timed_series_sample $board WAIT_STABLE0_FB_MAX_STAB $sample $value \
       [clock milliseconds]
+
+    # spll_wb_slave.vhd preserves the ECCR/OCCR functional fields and uses
+    # otherwise undefined read bits for the diagnostic counters:
+    # ECCR[30:4] = REF counter[26:0]; OCCR[7:0] = FB[7:0],
+    # OCCR[31:24] = FB[15:8].
+    set ref_low_raw [wb_read_validated 0x00100204]
+    if {$ref_low_raw eq "TIMEOUT" || $ref_low_raw eq "INVALID"} {
+      set value $ref_low_raw
+    } else {
+      set ref_low_word [word32 $ref_low_raw]
+      if {$ref_low_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($ref_low_word >> 4) & 0x07ffffff}]]
+      }
+    }
+    add_timed_series_sample $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE $sample $value \
+      [clock milliseconds]
+
+    set fb_low_raw [wb_read_validated 0x00100220]
+    if {$fb_low_raw eq "TIMEOUT" || $fb_low_raw eq "INVALID"} {
+      set value $fb_low_raw
+    } else {
+      set fb_low_word [word32 $fb_low_raw]
+      if {$fb_low_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($fb_low_word & 0xff) | (($fb_low_word >> 16) & 0xff00)}]]
+      }
+    }
+    add_timed_series_sample $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE $sample $value \
+      [clock milliseconds]
     set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
     set value [wb_read_u64_non_decreasing 0x00100240 0x00100244 $previous]
     add_timed_series_sample64 $board REF_D0_STABLE_HIT_COUNT64 $sample $value \
@@ -521,6 +575,8 @@ proc read_d0_stable_group {board} {
   finish_series $board DEGLITCH_THRESHOLD
   finish_series $board WAIT_STABLE0_REF_MAX_STAB
   finish_series $board WAIT_STABLE0_FB_MAX_STAB
+  finish_series $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE
+  finish_series $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE
   finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board DMTD_REF_WAIT_EDGE_ENTRY
@@ -909,7 +965,15 @@ proc print_event_boundary {board} {
           [series_value $board SPLL_DMTD_STATE wait_stable_ref_bucket_max] \
           [series_value $board SPLL_DMTD_STATE wait_stable_fb_bucket_max] \
           [series_value $board SPLL_DMTD_STATE wait_stable_ref_samples] \
-          [series_value $board SPLL_DMTD_STATE wait_stable_fb_samples]]
+           [series_value $board SPLL_DMTD_STATE wait_stable_fb_samples]]
+    puts [format "STEP4_WAIT_STABLE0_LOW_SAMPLE board=%s ref_delta=%s fb_delta=%s ref_first=%s ref_last=%s fb_first=%s fb_last=%s source=ECCR_0x00100204_OCCR_0x00100220" \
+          $board \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE delta] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE delta] \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE first] \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE last] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE first] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE last]]
 
     # Source-backed interpretation from dmtd_with_deglitcher.vhd:
     # a sticky high-abort bit is set when a GOT_EDGE HIGH qualification

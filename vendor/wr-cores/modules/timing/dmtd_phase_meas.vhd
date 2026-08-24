@@ -102,6 +102,7 @@ architecture syn of dmtd_phase_meas is
       dbg_stab_bucket_o : out std_logic_vector(7 downto 0);
       dbg_stab_reached_o : out std_logic;
       dbg_wait_stable0_max_stab_o : out std_logic_vector(15 downto 0);
+      dbg_wait_stable0_low_sample_count_o : out std_logic_vector(31 downto 0);
       dbg_post_div_edge_count_o : out std_logic_vector(63 downto 0));
   end component;
 
@@ -149,6 +150,7 @@ begin  -- syn
       dbg_stab_bucket_o     => open,
       dbg_stab_reached_o    => open,
       dbg_wait_stable0_max_stab_o => open,
+      dbg_wait_stable0_low_sample_count_o => open,
       dbg_post_div_edge_count_o => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',
@@ -175,6 +177,7 @@ begin  -- syn
       dbg_stab_bucket_o     => open,
       dbg_stab_reached_o    => open,
       dbg_wait_stable0_max_stab_o => open,
+      dbg_wait_stable0_low_sample_count_o => open,
       dbg_post_div_edge_count_o => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',

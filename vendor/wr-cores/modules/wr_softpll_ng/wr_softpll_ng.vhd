@@ -407,6 +407,8 @@ architecture rtl of wr_softpll_ng is
    signal dmtd_fb_stab_count : t_diag_stab_count_array(0 to g_num_outputs-1);
    signal dmtd_ref_wait_stable0_max_stab : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
    signal dmtd_fb_wait_stable0_max_stab : t_diag_stab_count_array(0 to g_num_outputs-1);
+    signal dmtd_ref_wait_stable0_low_sample_count : t_diag_counter_array(0 to g_num_ref_inputs-1);
+    signal dmtd_fb_wait_stable0_low_sample_count : t_diag_counter_array(0 to g_num_outputs-1);
    signal dmtd_ref_high_qual_max_stab : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
    signal dmtd_fb_high_qual_max_stab : t_diag_stab_count_array(0 to g_num_outputs-1);
    signal dmtd_ref_input_high_run_max : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
@@ -612,6 +614,7 @@ begin  -- rtl
         dbg_stab_reached_o => dmtd_ref_stab_reached(i),
          dbg_stab_count_o => dmtd_ref_stab_count(i),
          dbg_wait_stable0_max_stab_o => dmtd_ref_wait_stable0_max_stab(i),
+         dbg_wait_stable0_low_sample_count_o => dmtd_ref_wait_stable0_low_sample_count(i),
          dbg_high_qual_max_stab_o => dmtd_ref_high_qual_max_stab(i),
          dbg_input_high_run_max_o => dmtd_ref_input_high_run_max(i),
           dbg_input_low_run_max_o => dmtd_ref_input_low_run_max(i),
@@ -677,6 +680,7 @@ begin  -- rtl
         dbg_stab_reached_o => dmtd_fb_stab_reached(i),
          dbg_stab_count_o => dmtd_fb_stab_count(i),
          dbg_wait_stable0_max_stab_o => dmtd_fb_wait_stable0_max_stab(i),
+          dbg_wait_stable0_low_sample_count_o => dmtd_fb_wait_stable0_low_sample_count(i),
          dbg_high_qual_max_stab_o => dmtd_fb_high_qual_max_stab(i),
          dbg_input_high_run_max_o => dmtd_fb_input_high_run_max(i),
           dbg_input_low_run_max_o => dmtd_fb_input_low_run_max(i),
@@ -743,6 +747,7 @@ begin  -- rtl
         dbg_stab_reached_o => open,
          dbg_stab_count_o => open,
          dbg_wait_stable0_max_stab_o => open,
+          dbg_wait_stable0_low_sample_count_o => open,
          dbg_high_qual_max_stab_o => open,
          dbg_input_high_run_max_o => open,
           dbg_input_low_run_max_o => open,
@@ -912,6 +917,8 @@ begin  -- rtl
       diag_dmtd_fb_high_qual_reached_8_count_i => dmtd_fb_high_qual_reached_8_count(0),
        diag_dmtd_high_qual_max_stab_i => dmtd_fb_high_qual_max_stab(0) & dmtd_ref_high_qual_max_stab(0),
        diag_dmtd_wait_stable0_max_stab_i => dmtd_fb_wait_stable0_max_stab(0) & dmtd_ref_wait_stable0_max_stab(0),
+        diag_dmtd_ref_wait_stable0_low_sample_count_i => dmtd_ref_wait_stable0_low_sample_count(0),
+        diag_dmtd_fb_wait_stable0_low_sample_count_i => dmtd_fb_wait_stable0_low_sample_count(0),
        diag_dmtd_ref_low_qual_abort_count_i => dmtd_ref_low_abort_count(0),
        diag_dmtd_fb_low_qual_abort_count_i => dmtd_fb_low_abort_count(0),
        diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),

@@ -417,6 +417,9 @@ peripheral {
     # The wrapper also exposes the existing LOW qualification-abort counter
     # low 16 bits through the otherwise undefined readback upper half of
     # 0x48 (REF) and 0x28 (FB). Original write behavior remains unchanged.
+    # The wrapper also exposes the WAIT_STABLE_0 LOW sample counters without
+    # changing functional behavior: 0x04/ECCR bits 30..4 carry REF[26:0],
+    # while 0x20/OCCR bits 7..0 and 31..24 carry FB[7:0] and FB[15:8].
 
 	 reg {
 			name = "Main DAC Output";

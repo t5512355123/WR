@@ -195,8 +195,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100128` | `EP_MAC_L` | Endpoint MAC address 低 32 bit |
 | `0x00100138` | `EP_DSR` | Endpoint data/status register |
 | `0x00100200` | `SPLL_CSR` | SoftPLL control/status |
-| `0x00100204` | `SPLL_ECCR` | SoftPLL event/control status |
-| `0x00100210` | `SPLL_OCCR` | SoftPLL output channel control/status |
+| `0x00100204` | `SPLL_ECCR` / `SPLL_DMTD_REF_WAIT_STABLE0_LOW_SAMPLE_COUNT` | `ECCR` 的功能欄位與寫入行為保留；read-side bits 30..4 是 reference `state=WAIT_STABLE_0 && clk_sampled='0'` 的低 27 位樣本計數器。此計數器只觀測 deglitcher 分支，不回饋 FSM、threshold 或 SoftPLL |
+| `0x00100220` | `SPLL_OCCR` / `SPLL_DMTD_FB_WAIT_STABLE0_LOW_SAMPLE_COUNT` | `OCCR` 的功能欄位與寫入行為保留；read-side bits 7..0 與 31..24 分別是 feedback 計數器 bits 7..0、15..8。此計數器只觀測 deglitcher 分支，不回饋 FSM、threshold 或 SoftPLL |
 | `0x00100228` | `SPLL_OCER` / `SPLL_DMTD_FB_LOW_QUAL_ABORT_COUNT_LO16` | `OCER` 的功能欄位仍是 bits 7..0；read-side bits 31..16 是既有 feedback `dbg_low_qual_abort_count` 的低 16 位。原本 OCER 寫入行為不變，短時間序列使用 modulo-16 delta |
 | `0x0010022C` | `SPLL_DMTD_REF_ACCEPT_COUNT` | 唯讀、完整 32-bit：reference `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
 | `0x00100230` | `SPLL_DMTD_FB_ACCEPT_COUNT` | 唯讀、完整 32-bit：feedback `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |

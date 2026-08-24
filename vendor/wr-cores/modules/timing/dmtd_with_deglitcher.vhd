@@ -155,9 +155,12 @@ entity dmtd_with_deglitcher is
      dbg_stab_reached_o : out std_logic;
      -- Full current deglitch stability counter, synchronized to clk_sys_i.
      dbg_stab_count_o : out std_logic_vector(15 downto 0);
-     -- Maximum functional stab_cntr observed while state=WAIT_STABLE_0.
-     -- Read-only observability; it does not drive the FSM or threshold.
-     dbg_wait_stable0_max_stab_o : out std_logic_vector(15 downto 0);
+      -- Maximum functional stab_cntr observed while state=WAIT_STABLE_0.
+      -- Read-only observability; it does not drive the FSM or threshold.
+      dbg_wait_stable0_max_stab_o : out std_logic_vector(15 downto 0);
+      -- Number of LOW samples observed while state=WAIT_STABLE_0.
+      -- Read-only observability; it does not drive the FSM or threshold.
+      dbg_wait_stable0_low_sample_count_o : out std_logic_vector(31 downto 0);
      -- Maximum HIGH qualification depth observed immediately before a
      -- GOT_EDGE abort. This is read-only observability and does not feed FSM.
      dbg_high_qual_max_stab_o : out std_logic_vector(15 downto 0);
@@ -241,6 +244,8 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_stab_count_sys : std_logic_vector(15 downto 0);
    signal dbg_wait_stable0_max_stab : unsigned(15 downto 0);
    signal dbg_wait_stable0_max_stab_sys : std_logic_vector(15 downto 0);
+   signal dbg_wait_stable0_low_sample_count : unsigned(31 downto 0);
+   signal dbg_wait_stable0_low_sample_count_sys : std_logic_vector(31 downto 0);
    signal dbg_high_qual_max_stab : unsigned(15 downto 0);
    signal dbg_high_qual_max_stab_sys : std_logic_vector(15 downto 0);
   signal dbg_low_qual_abort_count : unsigned(31 downto 0);
@@ -419,7 +424,17 @@ begin  -- rtl
        d_i       => std_logic_vector(dbg_wait_stable0_max_stab),
        q_o       => dbg_wait_stable0_max_stab_sys);
 
-   dbg_wait_stable0_max_stab_o <= dbg_wait_stable0_max_stab_sys;
+    dbg_wait_stable0_max_stab_o <= dbg_wait_stable0_max_stab_sys;
+
+   U_sync_dbg_wait_stable0_low_sample_count : entity work.gc_sync_register
+     generic map (g_width => 32)
+     port map (
+       clk_i     => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i       => std_logic_vector(dbg_wait_stable0_low_sample_count),
+       q_o       => dbg_wait_stable0_low_sample_count_sys);
+
+   dbg_wait_stable0_low_sample_count_o <= dbg_wait_stable0_low_sample_count_sys;
 
    U_sync_dbg_high_max_stab : entity work.gc_sync_register
      generic map (g_width => 16)
@@ -633,6 +648,7 @@ begin  -- rtl
         new_edge_p_dmtdclk <= '0';
          dbg_stab_reached <= '0';
          dbg_wait_stable0_max_stab <= (others => '0');
+         dbg_wait_stable0_low_sample_count <= (others => '0');
          dbg_high_qual_max_stab <= (others => '0');
          dbg_low_qual_abort_count <= (others => '0');
         dbg_high_qual_abort_count <= (others => '0');
@@ -654,6 +670,10 @@ begin  -- rtl
               end if;
               stab_cntr <= (others => '0');
             else
+              -- Diagnostic-only count of samples that actually entered the
+              -- functional WAIT_STABLE_0 LOW branch. It never feeds the FSM.
+              dbg_wait_stable0_low_sample_count <=
+                f_sat_inc(dbg_wait_stable0_low_sample_count);
               stab_cntr <= stab_cntr + 1;
             end if;
 

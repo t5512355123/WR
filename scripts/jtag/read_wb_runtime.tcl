@@ -209,10 +209,31 @@ proc special_value {value} {
                 $value eq "INVALID"}]
 }
 
+proc numeric_value {value} {
+  # Keep all status comparisons behind one guard.  Mailbox failures and
+  # counter state markers are text, not integers, and must never reach expr.
+  if {[special_value $value]} { return "" }
+  if {![string is integer -strict $value]} { return "" }
+  return $value
+}
+
 proc negative_value {value} {
-  if {[special_value $value]} { return 0 }
-  if {![string is integer -strict $value]} { return 0 }
-  return [expr {$value < 0}]
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return 0 }
+  return [expr {$numeric < 0}]
+}
+
+proc numeric_equal {value expected} {
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return 0 }
+  return [expr {$numeric == $expected}]
+
+}
+
+proc numeric_greater_than {value expected} {
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return 0 }
+  return [expr {$numeric > $expected}]
 }
 
 proc display_value {value} {
@@ -288,39 +309,43 @@ proc mark_anomaly {board step status text} {
 }
 
 proc exact_status {value expected} {
-  if {$value eq "INVALID"} { return "INVALID" }
-  if {$value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
   if {$value eq "DECREASED"} { return "INFO" }
-  if {$value == $expected} { return "PASS" }
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric == $expected} { return "PASS" }
   return "FAIL"
 }
 
 proc positive_status {value} {
-  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
   if {$value eq "DECREASED"} { return "INFO" }
-  if {$value > 0} { return "PASS" }
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric > 0} { return "PASS" }
   return "WARN"
 }
 
 proc required_positive_status {value} {
-  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
   if {$value eq "DECREASED"} { return "INFO" }
-  if {$value > 0} { return "PASS" }
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric > 0} { return "PASS" }
   return "FAIL"
 }
 
 proc delta_status {value} {
-  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  set numeric [numeric_value $value]
+  if {$numeric eq "" && $value ne "DECREASED"} { return "INVALID" }
   if {$value eq "DECREASED"} { return "INFO" }
-  if {$value > 0} { return "PASS" }
+  if {$numeric > 0} { return "PASS" }
   # A one-window zero is not evidence that the packet path is broken.
   return "INFO"
 }
 
 proc required_delta_status {value} {
-  if {$value eq "INVALID" || $value eq "TIMEOUT" || [negative_value $value]} { return "INVALID" }
+  set numeric [numeric_value $value]
+  if {$numeric eq "" && $value ne "DECREASED"} { return "INVALID" }
   if {$value eq "DECREASED"} { return "INFO" }
-  if {$value > 0} { return "PASS" }
+  if {$numeric > 0} { return "PASS" }
   return "FAIL"
 }
 
@@ -743,7 +768,7 @@ proc analyze_board {board} {
     set rxerr_status INFO
     set rxerr_explanation "after 小於 before；這表示 counter reset/clear 或 snapshot 邊界，不把它解讀成新增 error。"
     set rxerr_expected "Δ=0"
-  } elseif {$rd == 0} {
+  } elseif {[numeric_equal $rd 0]} {
     set rxerr_status PASS
     set rxerr_explanation "delta=0 表示本次沒有新增 RX error。"
     set rxerr_expected "Δ=0"

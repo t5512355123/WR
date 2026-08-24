@@ -1,0 +1,8 @@
+=== Programmer: Master ===
+Command: quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+Quartus Prime 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Programming file checksum: 0x30AEF521
+Device 1 JTAG ID: 0x02E660DD
+Configuration succeeded -- 1 device(s) configured
+Quartus Prime Programmer was successful. 0 errors, 0 warnings
+Timestamp: 2026-08-24 23:14:46 to 23:15:05 +08:00

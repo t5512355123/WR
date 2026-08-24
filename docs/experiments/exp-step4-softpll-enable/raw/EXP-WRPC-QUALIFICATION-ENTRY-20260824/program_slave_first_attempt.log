@@ -1,0 +1,8 @@
+=== Programmer: Slave, first attempt ===
+Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+Programming file checksum: 0x30B2F409
+Error (209042): Application SLD HUB CLIENT on 127.0.0.1 is using the target device
+Error (209012): Operation failed
+Quartus Prime Programmer was unsuccessful. 2 errors, 0 warnings
+Timestamp: 2026-08-24 23:15:05 to 23:15:08 +08:00
+Action: closed the stale quartus_stp process only; no source or FPGA function was changed.

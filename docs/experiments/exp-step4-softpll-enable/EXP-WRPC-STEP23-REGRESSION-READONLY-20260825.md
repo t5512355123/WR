@@ -155,6 +155,8 @@ DE5 [1-11.2] ref_max=26112 fb_max=6528 threshold=1000 ref_ge=1 fb_ge=1
 
 這表示目前讀到的 WAIT_STABLE_0 state-gated counter 曾高於 threshold；但因為硬體 provenance 不是本次 fresh candidate SOF，且 dashboard 同時觀察到 Slave `OCER=TIMEOUT`、DMTD/tag/TRR/IRQ/helper event delta 為 `0`，本次不能宣稱 Step 4 PASS，也不能只由這些資料確定 SoftPLL functional root cause。
 
+另外，focused script 與 dashboard 在不同只讀 snapshot 讀到的 max 值並不一致：dashboard log 顯示 Master/Slave 為 `1336/334`，focused log 顯示 `25088/6272`。在尚未確認目前板上 bitstream 的 register provenance、counter reset semantics 與兩個 script 的欄位解碼完全一致前，這個差異本身必須標記為 measurement inconsistency，不能把任一組數值當作 fresh Step 4 acceptance evidence。
+
 結果：`STEP4_RESULT = NOT_EVALUATED_ON_FRESH_SOF`
 
 ## Regression barrier 結論
@@ -209,4 +211,3 @@ STEP4_RESULT     = NOT_EVALUATED_ON_FRESH_SOF
 所有原始輸出與候選 build provenance 位於：
 
 `docs/experiments/exp-step4-softpll-enable/raw/20260825-readonly-regression/`
-

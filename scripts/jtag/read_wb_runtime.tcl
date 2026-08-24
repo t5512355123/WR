@@ -68,16 +68,12 @@ proc register_value_valid {addr value} {
       return [expr {$word == 0x22334401 || $word == 0x22334402}]
     }
     0x00100A10 {
-      # PPSI state is an enum, not an arbitrary 32-bit value.
       return [expr {$word >= 1 && $word <= 9}]
     }
     0x00100A0C {
-      # PSTAT currently exposes link and SoftPLL-lock bits only.
       return [expr {($word & 0xfffffffc) == 0}]
     }
     0x00100A5C {
-      # PTP_META packs PPSI state and configured WRC mode in the low/high
-      # bytes.  The middle bytes are source-defined enums/counters.
       set ptp_state [expr {$word & 0xff}]
       set mode [expr {($word >> 24) & 0xff}]
       return [expr {$ptp_state >= 1 && $ptp_state <= 9 &&
@@ -88,37 +84,29 @@ proc register_value_valid {addr value} {
       set best [expr {($word >> 8) & 0xff}]
       set detection [expr {($word >> 16) & 0xff}]
       set wr_config [expr {($word >> 24) & 0xff}]
-      # Source packing allows the no-record marker 0/0xff and the normal
-      # record form best<count>.  Parent fields are small source enums.
       set no_record [expr {$count == 0 && $best == 0xff}]
       set record [expr {$count > 0 && $best < $count}]
       return [expr {($no_record || $record) &&
                     $detection <= 7 && $wr_config <= 7}]
     }
     0x00100A80 {
-      # Upper byte contains only the three source-defined parent flags.
       return [expr {(($word >> 24) & 0xff) <= 7}]
     }
     0x00100A64 - 0x00100A68 {
-      # WR signaling shadow: the message ID is one of the source-defined
-      # 0x1000..0x1005 messages and the low half is its event count.
       set message [expr {($word >> 16) & 0xffff}]
       return [expr {$message == 0 ||
                     ($message >= 0x1000 && $message <= 0x1005)}]
     }
     0x00100A50 {
-      # WR signaling reject reason is a source-defined small enum in bits 7:0.
       set reason [expr {$word & 0xff}]
       return [expr {$reason <= 4}]
     }
     0x00100A6C {
-      # WR_FAILURE_DEBUG packs role, last state and handshake failure count.
       set role [expr {($word >> 24) & 0xff}]
       set state [expr {($word >> 16) & 0xff}]
       return [expr {$role <= 3 && $state <= 8}]
     }
     0x00100A4C {
-      # DE5a temperature shadow: tag A, state/next_state 0..8, mode 0..7.
       set tag [expr {($word >> 28) & 0xf}]
       set state [expr {($word >> 11) & 0xf}]
       set next_state [expr {($word >> 15) & 0xf}]
@@ -127,12 +115,9 @@ proc register_value_valid {addr value} {
                     $mode <= 7}]
     }
     0x00100A9C {
-      # Lock-enable is a free-running diagnostic counter; only the mailbox
-      # encoding/stale pattern can invalidate it.
       return 1
     }
     0x00100AA0 {
-      # SoftPLL shadow packs sequence, alignment, mode and delock count.
       set sequence [expr {$word & 0xff}]
       set alignment [expr {($word >> 8) & 0xff}]
       set mode [expr {($word >> 16) & 0xff}]
@@ -140,11 +125,6 @@ proc register_value_valid {addr value} {
                     $alignment <= 10 && $mode <= 3}]
     }
     0x00100AA4 - 0x00100AA8 {
-      # OCER/RCER are full-width hardware shadow values.  Their current
-      # source-backed contents are not limited to an 8-bit mask (for example
-      # OCER may contain status/control bits above bit 7), so only reject
-      # malformed/stale mailbox words here.  The dashboard applies the
-      # channel-enable interpretation separately after a validated read.
       return 1
     }
   }
@@ -271,8 +251,6 @@ proc status_text {status} {
     WARN { return "error" }
     FAIL { return "error" }
     INFO { return "info" }
-    # Invalid mailbox data is measurement information, not a hardware error.
-    # Keep the compact UI to the requested pass/error/info vocabulary.
     INVALID { return "info" }
   }
   # Keep the default UI contract closed: runtime lines may only use the

@@ -1,0 +1,16 @@
+REMOTE_HEAD=13d4c832c5eeda3760b5b058d0e31ef27ef842ea
+REMOTE_BRANCH=REMOTE_STATUS
+?? "\\"
+QUARTUS_VERSION
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+MIF_SHA256
+13abfd299224e7dbc88ec7c4d541a6f1940bcf05b9741202206bf5b69a82714a  build/firmware/master/wrc.mif
+43a534070326ada2f3556e4d67361d12538dafc9cbdb96203af709bc7e6a6cef  build/firmware/slave/wrc.mif
+SCRIPT_SHA256
+95cf3d27fd2d99951c801eabaa0cb2d4068c90f49eb6c9ead569a85aefa2c8cf  scripts/jtag/read_wb_runtime.tcl
+e9a531ff776d991992b5875cb8a94182d8daed35fb68b020631dc538a1b5605b  scripts/jtag/read_wr_handshake_focused.tcl
+6415ed2ce5b2b97ca54f4a1d5914833966dbe2405e00d8428e402b1e5e650a1e  scripts/jtag/read_step23_register_reliability.tcl
+bdeed134c9d0905c0af820321e2508a4541e41b0e7b23102f7cf0af8029d077f  scripts/jtag/read_master_ptp_slave_parent_long.tcl
+fdf96fecbe8aac864b74ce2dd8c0ea08d20dfdc314f21eb83c52f74a91fed9c3  scripts/jtag/read_step4_startup_focused.tcl

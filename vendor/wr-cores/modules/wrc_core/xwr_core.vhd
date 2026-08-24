@@ -100,7 +100,9 @@ entity xwr_core is
     g_softpll_reverse_dmtds : boolean := false;
     g_vuart_fifo_size           : integer                        := 1024;
     g_pcs_16bit                 : boolean                        := false;
-    g_softpll_divide_input_by_2 : boolean := not g_pcs_16bit and not g_softpll_reverse_dmtds;
+    -- Default preserves the existing DE5A 8-bit control configuration.
+    -- Integrations using another PCS/reverse configuration should override it.
+    g_softpll_divide_input_by_2 : boolean := true;
     g_records_for_phy           : boolean                        := false;
     g_diag_id                   : integer                        := 0;
     g_diag_ver                  : integer                        := 0;

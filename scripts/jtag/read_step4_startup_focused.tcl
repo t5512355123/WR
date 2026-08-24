@@ -825,8 +825,24 @@ proc read_low_abort_group {board} {
   set ::series($board,LOW_QUAL_ABORT_FB,delta) $fb_delta
   set result VALID
   if {$ref_invalid > 0 || $fb_invalid > 0} { set result MEASUREMENT_INVALID_RETEST }
-  puts [format "STEP4_LOW_QUAL_ABORT board=%s samples=%d ref_delta=%s fb_delta=%s ref_valid=%d fb_valid=%d result=%s source=existing_dbg_low_qual_abort_count" \
-        $board $::samples $ref_delta $fb_delta \
+  set ref_activity MEASUREMENT_INVALID_RETEST
+  set fb_activity MEASUREMENT_INVALID_RETEST
+  if {[string is integer -strict $ref_delta]} {
+    if {$ref_delta > 0} {
+      set ref_activity ACTIVITY_PRESENT
+    } else {
+      set ref_activity NO_ACTIVITY_IN_WINDOW
+    }
+  }
+  if {[string is integer -strict $fb_delta]} {
+    if {$fb_delta > 0} {
+      set fb_activity ACTIVITY_PRESENT
+    } else {
+      set fb_activity NO_ACTIVITY_IN_WINDOW
+    }
+  }
+  puts [format "STEP4_LOW_QUAL_ABORT board=%s samples=%d ref_delta=%s ref_activity=%s fb_delta=%s fb_activity=%s ref_valid=%d fb_valid=%d result=%s source=existing_dbg_low_qual_abort_count" \
+        $board $::samples $ref_delta $ref_activity $fb_delta $fb_activity \
         $::series($board,LOW_QUAL_ABORT_REF,valid) \
         $::series($board,LOW_QUAL_ABORT_FB,valid) $result]
 }

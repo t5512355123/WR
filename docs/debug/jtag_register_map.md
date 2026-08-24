@@ -185,7 +185,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 
 ## 4. Wishbone register map
 
-除非另有註明，以下是 `read_wb_runtime.tcl` 使用的 xwr_core 絕對位址。`0x00100A00` 之後的診斷欄位是 WDIAGS（WR diagnostics）base 加上 `wrc_diags_regs.h` 的 offset；`0x00100B00..0x00100B54` 是本分支額外的 correlation、runtime 與 firmware-side SoftPLL shadow。
+除非另有註明，以下是 `read_wb_runtime.tcl` 使用的 xwr_core 絕對位址。`0x00100A00` 之後的診斷欄位是 WDIAGS（WR diagnostics）base 加上 `wrc_diags_regs.h` 的 offset；`0x00100B00..0x00100B28` 是本分支額外的 correlation shadow。
 
 ### 4.1 Endpoint、clock 與 CPU registers
 
@@ -456,7 +456,6 @@ bits 27..31  = 保留
 | `0x00100B20` | `HELPER_TAG_D0`：前一個 tag |
 | `0x00100B24` | `HELPER_P_SETPOINT`：下一個預期 tag |
 | `0x00100B28` | `HELPER_REF_SRC`：helper reference source |
-| `0x00100B54` | `WRPC_SPLL_TRR_POP_COUNT`：firmware 在 `spll_irq_entry()` 從 `SPLL->TRR_R0` 實際取出 tag 的累計次數；只作 read-only evidence，不包含硬體 TRR write count |
 
 `0x00100AA0` 的 packing 由 `task-diags.c` 定義：bits 7:0 是 `softpll.seq_state`、bits 15:8 是 `softpll.ext.align_state`、bits 23:16 是 `softpll.mode`、bits 31:24 是 `softpll.delock_count`。現行 source 的 sequencer 合法值為：
 
@@ -476,9 +475,7 @@ bits 27..31  = 保留
 
 因此 dashboard 不可用 0..9 的位移表解碼，也不可把 sequence 6 誤判成 disabled。穩態 runtime 若仍為 0，表示 SoftPLL 尚未完成初始化，不是 JTAG 讀值無效。
 
-這些 `0x00100B00..0x00100B54` 欄位需要 private WDIAGS 的 peripheral window 至少涵蓋 base-relative `0x000..0x157`；目前 `wrc_periph.vhd` 的 `g_wdiags_num_words=86` 對應到最後的 `0x154` word。若實際 bitstream 仍使用舊的 `0x000..0x0FF` SDB window，讀值會落到後續 peripheral，造成欄位 alias；此時不能拿來判斷 helper 或 SoftPLL 行為。
-
-`WRPC_SPLL_TRR_POP_COUNT` 是 firmware-side 的消費證據：它只在 `softpll_ng.c` 的 `spll_irq_entry()` 完成 `trr = SPLL->TRR_R0` 後增加。應與硬體側 `TAG_VALID_COUNT`、`TRR_WRITE_COUNT`、`IRQ_COUNT` 及 `HELPER_UPDATE_COUNT` 同一觀測窗口比較；若只有此欄位與 helper update 增加，表示至少 firmware 消費過 tag，不能把硬體側零值直接當成 SoftPLL functional chain 已停止。
+這些 `0x00100B00..0x00100B28` 欄位需要 private WDIAGS 的 peripheral window 至少涵蓋 `0x000..0x1FF`。目前 private WDIAGS base 是 `0x00100A00`，並且將 `0x00100B00` 保留給 correlation shadow；若實際 bitstream 仍使用舊的 `0x000..0x0FF` SDB window，讀值會落到後續 peripheral，造成欄位 alias；此時不能拿來判斷 helper 或 SoftPLL 行為。
 
 若要解讀這段，必須同時固定 firmware commit、RTL commit 與實際 SOF；不能只依地址名稱猜測。
 

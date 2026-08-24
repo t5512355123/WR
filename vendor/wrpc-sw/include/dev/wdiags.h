@@ -58,8 +58,6 @@ void wdiags_write_wr_spll_activity_debug(uint32_t ref_count, uint32_t tag_count,
 /* Read-only hardware event counters: tag arbitration and FIFO writes. */
 void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
                                       uint32_t trr_write_count);
-/* Read-only firmware-side TRR FIFO pop count. */
-void wdiags_write_wr_spll_trr_pop_count(uint32_t trr_pop_count);
 /* Read-only helper tag/error correlation shadow. */
 void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
                                              int32_t expected_tag,

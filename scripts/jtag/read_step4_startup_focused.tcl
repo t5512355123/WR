@@ -837,6 +837,11 @@ proc print_event_boundary {board} {
   puts [format "STEP4_QUALIFICATION_ENTRY board=%s ref=%s fb=%s" \
         $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
         [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
+  # PRE_ACCEPT is a read-only name for the existing, source-backed
+  # WAIT_STABLE_0 -> WAIT_EDGE predicate counter.  Do not add a second probe.
+  puts [format "STEP4_PRE_ACCEPT board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
   puts [format "STEP4_GOT_EDGE_ENTRY board=%s ref=%s fb=%s" \
         $board [series_value $board DMTD_REF_GOT_EDGE_ENTRY delta] \
         [series_value $board DMTD_FB_GOT_EDGE_ENTRY delta]]

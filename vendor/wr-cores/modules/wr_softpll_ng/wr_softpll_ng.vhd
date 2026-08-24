@@ -215,7 +215,9 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_high_qual_reached_8_count_i : in std_logic_vector(15 downto 0);
        diag_dmtd_high_qual_max_stab_i : in std_logic_vector(31 downto 0);
        diag_dmtd_wait_stable0_max_stab_i : in std_logic_vector(31 downto 0);
-      diag_dmtd_ref_low_qual_abort_count_i : in std_logic_vector(31 downto 0);
+       diag_dmtd_ref_wait_stable0_low_sample_count_i : in std_logic_vector(31 downto 0);
+       diag_dmtd_fb_wait_stable0_low_sample_count_i : in std_logic_vector(31 downto 0);
+       diag_dmtd_ref_low_qual_abort_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_low_qual_abort_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_high_run_max_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);

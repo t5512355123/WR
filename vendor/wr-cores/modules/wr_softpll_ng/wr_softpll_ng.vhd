@@ -936,7 +936,7 @@ begin  -- rtl
       -- Reuse the existing read-only DMTD_SEEN words without changing the
       -- Wishbone map. The full sampled/accept counters remain available at
       -- 0x22c..0x238. The 0x2a0/0x2a4 diagnostic aliases expose the existing
-      -- REF/FB WAIT_STABLE_0 -> WAIT_EDGE qualification-entry counters.
+      -- REF/FB GOT_EDGE high-qualification abort counters.
       -- D0-transition counters use read-only aliases at 0x250/0x254 and
       -- 0x260/0x264 respectively.
       -- REF/FB native-edge counters are split across the read-only aliases at

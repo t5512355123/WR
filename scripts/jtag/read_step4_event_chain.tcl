@@ -56,8 +56,8 @@ proc read_sample {hardware_name label} {
   set ref_d0_transition_hi [wb_read 0x00100254]
   set fb_d0_transition_lo [wb_read 0x00100260]
   set fb_d0_transition_hi [wb_read 0x00100264]
-  set wait_edge_entry_ref [wb_read 0x001002A0]
-  set wait_edge_entry_fb [wb_read 0x001002A4]
+  set high_qual_abort_ref [wb_read 0x001002A0]
+  set high_qual_abort_fb [wb_read 0x001002A4]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -109,8 +109,8 @@ proc read_sample {hardware_name label} {
   puts [format "EVENT_CHAIN_HW: CSR=%s ECCR=%s OCCR=%s RCER=%s OCER=%s" \
         $csr $eccr $occr $rcer $ocer]
   puts [format "EVENT_CHAIN_EIC: IMR=%s ISR=%s" $eic_imr $eic_isr]
-  puts [format "EVENT_CHAIN_WAIT_EDGE_ENTRY: REF=%s FB=%s" \
-        $wait_edge_entry_ref $wait_edge_entry_fb]
+  puts [format "EVENT_CHAIN_HIGH_QUAL_ABORT: REF=%s FB=%s" \
+        $high_qual_abort_ref $high_qual_abort_fb]
   puts [format "EVENT_CHAIN_D0_TRANSITION: REF_LO=%s REF_HI=%s FB_LO=%s FB_HI=%s" \
         $ref_d0_transition_lo $ref_d0_transition_hi \
         $fb_d0_transition_lo $fb_d0_transition_hi]

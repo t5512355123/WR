@@ -71,9 +71,9 @@ proc read_boundary_sample {hardware_name sample} {
   set fb_d0_transition_lo [wb_read 0x00100260]
   set fb_d0_transition_hi [wb_read 0x00100264]
   set dmtd_d0_low_run_max [wb_read 0x0010025C]
-  set wait_edge_entry_ref [wb_read 0x001002A0]
+  set high_qual_abort_ref [wb_read 0x001002A0]
   set deglitch_thr [wb_read 0x00100248]
-  set wait_edge_entry_fb [wb_read 0x001002A4]
+  set high_qual_abort_fb [wb_read 0x001002A4]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -128,13 +128,13 @@ proc read_boundary_sample {hardware_name sample} {
   }
   set wait_edge_ref_word 0
   set wait_edge_fb_word 0
-  if {[scan $wait_edge_entry_ref %x wait_edge_ref_word] == 1 && \
-      [scan $wait_edge_entry_fb %x wait_edge_fb_word] == 1} {
-    puts [format "WAIT_EDGE_ENTRY_COUNT ref=%s fb=%s" \
-          [format %08X $wait_edge_ref_word] \
-          [format %08X $wait_edge_fb_word]]
+  if {[scan $high_qual_abort_ref %x high_abort_ref_word] == 1 && \
+      [scan $high_qual_abort_fb %x high_abort_fb_word] == 1} {
+    puts [format "HIGH_QUAL_ABORT_COUNT ref=%s fb=%s" \
+          [format %08X $high_abort_ref_word] \
+          [format %08X $high_abort_fb_word]]
   } else {
-    puts "WAIT_EDGE_ENTRY_COUNT invalid"
+    puts "HIGH_QUAL_ABORT_COUNT invalid"
   }
   puts [format "DMTD_BOUNDARY_CORE: CSR=%s STAT_CR=%s STAT_VAL=%s DEGLITCH_THR=%s SAMPLED_REF=%s SAMPLED_FB=%s ACCEPT_REF=%s ACCEPT_FB=%s MAX_HIGH_REF=%s MAX_HIGH_FB=%s" \
         $csr $dmtd_stat_cr $dmtd_stat_val $deglitch_thr $dmtd_ref_sampled $dmtd_fb_sampled \
@@ -144,8 +144,8 @@ proc read_boundary_sample {hardware_name sample} {
   puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_LAST=%s FB_LAST=%s NOW=%s" \
         $dmtd_ref_events $dmtd_fb_events \
         $dmtd_ref_last_tics $dmtd_fb_last_tics $current_tics]
-  puts [format "DMTD_BOUNDARY_QUALIFICATION_ENTRY: REF=%s FB=%s" \
-        $wait_edge_entry_ref $wait_edge_entry_fb]
+  puts [format "DMTD_BOUNDARY_HIGH_QUAL_ABORT: REF=%s FB=%s" \
+        $high_qual_abort_ref $high_qual_abort_fb]
   puts [format "DMTD_BOUNDARY_TAG: SOURCE=%s REF=%s FB=%s REF_LAST=%s FB_LAST=%s" \
         $tag_source $tag_ref $tag_feedback $tag_ref_last_tics $tag_feedback_last_tics]
   puts [format "DMTD_BOUNDARY_ARB: PENDING=%s GRANT=%s PENDING_LAST=%s GRANT_LAST=%s" \

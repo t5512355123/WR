@@ -388,9 +388,9 @@ peripheral {
     # The current fresh-image read sides at 0xf0/0xf4 expose the REF/FB
     # WAIT_EDGE -> GOT_EDGE entry counters. Their generated write behavior
     # remains the tag-enabled-last-tics behavior.
-    # The wrapper exposes the existing DMTD WAIT_STABLE_0 -> WAIT_EDGE
-    # qualification-entry counters through the read-only diagnostic aliases
-    # at 0xa0 (reference) and 0xa4 (feedback). These aliases do not change
+    # The wrapper exposes the existing DMTD GOT_EDGE high-qualification abort
+    # counters through the read-only diagnostic aliases at 0xa0 (reference)
+    # and 0xa4 (feedback). These aliases do not change
     # the generated functional register bank or any write behavior.
     reg {
       align = 8;

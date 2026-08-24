@@ -372,7 +372,7 @@ proc finish_series {board label} {
     set delta [series_delta_mod27 $first $last $invalid]
   } elseif {$label eq "DMTD_FB_WAIT_STABLE0_LOW_SAMPLE"} {
     set delta [series_delta_mod16 $first $last $invalid]
-  } elseif {$label eq "DMTD_REF_WAIT_EDGE_ENTRY" || $label eq "DMTD_FB_WAIT_EDGE_ENTRY" ||
+  } elseif {$label eq "DMTD_REF_HIGH_QUAL_ABORT_COUNT" || $label eq "DMTD_FB_HIGH_QUAL_ABORT_COUNT" ||
       $label eq "DMTD_REF_GOT_EDGE_ENTRY" || $label eq "DMTD_FB_GOT_EDGE_ENTRY" ||
       $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
       $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
@@ -450,10 +450,10 @@ proc read_d0_stable_group {board} {
                  WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
                  DMTD_REF_WAIT_STABLE0_LOW_SAMPLE DMTD_FB_WAIT_STABLE0_LOW_SAMPLE \
                  REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
-                 DMTD_REF_WAIT_EDGE_ENTRY DMTD_REF_GOT_EDGE_ENTRY \
+                 DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_REF_GOT_EDGE_ENTRY \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
                  FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
-                 DMTD_FB_WAIT_EDGE_ENTRY DMTD_FB_GOT_EDGE_ENTRY \
+                 DMTD_FB_HIGH_QUAL_ABORT_COUNT DMTD_FB_GOT_EDGE_ENTRY \
                  NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
@@ -543,7 +543,7 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002A0]
-    add_timed_series_sample $board DMTD_REF_WAIT_EDGE_ENTRY $sample $value \
+    add_timed_series_sample $board DMTD_REF_HIGH_QUAL_ABORT_COUNT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002F0]
     add_timed_series_sample $board DMTD_REF_GOT_EDGE_ENTRY $sample $value \
@@ -563,7 +563,7 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board NATIVE_FB_ACCEPT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002A4]
-    add_timed_series_sample $board DMTD_FB_WAIT_EDGE_ENTRY $sample $value \
+    add_timed_series_sample $board DMTD_FB_HIGH_QUAL_ABORT_COUNT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002F4]
     add_timed_series_sample $board DMTD_FB_GOT_EDGE_ENTRY $sample $value \
@@ -579,13 +579,13 @@ proc read_d0_stable_group {board} {
   finish_series $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE
   finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
-  finish_series $board DMTD_REF_WAIT_EDGE_ENTRY
+  finish_series $board DMTD_REF_HIGH_QUAL_ABORT_COUNT
   finish_series $board DMTD_REF_GOT_EDGE_ENTRY
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
   finish_series64 $board FB_D0_STABLE_HIT_COUNT64
   finish_series64 $board FB_D0_TRANSITION_COUNT64
-  finish_series $board DMTD_FB_WAIT_EDGE_ENTRY
+  finish_series $board DMTD_FB_HIGH_QUAL_ABORT_COUNT
   finish_series $board DMTD_FB_GOT_EDGE_ENTRY
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
@@ -892,7 +892,7 @@ proc print_event_boundary {board} {
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
                WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
-               DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY \
+               DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_FB_HIGH_QUAL_ABORT_COUNT \
                DMTD_REF_GOT_EDGE_ENTRY DMTD_FB_GOT_EDGE_ENTRY \
                DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8 \
                SPLL_DMTD_STATE}
@@ -909,8 +909,8 @@ proc print_event_boundary {board} {
                             [delta_positive $board DMTD_FB_SAMPLED]}]
   set accept_active [expr {[delta_positive $board DMTD_REF_ACCEPT] || \
                            [delta_positive $board DMTD_FB_ACCEPT]}]
-  set qualification_entry_active [expr {[delta_positive $board DMTD_REF_WAIT_EDGE_ENTRY] || \
-                                        [delta_positive $board DMTD_FB_WAIT_EDGE_ENTRY]}]
+  set high_qual_abort_active [expr {[delta_positive $board DMTD_REF_HIGH_QUAL_ABORT_COUNT] || \
+                                    [delta_positive $board DMTD_FB_HIGH_QUAL_ABORT_COUNT]}]
   set got_edge_entry_active [expr {[delta_positive $board DMTD_REF_GOT_EDGE_ENTRY] || \
                                    [delta_positive $board DMTD_FB_GOT_EDGE_ENTRY]}]
   set qualification_progress_active [expr {[delta_positive $board DMTD_REF_QUAL_REACHED_8] || \
@@ -1023,12 +1023,12 @@ proc print_event_boundary {board} {
     set boundary "GOT_EDGE_TO_QUALIFICATION_PROGRESS"
   } elseif {$qualification_progress_active && !$accept_active} {
     set boundary "QUALIFICATION_PROGRESS_TO_DEGLITCH_ACCEPT"
-  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_entry_active && !$got_edge_entry_active} {
+  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$high_qual_abort_active && !$got_edge_entry_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
-  } elseif {!$qualification_entry_active} {
-    set boundary "DMTD_SAMPLED_TRANSITION_TO_QUALIFICATION_ENTRY"
+  } elseif {!$high_qual_abort_active} {
+    set boundary "DMTD_SAMPLED_TRANSITION_TO_GOT_EDGE_ENTRY"
   } elseif {!$accept_active} {
     set boundary "DMTD_QUALIFICATION_ENTRY_TO_DEGLITCH_ACCEPT"
   } elseif {!$dmtd_active} {
@@ -1051,19 +1051,14 @@ proc print_event_boundary {board} {
 
   puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s pre_accept_ref=%s accept_ref=%s sampled_fb=%s pre_accept_fb=%s accept_fb=%s" \
         $board [series_value $board DMTD_REF_SAMPLED delta] \
-        [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_REF_HIGH_QUAL_ABORT_COUNT delta] \
         [series_value $board DMTD_REF_ACCEPT delta] \
         [series_value $board DMTD_FB_SAMPLED delta] \
-        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_FB_HIGH_QUAL_ABORT_COUNT delta] \
         [series_value $board DMTD_FB_ACCEPT delta]]
-  puts [format "STEP4_QUALIFICATION_ENTRY board=%s ref=%s fb=%s" \
-        $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
-        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
-  # PRE_ACCEPT is a read-only name for the existing, source-backed
-  # WAIT_STABLE_0 -> WAIT_EDGE predicate counter.  Do not add a second probe.
-  puts [format "STEP4_PRE_ACCEPT board=%s ref=%s fb=%s" \
-        $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
-        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
+  puts [format "STEP4_HIGH_QUAL_ABORT board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_HIGH_QUAL_ABORT_COUNT delta] \
+        [series_value $board DMTD_FB_HIGH_QUAL_ABORT_COUNT delta]]
   puts [format "STEP4_GOT_EDGE_ENTRY board=%s ref=%s fb=%s" \
         $board [series_value $board DMTD_REF_GOT_EDGE_ENTRY delta] \
         [series_value $board DMTD_FB_GOT_EDGE_ENTRY delta]]
@@ -1104,8 +1099,8 @@ proc read_event_group {board} {
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
-    {DMTD_REF_WAIT_EDGE_ENTRY 0x001002A0}
-    {DMTD_FB_WAIT_EDGE_ENTRY 0x001002A4}
+    {DMTD_REF_HIGH_QUAL_ABORT_COUNT 0x001002A0}
+    {DMTD_FB_HIGH_QUAL_ABORT_COUNT 0x001002A4}
     {DMTD_REF_GOT_EDGE_ENTRY 0x001002F0}
     {DMTD_FB_GOT_EDGE_ENTRY 0x001002F4}
     {DMTD_REF_QUAL_REACHED_8 0x00100268}

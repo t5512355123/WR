@@ -50,6 +50,8 @@ port (
   diag_dmtd_fb_wait_edge_entry_count_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_got_edge_entry_seen_i      : in     std_logic;
   diag_dmtd_fb_got_edge_entry_seen_i       : in     std_logic;
+  diag_dmtd_ref_got_edge_entry_count_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_got_edge_entry_count_i      : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_high_qual_reached_8_count_i : in     std_logic_vector(15 downto 0);
   diag_dmtd_fb_high_qual_reached_8_count_i  : in     std_logic_vector(15 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
@@ -1068,13 +1070,17 @@ begin
           ack_in_progress <= '1';
         when "111100" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_ref_enabled_last_tics_i;
+            -- Current fresh-image read-only alias for REF GOT_EDGE entries.
+            -- The generated write side remains unchanged.
+            rddata_reg <= diag_dmtd_ref_got_edge_entry_count_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "111101" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_feedback_enabled_last_tics_i;
+            -- Current fresh-image read-only alias for FB GOT_EDGE entries.
+            -- The generated write side remains unchanged.
+            rddata_reg <= diag_dmtd_fb_got_edge_entry_count_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

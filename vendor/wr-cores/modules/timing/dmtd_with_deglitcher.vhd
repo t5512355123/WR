@@ -189,6 +189,8 @@ entity dmtd_with_deglitcher is
      dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0);
      -- Sticky read-only evidence that WAIT_EDGE -> GOT_EDGE occurred.
      dbg_got_edge_entry_seen_o : out std_logic;
+     -- Diagnostic-only count of WAIT_EDGE -> GOT_EDGE entries.
+     dbg_got_edge_entry_count_o : out std_logic_vector(31 downto 0);
      -- Count GOT_EDGE qualification attempts that reach eight HIGH samples.
      -- This is diagnostic-only and does not change the FSM or threshold.
      dbg_high_qual_reached_8_count_o : out std_logic_vector(15 downto 0)
@@ -264,6 +266,9 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_got_edge_entry_seen : std_logic := '0';
    signal dbg_got_edge_entry_seen_vec : std_logic_vector(0 downto 0);
    signal dbg_got_edge_entry_seen_sys_vec : std_logic_vector(0 downto 0);
+   signal dbg_got_edge_entry_count : unsigned(31 downto 0) := (others => '0');
+   signal dbg_got_edge_entry_count_gray : std_logic_vector(31 downto 0) := (others => '0');
+   signal dbg_got_edge_entry_count_gray_sys : std_logic_vector(31 downto 0);
    signal dbg_high_qual_reached_8_count : unsigned(15 downto 0) := (others => '0');
    signal dbg_high_qual_reached_8_count_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
@@ -522,6 +527,16 @@ begin  -- rtl
    dbg_got_edge_entry_seen_vec(0) <= dbg_got_edge_entry_seen;
    dbg_got_edge_entry_seen_o <= dbg_got_edge_entry_seen_sys_vec(0);
 
+   U_sync_dbg_got_edge_entry_count : entity work.gc_sync_register
+     generic map (g_width => 32)
+     port map (
+       clk_i => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i => dbg_got_edge_entry_count_gray,
+       q_o => dbg_got_edge_entry_count_gray_sys);
+
+   dbg_got_edge_entry_count_o <= f_gray_to_binary(dbg_got_edge_entry_count_gray_sys);
+
    U_sync_dbg_high_qual_reached_8_count : entity work.gc_sync_register
      generic map (g_width => 16)
      port map (
@@ -706,6 +721,24 @@ begin  -- rtl
       end if;
     end if;
   end process p_debug_boundary_counters;
+
+  -- Keep the entry counter in the DMTD clock domain and cross only Gray code.
+  -- This is diagnostic-only and does not drive the deglitcher FSM.
+  p_debug_got_edge_entry_count : process (clk_dmtd_i)
+    variable next_count : unsigned(31 downto 0);
+  begin
+    if rising_edge(clk_dmtd_i) then
+      if rst_n_dmtdclk_i = '0' then
+        dbg_got_edge_entry_count <= (others => '0');
+        dbg_got_edge_entry_count_gray <= (others => '0');
+      elsif state = WAIT_EDGE and clk_sampled /= '0' then
+        next_count := dbg_got_edge_entry_count + 1;
+        dbg_got_edge_entry_count <= next_count;
+        dbg_got_edge_entry_count_gray <=
+          std_logic_vector(next_count xor shift_right(next_count, 1));
+      end if;
+    end if;
+  end process p_debug_got_edge_entry_count;
 
 
   gen_with_jitter_stats : if g_with_jitter_stats_regs generate

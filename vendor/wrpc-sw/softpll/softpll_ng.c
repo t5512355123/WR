@@ -57,6 +57,7 @@ volatile int32_t wrpc_spll_helper_tag_delta;
 volatile int32_t wrpc_spll_helper_tag_source;
 volatile int32_t wrpc_spll_helper_expected_delta;
 volatile uint32_t wrpc_spll_helper_update_count;
+volatile uint32_t wrpc_spll_trr_pop_count;
 volatile int32_t wrpc_spll_helper_p_adder;
 volatile int32_t wrpc_spll_helper_tag_d0;
 volatile int32_t wrpc_spll_helper_p_setpoint;
@@ -296,6 +297,8 @@ void spll_irq_entry(void)
 	/* check if there are more tags in the FIFO, and log them if so configured to */
 	while (!(SPLL->TRR_CSR & SPLL_TRR_CSR_EMPTY)) {
 		trr = SPLL->TRR_R0;
+		/* Read-only observability: count each tag removed from TRR. */
+		wrpc_spll_trr_pop_count++;
 
 		/* And process the values */
 		tag_source = SPLL_TRR_R0_CHAN_ID_R(trr);
@@ -324,6 +327,7 @@ void spll_very_init(void)
 	wrpc_spll_state_visit_mask = 0;
 	wrpc_spll_state_transition_count = 0;
 	wrpc_spll_last_state = SEQ_DISABLED;
+	wrpc_spll_trr_pop_count = 0;
 
 	uint32_t csr = SPLL->CSR;
 

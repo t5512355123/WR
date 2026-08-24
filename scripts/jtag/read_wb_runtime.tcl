@@ -554,6 +554,7 @@ proc collect_snapshot {board label} {
   put_snap $board $label dmtd_fb_seen [wb_read 0x001002A4]
   put_snap $board $label tag_valid [wb_read 0x00100284]
   put_snap $board $label trr_write [wb_read 0x00100288]
+  put_snap $board $label trr_pop [wb_read 0x00100B54]
   put_snap $board $label irq [wb_read 0x00100AEC]
   put_snap $board $label helper_update [wb_read 0x00100B18]
   put_snap $board $label eic_isr [wb_read 0x0010026C]
@@ -938,6 +939,7 @@ proc analyze_board {board} {
       {dmtd_fb "DMTD feedback event" SPLL_DMTD_FB_EVENTS}
       {tag_valid tag SPLL_TAG_VALID_COUNT}
       {trr_write TRR_WRITE SPLL_TRR_WRITE_COUNT}
+      {trr_pop trr_pop WRPC_SPLL_TRR_POP_COUNT}
       {irq IRQ WDIAGS_IRQ_COUNT}
       {helper_update HELPER_UPDATE WDIAGS_HELPER_UPDATE_COUNT}
     } {

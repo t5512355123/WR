@@ -102,6 +102,7 @@ proc read_sample {hardware_name label} {
   set tag_count [wb_read 0x00100AD4]
   set irq_count [wb_read 0x00100AEC]
   set helper_update_count [wb_read 0x00100B18]
+  set trr_pop_count [wb_read 0x00100B54]
 
   puts [format "EVENT_CHAIN_SAMPLE board=%s label=%s status=%s" \
         $hardware_name $label $status]
@@ -141,9 +142,9 @@ proc read_sample {hardware_name label} {
   }
   puts [format "EVENT_CHAIN_WR: SSTAT=%s PSTAT=%s LOCK_ENABLE=%s SPLL_STATE=%s" \
         $sstat $pstat $lock_enable $spll_state]
-  puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s UPDATE_COUNT=%s" \
+  puts [format "EVENT_CHAIN_HELPER: STATE=%s ERROR=%s OUTPUT=%s REF_COUNT=%s TAG_COUNT=%s IRQ_COUNT=%s TRR_POP_COUNT=%s UPDATE_COUNT=%s" \
         $helper_state $helper_error $helper_output $ref_count $tag_count \
-        $irq_count $helper_update_count]
+        $irq_count $trr_pop_count $helper_update_count]
   flush stdout
 }
 

@@ -588,7 +588,7 @@ proc print_lock_classification {board} {
 proc print_event_boundary {board} {
   set labels {DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
-              TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
+              TAG_VALID_COUNT TRR_WRITE_COUNT TRR_POP_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX}
@@ -624,6 +624,7 @@ proc print_event_boundary {board} {
   set grant_active [delta_positive $board TAG_GRANT_COUNT]
   set tag_active [delta_positive $board TAG_VALID_COUNT]
   set trr_active [delta_positive $board TRR_WRITE_COUNT]
+  set trr_pop_active [delta_positive $board TRR_POP_COUNT]
   set irq_active [delta_positive $board IRQ_COUNT]
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
    set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
@@ -697,9 +698,9 @@ proc print_event_boundary {board} {
         [series_value $board DMTD_FB_ACCEPT delta]]
   puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_high=%s fb_high=%s delta_mode=MODULO32" \
         $board $ref_high_abort_delta $fb_high_abort_delta]
-  puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
+  puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d trr_pop=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
-        $trr_active $irq_active $state_active $helper_active]
+        $trr_active $trr_pop_active $irq_active $state_active $helper_active]
   puts [format "STEP4_EVENT_BOUNDARY board=%s result=%s" $board $boundary]
 }
 
@@ -746,6 +747,7 @@ proc read_event_group {board} {
   set downstream_items {
     {IRQ_COUNT 0x00100AEC}
     {HELPER_UPDATE_COUNT 0x00100B18}
+    {TRR_POP_COUNT 0x00100B54}
     {STATE_TRANSITION_COUNT 0x00100AE4}
   }
   set timing_items {

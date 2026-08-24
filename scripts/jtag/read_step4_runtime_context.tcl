@@ -63,6 +63,7 @@ proc read_context_sample {hardware_name sample} {
   set tag_count [wb_read 0x00100AD4]
   set irq_count [wb_read 0x00100AEC]
   set helper_updates [wb_read 0x00100B18]
+  set trr_pop_count [wb_read 0x00100B54]
   set current_tics [wb_read 0x00100B3C]
   set dac_timeout [wb_read 0x00100B40]
   set init_count [wb_read 0x00100B44]
@@ -70,10 +71,10 @@ proc read_context_sample {hardware_name sample} {
   set last_init_tics [wb_read 0x00100B4C]
   set last_clear_tics [wb_read 0x00100B50]
 
-  puts [format "STEP4_CONTEXT_SAMPLE board=%s sample=%03d STATUS=%s PTP=%s PTP_META=%s FOREIGN_META=%s LOCK_ENABLE=%s SPLL_STATE=%s OCER=%s RCER=%s TRR_CSR=%s EIC_IMR=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s REF=%s TAG=%s IRQ=%s HELPER_UPDATE=%s CURRENT_TICS=%s DAC_TIMEOUT=%s INIT_COUNT=%s CLEAR_DACS_COUNT=%s LAST_INIT_TICS=%s LAST_CLEAR_TICS=%s" \
+  puts [format "STEP4_CONTEXT_SAMPLE board=%s sample=%03d STATUS=%s PTP=%s PTP_META=%s FOREIGN_META=%s LOCK_ENABLE=%s SPLL_STATE=%s OCER=%s RCER=%s TRR_CSR=%s EIC_IMR=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s REF=%s TAG=%s IRQ=%s HELPER_UPDATE=%s CURRENT_TICS=%s DAC_TIMEOUT=%s INIT_COUNT=%s CLEAR_DACS_COUNT=%s LAST_INIT_TICS=%s LAST_CLEAR_TICS=%s" \
         $hardware_name $sample $status $ptp $ptp_meta $foreign_meta \
         $lock_enable $spll_state $spll_ocer $spll_rcer $spll_trr_csr \
-        $eic_imr $eic_isr $tag_valid $trr_write $ref_count $tag_count \
+        $eic_imr $eic_isr $tag_valid $trr_write $trr_pop_count $ref_count $tag_count \
         $irq_count $helper_updates $current_tics $dac_timeout $init_count \
         $clear_count $last_init_tics $last_clear_tics]
   flush stdout

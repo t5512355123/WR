@@ -445,6 +445,7 @@ bits 27..31  = 保留
 | `0x00100AA4..0x00100ACC` | SoftPLL hardware registers、DAC、helper/main lock detector shadow |
 | `0x00100AD0..0x00100AF4` | reference/tag count、helper PI、state visit/transition、last state、IRQ mask/status |
 | `0x00100AF8..0x00100AFC` | hardware `TAG_VALID_COUNT` 與 `TRR_WRITE_COUNT` |
+| `0x00100B54` | `TRR_POP_COUNT`：WRPC firmware 在 `spll_irq_entry()` 成功讀取 `SPLL->TRR_R0` 的累計次數；每取出一筆 tag 遞增一次 |
 | `0x00100B00` | `HELPER_LAST_TAG`：helper 最新一次接受的 tag |
 | `0x00100B04` | `HELPER_EXPECTED_TAG`：helper 當次 setpoint |
 | `0x00100B08` | `HELPER_PRECLAMP_ERROR`：clamp 前的 signed error |
@@ -478,6 +479,8 @@ bits 27..31  = 保留
 這些 `0x00100B00..0x00100B28` 欄位需要 private WDIAGS 的 peripheral window 至少涵蓋 `0x000..0x1FF`。目前 private WDIAGS base 是 `0x00100A00`，並且將 `0x00100B00` 保留給 correlation shadow；若實際 bitstream 仍使用舊的 `0x000..0x0FF` SDB window，讀值會落到後續 peripheral，造成欄位 alias；此時不能拿來判斷 helper 或 SoftPLL 行為。
 
 若要解讀這段，必須同時固定 firmware commit、RTL commit 與實際 SOF；不能只依地址名稱猜測。
+
+`TRR_POP_COUNT` 是 firmware-side、唯讀的 localization counter，不是 SoftPLL control counter。它只記錄 `TRR_R0` 的實際 FIFO pop；它不讀取 FIFO、不清除 FIFO，也不改變 IRQ、sequencer、helper、PI 或 DCO 行為。Step 4 若同時觀察到 `TRR_WRITE_COUNT`、`TRR_POP_COUNT` 與 `HELPER_UPDATE_COUNT` 增加，才能把「硬體寫入 TRR → firmware 取出 tag → helper update」串成 source-backed 證據。若三者不一致，應先標示 observability mapping 或 snapshot 不一致，不可直接宣稱 SoftPLL functional path 失敗。
 
 ### 4.5 Mailbox 讀值驗證與 regression 判定
 

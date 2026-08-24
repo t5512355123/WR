@@ -197,6 +197,8 @@ int wrc_wr_diags(void)
 			wdiags_write_wr_spll_event_debug(
 				SPLL->TAG_VALID_COUNT,
 				SPLL->TRR_WRITE_COUNT);
+			wdiags_write_wr_spll_trr_pop_count(
+				wrpc_spll_trr_pop_count);
 			wdiags_write_wr_spll_helper_correlation(
 				wrpc_spll_helper_last_tag,
 				wrpc_spll_helper_expected_tag,

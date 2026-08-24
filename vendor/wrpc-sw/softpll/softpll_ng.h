@@ -207,6 +207,8 @@ extern volatile int32_t wrpc_spll_helper_tag_delta;
 extern volatile int32_t wrpc_spll_helper_tag_source;
 extern volatile int32_t wrpc_spll_helper_expected_delta;
 extern volatile uint32_t wrpc_spll_helper_update_count;
+/* Read-only count of tags removed from the TRR FIFO. */
+extern volatile uint32_t wrpc_spll_trr_pop_count;
 extern volatile int32_t wrpc_spll_helper_p_adder;
 extern volatile int32_t wrpc_spll_helper_tag_d0;
 extern volatile int32_t wrpc_spll_helper_p_setpoint;

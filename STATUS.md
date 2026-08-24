@@ -1,5 +1,42 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 fresh HEAD Step 2/3/4 回歸（2026-08-25，HEAD `841d709`，source `b040d1b`）
+
+本輪使用 `exp/step4-softpll-enable` 的 exact source HEAD
+`b040d1bc98843a1175ac32767a6b05ff944a1887`，完成 fresh firmware、Quartus 17
+clean compile、雙板 fresh SOF program 與 read-only runtime regression。這是目前
+最新的可追溯結果；本輪沒有修改 Master/Slave role、PTP、WR signaling、SoftPLL、
+DDMTD polarity、PI、lock threshold、DCO、SI5340 或 PHY functional behavior。
+
+- Master SOF checksum：`0x30B1B2ED`；Slave SOF checksum：`0x30B3BC67`；兩片均
+  `Configuration succeeded`、0 errors、0 warnings。
+- Fresh SOF 的 Master/Slave compile 均成功，但 `TIMING_CLOSED=NO`，分別列出
+  worst setup slack `-0.204 ns / -1.337 ns` 作為 implementation caveat。
+- Step 2 focused samples：Master/Slave 均 30/30 valid；Master
+  `MODE=2/PTP=6`、Slave `MODE=3/PTP=9`，Slave `FOREIGN=1/0`、parent=`1/0/1`、
+  RX=`0x1001`、TX=`0x1000`、`LOCK_ENABLE=4`。
+- Step 4 50-sample events：兩板 native sampled/D0 counters 有 activity，但
+  deglitch GOT_EDGE/QUAL8/ACCEPT 與 TAG/TRR/IRQ/HELPER downstream counters
+  沒有 sustained delta；event boundary 為
+  `QUALIFICATION_ABORT_AFTER_GOT_EDGE`。
+- Step 4 mapping samples：REF/FB 各 50/50 valid，沒有 timeout；QUAL8 與 ACCEPT
+  目前均無增加。因此本輪支持「Step 2/3 fresh regression 成功、Step 4 尚未通過」，
+  但尚未證明 root cause。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED = YES
+STEP4_RESULT = NOT_PASS
+STATE_EVIDENCE = READ_INCONSISTENT
+FIRST_RELIABLE_INACTIVE_BOUNDARY = DEGLITCH_ACCEPT_AFTER_NATIVE_SAMPLED_ACTIVITY
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-FRESH-STEP23-STEP4-20260825.md`
+
 ## 最新 Step 4 D0 transition 64-bit 觀測實驗（2026-08-24，source `63fd80a`）
 
 本輪由 exact source commit `63fd80ad080a951cc8e7ae9d4c7f35d0d3f558ef` 完成 fresh

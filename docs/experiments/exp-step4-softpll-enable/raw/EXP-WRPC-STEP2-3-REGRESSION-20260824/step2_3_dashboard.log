@@ -1,0 +1,159 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Aug 24 17:38:12 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wb_runtime.tcl
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 1/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:01/02:00:22:33:44:01
+[pass] WDIAGS_MODE              結果: 2 MASTER/2 MASTER
+[pass] WDIAGS_PTP               結果: 6 MASTER/6 MASTER
+[pass] WDIAGS_PTP_RX            結果: Δ=9/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=27/Δ>0
+[pass] WDIAGS_TX                結果: Δ=34/Δ>0
+[pass] WDIAGS_RX                結果: Δ=18/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 pass
+
+## [Step 3] WR Parent / Signaling
+Step 3 NA
+
+## [Step 4] SoftPLL Startup
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           NA
+Step 4 SoftPLL Startup        NA
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:02/02:00:22:33:44:02
+[pass] WDIAGS_MODE              結果: 3 SLAVE/3 SLAVE
+[pass] WDIAGS_PTP               結果: 9 SLAVE/9 SLAVE
+[pass] WDIAGS_PTP_RX            結果: Δ=24/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=2/Δ>0
+[pass] WDIAGS_TX                結果: Δ=16/Δ>0
+[pass] WDIAGS_RX                結果: Δ=30/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 pass
+
+## [Step 3] WR Parent / Signaling
+[pass] WDIAGS_FOREIGN_META      結果: 1/1
+[pass] WDIAGS_FOREIGN_META      結果: 0/0
+[info] WDIAGS_FOREIGN_META      結果: detection=0 config=3/NA
+[pass] parentIsWRnode           結果: 1/1
+[info] parentWrModeOn           結果: 0/NA
+[pass] parentCalibrated         結果: 1/1
+[pass] WR_RX_SIGNAL_DEBUG       結果: LOCK count=1/LOCK 0x1001,count>0
+[pass] WR_TX_SIGNAL_DEBUG       結果: SLAVE_PRESENT count=1/SLAVE_PRESENT 0x1000,count>0
+[info] WDIAGS_TEMP              結果: WRS_IDLE next=WRS_IDLE POST_STEP3_TIMEOUT/NA
+[pass] LOCK_ENABLE              結果: 4/> 0
+[info] WR_FAILURE_DEBUG         結果: TIMEOUT last_fail_state=WRS_S_LOCK failure_count=1/NA
+Step 3 pass
+
+## [Step 4] SoftPLL Startup
+[pass] LOCK_ENABLE              結果: 4/> 0
+[pass] SPLL_STATE               結果: 3 SPLL_MODE_SLAVE/3 SLAVE
+[pass] SPLL_STATE               結果: SEQ_CLEAR_DACS/NOT_DISABLED
+[pass] RCER                     結果: 1/> 0
+[info] OCER                     結果: TIMEOUT/NA
+[error] SPLL_DMTD_REF_EVENTS     結果: Δ=0/Δ>0
+[error] SPLL_DMTD_FB_EVENTS      結果: Δ=0/Δ>0
+[pass] SPLL_TAG_VALID_COUNT     結果: Δ=1930717133/Δ>0
+[error] SPLL_TRR_WRITE_COUNT     結果: Δ=0/Δ>0
+[error] WDIAGS_IRQ_COUNT         結果: Δ=0/Δ>0
+[error] WDIAGS_HELPER_UPDATE_COUNT 結果: Δ=0/Δ>0
+Step 4 error
+
+## [Step 5] Closed-loop Lock
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           pass
+Step 4 SoftPLL Startup        error
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Mon Aug 24 17:38:24 2026
+    Info: Elapsed time: 00:00:12
+    Info: Total CPU time (on all processors): 00:00:00

@@ -171,6 +171,36 @@ proc wb_read_validated {addr} {
   return "INVALID"
 }
 
+proc wb_read_critical {addr} {
+  # Enum/status fields must be source-valid and stable across two accepted
+  # mailbox reads.  A changing counter must use wb_read_validated instead;
+  # requiring equality there would turn normal activity into a false invalid.
+  set previous ""
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read $addr]
+    if {[register_valid $addr $value]} {
+      if {$previous ne "" && [word32 $previous] == [word32 $value]} {
+        return $value
+      }
+      set previous $value
+    } else {
+      set previous ""
+    }
+    after 2
+  }
+  return "INVALID"
+}
+
+proc critical_series_label {label} {
+  switch -- $label {
+    EP_MAC_H - EP_MAC_L - MODE - PTP - FOREIGN_META - PARSE_META -
+    WR_FAILURE_DEBUG - WDIAGS_TEMP - LOCK_ENABLE - RCER - OCER - SPLL_STATE {
+      return 1
+    }
+  }
+  return 0
+}
+
 proc add_hist {hist_name key} {
   upvar 1 $hist_name hist
   if {[info exists hist($key)]} {
@@ -207,7 +237,11 @@ proc series_read {board label addr samples gap_ms} {
   set state_non_idle 0
   set state_transition 0
   for {set sample 1} {$sample <= $samples} {incr sample} {
-    set value [wb_read_validated $addr]
+    if {[critical_series_label $label]} {
+      set value [wb_read_critical $addr]
+    } else {
+      set value [wb_read_validated $addr]
+    }
     if {$value eq "INVALID" || $value eq "TIMEOUT"} {
       incr invalid
     } else {

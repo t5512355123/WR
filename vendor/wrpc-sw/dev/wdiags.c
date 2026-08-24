@@ -250,7 +250,7 @@ void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
 
 void wdiags_write_wr_spll_trr_pop_count(uint32_t trr_pop_count)
 {
-	/* Firmware-side read-only shadow; it never changes TRR or SoftPLL flow. */
+	/* Read-only firmware shadow; it does not change TRR or SoftPLL flow. */
 	wdiag_write(0x154, trr_pop_count);
 }
 

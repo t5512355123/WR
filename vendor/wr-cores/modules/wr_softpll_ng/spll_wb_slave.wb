@@ -375,10 +375,11 @@ peripheral {
    };
 
     # Manual read-only aliases are implemented in spll_wb_slave.vhd without
-    # changing any functional write behavior.  The write-only read sides at
-    # 0x40, 0x44, and 0x4c expose REF D0 stable-threshold-hit LO/HI and FB LO;
-    # 0x58 exposes FB HI. Historical SOFs used these aliases for native-edge
-    # and other read-only Step 4 diagnostics.
+    # changing any functional write behavior. The write-only read sides at
+    # 0x40, 0x44, 0x4c, and 0x58 expose REF/FB native input edge counts.
+    # The post-divider REF/FB edge counts use the read-only helper aliases at
+    # 0xE0..0xEC. These aliases are diagnostic-only; their write behavior is
+    # unchanged and no control register is written by the JTAG scripts.
     # Read-side aliases at 0x50/0x54 expose REF D0 transition count LO/HI;
     # 0x60/0x64 expose FB D0 transition count LO/HI. Their write-side behavior
     # is unchanged. Diagnostic offsets 0xf8/0xfc expose the DMTD
@@ -398,7 +399,7 @@ peripheral {
 
     # 0x58 and 0x5c are manual read-only extensions implemented in
     # spll_wb_slave.vhd; they are intentionally not added to the generated
-    # register sequence. Current source uses 0x58 for FB D0 stable-hit HI and
+    # register sequence. Current source uses 0x58 for FB native-edge HI and
     # keeps 0x5c as the packed D0 LOW run maximum.
 
 	 reg {

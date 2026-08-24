@@ -182,6 +182,9 @@ entity dmtd_with_deglitcher is
      dbg_d0_transition_count_o : out std_logic_vector(63 downto 0);
      -- Count stable clk_i_d0 runs that first reach the functional T+1 length.
      dbg_d0_stable_hit_count_o : out std_logic_vector(63 downto 0);
+     -- Count rising edges of the actual signal delivered by dmtd_sampler
+     -- after its optional input divider.
+     dbg_post_div_edge_count_o : out std_logic_vector(63 downto 0);
      -- Count exact WAIT_STABLE_0 -> WAIT_EDGE transitions. Read-only.
      dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0)
      );
@@ -249,6 +252,8 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_d0_transition_count_gray_sys : std_logic_vector(63 downto 0);
    signal dbg_d0_stable_hit_count_gray_dmtd : std_logic_vector(63 downto 0) := (others => '0');
    signal dbg_d0_stable_hit_count_gray_sys : std_logic_vector(63 downto 0);
+   signal dbg_post_div_edge_count_gray_dmtd : std_logic_vector(63 downto 0) := (others => '0');
+   signal dbg_post_div_edge_count_gray_sys : std_logic_vector(63 downto 0);
    signal dbg_wait_edge_entry_count : unsigned(31 downto 0) := (others => '0');
    signal dbg_wait_edge_entry_count_sys : std_logic_vector(31 downto 0);
   signal dbg_stab_reached : std_logic;
@@ -309,6 +314,16 @@ begin  -- rtl
       q_o       => dbg_native_edge_count_gray_sys);
 
   dbg_native_edge_count_o <= f_gray_to_binary(dbg_native_edge_count_gray_sys);
+
+  U_sync_dbg_post_div_edge_count : entity work.gc_sync_register
+    generic map (g_width => 64)
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_sysclk_i,
+      d_i       => dbg_post_div_edge_count_gray_dmtd,
+      q_o       => dbg_post_div_edge_count_gray_sys);
+
+  dbg_post_div_edge_count_o <= f_gray_to_binary(dbg_post_div_edge_count_gray_sys);
 
   state_dbg_dmtd <= "00" when state = WAIT_STABLE_0 else
                     "01" when state = WAIT_EDGE else
@@ -517,7 +532,8 @@ begin  -- rtl
          dbg_d1_high_run_max_o => dbg_input_d1_high_run_max_dmtd,
          dbg_d0_low_run_max_o => dbg_input_d0_low_run_max_dmtd,
          dbg_d0_transition_count_gray_o => dbg_d0_transition_count_gray_dmtd,
-         dbg_d0_stable_hit_count_gray_o => dbg_d0_stable_hit_count_gray_dmtd );
+         dbg_d0_stable_hit_count_gray_o => dbg_d0_stable_hit_count_gray_dmtd,
+         dbg_post_div_edge_count_gray_o => dbg_post_div_edge_count_gray_dmtd );
 
   end generate gen_builtin;
 
@@ -527,6 +543,7 @@ begin  -- rtl
      dbg_input_d0_low_run_max_dmtd <= (others => '0');
      dbg_d0_transition_count_gray_dmtd <= (others => '0');
      dbg_d0_stable_hit_count_gray_dmtd <= (others => '0');
+     dbg_post_div_edge_count_gray_dmtd <= (others => '0');
    end generate gen_externally_sampled;
 
 

@@ -297,7 +297,7 @@ void spll_irq_entry(void)
 	/* check if there are more tags in the FIFO, and log them if so configured to */
 	while (!(SPLL->TRR_CSR & SPLL_TRR_CSR_EMPTY)) {
 		trr = SPLL->TRR_R0;
-		/* Read-only observability: count each tag removed from TRR. */
+		/* Count only after a successful TRR FIFO read. */
 		wrpc_spll_trr_pop_count++;
 
 		/* And process the values */

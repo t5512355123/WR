@@ -248,31 +248,35 @@ proc status_text {status} {
     FAIL { return "error" }
     INFO { return "info" }
     # Invalid mailbox data is measurement information, not a hardware error.
-    # The Step result remains NA/RETEST internally.
-    INVALID { return "info" }
+    # Keep a distinct label so it cannot be confused with ordinary INFO.
+    INVALID { return "invalid" }
   }
   # Keep the default UI contract closed: runtime lines may only use the
-  # three dashboard states, even if a future caller passes an unknown value.
+  # four dashboard states, even if a future caller passes an unknown value.
   return "info"
 }
 
 proc step_status_text {status} {
   if {$status eq "PASS"} { return "pass" }
   if {$status eq "WARN" || $status eq "FAIL"} { return "error" }
-  if {$status eq "INVALID"} { return "NA" }
+  if {$status eq "INVALID"} { return "invalid" }
   return "NA"
 }
 
-proc regression_status {status} {
-  # Dashboard WARN/INFO is not a fresh regression PASS.  It means the
-  # snapshot is incomplete or transitional and must be confirmed by the
-  # focused time-series script.  INVALID is reserved for measurement data
-  # that failed validation or could not be read consistently.
-  switch -- $status {
-    PASS { return PASS }
-    INVALID - INFO { return INVALID }
-    WARN - FAIL { return FAIL }
+proc regression_status {step status} {
+  # A single dashboard snapshot is sufficient for the direct PHY gate, but
+  # never for the Step 2/3 packet and handshake regression gates. Those
+  # gates require focused repeated sampling. Any non-PASS Step 2/3 snapshot
+  # is therefore RETEST/INVALID, not a hardware FAIL.
+  if {$step == 1} {
+    switch -- $status {
+      PASS { return PASS }
+      FAIL { return FAIL }
+      INVALID - INFO - WARN { return INVALID }
+    }
+    return INVALID
   }
+  if {$status eq "PASS"} { return PASS }
   return INVALID
 }
 
@@ -752,6 +756,10 @@ proc analyze_board {board} {
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
     $rb $ra $rd \
     $rxerr_explanation $rxerr_expected
+  # Keep the summary consistent with the signal line. A positive RXERR
+  # delta is a warning, not a single-window hardware FAIL, but it must not
+  # leave the Step summary as PASS.
+  set step2 [merge_status $step2 $rxerr_status]
   # PTP_TX can legitimately be quiet in one observation window.  Step 2 still
   # needs simultaneous PTP RX and MiniNIC TX/RX activity; if those three do
   # not all move, keep the dashboard result as measurement-incomplete/retest
@@ -767,6 +775,9 @@ proc analyze_board {board} {
   if {($step2_activity_invalid || !$packet_path_active) && $step2 eq "PASS"} {
     set step2 INVALID
   }
+  # A valid but non-expected role/state in one snapshot still needs focused
+  # repeated sampling before it can be called a regression failure.
+  if {$step2 eq "FAIL"} { set step2 INVALID }
   if {$step2 ne "PASS" && $step2 ne "INVALID"} { mark_anomaly $board 2 $step2 "Endpoint/MiniNIC/PTP role" }
   set ::step_status($board,2) $step2
   puts [format "Step 2 %s" [step_status_text $step2]]
@@ -885,6 +896,10 @@ proc analyze_board {board} {
         [format "TIMEOUT last_fail_state=%s failure_count=%s" [wr_state_name $fail_state] [display_value $fail_count]] \
         "NA" ""
     }
+    # A single WR state/parent snapshot is not enough to declare Step 3
+    # broken. Keep the individual signal evidence, but require focused
+    # repeated sampling before exposing a regression FAIL.
+    if {$step3 eq "FAIL"} { set step3 INVALID }
     if {$step3 ne "PASS" && $step3 ne "INFO" && $step3 ne "INVALID"} {
       mark_anomaly $board 3 $step3 "WR parent/signaling handshake"
     }
@@ -1009,19 +1024,19 @@ proc analyze_board {board} {
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "NA" }
-    if {$s eq "INVALID"} { set shown "NA" }
+    if {$s eq "INVALID"} { set shown "invalid" }
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }
     puts [format "Step %d %-22s %s" $step $label $shown]
   }
-  set step1_reg [regression_status $::step_status($board,1)]
-  set step2_reg [regression_status $::step_status($board,2)]
+  set step1_reg [regression_status 1 $::step_status($board,1)]
+  set step2_reg [regression_status 2 $::step_status($board,2)]
   # Step 3 is a Slave WR-handshake gate; it is not applicable to the Master.
   if {$role eq "MASTER"} {
     set step3_reg PASS
   } else {
-    set step3_reg [regression_status $::step_status($board,3)]
+    set step3_reg [regression_status 3 $::step_status($board,3)]
   }
   set step4_allowed [expr {$step1_reg eq "PASS" &&
                            $step2_reg eq "PASS" &&

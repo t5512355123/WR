@@ -105,10 +105,25 @@ proc register_valid {addr value} {
   }
   set word [word32 $value]
   if {$word < 0} { return 0 }
-  if {[format "0x%08X" [expr {$addr & 0xffffffff}]] eq "0x001002DC"} {
-    set ref_state [expr {$word & 0x3}]
-    set fb_state [expr {($word >> 2) & 0x3}]
-    return [expr {$ref_state <= 2 && $fb_state <= 2}]
+  switch -- [format "0x%08X" [expr {$addr & 0xffffffff}]] {
+    0x00100248 {
+      # spll_deglitch_thr_int is 16-bit; the source leaves rddata[31:16]
+      # undefined on reads, so only the low half is evidence.
+      return 1
+    }
+    0x001002DC {
+      set ref_state [expr {$word & 0x3}]
+      set fb_state [expr {($word >> 2) & 0x3}]
+      return [expr {$ref_state <= 2 && $fb_state <= 2}]
+    }
+    0x00100AA0 {
+      # WDIAGS_SPLL_STATE packing: sequence [7:0], align [15:8],
+      # mode [23:16]. These enums are source-defined in softpll_export.h.
+      set sequence [expr {$word & 0xff}]
+      set align [expr {($word >> 8) & 0xff}]
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$sequence <= 10 && $align <= 10 && $mode <= 3}]
+    }
   }
   return 1
 }
@@ -142,7 +157,9 @@ proc positive_delta {value} {
 proc stats_init {board label} {
   set ::stats($board,$label,first) ""
   set ::stats($board,$label,last) ""
+  set ::stats($board,$label,previous) ""
   set ::stats($board,$label,invalid) 0
+  set ::stats($board,$label,decreased) 0
 }
 
 proc stats_add {board label value} {
@@ -153,6 +170,11 @@ proc stats_add {board label value} {
   if {$::stats($board,$label,first) eq ""} {
     set ::stats($board,$label,first) $value
   }
+  if {$::stats($board,$label,previous) ne "" &&
+      [word32 $value] < [word32 $::stats($board,$label,previous)]} {
+    incr ::stats($board,$label,decreased)
+  }
+  set ::stats($board,$label,previous) $value
   set ::stats($board,$label,last) $value
 }
 
@@ -199,7 +221,13 @@ proc read_snapshot {snapshot_name} {
   set snap(event_fb) [wb_read_validated 0x0010029C]
   set snap(tag_valid) [wb_read_validated 0x00100284]
   set snap(trr_write) [wb_read_validated 0x00100288]
-  set snap(threshold) [wb_read_validated 0x00100248]
+  set snap(threshold_raw) [wb_read_validated 0x00100248]
+  set threshold_word [word32 $snap(threshold_raw)]
+  if {$threshold_word >= 0} {
+    set snap(threshold) [format %08X [expr {$threshold_word & 0xffff}]]
+  } else {
+    set snap(threshold) INVALID
+  }
   set snap(high_qual_max) [wb_read_validated 0x0010023C]
   set snap(d0_low_run_max) [wb_read_validated 0x0010025C]
   set snap(lock_enable) [wb_read_validated 0x00100A9C]
@@ -228,7 +256,7 @@ proc decode_state {state side field} {
 proc print_raw_snapshot {board sample snap_name} {
   upvar 1 $snap_name snap
   foreach label {state sampled_ref sampled_fb accept_ref accept_fb event_ref event_fb \
-                 tag_valid trr_write threshold high_qual_max d0_low_run_max \
+                 tag_valid trr_write threshold_raw threshold high_qual_max d0_low_run_max \
                  lock_enable spll_state irq helper_update} {
     puts [format "DEGLITCH_RAW board=%s sample=%03d register=%s value=%s" \
           $board $sample $label $snap($label)]
@@ -237,7 +265,6 @@ proc print_raw_snapshot {board sample snap_name} {
 
 proc print_sample {board sample snap_name} {
   upvar 1 $snap_name snap
-  set state_word [word32 $snap(state)]
   set ref_state [decode_state $snap(state) REF state]
   set fb_state [decode_state $snap(state) FB state]
   set ref_reset [decode_state $snap(state) REF reset]
@@ -256,7 +283,7 @@ proc print_sample {board sample snap_name} {
 
 proc init_board {board} {
   foreach label {sampled_ref sampled_fb accept_ref accept_fb event_ref event_fb \
-                 tag_valid trr_write threshold high_qual_max d0_low_run_max \
+                 tag_valid trr_write threshold_raw threshold high_qual_max d0_low_run_max \
                  lock_enable spll_state irq helper_update} {
     stats_init $board $label
   }
@@ -328,9 +355,9 @@ proc print_summary {board} {
         $::stats($board,FB,state_transitions) $::stats($board,FB,reached_samples)]
   puts [format "DEGLITCH_FIRST_INACTIVE_BOUNDARY board=%s result=%s" $board $boundary]
   foreach label {sampled_ref sampled_fb accept_ref accept_fb event_ref event_fb tag_valid trr_write irq helper_update} {
-    if {$::stats($board,$label,invalid) > 0} {
-      puts [format "DEGLITCH_INVALID_SAMPLES board=%s register=%s count=%d" \
-            $board $label $::stats($board,$label,invalid)]
+    if {$::stats($board,$label,invalid) > 0 || $::stats($board,$label,decreased) > 0} {
+      puts [format "DEGLITCH_MEASUREMENT_QUALITY board=%s register=%s invalid=%d decreased=%d" \
+            $board $label $::stats($board,$label,invalid) $::stats($board,$label,decreased)]
     }
   }
   flush stdout

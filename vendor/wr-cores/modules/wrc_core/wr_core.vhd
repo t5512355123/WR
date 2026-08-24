@@ -101,6 +101,9 @@ entity wr_core is
     g_softpll_enable_debugger   : boolean                        := false;
     g_softpll_use_sampled_ref_clocks : boolean := false;
     g_softpll_reverse_dmtds : boolean := false;
+    -- Independent input-divider control for a controlled DMTD A/B test.
+    -- The DE5A 8-bit control configuration remains true.
+    g_softpll_divide_input_by_2 : boolean := true;
     g_vuart_fifo_size           : integer                        := 1024;
     g_pcs_16bit                 : boolean                        := false;
     g_records_for_phy           : boolean                        := false;
@@ -655,7 +658,7 @@ begin
   U_SOFTPLL : entity work.xwr_softpll_ng
     generic map(
       g_reverse_dmtds        => g_softpll_reverse_dmtds,
-      g_divide_input_by_2    => not g_pcs_16bit and not g_softpll_reverse_dmtds,
+      g_divide_input_by_2    => g_softpll_divide_input_by_2,
       g_with_debug_fifo      => g_softpll_enable_debugger,
       g_tag_bits             => 22,
       g_dac_bits             => g_dac_bits,

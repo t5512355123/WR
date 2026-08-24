@@ -140,9 +140,12 @@ proc register_value_valid {addr value} {
                     $alignment <= 10 && $mode <= 3}]
     }
     0x00100AA4 - 0x00100AA8 {
-      # Arria-10 design uses channel-enable bit masks; keep a small mask
-      # range but do not require an enabled value at read-validation time.
-      return [expr {$word <= 0xff}]
+      # OCER/RCER are full-width hardware shadow values.  Their current
+      # source-backed contents are not limited to an 8-bit mask (for example
+      # OCER may contain status/control bits above bit 7), so only reject
+      # malformed/stale mailbox words here.  The dashboard applies the
+      # channel-enable interpretation separately after a validated read.
+      return 1
     }
   }
   return 1

@@ -244,7 +244,7 @@ waveform 是否出現符合長度的 stable run，不等於完整重演 deglitch
 | `0x001002D0` | `SPLL_TAG_GRANT_LAST_TICS` | 唯讀：最近一次任一 `tags_grant_p` 非零時的診斷 tick |
 | `0x001002D4` | `SPLL_TAG_VALID_LAST_TICS` | 唯讀：最近一次 `tag_valid` 為 1 時的診斷 tick |
 | `0x001002D8` | `SPLL_TRR_WRITE_LAST_TICS` | 唯讀：最近一次 tag FIFO write request 成立時的診斷 tick |
-| `0x001002DC` | `SPLL_DMTD_STATE` | 唯讀：bits 1..0 reference state、bits 3..2 feedback state、bit 8/9 分別為 reference/feedback DMTD reset-active；bits 17..10 是 reference `stab_cntr(15 downto 8)` bucket，bits 25..18 是 feedback bucket，bit 26/27 是 reference/feedback threshold-reached sticky bit |
+| `0x001002DC` | `SPLL_DMTD_STATE` | 唯讀：bits 1..0 reference state、bits 3..2 feedback state、bit 8/9 分別為 reference/feedback DMTD reset-active；bits 17..10 是 reference `stab_cntr(15 downto 8)` bucket，bits 25..18 是 feedback bucket，bit 26/27 是 reference/feedback threshold-reached sticky bit，bit 28/29 是 reference/feedback `WAIT_EDGE -> GOT_EDGE` sticky evidence |
 | `0x001002F8` | `SPLL_DMTD_NATIVE_EDGE_COUNT_LO` | 唯讀診斷 alias：`clk_dmtd_i` domain 的 64-bit free-running edge counter bits 31..0；不驅動 sampler、deglitch FSM 或 SoftPLL control |
 | `0x001002FC` | `SPLL_DMTD_NATIVE_EDGE_COUNT_HI` | 唯讀診斷 alias：`clk_dmtd_i` edge counter bits 63..32；Tcl 必須以 `HI1 -> LO -> HI2` 一致性讀法取得 64-bit 值 |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |

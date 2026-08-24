@@ -186,7 +186,9 @@ entity dmtd_with_deglitcher is
      -- after its optional input divider.
      dbg_post_div_edge_count_o : out std_logic_vector(63 downto 0);
      -- Count exact WAIT_STABLE_0 -> WAIT_EDGE transitions. Read-only.
-     dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0)
+     dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0);
+     -- Sticky read-only evidence that WAIT_EDGE -> GOT_EDGE occurred.
+     dbg_got_edge_entry_seen_o : out std_logic
      );
 end dmtd_with_deglitcher;
 
@@ -256,6 +258,9 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_post_div_edge_count_gray_sys : std_logic_vector(63 downto 0);
    signal dbg_wait_edge_entry_count : unsigned(31 downto 0) := (others => '0');
    signal dbg_wait_edge_entry_count_sys : std_logic_vector(31 downto 0);
+   signal dbg_got_edge_entry_seen : std_logic := '0';
+   signal dbg_got_edge_entry_seen_vec : std_logic_vector(0 downto 0);
+   signal dbg_got_edge_entry_seen_sys_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -501,6 +506,17 @@ begin  -- rtl
 
    dbg_wait_edge_entry_count_o <= dbg_wait_edge_entry_count_sys;
 
+   U_sync_dbg_got_edge_entry_seen : entity work.gc_sync_register
+     generic map (g_width => 1)
+     port map (
+       clk_i => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i => dbg_got_edge_entry_seen_vec,
+       q_o => dbg_got_edge_entry_seen_sys_vec);
+
+   dbg_got_edge_entry_seen_vec(0) <= dbg_got_edge_entry_seen;
+   dbg_got_edge_entry_seen_o <= dbg_got_edge_entry_seen_sys_vec(0);
+
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
       g_sync_edge => "positive")
@@ -649,6 +665,7 @@ begin  -- rtl
         dbg_sampled_transition_count <= (others => '0');
         dbg_deglitch_accept_count <= (others => '0');
         dbg_wait_edge_entry_count <= (others => '0');
+        dbg_got_edge_entry_seen <= '0';
       else
         if clk_sampled /= clk_sampled_d then
           dbg_sampled_transition_count <= dbg_sampled_transition_count + 1;
@@ -659,6 +676,9 @@ begin  -- rtl
         if state = WAIT_STABLE_0 and
            stab_cntr = unsigned(r_deglitch_threshold_i) then
           dbg_wait_edge_entry_count <= f_sat_inc(dbg_wait_edge_entry_count);
+        end if;
+        if state = WAIT_EDGE and clk_sampled /= '0' then
+          dbg_got_edge_entry_seen <= '1';
         end if;
         clk_sampled_d <= clk_sampled;
       end if;

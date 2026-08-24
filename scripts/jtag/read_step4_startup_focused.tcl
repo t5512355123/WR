@@ -653,8 +653,10 @@ proc print_event_boundary {board} {
     set fb_bucket [expr {($dmtd_state_word >> 18) & 0xff}]
     set ref_reached [expr {($dmtd_state_word >> 26) & 1}]
     set fb_reached [expr {($dmtd_state_word >> 27) & 1}]
-    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d" \
-          $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached]
+     set ref_got_edge [expr {($dmtd_state_word >> 28) & 1}]
+     set fb_got_edge [expr {($dmtd_state_word >> 29) & 1}]
+     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
+           $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_got_edge $fb_got_edge]
   } else {
     set ref_state NA
     set fb_state NA
@@ -662,7 +664,7 @@ proc print_event_boundary {board} {
     set fb_bucket NA
     set ref_reached NA
     set fb_reached NA
-    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
+     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
   }
 
   if {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_entry_active} {

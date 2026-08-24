@@ -415,7 +415,17 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample64 $board DMTD_NATIVE_EDGE_COUNT64 $sample $value \
       [clock milliseconds]
 
-    set value [wb_read_validated 0x00100248]
+    # spll_wb_slave.vhd defines only bits [15:0] at 0x00100248.
+    # The upper half is intentionally undefined, so discard it before
+    # series comparison instead of treating a changing upper half as a
+    # changing threshold.
+    set threshold_raw [wb_read_validated 0x00100248]
+    set threshold_word [word32 $threshold_raw]
+    if {$threshold_word >= 0} {
+      set value [format %08X [expr {$threshold_word & 0xffff}]]
+    } else {
+      set value INVALID
+    }
     add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
       [clock milliseconds]
     set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
@@ -748,6 +758,22 @@ proc print_event_boundary {board} {
            $board [expr {$d0_low_run_word & 0xffff}] [expr {($d0_low_run_word >> 16) & 0xffff}]]
    } else {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+   # This compares the existing sampler-domain diagnostic with the
+   # source-defined threshold.  It is not a replacement for the functional
+   # clk_sampled/stab_cntr predicate in dmtd_with_deglitcher.vhd.
+   set threshold_last [word32 [series_value $board DEGLITCH_THRESHOLD last]]
+   if {$d0_low_run_word >= 0 && $threshold_last >= 0} {
+     set threshold_value [expr {$threshold_last & 0xffff}]
+     set ref_low_run [expr {$d0_low_run_word & 0xffff}]
+     set fb_low_run [expr {($d0_low_run_word >> 16) & 0xffff}]
+     puts [format "STEP4_INPUT_D0_LOW_RUN_VS_THRESHOLD board=%s threshold=%d ref=%d fb=%d ref_ge=%d fb_ge=%d domain=clk_i_d0" \
+           $board $threshold_value $ref_low_run $fb_low_run \
+           [expr {$ref_low_run >= $threshold_value}] \
+           [expr {$fb_low_run >= $threshold_value}]]
+   } else {
+     puts [format "STEP4_INPUT_D0_LOW_RUN_VS_THRESHOLD board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
   set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]

@@ -125,7 +125,9 @@ proc register_value_valid {addr value} {
                     $alignment <= 10 && $mode <= 3}]
     }
     0x00100AA4 - 0x00100AA8 {
-      return 1
+      # The source-backed OCER/RCER readback uses the low control byte;
+      # reject a mailbox filler/torn word with unexpected upper bits.
+      return [expr {($word & 0xffffff00) == 0}]
     }
   }
   return 1

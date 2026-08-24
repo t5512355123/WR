@@ -111,6 +111,10 @@ proc validated_register {addr value} {
       return [expr {$sequence <= 10 &&
                     $alignment <= 10 && $mode <= 3}]
     }
+    0x00100AA4 - 0x00100AA8 {
+      # OCER/RCER expose source-defined control bits in the low byte.
+      return [expr {($word & 0xffffff00) == 0}]
+    }
   }
   return 1
 }

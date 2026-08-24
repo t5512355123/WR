@@ -579,6 +579,10 @@ proc collect_snapshot {board label} {
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
   put_snap $board $label dmtd_ref [wb_read 0x00100298]
   put_snap $board $label dmtd_fb [wb_read 0x0010029C]
+  # Read-only aliases added for the functional WAIT_STABLE_0 stab_cntr max.
+  # 0x274[31:16] is REF; 0x278[31:18] is the saturating 14-bit FB view.
+  put_snap $board $label wait_stable0_max_ref [wb_read 0x00100274]
+  put_snap $board $label wait_stable0_max_fb [wb_read 0x00100278]
   # In the current fresh Step 4 image these aliases expose the existing
   # WAIT_STABLE_0 -> WAIT_EDGE qualification-entry counters. Historical SOF
   # files may expose different source-defined fields at the same addresses.
@@ -977,6 +981,21 @@ proc analyze_board {board} {
     print_signal $ocer_status "SoftPLL output channel enable" OCER \
       [display_value $ocer] "> 0" \
       "只顯示 source-backed shadow，不因非零自行宣稱 output lock。"
+    set ref_max_word [word32 [get_snap $board $after wait_stable0_max_ref]]
+    set fb_max_word [word32 [get_snap $board $after wait_stable0_max_fb]]
+    if {$ref_max_word >= 0 && $fb_max_word >= 0} {
+      set ref_max [expr {($ref_max_word >> 16) & 0xffff}]
+      set fb_max [expr {($fb_max_word >> 18) & 0x3fff}]
+      print_signal INFO "WAIT_STABLE_0 REF max" WAIT_STABLE0_REF_MAX_STAB \
+        [format "%d (0x%04X)" $ref_max $ref_max] "NA" \
+        ""
+      print_signal INFO "WAIT_STABLE_0 FB max" WAIT_STABLE0_FB_MAX_STAB \
+        [format "%d (0x%04X)" $fb_max $fb_max] "NA" \
+        ""
+    } else {
+      print_signal INFO "WAIT_STABLE_0 max" WAIT_STABLE0_MAX_STAB \
+        "MEASUREMENT_INVALID_RETEST" "NA" ""
+    }
     foreach counter {
       {dmtd_ref "DMTD reference event" SPLL_DMTD_REF_EVENTS}
       {dmtd_fb "DMTD feedback event" SPLL_DMTD_FB_EVENTS}

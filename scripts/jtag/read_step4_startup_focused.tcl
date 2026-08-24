@@ -425,6 +425,7 @@ proc read_group {board group_name items} {
 proc read_d0_stable_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
                  DEGLITCH_THRESHOLD \
+                 WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
                  REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
                  DMTD_REF_WAIT_EDGE_ENTRY DMTD_REF_GOT_EDGE_ENTRY \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
@@ -451,6 +452,27 @@ proc read_d0_stable_group {board} {
       set value INVALID
     }
     add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
+      [clock milliseconds]
+
+    # The hand-maintained spll_wb_slave.vhd exposes the functional
+    # WAIT_STABLE_0 maximum through read-only upper-bit aliases:
+    # 0x00100274[31:16] = REF max stab_cntr and
+    # 0x00100278[31:18] = saturating 14-bit FB max stab_cntr.
+    set value [packed16_field [wb_read_validated 0x00100274]]
+    add_timed_series_sample $board WAIT_STABLE0_REF_MAX_STAB $sample $value \
+      [clock milliseconds]
+    set fb_max_raw [wb_read_validated 0x00100278]
+    if {$fb_max_raw eq "TIMEOUT" || $fb_max_raw eq "INVALID"} {
+      set value $fb_max_raw
+    } else {
+      set fb_max_word [word32 $fb_max_raw]
+      if {$fb_max_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($fb_max_word >> 18) & 0x3fff}]]
+      }
+    }
+    add_timed_series_sample $board WAIT_STABLE0_FB_MAX_STAB $sample $value \
       [clock milliseconds]
     set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
     set value [wb_read_u64_non_decreasing 0x00100240 0x00100244 $previous]
@@ -496,6 +518,8 @@ proc read_d0_stable_group {board} {
 
   finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
   finish_series $board DEGLITCH_THRESHOLD
+  finish_series $board WAIT_STABLE0_REF_MAX_STAB
+  finish_series $board WAIT_STABLE0_FB_MAX_STAB
   finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board DMTD_REF_WAIT_EDGE_ENTRY
@@ -583,9 +607,25 @@ proc read_d0_stable_group {board} {
   }
   puts [format "STEP4_DMTD_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s result=%s" \
         $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz $result]
-  puts [format "STEP4_D0_STABLE_THRESHOLD board=%s threshold=%s threshold_delta=%s hit_length=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
-        $board $threshold $threshold_delta $hit_length \
+  set ref_max [word32 [series_value $board WAIT_STABLE0_REF_MAX_STAB last]]
+  set fb_max [word32 [series_value $board WAIT_STABLE0_FB_MAX_STAB last]]
+  if {$ref_max >= 0 && $fb_max >= 0} {
+    set ref_max [expr {$ref_max & 0xffff}]
+    set fb_max [expr {$fb_max & 0x3fff}]
+  } else {
+    set ref_max INVALID
+    set fb_max INVALID
+  }
+  puts [format "STEP4_D0_STABLE_THRESHOLD board=%s threshold=%s threshold_delta=%s hit_length=%s wait_stable0_ref_max=%s wait_stable0_fb_max=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board $threshold $threshold_delta $hit_length $ref_max $fb_max \
         [lindex $fields 0] [lindex $fields 1] $result]
+  if {$ref_max ne "INVALID" && $fb_max ne "INVALID" && $threshold ne "NA"} {
+    puts [format "STEP4_WAIT_STABLE0_MAX_STAB board=%s ref_max=%d fb_max=%d threshold=%d ref_ge=%d fb_ge=%d source=functional_stab_cntr_state_gated" \
+          $board $ref_max $fb_max $threshold \
+          [expr {$ref_max >= $threshold}] [expr {$fb_max >= $threshold}]]
+  } else {
+    puts [format "STEP4_WAIT_STABLE0_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST source=functional_stab_cntr_state_gated" $board]
+  }
 }
 
 proc series_value {board label field} {
@@ -735,6 +775,7 @@ proc print_event_boundary {board} {
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
+               WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
                DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY \
                DMTD_REF_GOT_EDGE_ENTRY DMTD_FB_GOT_EDGE_ENTRY \
                DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8 \

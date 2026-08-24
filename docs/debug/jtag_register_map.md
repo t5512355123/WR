@@ -213,6 +213,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100264` | `SPLL_FB_D0_TRANSITION_COUNT_HI` | 唯讀診斷 alias：feedback `clk_i_d0` transition counter 的 bits 63..32；寫入側仍保留既有 `EIC_IER` 行為。歷史 SOF 在 `0x260/0x264` 的診斷意義不同，必須依 source/SOF commit 解碼 |
 | `0x00100268` | `SPLL_DMTD_REF_QUAL_REACHED_8_COUNT` | 唯讀 read-side alias：保留 `EIC_IMR` bit 0 與全部寫入行為，bits 31..16 是 reference 在 `GOT_EDGE` HIGH qualification 中累積到 8 個連續 HIGH samples 的次數；只觀測 progress，不改 FSM/threshold |
 | `0x0010026C` | `SPLL_DMTD_FB_QUAL_REACHED_8_COUNT` | 唯讀 read-side alias：保留 `EIC_ISR` bit 0 與全部寫入行為，bits 31..16 是 feedback 在 `GOT_EDGE` HIGH qualification 中累積到 8 個連續 HIGH samples 的次數；只觀測 progress，不改 FSM/threshold |
+| `0x00100274` | `SPLL_WAIT_STABLE0_REF_MAX_STAB` | 唯讀 read-side alias：bits 31..16 是 reference `dmtd_with_deglitcher` 在 `WAIT_STABLE_0` 狀態內觀察到的 functional `stab_cntr` 最大值；bits 15..0 保留 DFR host sequence readback，原本 write/read 行為不改 |
+| `0x00100278` | `SPLL_WAIT_STABLE0_FB_MAX_STAB` | 唯讀 read-side alias：bits 31..18 是 feedback `stab_cntr` 最大值的飽和 14-bit view；`0x3FFF` 表示原始 16-bit 值已達到或超過 `0x4000`。bits 0..17 保留 DFR host status，原本 write 行為不改 |
 
 `D0_STABLE_HIT_COUNT64` 在 sampler 的 DMTD clock domain 直接觀察既有
 `clk_i_d0`。若目前 functional threshold 為 `T`，第一個 sample 的 run length
@@ -227,6 +229,14 @@ waveform 是否出現符合長度的 stable run，不等於完整重演 deglitch
 單獨證明該 run 一定會產生 accept。
 
 `D0_TRANSITION_COUNT64` 的 binary counter 與 registered Gray encoder 位於 sampler 使用的 DMTD clock domain；它只比較既有 `clk_i_d0` 與前一個 DMTD sample，不新增 async shadow sampler。Gray bus 經兩級同步器進 `clk_sys_i` 後才轉回 binary。Tcl 同樣使用 `HI1 -> LO -> HI2`，並計算 `D0/DMTD` 與 `sampled/D0`；此觀測不回饋 sampler、deglitcher 或 SoftPLL。
+
+`SPLL_WAIT_STABLE0_REF_MAX_STAB` 與 `SPLL_WAIT_STABLE0_FB_MAX_STAB` 是本輪唯一新增的
+唯讀觀測。它們直接 fan-out `dmtd_with_deglitcher` 內 functional `stab_cntr`，但只在
+`state = WAIT_STABLE_0` 時更新最大值；計數器本身位於 `clk_dmtd_i`，之後以同步器
+送到 `clk_sys_i`。它不修改 `stab_cntr`、deglitch threshold、FSM transition 或任何
+SoftPLL path。REF 可完整讀取 16 bit；FB 因 `0x78` 的 bits 16..17 已是既有 DFR host
+status，只提供 bits 31..18 的飽和 14-bit view。這足以判斷是否接近目前 threshold=1000；
+若要分析超過 `0x3FFF` 的精確 FB 值，必須另設完整 read-only address。
 
 上述 `0x240/0x244/0x24C/0x250/0x254/0x258/0x260/0x264` 配置只適用於包含本段 source 的 fresh SOF。歷史 SOF 在同一組位址曾提供 native-edge count、HIGH-abort depth sum、LOW qualification-abort、WAIT_EDGE entry 等診斷；每份 log 都必須同時記錄 source commit、Tcl commit 與 SOF SHA256。
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |

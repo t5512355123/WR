@@ -408,6 +408,12 @@ peripheral {
     # spll_wb_slave.vhd; they are intentionally not added to the generated
     # register sequence. Current source uses 0x58 for FB native-edge HI and
     # keeps 0x5c as the packed D0 LOW run maximum.
+    # The hand-maintained VHDL wrapper also exposes the packed
+    # WAIT_STABLE_0 functional stab_cntr maximum through the otherwise
+    # unused upper readback half of 0x74 (REF) and upper bits 31:18 of
+    # 0x78 (FB). The FB view is saturating 14-bit because 0x78 bits 16:17
+    # are existing DFR host status fields. These aliases do not change any
+    # generated register write behavior.
 
 	 reg {
 			name = "Main DAC Output";

@@ -55,6 +55,7 @@ port (
   diag_dmtd_ref_high_qual_reached_8_count_i : in     std_logic_vector(15 downto 0);
   diag_dmtd_fb_high_qual_reached_8_count_i  : in     std_logic_vector(15 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
+  diag_dmtd_wait_stable0_max_stab_i        : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
@@ -828,6 +829,10 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- Diagnostic-only upper-half alias: REF maximum functional
+          -- stab_cntr observed while the deglitcher was in WAIT_STABLE_0.
+          -- The DFR host sequence readback in bits 15:0 is unchanged.
+          rddata_reg(31 downto 16) <= diag_dmtd_wait_stable0_max_stab_i(15 downto 0);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011110" => 
@@ -853,6 +858,16 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- Diagnostic-only upper-bit alias: FB maximum functional
+          -- stab_cntr observed while the deglitcher was in WAIT_STABLE_0.
+          -- Bits 0:17 are the unchanged DFR host status. Bits 31:18 carry
+          -- a saturating 14-bit view; 0x3fff means the 16-bit source value
+          -- reached or exceeded 0x4000.
+          if diag_dmtd_wait_stable0_max_stab_i(31 downto 30) /= "00" then
+            rddata_reg(31 downto 18) <= (others => '1');
+          else
+            rddata_reg(31 downto 18) <= diag_dmtd_wait_stable0_max_stab_i(29 downto 16);
+          end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011111" => 

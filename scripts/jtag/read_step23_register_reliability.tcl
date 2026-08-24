@@ -1,7 +1,7 @@
 # Step 2 / Step 3 JTAG mailbox reliability test。
 #
 # 用法：
-#   quartus_stp -t read_step23_register_reliability.tcl ?samples? ?gap_ms? ?group?
+#   quartus_stp -t read_step23_register_reliability.tcl ?samples? ?gap_ms? ?group? ?poll_attempts?
 #
 # group：
 #   temp   只重複讀 WDIAGS_TEMP
@@ -21,12 +21,14 @@ set samples 30
 set gap_ms 250
 set group all
 set raw_mode 0
+set poll_attempts 25
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set group [lindex $argv 2] }
+if {[llength $argv] >= 4} { set poll_attempts [expr {int([lindex $argv 3])}] }
 if {[lsearch -exact $argv --raw] >= 0} { set raw_mode 1 }
-if {$samples <= 0 || $gap_ms < 0} {
-  error "samples must be > 0 and gap_ms must be >= 0"
+if {$samples <= 0 || $gap_ms < 0 || $poll_attempts <= 0} {
+  error "samples must be > 0, gap_ms must be >= 0, and poll_attempts must be > 0"
 }
 if {[lsearch -exact {temp step2 step3 all} $group] < 0} {
   error "group must be temp, step2, step3, or all"
@@ -78,7 +80,10 @@ proc wb_read {addr} {
     return "TIMEOUT"
   }
   after 5
-  for {set n 0} {$n < 100} {incr n} {
+  # Bound one mailbox transaction.  The caller still gets INVALID/TIMEOUT
+  # after the validation retries instead of leaving quartus_stp alive for
+  # several minutes when a JTAG response is missing.
+  for {set n 0} {$n < $::poll_attempts} {incr n} {
     if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
       after 1
       continue

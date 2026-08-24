@@ -1,7 +1,7 @@
 # White Rabbit WR parent/signaling/lock handoff 的唯讀聚焦觀測。
 #
 # 用法：
-#   quartus_stp -t read_wr_handshake_focused.tcl ?samples? ?gap_ms?
+#   quartus_stp -t read_wr_handshake_focused.tcl ?samples? ?gap_ms? ?poll_attempts?
 #
 # 只讀取定位第一個斷點所需的 mailbox 欄位，不寫入 WR 控制設定，
 # 也不寫入 DATA_SNAPSHOT。這不是同步成功判定工具；它只用來區分：
@@ -11,14 +11,18 @@ package require ::quartus::insystem_source_probe
 
 set samples 60
 set gap_ms 1000
+set poll_attempts 25
 if {[llength $argv] >= 1} {
   set samples [expr {int([lindex $argv 0])}]
 }
 if {[llength $argv] >= 2} {
   set gap_ms [expr {int([lindex $argv 1])}]
 }
-if {$samples <= 0 || $gap_ms < 0} {
-  error "samples must be > 0 and gap_ms must be >= 0"
+if {[llength $argv] >= 3} {
+  set poll_attempts [expr {int([lindex $argv 2])}]
+}
+if {$samples <= 0 || $gap_ms < 0 || $poll_attempts <= 0} {
+  error "samples must be > 0, gap_ms must be >= 0, and poll_attempts must be > 0"
 }
 
 set ::wb_toggle 0
@@ -34,7 +38,9 @@ proc wb_read {addr} {
     return "TIMEOUT"
   }
   after 5
-  for {set n 0} {$n < 100} {incr n} {
+  # Bound one mailbox transaction so a missing JTAG response becomes a
+  # retryable TIMEOUT/INVALID result instead of an unbounded-looking run.
+  for {set n 0} {$n < $::poll_attempts} {incr n} {
     set value [safe_probe_read 1]
     if {![u64 $value]} {
       after 1

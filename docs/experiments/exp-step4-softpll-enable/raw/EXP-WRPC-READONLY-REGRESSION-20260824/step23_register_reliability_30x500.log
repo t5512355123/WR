@@ -1,0 +1,36 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Aug 24 14:56:49 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step23_register_reliability.tcl 30 500 all
+Info: Quartus(args): 30 500 all
+RELIABILITY_CONFIG samples=30 gap_ms=500 group=all raw=0
+=== RELIABILITY_BOARD DE5 [1-11.1] ===
+REG_SERIES board=DE5 [1-11.1] register=WDIAGS_TEMP samples=30 valid=30 invalid=0 distinct=1 decrease=0 expected=0 first=A0000064 last=A0000064 states=0:30
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_H samples=30 valid=30 invalid=0 distinct=1 decrease=0 expected=30 first=02000200 last=02000200 values=02000200:30
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_L samples=30 valid=30 invalid=0 distinct=1 decrease=0 expected=30 first=22334401 last=22334401 values=22334401:30
+REG_SERIES board=DE5 [1-11.1] register=MODE samples=30 valid=30 invalid=0 distinct=1 decrease=0 expected=30 first=02020406 last=02020406 values=02020406:30
+REG_SERIES board=DE5 [1-11.1] register=PTP samples=30 valid=30 invalid=0 distinct=1 decrease=0 expected=30 first=00000006 last=00000006 values=00000006:30
+REG_SERIES board=DE5 [1-11.1] register=PTP_RX samples=30 valid=30 invalid=0 distinct=5 decrease=1 expected=0 first=00000AA6 last=22334401 values=00000AA6:1,00000AAB:1,00000ABD:1,02000200:4,22334401:23
+REG_SERIES board=DE5 [1-11.1] register=PTP_TX samples=30 valid=30 invalid=0 distinct=4 decrease=1 expected=0 first=00001836 last=02020406 values=00001836:1,00001840:1,02020406:24,22334401:4
+REG_SERIES board=DE5 [1-11.1] register=MINIC_TX samples=30 valid=30 invalid=0 distinct=4 decrease=1 expected=0 first=00001F0C last=00000006 values=00001F0C:1,00001F1C:1,00000006:24,02020406:4
+REG_SERIES board=DE5 [1-11.1] register=MINIC_RX samples=30 valid=30 invalid=0 distinct=15 decrease=1 expected=0 first=0000108A last=000010B5 values=00000006:4,000010A0:2,000010A2:2,000010A4:2,000010A7:2,000010A9:2,000010AB:2,000010AE:2,000010B1:2,000010B5:1,0000108A:1,0000109C:2,00001094:2,00001096:2,00001099:2
+REG_SERIES board=DE5 [1-11.1] register=RXERR samples=30 valid=30 invalid=0 distinct=4 decrease=1 expected=0 first=00000000 last=00000000 values=00000000:26,00000B1B:2,00000B18:1,00000B20:1
+REG_SERIES board=DE5 [1-11.1] register=FOREIGN_META samples=30 valid=30 invalid=0 distinct=4 decrease=1 expected=0 first=0000FF00 last=0000FF00 values=0000FF00:26,0000194A:2,0000194F:1,00001946:1
+REG_SERIES board=DE5 [1-11.1] register=PARSE_META samples=30 valid=30 invalid=0 distinct=16 decrease=1 expected=0 first=00010145 last=00010171 values=0000206C:2,0001014A:1,0001014D:2,0001015C:2,0001015F:2,0001016C:2,00002068:2,00010145:1,00010150:2,00010152:2,00010155:2,00010158:2,00010163:2,00010166:2,00010169:2,00010171:2
+REG_SERIES board=DE5 [1-11.1] register=WR_RX_SIGNAL samples=30 valid=30 invalid=0 distinct=3 decrease=1 expected=0 first=10000001 last=10000001 values=00001144:2,00001147:2,10000001:26
+REG_SERIES board=DE5 [1-11.1] register=WR_TX_SIGNAL samples=30 valid=30 invalid=0 distin

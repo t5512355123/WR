@@ -1,0 +1,13 @@
+Experiment: EXP-WRPC-STEP23-REGRESSION-READONLY-20260824
+Branch: exp/step4-softpll-enable
+Commit: 4d7eaffac1fa843f4c43d3c0783736b1a9386c09
+
+Command 1:
+quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step23_register_reliability.tcl 30 500 all
+Result: no output before the local SSH session exceeded the observation limit; the remote quartus_stp process was terminated.
+
+Command 2:
+quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_wr_handshake_focused.tcl 30 500
+Result: no output before the local SSH session exceeded the observation limit; the remote quartus_stp process was terminated.
+
+Classification: INCOMPLETE / RETEST_REQUIRED. This is not hardware-failure evidence.

@@ -17,6 +17,7 @@
 #include "hw/wrc_diags_regs.h"
 
 #define WDIAGS_VERSION 2
+#define WDIAGS_WR_SPLL_TRR_POP_COUNT 0x154UL
 
 #if defined(BASE_WDIAGS_PRIV)
 static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
@@ -246,6 +247,12 @@ void wdiags_write_wr_spll_event_debug(uint32_t tag_valid_count,
 	/* These are read-only hardware counters exposed by SoftPLL-ng. */
 	wdiag_write(0xf8, tag_valid_count);
 	wdiag_write(0xfc, trr_write_count);
+}
+
+void wdiags_write_wr_spll_trr_pop_count(uint32_t trr_pop_count)
+{
+	/* Firmware-side evidence: number of tags consumed from TRR_R0. */
+	wdiag_write(WDIAGS_WR_SPLL_TRR_POP_COUNT, trr_pop_count);
 }
 
 void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,

@@ -589,7 +589,7 @@ proc print_event_boundary {board} {
   set labels {DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
               TAG_VALID_COUNT TRR_WRITE_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
-              STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
+              STATE_TRANSITION_COUNT TRR_POP_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX}
   if {[has_invalid $board $labels]} {
@@ -627,6 +627,7 @@ proc print_event_boundary {board} {
   set irq_active [delta_positive $board IRQ_COUNT]
   set state_active [delta_positive $board STATE_TRANSITION_COUNT]
    set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
+   set trr_pop_active [delta_positive $board TRR_POP_COUNT]
 
    if {$max_stab_word >= 0} {
      puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s ref_max_before_abort=%d fb_max_before_abort=%d" \
@@ -664,7 +665,9 @@ proc print_event_boundary {board} {
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
   }
 
-  if {$abort_delta_invalid} {
+  if {$trr_pop_active && $helper_active} {
+    set boundary "FIRMWARE_TRR_POP_AND_HELPER_ACTIVE"
+  } elseif {$abort_delta_invalid} {
     set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
   } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
@@ -700,6 +703,20 @@ proc print_event_boundary {board} {
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $irq_active $state_active $helper_active]
+  puts [format "STEP4_FIRMWARE_TRR_POP board=%s trr_pop_delta=%s active=%d" \
+        $board [series_value $board TRR_POP_COUNT delta] $trr_pop_active]
+  set chain_result INACTIVE_OR_UNRESOLVED
+  if {$trr_pop_active && $helper_active} {
+    set chain_result FIRMWARE_CONSUMPTION_CONFIRMED
+  } elseif {$trr_pop_active && !$helper_active} {
+    set chain_result TRR_POP_WITHOUT_HELPER
+  } elseif {!$trr_pop_active && $helper_active} {
+    set chain_result HELPER_WITHOUT_TRR_POP
+  }
+  puts [format "STEP4_CHAIN_CORRELATION board=%s hw_trr_write_delta=%s fw_trr_pop_delta=%s helper_update_delta=%s result=%s" \
+        $board [series_value $board TRR_WRITE_COUNT delta] \
+        [series_value $board TRR_POP_COUNT delta] \
+        [series_value $board HELPER_UPDATE_COUNT delta] $chain_result]
   puts [format "STEP4_EVENT_BOUNDARY board=%s result=%s" $board $boundary]
 }
 
@@ -746,6 +763,7 @@ proc read_event_group {board} {
   set downstream_items {
     {IRQ_COUNT 0x00100AEC}
     {HELPER_UPDATE_COUNT 0x00100B18}
+    {TRR_POP_COUNT 0x00100B54}
     {STATE_TRANSITION_COUNT 0x00100AE4}
   }
   set timing_items {

@@ -1,0 +1,767 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Aug 24 17:21:03 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step4_deglitch_state.tcl 20 500 --raw
+Info: Quartus(args): 20 500 --raw
+DEGLITCH_STATE_CONFIG samples=20 gap_ms=500 raw=1 trr_r0_read=disabled
+=== DE5 [1-11.1] ===
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=001 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=B761C135/CE38D87D ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=sampled_ref value=B761C135
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=sampled_fb value=CE38D87D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=threshold_raw value=100103E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=001 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=002 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=BBC47FE0/D29D10A8 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=sampled_ref value=BBC47FE0
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=sampled_fb value=D29D10A8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=threshold_raw value=108003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=002 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=003 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=C02C7707/D7069AD2 ACCEPT=00070007/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=sampled_ref value=C02C7707
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=sampled_fb value=D7069AD2
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=accept_ref value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=threshold_raw value=100203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=003 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=004 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=C49577DA/DB6F7328 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=sampled_ref value=C49577DA
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=sampled_fb value=DB6F7328
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=threshold_raw value=004003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=004 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=005 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=C8FDB0F3/DFDAAF69 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=sampled_ref value=C8FDB0F3
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=sampled_fb value=DFDAAF69
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=threshold_raw value=00C203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=005 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=006 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=CD68DED2/E44442FC ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=sampled_ref value=CD68DED2
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=sampled_fb value=E44442FC
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=threshold_raw value=004303E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=006 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=007 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=D1CFB3BF/E8AC48A1 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=sampled_ref value=D1CFB3BF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=sampled_fb value=E8AC48A1
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=threshold_raw value=00C003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=007 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=008 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=D637EA59/ED1524AF ACCEPT=02E3A512/020001DC EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=sampled_ref value=D637EA59
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=sampled_fb value=ED1524AF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=accept_fb value=020001DC
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=threshold_raw value=100203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=008 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=009 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=DA9F7703/F17E203E ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=sampled_ref value=DA9F7703
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=sampled_fb value=F17E203E
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=threshold_raw value=108003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=009 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=010 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=DF085A63/F5E7402F ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=sampled_ref value=DF085A63
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=sampled_fb value=F5E7402F
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=threshold_raw value=100203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=010 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=011 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=E36FCAF9/FA500E9A ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=009E7D84 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=sampled_ref value=E36FCAF9
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=sampled_fb value=FA500E9A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=tag_valid value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=threshold_raw value=008003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=011 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=012 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=E7DB9F9C/FEBC4E52 ACCEPT=02E3A512/0241CBDD EVENT=048A9ABB/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=sampled_ref value=E7DB9F9C
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=sampled_fb value=FEBC4E52
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=event_ref value=048A9ABB
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=threshold_raw value=000103E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=012 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=013 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=EC437C13/0324BAAA ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=sampled_ref value=EC437C13
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=sampled_fb value=0324BAAA
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=threshold_raw value=004303E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=013 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=014 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F0AB791C/078D4F35 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=sampled_ref value=F0AB791C
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=sampled_fb value=078D4F35
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=threshold_raw value=00C003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=014 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=015 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F513C130/0BF6D690 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=sampled_ref value=F513C130
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=sampled_fb value=0BF6D690
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=threshold_raw value=104203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=015 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=016 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F97C621B/105FB9F3 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=sampled_ref value=F97C621B
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=sampled_fb value=105FB9F3
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=threshold_raw value=10C103E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=016 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=017 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=FDE3F711/14C7A393 ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=sampled_ref value=FDE3F711
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=sampled_fb value=14C7A393
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=threshold_raw value=104103E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=017 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=018 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=024AF013/192F9BDA ACCEPT=00070007/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=sampled_ref value=024AF013
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=sampled_fb value=192F9BDA
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=accept_ref value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=threshold_raw value=108203E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=018 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=019 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=06B1D321/1D977B9D ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=sampled_ref value=06B1D321
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=sampled_fb value=1D977B9D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=threshold_raw value=000303E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=019 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.1] sample=020 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=0B18D579/21FFBB0F ACCEPT=02E3A512/0241CBDD EVENT=00ADF36D/009E7D84 TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=sampled_ref value=0B18D579
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=sampled_fb value=21FFBB0F
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=accept_ref value=02E3A512
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=accept_fb value=0241CBDD
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=event_ref value=00ADF36D
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=event_fb value=009E7D84
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=threshold_raw value=008303E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=high_qual_max value=00070007
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=d0_low_run_max value=0007FFFF
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=lock_enable value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=spll_state value=00020009
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.1] sample=020 register=helper_update value=00000000
+DEGLITCH_SUMMARY board=DE5 [1-11.1] SAMPLED=1404507204/1405543058 ACCEPT=0/0 EVENT=0/0 TAG=0 TRR=0 IRQ=0 HELPER_UPDATE=0
+DEGLITCH_STATE_COUNTS board=DE5 [1-11.1] REF=WAIT_STABLE_0:0,WAIT_EDGE:0,GOT_EDGE:20 INVALID:0 TRANSITIONS:0 REACHED_SAMPLES:20
+DEGLITCH_STATE_COUNTS board=DE5 [1-11.1] FB=WAIT_STABLE_0:0,WAIT_EDGE:0,GOT_EDGE:20 INVALID:0 TRANSITIONS:0 REACHED_SAMPLES:20
+DEGLITCH_FIRST_INACTIVE_BOUNDARY board=DE5 [1-11.1] result=SAMPLED_TO_DEGLITCH_ACCEPT_INACTIVE
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=sampled_ref invalid=0 decreased=1
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=sampled_fb invalid=0 decreased=1
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=accept_ref invalid=0 decreased=2
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=accept_fb invalid=0 decreased=1
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=event_ref invalid=0 decreased=1
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.1] register=tag_valid invalid=0 decreased=1
+=== DE5 [1-11.2] ===
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=001 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=A5666AD9/70DEB042 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=sampled_ref value=A5666AD9
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=sampled_fb value=70DEB042
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=threshold_raw value=004103E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=001 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=002 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=A9CFB7EE/7543AB79 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=sampled_ref value=A9CFB7EE
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=sampled_fb value=7543AB79
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=threshold_raw value=008303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=002 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=003 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=AE3D1AB1/79AC3805 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=sampled_ref value=AE3D1AB1
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=sampled_fb value=79AC3805
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=threshold_raw value=000303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=003 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=004 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=B2AE847B/7E174D58 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=sampled_ref value=B2AE847B
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=sampled_fb value=7E174D58
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=threshold_raw value=108203E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=004 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=005 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=B71E0451/8281AEA2 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=sampled_ref value=B71E0451
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=sampled_fb value=8281AEA2
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=threshold_raw value=100303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=005 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=006 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=BB8DB92A/86EC3815 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=sampled_ref value=BB8DB92A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=sampled_fb value=86EC3815
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=threshold_raw value=104103E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=006 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=007 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=BFFE62B5/8B57D9DE ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=sampled_ref value=BFFE62B5
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=sampled_fb value=8B57D9DE
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=threshold_raw value=10C003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=007 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=008 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=C46E8713/8FC31D66 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=sampled_ref value=C46E8713
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=sampled_fb value=8FC31D66
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=threshold_raw value=004303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=008 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=009 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=C8DFA9D5/942DC874 ACCEPT=114185CB/C9028659 EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=sampled_ref value=C8DFA9D5
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=sampled_fb value=942DC874
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=accept_fb value=C9028659
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=threshold_raw value=00C303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=009 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=010 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=CD5040BA/9899B76A ACCEPT=98A4994A/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=sampled_ref value=CD5040BA
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=sampled_fb value=9899B76A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=accept_ref value=98A4994A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=threshold_raw value=004003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=010 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=011 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=D1BFE738/9D0366F1 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=sampled_ref value=D1BFE738
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=sampled_fb value=9D0366F1
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=threshold_raw value=008103E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=011 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=012 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=D62FE64A/A16F362C ACCEPT=114185CB/D65254E1 EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=sampled_ref value=D62FE64A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=sampled_fb value=A16F362C
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=accept_fb value=D65254E1
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=threshold_raw value=100003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=012 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=013 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=DAA06357/A5DA765A ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=sampled_ref value=DAA06357
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=sampled_fb value=A5DA765A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=threshold_raw value=108303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=013 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=014 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=DF11B1FC/AA455AA5 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=sampled_ref value=DF11B1FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=sampled_fb value=AA455AA5
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=threshold_raw value=100103E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=014 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=015 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=E391FE22/AEC06E90 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=sampled_ref value=E391FE22
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=sampled_fb value=AEC06E90
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=threshold_raw value=008303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=015 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=016 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=E801612D/B32A9179 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=sampled_ref value=E801612D
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=sampled_fb value=B32A9179
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=threshold_raw value=000103E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=016 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=017 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=EC71E67F/B79581C7 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=094D91AA
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=sampled_ref value=EC71E67F
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=sampled_fb value=B79581C7
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=trr_write value=094D91AA
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=threshold_raw value=004303E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=017 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=018 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F0E17D45/BBFF1A53 ACCEPT=BC09F041/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=sampled_ref value=F0E17D45
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=sampled_fb value=BBFF1A53
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=accept_ref value=BC09F041
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=threshold_raw value=00C003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=018 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=019 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F550382E/C069FF69 ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=sampled_ref value=F550382E
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=sampled_fb value=C069FF69
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=threshold_raw value=104003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=019 register=helper_update value=00000000
+DEGLITCH_SAMPLE board=DE5 [1-11.2] sample=020 STATE=REF:GOT_EDGE(2) FB:GOT_EDGE(2) RESET=REF:0 FB:0 BUCKET=REF:0 FB:0 REACHED=REF:1 FB:1 SAMPLED=F9C2F3F8/C4D6500D ACCEPT=114185CB/13060CAF EVENT=04BC4047/053831FC TAG=00000000 TRR=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=state value=0C00000A
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=sampled_ref value=F9C2F3F8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=sampled_fb value=C4D6500D
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=accept_ref value=114185CB
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=accept_fb value=13060CAF
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=event_ref value=04BC4047
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=event_fb value=053831FC
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=tag_valid value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=trr_write value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=threshold_raw value=10C203E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=threshold value=000003E8
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=high_qual_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=d0_low_run_max value=00010007
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=lock_enable value=00000004
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=spll_state value=00030009
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=irq value=00000000
+DEGLITCH_RAW board=DE5 [1-11.2] sample=020 register=helper_update value=00000000
+DEGLITCH_SUMMARY board=DE5 [1-11.2] SAMPLED=1415350559/1408737227 ACCEPT=0/0 EVENT=0/0 TAG=0 TRR=0 IRQ=0 HELPER_UPDATE=0
+DEGLITCH_STATE_COUNTS board=DE5 [1-11.2] REF=WAIT_STABLE_0:0,WAIT_EDGE:0,GOT_EDGE:20 INVALID:0 TRANSITIONS:0 REACHED_SAMPLES:20
+DEGLITCH_STATE_COUNTS board=DE5 [1-11.2] FB=WAIT_STABLE_0:0,WAIT_EDGE:0,GOT_EDGE:20 INVALID:0 TRANSITIONS:0 REACHED_SAMPLES:20
+DEGLITCH_FIRST_INACTIVE_BOUNDARY board=DE5 [1-11.2] result=SAMPLED_TO_DEGLITCH_ACCEPT_INACTIVE
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.2] register=accept_ref invalid=0 decreased=2
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.2] register=accept_fb invalid=0 decreased=2
+DEGLITCH_MEASUREMENT_QUALITY board=DE5 [1-11.2] register=trr_write invalid=0 decreased=1
+DEGLITCH_STATE_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_step4_deglitch_state.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Mon Aug 24 17:21:26 2026
+    Info: Elapsed time: 00:00:23
+    Info: Total CPU time (on all processors): 00:00:00

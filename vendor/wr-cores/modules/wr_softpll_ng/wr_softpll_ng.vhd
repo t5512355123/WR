@@ -422,6 +422,8 @@ architecture rtl of wr_softpll_ng is
   signal dmtd_fb_high_abort_count : t_diag_abort_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_high_abort_depth_sum : t_diag_depth_sum_array(0 to g_num_outputs-1);
+  signal dmtd_ref_high_abort_seen : std_logic;
+  signal dmtd_fb_high_abort_seen : std_logic;
   signal dmtd_ref_native_edge_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_native_edge_count : t_diag_depth_sum_array(0 to g_num_outputs-1);
   signal dmtd_ref_post_div_edge_count : t_diag_depth_sum_array(0 to g_num_ref_inputs-1);
@@ -529,7 +531,15 @@ begin  -- rtl
   -- ref bucket [17:10], fb bucket [25:18], reached flags [26]/[27].
   -- Bits 29/28 are sticky, read-only evidence that WAIT_EDGE -> GOT_EDGE
   -- occurred for feedback/reference. They do not drive the FSM or SoftPLL.
-  diag_dmtd_state <= (31 downto 30 => '0') & dmtd_fb_got_edge_entry_seen(0) &
+  -- Bits 31/30 are sticky read-only evidence that a GOT_EDGE HIGH
+  -- qualification attempt was aborted for reference/feedback. These bits
+  -- expose an existing diagnostic counter and do not change the FSM.
+  dmtd_ref_high_abort_seen <= '1' when dmtd_ref_high_abort_count(0) /= x"00000000" else '0';
+  dmtd_fb_high_abort_seen <= '1' when dmtd_fb_high_abort_count(0) /= x"00000000" else '0';
+
+  diag_dmtd_state <=
+                     dmtd_ref_high_abort_seen & dmtd_fb_high_abort_seen &
+                     dmtd_fb_got_edge_entry_seen(0) &
                      dmtd_ref_got_edge_entry_seen(0) & dmtd_fb_stab_reached(0) &
                      dmtd_ref_stab_reached(0) & dmtd_fb_stab_bucket(0) &
                      dmtd_ref_stab_bucket(0) & dmtd_fb_reset_sys &

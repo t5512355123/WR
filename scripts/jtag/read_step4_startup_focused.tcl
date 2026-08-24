@@ -650,6 +650,7 @@ proc print_event_boundary {board} {
   set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
   set got_edge_active 0
+  set high_abort_seen_active 0
   if {$dmtd_state_word >= 0} {
     set ref_state [expr {$dmtd_state_word & 0x3}]
     set fb_state [expr {($dmtd_state_word >> 2) & 0x3}]
@@ -657,11 +658,14 @@ proc print_event_boundary {board} {
     set fb_bucket [expr {($dmtd_state_word >> 18) & 0xff}]
     set ref_reached [expr {($dmtd_state_word >> 26) & 1}]
     set fb_reached [expr {($dmtd_state_word >> 27) & 1}]
-     set ref_got_edge [expr {($dmtd_state_word >> 28) & 1}]
-     set fb_got_edge [expr {($dmtd_state_word >> 29) & 1}]
-     set got_edge_active [expr {$ref_got_edge || $fb_got_edge}]
-     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
-           $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_got_edge $fb_got_edge]
+    set ref_high_abort_seen [expr {($dmtd_state_word >> 31) & 1}]
+    set fb_high_abort_seen [expr {($dmtd_state_word >> 30) & 1}]
+    set ref_got_edge [expr {($dmtd_state_word >> 28) & 1}]
+    set fb_got_edge [expr {($dmtd_state_word >> 29) & 1}]
+    set got_edge_active [expr {$ref_got_edge || $fb_got_edge}]
+    set high_abort_seen_active [expr {$ref_high_abort_seen || $fb_high_abort_seen}]
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_high_abort_seen=%d fb_high_abort_seen=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
+          $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_high_abort_seen $fb_high_abort_seen $ref_got_edge $fb_got_edge]
   } else {
     set ref_state NA
     set fb_state NA
@@ -669,10 +673,12 @@ proc print_event_boundary {board} {
     set fb_bucket NA
     set ref_reached NA
     set fb_reached NA
-     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_high_abort_seen=NA fb_high_abort_seen=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
   }
 
-  if {$got_edge_active && !$qualification_progress_active && !$accept_active} {
+  if {$high_abort_seen_active && !$qualification_progress_active && !$accept_active} {
+    set boundary "QUALIFICATION_ABORT_AFTER_GOT_EDGE"
+  } elseif {$got_edge_active && !$qualification_progress_active && !$accept_active} {
     set boundary "GOT_EDGE_TO_QUALIFICATION_PROGRESS"
   } elseif {$qualification_progress_active && !$accept_active} {
     set boundary "QUALIFICATION_PROGRESS_TO_DEGLITCH_ACCEPT"

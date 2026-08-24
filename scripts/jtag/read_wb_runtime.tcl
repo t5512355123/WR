@@ -254,7 +254,7 @@ proc status_text {status} {
     INVALID { return "info" }
   }
   # Keep the default UI contract closed: runtime lines may only use the
-  # four dashboard states, even if a future caller passes an unknown value.
+  # three dashboard states, even if a future caller passes an unknown value.
   return "info"
 }
 

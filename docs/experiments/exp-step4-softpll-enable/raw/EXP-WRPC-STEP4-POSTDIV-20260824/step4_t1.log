@@ -1,0 +1,144 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Aug 24 14:47:09 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step4_startup_focused.tcl 10 500 events
+Info: Quartus(args): 10 500 events
+STEP4_FOCUSED_CONFIG samples=10 gap_ms=500 group=events retries=5 trr_r0_read=disabled
+=== STEP4_FOCUSED_BOARD DE5 [1-11.1] ===
+STEP4_SERIES board=DE5 [1-11.1] register=SPLL_MODE_SEQUENCE samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00020009 last=00020009 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=RCER samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=OCER samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=6A2C7001 last=2110D001 delta=DECREASED_OR_RESET
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_EVENTS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00ADF710 last=00ADF710 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_EVENTS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=009E8060 last=009E8060 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=02E3C512 last=02E3C512 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0241D0B2 last=0241D0B2 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=6FB4593E last=9692C6BF delta=652111233
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=7B2DDCDB last=A2141E3A delta=652624223
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_HIGH_QUAL_MAX_STAB samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000007 last=00000007 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_D0_LOW_RUN_MAX samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0007FFFF last=0007FFFF delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_SEEN samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=B7203721 last=CA900B47 delta=326095910
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_SEEN samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=SPLL_DMTD_STATE samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0C000002 last=0C000002 delta=0
+STEP4_GROUP board=DE5 [1-11.1] group=DMTD_BOUNDARY result=VALID
+STEP4_SERIES64 board=DE5 [1-11.1] register=DMTD_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000015CE2A652D last=00000015FA238E32 delta=737749253 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.1] register=REF_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000015C6D07959 last=00000015F2C8FD74 delta=737707035 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.1] register=FB_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00000015CEC977A4 last=00000015FAC1EFF7 delta=737704019 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.1] register=REF_POST_DIV_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0000000AE3893642 last=0000000AF985669C delta=368848986 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.1] register=FB_POST_DIV_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0000000AE7859967 last=0000000AFD81C992 delta=368848939 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.1] register=DEGLITCH_THRESHOLD samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=000103E8 last=100103E8 delta=268435456
+STEP4_SERIES64 board=DE5 [1-11.1] register=REF_D0_TRANSITION_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0000001597A0478C last=00000015C3372B14 delta=731308936 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.1] register=NATIVE_REF_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=97B5FA26 last=C34EC016 delta=731432432
+STEP4_SERIES board=DE5 [1-11.1] register=NATIVE_REF_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=02E3C512 last=02E3C512 delta=0
+STEP4_SERIES64 board=DE5 [1-11.1] register=FB_D0_TRANSITION_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000015A34D42E7 last=00000015CEEE23A8 delta=731963585 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.1] register=NATIVE_FB_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=A362FB2A last=CF03D3BC delta=731961490
+STEP4_SERIES board=DE5 [1-11.1] register=NATIVE_FB_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0241D0B2 last=0241D0B2 delta=0
+STEP4_DMTD_CLOCK board=DE5 [1-11.1] dmtd_native_delta=737749253 dmtd_elapsed_ms=5902 dmtd_frequency_hz=124999873.433 result=INVALID
+STEP4_INPUT_EDGE board=DE5 [1-11.1] threshold=NA threshold_delta=268435456 hit_length=NA ref_raw_delta=737707035 ref_post_div_delta=368848986 ref_post_div_to_raw=0.499993857 ref_post_div_to_dmtd=0.499965245 ref_d0_delta=731308936 ref_d0_to_dmtd_ratio=0.991270317 ref_sampled_delta=731432432 ref_sampled_to_dmtd_ratio=0.991437713 ref_sampled_to_d0_ratio=1.000168870 ref_accept_delta=0 fb_raw_delta=737704019 fb_post_div_delta=368848939 fb_post_div_to_raw=0.499995838 fb_post_div_to_dmtd=0.499965181 fb_d0_delta=731963585 fb_d0_to_dmtd_ratio=0.992157677 fb_sampled_delta=731961490 fb_sampled_to_dmtd_ratio=0.992154837 fb_sampled_to_d0_ratio=0.999997138 fb_accept_delta=0 result=INVALID counter_cdc=GRAY2_HI_LO_HI
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_REF_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_FB_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_GRANT_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=01344B90 last=00000000 delta=DECREASED_OR_RESET
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_VALID_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TRR_WRITE_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_GROUP board=DE5 [1-11.1] group=TAG_ARBITRATION result=VALID
+STEP4_SERIES board=DE5 [1-11.1] register=IRQ_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=HELPER_UPDATE_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=STATE_TRANSITION_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00000000 last=00000000 delta=0
+STEP4_GROUP board=DE5 [1-11.1] group=DOWNSTREAM result=VALID
+STEP4_SERIES board=DE5 [1-11.1] register=CURRENT_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=21842ADB last=3426DF55 delta=312652922
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_REF_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=048A9ABF last=048A9ABF delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=DMTD_FB_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=048A9ABD last=048A9ABD delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_REF_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=048A9AC0 last=048A9AC0 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_FB_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=048A9ABE last=048A9ABE delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_PENDING_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_GRANT_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TAG_VALID_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.1] register=TRR_WRITE_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_GROUP board=DE5 [1-11.1] group=EVENT_TIMING result=VALID
+STEP4_HIGH_QUAL_MAX_STAB board=DE5 [1-11.1] ref_max_before_abort=7 fb_max_before_abort=0
+STEP4_INPUT_D0_LOW_RUN_MAX board=DE5 [1-11.1] ref_max_d0_low_run=65535 fb_max_d0_low_run=7
+STEP4_DEGLITCH_STATE board=DE5 [1-11.1] ref_state=2 fb_state=0 ref_stab_bucket=0 fb_stab_bucket=0 ref_threshold_reached=1 fb_threshold_reached=1
+STEP4_DMTD_BOUNDARY board=DE5 [1-11.1] sampled_ref=652111233 accept_ref=0 sampled_fb=652624223 accept_fb=0
+STEP4_QUALIFICATION_ABORT board=DE5 [1-11.1] ref_high=326095910 fb_high=0 delta_mode=MODULO32
+STEP4_EVENT_ACTIVITY board=DE5 [1-11.1] dmtd=0 pending=0 grant=0 tag_valid=0 trr_write=0 irq=0 state_transition=0 helper_update=0
+STEP4_EVENT_BOUNDARY board=DE5 [1-11.1] result=DMTD_SAMPLED_TRANSITION_TO_DEGLITCH_ACCEPT
+=== STEP4_FOCUSED_BOARD DE5 [1-11.2] ===
+STEP4_SERIES board=DE5 [1-11.2] register=SPLL_MODE_SEQUENCE samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00030009 last=00030009 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=RCER samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000001 last=00000001 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=OCER samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=460C2801 last=6D000701 delta=653516544
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_EVENTS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=04A8EA2B last=04A8EA2B delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_EVENTS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0524C64A last=0524C64A delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=10F9ECD0 last=10F9ECD0 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=12BF1EE2 last=12BF1EE2 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=65DD143D last=8CFBC1BB delta=656321918
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=570D22C0 last=7E036BBF delta=653674751
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_HIGH_QUAL_MAX_STAB samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000006 last=00000006 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_D0_LOW_RUN_MAX samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00010006 last=00010006 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_SEEN samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=9118A76B last=A4A878D7 delta=328192364
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_SEEN samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=SPLL_DMTD_STATE samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0C000002 last=0C000002 delta=0
+STEP4_GROUP board=DE5 [1-11.2] group=DMTD_BOUNDARY result=VALID
+STEP4_SERIES64 board=DE5 [1-11.2] register=DMTD_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000015A174FEB2 last=00000015CD711020 delta=737939822 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.2] register=REF_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=000000159A7F73EC last=00000015C67CBD3C delta=738019664 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.2] register=FB_NATIVE_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=00000015A2119668 last=00000015CE0EB405 delta=738008477 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.2] register=REF_POST_DIV_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=0000000ACD60AF75 last=0000000AE35F1EE3 delta=368996206 delta_mode=MODULO64
+STEP4_SERIES64 board=DE5 [1-11.2] register=FB_POST_DIV_EDGE_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0000000AD129BD14 last=0000000AE728223F delta=368993579 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.2] register=DEGLITCH_THRESHOLD samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=004103E8 last=004203E8 delta=65536
+STEP4_SERIES64 board=DE5 [1-11.2] register=REF_D0_TRANSITION_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=000000158E0455A1 last=00000015B9E6A1A6 delta=736250885 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.2] register=NATIVE_REF_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=8E1A6B81 last=00000000 delta=1910871167
+STEP4_SERIES board=DE5 [1-11.2] register=NATIVE_REF_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=10F9ECD0 last=10F9ECD0 delta=0
+STEP4_SERIES64 board=DE5 [1-11.2] register=FB_D0_TRANSITION_COUNT64 samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=000000157F36A353 last=00000015AAED6D75 delta=733399586 delta_mode=MODULO64
+STEP4_SERIES board=DE5 [1-11.2] register=NATIVE_FB_SAMPLED samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=7F4C7F00 last=AB0338A4 delta=733395364
+STEP4_SERIES board=DE5 [1-11.2] register=NATIVE_FB_ACCEPT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=12BF1EE2 last=12BF1EE2 delta=0
+STEP4_DMTD_CLOCK board=DE5 [1-11.2] dmtd_native_delta=737939822 dmtd_elapsed_ms=5904 dmtd_frequency_hz=124989807.249 result=INVALID
+STEP4_INPUT_EDGE board=DE5 [1-11.2] threshold=NA threshold_delta=65536 hit_length=NA ref_raw_delta=738019664 ref_post_div_delta=368996206 ref_post_div_to_raw=0.499981537 ref_post_div_to_dmtd=0.500035633 ref_d0_delta=736250885 ref_d0_to_dmtd_ratio=0.997711281 ref_sampled_delta=1910871167 ref_sampled_to_dmtd_ratio=2.589467474 ref_sampled_to_d0_ratio=2.595407633 ref_accept_delta=0 fb_raw_delta=738008477 fb_post_div_delta=368993579 fb_post_div_to_raw=0.499985556 fb_post_div_to_dmtd=0.500032073 fb_d0_delta=733399586 fb_d0_to_dmtd_ratio=0.993847417 fb_sampled_delta=733395364 fb_sampled_to_dmtd_ratio=0.993841696 fb_sampled_to_d0_ratio=0.999994243 fb_accept_delta=0 result=INVALID counter_cdc=GRAY2_HI_LO_HI
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_REF_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_FB_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_GRANT_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_VALID_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TRR_WRITE_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=092BF59A last=00000000 delta=DECREASED_OR_RESET
+STEP4_GROUP board=DE5 [1-11.2] group=TAG_ARBITRATION result=VALID
+STEP4_SERIES board=DE5 [1-11.2] register=IRQ_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=HELPER_UPDATE_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=STATE_TRANSITION_COUNT samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_GROUP board=DE5 [1-11.2] group=DOWNSTREAM result=VALID
+STEP4_SERIES board=DE5 [1-11.2] register=CURRENT_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=0B31EF1A last=1DD28053 delta=312512825
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_REF_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=25B9E95A last=25B9E95A delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=DMTD_FB_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=25B9E959 last=25B9E959 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_REF_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=25B9E95B last=25B9E95B delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_FB_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=1 first=25B9E95A last=0000000B delta=DECREASED_OR_RESET
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_PENDING_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_GRANT_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TAG_VALID_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_SERIES board=DE5 [1-11.2] register=TRR_WRITE_LAST_TICS samples=10 valid=10 timeout=0 invalid=0 decrease=0 first=00000000 last=00000000 delta=0
+STEP4_GROUP board=DE5 [1-11.2] group=EVENT_TIMING result=VALID
+STEP4_HIGH_QUAL_MAX_STAB board=DE5 [1-11.2] ref_max_before_abort=6 fb_max_before_abort=0
+STEP4_INPUT_D0_LOW_RUN_MAX board=DE5 [1-11.2] ref_max_d0_low_run=6 fb_max_d0_low_run=1
+STEP4_DEGLITCH_STATE board=DE5 [1-11.2] ref_state=2 fb_state=0 ref_stab_bucket=0 fb_stab_bucket=0 ref_threshold_reached=1 fb_threshold_reached=1
+STEP4_DMTD_BOUNDARY board=DE5 [1-11.2] sampled_ref=656321918 accept_ref=0 sampled_fb=653674751 accept_fb=0
+STEP4_QUALIFICATION_ABORT board=DE5 [1-11.2] ref_high=328192364 fb_high=0 delta_mode=MODULO32
+STEP4_EVENT_ACTIVITY board=DE5 [1-11.2] dmtd=0 pending=0 grant=0 tag_valid=0 trr_write=0 irq=0 state_transition=0 helper_update=0
+STEP4_EVENT_BOUNDARY board=DE5 [1-11.2] result=DMTD_SAMPLED_TRANSITION_TO_DEGLITCH_ACCEPT
+STEP4_FOCUSED_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step4_startup_focused.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Mon Aug 24 14:48:01 2026
+    Info: Elapsed time: 00:00:52
+    Info: Total CPU time (on all processors): 00:00:01

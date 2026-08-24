@@ -1,5 +1,37 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step 4 post-divider edge 觀測（2026-08-24，HEAD `e97520f`）
+
+本輪在 branch `exp/step4-post-div-edge-observability` 以 exact HEAD 完成 firmware
+重建、Quartus 17 clean compile、Master/Slave fresh SOF 燒錄與 read-only JTAG
+觀測。沒有修改 WR/PTP/SoftPLL functional behavior。
+
+- Master/Slave SOF SHA256：`bff263cb...4b4d3b2` / `563aaecc...f86a02`
+- programmer checksum：`0x30AA3EE5` / `0x30B06A0E`
+- 兩片均 `Configuration succeeded`、0 errors、0 warnings；整體 timing 仍
+  `TIMING_CLOSED=NO`。
+- Step 2：PASS；Master `MODE=2/PTP=6`，Slave `MODE=3/PTP=9`，兩板 30/30
+  accepted samples、PTP/MiniNIC activity、RXERR=0。
+- Step 3：PASS；Slave foreign=`1/0`、parent=`1/0/1`、RX=`0x1001`、
+  TX=`0x1000`、`LOCK_ENABLE=4`。live state 的 `WRS_IDLE` 與 handshake evidence
+  衝突，保留 `STATE_EVIDENCE=READ_INCONSISTENT`。
+- Step 4 T0/T1 的 REF/FB post-divider edge delta 約為 native edge delta 的
+  `0.5`；D0/sampled transition 有活動，但 REF/FB accept、event、tag、TRR、
+  IRQ、helper 全部沒有 sustained delta。
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4_ALLOWED    = YES
+STEP4_RESULT     = NOT_PASS
+POST_DIV_RATIO   = APPROX_0.5
+ROOT_CAUSE       = NOT_PROVEN
+```
+
+完整紀錄與 raw evidence：
+`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-POSTDIV-20260824.md`
+
 ## 最新 Step 4 D0 transition 64-bit 觀測實驗（2026-08-24，source `63fd80a`）
 
 本輪由 exact source commit `63fd80ad080a951cc8e7ae9d4c7f35d0d3f558ef` 完成 fresh

@@ -119,6 +119,9 @@
 /* Manual read-only diagnostic aliases in the current Step 4 image. */
 #define SPLL_DMTD_REF_WAIT_EDGE_ENTRY_COUNT_ADDR 0xA0
 #define SPLL_DMTD_FB_WAIT_EDGE_ENTRY_COUNT_ADDR  0xA4
+/* Upper 16-bit read-side aliases; functional write behavior is unchanged. */
+#define SPLL_DMTD_REF_LOW_QUAL_ABORT_COUNT_LO16_ADDR 0x48
+#define SPLL_DMTD_FB_LOW_QUAL_ABORT_COUNT_LO16_ADDR  0x28
 
 /* definitions for register: DMTD stat values */
 

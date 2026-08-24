@@ -56,6 +56,8 @@ port (
   diag_dmtd_fb_high_qual_reached_8_count_i  : in     std_logic_vector(15 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_wait_stable0_max_stab_i        : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_low_qual_abort_count_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_low_qual_abort_count_i      : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_d1_high_run_max_i        : in     std_logic_vector(31 downto 0);
@@ -421,6 +423,10 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- OCER only defines bits 7:0. Preserve its readback and expose
+          -- the existing FB WAIT_STABLE_0 low-qualification abort counter
+          -- in the otherwise undefined upper half. Writes remain unchanged.
+          rddata_reg(31 downto 16) <= diag_dmtd_fb_low_qual_abort_count_i(15 downto 0);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "001011" =>
@@ -585,6 +591,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- DEGLITCH_THR only defines bits 15:0. Preserve the threshold and
+          -- expose the existing REF WAIT_STABLE_0 low-qualification abort
+          -- counter in the otherwise undefined upper half. Writes remain
+          -- unchanged.
+          rddata_reg(31 downto 16) <= diag_dmtd_ref_low_qual_abort_count_i(15 downto 0);
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "010011" => 

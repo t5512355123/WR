@@ -8,9 +8,10 @@
 # Usage:
 #   quartus_stp -t read_step4_startup_focused.tcl ?samples? ?gap_ms? ?group?
 #
-# group: lock, events, mapping, or all (default).  The default is 30 samples at 100 ms.
+# group: lock, events, mapping, low_abort, or all (default).  The default is 30 samples at 100 ms.
 # All addresses below are already used by the repository's Step 4 scripts and
-# jtag_register_map.md; this file does not introduce a new functional map.
+# jtag_register_map.md; the low_abort group uses read-side diagnostic aliases
+# and does not introduce a functional control map.
 
 package require ::quartus::insystem_source_probe
 
@@ -25,8 +26,8 @@ if {[lsearch -exact $argv --raw] >= 0} { set raw_mode 1 }
 if {$samples <= 0 || $gap_ms < 0} {
   error "samples must be > 0 and gap_ms must be >= 0"
 }
-if {[lsearch -exact {lock events mapping all} $group] < 0} {
-  error "group must be lock, events, mapping, or all"
+if {[lsearch -exact {lock events mapping low_abort all} $group] < 0} {
+  error "group must be lock, events, mapping, low_abort, or all"
 }
 
 set ::wb_toggle 0
@@ -731,6 +732,49 @@ proc delta_positive {board label} {
   return 0
 }
 
+proc read_low_abort_group {board} {
+  # The counters already exist in dmtd_with_deglitcher.  The current
+  # read-only aliases expose their low 16 bits in undefined readback fields:
+  # DEGLITCH_THR[31:16] for REF and OCER[31:16] for FB.  No write is issued.
+  set items {
+    {LOW_QUAL_ABORT_REF 0x00100248}
+    {LOW_QUAL_ABORT_FB 0x00100228}
+  }
+  foreach item $items { init_series $board [lindex $item 0] }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      set raw_value [wb_read_validated $addr]
+      set value [packed16_field $raw_value]
+      add_series_sample $board $label $sample $value
+      if {$::raw_mode} {
+        puts [format "STEP4_LOW_ABORT_RAW board=%s sample=%03d register=%s raw=%s field31_16=%s" \
+              $board $sample $label $raw_value $value]
+      }
+    }
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  set ref_invalid $::series($board,LOW_QUAL_ABORT_REF,invalid)
+  set fb_invalid $::series($board,LOW_QUAL_ABORT_FB,invalid)
+  set ref_delta [series_delta_mod16 \
+      $::series($board,LOW_QUAL_ABORT_REF,first) \
+      $::series($board,LOW_QUAL_ABORT_REF,last) $ref_invalid]
+  set fb_delta [series_delta_mod16 \
+      $::series($board,LOW_QUAL_ABORT_FB,first) \
+      $::series($board,LOW_QUAL_ABORT_FB,last) $fb_invalid]
+  set ::series($board,LOW_QUAL_ABORT_REF,delta) $ref_delta
+  set ::series($board,LOW_QUAL_ABORT_FB,delta) $fb_delta
+  set result VALID
+  if {$ref_invalid > 0 || $fb_invalid > 0} { set result MEASUREMENT_INVALID_RETEST }
+  puts [format "STEP4_LOW_QUAL_ABORT board=%s samples=%d ref_delta=%s fb_delta=%s ref_valid=%d fb_valid=%d result=%s source=existing_dbg_low_qual_abort_count" \
+        $board $::samples $ref_delta $fb_delta \
+        $::series($board,LOW_QUAL_ABORT_REF,valid) \
+        $::series($board,LOW_QUAL_ABORT_FB,valid) $result]
+}
+
 proc has_invalid {board labels} {
   foreach label $labels {
     if {[series_value $board $label invalid] > 0} { return 1 }
@@ -1028,6 +1072,7 @@ proc run_board {hardware_name device_name} {
   if {$::group eq "lock" || $::group eq "all"} { read_lock_group $hardware_name }
   if {$::group eq "events" || $::group eq "all"} { read_event_group $hardware_name }
   if {$::group eq "mapping" || $::group eq "all"} { read_mapping_group $hardware_name }
+  if {$::group eq "low_abort" || $::group eq "all"} { read_low_abort_group $hardware_name }
   catch { end_insystem_source_probe }
 }
 

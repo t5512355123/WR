@@ -215,6 +215,8 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_high_qual_reached_8_count_i : in std_logic_vector(15 downto 0);
        diag_dmtd_high_qual_max_stab_i : in std_logic_vector(31 downto 0);
        diag_dmtd_wait_stable0_max_stab_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_low_qual_abort_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_low_qual_abort_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_high_run_max_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);
       diag_dmtd_input_d1_high_run_max_i : in std_logic_vector(31 downto 0);
@@ -910,6 +912,8 @@ begin  -- rtl
       diag_dmtd_fb_high_qual_reached_8_count_i => dmtd_fb_high_qual_reached_8_count(0),
        diag_dmtd_high_qual_max_stab_i => dmtd_fb_high_qual_max_stab(0) & dmtd_ref_high_qual_max_stab(0),
        diag_dmtd_wait_stable0_max_stab_i => dmtd_fb_wait_stable0_max_stab(0) & dmtd_ref_wait_stable0_max_stab(0),
+       diag_dmtd_ref_low_qual_abort_count_i => dmtd_ref_low_abort_count(0),
+       diag_dmtd_fb_low_qual_abort_count_i => dmtd_fb_low_abort_count(0),
        diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),
        diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),
        diag_dmtd_input_d1_high_run_max_i => dmtd_fb_input_d1_high_run_max(0) & dmtd_ref_input_d1_high_run_max(0),

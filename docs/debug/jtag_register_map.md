@@ -197,6 +197,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x00100200` | `SPLL_CSR` | SoftPLL control/status |
 | `0x00100204` | `SPLL_ECCR` | SoftPLL event/control status |
 | `0x00100210` | `SPLL_OCCR` | SoftPLL output channel control/status |
+| `0x00100228` | `SPLL_OCER` / `SPLL_DMTD_FB_LOW_QUAL_ABORT_COUNT_LO16` | `OCER` 的功能欄位仍是 bits 7..0；read-side bits 31..16 是既有 feedback `dbg_low_qual_abort_count` 的低 16 位。原本 OCER 寫入行為不變，短時間序列使用 modulo-16 delta |
 | `0x0010022C` | `SPLL_DMTD_REF_ACCEPT_COUNT` | 唯讀、完整 32-bit：reference `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
 | `0x00100230` | `SPLL_DMTD_FB_ACCEPT_COUNT` | 唯讀、完整 32-bit：feedback `dmtd_with_deglitcher` 在 DMTD clock domain 產生 `new_edge_p_dmtdclk` 的 accept 次數；不消費 FIFO、不改設定 |
 | `0x00100234` | `SPLL_DMTD_REF_SAMPLED_TRANSITION_COUNT` | 唯讀、完整 32-bit：reference `clk_sampled` transition 次數，直接來自既有 `dbg_sampled_transition_count_o`；不消費 FIFO、不改設定 |
@@ -204,6 +205,7 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x0010023C` | `SPLL_DMTD_HIGH_QUAL_MAX_STAB` | 唯讀封裝欄位：bits 15..0 是 reference 在 `GOT_EDGE` HIGH qualification abort 前曾達到的最大 `stab_cntr`，bits 31..16 是 feedback 對應值；只觀測 abort 深度，不改 FSM 或 threshold |
 | `0x00100240` | `SPLL_REF_D0_STABLE_HIT_COUNT_LO` | 唯讀 alias：reference `clk_i_d0` stable run 第一次達到 `threshold+1` samples 的 64-bit hit counter bits 31..0；原本 `DAC_HPLL` write side 完整保留 |
 | `0x00100244` | `SPLL_REF_D0_STABLE_HIT_COUNT_HI` | 唯讀 alias：reference D0 stable-hit counter bits 63..32；原本 `DAC_MAIN` write side 完整保留 |
+| `0x00100248` | `SPLL_DEGLITCH_THR` / `SPLL_DMTD_REF_LOW_QUAL_ABORT_COUNT_LO16` | `DEGLITCH_THR` 的功能欄位仍是 bits 15..0；read-side bits 31..16 是既有 reference `dbg_low_qual_abort_count` 的低 16 位。原本 threshold 寫入行為不變，短時間序列使用 modulo-16 delta |
 | `0x0010024C` | `SPLL_FB_D0_STABLE_HIT_COUNT_LO` | 唯讀 alias：feedback D0 stable-hit counter bits 31..0；原本 `DFR_SPLL` write side 完整保留 |
 | `0x00100250` | `SPLL_REF_D0_TRANSITION_COUNT_LO` | 唯讀 alias：reference `clk_i_d0` 64-bit transition counter 的 bits 31..0；計數的是相鄰 DMTD 取樣週期中既有 `clk_i_d0` 值改變的次數，不重新取樣 `clk_in_i` |
 | `0x00100254` | `SPLL_REF_D0_TRANSITION_COUNT_HI` | 唯讀 alias：reference `clk_i_d0` transition counter 的 bits 63..32；歷史 SOF 曾在 `0x250/0x254` 提供 LOW qualification-abort 等診斷，必須依 source/SOF commit 解碼 |
@@ -318,10 +320,13 @@ source 的 sticky abort evidence。它們由 `wr_softpll_ng.vhd` 以相應的
 `clk_sampled='0'` 時增加這個計數。因此 focused JTAG script 若讀到該 bit
 為 1，可以保守寫成「`GOT_EDGE` HIGH qualification 曾因
 `clk_sampled='0'` 中止」；這不是 abort 次數，也不能由該 bit 推出中止頻率。
-目前 `spll_wb_slave` 沒有把 REF/FB 絕對 abort count 映射成獨立可靠的
-Wishbone read address，所以不得把 `DMTD_REF_SEEN`/`DMTD_FB_SEEN` 或歷史
-同址欄位當成目前 fresh image 的 abort count。若 `SPLL_DMTD_STATE` 讀值
-無效，該判讀必須標記 `MEASUREMENT_INVALID_RETEST`，不得推論硬體故障。
+目前 fresh image 將既有 REF/FB LOW qualification-abort counter 的低 16 位
+放在兩個 read-side alias：REF 為 `0x00100248[31:16]`，FB 為
+`0x00100228[31:16]`。這兩個欄位只使用原本未定義的 readback bits；
+`DEGLITCH_THR` 的 bits 15..0、`OCER` 的 bits 7..0 與所有寫入行為均保持不變。
+Tcl 必須把欄位抽出後以 modulo-16 delta 觀察；這是 bounded runtime evidence，
+不是完整 32-bit counter 的永久保存。歷史 SOF 不可直接套用這個 packing。
+若 mailbox read 無效，該筆必須標記 `MEASUREMENT_INVALID_RETEST`，不得推論硬體故障。
 
 ```text
 sampled transition > 0, accept = 0

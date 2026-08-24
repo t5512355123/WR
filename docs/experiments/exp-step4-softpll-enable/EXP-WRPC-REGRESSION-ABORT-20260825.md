@@ -40,6 +40,7 @@
 - Step 2 長時間唯讀觀測：`raw/STEP2-REGRESSION-20260825-115df25-long.txt`
 - Step 2/3 focused 25 samples：`raw/STEP23-REGRESSION-20260825-115df25-handshake.txt`
 - Step 4 abort-cause focused 10 samples：`raw/STEP4-ABORT-CAUSE-20260825-115df25-events.txt`
+- Step 4 qualification-chain repeated 30 samples：`raw/STEP4-QUALIFICATION-CHAIN-20260825-115df25-30x500.txt`
 
 ## 結果一：Tcl reliability
 
@@ -188,6 +189,55 @@ Master 也觀察到相同的 `ref_high_abort_seen=1`、`fb_high_abort_seen=1` �
 - 因此本次讀值支持：兩個 channel 曾發生 `GOT_EDGE` HIGH qualification 因 `clk_sampled='0'` 中止。
 - 這是 abort condition evidence，不是 abort 次數，也不能單靠它推導根因是 polarity、threshold、clock duty-cycle 或其他類比問題。
 
+## 後續 30 samples qualification-chain audit
+
+為避免用 10 samples 過度解讀，使用相同 current image 再執行：
+
+```text
+/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp \
+  -t scripts/jtag/read_step4_startup_focused.tcl 30 500 events
+```
+
+這一輪同樣沒有 program/compile，Quartus 回報 `0 errors, 0 warnings`。
+
+### Master
+
+- `DMTD_REF_GOT_EDGE_ENTRY delta=0`
+- `DMTD_FB_GOT_EDGE_ENTRY delta=0`
+- `DMTD_REF_QUAL_REACHED_8 delta=262144`
+- `DMTD_FB_QUAL_REACHED_8 delta=0`
+- `DMTD_REF_ACCEPT delta=0`
+- `DMTD_FB_ACCEPT delta=0`
+- `TAG/TRR/IRQ/HELPER delta=0`
+- `SPLL_DMTD_STATE=FC00000A`
+- REF/FB `high_abort_seen=1`
+- boundary=`QUALIFICATION_PROGRESS_TO_DEGLITCH_ACCEPT`
+
+### Slave
+
+- `DMTD_REF_GOT_EDGE_ENTRY delta=0`
+- `DMTD_FB_GOT_EDGE_ENTRY delta=0`
+- `DMTD_REF_QUAL_REACHED_8 delta=0`
+- `DMTD_FB_QUAL_REACHED_8 delta=0`
+- `DMTD_REF_ACCEPT delta=0`
+- `DMTD_FB_ACCEPT delta=DECREASED_OR_RESET`；這是 32-bit counter snapshot decrease/reset 類型的 measurement caveat，不直接當成硬體 error
+- `TAG/TRR/IRQ/HELPER delta=0`
+- `SPLL_DMTD_STATE=FC00000A`
+- REF/FB `high_abort_seen=1`
+- `STEP4_QUALIFICATION_ABORT_CAUSE=GOT_EDGE_HIGH_ABORT(clk_sampled=0)`
+- boundary=`QUALIFICATION_ABORT_AFTER_GOT_EDGE`
+
+### 30 samples 的新增判讀
+
+這次 repeated audit 顯示 DMTD sampled / D0 counters 持續增加，但 `GOT_EDGE_ENTRY` 在這個視窗沒有新增；因此目前不能把 sticky `GOT_EDGE` bit 解讀成「每個 sample 都反覆進入 GOT_EDGE」。較保守、證據支持的描述是：
+
+```text
+歷史上曾進入 GOT_EDGE，且曾發生 HIGH qualification abort；
+本次 30-sample window 沒有新的 GOT_EDGE entry，也沒有新的 sustained ACCEPT。
+```
+
+Master 的 REF `QUAL_REACHED_8` 有 activity，但仍沒有 accept；Slave 的 REF/FB `QUAL_REACHED_8` 都沒有新增。這表示下一個 blocker 仍在 `GOT_EDGE / qualification -> ACCEPT` 邊界，但目前不能再聲稱「abort 每次都在重複發生」。
+
 ## Regression barrier 結果
 
 ```text
@@ -232,3 +282,4 @@ GOT_EDGE
 1. 保留 Step 2/3 回歸結果，不修改 role、PTP、WR signaling 或 SoftPLL 演算法。
 2. 在允許 fresh hardware provenance 後，以 exact source commit 建立並燒錄 fresh image，再重跑同一組 Step 2/3 barrier。
 3. 若 fresh image 仍重現相同 abort，才在 read-only source-backed範圍內繼續拆解 `clk_sampled` 到 deglitcher 的邊界證據；不要先改 threshold、polarity、PI、lock threshold、DCO 或 SI5340。
+4. 下一個 read-only 實驗應繼續保留 `GOT_EDGE_ENTRY`、`QUAL_REACHED_8`、`ACCEPT` 三者的分離，不要以 sticky bit 推算事件頻率；若要取得新資訊，先確認現有 source-backed counter 的 image mapping 與 mailbox snapshot consistency。

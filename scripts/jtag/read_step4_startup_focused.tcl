@@ -8,7 +8,7 @@
 # Usage:
 #   quartus_stp -t read_step4_startup_focused.tcl ?samples? ?gap_ms? ?group?
 #
-# group: lock, events, or all (default).  The default is 30 samples at 100 ms.
+# group: lock, events, mapping, or all (default).  The default is 30 samples at 100 ms.
 # All addresses below are already used by the repository's Step 4 scripts and
 # jtag_register_map.md; this file does not introduce a new functional map.
 
@@ -25,8 +25,8 @@ if {[lsearch -exact $argv --raw] >= 0} { set raw_mode 1 }
 if {$samples <= 0 || $gap_ms < 0} {
   error "samples must be > 0 and gap_ms must be >= 0"
 }
-if {[lsearch -exact {lock events all} $group] < 0} {
-  error "group must be lock, events, or all"
+if {[lsearch -exact {lock events mapping all} $group] < 0} {
+  error "group must be lock, events, mapping, or all"
 }
 
 set ::wb_toggle 0
@@ -561,6 +561,70 @@ proc series_value {board label field} {
   return ""
 }
 
+proc packed16_delta {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {(($b >> 16) - ($a >> 16)) & 0xffff}]
+}
+
+proc read_mapping_group {board} {
+  # This group intentionally reads only existing source-backed diagnostic
+  # addresses.  QUAL_REACHED_8 is packed in bits 31..16; the low EIC bit is
+  # not part of the counter.  No snapshot/control register is written.
+  set items {
+    {REF_GOT_EDGE_ENTRY_MAPPING 0x001002F0}
+    {REF_QUAL8_MAPPING 0x00100268}
+    {REF_ACCEPT_MAPPING 0x0010022C}
+    {FB_GOT_EDGE_ENTRY_MAPPING 0x001002F4}
+    {FB_QUAL8_MAPPING 0x0010026C}
+    {FB_ACCEPT_MAPPING 0x00100230}
+  }
+  foreach item $items {
+    init_series $board [lindex $item 0]
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    set values {}
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      set value [wb_read_validated $addr]
+      add_series_sample $board $label $sample $value
+      lappend values [format "%s=%s" $label $value]
+    }
+    puts [format "STEP4_MAPPING_SAMPLE board=%s sample=%03d %s" \
+          $board $sample [join $values " "]]
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  foreach item $items {
+    finish_series $board [lindex $item 0]
+  }
+
+  set ref_got [series_delta_mod32 $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set ref_qual [packed16_delta $::series($board,REF_QUAL8_MAPPING,first) \
+      $::series($board,REF_QUAL8_MAPPING,last) \
+      $::series($board,REF_QUAL8_MAPPING,invalid)]
+  set ref_accept [series_delta_mod32 $::series($board,REF_ACCEPT_MAPPING,first) \
+      $::series($board,REF_ACCEPT_MAPPING,last) \
+      $::series($board,REF_ACCEPT_MAPPING,invalid)]
+  set fb_got [series_delta_mod32 $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set fb_qual [packed16_delta $::series($board,FB_QUAL8_MAPPING,first) \
+      $::series($board,FB_QUAL8_MAPPING,last) \
+      $::series($board,FB_QUAL8_MAPPING,invalid)]
+  set fb_accept [series_delta_mod32 $::series($board,FB_ACCEPT_MAPPING,first) \
+      $::series($board,FB_ACCEPT_MAPPING,last) \
+      $::series($board,FB_ACCEPT_MAPPING,invalid)]
+  puts [format "STEP4_MAPPING_SUMMARY board=%s ref_got_edge_delta=%s ref_qual8_field_delta=%s ref_accept_delta=%s fb_got_edge_delta=%s fb_qual8_field_delta=%s fb_accept_delta=%s" \
+        $board $ref_got $ref_qual $ref_accept $fb_got $fb_qual $fb_accept]
+}
+
 proc delta_positive {board label} {
   set delta [series_value $board $label delta]
   if {[string is integer -strict $delta]} { return [expr {$delta > 0}] }
@@ -834,6 +898,7 @@ proc run_board {hardware_name device_name} {
   wb_sync_toggle
   if {$::group eq "lock" || $::group eq "all"} { read_lock_group $hardware_name }
   if {$::group eq "events" || $::group eq "all"} { read_event_group $hardware_name }
+  if {$::group eq "mapping" || $::group eq "all"} { read_mapping_group $hardware_name }
   catch { end_insystem_source_probe }
 }
 

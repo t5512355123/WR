@@ -50,6 +50,8 @@ port (
   diag_dmtd_fb_wait_edge_entry_count_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_got_edge_entry_seen_i      : in     std_logic;
   diag_dmtd_fb_got_edge_entry_seen_i       : in     std_logic;
+  diag_dmtd_ref_high_qual_reached_8_count_i : in     std_logic_vector(15 downto 0);
+  diag_dmtd_fb_high_qual_reached_8_count_i  : in     std_logic_vector(15 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
@@ -744,6 +746,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- Preserve EIC_IMR bit 0 and all write behavior. The upper half of
+          -- the read side is a diagnostic-only REF alias.
+          rddata_reg <= (others => '0');
+          rddata_reg(0) <= eic_imr_int(0);
+          rddata_reg(31 downto 16) <= diag_dmtd_ref_high_qual_reached_8_count_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011011" => 
@@ -782,6 +789,11 @@ begin
           rddata_reg(29) <= 'X';
           rddata_reg(30) <= 'X';
           rddata_reg(31) <= 'X';
+          -- Preserve EIC_ISR bit 0 and all write behavior. The upper half of
+          -- the read side is a diagnostic-only FB alias.
+          rddata_reg <= (others => '0');
+          rddata_reg(0) <= eic_isr_status_int(0);
+          rddata_reg(31 downto 16) <= diag_dmtd_fb_high_qual_reached_8_count_i;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "011100" => 

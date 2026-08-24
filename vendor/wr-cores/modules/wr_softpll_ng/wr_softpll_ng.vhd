@@ -209,6 +209,8 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_wait_edge_entry_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_got_edge_entry_seen_i : in std_logic;
       diag_dmtd_fb_got_edge_entry_seen_i : in std_logic;
+      diag_dmtd_ref_high_qual_reached_8_count_i : in std_logic_vector(15 downto 0);
+      diag_dmtd_fb_high_qual_reached_8_count_i : in std_logic_vector(15 downto 0);
        diag_dmtd_high_qual_max_stab_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_high_run_max_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);
@@ -412,6 +414,8 @@ architecture rtl of wr_softpll_ng is
     signal dmtd_fb_wait_edge_entry_count : t_diag_counter_array(0 to g_num_outputs-1);
     signal dmtd_ref_got_edge_entry_seen : std_logic_vector(g_num_ref_inputs-1 downto 0);
     signal dmtd_fb_got_edge_entry_seen : std_logic_vector(g_num_outputs-1 downto 0);
+    signal dmtd_ref_high_qual_reached_8_count : t_diag_stab_count_array(0 to g_num_ref_inputs-1);
+    signal dmtd_fb_high_qual_reached_8_count : t_diag_stab_count_array(0 to g_num_outputs-1);
   signal dmtd_ref_low_abort_count : t_diag_abort_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_ref_high_abort_count : t_diag_abort_count_array(0 to g_num_ref_inputs-1);
   signal dmtd_fb_low_abort_count : t_diag_abort_count_array(0 to g_num_outputs-1);
@@ -597,6 +601,7 @@ begin  -- rtl
           dbg_d0_stable_hit_count_o => dmtd_ref_d0_stable_hit_count(i),
           dbg_wait_edge_entry_count_o => dmtd_ref_wait_edge_entry_count(i),
           dbg_got_edge_entry_seen_o => dmtd_ref_got_edge_entry_seen(i),
+          dbg_high_qual_reached_8_count_o => dmtd_ref_high_qual_reached_8_count(i),
           dbg_low_qual_abort_count_o => dmtd_ref_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_ref_high_abort_count(i),
         dbg_high_qual_abort_depth_sum_o => dmtd_ref_high_abort_depth_sum(i),
@@ -659,6 +664,7 @@ begin  -- rtl
           dbg_d0_stable_hit_count_o => dmtd_fb_d0_stable_hit_count(i),
           dbg_wait_edge_entry_count_o => dmtd_fb_wait_edge_entry_count(i),
           dbg_got_edge_entry_seen_o => dmtd_fb_got_edge_entry_seen(i),
+          dbg_high_qual_reached_8_count_o => dmtd_fb_high_qual_reached_8_count(i),
           dbg_low_qual_abort_count_o => dmtd_fb_low_abort_count(i),
         dbg_high_qual_abort_count_o => dmtd_fb_high_abort_count(i),
         dbg_high_qual_abort_depth_sum_o => dmtd_fb_high_abort_depth_sum(i),
@@ -722,6 +728,7 @@ begin  -- rtl
           dbg_d0_stable_hit_count_o => open,
           dbg_wait_edge_entry_count_o => open,
           dbg_got_edge_entry_seen_o => open,
+          dbg_high_qual_reached_8_count_o => open,
           dbg_low_qual_abort_count_o => open,
         dbg_high_qual_abort_count_o => open,
         dbg_high_qual_abort_depth_sum_o => open,
@@ -874,6 +881,8 @@ begin  -- rtl
       diag_dmtd_fb_wait_edge_entry_count_i => dmtd_fb_wait_edge_entry_count(0),
       diag_dmtd_ref_got_edge_entry_seen_i => dmtd_ref_got_edge_entry_seen(0),
       diag_dmtd_fb_got_edge_entry_seen_i => dmtd_fb_got_edge_entry_seen(0),
+      diag_dmtd_ref_high_qual_reached_8_count_i => dmtd_ref_high_qual_reached_8_count(0),
+      diag_dmtd_fb_high_qual_reached_8_count_i => dmtd_fb_high_qual_reached_8_count(0),
        diag_dmtd_high_qual_max_stab_i => dmtd_fb_high_qual_max_stab(0) & dmtd_ref_high_qual_max_stab(0),
        diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),
        diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),

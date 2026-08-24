@@ -211,6 +211,8 @@ Tcl 會等待 `done_toggle` 等於本次 request toggle 且 `active=0`，再取�
 | `0x0010025C` | `SPLL_DMTD_INPUT_D0_LOW_RUN_MAX` | 唯讀封裝欄位：bits 15..0 是 reference `clk_i_d0` 的最大連續 LOW sample 數，bits 31..16 是 feedback 對應值；`clk_i_d0` 位於 `clk_in` 與 `clk_i_d1` 之間，用來定位 sampler 取樣邊界，不回饋 `clk_sampled_o` |
 | `0x00100260` | `SPLL_FB_D0_TRANSITION_COUNT_LO` | 唯讀診斷 alias：feedback `clk_i_d0` 64-bit transition counter 的 bits 31..0；寫入側仍保留既有 `EIC_IDR` 行為 |
 | `0x00100264` | `SPLL_FB_D0_TRANSITION_COUNT_HI` | 唯讀診斷 alias：feedback `clk_i_d0` transition counter 的 bits 63..32；寫入側仍保留既有 `EIC_IER` 行為。歷史 SOF 在 `0x260/0x264` 的診斷意義不同，必須依 source/SOF commit 解碼 |
+| `0x00100268` | `SPLL_DMTD_REF_QUAL_REACHED_8_COUNT` | 唯讀 read-side alias：保留 `EIC_IMR` bit 0 與全部寫入行為，bits 31..16 是 reference 在 `GOT_EDGE` HIGH qualification 中累積到 8 個連續 HIGH samples 的次數；只觀測 progress，不改 FSM/threshold |
+| `0x0010026C` | `SPLL_DMTD_FB_QUAL_REACHED_8_COUNT` | 唯讀 read-side alias：保留 `EIC_ISR` bit 0 與全部寫入行為，bits 31..16 是 feedback 在 `GOT_EDGE` HIGH qualification 中累積到 8 個連續 HIGH samples 的次數；只觀測 progress，不改 FSM/threshold |
 
 `D0_STABLE_HIT_COUNT64` 在 sampler 的 DMTD clock domain 直接觀察既有
 `clk_i_d0`。若目前 functional threshold 為 `T`，第一個 sample 的 run length

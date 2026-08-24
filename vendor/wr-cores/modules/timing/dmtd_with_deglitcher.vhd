@@ -188,7 +188,10 @@ entity dmtd_with_deglitcher is
      -- Count exact WAIT_STABLE_0 -> WAIT_EDGE transitions. Read-only.
      dbg_wait_edge_entry_count_o : out std_logic_vector(31 downto 0);
      -- Sticky read-only evidence that WAIT_EDGE -> GOT_EDGE occurred.
-     dbg_got_edge_entry_seen_o : out std_logic
+     dbg_got_edge_entry_seen_o : out std_logic;
+     -- Count GOT_EDGE qualification attempts that reach eight HIGH samples.
+     -- This is diagnostic-only and does not change the FSM or threshold.
+     dbg_high_qual_reached_8_count_o : out std_logic_vector(15 downto 0)
      );
 end dmtd_with_deglitcher;
 
@@ -261,6 +264,8 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_got_edge_entry_seen : std_logic := '0';
    signal dbg_got_edge_entry_seen_vec : std_logic_vector(0 downto 0);
    signal dbg_got_edge_entry_seen_sys_vec : std_logic_vector(0 downto 0);
+   signal dbg_high_qual_reached_8_count : unsigned(15 downto 0) := (others => '0');
+   signal dbg_high_qual_reached_8_count_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
   signal dbg_stab_reached_vec : std_logic_vector(0 downto 0);
   signal dbg_stab_reached_sys : std_logic;
@@ -517,6 +522,16 @@ begin  -- rtl
    dbg_got_edge_entry_seen_vec(0) <= dbg_got_edge_entry_seen;
    dbg_got_edge_entry_seen_o <= dbg_got_edge_entry_seen_sys_vec(0);
 
+   U_sync_dbg_high_qual_reached_8_count : entity work.gc_sync_register
+     generic map (g_width => 16)
+     port map (
+       clk_i => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i => std_logic_vector(dbg_high_qual_reached_8_count),
+       q_o => dbg_high_qual_reached_8_count_sys);
+
+   dbg_high_qual_reached_8_count_o <= dbg_high_qual_reached_8_count_sys;
+
   U_Sync_Resync_Pulse : gc_sync_ffs
     generic map (
       g_sync_edge => "positive")
@@ -666,6 +681,7 @@ begin  -- rtl
         dbg_deglitch_accept_count <= (others => '0');
         dbg_wait_edge_entry_count <= (others => '0');
         dbg_got_edge_entry_seen <= '0';
+        dbg_high_qual_reached_8_count <= (others => '0');
       else
         if clk_sampled /= clk_sampled_d then
           dbg_sampled_transition_count <= dbg_sampled_transition_count + 1;
@@ -679,6 +695,12 @@ begin  -- rtl
         end if;
         if state = WAIT_EDGE and clk_sampled /= '0' then
           dbg_got_edge_entry_seen <= '1';
+        end if;
+        if state = GOT_EDGE and clk_sampled /= '0' and
+           stab_cntr = to_unsigned(7, stab_cntr'length) and
+           unsigned(r_deglitch_threshold_i) > to_unsigned(7, r_deglitch_threshold_i'length) then
+          dbg_high_qual_reached_8_count <=
+            f_sat_inc(dbg_high_qual_reached_8_count);
         end if;
         clk_sampled_d <= clk_sampled;
       end if;

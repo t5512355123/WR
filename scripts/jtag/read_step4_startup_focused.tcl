@@ -602,7 +602,8 @@ proc print_event_boundary {board} {
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
               DMTD_REF_ACCEPT DMTD_FB_ACCEPT \
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
-               DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY}
+               DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY \
+               DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -618,6 +619,8 @@ proc print_event_boundary {board} {
                            [delta_positive $board DMTD_FB_ACCEPT]}]
   set qualification_entry_active [expr {[delta_positive $board DMTD_REF_WAIT_EDGE_ENTRY] || \
                                         [delta_positive $board DMTD_FB_WAIT_EDGE_ENTRY]}]
+  set qualification_progress_active [expr {[delta_positive $board DMTD_REF_QUAL_REACHED_8] || \
+                                           [delta_positive $board DMTD_FB_QUAL_REACHED_8]}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
                              [delta_positive $board TAG_PENDING_FB_COUNT]}]
@@ -644,8 +647,9 @@ proc print_event_boundary {board} {
      puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
    }
 
-   set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
+  set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
   set dmtd_state_word [word32 $dmtd_state_value]
+  set got_edge_active 0
   if {$dmtd_state_word >= 0} {
     set ref_state [expr {$dmtd_state_word & 0x3}]
     set fb_state [expr {($dmtd_state_word >> 2) & 0x3}]
@@ -655,6 +659,7 @@ proc print_event_boundary {board} {
     set fb_reached [expr {($dmtd_state_word >> 27) & 1}]
      set ref_got_edge [expr {($dmtd_state_word >> 28) & 1}]
      set fb_got_edge [expr {($dmtd_state_word >> 29) & 1}]
+     set got_edge_active [expr {$ref_got_edge || $fb_got_edge}]
      puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
            $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_got_edge $fb_got_edge]
   } else {
@@ -667,7 +672,11 @@ proc print_event_boundary {board} {
      puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
   }
 
-  if {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_entry_active} {
+  if {$got_edge_active && !$qualification_progress_active && !$accept_active} {
+    set boundary "GOT_EDGE_TO_QUALIFICATION_PROGRESS"
+  } elseif {$qualification_progress_active && !$accept_active} {
+    set boundary "QUALIFICATION_PROGRESS_TO_DEGLITCH_ACCEPT"
+  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_entry_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
@@ -703,6 +712,9 @@ proc print_event_boundary {board} {
   puts [format "STEP4_QUALIFICATION_ENTRY board=%s ref=%s fb=%s" \
         $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
         [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
+  puts [format "STEP4_QUALIFICATION_PROGRESS board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_QUAL_REACHED_8 delta] \
+        [series_value $board DMTD_FB_QUAL_REACHED_8 delta]]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d trr_pop=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $trr_pop_active $irq_active $state_active $helper_active]
@@ -739,6 +751,8 @@ proc read_event_group {board} {
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
     {DMTD_REF_WAIT_EDGE_ENTRY 0x001002A0}
     {DMTD_FB_WAIT_EDGE_ENTRY 0x001002A4}
+    {DMTD_REF_QUAL_REACHED_8 0x00100268}
+    {DMTD_FB_QUAL_REACHED_8 0x0010026C}
     {SPLL_DMTD_STATE 0x001002DC}
   }
   set arbitration_items {

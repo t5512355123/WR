@@ -251,7 +251,9 @@ proc status_text {status} {
     # The Step result remains NA/RETEST internally.
     INVALID { return "info" }
   }
-  return $status
+  # Keep the default UI contract closed: runtime lines may only use the
+  # three dashboard states, even if a future caller passes an unknown value.
+  return "info"
 }
 
 proc step_status_text {status} {
@@ -559,12 +561,14 @@ proc collect_snapshot {board label} {
 }
 
 proc print_signal {status chinese symbol value expected explanation} {
+  # Keep one compact record per signal.  Descriptive arguments remain in the
+  # call sites/comments for source context but are not printed by default.
   set expected_display [expr {$status eq "INFO" || $status eq "INVALID" ? "NA" : $expected}]
   puts [format {[%s] %-24s 結果: %s/%s} \
     [status_text $status] $symbol [display_value $value] $expected_display]
 }
 
-proc print_delta {status chinese symbol before after delta explanation {expected "delta > 0"}} {
+proc print_delta {status chinese symbol before after delta explanation {expected "Δ>0"}} {
   set expected_display [expr {$status eq "INFO" || $status eq "INVALID" ? "NA" : $expected}]
   puts [format {[%s] %-24s 結果: Δ=%s/%s} \
     [status_text $status] $symbol [display_value $delta] $expected_display]
@@ -699,7 +703,7 @@ proc analyze_board {board} {
     [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "ROLE")} ] ""
   print_signal $ptp_status "PTP State" WDIAGS_PTP \
     [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
-    [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE (startup:8)" : "ROLE")} ] ""
+    [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE" : "ROLE")} ] ""
 
   set step2_activity_invalid 0
   array set step2_activity {}
@@ -727,21 +731,21 @@ proc analyze_board {board} {
   if {$rd eq "TIMEOUT"} {
     set rxerr_status INVALID
     set rxerr_explanation "JTAG snapshot 至少一筆逾時，沒有足夠證據判斷新增 RX error。"
-    set rxerr_expected "兩次有效讀值且 delta=0"
+    set rxerr_expected "Δ=0"
   } elseif {$rd eq "DECREASED"} {
     # A decrease is not a new error. It is compatible with reset, clear, or
     # a non-atomic snapshot boundary, so keep it informational for Step 2.
     set rxerr_status INFO
     set rxerr_explanation "after 小於 before；這表示 counter reset/clear 或 snapshot 邊界，不把它解讀成新增 error。"
-    set rxerr_expected "delta=0；若 counter 下降，僅記錄為非單調讀值"
+    set rxerr_expected "Δ=0"
   } elseif {$rd == 0} {
     set rxerr_status PASS
     set rxerr_explanation "delta=0 表示本次沒有新增 RX error。"
-    set rxerr_expected "delta=0（本次沒有新增 error）"
+    set rxerr_expected "Δ=0"
   } else {
     set rxerr_status WARN
     set rxerr_explanation "delta>0 表示本次觀測期間出現 RX error；不單獨推論根因。"
-    set rxerr_expected "delta=0（本次沒有新增 error）"
+    set rxerr_expected "Δ=0"
   }
   if {$rxerr_status eq "INVALID"} { set step2_activity_invalid 1 }
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \

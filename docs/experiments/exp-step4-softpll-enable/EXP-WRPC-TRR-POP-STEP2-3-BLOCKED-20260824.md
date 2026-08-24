@@ -141,9 +141,31 @@ STEP4_ALLOWED     = NO
 ## 7. 下一步
 
 1. 保留目前 fresh `1bcbd37` SOF 與本次所有 raw evidence，不覆蓋。
-2. 先由 source audit 對照 `51864b874...` 與 `b7d262b...`，辨識哪些 functional delta 可能破壞 Step 2/3。
+2. source audit 已找到一個需要 A/B 驗證、但尚未證明的 regression candidate：已知可通過 Step 2/3 的 control source `7dd298bb`/`48ba8b1` 中，Slave top 沒有 `g_softpll_reverse_dmtds`；目前 `1bcbd37` 的 Slave top 則設為 `g_softpll_reverse_dmtds => true`。這個 functional 變更由 `b7d262b` 引入，不能只靠本次結果宣稱為根因。
 3. 在未取得可靠 Step 2/3 regression PASS 前，不進行 Step 4 functional experiment。
-4. 下一輪若需要重新 program，必須先建立獨立 commit、重新產生 MIF/SOF、保存 hash/programmer output，並立即新增實驗紀錄。
+4. 若 reviewer 同意下一輪只回復這一個 functional variable，必須建立獨立 commit，重新產生 MIF/SOF、保存 hash/programmer output，並立即新增實驗紀錄。
+
+## 7.1 Source audit evidence
+
+目前 exact source 查核結果：
+
+```text
+7dd298bb / 48ba8b1 Slave top:
+  g_softpll_reverse_dmtds  未設定
+
+b7d262b / 1bcbd37 Slave top:
+  g_softpll_reverse_dmtds  => true
+```
+
+因此目前最保守的分類是：
+
+```text
+HARDWARE/FIRMWARE FAILURE  = 尚未證明
+JTAG/DASHBOARD FAILURE      = 不是主要解釋
+REGRESSION CANDIDATE        = Slave reverse-DMTD top-level generic
+```
+
+這只是 source-backed candidate，不是 root-cause conclusion；在下一個單一變因 A/B 之前，不應把它寫成已確定的功能故障。
 
 ## 8. 原始證據索引
 

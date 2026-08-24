@@ -225,7 +225,9 @@ proc series_delta_mod64 {first last invalid} {
 }
 
 proc init_series {board label} {
-  foreach field {valid invalid timeout decrease first last previous delta hist first_ms last_ms} {
+  foreach field {valid invalid timeout decrease first last previous delta hist first_ms last_ms \
+                 wait_stable_ref_bucket_max wait_stable_fb_bucket_max \
+                 wait_stable_ref_samples wait_stable_fb_samples} {
     set ::series($board,$label,$field) 0
   }
   set ::series($board,$label,first) ""
@@ -261,6 +263,28 @@ proc add_series_sample {board label sample value} {
     set ::series($board,$label,decrease) 1
   }
   set ::series($board,$label,previous) $word
+  if {$label eq "SPLL_DMTD_STATE"} {
+    # SPLL_DMTD_STATE is an existing packed, read-only snapshot.  Its
+    # source-backed fields are ref_state [1:0], fb_state [3:2], ref bucket
+    # [17:10], and fb bucket [25:18].  This is only a sampled coarse proxy;
+    # it is not the full functional stab_cntr and does not feed hardware.
+    set ref_state [expr {$word & 0x3}]
+    set fb_state [expr {($word >> 2) & 0x3}]
+    set ref_bucket [expr {($word >> 10) & 0xff}]
+    set fb_bucket [expr {($word >> 18) & 0xff}]
+    if {$ref_state == 0} {
+      incr ::series($board,$label,wait_stable_ref_samples)
+      if {$ref_bucket > $::series($board,$label,wait_stable_ref_bucket_max)} {
+        set ::series($board,$label,wait_stable_ref_bucket_max) $ref_bucket
+      }
+    }
+    if {$fb_state == 0} {
+      incr ::series($board,$label,wait_stable_fb_samples)
+      if {$fb_bucket > $::series($board,$label,wait_stable_fb_bucket_max)} {
+        set ::series($board,$label,wait_stable_fb_bucket_max) $fb_bucket
+      }
+    }
+  }
   if {$::raw_mode} {
     puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
           $board $label $sample $value]
@@ -795,6 +819,12 @@ proc print_event_boundary {board} {
     set high_abort_seen_active [expr {$ref_high_abort_seen || $fb_high_abort_seen}]
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_high_abort_seen=%d fb_high_abort_seen=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
           $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_high_abort_seen $fb_high_abort_seen $ref_got_edge $fb_got_edge]
+    puts [format "STEP4_WAIT_STABLE0_BUCKET_MAX board=%s ref_max=%d fb_max=%d ref_samples=%d fb_samples=%d source=SPLL_DMTD_STATE_bucket_coarse_proxy" \
+          $board \
+          [series_value $board SPLL_DMTD_STATE wait_stable_ref_bucket_max] \
+          [series_value $board SPLL_DMTD_STATE wait_stable_fb_bucket_max] \
+          [series_value $board SPLL_DMTD_STATE wait_stable_ref_samples] \
+          [series_value $board SPLL_DMTD_STATE wait_stable_fb_samples]]
 
     # Source-backed interpretation from dmtd_with_deglitcher.vhd:
     # a sticky high-abort bit is set when a GOT_EDGE HIGH qualification
@@ -818,6 +848,7 @@ proc print_event_boundary {board} {
     set ref_reached NA
     set fb_reached NA
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_high_abort_seen=NA fb_high_abort_seen=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
+    puts [format "STEP4_WAIT_STABLE0_BUCKET_MAX board=%s result=MEASUREMENT_INVALID_RETEST source=SPLL_DMTD_STATE_bucket_coarse_proxy" $board]
     puts [format "STEP4_QUALIFICATION_ABORT_CAUSE board=%s result=MEASUREMENT_INVALID_RETEST evidence=SPLL_DMTD_STATE_STICKY" $board]
   }
 

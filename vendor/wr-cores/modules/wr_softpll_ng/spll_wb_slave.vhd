@@ -63,8 +63,16 @@ port (
   diag_dmtd_ref_d0_stable_hit_count_hi_i   : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_d0_stable_hit_count_lo_i    : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_d0_stable_hit_count_hi_i    : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_native_edge_count_lo_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_native_edge_count_hi_i     : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_native_edge_count_lo_i      : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_native_edge_count_hi_i      : in     std_logic_vector(31 downto 0);
   diag_dmtd_native_edge_count_lo_i         : in     std_logic_vector(31 downto 0);
   diag_dmtd_native_edge_count_hi_i         : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_post_div_edge_count_lo_i   : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_post_div_edge_count_hi_i   : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_post_div_edge_count_lo_i    : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_post_div_edge_count_hi_i    : in     std_logic_vector(31 downto 0);
   diag_tag_pending_count_i                 : in     std_logic_vector(31 downto 0);
   diag_tag_grant_count_i                   : in     std_logic_vector(31 downto 0);
   diag_current_tics_i                      : in     std_logic_vector(31 downto 0);
@@ -450,7 +458,7 @@ begin
           ack_in_progress <= '1';
         when "010110" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_fb_d0_stable_hit_count_hi_i;
+            rddata_reg <= diag_dmtd_fb_native_edge_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -498,8 +506,8 @@ begin
           rddata_reg(31) <= 'X';
           if (wb_we_i = '0') then
             -- DAC_HPLL is write-only. Preserve its write behavior and use
-            -- only the read side for the REF D0 stable-hit low word.
-            rddata_reg <= diag_dmtd_ref_d0_stable_hit_count_lo_i;
+            -- only the read side for the REF native-edge low word.
+            rddata_reg <= diag_dmtd_ref_native_edge_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -542,8 +550,8 @@ begin
           rddata_reg(31) <= 'X';
           if (wb_we_i = '0') then
             -- DAC_MAIN is write-only. Preserve its write behavior and use
-            -- only the read side for the REF D0 stable-hit high word.
-            rddata_reg <= diag_dmtd_ref_d0_stable_hit_count_hi_i;
+            -- only the read side for the REF native-edge high word.
+            rddata_reg <= diag_dmtd_ref_native_edge_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -609,8 +617,8 @@ begin
           rddata_reg(31) <= 'X';
           if (wb_we_i = '0') then
             -- DFR_SPLL is write-only. Preserve its write behavior and use
-            -- only the read side for the FB D0 stable-hit low word.
-            rddata_reg <= diag_dmtd_fb_d0_stable_hit_count_lo_i;
+            -- only the read side for the FB native-edge low word.
+            rddata_reg <= diag_dmtd_fb_native_edge_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
@@ -1018,25 +1026,25 @@ begin
           ack_in_progress <= '1';
         when "111000" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_ref_enabled_count_i;
+            rddata_reg <= diag_dmtd_ref_post_div_edge_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "111001" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_feedback_enabled_count_i;
+            rddata_reg <= diag_dmtd_ref_post_div_edge_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "111010" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_req_ref_set_count_i;
+            rddata_reg <= diag_dmtd_fb_post_div_edge_count_lo_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "111011" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_tag_req_feedback_set_count_i;
+            rddata_reg <= diag_dmtd_fb_post_div_edge_count_hi_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

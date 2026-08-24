@@ -397,12 +397,14 @@ proc read_group {board group_name items} {
         $board $group_name $group_result]
 }
 
-proc read_d0_stable_group {board} {
+proc read_input_edge_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
+                 REF_NATIVE_EDGE_COUNT64 FB_NATIVE_EDGE_COUNT64 \
+                 REF_POST_DIV_EDGE_COUNT64 FB_POST_DIV_EDGE_COUNT64 \
                  DEGLITCH_THRESHOLD \
-                 REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
+                 REF_D0_TRANSITION_COUNT64 \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
-                 FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
+                 FB_D0_TRANSITION_COUNT64 \
                  NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
@@ -412,13 +414,23 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample64 $board DMTD_NATIVE_EDGE_COUNT64 $sample $value \
       [clock milliseconds]
 
+    set value [wb_read_u64_consistent 0x00100240 0x00100244]
+    add_timed_series_sample64 $board REF_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x0010024C 0x00100258]
+    add_timed_series_sample64 $board FB_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x001002E0 0x001002E4]
+    add_timed_series_sample64 $board REF_POST_DIV_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x001002E8 0x001002EC]
+    add_timed_series_sample64 $board FB_POST_DIV_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+
     set value [wb_read_validated 0x00100248]
     add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
       [clock milliseconds]
-    set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
-    set value [wb_read_u64_non_decreasing 0x00100240 0x00100244 $previous]
-    add_timed_series_sample64 $board REF_D0_STABLE_HIT_COUNT64 $sample $value \
-      [clock milliseconds]
+    # 0x240/0x244 are the fresh-build REF native input edge aliases.
     set value [wb_read_u64_consistent 0x00100250 0x00100254]
     add_timed_series_sample64 $board REF_D0_TRANSITION_COUNT64 $sample $value \
       [clock milliseconds]
@@ -429,10 +441,7 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
       [clock milliseconds]
 
-    set previous [series_value $board FB_D0_STABLE_HIT_COUNT64 last]
-    set value [wb_read_u64_non_decreasing 0x0010024C 0x00100258 $previous]
-    add_timed_series_sample64 $board FB_D0_STABLE_HIT_COUNT64 $sample $value \
-      [clock milliseconds]
+    # 0x24c/0x258 are the fresh-build FB native input edge aliases.
     set value [wb_read_u64_consistent 0x00100260 0x00100264]
     add_timed_series_sample64 $board FB_D0_TRANSITION_COUNT64 $sample $value \
       [clock milliseconds]
@@ -446,12 +455,14 @@ proc read_d0_stable_group {board} {
   }
 
   finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
+  finish_series64 $board REF_NATIVE_EDGE_COUNT64
+  finish_series64 $board FB_NATIVE_EDGE_COUNT64
+  finish_series64 $board REF_POST_DIV_EDGE_COUNT64
+  finish_series64 $board FB_POST_DIV_EDGE_COUNT64
   finish_series $board DEGLITCH_THRESHOLD
-  finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
-  finish_series64 $board FB_D0_STABLE_HIT_COUNT64
   finish_series64 $board FB_D0_TRANSITION_COUNT64
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
@@ -488,20 +499,22 @@ proc read_d0_stable_group {board} {
   }
 
   foreach side {REF FB} {
-    set hit_label ${side}_D0_STABLE_HIT_COUNT64
     set d0_label ${side}_D0_TRANSITION_COUNT64
     set sampled_label NATIVE_${side}_SAMPLED
     set accept_label NATIVE_${side}_ACCEPT
-    set hit_delta [series_value $board $hit_label delta]
+    set raw_label ${side}_NATIVE_EDGE_COUNT64
+    set post_label ${side}_POST_DIV_EDGE_COUNT64
     set d0_delta [series_value $board $d0_label delta]
     set sampled_delta [series_value $board $sampled_label delta]
     set accept_delta [series_value $board $accept_label delta]
+    set raw_delta [series_value $board $raw_label delta]
+    set post_delta [series_value $board $post_label delta]
     set sampled_to_dmtd_ratio NA
     set d0_to_dmtd_ratio NA
     set sampled_to_d0_ratio NA
-    set hit_per_million_d0 NA
-    if {[string is wideinteger -strict $hit_delta] &&
-        [string is wideinteger -strict $d0_delta] &&
+    set post_to_raw_ratio NA
+    set post_to_dmtd_ratio NA
+    if {[string is wideinteger -strict $d0_delta] &&
         [string is wideinteger -strict $sampled_delta] &&
         [string is wideinteger -strict $accept_delta] &&
         [string is wideinteger -strict $dmtd_delta] && $dmtd_delta > 0} {
@@ -512,15 +525,24 @@ proc read_d0_stable_group {board} {
         if {$d0_delta > 0} {
           set sampled_to_d0_ratio [format "%.9f" \
             [expr {double($sampled_delta) / double($d0_delta)}]]
-          set hit_per_million_d0 [format "%.6f" \
-            [expr {double($hit_delta) * 1000000.0 / double($d0_delta)}]]
+        }
+        if {[string is wideinteger -strict $raw_delta] && $raw_delta > 0 &&
+            [string is wideinteger -strict $post_delta]} {
+          set post_to_raw_ratio [format "%.9f" \
+            [expr {double($post_delta) / double($raw_delta)}]]
+        }
+        if {[string is wideinteger -strict $post_delta] && $dmtd_delta > 0} {
+          set post_to_dmtd_ratio [format "%.9f" \
+            [expr {double($post_delta) / double($dmtd_delta)}]]
         }
     } else {
       set result INVALID
     }
-    lappend fields [format "%s_hit_delta=%s %s_hit_per_million_d0=%s %s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_delta=%s %s_sampled_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s %s_accept_delta=%s" \
-      [string tolower $side] $hit_delta \
-      [string tolower $side] $hit_per_million_d0 \
+    lappend fields [format "%s_raw_delta=%s %s_post_div_delta=%s %s_post_div_to_raw=%s %s_post_div_to_dmtd=%s %s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_delta=%s %s_sampled_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s %s_accept_delta=%s" \
+      [string tolower $side] $raw_delta \
+      [string tolower $side] $post_delta \
+      [string tolower $side] $post_to_raw_ratio \
+      [string tolower $side] $post_to_dmtd_ratio \
       [string tolower $side] $d0_delta \
       [string tolower $side] $d0_to_dmtd_ratio \
       [string tolower $side] $sampled_delta \
@@ -530,7 +552,7 @@ proc read_d0_stable_group {board} {
   }
   puts [format "STEP4_DMTD_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s result=%s" \
         $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz $result]
-  puts [format "STEP4_D0_STABLE_THRESHOLD board=%s threshold=%s threshold_delta=%s hit_length=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+  puts [format "STEP4_INPUT_EDGE board=%s threshold=%s threshold_delta=%s hit_length=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
         $board $threshold $threshold_delta $hit_length \
         [lindex $fields 0] [lindex $fields 1] $result]
 }
@@ -760,7 +782,7 @@ proc read_event_group {board} {
     {TRR_WRITE_LAST_TICS 0x001002D8}
   }
   read_group $board DMTD_BOUNDARY $boundary_items
-  read_d0_stable_group $board
+  read_input_edge_group $board
   read_group $board TAG_ARBITRATION $arbitration_items
   read_group $board DOWNSTREAM $downstream_items
   read_group $board EVENT_TIMING $timing_items

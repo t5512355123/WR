@@ -100,7 +100,8 @@ architecture syn of dmtd_phase_meas is
       dbg_sampled_transition_count_o : out std_logic_vector(31 downto 0);
       dbg_deglitch_accept_count_o : out std_logic_vector(31 downto 0);
       dbg_stab_bucket_o : out std_logic_vector(7 downto 0);
-      dbg_stab_reached_o : out std_logic);
+      dbg_stab_reached_o : out std_logic;
+      dbg_post_div_edge_count_o : out std_logic_vector(63 downto 0));
   end component;
 
   type t_pd_state is (PD_WAIT_TAG, PD_WAIT_A, PD_WAIT_B);
@@ -146,6 +147,7 @@ begin  -- syn
       dbg_deglitch_accept_count_o => open,
       dbg_stab_bucket_o     => open,
       dbg_stab_reached_o    => open,
+      dbg_post_div_edge_count_o => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',
       deglitch_threshold_i => std_logic_vector(to_unsigned(g_deglitcher_threshold, 16)),
@@ -170,6 +172,7 @@ begin  -- syn
       dbg_deglitch_accept_count_o => open,
       dbg_stab_bucket_o     => open,
       dbg_stab_reached_o    => open,
+      dbg_post_div_edge_count_o => open,
       shift_en_i            => '0',
       shift_dir_i           => '0',
       deglitch_threshold_i => std_logic_vector(to_unsigned(g_deglitcher_threshold, 16)),

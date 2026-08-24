@@ -94,7 +94,10 @@ entity dmtd_sampler is
     dbg_d0_transition_count_gray_o : out std_logic_vector(63 downto 0);
     -- Gray-coded count of stable clk_i_d0 runs that first reach T+1 samples,
     -- matching the existing deglitcher's old-value comparison against T.
-    dbg_d0_stable_hit_count_gray_o : out std_logic_vector(63 downto 0)
+    dbg_d0_stable_hit_count_gray_o : out std_logic_vector(63 downto 0);
+    -- Gray-coded count of rising edges of the actual post-divider clk_in.
+    -- With g_divide_input_by_2=true this is one edge per two raw input edges.
+    dbg_post_div_edge_count_gray_o : out std_logic_vector(63 downto 0)
     );
 
 end dmtd_sampler;
@@ -133,6 +136,8 @@ architecture rtl of dmtd_sampler is
   signal dbg_d0_stable_run_hit   : std_logic := '0';
   signal dbg_d0_stable_hit_count : unsigned(63 downto 0) := (others => '0');
   signal dbg_d0_stable_hit_gray  : std_logic_vector(63 downto 0) := (others => '0');
+  signal dbg_post_div_edge_count : unsigned(63 downto 0) := (others => '0');
+  signal dbg_post_div_edge_gray  : std_logic_vector(63 downto 0) := (others => '0');
 
   function f_sat_inc(value : unsigned) return unsigned is
     variable result  : unsigned(value'range) := value;
@@ -157,6 +162,25 @@ begin  -- rtl
   dbg_d0_low_run_max_o <= std_logic_vector(dbg_d0_low_run_max);
   dbg_d0_transition_count_gray_o <= dbg_d0_transition_gray;
   dbg_d0_stable_hit_count_gray_o <= dbg_d0_stable_hit_gray;
+  dbg_post_div_edge_count_gray_o <= dbg_post_div_edge_gray;
+
+  -- Count the signal which is actually presented to the sampler.  This is
+  -- deliberately clocked by clk_in, rather than by clk_in_i: when the
+  -- input-divider generate block is active, clk_in has one rising edge for
+  -- every two raw input rising edges.  The counter is diagnostic-only.
+  p_debug_post_div_edge_count : process(clk_in, rst_n_i)
+    variable next_count : unsigned(63 downto 0);
+  begin
+    if rst_n_i = '0' then
+      dbg_post_div_edge_count <= (others => '0');
+      dbg_post_div_edge_gray <= (others => '0');
+    elsif rising_edge(clk_in) then
+      next_count := dbg_post_div_edge_count + 1;
+      dbg_post_div_edge_count <= next_count;
+      dbg_post_div_edge_gray <=
+        std_logic_vector(next_count xor shift_right(next_count, 1));
+    end if;
+  end process p_debug_post_div_edge_count;
 
   -- This diagnostic observes the existing first-stage sample. It does not
   -- resample clk_in_i and has no fanout into the functional sampler path.

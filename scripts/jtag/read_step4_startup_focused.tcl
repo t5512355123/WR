@@ -613,7 +613,8 @@ proc print_event_boundary {board} {
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
                DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY \
                DMTD_REF_GOT_EDGE_ENTRY DMTD_FB_GOT_EDGE_ENTRY \
-               DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8}
+               DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8 \
+               SPLL_DMTD_STATE}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
@@ -678,6 +679,21 @@ proc print_event_boundary {board} {
     set high_abort_seen_active [expr {$ref_high_abort_seen || $fb_high_abort_seen}]
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_high_abort_seen=%d fb_high_abort_seen=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
           $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_high_abort_seen $fb_high_abort_seen $ref_got_edge $fb_got_edge]
+
+    # Source-backed interpretation from dmtd_with_deglitcher.vhd:
+    # a sticky high-abort bit is set when a GOT_EDGE HIGH qualification
+    # attempt sees clk_sampled='0' before reaching the threshold.  This is
+    # evidence of the abort condition, not an absolute abort count.
+    set ref_cause "NOT_SEEN"
+    set fb_cause "NOT_SEEN"
+    if {$ref_high_abort_seen} {
+      set ref_cause "GOT_EDGE_HIGH_ABORT(clk_sampled=0)"
+    }
+    if {$fb_high_abort_seen} {
+      set fb_cause "GOT_EDGE_HIGH_ABORT(clk_sampled=0)"
+    }
+    puts [format "STEP4_QUALIFICATION_ABORT_CAUSE board=%s ref=%s fb=%s evidence=SPLL_DMTD_STATE_STICKY" \
+          $board $ref_cause $fb_cause]
   } else {
     set ref_state NA
     set fb_state NA
@@ -686,6 +702,7 @@ proc print_event_boundary {board} {
     set ref_reached NA
     set fb_reached NA
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_high_abort_seen=NA fb_high_abort_seen=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
+    puts [format "STEP4_QUALIFICATION_ABORT_CAUSE board=%s result=MEASUREMENT_INVALID_RETEST evidence=SPLL_DMTD_STATE_STICKY" $board]
   }
 
   if {$high_abort_seen_active && !$qualification_progress_active && !$accept_active} {

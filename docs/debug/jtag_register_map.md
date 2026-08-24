@@ -301,6 +301,18 @@ counter，也不是 abort 次數，必須搭配 `SPLL_DMTD_STATE`、threshold �
 取樣解讀。這個欄位只 fan-out 診斷值，不會回饋到 deglitch FSM、SoftPLL 或
 threshold。
 
+`SPLL_DMTD_STATE` 的 bit 31（reference）與 bit 30（feedback）是目前 fresh
+source 的 sticky abort evidence。它們由 `wr_softpll_ng.vhd` 以相應的
+`dmtd_*_high_abort_count(0) != 0` 產生；而 `dmtd_with_deglitcher.vhd` 只在
+`GOT_EDGE` 狀態、HIGH qualification 尚未達 threshold 且
+`clk_sampled='0'` 時增加這個計數。因此 focused JTAG script 若讀到該 bit
+為 1，可以保守寫成「`GOT_EDGE` HIGH qualification 曾因
+`clk_sampled='0'` 中止」；這不是 abort 次數，也不能由該 bit 推出中止頻率。
+目前 `spll_wb_slave` 沒有把 REF/FB 絕對 abort count 映射成獨立可靠的
+Wishbone read address，所以不得把 `DMTD_REF_SEEN`/`DMTD_FB_SEEN` 或歷史
+同址欄位當成目前 fresh image 的 abort count。若 `SPLL_DMTD_STATE` 讀值
+無效，該判讀必須標記 `MEASUREMENT_INVALID_RETEST`，不得推論硬體故障。
+
 ```text
 sampled transition > 0, accept = 0
     -> deglitch qualification / FSM 邊界

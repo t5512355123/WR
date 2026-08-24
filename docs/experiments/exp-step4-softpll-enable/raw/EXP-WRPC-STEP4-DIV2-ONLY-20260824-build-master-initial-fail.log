@@ -1,0 +1,80 @@
+Warning (10335): Unrecognized synthesis attribute "mark_debug" at ../../vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd(474) File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 474
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd
+    Info (12022): Found design unit 1: wr_softpll_ng-rtl File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 169
+    Info (12023): Found entity 1: wr_softpll_ng File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 49
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd
+    Info (12022): Found design unit 1: xwr_softpll_ng-wrapper File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 146
+    Info (12023): Found entity 1: xwr_softpll_ng File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 45
+Info (12021): Found 1 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_pkg.vhd
+    Info (12022): Found design unit 1: wr_txtsu_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_pkg.vhd Line: 4
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd
+    Info (12022): Found design unit 1: wrsw_txtsu_wb-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd Line: 47
+    Info (12023): Found entity 1: wrsw_txtsu_wb File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd Line: 18
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd
+    Info (12022): Found design unit 1: xwr_tx_tsu-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd Line: 98
+    Info (12023): Found entity 1: xwr_tx_tsu File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd Line: 62
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd
+    Info (12022): Found design unit 1: wr_core-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 355
+    Info (12023): Found entity 1: wr_core File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 74
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd
+    Info (12022): Found design unit 1: wrc_cpu_csr_wb_slave-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd Line: 33
+    Info (12023): Found entity 1: wrc_cpu_csr_wb_slave File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd Line: 21
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd
+    Info (12022): Found design unit 1: wrc_cpu_csr_wbgen2_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd Line: 18
+    Info (12022): Found design unit 2: wrc_cpu_csr_wbgen2_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd Line: 81
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd
+    Info (12022): Found design unit 1: wrc_diags_dpram-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd Line: 68
+    Info (12023): Found entity 1: wrc_diags_dpram File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd Line: 51
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd
+    Info (12022): Found design unit 1: wrc_periph-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 109
+    Info (12023): Found entity 1: wrc_periph File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 46
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd
+    Info (12022): Found design unit 1: sysc_wbgen2_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd Line: 17
+    Info (12022): Found design unit 2: sysc_wbgen2_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd Line: 196
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd
+    Info (12022): Found design unit 1: wrc_syscon_wb-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd Line: 40
+    Info (12023): Found entity 1: wrc_syscon_wb File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd Line: 20
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd
+    Info (12022): Found design unit 1: wrc_urv_wrapper-arch File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd Line: 63
+    Info (12023): Found entity 1: wrc_urv_wrapper File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd Line: 35
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd
+    Info (12022): Found design unit 1: wrcore_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd Line: 44
+    Info (12022): Found design unit 2: wrcore_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd Line: 853
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd
+    Info (12022): Found design unit 1: xwr_core-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 305
+    Info (12023): Found entity 1: xwr_core File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 70
+Error (10552): VHDL expression error at xwr_core.vhd(103): illegal g_pcs_16bit in expression File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 103
+Error (10552): VHDL expression error at xwr_core.vhd(103): illegal g_softpll_reverse_dmtds in expression File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 103
+Error (10556): VHDL error at xwr_core.vhd(100): generic "g_softpll_reverse_dmtds" cannot be used in its own interface list File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 100
+Error (10556): VHDL error at xwr_core.vhd(102): generic "g_pcs_16bit" cannot be used in its own interface list File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 102
+Error (10349): VHDL Association List error at DE5a_wr_master_jtag.vhd(683): formal "g_with_clock_freq_monitor" does not exist File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 683
+Error (10349): VHDL Association List error at DE5a_wr_master_jtag.vhd(686): formal "clk_sys_i" does not exist File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 686
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "clk_sys_i" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(120): see declaration for object "clk_sys_i" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 120
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "clk_dmtd_i" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(123): see declaration for object "clk_dmtd_i" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 123
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "clk_ref_i" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(127): see declaration for object "clk_ref_i" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 127
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "clk_ext_rst_o" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(138): see declaration for object "clk_ext_rst_o" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 138
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "rst_n_i" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(143): see declaration for object "rst_n_i" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 143
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "dac_hpll_load_p1_o" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Error (10784): HDL error at xwr_core.vhd(148): see declaration for object "dac_hpll_load_p1_o" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 148
+Error (10346): VHDL error at DE5a_wr_master_jtag.vhd(670): formal port or parameter "dac_hpll_data_o" must have actual or default value File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.map.smsg
+Error: Quartus Prime Analysis & Synthesis was unsuccessful. 19 errors, 44 warnings
+    Error: Peak virtual memory: 1041 megabytes
+    Error: Processing ended: Mon Aug 24 13:26:03 2026
+    Error: Elapsed time: 00:00:08
+    Error: Total CPU time (on all processors): 00:00:13
+Error (293001): Quartus Prime Full Compilation was unsuccessful. 21 errors, 44 warnings
+Error: Flow compile (for project /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag) was not successful
+Error: ERROR: Error(s) found while running an executable. See report file(s) for error message(s). Message log indicates which executable was run last.
+
+Error (23031): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl unsuccessful
+Error: Quartus Prime Shell was unsuccessful. 28 errors, 44 warnings
+    Error: Peak virtual memory: 775 megabytes
+    Error: Processing ended: Mon Aug 24 13:26:04 2026
+    Error: Elapsed time: 00:00:09
+    Error: Total CPU time (on all processors): 00:00:14

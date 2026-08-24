@@ -1,0 +1,25 @@
+HEAD
+ed003c5ad4cbd34707a7ca97134b62947a9fed9c
+STATUS
+## HEAD (no branch)
+?? "\\"
+QUARTUS
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+MIF_QSF_SDC_SOF_SHA256
+sha256sum: quartus/jtag_runtime_diag/P2P_ARCH_master.sdc: No such file or directory
+sha256sum: quartus/jtag_runtime_diag/P2P_ARCH_slave.sdc: No such file or directory
+cf0bf4cfea3b751eb1a6bb9ac6a4e8edae53a12852a2206a7432e05027abe905  build/firmware/master/wrc.mif
+0896bf06fc985b29a351631f8655d958bbee220620dc47e9b053f9b0a4df4d7f  build/firmware/slave/wrc.mif
+dd3cb9676fe4d4846256b19de6245c0aa37f736fdd5539cb0edeb48bc14b365d  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+559bfdd97e37ef688de26c5609159522c597496a88e52db1a5bcb9633bad04c8  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+DESIGN_INPUTS
+quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc
+b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8  quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc
+quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc
+b6a17ee37da9242677c038f3e18ec4251c38727515002a1bf2a83f39ee88d9b8  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc
+quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf
+cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f  quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf
+quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf
+c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437  quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf

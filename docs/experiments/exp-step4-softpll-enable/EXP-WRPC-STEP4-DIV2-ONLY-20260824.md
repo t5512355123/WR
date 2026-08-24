@@ -148,3 +148,77 @@ DIV2-only B configuration
 保留本輪 fresh build/program/runtime 證據，先送 White Rabbit 討論確認。不要
 在本輪結果上再疊加 reverse、polarity、threshold 或其他 SoftPLL 變因；下一輪
 必須先決定如何恢復可靠的 Step 2/3 control，再重新驗證 Step 4。
+
+## 第二次唯讀 focused retest
+
+### 實驗名稱
+
+`DIV2-only Step 1～3 focused regression retest`
+
+### 時間與指令
+
+- 日期：2026-08-24
+- branch：`exp/step4-divide-input-ab`
+- source HEAD：`ed003c5ad4cbd34707a7ca97134b62947a9fed9c`
+- 指令：
+
+  ```text
+  quartus_stp -t scripts/jtag/read_wr_handshake_focused.tcl 30 1000
+  ```
+
+- 本輪為 read-only retest，沒有重新編譯、沒有重新燒錄、沒有寫入 runtime
+  control register。
+- 完整 raw output：
+  `raw/EXP-WRPC-STEP4-DIV2-ONLY-20260824-step123-retest.log`
+
+### Retest 原始 gate 結果
+
+```text
+Master valid_samples=13 invalid_samples=17
+Master PTP_TX_DELTA=9
+Master STEP2_REGRESSION=FAIL
+Master STEP3_REGRESSION=FAIL
+Master STATE_EVIDENCE=READ_INCONSISTENT
+Master state_idle=13 state_good=0
+
+Slave valid_samples=15 invalid_samples=15
+Slave PTP_TX_DELTA=46
+Slave STEP2_REGRESSION=FAIL
+Slave STEP3_REGRESSION=FAIL
+Slave STATE_EVIDENCE=READ_INCONSISTENT
+Slave state_idle=15 state_good=0
+```
+
+### Retest 觀察
+
+- Master 有效樣本的 MAC 為 `02:00:22:33:44:01`，但 `MODE=3`、`PTP=4`，
+  沒有重現要求的 `MODE=2`、`PTP=6` Master evidence。
+- Slave 有效樣本的 MAC 為 `02:00:22:33:44:02`；前段多數樣本為
+  `MODE=3`、`PTP=9`、`FOREIGN_META=1/0`，但也出現 `PTP=4`；
+  `parent=0/0/0`、`LOCK_ENABLE=0`，沒有觀測到 `LOCK` 或
+  `SLAVE_PRESENT` 訊號。
+- 兩板 `RXERR=0`，且 MiniNIC/PTP counters 在有效樣本中有增加；這只能證明
+  部分 packet activity，不能取代 Step 2/3 的 role、parent、signaling gate。
+- `valid_samples` 與 `invalid_samples` 的比例顯示 mailbox snapshot 仍有明顯
+  read inconsistency；因此本次結果同時包含硬體/firmware regression evidence
+  與 JTAG measurement caveat。
+- Quartus SignalTap/Tcl 執行成功，0 errors、0 warnings；這只證明診斷腳本完成，
+  不代表 Step 2/3 通過。
+
+### Retest 結論
+
+第二次 focused retest 重現第一次結果，故不是單次偶發 sample。DIV2-only
+configuration 目前不能作為 Step 2/3 regression pass，barrier 保持：
+
+```text
+STEP1_REGRESSION = NOT_ACCEPTED
+STEP2_REGRESSION = FAIL
+STEP3_REGRESSION = FAIL
+STEP4_ALLOWED    = NO
+STEP4_RESULT     = NOT_MEASURED
+```
+
+這仍不能單獨證明 `g_softpll_divide_input_by_2=false` 是根因，因為有效 JTAG
+樣本與 invalid sample 混雜，且目前沒有在同一 image 上完成可接受的 Step 2/3
+control evidence。下一步應先恢復並確認可靠的 Step 2/3 control baseline，
+再重新做 Step 4 單一變因實驗。

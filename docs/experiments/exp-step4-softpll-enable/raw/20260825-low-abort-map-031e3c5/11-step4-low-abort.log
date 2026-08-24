@@ -1,0 +1,32 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Aug 25 04:47:15 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step4_startup_focused.tcl 50 200 low_abort
+Info: Quartus(args): 50 200 low_abort
+STEP4_FOCUSED_CONFIG samples=50 gap_ms=200 group=low_abort retries=5 trr_r0_read=disabled
+=== STEP4_FOCUSED_BOARD DE5 [1-11.1] ===
+STEP4_LOW_QUAL_ABORT board=DE5 [1-11.1] samples=50 ref_delta=0 fb_delta=0 ref_valid=50 fb_valid=50 result=VALID source=existing_dbg_low_qual_abort_count
+=== STEP4_FOCUSED_BOARD DE5 [1-11.2] ===
+STEP4_LOW_QUAL_ABORT board=DE5 [1-11.2] samples=50 ref_delta=0 fb_delta=0 ref_valid=50 fb_valid=50 result=VALID source=existing_dbg_low_qual_abort_count
+STEP4_FOCUSED_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_step4_startup_focused.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Tue Aug 25 04:47:36 2026
+    Info: Elapsed time: 00:00:21
+    Info: Total CPU time (on all processors): 00:00:00

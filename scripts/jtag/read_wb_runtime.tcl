@@ -750,7 +750,7 @@ proc analyze_board {board} {
   if {$rxerr_status eq "INVALID"} { set step2_activity_invalid 1 }
   print_delta $rxerr_status "MiniNIC RX error counter" WDIAGS_RXERR \
     $rb $ra $rd \
-    $rxerr_explanation [expr {$rd eq "DECREASED" ? "DELTA>0" : "DELTA=0"}]
+    $rxerr_explanation $rxerr_expected
   # PTP_TX can legitimately be quiet in one observation window.  Step 2 still
   # needs simultaneous PTP RX and MiniNIC TX/RX activity; if those three do
   # not all move, keep the dashboard result as measurement-incomplete/retest

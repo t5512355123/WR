@@ -173,6 +173,31 @@ proc wb_read_u64_consistent {lo_addr hi_addr} {
   return INVALID
 }
 
+proc wb_read_u64_non_decreasing {lo_addr hi_addr previous} {
+  # Stable-hit counters are free-running 64-bit diagnostics. During the short
+  # observation window they cannot legitimately wrap or decrease. Reject a
+  # lower snapshot so a mailbox tear such as an all-zero read is retried rather
+  # than being accepted as a real counter value.
+  set previous_word -1
+  if {[is_u64 $previous]} {
+    set previous_word [word64 $previous]
+  }
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read_u64_consistent $lo_addr $hi_addr]
+    if {[is_u64 $value]} {
+      set current_word [word64 $value]
+      if {$previous_word < 0 || $current_word >= $previous_word} {
+        return $value
+      }
+    }
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
+  }
+  return INVALID
+}
+
 proc series_delta {first last invalid} {
   if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
   set a [word32 $first]
@@ -390,7 +415,8 @@ proc read_d0_stable_group {board} {
     set value [wb_read_validated 0x00100248]
     add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
       [clock milliseconds]
-    set value [wb_read_u64_consistent 0x00100240 0x00100244]
+    set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
+    set value [wb_read_u64_non_decreasing 0x00100240 0x00100244 $previous]
     add_timed_series_sample64 $board REF_D0_STABLE_HIT_COUNT64 $sample $value \
       [clock milliseconds]
     set value [wb_read_u64_consistent 0x00100250 0x00100254]
@@ -403,7 +429,8 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
       [clock milliseconds]
 
-    set value [wb_read_u64_consistent 0x0010024C 0x00100258]
+    set previous [series_value $board FB_D0_STABLE_HIT_COUNT64 last]
+    set value [wb_read_u64_non_decreasing 0x0010024C 0x00100258 $previous]
     add_timed_series_sample64 $board FB_D0_STABLE_HIT_COUNT64 $sample $value \
       [clock milliseconds]
     set value [wb_read_u64_consistent 0x00100260 0x00100264]

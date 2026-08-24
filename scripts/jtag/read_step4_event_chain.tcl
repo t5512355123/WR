@@ -52,10 +52,12 @@ proc read_sample {hardware_name label} {
   set occr [wb_read 0x00100210]
   set rcer [wb_read 0x00100224]
   set ocer [wb_read 0x00100228]
-  set low_qual_abort_ref [wb_read 0x00100250]
-  set low_qual_abort_fb [wb_read 0x00100254]
-  set wait_edge_entry_ref [wb_read 0x00100260]
-  set wait_edge_entry_fb [wb_read 0x00100264]
+  set ref_d0_transition_lo [wb_read 0x00100250]
+  set ref_d0_transition_hi [wb_read 0x00100254]
+  set fb_d0_transition_lo [wb_read 0x00100260]
+  set fb_d0_transition_hi [wb_read 0x00100264]
+  set wait_edge_entry_ref [wb_read 0x001002A0]
+  set wait_edge_entry_fb [wb_read 0x001002A4]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -66,8 +68,6 @@ proc read_sample {hardware_name label} {
   set tag_feedback [wb_read 0x00100294]
   set dmtd_ref_events [wb_read 0x00100298]
   set dmtd_fb_events [wb_read 0x0010029C]
-  set dmtd_ref_seen [wb_read 0x001002A0]
-  set dmtd_fb_seen [wb_read 0x001002A4]
   set tag_pending [wb_read 0x001002A8]
   set tag_grant [wb_read 0x001002AC]
   set current_tics [wb_read 0x001002B0]
@@ -88,8 +88,8 @@ proc read_sample {hardware_name label} {
   set tag_req_feedback_set [wb_read 0x001002EC]
   set tag_ref_enabled_last_tics [wb_read 0x001002F0]
   set tag_feedback_enabled_last_tics [wb_read 0x001002F4]
-  set tag_req_ref_last_tics [wb_read 0x001002F8]
-  set tag_req_feedback_last_tics [wb_read 0x001002FC]
+  set dmtd_native_edge_count_lo [wb_read 0x001002F8]
+  set dmtd_native_edge_count_hi [wb_read 0x001002FC]
 
   set sstat [wb_read 0x00100A08]
   set pstat [wb_read 0x00100A0C]
@@ -111,12 +111,13 @@ proc read_sample {hardware_name label} {
   puts [format "EVENT_CHAIN_EIC: IMR=%s ISR=%s" $eic_imr $eic_isr]
   puts [format "EVENT_CHAIN_WAIT_EDGE_ENTRY: REF=%s FB=%s" \
         $wait_edge_entry_ref $wait_edge_entry_fb]
-  puts [format "EVENT_CHAIN_LOW_QUAL_ABORT: REF=%s FB=%s" \
-        $low_qual_abort_ref $low_qual_abort_fb]
+  puts [format "EVENT_CHAIN_D0_TRANSITION: REF_LO=%s REF_HI=%s FB_LO=%s FB_HI=%s" \
+        $ref_d0_transition_lo $ref_d0_transition_hi \
+        $fb_d0_transition_lo $fb_d0_transition_hi]
   puts [format "EVENT_CHAIN_TRR: CSR=%s TAG_VALID=%s TRR_WRITE=%s TAG_SOURCE=%s REF=%s FEEDBACK=%s" \
         $trr_csr $tag_valid $trr_write $tag_source $tag_ref $tag_feedback]
-  puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s REF_SEEN=%s FB_SEEN=%s" \
-        $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen]
+  puts [format "EVENT_CHAIN_DMTD: REF_EVENTS=%s FB_EVENTS=%s" \
+        $dmtd_ref_events $dmtd_fb_events]
   puts [format "EVENT_CHAIN_ARB: PENDING=%s GRANT=%s" $tag_pending $tag_grant]
   puts [format "EVENT_CHAIN_TICS: NOW=%s DMTD_REF_LAST=%s DMTD_FB_LAST=%s TAG_REF_LAST=%s TAG_FB_LAST=%s" \
         $current_tics $dmtd_ref_last_tics $dmtd_fb_last_tics $tag_ref_last_tics $tag_feedback_last_tics]
@@ -124,9 +125,10 @@ proc read_sample {hardware_name label} {
         $tag_pending_ref_count $tag_pending_fb_count $tag_pending_last_tics]
   puts [format "EVENT_CHAIN_GATE: REF_P_ENABLED=%s FB_P_ENABLED=%s REF_REQ_SET=%s FB_REQ_SET=%s" \
         $tag_ref_enabled $tag_feedback_enabled $tag_req_ref_set $tag_req_feedback_set]
-  puts [format "EVENT_CHAIN_GATE_LAST: REF_P=%s FB_P=%s REF_REQ=%s FB_REQ=%s" \
-        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics \
-        $tag_req_ref_last_tics $tag_req_feedback_last_tics]
+  puts [format "EVENT_CHAIN_GATE_LAST: REF_P=%s FB_P=%s" \
+        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics]
+  puts [format "EVENT_CHAIN_NATIVE_EDGE_COUNT: LO=%s HI=%s" \
+        $dmtd_native_edge_count_lo $dmtd_native_edge_count_hi]
   puts [format "EVENT_CHAIN_LAST: GRANT=%s VALID=%s TRR=%s" \
         $tag_grant_last_tics $tag_valid_last_tics $trr_write_last_tics]
   set dmtd_state_word 0

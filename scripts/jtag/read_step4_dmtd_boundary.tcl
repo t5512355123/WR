@@ -66,12 +66,14 @@ proc read_boundary_sample {hardware_name sample} {
   set dmtd_ref_sampled [wb_read 0x00100234]
   set dmtd_fb_sampled [wb_read 0x00100238]
   set dmtd_high_qual_max_stab [wb_read 0x0010023C]
-  set low_qual_abort_ref [wb_read 0x00100250]
-  set low_qual_abort_fb [wb_read 0x00100254]
+  set ref_d0_transition_lo [wb_read 0x00100250]
+  set ref_d0_transition_hi [wb_read 0x00100254]
+  set fb_d0_transition_lo [wb_read 0x00100260]
+  set fb_d0_transition_hi [wb_read 0x00100264]
   set dmtd_d0_low_run_max [wb_read 0x0010025C]
-  set wait_edge_entry_ref [wb_read 0x00100260]
+  set wait_edge_entry_ref [wb_read 0x001002A0]
   set deglitch_thr [wb_read 0x00100248]
-  set wait_edge_entry_fb [wb_read 0x00100264]
+  set wait_edge_entry_fb [wb_read 0x001002A4]
   set eic_imr [wb_read 0x00100268]
   set eic_isr [wb_read 0x0010026C]
   set trr_csr [wb_read 0x00100280]
@@ -82,8 +84,6 @@ proc read_boundary_sample {hardware_name sample} {
   set tag_feedback [wb_read 0x00100294]
   set dmtd_ref_events [wb_read 0x00100298]
   set dmtd_fb_events [wb_read 0x0010029C]
-  set dmtd_ref_seen [wb_read 0x001002A0]
-  set dmtd_fb_seen [wb_read 0x001002A4]
   set tag_pending [wb_read 0x001002A8]
   set tag_grant [wb_read 0x001002AC]
   set current_tics [wb_read 0x001002B0]
@@ -102,8 +102,8 @@ proc read_boundary_sample {hardware_name sample} {
   set tag_req_feedback_set [wb_read 0x001002EC]
   set tag_ref_enabled_last_tics [wb_read 0x001002F0]
   set tag_feedback_enabled_last_tics [wb_read 0x001002F4]
-  set tag_req_ref_last_tics [wb_read 0x001002F8]
-  set tag_req_feedback_last_tics [wb_read 0x001002FC]
+  set dmtd_native_edge_count_lo [wb_read 0x001002F8]
+  set dmtd_native_edge_count_hi [wb_read 0x001002FC]
 
   puts [format "DMTD_BOUNDARY_SAMPLE board=%s sample=%03d STATUS=%s" \
         $hardware_name $sample $status]
@@ -115,8 +115,9 @@ proc read_boundary_sample {hardware_name sample} {
     set stab_ref NA
     set stab_fb NA
   }
-  puts [format "DMTD_LOW_QUAL_ABORT_COUNT ref=%s fb=%s" \
-        $low_qual_abort_ref $low_qual_abort_fb]
+  puts [format "DMTD_D0_TRANSITION_COUNT: REF_LO=%s REF_HI=%s FB_LO=%s FB_HI=%s" \
+        $ref_d0_transition_lo $ref_d0_transition_hi \
+        $fb_d0_transition_lo $fb_d0_transition_hi]
   set d0_low_run_word 0
   if {[scan $dmtd_d0_low_run_max %x d0_low_run_word] == 1} {
     puts [format "DMTD_D0_LOW_RUN_MAX ref=%s fb=%s" \
@@ -140,11 +141,11 @@ proc read_boundary_sample {hardware_name sample} {
         $dmtd_ref_accept $dmtd_fb_accept $stab_ref $stab_fb]
   puts [format "DMTD_BOUNDARY_ENABLE: RCER=%s OCER=%s EIC_IMR=%s EIC_ISR=%s TRR_CSR=%s" \
         $rcer $ocer $eic_imr $eic_isr $trr_csr]
-  puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_SEEN=%s FB_SEEN=%s REF_LAST=%s FB_LAST=%s NOW=%s" \
-        $dmtd_ref_events $dmtd_fb_events $dmtd_ref_seen $dmtd_fb_seen \
+  puts [format "DMTD_BOUNDARY_EVENT: REF=%s FB=%s REF_LAST=%s FB_LAST=%s NOW=%s" \
+        $dmtd_ref_events $dmtd_fb_events \
         $dmtd_ref_last_tics $dmtd_fb_last_tics $current_tics]
-  puts [format "DMTD_BOUNDARY_QUAL_ABORT: REF_HIGH=%s FB_HIGH=%s" \
-        $dmtd_ref_seen $dmtd_fb_seen]
+  puts [format "DMTD_BOUNDARY_QUALIFICATION_ENTRY: REF=%s FB=%s" \
+        $wait_edge_entry_ref $wait_edge_entry_fb]
   puts [format "DMTD_BOUNDARY_TAG: SOURCE=%s REF=%s FB=%s REF_LAST=%s FB_LAST=%s" \
         $tag_source $tag_ref $tag_feedback $tag_ref_last_tics $tag_feedback_last_tics]
   puts [format "DMTD_BOUNDARY_ARB: PENDING=%s GRANT=%s PENDING_LAST=%s GRANT_LAST=%s" \
@@ -153,9 +154,10 @@ proc read_boundary_sample {hardware_name sample} {
         $tag_valid $trr_write $tag_valid_last_tics $trr_write_last_tics]
   puts [format "DMTD_BOUNDARY_GATE: REF_ENABLED=%s FB_ENABLED=%s REF_REQ_SET=%s FB_REQ_SET=%s" \
         $tag_ref_enabled $tag_feedback_enabled $tag_req_ref_set $tag_req_feedback_set]
-  puts [format "DMTD_BOUNDARY_GATE_LAST: REF_ENABLED=%s FB_ENABLED=%s REF_REQ=%s FB_REQ=%s" \
-        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics \
-        $tag_req_ref_last_tics $tag_req_feedback_last_tics]
+  puts [format "DMTD_BOUNDARY_GATE_LAST: REF_ENABLED=%s FB_ENABLED=%s" \
+        $tag_ref_enabled_last_tics $tag_feedback_enabled_last_tics]
+  puts [format "DMTD_BOUNDARY_NATIVE_EDGE_COUNT: LO=%s HI=%s" \
+        $dmtd_native_edge_count_lo $dmtd_native_edge_count_hi]
   set dmtd_state_word 0
   if {[scan $dmtd_state %x dmtd_state_word] == 1} {
     puts [format "DMTD_BOUNDARY_STATE: RAW=%s REF_STATE=%d FB_STATE=%d REF_RESET=%d FB_RESET=%d" \

@@ -205,6 +205,8 @@ architecture rtl of wr_softpll_ng is
       diag_dmtd_fb_accept_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_ref_sampled_transition_count_i : in std_logic_vector(31 downto 0);
       diag_dmtd_fb_sampled_transition_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_ref_wait_edge_entry_count_i : in std_logic_vector(31 downto 0);
+      diag_dmtd_fb_wait_edge_entry_count_i : in std_logic_vector(31 downto 0);
        diag_dmtd_high_qual_max_stab_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_high_run_max_i : in std_logic_vector(31 downto 0);
       diag_dmtd_input_low_run_max_i  : in std_logic_vector(31 downto 0);
@@ -858,6 +860,8 @@ begin  -- rtl
       diag_dmtd_fb_accept_count_i => dmtd_fb_accept_count(0),
       diag_dmtd_ref_sampled_transition_count_i => dmtd_ref_sampled_count(0),
       diag_dmtd_fb_sampled_transition_count_i => dmtd_fb_sampled_count(0),
+      diag_dmtd_ref_wait_edge_entry_count_i => dmtd_ref_wait_edge_entry_count(0),
+      diag_dmtd_fb_wait_edge_entry_count_i => dmtd_fb_wait_edge_entry_count(0),
        diag_dmtd_high_qual_max_stab_i => dmtd_fb_high_qual_max_stab(0) & dmtd_ref_high_qual_max_stab(0),
        diag_dmtd_input_high_run_max_i => dmtd_fb_input_high_run_max(0) & dmtd_ref_input_high_run_max(0),
        diag_dmtd_input_low_run_max_i => dmtd_fb_input_low_run_max(0) & dmtd_ref_input_low_run_max(0),
@@ -871,9 +875,10 @@ begin  -- rtl
       diag_dmtd_fb_event_count_i => std_logic_vector(diag_dmtd_fb_event_count),
       -- Reuse the existing read-only DMTD_SEEN words without changing the
       -- Wishbone map. The full sampled/accept counters remain available at
-      -- 0x22c..0x238; these words expose the 32-bit HIGH qualification-abort
-      -- wrapping counters. REF/FB D0-transition counters use read-only
-      -- diagnostic aliases at 0x250/0x254 and 0x260/0x264 respectively.
+      -- 0x22c..0x238. The 0x2a0/0x2a4 diagnostic aliases expose the existing
+      -- REF/FB WAIT_STABLE_0 -> WAIT_EDGE qualification-entry counters.
+      -- D0-transition counters use read-only aliases at 0x250/0x254 and
+      -- 0x260/0x264 respectively.
       -- REF/FB native-edge counters are split across the read-only aliases at
       -- 0x240/0x244 and 0x24c/0x258. Functional writes at those addresses are
       -- unchanged; only their otherwise-unused read sides are diagnostic.

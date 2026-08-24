@@ -579,8 +579,11 @@ proc collect_snapshot {board label} {
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
   put_snap $board $label dmtd_ref [wb_read 0x00100298]
   put_snap $board $label dmtd_fb [wb_read 0x0010029C]
-  put_snap $board $label dmtd_ref_seen [wb_read 0x001002A0]
-  put_snap $board $label dmtd_fb_seen [wb_read 0x001002A4]
+  # In the current fresh Step 4 image these aliases expose the existing
+  # WAIT_STABLE_0 -> WAIT_EDGE qualification-entry counters. Historical SOF
+  # files may expose different source-defined fields at the same addresses.
+  put_snap $board $label dmtd_ref_wait_edge_entry [wb_read 0x001002A0]
+  put_snap $board $label dmtd_fb_wait_edge_entry [wb_read 0x001002A4]
   put_snap $board $label tag_valid [wb_read 0x00100284]
   put_snap $board $label trr_write [wb_read 0x00100288]
   put_snap $board $label trr_pop [wb_read 0x00100B54]
@@ -1092,7 +1095,8 @@ proc print_raw_snapshot {board label} {
     tx rx rxerr ptp_types foreign_meta filter_meta parse_meta wr_rx_signal \
     wr_tx_signal wr_failure wr_state wr_reject pstat sstat sec_h sec_l ns \
     lock_enable spll_state spll_ocer spll_rcer spll_trr_csr dmtd_ref dmtd_fb \
-    dmtd_ref_seen dmtd_fb_seen tag_valid trr_write irq helper_update eic_isr current_tics} {
+    dmtd_ref_wait_edge_entry dmtd_fb_wait_edge_entry tag_valid trr_write irq \
+    helper_update eic_isr current_tics} {
     puts [format "  %-16s = %s" $field [get_snap $board $label $field]]
   }
 }

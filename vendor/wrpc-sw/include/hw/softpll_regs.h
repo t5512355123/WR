@@ -116,6 +116,10 @@
 #define SPLL_DMTD_STAT_CR_CHAN_SEL_W(value)   WBGEN2_GEN_WRITE(value, 19, 4)
 #define SPLL_DMTD_STAT_CR_CHAN_SEL_R(reg)     WBGEN2_GEN_READ(reg, 19, 4)
 
+/* Manual read-only diagnostic aliases in the current Step 4 image. */
+#define SPLL_DMTD_REF_WAIT_EDGE_ENTRY_COUNT_ADDR 0xA0
+#define SPLL_DMTD_FB_WAIT_EDGE_ENTRY_COUNT_ADDR  0xA4
+
 /* definitions for register: DMTD stat values */
 
 /* definitions for field: HIGH in reg: DMTD stat values */

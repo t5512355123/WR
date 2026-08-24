@@ -385,6 +385,10 @@ peripheral {
     # is unchanged. Diagnostic offsets 0xf8/0xfc expose the DMTD
     # sampling-clock native edge count LO/HI.
     # EIC behavior is preserved in the hand-maintained VHDL wrapper.
+    # The wrapper exposes the existing DMTD WAIT_STABLE_0 -> WAIT_EDGE
+    # qualification-entry counters through the read-only diagnostic aliases
+    # at 0xa0 (reference) and 0xa4 (feedback). These aliases do not change
+    # the generated functional register bank or any write behavior.
     reg {
       align = 8;
 			name = "Helper DAC Output";
@@ -519,5 +523,4 @@ peripheral {
 			trigger = LEVEL_1;
 	 };
 };
-
 

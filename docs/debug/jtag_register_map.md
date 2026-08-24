@@ -229,8 +229,8 @@ waveform 是否出現符合長度的 stable run，不等於完整重演 deglitch
 上述 `0x240/0x244/0x24C/0x250/0x254/0x258/0x260/0x264` 配置只適用於包含本段 source 的 fresh SOF。歷史 SOF 在同一組位址曾提供 native-edge count、HIGH-abort depth sum、LOW qualification-abort、WAIT_EDGE entry 等診斷；每份 log 都必須同時記錄 source commit、Tcl commit 與 SOF SHA256。
 | `0x00100298` | `SPLL_DMTD_REF_EVENTS` | 唯讀：reference DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
 | `0x0010029C` | `SPLL_DMTD_FB_EVENTS` | 唯讀：feedback DDMTD/deglitcher event count，進入 tag arbitration 前的 `clk_sys` pulse 次數 |
-| `0x001002A0` | `SPLL_DMTD_REF_SEEN` | 唯讀 32-bit reference HIGH qualification-abort counter。它在 `GOT_EDGE` 狀態已開始累積 HIGH 穩定週期後，`clk_sampled=0` 中止 qualification 時增加；計數器自然 32-bit 回繞，bounded observation 必須用 modulo-32 delta。 |
-| `0x001002A4` | `SPLL_DMTD_FB_SEEN` | 唯讀 32-bit feedback HIGH qualification-abort counter，條件與 reference counter 相同；同樣使用自然回繞與 modulo-32 delta，這兩個欄位不再是 LOW/HIGH packed value。 |
+| `0x001002A0` | `SPLL_DMTD_REF_WAIT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：reference `dmtd_with_deglitcher` 從 `WAIT_STABLE_0` 進入 `WAIT_EDGE` 的 qualification-entry 次數，直接來自既有 `dbg_wait_edge_entry_count_o`；32-bit 自然回繞，bounded observation 使用 modulo-32 delta。歷史 SOF 可能仍在此位址提供 `SPLL_DMTD_REF_SEEN`，不可混用解碼。 |
+| `0x001002A4` | `SPLL_DMTD_FB_WAIT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：feedback `dmtd_with_deglitcher` 從 `WAIT_STABLE_0` 進入 `WAIT_EDGE` 的 qualification-entry 次數，直接來自既有 `dbg_wait_edge_entry_count_o`；32-bit 自然回繞，bounded observation 使用 modulo-32 delta。歷史 SOF 可能仍在此位址提供 `SPLL_DMTD_FB_SEEN`，不可混用解碼。 |
 | `0x001002A8` | `SPLL_TAG_PENDING_COUNT` | 唯讀：`tags_req` 非零的 `clk_sys` cycle 次數 |
 | `0x001002AC` | `SPLL_TAG_GRANT_COUNT` | 唯讀：`tags_grant_p` 非零的 arbitration grant 次數 |
 | `0x001002B0` | `SPLL_DIAG_CURRENT_TICS` | 唯讀：診斷用 `clk_sys` cycle counter；只用來和下列 last-event 欄位比較 |
@@ -258,12 +258,25 @@ waveform 是否出現符合長度的 stable run，不等於完整重演 deglitch
 
 這些 register 是 Wishbone read，不是 instance 0 的 Direct Probe。單次讀值要搭配 CPU instance 2、marker instance 3 與多次採樣解讀。
 
+本段 `0x001002A0/0x001002A4` 的名稱只適用於目前包含 qualification-entry
+唯讀 alias 的 fresh Step 4 image；歷史 SOF 可能使用同一位址輸出不同的
+source-defined diagnostics。runtime log 必須固定 SOF SHA256、source commit
+與 Tcl decode commit，不能只依位址或舊欄位名稱解碼。
+
 其中 `SPLL_DMTD_*` 是本 Step 4 診斷用的唯讀觀測值：它們只計數
 `dmtd_with_deglitcher` 已經同步到 `clk_sys`、但尚未進入 SoftPLL tag
 arbitration 的 event。`*_SEEN` 在第一次 event 後維持 1，直到 FPGA reset；這些
 register 不會讀取或消費 TRR FIFO，也不會寫入 SoftPLL 設定。若 event count/seen
 為 0，只能表示此觀測點沒有看到 event，不能單獨判定 PHY、clock source 或
 DDMTD polarity 的根因。
+
+`SPLL_DMTD_REF_WAIT_EDGE_ENTRY_COUNT` 與
+`SPLL_DMTD_FB_WAIT_EDGE_ENTRY_COUNT` 是目前 fresh image 的唯讀 alias，直接
+讀取 `dmtd_with_deglitcher` 已存在的 `dbg_wait_edge_entry_count_o`。它們分別
+計數 reference/feedback 從 `WAIT_STABLE_0` 進入 `WAIT_EDGE` 的次數，位於
+sampled transition 之後、deglitch accept 之前；32-bit counter 必須以
+modulo-32 delta 觀測。這是 qualification-entry evidence，不是 accept、tag、TRR
+或 SoftPLL lock evidence。歷史 image 的同址欄位可能仍是 `*_SEEN`，不可混用。
 
 `SPLL_DMTD_REF_ACCEPT_COUNT` 與 `SPLL_DMTD_FB_ACCEPT_COUNT` 是本輪新增的完整
 32-bit 唯讀出口，直接讀取既有 `dbg_deglitch_accept_count`。它們和

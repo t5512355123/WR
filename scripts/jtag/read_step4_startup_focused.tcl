@@ -326,11 +326,11 @@ proc finish_series {board label} {
   set invalid $::series($board,$label,invalid)
   set first $::series($board,$label,first)
   set last $::series($board,$label,last)
-  if {$label eq "DMTD_REF_SEEN" || $label eq "DMTD_FB_SEEN" ||
+  if {$label eq "DMTD_REF_WAIT_EDGE_ENTRY" || $label eq "DMTD_FB_WAIT_EDGE_ENTRY" ||
       $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
       $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
-    # These source-defined HIGH qualification-abort counters are 32-bit
-    # free-running diagnostics.  A decrease is an expected wrap, not reset.
+    # These source-defined 32-bit diagnostics are free-running counters.
+    # A decrease is an expected wrap, not a functional reset.
     set delta [series_delta_mod32 $first $last $invalid]
   } else {
     set delta [series_delta $first $last $invalid]
@@ -401,8 +401,10 @@ proc read_d0_stable_group {board} {
   foreach label {DMTD_NATIVE_EDGE_COUNT64 \
                  DEGLITCH_THRESHOLD \
                  REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
+                 DMTD_REF_WAIT_EDGE_ENTRY \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
                  FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
+                 DMTD_FB_WAIT_EDGE_ENTRY \
                  NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
@@ -428,6 +430,9 @@ proc read_d0_stable_group {board} {
     set value [wb_read_validated 0x0010022C]
     add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
       [clock milliseconds]
+    set value [wb_read_validated 0x001002A0]
+    add_timed_series_sample $board DMTD_REF_WAIT_EDGE_ENTRY $sample $value \
+      [clock milliseconds]
 
     set previous [series_value $board FB_D0_STABLE_HIT_COUNT64 last]
     set value [wb_read_u64_non_decreasing 0x0010024C 0x00100258 $previous]
@@ -442,6 +447,9 @@ proc read_d0_stable_group {board} {
     set value [wb_read_validated 0x00100230]
     add_timed_series_sample $board NATIVE_FB_ACCEPT $sample $value \
       [clock milliseconds]
+    set value [wb_read_validated 0x001002A4]
+    add_timed_series_sample $board DMTD_FB_WAIT_EDGE_ENTRY $sample $value \
+      [clock milliseconds]
     if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
   }
 
@@ -449,10 +457,12 @@ proc read_d0_stable_group {board} {
   finish_series $board DEGLITCH_THRESHOLD
   finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
+  finish_series $board DMTD_REF_WAIT_EDGE_ENTRY
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
   finish_series64 $board FB_D0_STABLE_HIT_COUNT64
   finish_series64 $board FB_D0_TRANSITION_COUNT64
+  finish_series $board DMTD_FB_WAIT_EDGE_ENTRY
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
 
@@ -590,24 +600,15 @@ proc print_event_boundary {board} {
               TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
               TAG_VALID_COUNT TRR_WRITE_COUNT TRR_POP_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
               STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
-              DMTD_REF_ACCEPT DMTD_FB_ACCEPT DMTD_REF_SEEN DMTD_FB_SEEN \
-               DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX}
+              DMTD_REF_ACCEPT DMTD_FB_ACCEPT \
+               DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
+               DMTD_REF_WAIT_EDGE_ENTRY DMTD_FB_WAIT_EDGE_ENTRY}
   if {[has_invalid $board $labels]} {
     puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
     return
   }
 
-  # DMTD_REF_SEEN/FB_SEEN now expose the source-defined 32-bit HIGH
-  # qualification-abort counters directly.  They are free-running modulo-32
-  # counters, so finish_series() already converts wrap into an unsigned delta.
-   set ref_high_abort_delta [series_value $board DMTD_REF_SEEN delta]
-   set fb_high_abort_delta [series_value $board DMTD_FB_SEEN delta]
-   set max_stab_word [word32 [series_value $board DMTD_HIGH_QUAL_MAX_STAB last]]
-  set abort_delta_invalid [expr {
-    $ref_high_abort_delta eq "INVALID" ||
-    $fb_high_abort_delta eq "INVALID" ||
-    $ref_high_abort_delta eq "DECREASED_OR_RESET" ||
-    $fb_high_abort_delta eq "DECREASED_OR_RESET"}]
+  set max_stab_word [word32 [series_value $board DMTD_HIGH_QUAL_MAX_STAB last]]
   set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
                           [delta_positive $board DMTD_FB_EVENTS]}]
   # Full sampled/accept counters remain the authoritative boundary evidence.
@@ -615,9 +616,8 @@ proc print_event_boundary {board} {
                             [delta_positive $board DMTD_FB_SAMPLED]}]
   set accept_active [expr {[delta_positive $board DMTD_REF_ACCEPT] || \
                            [delta_positive $board DMTD_FB_ACCEPT]}]
-  set qualification_abort_active [expr {!$abort_delta_invalid && \
-    (([string is integer -strict $ref_high_abort_delta] && $ref_high_abort_delta > 0) || \
-     ([string is integer -strict $fb_high_abort_delta] && $fb_high_abort_delta > 0))}]
+  set qualification_entry_active [expr {[delta_positive $board DMTD_REF_WAIT_EDGE_ENTRY] || \
+                                        [delta_positive $board DMTD_FB_WAIT_EDGE_ENTRY]}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
                              [delta_positive $board TAG_PENDING_REF_COUNT] || \
                              [delta_positive $board TAG_PENDING_FB_COUNT]}]
@@ -665,14 +665,14 @@ proc print_event_boundary {board} {
     puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA" $board]
   }
 
-  if {$abort_delta_invalid} {
-    set boundary "DMTD_DEGLITCH_MEASUREMENT_AMBIGUOUS"
-  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_abort_active} {
+  if {!$dmtd_active && !$sampled_active && !$accept_active && !$qualification_entry_active} {
     set boundary "DMTD_SAMPLED_OR_DEGLITCH"
   } elseif {!$sampled_active} {
     set boundary "DMTD_SAMPLED_TRANSITION"
+  } elseif {!$qualification_entry_active} {
+    set boundary "DMTD_SAMPLED_TRANSITION_TO_QUALIFICATION_ENTRY"
   } elseif {!$accept_active} {
-    set boundary "DMTD_SAMPLED_TRANSITION_TO_DEGLITCH_ACCEPT"
+    set boundary "DMTD_QUALIFICATION_ENTRY_TO_DEGLITCH_ACCEPT"
   } elseif {!$dmtd_active} {
     set boundary "DMTD_ACCEPT_TO_SYS_EVENT"
   } elseif {!$pending_active} {
@@ -691,13 +691,16 @@ proc print_event_boundary {board} {
     set boundary "HELPER_UPDATE_ACTIVE"
   }
 
-  puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s accept_ref=%s sampled_fb=%s accept_fb=%s" \
+  puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s pre_accept_ref=%s accept_ref=%s sampled_fb=%s pre_accept_fb=%s accept_fb=%s" \
         $board [series_value $board DMTD_REF_SAMPLED delta] \
+        [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
         [series_value $board DMTD_REF_ACCEPT delta] \
         [series_value $board DMTD_FB_SAMPLED delta] \
+        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta] \
         [series_value $board DMTD_FB_ACCEPT delta]]
-  puts [format "STEP4_QUALIFICATION_ABORT board=%s ref_high=%s fb_high=%s delta_mode=MODULO32" \
-        $board $ref_high_abort_delta $fb_high_abort_delta]
+  puts [format "STEP4_QUALIFICATION_ENTRY board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_WAIT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_FB_WAIT_EDGE_ENTRY delta]]
   puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d trr_pop=%d irq=%d state_transition=%d helper_update=%d" \
         $board $dmtd_active $pending_active $grant_active $tag_active \
         $trr_active $trr_pop_active $irq_active $state_active $helper_active]
@@ -732,8 +735,8 @@ proc read_event_group {board} {
     {DMTD_FB_SAMPLED 0x00100238}
     {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
-    {DMTD_REF_SEEN 0x001002A0}
-    {DMTD_FB_SEEN 0x001002A4}
+    {DMTD_REF_WAIT_EDGE_ENTRY 0x001002A0}
+    {DMTD_FB_WAIT_EDGE_ENTRY 0x001002A4}
     {SPLL_DMTD_STATE 0x001002DC}
   }
   set arbitration_items {

@@ -46,6 +46,8 @@ port (
   diag_dmtd_fb_accept_count_i              : in     std_logic_vector(31 downto 0);
   diag_dmtd_ref_sampled_transition_count_i : in     std_logic_vector(31 downto 0);
   diag_dmtd_fb_sampled_transition_count_i  : in     std_logic_vector(31 downto 0);
+  diag_dmtd_ref_wait_edge_entry_count_i    : in     std_logic_vector(31 downto 0);
+  diag_dmtd_fb_wait_edge_entry_count_i     : in     std_logic_vector(31 downto 0);
   diag_dmtd_high_qual_max_stab_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_high_run_max_i           : in     std_logic_vector(31 downto 0);
   diag_dmtd_input_low_run_max_i            : in     std_logic_vector(31 downto 0);
@@ -930,13 +932,15 @@ begin
           ack_in_progress <= '1';
         when "101000" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_ref_seen_i;
+            -- Read-only diagnostic alias for REF qualification entry.
+            rddata_reg <= diag_dmtd_ref_wait_edge_entry_count_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';
         when "101001" =>
           if (wb_we_i = '0') then
-            rddata_reg <= diag_dmtd_fb_seen_i;
+            -- Read-only diagnostic alias for FB qualification entry.
+            rddata_reg <= diag_dmtd_fb_wait_edge_entry_count_i;
           end if;
           ack_sreg(0) <= '1';
           ack_in_progress <= '1';

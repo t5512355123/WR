@@ -1,0 +1,34 @@
+[sudo] password for b10504072: [0;32mInfo: *******************************************************************
+[0m[0;32mInfo: Running Quartus Prime Programmer
+[0m[0;32m    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+[0m[0;32m    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+[0m[0;32m    Info: Your use of Intel Corporation's design tools, logic functions 
+[0m[0;32m    Info: and other software and tools, and its AMPP partner logic 
+[0m[0;32m    Info: functions, and any output files from any of the foregoing 
+[0m[0;32m    Info: (including device programming or simulation files), and any 
+[0m[0;32m    Info: associated documentation or information are expressly subject 
+[0m[0;32m    Info: to the terms and conditions of the Intel Program License 
+[0m[0;32m    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+[0m[0;32m    Info: the Intel MegaCore Function License Agreement, or other 
+[0m[0;32m    Info: applicable license agreement, including, without limitation, 
+[0m[0;32m    Info: that your use is for the sole purpose of programming logic 
+[0m[0;32m    Info: devices manufactured by Intel and sold by Intel or its 
+[0m[0;32m    Info: authorized distributors.  Please refer to the applicable 
+[0m[0;32m    Info: agreement for further details.
+[0m[0;32m    Info: Processing started: Mon Aug 24 13:14:36 2026
+[0m[0;32mInfo: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+[0m[0;32mInfo (213045): Using programming cable "DE5 [1-11.2]"
+[0m[0;32mInfo (213011): Using programming file /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof with checksum 0x30B52E94 for device 10AX115N2F45@1
+[0m[0;32mInfo (209060): Started Programmer operation at Mon Aug 24 13:14:40 2026
+[0m[0;32mInfo (209016): Configuring device index 1
+[0m[0;32mInfo (209017): Device 1 contains JTAG ID code 0x02E660DD
+[0m[0;32mInfo (209007): Configuration succeeded -- 1 device(s) configured
+[0m[0;32mInfo (209011): Successfully performed operation(s)
+[0m[0;32mInfo (209061): Ended Programmer operation at Mon Aug 24 13:14:55 2026
+[0m[0;32mInfo: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+[0m[0;32m    Info: Peak virtual memory: 1654 megabytes
+[0m[0;32m    Info: Processing ended: Mon Aug 24 13:14:55 2026
+[0m[0;32m    Info: Elapsed time: 00:00:19
+[0m[0;32m    Info: Total CPU time (on all processors): 00:00:05
+[0m
+Connection to 140.112.48.154 closed.

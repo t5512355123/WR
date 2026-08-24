@@ -569,17 +569,33 @@ proc packed16_delta {first last invalid} {
   return [expr {(($b >> 16) - ($a >> 16)) & 0xffff}]
 }
 
+proc packed16_field {value} {
+  if {$value eq "TIMEOUT" || $value eq "INVALID"} { return $value }
+  set word [word32 $value]
+  if {$word < 0} { return INVALID }
+  return [format "%08X" [expr {($word >> 16) & 0xffff}]]
+}
+
+proc series_delta_mod16 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {(($b & 0xffff) - ($a & 0xffff)) & 0xffff}]
+}
+
 proc read_mapping_group {board} {
   # This group intentionally reads only existing source-backed diagnostic
-  # addresses.  QUAL_REACHED_8 is packed in bits 31..16; the low EIC bit is
-  # not part of the counter.  No snapshot/control register is written.
+  # addresses. QUAL_REACHED_8 is unpacked before the series bookkeeping so
+  # unrelated low readback bits cannot be mistaken for a counter decrease.
+  # No snapshot/control register is written.
   set items {
-    {REF_GOT_EDGE_ENTRY_MAPPING 0x001002F0}
-    {REF_QUAL8_MAPPING 0x00100268}
-    {REF_ACCEPT_MAPPING 0x0010022C}
-    {FB_GOT_EDGE_ENTRY_MAPPING 0x001002F4}
-    {FB_QUAL8_MAPPING 0x0010026C}
-    {FB_ACCEPT_MAPPING 0x00100230}
+    {REF_GOT_EDGE_ENTRY_MAPPING 0x001002F0 word32}
+    {REF_QUAL8_MAPPING 0x00100268 packed16}
+    {REF_ACCEPT_MAPPING 0x0010022C word32}
+    {FB_GOT_EDGE_ENTRY_MAPPING 0x001002F4 word32}
+    {FB_QUAL8_MAPPING 0x0010026C packed16}
+    {FB_ACCEPT_MAPPING 0x00100230 word32}
   }
   foreach item $items {
     init_series $board [lindex $item 0]
@@ -590,8 +606,18 @@ proc read_mapping_group {board} {
     foreach item $items {
       set label [lindex $item 0]
       set addr [lindex $item 1]
-      set value [wb_read_validated $addr]
+      set kind [lindex $item 2]
+      set raw_value [wb_read_validated $addr]
+      if {$kind eq "packed16"} {
+        set value [packed16_field $raw_value]
+      } else {
+        set value $raw_value
+      }
       add_series_sample $board $label $sample $value
+      if {$::raw_mode && $kind eq "packed16"} {
+        puts [format "STEP4_MAPPING_RAW board=%s sample=%03d register=%s raw=%s field31_16=%s" \
+              $board $sample $label $raw_value $value]
+      }
       lappend values [format "%s=%s" $label $value]
     }
     puts [format "STEP4_MAPPING_SAMPLE board=%s sample=%03d %s" \
@@ -606,7 +632,7 @@ proc read_mapping_group {board} {
   set ref_got [series_delta_mod32 $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,first) \
       $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,last) \
       $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,invalid)]
-  set ref_qual [packed16_delta $::series($board,REF_QUAL8_MAPPING,first) \
+  set ref_qual [series_delta_mod16 $::series($board,REF_QUAL8_MAPPING,first) \
       $::series($board,REF_QUAL8_MAPPING,last) \
       $::series($board,REF_QUAL8_MAPPING,invalid)]
   set ref_accept [series_delta_mod32 $::series($board,REF_ACCEPT_MAPPING,first) \
@@ -615,7 +641,7 @@ proc read_mapping_group {board} {
   set fb_got [series_delta_mod32 $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,first) \
       $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,last) \
       $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,invalid)]
-  set fb_qual [packed16_delta $::series($board,FB_QUAL8_MAPPING,first) \
+  set fb_qual [series_delta_mod16 $::series($board,FB_QUAL8_MAPPING,first) \
       $::series($board,FB_QUAL8_MAPPING,last) \
       $::series($board,FB_QUAL8_MAPPING,invalid)]
   set fb_accept [series_delta_mod32 $::series($board,FB_ACCEPT_MAPPING,first) \

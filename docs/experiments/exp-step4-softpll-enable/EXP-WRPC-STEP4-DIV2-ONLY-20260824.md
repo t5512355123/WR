@@ -72,17 +72,79 @@ Slave（`DE5 [1-11.2]`）：
 
 ## Runtime 結果
 
-本節將在燒錄後的 read-only Step 1～3 regression 與 Step 4 T0/T1 量測完成後
-補入。若 Step 2 或 Step 3 regression 失敗，本輪不得宣稱 Step 4 結果，並將
-`STEP4_ALLOWED=NO`。
+燒錄後等待板卡穩定，執行：
+
+```text
+quartus_stp -t scripts/jtag/read_wr_handshake_focused.tcl 30 1000
+```
+
+完整原始輸出：
+
+`raw/EXP-WRPC-STEP4-DIV2-ONLY-20260824-step123-focused.log`
+
+### Master
+
+- valid samples：`14/30`，invalid：`16`
+- 有效樣本 MAC：`02:00:22:33:44:01`
+- 有效樣本 `MODE=3`、`PTP=4`
+- `RXERR=0`，MiniNIC counters 有活動
+- `FOREIGN_META=1/0`，但未形成 Master `MODE=2/PTP=6` gate
+- `STEP2_REGRESSION=FAIL`
+- `STEP3_REGRESSION=FAIL`
+
+### Slave
+
+- valid samples：`16/30`，invalid：`14`
+- 有效樣本 MAC：`02:00:22:33:44:02`
+- 有效樣本 `MODE=3`、`PTP=4`，未達穩態 PTP=9
+- `RXERR=0`
+- Foreign metadata 在 `0/255` 與 `1/0` 間變化，parent flags 未成立
+- `LOCK_ENABLE=0`，未觀測 `LOCK=0x1001` 或 `SLAVE_PRESENT=0x1000`
+- `STEP2_REGRESSION=FAIL`
+- `STEP3_REGRESSION=FAIL`
+
+Quartus SignalTap/Tcl 本身成功完成，0 errors、0 warnings；但 JTAG sample
+有效率不足且有效樣本狀態已顯示 regression，不能把這次結果解讀成 Step 4
+硬體失敗。
+
+### Regression barrier
+
+```text
+STEP1_REGRESSION = NOT_ACCEPTED
+STEP2_REGRESSION = FAIL
+STEP3_REGRESSION = FAIL
+STEP4_ALLOWED    = NO
+STEP4_RESULT     = NOT_MEASURED
+```
+
+因此本輪沒有執行 Step 4 T0/T1，也沒有宣稱 DMTD waveform、accepted event、
+tag/TRR/IRQ 或 helper 的結果。
 
 ## 初步結論
 
-目前只證明 exact commit 已 clean compile 並成功燒錄，尚未由 runtime 證明
-DIV2-only 設定能恢復 Step 4。
+DIV2-only 的 source isolation 已完成，但 fresh image 未保留既有 Step 1～3
+runtime regression。相較於 control，`g_softpll_reverse_dmtds` 保持 false，
+唯一 functional A/B 是 `g_softpll_divide_input_by_2=false`；然而本輪結果仍
+顯示兩板進入不穩定/未完成初始化狀態。
+
+這一輪不能證明「divide-by-2 是 Step 4 根因」，也不能證明它直接改寫 role。
+目前可以證明的是：
+
+```text
+DIV2-only B configuration
+    -> Step2/Step3 prerequisite regression
+    -> Step4 blocked before measurement
+```
+
+證據分類：
+
+- `STEP4_RESULT=NOT_MEASURED`
+- `HARDWARE/FIRMWARE_FAILURE=NOT_PROVEN_AS_ROOT_CAUSE`
+- `JTAG_MEASUREMENT_CAVEAT=YES`（Master/Slave invalid samples）
+- `DIV2_ONLY_CONFIGURATION_ACCEPTED=NO`
 
 ## Next Step
 
-等待板卡穩定後，先執行 focused Step 1～3 regression；只有全部 prerequisite
-通過，才執行 Step 4 startup/T0/T1，觀察 D0 stable hit、accepted DMTD、
-event/tag/TRR/IRQ、sequencer 與 helper activity。
+保留本輪 fresh build/program/runtime 證據，先送 White Rabbit 討論確認。不要
+在本輪結果上再疊加 reverse、polarity、threshold 或其他 SoftPLL 變因；下一輪
+必須先決定如何恢復可靠的 Step 2/3 control，再重新驗證 Step 4。

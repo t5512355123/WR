@@ -1,0 +1,9 @@
+DATE=2026-08-25
+GIT_COMMIT=0a4fbe20c475ed2b73c506286b0167edda24cdec
+GIT_BRANCH=QUARTUS_VERSION=Quartus Prime Shell
+PROGRAM_PERFORMED=NO
+COMPILE_PERFORMED_IN_THIS_READ_ONLY_REGRESSION=NO
+COMMAND_DASHBOARD=quartus_stp -t scripts/jtag/read_wb_runtime.tcl
+COMMAND_STEP2=quartus_stp -t scripts/jtag/read_master_ptp_slave_parent_long.tcl 25 500
+COMMAND_STEP3=quartus_stp -t scripts/jtag/read_wr_handshake_focused.tcl 30 500 25
+COMMAND_STEP4_MAPPING=quartus_stp -t scripts/jtag/read_step4_startup_focused.tcl 50 100 mapping

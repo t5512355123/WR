@@ -272,8 +272,8 @@ proc status_text {status} {
     FAIL { return "error" }
     INFO { return "info" }
     # Invalid mailbox data is measurement information, not a hardware error.
-    # Keep a distinct label so it cannot be confused with ordinary INFO.
-    INVALID { return "invalid" }
+    # Keep the compact UI to the requested pass/error/info vocabulary.
+    INVALID { return "info" }
   }
   # Keep the default UI contract closed: runtime lines may only use the
   # four dashboard states, even if a future caller passes an unknown value.
@@ -283,7 +283,7 @@ proc status_text {status} {
 proc step_status_text {status} {
   if {$status eq "PASS"} { return "pass" }
   if {$status eq "WARN" || $status eq "FAIL"} { return "error" }
-  if {$status eq "INVALID"} { return "invalid" }
+  if {$status eq "INVALID"} { return "NA" }
   return "NA"
 }
 
@@ -693,9 +693,11 @@ proc analyze_board {board} {
   set ptp_meta [get_snap $board $after ptp_meta]
   set mode [field32 $ptp_meta 24 8]
   set ptp [word32 [get_snap $board $after ptp]]
+  set mode_num [numeric_value $mode]
+  set ptp_num [numeric_value $ptp]
   set role "UNKNOWN"
-  if {$mode == 2} { set role MASTER }
-  if {$mode == 3} { set role SLAVE }
+  if {$mode_num ne "" && $mode_num == 2} { set role MASTER }
+  if {$mode_num ne "" && $mode_num == 3} { set role SLAVE }
   set mac_status WARN
   set mac_expected "ROLE"
   if {$role eq "MASTER"} {
@@ -722,9 +724,13 @@ proc analyze_board {board} {
     # PPS_UNCALIBRATED is a permitted startup transition; it is not an
     # immediate Step 2 hardware failure.  Focused time-series decides whether
     # the Slave reaches steady PPS_SLAVE.
-    if {$ptp == 8} { set ptp_status INFO } else { set ptp_status [exact_status $ptp 9] }
+    if {$ptp_num ne "" && $ptp_num == 8} {
+      set ptp_status INFO
+    } else {
+      set ptp_status [exact_status $ptp 9]
+    }
   } else {
-    if {$mode < 0 || $ptp < 0} {
+    if {$mode_num eq "" || $ptp_num eq ""} {
       set mac_status INVALID
       set mode_status INVALID
       set ptp_status INVALID
@@ -739,7 +745,9 @@ proc analyze_board {board} {
   set step2 [merge_status $step2 $ptp_status]
   print_signal $mac_status "MAC Address" EP_MAC_H/EP_MAC_L $mac $mac_expected ""
   print_signal $mode_status "WR Mode" WDIAGS_MODE \
-    [format "%s %s" [display_value $mode] [expr {$mode == 2 ? "MASTER" : ($mode == 3 ? "SLAVE" : "UNKNOWN")}]] \
+    [format "%s %s" [display_value $mode] \
+      [expr {[numeric_equal $mode 2] ? "MASTER" : \
+        ([numeric_equal $mode 3] ? "SLAVE" : "UNKNOWN")}]] \
     [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "ROLE")} ] ""
   print_signal $ptp_status "PTP State" WDIAGS_PTP \
     [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
@@ -1074,7 +1082,7 @@ proc analyze_board {board} {
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "NA" }
-    if {$s eq "INVALID"} { set shown "invalid" }
+    if {$s eq "INVALID"} { set shown "NA" }
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }

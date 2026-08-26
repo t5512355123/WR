@@ -1,0 +1,45 @@
+=== B IMAGE ROLE/FIRMWARE/PROGRAMMING PROVENANCE SNAPSHOT ===
+Date: 2026-08-26
+Baseline functional commit: 73d16414cf015f9411431ae7f5a862afb8454098
+Audit type: read-only; no source change, rebuild, or reprogramming performed
+
+REMOTE PAIN BUILD OUTPUTS
+Master build/firmware/master/build_hashes.sha256 (relevant line):
+861948c458411465ce84839871bbea3fa82539f87739f855b747363c57655f70  build/firmware/master/wrc.mif
+438622647f710b81576e8d6e25475d2a9a52b53797002a050e2efbf338efd1b0  firmware/configs/de5a_master_defconfig
+c8c8fbaf4c1a7b99c4cad7491a9134e4e0d698ac068b894d5a0ee2d18c06f692  firmware/configs/de5a_master_identity.h
+
+Slave build/firmware/slave/build_hashes.sha256 (relevant line):
+57ea898297d07297f80bb12aa5b1c501fabbf089878bce90c36492219d0dd4aa  build/firmware/slave/wrc.mif
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  firmware/configs/de5a_slave_defconfig
+33ded2dc62811525a395d12a5a396dda1553339119eba2f37c86cf8cf4639d55  firmware/configs/de5a_slave_identity.h
+
+GENERATED CONFIGURATION
+build/firmware/work/master/.config:139 CONFIG_INIT_COMMAND="vlan off;ptp stop;mode master;ptp start"
+build/firmware/work/slave/.config:139 CONFIG_INIT_COMMAND="vlan off;ptp stop;mode slave;ptp start"
+Both generated configs: CONFIG_STEP2_DISABLE_PERSISTENT_INIT=y
+strings(wrc.elf): master contains the master init string; slave contains the slave init string.
+
+GIT OBJECT CROSS-CHECK
+Remote pain and local checkout both resolve to commit 3bd953e13ed0e3f365ca670d72fe97b2d1d99923 after the experiment record.
+git hash-object (same on remote and local):
+d658dd350ca07f996f2e8bd69539e58282fbd729  firmware/configs/de5a_master_defconfig
+1e5c2273eaa49ab39d0e454cca071e539e9958bf  firmware/configs/de5a_master_identity.h
+626a47a0e2caa6f6d8564416ee276bff29d0b685  firmware/configs/de5a_slave_defconfig
+a4b2089b3b01e491976c227cefdc6829489b7870  firmware/configs/de5a_slave_identity.h
+The differing raw SHA256 values for the two defconfigs are line-ending differences between the Windows checkout and the Linux build checkout; Git object identity and semantic contents match.
+
+QUARTUS MIF MAPPING
+Master top: g_dpram_initf => "../../build/firmware/master/wrc.mif"
+Slave top:  g_dpram_initf => "../../build/firmware/slave/wrc.mif"
+Master clean compile log records MIF SHA256 861948c4... and init_file ../../build/firmware/master/wrc.mif.
+Slave clean compile log records MIF SHA256 57ea8982... and init_file ../../build/firmware/slave/wrc.mif.
+
+PROGRAMMING MAPPING
+Master SOF c68f9c47683d47746594792ab270df86c59ce8d248c9631b52a102712bfb3939 was programmed to DE5 [1-11.1], checksum 0x30B1722A, configuration succeeded.
+Slave SOF d03a01cdb2d4c3e831c1154d0d8da04c9cfe03881c0144c53da5bb6e1ef27536 was programmed to DE5 [1-11.2], checksum 0x30B05EEB, configuration succeeded.
+
+RUNTIME CROSS-CHECK FROM B BARRIER
+Master cable reported endpoint MAC ending ...01, matching the master identity.
+Slave cable reported endpoint MAC ending ...02, matching the slave identity.
+The remaining anomaly is role/state telemetry: Master read WDIAGS mode=3 (SLAVE) while PTP state samples included MASTER/SLAVE values; Slave also produced mixed/inconsistent mode/state samples. This is recorded as a runtime role/state mismatch, not as evidence that the MIFs or programmer cable assignments were swapped.

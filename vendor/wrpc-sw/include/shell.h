@@ -52,6 +52,12 @@ extern unsigned char shell_is_interacting;
 int sub_cmd(const char * const *cmds, unsigned len, const char *args[]);
 
 void shell_boot_script(void);
+/* Firmware-only boot-init execution evidence for WDIAGS/JTAG observation. */
+extern volatile uint32_t shell_boot_init_script_enter_count;
+extern volatile uint32_t shell_boot_init_command_index;
+extern volatile uint32_t shell_boot_init_mode_master_call_count;
+extern volatile uint32_t shell_boot_init_mode_master_return_count;
+void shell_boot_init_diag_publish(void);
 void shell_show_build_init(void);
 void shell_register_command( const struct wrc_shell_cmd* cmd );
 void shell_list_cmds(void);

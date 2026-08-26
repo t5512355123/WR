@@ -24,6 +24,9 @@ static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
 static void *wdiags_base = NULL;
 #endif
 
+static uint32_t wdiags_ptp_state_shadow;
+static uint32_t wdiags_boot_init_debug_shadow;
+
 
 static int wdiag_write( uint32_t reg, uint32_t value )
 {
@@ -104,7 +107,32 @@ void wdiags_write_port_state(int link, int locked)
 
 void wdiags_write_ptp_state(uint8_t ptpstate)
 {
-	wdiag_write( WRC_DIAGS_WDIAG_PTPSTAT, ptpstate << WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_SHIFT );
+	wdiags_ptp_state_shadow =
+		((uint32_t)ptpstate << WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_SHIFT) &
+		WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_MASK;
+	wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
+			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
+}
+
+void wdiags_write_boot_init_debug(uint32_t script_enter_count,
+					  uint32_t command_index,
+					  uint32_t mode_master_call_count,
+					  uint32_t mode_master_return_count)
+{
+	/* Keep the existing PTP state in bits 0..7. The boot script has four
+	 * commands, so 4 bits are sufficient for its index and entry count; the
+	 * two mode-master counters retain 8 bits each. */
+	wdiags_boot_init_debug_shadow =
+		((script_enter_count << WRC_DIAGS_WDIAG_PTPSTAT_BOOT_INIT_ENTER_SHIFT) &
+		 WRC_DIAGS_WDIAG_PTPSTAT_BOOT_INIT_ENTER_MASK) |
+		((command_index << WRC_DIAGS_WDIAG_PTPSTAT_BOOT_INIT_INDEX_SHIFT) &
+		 WRC_DIAGS_WDIAG_PTPSTAT_BOOT_INIT_INDEX_MASK) |
+		((mode_master_call_count << WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_CALL_SHIFT) &
+		 WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_CALL_MASK) |
+		((mode_master_return_count << WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_RETURN_SHIFT) &
+		 WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_RETURN_MASK);
+	wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
+			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
 }
 
 void wdiags_write_aux_state(uint32_t aux_states)

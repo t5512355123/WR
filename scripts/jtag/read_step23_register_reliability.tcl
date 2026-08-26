@@ -110,7 +110,10 @@ proc register_valid {addr value} {
   switch -- $key {
     0x00100124 { return [expr {$word == 0x02000200}] }
     0x00100128 { return [expr {$word == 0x22334401 || $word == 0x22334402}] }
-    0x00100A10 { return [expr {$word >= 1 && $word <= 9}] }
+    0x00100A10 {
+      set ptp_state [expr {$word & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9}]
+    }
     0x00100A5C {
       set ptp_state [expr {$word & 0xff}]
       set mode [expr {($word >> 24) & 0xff}]

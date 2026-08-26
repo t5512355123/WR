@@ -22,6 +22,7 @@
 #include "dev/temp-w1.h"
 #include "dev/w1.h"
 #include "dev/temperature.h"
+#include "dev/wdiags.h"
 
 #include "shell.h"
 #include "storage.h"
@@ -111,6 +112,19 @@ static int n_cmds = 0;
 
 unsigned char shell_is_interacting;
 int (*shell_ui_callback)(void);
+
+volatile uint32_t shell_boot_init_script_enter_count;
+volatile uint32_t shell_boot_init_command_index;
+volatile uint32_t shell_boot_init_mode_master_call_count;
+volatile uint32_t shell_boot_init_mode_master_return_count;
+
+void shell_boot_init_diag_publish(void)
+{
+	wdiags_write_boot_init_debug(shell_boot_init_script_enter_count,
+					 shell_boot_init_command_index,
+					 shell_boot_init_mode_master_call_count,
+					 shell_boot_init_mode_master_return_count);
+}
 
 static int insert(char c)
 {
@@ -366,11 +380,18 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 void shell_boot_script(void)
 {
 #ifdef CONFIG_INIT_COMMAND
+	uint32_t command_index = 0;
+
+	++shell_boot_init_script_enter_count;
+	shell_boot_init_command_index = 0;
+	shell_boot_init_diag_publish();
 	while (1) {
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
 					SH_MAX_LINE_LEN);
 		if (!cmd_len)
 			break;
+		shell_boot_init_command_index = ++command_index;
+		shell_boot_init_diag_publish();
 		pp_printf("executing: %s\n", cmd_buf);
 		shell_exec(cmd_buf);
 	}

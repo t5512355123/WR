@@ -136,7 +136,18 @@ static int cmd_ptp(const char *args[])
 				 * as a parameter */
 				if (l_arg == USE_CMD_PARAM && args[++j])
 					l_arg = atoi(args[j]);
+				int is_mode_master;
+				is_mode_master =
+					(c->fun == wrc_ptp_set_mode && l_arg == WRC_MODE_MASTER);
+				if (is_mode_master) {
+					++shell_boot_init_mode_master_call_count;
+					shell_boot_init_diag_publish();
+				}
 				ret = c->fun(l_arg);
+				if (is_mode_master) {
+					++shell_boot_init_mode_master_return_count;
+					shell_boot_init_diag_publish();
+				}
 				if (ret < 0)
 					return ret;
 				break;

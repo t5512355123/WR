@@ -85,7 +85,8 @@ proc validated_register {addr value} {
       return [expr {$word == 0x22334401 || $word == 0x22334402}]
     }
     0x00100A10 {
-      return [expr {$word >= 1 && $word <= 9}]
+      set ptp_state [expr {$word & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9}]
     }
     0x00100A5C {
       set state [expr {$word & 0xff}]

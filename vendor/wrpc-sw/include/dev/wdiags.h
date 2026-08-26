@@ -20,6 +20,11 @@ void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 			      int32_t setp, int32_t ucnt, uint32_t restart_cnt, uint64_t up_timestamp );
 void wdiags_write_port_state(int link, int locked);
 void wdiags_write_ptp_state(uint8_t ptpstate);
+/* Read-only boot-init execution evidence carried in PTPSTAT bits 8..31. */
+void wdiags_write_boot_init_debug(uint32_t script_enter_count,
+                                  uint32_t command_index,
+                                  uint32_t mode_master_call_count,
+                                  uint32_t mode_master_return_count);
 void wdiags_write_aux_state(uint32_t aux_states);
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors);
 /* 診斷版：保存 PPSI 收發計數與協定狀態，不改變 WR 控制流程。 */

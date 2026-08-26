@@ -25,6 +25,12 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
+/* Read-only sticky trace for the built-in boot-init command sequence. */
+void wdiags_boot_init_trace_reset(uint32_t script_enter_count);
+void wdiags_boot_init_trace_before(uint32_t command_index);
+void wdiags_boot_init_trace_after(uint32_t command_index, int return_code);
+void wdiags_boot_init_trace_mode_master_call(void);
+void wdiags_boot_init_trace_mode_master_return(void);
 /* Read-only VLAN/pfilter boot-progress checkpoints in the mapping words. */
 void wdiags_vlan_cmd_enter(void);
 void wdiags_pfilter_enter(void);
@@ -34,15 +40,6 @@ void wdiags_pfilter_after_rule_write(void);
 void wdiags_pfilter_before_enable(void);
 void wdiags_pfilter_return(void);
 void wdiags_vlan_cmd_return(void);
-/* Read-only shell_exec() dispatch checkpoints in PTPSTAT high bits. */
-void wdiags_shell_exec_enter(void);
-void wdiags_shell_tokenize_done(void);
-void wdiags_shell_command_name_parsed(void);
-void wdiags_shell_lookup_begin(void);
-void wdiags_shell_lookup_match_index(uint32_t index);
-void wdiags_shell_handler_found(void);
-void wdiags_shell_before_handler_call(void);
-void wdiags_shell_after_handler_return(void);
 void wdiags_write_aux_state(uint32_t aux_states);
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors);
 /* 診斷版：保存 PPSI 收發計數與協定狀態，不改變 WR 控制流程。 */

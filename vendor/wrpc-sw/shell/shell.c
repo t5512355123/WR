@@ -204,25 +204,17 @@ static int _shell_exec(void)
 		if (!cmd_buf[i])
 			break;
 	}
-	wdiags_shell_tokenize_done();
-
 	if (!n)
 		return 0;
 
 	if (*tokptr[0] == '#')
 		return 0;
-	wdiags_shell_command_name_parsed();
-	wdiags_shell_lookup_begin();
 
 	for (i = 0; i < n_cmds; i++)
 	{
 		p = cmds[i];
 		if (!strcasecmp(p->name, tokptr[0])) {
-			wdiags_shell_lookup_match_index(i);
-			wdiags_shell_handler_found();
-			wdiags_shell_before_handler_call();
 			rv = p->exec(tokptr + 1);
-			wdiags_shell_after_handler_return();
 			if (rv < 0)
 				pp_printf("Command \"%s\": error %d\n",
 					p->name, rv);
@@ -237,8 +229,6 @@ static int _shell_exec(void)
 int shell_exec(const char *cmd)
 {
 	int i;
-
-	wdiags_shell_exec_enter();
 
 	if (cmd != cmd_buf)
 		strncpy(cmd_buf, cmd, SH_MAX_LINE_LEN);
@@ -392,6 +382,7 @@ void shell_boot_script(void)
 	uint32_t command_index = 0;
 
 	++shell_boot_init_script_enter_count;
+	wdiags_boot_init_trace_reset(shell_boot_init_script_enter_count);
 	shell_boot_init_command_index = 0;
 	shell_boot_init_diag_publish();
 	while (1) {
@@ -400,9 +391,13 @@ void shell_boot_script(void)
 		if (!cmd_len)
 			break;
 		shell_boot_init_command_index = ++command_index;
+		wdiags_boot_init_trace_before(command_index);
 		shell_boot_init_diag_publish();
 		pp_printf("executing: %s\n", cmd_buf);
-		shell_exec(cmd_buf);
+		{
+			int return_code = shell_exec(cmd_buf);
+			wdiags_boot_init_trace_after(command_index, return_code);
+		}
 	}
 #endif
 

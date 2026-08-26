@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include "wrpc.h"
+#include "dev/wdiags.h"
 #include "shell.h"
 
 #ifdef CONFIG_CMD_PTP_ADV

@@ -70,7 +70,10 @@ entity wrc_urv_wrapper is
     cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_primitive_diag_payload0_o : out std_logic_vector(63 downto 0);
     cpu_ram_primitive_diag_payload1_o : out std_logic_vector(63 downto 0);
-    cpu_ram_primitive_diag_meta_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_primitive_diag_meta_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_port_a_diag_payload0_o : out std_logic_vector(63 downto 0);
+    cpu_ram_port_a_diag_payload1_o : out std_logic_vector(63 downto 0);
+    cpu_ram_port_a_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -169,9 +172,18 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_ram_primitive_load_seen : std_logic;
   signal cpu_ram_primitive_after_seen : std_logic;
   signal cpu_ram_primitive_same_at_load : std_logic;
+  signal cpu_ram_port_a_addr_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_port_a_write_data_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_port_a_bwe_at_load : std_logic_vector(3 downto 0);
+  signal cpu_ram_port_a_write_enable_at_load : std_logic;
+  signal cpu_ram_port_b_addr_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_port_b_q_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_port_a_diag_seen : std_logic;
+  signal cpu_ram_port_a_same_addr : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
+  signal ha_im_bwea     : std_logic_vector(3 downto 0);
   signal ha_im_write    : std_logic;
 
   signal im_addr_muxed : std_logic_vector(31 downto 0);
@@ -234,6 +246,8 @@ architecture arch of wrc_urv_wrapper is
   end component;
 
 begin
+
+  ha_im_bwea <= "1111";
 
   wrc_cpu_csr_wb_slave_1: entity work.wrc_cpu_csr_wb_slave
     port map (
@@ -298,7 +312,7 @@ begin
     port map (
       rst_n_i => rst_n_i,
       clka_i  => clk_sys_i,
-      bwea_i  => "1111",
+      bwea_i  => ha_im_bwea,
       wea_i   => ha_im_write,
       aa_i    => im_addr_muxed(f_log2_size(g_IRAM_SIZE)+1 downto 2),
       da_i    => ha_im_wdata,
@@ -650,6 +664,43 @@ begin
     end if;
   end process p_cpu_ram_primitive_observe;
 
+  -- Read-only capture of port-A activity on the same edge as the first
+  -- internal port-B load.  Port A is the instruction/host side of U_iram;
+  -- there is no separate port-A read-enable in generic_dpram or altsyncram,
+  -- so wea_i/bwea_i are the complete write-side activity indicators.
+  p_cpu_ram_port_a_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_ram_port_a_addr_at_load        <= (others => '0');
+        cpu_ram_port_a_write_data_at_load <= (others => '0');
+        cpu_ram_port_a_bwe_at_load         <= (others => '0');
+        cpu_ram_port_a_write_enable_at_load <= '0';
+        cpu_ram_port_b_addr_at_load        <= (others => '0');
+        cpu_ram_port_b_q_at_load           <= (others => '0');
+        cpu_ram_port_a_diag_seen           <= '0';
+        cpu_ram_port_a_same_addr           <= '0';
+      elsif cpu_ram_port_a_diag_seen = '0' and
+            dm_load = '1' and dm_is_wishbone = '0' then
+        -- Capture the byte-address sources that feed the actual primitive
+        -- word-address slices in U_iram, together with the exact q_b sample.
+        cpu_ram_port_a_addr_at_load          <= im_addr_muxed;
+        cpu_ram_port_a_write_data_at_load   <= ha_im_wdata;
+        cpu_ram_port_a_bwe_at_load          <= ha_im_bwea;
+        cpu_ram_port_a_write_enable_at_load <= ha_im_write;
+        cpu_ram_port_b_addr_at_load         <= dm_addr;
+        cpu_ram_port_b_q_at_load            <= dm_ram_q_b_raw;
+        cpu_ram_port_a_diag_seen            <= '1';
+        if im_addr_muxed(f_log2_size(g_IRAM_SIZE)+1 downto 2) =
+           dm_addr(f_log2_size(g_IRAM_SIZE)+1 downto 2) then
+          cpu_ram_port_a_same_addr <= '1';
+        else
+          cpu_ram_port_a_same_addr <= '0';
+        end if;
+      end if;
+    end if;
+  end process p_cpu_ram_port_a_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
@@ -706,5 +757,17 @@ begin
                                           cpu_ram_primitive_same_at_load &
                                           cpu_ram_primitive_after_seen &
                                           cpu_ram_primitive_load_seen;
+  cpu_ram_port_a_diag_payload0_o <= cpu_ram_port_a_addr_at_load &
+                                    cpu_ram_port_a_write_data_at_load;
+  cpu_ram_port_a_diag_payload1_o <= cpu_ram_port_b_addr_at_load &
+                                    cpu_ram_port_b_q_at_load;
+  cpu_ram_port_a_diag_meta_payload_o <= (63 downto 10 => '0') &
+                                        cpu_rst &
+                                        (not rst_n_i) &
+                                        '0' &
+                                        cpu_ram_port_a_same_addr &
+                                        cpu_ram_port_a_bwe_at_load &
+                                        cpu_ram_port_a_write_enable_at_load &
+                                        cpu_ram_port_a_diag_seen;
 
 end architecture arch;

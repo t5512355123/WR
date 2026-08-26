@@ -259,6 +259,12 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_ram_primitive_diag_probe0 : std_logic_vector(63 downto 0);
   signal cpu_ram_primitive_diag_probe1 : std_logic_vector(63 downto 0);
   signal cpu_ram_primitive_diag_meta_probe : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_payload0 : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_payload1 : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_meta_payload : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_probe0 : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_probe1 : std_logic_vector(63 downto 0);
+  signal cpu_ram_port_a_diag_meta_probe : std_logic_vector(63 downto 0);
   signal dac_hpll_load        : std_logic;
   signal dac_hpll_data        : std_logic_vector(15 downto 0);
   signal dac_dpll_load        : std_logic;
@@ -857,6 +863,58 @@ begin
       source_ena => '1'
     );
 
+  -- First port-B load same-edge port-A activity diagnostic.  Probe 23 carries
+  -- port-A byte address and write data, probe 24 carries port-B byte address
+  -- and primitive q_b, and probe 25 carries port-A write/byte-enable flags.
+  cpu_ram_port_a_diag_probe0 <= cpu_ram_port_a_diag_payload0;
+  cpu_ram_port_a_diag_probe1 <= cpu_ram_port_a_diag_payload1;
+  cpu_ram_port_a_diag_meta_probe <= cpu_ram_port_a_diag_meta_payload;
+
+  u_cpu_ram_port_a_diag_probe0 : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_RAM_PORT_A_DIAG_0_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 23,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_ram_port_a_diag_probe0,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_cpu_ram_port_a_diag_probe1 : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_RAM_PORT_A_DIAG_1_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 24,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_ram_port_a_diag_probe1,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_cpu_ram_port_a_diag_meta_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_RAM_PORT_A_DIAG_META_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 25,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_ram_port_a_diag_meta_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- The board's SFP I2C pins are open-drain.  WRPC drives only the output
   -- low and releases the line for a logic high.
   QSFPA_SDA <= '0' when sfp_sda_o = '0' else 'Z';
@@ -1065,7 +1123,10 @@ begin
       cpu_ram_init_diag_meta_payload_o => cpu_ram_init_diag_meta_payload,
       cpu_ram_primitive_diag_payload0_o => cpu_ram_primitive_diag_payload0,
       cpu_ram_primitive_diag_payload1_o => cpu_ram_primitive_diag_payload1,
-      cpu_ram_primitive_diag_meta_payload_o => cpu_ram_primitive_diag_meta_payload
+      cpu_ram_primitive_diag_meta_payload_o => cpu_ram_primitive_diag_meta_payload,
+      cpu_ram_port_a_diag_payload0_o => cpu_ram_port_a_diag_payload0,
+      cpu_ram_port_a_diag_payload1_o => cpu_ram_port_a_diag_payload1,
+      cpu_ram_port_a_diag_meta_payload_o => cpu_ram_port_a_diag_meta_payload
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

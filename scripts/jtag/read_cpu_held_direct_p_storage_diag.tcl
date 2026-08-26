@@ -8,6 +8,8 @@
 package require ::quartus::insystem_source_probe
 
 array set ::wb_toggle {}
+set board_filter ""
+if {[llength $argv] >= 1} { set board_filter [lindex $argv 0] }
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -103,6 +105,11 @@ proc wb_sync_toggle {hardware_name} {
   }
 }
 
+proc selected_board {hardware_name} {
+  if {$::board_filter eq ""} { return 1 }
+  return [expr {[string first $::board_filter $hardware_name] >= 0}]
+}
+
 proc cpu_host_read_word {hardware_name word_address} {
   wb_write $hardware_name 0x00100D04 $word_address
   set first [wb_read $hardware_name 0x00100D08]
@@ -113,9 +120,10 @@ proc cpu_host_read_word {hardware_name word_address} {
   return "[format %08X $word]|$first / $second"
 }
 
-puts "CPU_HELD_DIRECT_P_STORAGE_CONFIG p_byte=0x0001C304 p_word=0x000070C1 mif_expected=0x00017938"
+puts "CPU_HELD_DIRECT_P_STORAGE_CONFIG p_byte=0x0001C304 p_word=0x000070C1 mif_expected=0x00017938 filter=$board_filter"
 
 foreach hardware_name [get_hardware_names] {
+  if {![selected_board $hardware_name]} { continue }
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
   set device_name [lindex $device_names 0]

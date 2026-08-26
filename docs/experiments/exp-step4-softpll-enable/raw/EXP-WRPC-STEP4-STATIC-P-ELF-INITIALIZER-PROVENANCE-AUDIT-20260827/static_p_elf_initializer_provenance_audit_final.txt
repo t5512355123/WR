@@ -1,0 +1,111 @@
+=== AUDIT IDENTITY ===
+2026-08-27T00:40:41+08:00
+523985fd267f3232afb7fb2a65dc6380caf2e81f
+=== ROLE master ===
+--- build info ---
+DATE=2026-08-27T00:29:20+08:00
+HOST=pain
+GIT_COMMIT=233903ef8cbd32f38f8ea4a45a2880b07890b1c2
+GIT_BRANCH=exp/step4-softpll-enable
+QUARTUS_BIN=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin
+QUARTUS_VERSION=Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+PROJECT=DE5a_wr_master_jtag
+TOP_LEVEL_ENTITY=DE5a_wr_master_jtag
+QSF_SHA256=cc01fa4279bea7f1daf02f1b573410978240aca1bf83abcb686af0be41f1073f
+SDC_SHA256=921e0918187eece1e2445e59e1220d3bba4795bb17111f29b63b16ba54d9095b
+MIF_SHA256=2e93a34bf3a7e0ccf993ef0efa4089f6f0b58a9fd41e493b10148f39c12e83a5
+SOF_SHA256=3bb2b11d4cf548e3a69774c6c7ccbbc6b937da6300e9b54a42c4fc8761dc29c2
+FITTER_STATUS=Fitter Status : Successful - Thu Aug 27 00:28:36 2026
+TIMING_CLOSED=NO
+WORST_SETUP_SLACK_NS=-0.389
+WORST_HOLD_SLACK_NS=0.039
+WORST_RECOVERY_SLACK_NS=1.156
+WORST_REMOVAL_SLACK_NS=0.282
+UNCONSTRAINED_CLOCKS=6
+UNCONSTRAINED_INPUT_PATHS=402
+UNCONSTRAINED_OUTPUT_PATHS=80
+COMPILE_RESULT=Full Compilation was successful
+--- symbols ---
+   112: 000040c4   468 FUNC    LOCAL  DEFAULT    1 build_init_readcmd.constprop.0
+   113: 0001c580     4 OBJECT  LOCAL  DEFAULT    6 build_init_readcmd_global_call_count
+   114: 0001c3cc     4 OBJECT  LOCAL  DEFAULT    5 p.3055
+   115: 0001c57c     4 OBJECT  LOCAL  DEFAULT    6 build_init_readcmd_last_caller_id
+   228: 00017bc8    40 OBJECT  LOCAL  DEFAULT    2 shell_init_cmd
+   675: 0000c0f8   308 FUNC    GLOBAL HIDDEN     1 shell_boot_script
+--- sections ---
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 1] .text             PROGBITS        00000000 001000 017880 00  AX  0   0  4
+  [ 2] .rodata           PROGBITS        00017880 018880 004860 00   A  0   0  8
+  [ 4] .data             PROGBITS        0001c2d8 01d2d8 0000d8 00  WA  0   0  4
+  [ 5] .sdata            PROGBITS        0001c3b0 01d3b0 00002c 00  WA  0   0  4
+  [ 6] .sbss             NOBITS          0001c3dc 01d3dc 000218 00  WA  0   0  4
+  [ 7] .bss              NOBITS          0001c5f8 01d3dc 001d70 00  WA  0   0  8
+--- relocations ---
+
+There are no relocations in this file.
+--- sdata ---
+
+build/firmware/work/master/wrc.elf:     file format elf32-littleriscv
+
+Contents of section .sdata:
+ 1c3b0 03000000 00000000 01000000 ffffffff  ................
+ 1c3c0 ffffffff ffffffff ffffffff c87b0100  .............{..
+ 1c3d0 e8030000 ffff0000 25000000           ........%...    
+--- pointer storage from MIF word 70f3 ---
+70f3 : 00017BC8;
+--- init string ---
+vlan off;ptp stop;mode master;ptp start
+=== ROLE slave ===
+--- build info ---
+DATE=2026-08-27T00:33:18+08:00
+HOST=pain
+GIT_COMMIT=233903ef8cbd32f38f8ea4a45a2880b07890b1c2
+GIT_BRANCH=exp/step4-softpll-enable
+QUARTUS_BIN=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin
+QUARTUS_VERSION=Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+PROJECT=DE5a_wr_slave_jtag
+TOP_LEVEL_ENTITY=DE5a_wr_slave_jtag
+QSF_SHA256=c46689ce5573bea68af569fe3062d07043b306c7258e443f962a5ed496442437
+SDC_SHA256=921e0918187eece1e2445e59e1220d3bba4795bb17111f29b63b16ba54d9095b
+MIF_SHA256=aa640b21228c0db6447bfa1b196e1102017efc5bce73e5246c074324caf86909
+SOF_SHA256=bce13036a6ec2cac1b3a0ef089fae2a960c253926250aeab0885959718d86244
+FITTER_STATUS=Fitter Status : Successful - Thu Aug 27 00:32:35 2026
+TIMING_CLOSED=NO
+WORST_SETUP_SLACK_NS=-0.412
+WORST_HOLD_SLACK_NS=0.031
+WORST_RECOVERY_SLACK_NS=0.905
+WORST_REMOVAL_SLACK_NS=0.389
+UNCONSTRAINED_CLOCKS=6
+UNCONSTRAINED_INPUT_PATHS=439
+UNCONSTRAINED_OUTPUT_PATHS=82
+COMPILE_RESULT=Full Compilation was successful
+--- symbols ---
+   112: 000040c4   468 FUNC    LOCAL  DEFAULT    1 build_init_readcmd.constprop.0
+   113: 0001c580     4 OBJECT  LOCAL  DEFAULT    6 build_init_readcmd_global_call_count
+   114: 0001c3cc     4 OBJECT  LOCAL  DEFAULT    5 p.3055
+   115: 0001c57c     4 OBJECT  LOCAL  DEFAULT    6 build_init_readcmd_last_caller_id
+   228: 00017bc8    39 OBJECT  LOCAL  DEFAULT    2 shell_init_cmd
+   675: 0000c0f8   308 FUNC    GLOBAL HIDDEN     1 shell_boot_script
+--- sections ---
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 1] .text             PROGBITS        00000000 001000 017880 00  AX  0   0  4
+  [ 2] .rodata           PROGBITS        00017880 018880 004860 00   A  0   0  8
+  [ 4] .data             PROGBITS        0001c2d8 01d2d8 0000d8 00  WA  0   0  4
+  [ 5] .sdata            PROGBITS        0001c3b0 01d3b0 00002c 00  WA  0   0  4
+  [ 6] .sbss             NOBITS          0001c3dc 01d3dc 000218 00  WA  0   0  4
+  [ 7] .bss              NOBITS          0001c5f8 01d3dc 001d70 00  WA  0   0  8
+--- relocations ---
+
+There are no relocations in this file.
+--- sdata ---
+
+build/firmware/work/slave/wrc.elf:     file format elf32-littleriscv
+
+Contents of section .sdata:
+ 1c3b0 03000000 00000000 01000000 ffffffff  ................
+ 1c3c0 ffffffff ffffffff ffffffff c87b0100  .............{..
+ 1c3d0 e8030000 ffff0000 25000000           ........%...    
+--- pointer storage from MIF word 70f3 ---
+70f3 : 00017BC8;
+--- init string ---
+vlan off;ptp stop;mode slave;ptp start

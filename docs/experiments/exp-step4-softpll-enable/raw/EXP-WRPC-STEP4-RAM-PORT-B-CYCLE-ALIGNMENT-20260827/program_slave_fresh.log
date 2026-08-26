@@ -1,0 +1,6 @@
+Info: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+Info (213011): Using programming file .../DE5a_wr_slave_jtag.sof with checksum 0x30B324BA
+Info (213017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+Info: Processing ended: Thu Aug 27 03:15:22 2026

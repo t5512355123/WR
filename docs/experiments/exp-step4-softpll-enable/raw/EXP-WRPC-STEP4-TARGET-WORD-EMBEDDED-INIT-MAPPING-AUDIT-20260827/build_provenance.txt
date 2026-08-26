@@ -1,0 +1,32 @@
+EXP-WRPC-STEP4-TARGET-WORD-EMBEDDED-INIT-MAPPING-AUDIT-20260827
+AUDIT_MODE = read-only
+REMOTE_HOST = pain:/home/b10504072/04_WR
+REMOTE_GIT_HEAD = 956ac6b48a9273a4c102b15abce402bb3ed21476
+REMOTE_GIT_STATUS_AFTER_EDA_CLEANUP = clean
+
+MASTER_FIT = quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.fit.rpt
+SLAVE_FIT = quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.fit.rpt
+MASTER_TDF = quartus/jtag_runtime_diag/db/altsyncram_vv44.tdf
+SLAVE_TDF = quartus/jtag_runtime_diag/db/altsyncram_es44.tdf
+MASTER_VHO = /tmp/wr_master_eda_vhdl/DE5a_wr_master_jtag.vho
+SLAVE_VHO = /tmp/wr_slave_eda_vhdl/DE5a_wr_slave_jtag.vho
+
+EDA_COMMAND_MASTER = quartus_eda quartus/jtag_runtime_diag/DE5a_wr_master_jtag --simulation --tool=modelsim --format=vhdl --output_directory=/tmp/wr_master_eda_vhdl --read_settings_files=on
+EDA_COMMAND_SLAVE = quartus_eda quartus/jtag_runtime_diag/DE5a_wr_slave_jtag --simulation --tool=modelsim --format=vhdl --output_directory=/tmp/wr_slave_eda_vhdl --read_settings_files=on
+EDA_RESULT = both successful; functional VHDL netlists generated; no compile/program step
+
+MASTER_MIF_SHA256 = b035fe65dbf1bead7e278e87872d043f2150030a1eb1068ae737a352886301fd
+SLAVE_MIF_SHA256 = 85f9cb7b1b4d6fc9c2cf61bf9b0d9e083a600adb8d4ec282ecca4dbea48ece01
+MASTER_FIT_SHA256 = 63b0958d520934cc81b350c67b06851a730bc6df9ce8419f7210974cd0bed25d
+SLAVE_FIT_SHA256 = a027f619930f1f972b2d4bdb2dacdf51a590ab25b98da355731aad4362fbcc0a
+MASTER_TDF_SHA256 = c9f8c9a5723eb50fdaeffeea071edc7090c0f24bed522382346a3ab65edb107a
+SLAVE_TDF_SHA256 = c92aaa6fd4ec58ff47dc6440a0e8c7da880bdf0264fd91456fdaea50beb6ffc9
+MASTER_VHO_SHA256 = 7fa854bc2a6eef78db9297d293f3ac1347dedf2fb2163dddc18b08b57e349520
+SLAVE_VHO_SHA256 = 813941a6715e0dae7959761d79a3fd476524932322a80e1057910ae7d2ad8983
+
+MASTER_SEED1_SOF_SHA256 = d94cc19d0bd198b52b818e935df3b82e9df54de6583dc39de0eb39905f7b5102
+MASTER_SEED2_SOF_SHA256 = dbbb1dd92b0dec8049229585b8f8bef9a71c3318be92bff711caf57f8b272b6f
+SLAVE_SOF_SHA256 = ed0e3a12cd426ca1b57f610b20e9609d671b8c8a0c0994204b1fd4668312480d
+
+ENVIRONMENT_NOTE = EDA writer initially added its output settings to both QSF files and created quartus/jtag_runtime_diag/qdb; those exact generated settings were reversed and qdb was moved to /tmp/wr_eda_qdb_20260827. No pre-existing RTL/MIF changes were altered.
+

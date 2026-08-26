@@ -1,0 +1,31 @@
+POST_FIT_U_IRAM_PRIMITIVE_DIFF_AUDIT_PROVENANCE
+date=2026-08-27
+branch=exp/step4-softpll-enable
+source_build_commit=0b3b012df2697e785431a43f8ca77cd5f0f94a14
+latest_local_report_commit_before_audit=d40317d
+quartus=17.0.0 Build 595
+action=read-only audit of existing post-fit artifacts; no compile; no programming
+
+REMOTE_QUARTUS_REPORT_SHA256
+master_fit=c643a0b595b22b0a1c511e0e6a79a7f4312e77a7da1695bb1b77eb3d1f286f44
+master_map=02cdb7d05230a9a7ed0c8164f7152010142de8398aee64cd685a448aade5e47d
+slave_fit=a027f619930f1f972b2d4bdb2dacdf51a590ab25b98da355731aad4362fbcc0a
+slave_map=1fb0fe09ba8d6c48fa829dd70493c9ced81deb2b9ee3fe8c7ddb1e5854802406
+
+REMOTE_GENERATED_TDF_SHA256
+master_altsyncram_vv44=c9f8c9a5723eb50fdaeffeea071edc7090c0f24bed522382346a3ab65edb107a
+slave_altsyncram_es44=c92aaa6fd4ec58ff47dc6440a0e8c7da880bdf0264fd91456fdaea50beb6ffc9
+
+REMOTE_RAW_EXCERPT_SHA256
+master_iram_summary=c30bc2452e4e98602c0b6b6133998f927fcef7120e870a9912d8d085609a88d3
+slave_iram_summary=777c2e6a780cc0337060e8a034388ac24badb0acc7a8dc0848135d6d6a232aea
+master_m20k_set=c553571891b6de4008f8c02157f5949635e209db283a820a634ee6dfc962fba7
+slave_m20k_set=9bb95f597eda19eb9ab846ae3f32604484cd21983e34353d638eaaf036e706da
+
+METHOD
+1. Select the post-fit hierarchy containing wrc_urv_wrapper:U_CPU|generic_dpram:U_iram from Master/Slave fitter RAM summary.
+2. Compare post-map altsyncram parameter logs.
+3. Compare generated altsyncram TDF after normalizing role-specific primitive name, MIF path and synthesis-only resource text.
+4. Extract and compare sorted M20K coordinate sets from the fitter RAM summary.
+5. Preserve ROOT_CAUSE as NOT_PROVEN.
+

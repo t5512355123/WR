@@ -1,0 +1,6 @@
+ARTIFACT_SHA256
+8fe010f61a7c15503f3d7ee12aaf61c9859a9cc4ac69f47014866b4197ea0010  docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-POST-FIT-U-IRAM-PRIMITIVE-DIFF-AUDIT-20260827.md
+dcf7ed87fc6f7fe0de72ad26aeabe834d4d39d4a0a199a1334dd865e84410f53  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-FIT-U-IRAM-PRIMITIVE-DIFF-AUDIT-20260827/post_fit_iram_parameter_diff.txt
+3f92251612efa97e09035dbed3be251edc8008161584cdb9d01480058417d980  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-FIT-U-IRAM-PRIMITIVE-DIFF-AUDIT-20260827/post_fit_iram_location_diff.txt
+e3dbc648a3aaf671764ba8419e08feca2044bfa433be6bdff4af4c78aa6b9dfe  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-FIT-U-IRAM-PRIMITIVE-DIFF-AUDIT-20260827/post_fit_iram_tdf_diff.txt
+e7b15183282694a17778bdcfe2bc15feea5c6055dab46f89268ffc3e7e3bcb31  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-FIT-U-IRAM-PRIMITIVE-DIFF-AUDIT-20260827/build_provenance.txt

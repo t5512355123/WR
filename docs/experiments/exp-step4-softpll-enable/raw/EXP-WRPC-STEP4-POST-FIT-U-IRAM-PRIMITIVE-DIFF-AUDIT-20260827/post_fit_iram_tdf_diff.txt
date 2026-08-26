@@ -1,0 +1,26 @@
+POST_FIT_GENERATED_TDF_DIFF
+date=2026-08-27
+source_build_commit=0b3b012df2697e785431a43f8ca77cd5f0f94a14
+master_tdf=quartus/jtag_runtime_diag/db/altsyncram_vv44.tdf
+slave_tdf=quartus/jtag_runtime_diag/db/altsyncram_es44.tdf
+
+NORMALIZATION
+replace altsyncram_vv44 and altsyncram_es44 with altsyncram_NORMAL
+replace ../../build/firmware/master/wrc.mif and ../../build/firmware/slave/wrc.mif with MIF
+replace synthesis resource text lut 144 M20K 96 reg 4 with M20K 96 reg 4
+
+RESIDUAL_DIFF_LINE_COUNT=8
+
+RESIDUAL_DIFF
++w_addr_val_a4w[1..0]    : WIRE;
++w_addr_val_a9w[1..0]    : WIRE;
+-decode2.data[1..0] = address_a_wire[15..14];
++decode2.data[] = w_addr_val_a4w[];
+-rden_decode_a.data[] = wren_decode_addr_sel_a[];
++rden_decode_a.data[] = w_addr_val_a9w[];
++w_addr_val_a4w[1..0] = address_a_wire[15..14];
++w_addr_val_a9w[] = wren_decode_addr_sel_a[];
+
+INTERPRETATION
+After parameter/MIF/primitive-name normalization, no RAM parameter diff remains in the generated TDF. The residual is a small synthesis wire-alias/decode wiring difference around decode2 and rden_decode_a. It is retained as an implementation difference but is not declared causal in this audit.
+

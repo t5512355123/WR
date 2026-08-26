@@ -1,0 +1,64 @@
+POST_FIT_U_IRAM_PARAMETER_DIFF
+date=2026-08-27
+source_build_commit=0b3b012df2697e785431a43f8ca77cd5f0f94a14
+quartus_project=quartus/jtag_runtime_diag
+
+MASTER primitive=altsyncram_vv44
+SLAVE primitive=altsyncram_es44
+
+IDENTICAL_POST_MAP_PARAMETERS
+operation_mode=BIDIR_DUAL_PORT
+width_a=32
+width_b=32
+widthad_a=16
+widthad_b=16
+address_reg_b=CLOCK0
+outdata_reg_b=UNREGISTERED
+clock_enable_input_b=NORMAL
+clock_enable_output_b=NORMAL
+read_during_write_mode_mixed_ports=DONT_CARE
+power_up_uninitialized=FALSE
+init_file_layout=PORT_A
+ram_block_type=AUTO
+numwords_a=49152
+numwords_b=49152
+width_byteena_a=4
+width_byteena_b=4
+byte_size=8
+
+ROLE_SPECIFIC_POST_MAP_PARAMETER
+master.init_file=../../build/firmware/master/wrc.mif
+slave.init_file=../../build/firmware/slave/wrc.mif
+
+FITTER_RAM_SUMMARY_BOTH
+implementation_type=AUTO
+mode=True Dual Port
+clock_mode=Single Clock
+port_a_depth=49152
+port_a_width=32
+port_b_depth=49152
+port_b_width=32
+port_b_input_registers=yes
+port_b_output_registers=no
+implemented_size_bits=1572864
+m20k_count=96
+mlab_count=0
+
+PORT_B_CLOCK_CONFIGURATION_BOTH
+generated_tdf_port_b_address_clock=clock1
+generated_tdf_port_b_byte_enable_clock=clock1
+generated_tdf_port_b_data_in_clock=clock1
+generated_tdf_port_b_read_enable_clock=clock1
+generated_tdf_port_b_write_enable_clock=clock1
+post_map_address_reg_b=CLOCK0
+post_map_byteena_reg_b=CLOCK0
+post_map_indata_reg_b=CLOCK0
+post_map_rdcontrol_reg_b=CLOCK0
+post_map_wrcontrol_wraddress_reg_b=CLOCK0
+
+SOURCE_REPORT_LOCATIONS
+master_map_parameter_log=DE5a_wr_master_jtag.map.rpt:17024-17080 (remote checkout)
+slave_map_parameter_log=DE5a_wr_slave_jtag.map.rpt:17108-17164 (remote checkout)
+master_fit_ram_summary=DE5a_wr_master_jtag.fit.rpt (remote Fitter RAM Summary)
+slave_fit_ram_summary=DE5a_wr_slave_jtag.fit.rpt (remote Fitter RAM Summary)
+

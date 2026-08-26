@@ -61,7 +61,8 @@ entity wrc_urv_wrapper is
     cpu_data_diag_meta_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_addr_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_q_payload_o : out std_logic_vector(63 downto 0);
-    cpu_ram_diag_meta_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_diag_meta_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_diag_q0_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -127,6 +128,7 @@ architecture arch of wrc_urv_wrapper is
   signal dm_addr_b_registered_debug : std_logic_vector(31 downto 0);
   signal cpu_ram_diag_addr_request : std_logic_vector(31 downto 0);
   signal cpu_ram_diag_addr_registered : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_q_cycle0 : std_logic_vector(31 downto 0);
   signal cpu_ram_diag_q_cycle1 : std_logic_vector(31 downto 0);
   signal cpu_ram_diag_q_cycle2 : std_logic_vector(31 downto 0);
   signal cpu_ram_diag_sel : std_logic_vector(3 downto 0);
@@ -472,6 +474,7 @@ begin
         dm_addr_b_registered_debug <= (others => '0');
         cpu_ram_diag_addr_request  <= (others => '0');
         cpu_ram_diag_addr_registered <= (others => '0');
+        cpu_ram_diag_q_cycle0      <= (others => '0');
         cpu_ram_diag_q_cycle1      <= (others => '0');
         cpu_ram_diag_q_cycle2      <= (others => '0');
         cpu_ram_diag_sel           <= (others => '0');
@@ -486,6 +489,7 @@ begin
           when "00" =>
             if dm_load = '1' and dm_is_wishbone = '0' then
               cpu_ram_diag_addr_request <= dm_addr;
+              cpu_ram_diag_q_cycle0     <= dm_mem_rdata;
               cpu_ram_diag_sel          <= dm_data_select;
               cpu_ram_diag_seen         <= '1';
               if dm_addr = x"0001C304" then
@@ -535,6 +539,7 @@ begin
   cpu_data_diag_meta_payload_o <= cpu_data_diag_meta_payload;
   cpu_ram_diag_addr_payload_o <= cpu_ram_diag_addr_registered & cpu_ram_diag_addr_request;
   cpu_ram_diag_q_payload_o <= cpu_ram_diag_q_cycle2 & cpu_ram_diag_q_cycle1;
+  cpu_ram_diag_q0_payload_o <= x"00000000" & cpu_ram_diag_q_cycle0;
   cpu_ram_diag_meta_payload_o <= (63 downto 8 => '0') &
                                  cpu_ram_diag_expected_match &
                                  cpu_ram_diag_q2_seen &

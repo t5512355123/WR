@@ -238,9 +238,11 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_ram_diag_addr_payload : std_logic_vector(63 downto 0);
   signal cpu_ram_diag_q_payload : std_logic_vector(63 downto 0);
   signal cpu_ram_diag_meta_payload : std_logic_vector(63 downto 0);
+  signal cpu_ram_diag_q0_payload : std_logic_vector(63 downto 0);
   signal cpu_ram_diag_addr_probe : std_logic_vector(63 downto 0);
   signal cpu_ram_diag_q_probe : std_logic_vector(63 downto 0);
   signal cpu_ram_diag_meta_probe : std_logic_vector(63 downto 0);
+  signal cpu_ram_diag_q0_probe : std_logic_vector(63 downto 0);
   signal dac_hpll_load        : std_logic;
   signal dac_hpll_data        : std_logic_vector(15 downto 0);
   signal dac_dpll_load        : std_logic;
@@ -682,6 +684,25 @@ begin
       source_ena => '1'
     );
 
+  -- Probe 14 carries the q value visible before the port-B address-register
+  -- update at the request edge (q cycle 0) in [31:0].
+  cpu_ram_diag_q0_probe <= cpu_ram_diag_q0_payload;
+
+  u_cpu_ram_diag_q0_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_RAM_DIAG_Q0_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 14,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_ram_diag_q0_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- The board's SFP I2C pins are open-drain.  WRPC drives only the output
   -- low and releases the line for a logic high.
   QSFPA_SDA <= '0' when sfp_sda_o = '0' else 'Z';
@@ -881,7 +902,8 @@ begin
       cpu_data_diag_meta_payload_o => cpu_data_diag_meta_payload,
       cpu_ram_diag_addr_payload_o => cpu_ram_diag_addr_payload,
       cpu_ram_diag_q_payload_o => cpu_ram_diag_q_payload,
-      cpu_ram_diag_meta_payload_o => cpu_ram_diag_meta_payload
+      cpu_ram_diag_meta_payload_o => cpu_ram_diag_meta_payload,
+      cpu_ram_diag_q0_payload_o => cpu_ram_diag_q0_payload
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

@@ -234,6 +234,10 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_store_count_source : std_logic_vector(0 downto 0);
   signal cpu_exception_probe   : std_logic_vector(63 downto 0);
   signal cpu_exception_source  : std_logic_vector(0 downto 0);
+  signal cpu_data_diag_addr_payload : std_logic_vector(63 downto 0);
+  signal cpu_data_diag_meta_payload : std_logic_vector(63 downto 0);
+  signal cpu_data_diag_addr_probe : std_logic_vector(63 downto 0);
+  signal cpu_data_diag_meta_probe : std_logic_vector(63 downto 0);
   signal dac_hpll_load        : std_logic;
   signal dac_hpll_data        : std_logic_vector(15 downto 0);
   signal dac_dpll_load        : std_logic;
@@ -603,6 +607,43 @@ begin
       source_ena => '1'
     );
 
+  -- CPU data-port identity diagnostic.  The address probe carries the
+  -- captured request address in [31:0] and the next-cycle RAM return word in
+  -- [63:32].  The metadata probe carries byte enable [3:0], request-seen bit
+  -- 4, return-seen bit 5, and expected-address match bit 6.
+  cpu_data_diag_addr_probe <= cpu_data_diag_addr_payload;
+  cpu_data_diag_meta_probe <= cpu_data_diag_meta_payload;
+
+  u_cpu_data_diag_addr_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_DATA_DIAG_ADDR_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 9,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_data_diag_addr_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_cpu_data_diag_meta_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_DATA_DIAG_META_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 10,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_data_diag_meta_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- The board's SFP I2C pins are open-drain.  WRPC drives only the output
   -- low and releases the line for a logic high.
   QSFPA_SDA <= '0' when sfp_sda_o = '0' else 'Z';
@@ -798,7 +839,9 @@ begin
       cpu_last_store_seen_o     => cpu_last_store_seen,
       cpu_internal_store_count_o => cpu_internal_store_count,
       cpu_mepc_o               => cpu_mepc,
-      cpu_mcause_o             => cpu_mcause
+      cpu_mcause_o             => cpu_mcause,
+      cpu_data_diag_addr_payload_o => cpu_data_diag_addr_payload,
+      cpu_data_diag_meta_payload_o => cpu_data_diag_meta_payload
     );
 
   QSFPA_LP_MODE <= core_phy_tx_disable;

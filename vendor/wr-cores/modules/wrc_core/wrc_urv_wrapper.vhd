@@ -56,7 +56,9 @@ entity wrc_urv_wrapper is
     cpu_last_store_seen_o  : out std_logic;
     cpu_internal_store_count_o : out std_logic_vector(31 downto 0);
     cpu_mepc_o : out std_logic_vector(31 downto 0);
-    cpu_mcause_o : out std_logic_vector(31 downto 0)
+    cpu_mcause_o : out std_logic_vector(31 downto 0);
+    cpu_data_diag_addr_payload_o : out std_logic_vector(63 downto 0);
+    cpu_data_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -110,6 +112,15 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_internal_store_count : unsigned(31 downto 0);
   signal cpu_mepc : std_logic_vector(31 downto 0);
   signal cpu_mcause : std_logic_vector(31 downto 0);
+  signal cpu_data_diag_addr : std_logic_vector(31 downto 0);
+  signal cpu_data_diag_return_data : std_logic_vector(31 downto 0);
+  signal cpu_data_diag_sel : std_logic_vector(3 downto 0);
+  signal cpu_data_diag_seen : std_logic;
+  signal cpu_data_diag_return_seen : std_logic;
+  signal cpu_data_diag_expected_match : std_logic;
+  signal cpu_data_diag_pending : std_logic;
+  signal cpu_data_diag_addr_payload : std_logic_vector(63 downto 0);
+  signal cpu_data_diag_meta_payload : std_logic_vector(63 downto 0);
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -401,6 +412,40 @@ begin
     end if;
   end process p_boot_stage_observe;
 
+  -- Read-only sticky capture of the first CPU internal data read after reset.
+  -- The address/byte-enable are sampled with the request.  The RAM has a
+  -- registered address on port B, so the return word is sampled one clock
+  -- later from dm_mem_rdata.  This observes the CPU data path without changing
+  -- address decode, byte enables, or returned data.
+  p_cpu_data_port_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_data_diag_addr          <= (others => '0');
+        cpu_data_diag_return_data   <= (others => '0');
+        cpu_data_diag_sel           <= (others => '0');
+        cpu_data_diag_seen          <= '0';
+        cpu_data_diag_return_seen  <= '0';
+        cpu_data_diag_expected_match <= '0';
+        cpu_data_diag_pending       <= '0';
+      elsif cpu_data_diag_pending = '1' then
+        cpu_data_diag_return_data  <= dm_mem_rdata;
+        cpu_data_diag_return_seen <= '1';
+        cpu_data_diag_pending     <= '0';
+      elsif cpu_data_diag_seen = '0' and dm_load = '1' and dm_is_wishbone = '0' then
+        cpu_data_diag_addr        <= dm_addr;
+        cpu_data_diag_sel         <= dm_data_select;
+        cpu_data_diag_seen        <= '1';
+        cpu_data_diag_pending     <= '1';
+        if dm_addr = x"0001C304" then
+          cpu_data_diag_expected_match <= '1';
+        else
+          cpu_data_diag_expected_match <= '0';
+        end if;
+      end if;
+    end if;
+  end process p_cpu_data_port_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
@@ -415,5 +460,13 @@ begin
   cpu_internal_store_count_o <= std_logic_vector(cpu_internal_store_count);
   cpu_mepc_o <= cpu_mepc;
   cpu_mcause_o <= cpu_mcause;
+  cpu_data_diag_addr_payload <= cpu_data_diag_return_data & cpu_data_diag_addr;
+  cpu_data_diag_meta_payload <= (63 downto 7 => '0') &
+                                cpu_data_diag_expected_match &
+                                cpu_data_diag_return_seen &
+                                cpu_data_diag_seen &
+                                cpu_data_diag_sel;
+  cpu_data_diag_addr_payload_o <= cpu_data_diag_addr_payload;
+  cpu_data_diag_meta_payload_o <= cpu_data_diag_meta_payload;
 
 end architecture arch;

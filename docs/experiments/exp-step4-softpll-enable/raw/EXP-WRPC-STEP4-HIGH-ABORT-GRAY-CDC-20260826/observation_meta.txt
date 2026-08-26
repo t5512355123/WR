@@ -1,0 +1,4 @@
+GIT_COMMIT=8c5692cab6310eba3b2db9bcc336f09a47f63ca2
+GIT_BRANCH=exp/step4-softpll-enable
+STEP123_RC=0
+STEP4_RC=0

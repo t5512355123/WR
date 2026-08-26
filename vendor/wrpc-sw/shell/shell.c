@@ -12,6 +12,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
 
 #include <wrc.h>
 #include "sensors.h"
@@ -23,6 +24,7 @@
 #include "dev/w1.h"
 #include "dev/temperature.h"
 #include "dev/wdiags.h"
+#include "hw/wrc_diags_regs.h"
 
 #include "shell.h"
 #include "storage.h"
@@ -354,15 +356,41 @@ int shell_interactive()
 
 #ifdef CONFIG_INIT_COMMAND
 static const char shell_init_cmd[] = CONFIG_INIT_COMMAND;
+static uint32_t build_init_readcmd_call_count;
+
+static uint32_t build_init_pointer_offset(const char *ptr)
+{
+	uintptr_t base = (uintptr_t)shell_init_cmd;
+	uintptr_t current = (uintptr_t)ptr;
+
+	if (current < base || current >= base + sizeof(shell_init_cmd))
+		return 0xff;
+	return (uint32_t)(current - base);
+}
 
 static int build_init_readcmd(uint8_t *cmd, int maxlen)
 {
 	static const char *p = shell_init_cmd;
+	uint32_t call_count = ++build_init_readcmd_call_count;
+	uint32_t p_offset_before = build_init_pointer_offset(p);
+	uint32_t current_char_before = p_offset_before == 0xff ? 0xff :
+		(uint8_t)p[0];
+	uint32_t flags = 0;
 	int i;
+
+	if (call_count == 2)
+		wdiags_boot_init_iterator_before(call_count, p_offset_before,
+						 current_char_before);
 
 	/* use semicolon as separator */
 	for (i = 0; i < maxlen && p[i] && p[i] != ';'; i++)
 		cmd[i] = p[i];
+	if (i < maxlen) {
+		if (p[i] == ';')
+			flags |= WRC_DIAGS_BOOT_ITER_DELIMITER_SEEN;
+		if (!p[i])
+			flags |= WRC_DIAGS_BOOT_ITER_END_OF_STRING_SEEN;
+	}
 	cmd[i] = '\0';
 	p += i;
 	if (*p == ';')
@@ -370,8 +398,12 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 	if (i == 0) {
 		/* it's the last call, roll-back *p to be ready for the next
 		 * call */
+		flags |= WRC_DIAGS_BOOT_ITER_RESET_TRIGGERED;
 		p = shell_init_cmd;
 	}
+	if (call_count == 2)
+		wdiags_boot_init_iterator_after(call_count,
+						build_init_pointer_offset(p), i, i, flags);
 	return i;
 }
 #endif
@@ -382,38 +414,21 @@ void shell_boot_script(void)
 	uint32_t command_index = 0;
 
 	++shell_boot_init_script_enter_count;
-	wdiags_boot_init_trace_reset(shell_boot_init_script_enter_count);
+	build_init_readcmd_call_count = 0;
+	wdiags_boot_init_iterator_reset();
 	shell_boot_init_command_index = 0;
 	shell_boot_init_diag_publish();
 	while (1) {
-		/* command_index == 1 means command 1 returned and this is the
-		 * next loop iteration; trace only that transition, not the
-		 * initial command fetch. */
-		if (command_index == 1)
-			wdiags_boot_loop_before_build_init_readcmd();
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
 					SH_MAX_LINE_LEN);
-		if (command_index == 1)
-			wdiags_boot_loop_after_build_init_readcmd();
 		if (!cmd_len)
 			break;
-		if (command_index == 1)
-			wdiags_boot_loop_next_command_ptr_valid();
 		shell_boot_init_command_index = ++command_index;
-		if (command_index == 2)
-			wdiags_boot_loop_next_command_index_set();
-		wdiags_boot_init_trace_before(command_index);
-		if (command_index == 2)
-			wdiags_boot_loop_cmd2_before_published();
 		shell_boot_init_diag_publish();
 		pp_printf("executing: %s\n", cmd_buf);
 		{
 			int return_code = shell_exec(cmd_buf);
-			if (command_index == 1)
-				wdiags_boot_loop_after_shell_exec_return();
-			wdiags_boot_init_trace_after(command_index, return_code);
-			if (command_index == 1)
-				wdiags_boot_loop_cmd1_after_published();
+			(void)return_code;
 		}
 	}
 #endif

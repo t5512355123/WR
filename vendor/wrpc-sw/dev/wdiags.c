@@ -29,17 +29,17 @@ static uint32_t wdiags_boot_init_debug_shadow;
 static uint16_t wdiags_vlan_pfilter_progress_shadow;
 static uint32_t wdiags_mapping_counter_shadow;
 static uint32_t wdiags_port_state_shadow;
-static uint32_t wdiags_boot_trace_shadow;
-static uint32_t wdiags_boot_rc_class_shadow;
-static uint32_t wdiags_boot_mode_call_shadow;
-static uint32_t wdiags_boot_mode_return_shadow;
-static uint32_t wdiags_boot_current_index_shadow;
-static int wdiags_boot_trace_active;
 static uint32_t wdiags_aux_state_shadow;
-static uint32_t wdiags_boot_loop_progress_shadow;
+static uint32_t wdiags_boot_iter_p_offset_before_shadow;
+static uint32_t wdiags_boot_iter_p_offset_after_shadow;
+static uint32_t wdiags_boot_iter_cmd_len_shadow;
+static uint32_t wdiags_boot_iter_call_count_shadow;
+static uint32_t wdiags_boot_iter_i_value_shadow;
+static uint32_t wdiags_boot_iter_current_char_shadow;
+static uint32_t wdiags_boot_iter_flags_shadow;
+static int wdiags_boot_iter_active;
 
-static void wdiags_write_boot_init_trace(void);
-static void wdiags_write_boot_loop_progress(void);
+static void wdiags_write_boot_init_iterator(void);
 
 
 static int wdiag_write( uint32_t reg, uint32_t value )
@@ -115,7 +115,7 @@ void wdiags_write_port_state(int link, int locked)
 	val  = link   ? WRC_DIAGS_WDIAG_PSTAT_LINK   : 0;
 	val |= locked ? WRC_DIAGS_WDIAG_PSTAT_LOCKED : 0;
 	wdiags_port_state_shadow = val;
-	wdiags_write_boot_init_trace();
+	wdiags_write_boot_init_iterator();
 
 	//pp_printf("wdiags_write_port_state: %x\n", val );
 }
@@ -150,135 +150,80 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
 }
 
-static void wdiags_write_boot_init_trace(void)
+static void wdiags_write_boot_init_iterator(void)
 {
 	uint32_t value = wdiags_port_state_shadow;
 
-	if (wdiags_boot_trace_active) {
-		value |= (wdiags_boot_trace_shadow << WRC_DIAGS_BOOT_TRACE_SHIFT);
-		value |= (wdiags_boot_mode_call_shadow &
-			  WRC_DIAGS_BOOT_MODE_COUNT_MASK) <<
-			 WRC_DIAGS_BOOT_MODE_CALL_SHIFT;
-		value |= (wdiags_boot_mode_return_shadow &
-			  WRC_DIAGS_BOOT_MODE_COUNT_MASK) <<
-			 WRC_DIAGS_BOOT_MODE_RETURN_SHIFT;
-		value |= (wdiags_boot_rc_class_shadow & 0xffu) <<
-			 WRC_DIAGS_BOOT_RC_CLASS_SHIFT;
-		value |= WRC_DIAGS_BOOT_SCRIPT_ENTER | WRC_DIAGS_BOOT_TRACE_VALID;
-		value |= (wdiags_boot_current_index_shadow &
-			  WRC_DIAGS_BOOT_CURRENT_INDEX_MASK) <<
-			 WRC_DIAGS_BOOT_CURRENT_INDEX_SHIFT;
+	if (wdiags_boot_iter_active) {
+		value |= (wdiags_boot_iter_p_offset_before_shadow &
+			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_P_OFFSET_BEFORE_SHIFT;
+		value |= (wdiags_boot_iter_p_offset_after_shadow &
+			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_P_OFFSET_AFTER_SHIFT;
+		value |= (wdiags_boot_iter_cmd_len_shadow &
+			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_CMD_LEN_SHIFT;
+		value |= (wdiags_boot_iter_call_count_shadow &
+			  WRC_DIAGS_BOOT_ITER_CALL_COUNT_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_CALL_COUNT_SHIFT;
 	}
 
 	wdiag_write(WRC_DIAGS_WDIAG_PSTAT, value);
+
+	value = wdiags_aux_state_shadow;
+	if (wdiags_boot_iter_active) {
+		value |= (wdiags_boot_iter_i_value_shadow &
+			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_I_VALUE_SHIFT;
+		value |= (wdiags_boot_iter_current_char_shadow &
+			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_CURRENT_CHAR_SHIFT;
+		value |= (wdiags_boot_iter_flags_shadow &
+			  WRC_DIAGS_BOOT_ITER_FLAG_MASK) <<
+			 WRC_DIAGS_BOOT_ITER_FLAG_SHIFT;
+	}
+
+	wdiag_write(WRC_DIAGS_WDIAG_ASTAT, value);
 }
 
-void wdiags_boot_init_trace_reset(uint32_t script_enter_count)
+void wdiags_boot_init_iterator_reset(void)
 {
-	(void)script_enter_count;
-	wdiags_boot_trace_shadow = 0;
-	wdiags_boot_rc_class_shadow = 0;
-	wdiags_boot_mode_call_shadow = 0;
-	wdiags_boot_mode_return_shadow = 0;
-	wdiags_boot_current_index_shadow = 0;
-	wdiags_boot_loop_progress_shadow = 0;
-	wdiags_boot_trace_active = 1;
-	wdiags_write_boot_init_trace();
-	wdiags_write_boot_loop_progress();
+	wdiags_boot_iter_p_offset_before_shadow = 0;
+	wdiags_boot_iter_p_offset_after_shadow = 0;
+	wdiags_boot_iter_cmd_len_shadow = 0;
+	wdiags_boot_iter_call_count_shadow = 0;
+	wdiags_boot_iter_i_value_shadow = 0;
+	wdiags_boot_iter_current_char_shadow = 0;
+	wdiags_boot_iter_flags_shadow = WRC_DIAGS_BOOT_ITER_TRACE_VALID;
+	wdiags_boot_iter_active = 1;
+	wdiags_write_boot_init_iterator();
 }
 
-void wdiags_boot_init_trace_before(uint32_t command_index)
+void wdiags_boot_init_iterator_before(uint32_t call_count,
+					      uint32_t p_offset,
+					      uint32_t current_char)
 {
-	if (command_index < 1 || command_index > 4)
-		return;
-	wdiags_boot_current_index_shadow = command_index;
-	wdiags_boot_trace_shadow |= 1u << (command_index - 1);
-	wdiags_write_boot_init_trace();
+	wdiags_boot_iter_call_count_shadow = call_count;
+	wdiags_boot_iter_p_offset_before_shadow = p_offset;
+	wdiags_boot_iter_current_char_shadow = current_char;
+	wdiags_boot_iter_flags_shadow |= WRC_DIAGS_BOOT_ITER_BEFORE_VALID;
+	wdiags_write_boot_init_iterator();
 }
 
-void wdiags_boot_init_trace_after(uint32_t command_index, int return_code)
+void wdiags_boot_init_iterator_after(uint32_t call_count,
+					     uint32_t p_offset,
+					     uint32_t i_value,
+					     uint32_t cmd_len,
+					     uint32_t flags)
 {
-	uint32_t shift;
-	uint32_t rc_class;
-
-	if (command_index < 1 || command_index > 4)
-		return;
-	shift = (command_index - 1) * 2;
-	if (return_code == 0)
-		rc_class = 1;
-	else if (return_code < 0)
-		rc_class = 3;
-	else
-		rc_class = 2;
-	wdiags_boot_trace_shadow |= 1u << (command_index + 3);
-	wdiags_boot_rc_class_shadow =
-		(wdiags_boot_rc_class_shadow & ~(WRC_DIAGS_BOOT_RC_CLASS_MASK << shift)) |
-		((rc_class & WRC_DIAGS_BOOT_RC_CLASS_MASK) << shift);
-	wdiags_write_boot_init_trace();
-}
-
-void wdiags_boot_init_trace_mode_master_call(void)
-{
-	if (wdiags_boot_mode_call_shadow < WRC_DIAGS_BOOT_MODE_COUNT_MASK)
-		++wdiags_boot_mode_call_shadow;
-	wdiags_write_boot_init_trace();
-}
-
-void wdiags_boot_init_trace_mode_master_return(void)
-{
-	if (wdiags_boot_mode_return_shadow < WRC_DIAGS_BOOT_MODE_COUNT_MASK)
-		++wdiags_boot_mode_return_shadow;
-	wdiags_write_boot_init_trace();
-}
-
-static void wdiags_write_boot_loop_progress(void)
-{
-	wdiag_write(WRC_DIAGS_WDIAG_ASTAT,
-			(wdiags_aux_state_shadow & WRC_DIAGS_WDIAG_ASTAT_AUX_MASK) |
-			((wdiags_boot_loop_progress_shadow <<
-			  WRC_DIAGS_BOOT_LOOP_PROGRESS_SHIFT) &
-			 WRC_DIAGS_BOOT_LOOP_PROGRESS_MASK));
-}
-
-static void wdiags_boot_loop_mark(uint32_t marker)
-{
-	wdiags_boot_loop_progress_shadow |= marker;
-	wdiags_write_boot_loop_progress();
-}
-
-void wdiags_boot_loop_cmd1_after_published(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_CMD1_AFTER_PUBLISHED);
-}
-
-void wdiags_boot_loop_after_shell_exec_return(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_AFTER_SHELL_EXEC_RETURN);
-}
-
-void wdiags_boot_loop_before_build_init_readcmd(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_BEFORE_BUILD_INIT_READCMD);
-}
-
-void wdiags_boot_loop_after_build_init_readcmd(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_AFTER_BUILD_INIT_READCMD);
-}
-
-void wdiags_boot_loop_next_command_ptr_valid(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_NEXT_COMMAND_PTR_VALID);
-}
-
-void wdiags_boot_loop_next_command_index_set(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_NEXT_COMMAND_INDEX_SET);
-}
-
-void wdiags_boot_loop_cmd2_before_published(void)
-{
-	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_CMD2_BEFORE_PUBLISHED);
+	wdiags_boot_iter_call_count_shadow = call_count;
+	wdiags_boot_iter_p_offset_after_shadow = p_offset;
+	wdiags_boot_iter_i_value_shadow = i_value;
+	wdiags_boot_iter_cmd_len_shadow = cmd_len;
+	wdiags_boot_iter_flags_shadow |= flags |
+		WRC_DIAGS_BOOT_ITER_AFTER_VALID;
+	wdiags_write_boot_init_iterator();
 }
 
 static void wdiags_write_vlan_pfilter_progress(void)
@@ -352,7 +297,7 @@ void wdiags_write_aux_state(uint32_t aux_states)
 	wdiags_aux_state_shadow =
 		(aux_states << WRC_DIAGS_WDIAG_ASTAT_AUX_SHIFT) &
 		WRC_DIAGS_WDIAG_ASTAT_AUX_MASK;
-	wdiags_write_boot_loop_progress();
+	wdiags_write_boot_init_iterator();
 }
 
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors)

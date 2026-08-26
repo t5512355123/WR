@@ -25,20 +25,16 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
-/* Read-only sticky trace for the built-in boot-init command sequence. */
-void wdiags_boot_init_trace_reset(uint32_t script_enter_count);
-void wdiags_boot_init_trace_before(uint32_t command_index);
-void wdiags_boot_init_trace_after(uint32_t command_index, int return_code);
-void wdiags_boot_init_trace_mode_master_call(void);
-void wdiags_boot_init_trace_mode_master_return(void);
-/* Read-only sticky checkpoints around the boot-script command iterator. */
-void wdiags_boot_loop_cmd1_after_published(void);
-void wdiags_boot_loop_after_shell_exec_return(void);
-void wdiags_boot_loop_before_build_init_readcmd(void);
-void wdiags_boot_loop_after_build_init_readcmd(void);
-void wdiags_boot_loop_next_command_ptr_valid(void);
-void wdiags_boot_loop_next_command_index_set(void);
-void wdiags_boot_loop_cmd2_before_published(void);
+/* Read-only second-call iterator-state diagnostic for build_init_readcmd(). */
+void wdiags_boot_init_iterator_reset(void);
+void wdiags_boot_init_iterator_before(uint32_t call_count,
+                                     uint32_t p_offset,
+                                     uint32_t current_char);
+void wdiags_boot_init_iterator_after(uint32_t call_count,
+                                    uint32_t p_offset,
+                                    uint32_t i_value,
+                                    uint32_t cmd_len,
+                                    uint32_t flags);
 /* Read-only VLAN/pfilter boot-progress checkpoints in the mapping words. */
 void wdiags_vlan_cmd_enter(void);
 void wdiags_pfilter_enter(void);

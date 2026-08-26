@@ -7,7 +7,6 @@
 #include <errno.h>
 #include <string.h>
 #include "wrpc.h"
-#include "dev/wdiags.h"
 #include "shell.h"
 
 #ifdef CONFIG_CMD_PTP_ADV
@@ -142,13 +141,11 @@ static int cmd_ptp(const char *args[])
 					(c->fun == wrc_ptp_set_mode && l_arg == WRC_MODE_MASTER);
 				if (is_mode_master) {
 					++shell_boot_init_mode_master_call_count;
-					wdiags_boot_init_trace_mode_master_call();
 					shell_boot_init_diag_publish();
 				}
 				ret = c->fun(l_arg);
 				if (is_mode_master) {
 					++shell_boot_init_mode_master_return_count;
-					wdiags_boot_init_trace_mode_master_return();
 					shell_boot_init_diag_publish();
 				}
 				if (ret < 0)

@@ -53,6 +53,7 @@ int sub_cmd(const char * const *cmds, unsigned len, const char *args[]);
 
 void shell_boot_script(void);
 /* Firmware-only boot-init execution evidence for WDIAGS/JTAG observation. */
+void shell_boot_init_startup_checkpoint(uint32_t stage);
 extern volatile uint32_t shell_boot_init_script_enter_count;
 extern volatile uint32_t shell_boot_init_command_index;
 extern volatile uint32_t shell_boot_init_mode_master_call_count;

@@ -144,6 +144,8 @@ static void wrc_initialize(void)
 		temp_faketemp_init();
 
 	wrc_board_init();
+	shell_boot_init_startup_checkpoint(
+		WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BOARD_INIT);
 
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B003);
@@ -157,6 +159,8 @@ static void wrc_initialize(void)
 	/* try reading t24 phase transition from EEPROM */
 	calib_t24p_load();
 	shell_init();
+	shell_boot_init_startup_checkpoint(
+		WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_SHELL_INIT);
 	shell_register_commands();
 
 
@@ -207,6 +211,13 @@ static int ui_update(void)
 	return shell_interactive();
 }
 
+static void shell_boot_script_task_init(void)
+{
+	shell_boot_init_startup_checkpoint(
+		WRC_DIAGS_BOOT_STARTUP_STAGE_P_BEFORE_SHELL_BOOT_SCRIPT);
+	shell_boot_script();
+}
+
 /* initialize functions to be called after reset in check_reset function */
 void init_hw_after_reset(void)
 {
@@ -253,7 +264,7 @@ static void create_tasks(void)
 	wrc_task_create( "uptime", init_uptime, update_uptime );
 	wrc_task_create( "ptp", NULL, wrc_ptp_update);
 	wrc_task_create( "ptp_bmc", NULL, wrc_ptp_bmc_update);
-	wrc_task_create( "shell+gui", shell_boot_script, ui_update );
+	wrc_task_create( "shell+gui", shell_boot_script_task_init, ui_update );
 	wrc_task_create( "spll-bh", NULL, spll_update );
 
 	if (HAS_TEMP_SENSORS)
@@ -310,7 +321,12 @@ static void create_tasks(void)
 int main(void) __attribute__ ((weak));
 int main(void)
 {
+	wdiags_boot_startup_reset();
+	shell_boot_init_startup_checkpoint(
+		WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY);
 	debug_boot_stage = 0x0000B000;
+	shell_boot_init_startup_checkpoint(
+		WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT);
 	#ifdef CONFIG_WR_DIAG
 	/* Early markers distinguish CPU entry from task/setup failures. */
 	wdiags_write_temp(0x0000B000);

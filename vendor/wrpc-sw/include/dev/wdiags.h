@@ -25,18 +25,16 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
-/* Read-only build_init_readcmd() state-lifetime diagnostic. */
-void wdiags_boot_init_iterator_reset(void);
-void wdiags_boot_init_iterator_preboot_snapshot(uint32_t global_call_count,
-                                                uint32_t last_caller);
-void wdiags_boot_init_iterator_before(uint32_t global_call_count,
-                                     uint32_t p_offset);
-void wdiags_boot_init_iterator_after(uint32_t global_call_count,
-                                    uint32_t p_offset,
-                                    uint32_t i_value,
-                                    uint32_t cmd_len,
-                                    uint32_t current_char,
-                                    uint32_t flags);
+/* Read-only static-p startup-lifetime checkpoints. */
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BOARD_INIT 2
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_SHELL_INIT 3
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_BEFORE_SHELL_BOOT_SCRIPT 4
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_BOOT_SCRIPT_ENTRY 5
+#define WRC_DIAGS_BOOT_STARTUP_STAGE_COUNT 6
+void wdiags_boot_startup_reset(void);
+void wdiags_boot_startup_checkpoint(uint32_t stage, uint32_t p_offset);
 /* Read-only VLAN/pfilter boot-progress checkpoints in the mapping words. */
 void wdiags_vlan_cmd_enter(void);
 void wdiags_pfilter_enter(void);

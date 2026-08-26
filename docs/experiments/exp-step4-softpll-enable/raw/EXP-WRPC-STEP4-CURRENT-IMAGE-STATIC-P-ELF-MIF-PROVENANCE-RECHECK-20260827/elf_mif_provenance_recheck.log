@@ -1,0 +1,49 @@
+CURRENT_IMAGE_STATIC_P_ELF_MIF_PROVENANCE_RECHECK=2026-08-27
+SOURCE_COMMIT=e2bb1aac0efe38d1bb270887d66f1f5294f7c0a6
+BRANCH=exp/step4-softpll-enable
+REMOTE_WORKTREE_HEAD=d425150
+ARTIFACTS=build/firmware/{master,slave}/wrc.{elf,mif}
+
+=== MASTER SYMBOLS ===
+31: 00000134 120 FUNC LOCAL DEFAULT 1 build_init_readcmd.constprop.0
+32: 0001c2d4 4 OBJECT LOCAL DEFAULT 5 build_init_readcmd_p
+212: 00017908 40 OBJECT LOCAL DEFAULT 2 shell_init_cmd
+.text   VMA=00000000 FILE_OFFSET=001000 SIZE=017788
+.rodata VMA=00017788 FILE_OFFSET=018788 SIZE=004860
+.data   VMA=0001c1e0 FILE_OFFSET=01d1e0 SIZE=0000d8
+.sdata  VMA=0001c2b8 FILE_OFFSET=01d2b8 SIZE=00002c
+.bss    VMA=0001c4d8 FILE_OFFSET=01d2e4 SIZE=001d90
+readelf -rW: There are no relocations in this file.
+readelf -x .sdata:
+  0x0001c2b8 03000000 00000000 01000000 ffffffff ................
+  0x0001c2c8 ffffffff ffffffff ffffffff 08790100 .............y..
+  0x0001c2d8 e8030000 ffff0000 25000000          ........%...
+readelf -p .rodata:
+  [   180]  vlan off;ptp stop;mode master;ptp start
+MIF word at 0x70b5 (byte address 0x0001c2d4):
+70b5 : 00017908;
+
+=== SLAVE SYMBOLS ===
+31: 00000134 120 FUNC LOCAL DEFAULT 1 build_init_readcmd.constprop.0
+32: 0001c2d4 4 OBJECT LOCAL DEFAULT 5 build_init_readcmd_p
+212: 00017908 39 OBJECT LOCAL DEFAULT 2 shell_init_cmd
+.text   VMA=00000000 FILE_OFFSET=001000 SIZE=017788
+.rodata VMA=00017788 FILE_OFFSET=018788 SIZE=004860
+.data   VMA=0001c1e0 FILE_OFFSET=01d1e0 SIZE=0000d8
+.sdata  VMA=0001c2b8 FILE_OFFSET=01d2b8 SIZE=00002c
+.bss    VMA=0001c4d8 FILE_OFFSET=01d2e4 SIZE=001d90
+readelf -rW: There are no relocations in this file.
+readelf -x .sdata:
+  0x0001c2b8 03000000 00000000 01000000 ffffffff ................
+  0x0001c2c8 ffffffff ffffffff ffffffff 08790100 .............y..
+  0x0001c2d8 e8030000 ffff0000 25000000          ........%...
+readelf -p .rodata:
+  [   180]  vlan off;ptp stop;mode slave;ptp start
+MIF word at 0x70b5 (byte address 0x0001c2d4):
+70b5 : 00017908;
+
+=== ARTIFACT SHA256 ===
+c6884c846c98b0323c7a42e46c313c92c703a8a99bed5db48b8c023229da0462  build/firmware/master/wrc.elf
+0a0539e824f430cda5eeec0dcc4c46a88f87505cc381c3db5eacacc375c04ca8  build/firmware/master/wrc.mif
+c30c933907085fe7b60820102c6c307c0704f16d7b5cfe77e398d2e53704a5b7  build/firmware/slave/wrc.elf
+e6036333dd9f1a31f1e6fce5049c59f45b56021b4cc63f491da88b158a6211b5  build/firmware/slave/wrc.mif

@@ -764,7 +764,7 @@ begin
   cpu_ram_port_a_diag_meta_payload_o <= (63 downto 10 => '0') &
                                         cpu_rst &
                                         (not rst_n_i) &
-                                        '0' &
+                                        cpu_ram_port_a_diag_seen &
                                         cpu_ram_port_a_same_addr &
                                         cpu_ram_port_a_bwe_at_load &
                                         cpu_ram_port_a_write_enable_at_load &

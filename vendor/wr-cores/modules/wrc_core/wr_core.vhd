@@ -353,7 +353,12 @@ entity wr_core is
     cpu_ram_diag_addr_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_q_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_meta_payload_o : out std_logic_vector(63 downto 0);
-    cpu_ram_diag_q0_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_diag_q0_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload0_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload1_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload2_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload3_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wr_core;
 
@@ -908,7 +913,12 @@ begin
       cpu_ram_diag_addr_payload_o => cpu_ram_diag_addr_payload_o,
       cpu_ram_diag_q_payload_o => cpu_ram_diag_q_payload_o,
       cpu_ram_diag_meta_payload_o => cpu_ram_diag_meta_payload_o,
-      cpu_ram_diag_q0_payload_o => cpu_ram_diag_q0_payload_o
+      cpu_ram_diag_q0_payload_o => cpu_ram_diag_q0_payload_o,
+      cpu_ram_init_diag_payload0_o => cpu_ram_init_diag_payload0_o,
+      cpu_ram_init_diag_payload1_o => cpu_ram_init_diag_payload1_o,
+      cpu_ram_init_diag_payload2_o => cpu_ram_init_diag_payload2_o,
+      cpu_ram_init_diag_payload3_o => cpu_ram_init_diag_payload3_o,
+      cpu_ram_init_diag_meta_payload_o => cpu_ram_init_diag_meta_payload_o
       );
 
   -----------------------------------------------------------------------------

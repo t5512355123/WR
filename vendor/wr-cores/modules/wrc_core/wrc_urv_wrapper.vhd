@@ -62,7 +62,12 @@ entity wrc_urv_wrapper is
     cpu_ram_diag_addr_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_q_payload_o : out std_logic_vector(63 downto 0);
     cpu_ram_diag_meta_payload_o : out std_logic_vector(63 downto 0);
-    cpu_ram_diag_q0_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_diag_q0_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload0_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload1_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload2_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_payload3_o : out std_logic_vector(63 downto 0);
+    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -138,6 +143,19 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_ram_diag_q2_seen : std_logic;
   signal cpu_ram_diag_expected_match : std_logic;
   signal cpu_ram_diag_state : std_logic_vector(1 downto 0);
+  signal cpu_ram_init_q_while_reset : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_release0 : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_release1 : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_release2 : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_release3 : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_before_first_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_at_first_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_q_prev : std_logic_vector(31 downto 0);
+  signal cpu_ram_init_release_state : std_logic_vector(2 downto 0);
+  signal cpu_ram_init_q_reset_seen : std_logic;
+  signal cpu_ram_init_release_seen : std_logic;
+  signal cpu_ram_init_release_complete : std_logic;
+  signal cpu_ram_init_first_load_seen : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -518,6 +536,61 @@ begin
     end if;
   end process p_cpu_ram_port_b_observe;
 
+  -- Read-only capture of the RAM port-B q sequence around reset release.
+  -- q_while_reset is intentionally clock-enabled while rst_n_i is low,
+  -- rather than reset by rst_n_i, so the last q value observed during the
+  -- asserted-reset interval remains available after release.  The other
+  -- fields capture the first four post-release q samples and the q value
+  -- immediately before/at the first internal CPU load.
+  p_cpu_ram_init_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_ram_init_q_while_reset <= dm_mem_rdata;
+        cpu_ram_init_q_reset_seen  <= '1';
+        cpu_ram_init_q_release0 <= (others => '0');
+        cpu_ram_init_q_release1 <= (others => '0');
+        cpu_ram_init_q_release2 <= (others => '0');
+        cpu_ram_init_q_release3 <= (others => '0');
+        cpu_ram_init_q_before_first_load <= (others => '0');
+        cpu_ram_init_q_at_first_load <= (others => '0');
+        cpu_ram_init_q_prev <= (others => '0');
+        cpu_ram_init_release_state <= "000";
+        cpu_ram_init_release_seen <= '0';
+        cpu_ram_init_release_complete <= '0';
+        cpu_ram_init_first_load_seen <= '0';
+      else
+        cpu_ram_init_q_prev <= dm_mem_rdata;
+
+        case cpu_ram_init_release_state is
+          when "000" =>
+            cpu_ram_init_q_release0 <= dm_mem_rdata;
+            cpu_ram_init_release_seen <= '1';
+            cpu_ram_init_release_state <= "001";
+          when "001" =>
+            cpu_ram_init_q_release1 <= dm_mem_rdata;
+            cpu_ram_init_release_state <= "010";
+          when "010" =>
+            cpu_ram_init_q_release2 <= dm_mem_rdata;
+            cpu_ram_init_release_state <= "011";
+          when "011" =>
+            cpu_ram_init_q_release3 <= dm_mem_rdata;
+            cpu_ram_init_release_complete <= '1';
+            cpu_ram_init_release_state <= "100";
+          when others =>
+            null;
+        end case;
+
+        if cpu_ram_init_first_load_seen = '0' and
+           dm_load = '1' and dm_is_wishbone = '0' then
+          cpu_ram_init_q_before_first_load <= cpu_ram_init_q_prev;
+          cpu_ram_init_q_at_first_load <= dm_mem_rdata;
+          cpu_ram_init_first_load_seen <= '1';
+        end if;
+      end if;
+    end if;
+  end process p_cpu_ram_init_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
@@ -549,5 +622,18 @@ begin
                                  cpu_ram_diag_q1_seen &
                                  cpu_ram_diag_seen &
                                  cpu_ram_diag_sel;
+  cpu_ram_init_diag_payload0_o <= cpu_ram_init_q_while_reset & cpu_ram_init_q_release0;
+  cpu_ram_init_diag_payload1_o <= cpu_ram_init_q_release1 & cpu_ram_init_q_release2;
+  cpu_ram_init_diag_payload2_o <= cpu_ram_init_q_release3 & cpu_ram_init_q_before_first_load;
+  cpu_ram_init_diag_payload3_o <= (31 downto 0 => '0') & cpu_ram_init_q_at_first_load;
+  cpu_ram_init_diag_meta_payload_o <= (63 downto 10 => '0') &
+                                      cpu_rst &
+                                      (not rst_n_i) &
+                                      '0' &
+                                      cpu_ram_init_release_state &
+                                      cpu_ram_init_first_load_seen &
+                                      cpu_ram_init_release_complete &
+                                      cpu_ram_init_release_seen &
+                                      cpu_ram_init_q_reset_seen;
 
 end architecture arch;

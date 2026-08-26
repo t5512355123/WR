@@ -67,6 +67,11 @@ SECTIONS
     _fbss = ADDR(.sbss);
     . = ALIGN(4);
     _end = .;
+    .debug_precrt 0x0002e010 (NOLOAD) :
+    {
+ KEEP(*(.debug_precrt))
+    } > ram
+    ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000, "debug_precrt must stay at least 4 KiB below the stack")
     PROVIDE(_endram = ORIGIN(stack));
     PROVIDE(_fstack = ORIGIN(stack) + LENGTH(stack));
 }

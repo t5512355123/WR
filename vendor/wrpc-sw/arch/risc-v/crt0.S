@@ -10,6 +10,12 @@
 _start:
     j      _entry
 
+#ifdef CONFIG_INIT_COMMAND
+    .extern build_init_readcmd_p
+    .extern debug_precrt_p_raw_at_reset_entry
+    .extern debug_precrt_p_raw_after_data_init
+#endif
+
 .org 0x8
 
 .extern trap_entry
@@ -50,6 +56,14 @@ version_ppsi:
 _reset_handler:
 _entry:
 
+#ifdef CONFIG_INIT_COMMAND
+    /* Capture p before any BSS clear or data initialization. */
+    la     t0, build_init_readcmd_p
+    lw     t1, 0(t0)
+    la     t2, debug_precrt_p_raw_at_reset_entry
+    sw     t1, 0(t2)
+#endif
+
     la     gp, _gp                 # Initialize global pointer
     la     sp, _fstack
 
@@ -76,6 +90,14 @@ _entry:
     addi   t0, t0, 4
     addi   t2, t2, 4
     bltu   t0, t1, 1b
+#endif
+
+#ifdef CONFIG_INIT_COMMAND
+    /* Capture p after BSS clear and the optional .data copy. */
+    la     t0, build_init_readcmd_p
+    lw     t1, 0(t0)
+    la     t2, debug_precrt_p_raw_after_data_init
+    sw     t1, 0(t2)
 #endif
 	
     call   main

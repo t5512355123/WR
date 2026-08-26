@@ -356,7 +356,7 @@ int shell_interactive()
 
 #ifdef CONFIG_INIT_COMMAND
 static const char shell_init_cmd[] = CONFIG_INIT_COMMAND;
-static const char *build_init_readcmd_p = shell_init_cmd;
+const char *build_init_readcmd_p = shell_init_cmd;
 
 static uint32_t build_init_pointer_offset(const char *ptr)
 {

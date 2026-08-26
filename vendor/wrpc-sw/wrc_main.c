@@ -65,6 +65,12 @@ struct wr_endpoint_device wrc_endpoint_dev;
 volatile uint32_t debug_boot_stage
 	__attribute__((used, section(".debug_boot")));
 
+/* Captured by crt0.S before and after the BSS/data initialization window. */
+volatile uint32_t debug_precrt_p_raw_at_reset_entry
+	__attribute__((used, section(".debug_precrt")));
+volatile uint32_t debug_precrt_p_raw_after_data_init
+	__attribute__((used, section(".debug_precrt")));
+
 int wrc_wr_diags(void); // fixme: move the header
 
 extern char _binary__config_bin_start[];

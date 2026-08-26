@@ -105,6 +105,15 @@ SECTIONS
     . = ALIGN(4);
     _end = .;
 
+    /* Fixed pre-CRT capture area.  It is after _end so crt0.S does not
+       clear the reset-entry sample while clearing BSS. */
+    .debug_precrt 0x0002e010 (NOLOAD) :
+    {
+	KEEP(*(.debug_precrt))
+    } > ram
+    ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000,
+	   "debug_precrt must stay at least 4 KiB below the stack")
+
 #if CONFIG_DATASIZE != 0
     _datacopy = ORIGIN(datacopy);
 #endif

@@ -1,0 +1,51 @@
+EXP-WRPC-STEP4-SOURCE-ONLY-MASTER-MODE-WRITE-PATH-AUDIT-20260826
+audited_commit=aedb9bbd2c8725e87b1b200bcc557c85029d1aa1
+scope=read-only source/config audit; no build; no program
+
+target_and_config
+CONFIG_ARCH_RISCV=y
+CONFIG_TARGET_GENERIC_PHY_8BIT=y
+CONFIG_TARGET_ERTM14=not set
+CONFIG_WR_NODE=y
+CONFIG_EMBEDDED_NODE=y
+CONFIG_WRPC_PPSI=y
+CONFIG_BUILD_INIT=y
+CONFIG_WR_DIAG=y
+CONFIG_IP=y
+CONFIG_LLDP=y
+CONFIG_SNMP=y
+CONFIG_STEP2_DISABLE_PERSISTENT_INIT=y
+master_CONFIG_INIT_COMMAND=vlan off;ptp stop;mode master;ptp start
+slave_CONFIG_INIT_COMMAND=vlan off;ptp stop;mode slave;ptp start
+
+active_generic_mode_writers
+vendor/wrpc-sw/wrc_main.c:165 -> wrc_ptp_set_mode(WRC_MODE_SLAVE)
+vendor/wrpc-sw/shell/cmd_ptp.c:73 -> master -> wrc_ptp_set_mode(WRC_MODE_MASTER)
+vendor/wrpc-sw/shell/cmd_ptp.c:74 -> slave -> wrc_ptp_set_mode(WRC_MODE_SLAVE)
+vendor/wrpc-sw/ppsi/arch-wrpc/wrc_ptp_ppsi.c:203 -> ptp_mode=0 during setter
+vendor/wrpc-sw/ppsi/arch-wrpc/wrc_ptp_ppsi.c:268 -> ptp_mode=mode on normal setter return
+
+excluded_matches
+vendor/wrpc-sw/host/ptp.c:6 -> host stub, not embedded
+vendor/wrpc-sw/boards/ertm14/board.c:1452 -> CONFIG_TARGET_ERTM14 unset; not compiled for DE5a generic target
+
+task_and_command_capacity
+generic_main_tasks=14
+WRC_MAX_TASKS=20
+SHELL_MAX_COMMANDS=40
+generic_wrc_board_create_tasks=0 additional tasks
+
+wdiags_mapping
+vendor/wrpc-sw/lib/task-diags.c -> wdiags_write_ptp_debug(..., wrc_ptp_get_mode())
+vendor/wrpc-sw/dev/wdiags.c -> AUX3 detail bits31:24
+JTAG_MODE_ADDRESS=0x00100A5C
+
+actual_B_elf_sha256
+master=f02f27ba183a9270bee9f9bd68bf0f12008b874f99d216722b54ac825f64554e
+slave=f95e2583a0442ad2509718aeebbf214fd8857de8faabfc55d7cc7444485c5470
+
+classification
+A=most consistent: init command not reached/executed; exact runtime reason unproven
+B=bounded setter error alone insufficient because mode assignment follows the wait
+C=no second active generic-target ptp_mode writer found
+D=source mapping direct; stale probe sample remains a non-source possibility

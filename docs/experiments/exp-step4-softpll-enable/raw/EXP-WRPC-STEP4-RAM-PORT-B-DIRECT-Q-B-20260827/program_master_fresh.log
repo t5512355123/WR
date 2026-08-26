@@ -1,0 +1,7 @@
+COMMAND=bash scripts/program/program_jtag_master.sh
+BOARD=DE5 [1-11.1]
+SOF_CHECKSUM=0x30B02D1F
+JTAG_ID=0x02E660DD
+PROGRAM_OPERATION=configuration succeeded -- 1 device(s) configured
+PROGRAM_RESULT=successfully performed operation(s)
+RESULT=Quartus Prime Programmer was successful. 0 errors, 0 warnings

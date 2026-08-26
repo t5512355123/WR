@@ -119,6 +119,9 @@
 /* Manual read-only diagnostic aliases in the current Step 4 image. */
 #define SPLL_DMTD_REF_HIGH_QUAL_ABORT_COUNT_ADDR 0xA0
 #define SPLL_DMTD_FB_HIGH_QUAL_ABORT_COUNT_ADDR  0xA4
+/* Read-side aliases for atomic WAIT_EDGE -> GOT_EDGE transition counters. */
+#define SPLL_DMTD_REF_ATOMIC_GOT_EDGE_ENTRY_COUNT_ADDR 0xF0
+#define SPLL_DMTD_FB_ATOMIC_GOT_EDGE_ENTRY_COUNT_ADDR  0xF4
 /* Upper 16-bit read-side aliases; functional write behavior is unchanged. */
 #define SPLL_DMTD_REF_LOW_QUAL_ABORT_COUNT_LO16_ADDR 0x48
 #define SPLL_DMTD_FB_LOW_QUAL_ABORT_COUNT_LO16_ADDR  0x28

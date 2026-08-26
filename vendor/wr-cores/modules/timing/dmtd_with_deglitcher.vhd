@@ -197,6 +197,9 @@ entity dmtd_with_deglitcher is
      dbg_got_edge_entry_seen_o : out std_logic;
      -- Diagnostic-only count of WAIT_EDGE -> GOT_EDGE entries.
      dbg_got_edge_entry_count_o : out std_logic_vector(31 downto 0);
+     -- Atomic diagnostic count updated in the same DMTD process as the
+     -- WAIT_EDGE -> GOT_EDGE state transition.
+     dbg_atomic_got_edge_entry_count_o : out std_logic_vector(31 downto 0);
      -- Count GOT_EDGE qualification attempts that reach eight HIGH samples.
      -- This is diagnostic-only and does not change the FSM or threshold.
      dbg_high_qual_reached_8_count_o : out std_logic_vector(15 downto 0)
@@ -283,6 +286,9 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_got_edge_entry_count : unsigned(31 downto 0) := (others => '0');
    signal dbg_got_edge_entry_count_gray : std_logic_vector(31 downto 0) := (others => '0');
    signal dbg_got_edge_entry_count_gray_sys : std_logic_vector(31 downto 0);
+   signal dbg_atomic_got_edge_entry_count : unsigned(31 downto 0) := (others => '0');
+   signal dbg_atomic_got_edge_entry_count_gray : std_logic_vector(31 downto 0) := (others => '0');
+   signal dbg_atomic_got_edge_entry_count_gray_sys : std_logic_vector(31 downto 0);
    signal dbg_high_qual_reached_8_count : unsigned(15 downto 0) := (others => '0');
    signal dbg_high_qual_reached_8_count_sys : std_logic_vector(15 downto 0);
   signal dbg_stab_reached : std_logic;
@@ -572,6 +578,17 @@ begin  -- rtl
 
    dbg_got_edge_entry_count_o <= f_gray_to_binary(dbg_got_edge_entry_count_gray_sys);
 
+   U_sync_dbg_atomic_got_edge_entry_count : entity work.gc_sync_register
+     generic map (g_width => 32)
+     port map (
+       clk_i => clk_sys_i,
+       rst_n_a_i => rst_n_sysclk_i,
+       d_i => dbg_atomic_got_edge_entry_count_gray,
+       q_o => dbg_atomic_got_edge_entry_count_gray_sys);
+
+   dbg_atomic_got_edge_entry_count_o <=
+     f_gray_to_binary(dbg_atomic_got_edge_entry_count_gray_sys);
+
    U_sync_dbg_high_qual_reached_8_count : entity work.gc_sync_register
      generic map (g_width => 16)
      port map (
@@ -643,6 +660,7 @@ begin  -- rtl
 -- glitchproof DMTD output edge detection
   p_deglitch : process (clk_dmtd_i)
     variable next_high_qual_abort_count : unsigned(31 downto 0);
+    variable next_atomic_got_edge_entry_count : unsigned(31 downto 0);
   begin  -- process deglitch
 
     if rising_edge(clk_dmtd_i) then     -- rising clock edge
@@ -660,6 +678,8 @@ begin  -- rtl
          dbg_high_qual_abort_count <= (others => '0');
          dbg_high_qual_abort_count_gray <= (others => '0');
          dbg_high_qual_abort_depth_sum <= (others => '0');
+         dbg_atomic_got_edge_entry_count <= (others => '0');
+         dbg_atomic_got_edge_entry_count_gray <= (others => '0');
       else
 
         case state is
@@ -696,6 +716,13 @@ begin  -- rtl
               state     <= GOT_EDGE;
               tag_int   <= free_cntr;
               stab_cntr <= (others => '0');
+              next_atomic_got_edge_entry_count :=
+                dbg_atomic_got_edge_entry_count + 1;
+              dbg_atomic_got_edge_entry_count <=
+                next_atomic_got_edge_entry_count;
+              dbg_atomic_got_edge_entry_count_gray <=
+                std_logic_vector(next_atomic_got_edge_entry_count xor
+                  shift_right(next_atomic_got_edge_entry_count, 1));
             end if;
 
           when GOT_EDGE =>

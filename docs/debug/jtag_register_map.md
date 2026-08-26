@@ -261,8 +261,8 @@ status，只提供 bits 31..18 的飽和 14-bit view。這足以判斷是否接�
 | `0x001002DC` | `SPLL_DMTD_STATE` | 唯讀：bits 1..0 reference state、bits 3..2 feedback state、bit 8/9 分別為 reference/feedback DMTD reset-active；bits 17..10 是 reference `stab_cntr(15 downto 8)` bucket，bits 25..18 是 feedback bucket，bit 26/27 是 reference/feedback threshold-reached sticky bit，bit 28/29 是 reference/feedback `WAIT_EDGE -> GOT_EDGE` sticky evidence，bit 31/30 是 reference/feedback GOT_EDGE HIGH qualification abort-seen sticky evidence |
 | `0x001002F8` | `SPLL_DMTD_NATIVE_EDGE_COUNT_LO` | 唯讀診斷 alias：`clk_dmtd_i` domain 的 64-bit free-running edge counter bits 31..0；不驅動 sampler、deglitch FSM 或 SoftPLL control |
 | `0x001002FC` | `SPLL_DMTD_NATIVE_EDGE_COUNT_HI` | 唯讀診斷 alias：`clk_dmtd_i` edge counter bits 63..32；Tcl 必須以 `HI1 -> LO -> HI2` 一致性讀法取得 64-bit 值 |
-| `0x001002F0` | `SPLL_DMTD_REF_GOT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：reference `WAIT_EDGE -> GOT_EDGE` entry 次數，32-bit 自然回繞；原本 generated tag-enabled-last-tics 的 write side 保留 |
-| `0x001002F4` | `SPLL_DMTD_FB_GOT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：feedback `WAIT_EDGE -> GOT_EDGE` entry 次數，32-bit 自然回繞；原本 generated tag-enabled-last-tics 的 write side 保留 |
+| `0x001002F0` | `SPLL_DMTD_REF_ATOMIC_GOT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：reference 在 DMTD 狀態機同一程序中完成的 `WAIT_EDGE -> GOT_EDGE` entry 次數，32-bit 自然回繞；原本 generated tag-enabled-last-tics 的 write side 保留 |
+| `0x001002F4` | `SPLL_DMTD_FB_ATOMIC_GOT_EDGE_ENTRY_COUNT` | **目前 fresh Step 4 image 的唯讀診斷 alias**：feedback 在 DMTD 狀態機同一程序中完成的 `WAIT_EDGE -> GOT_EDGE` entry 次數，32-bit 自然回繞；原本 generated tag-enabled-last-tics 的 write side 保留 |
 | `0x00100300` | `PPS_CR` | PPS generator control/status |
 | `0x0010031C` | `PPS_ESCR` | PPS generator extended status/control |
 | `0x00100400` | `SYSC_RSTR` | system reset register |

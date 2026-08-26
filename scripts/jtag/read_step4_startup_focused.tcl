@@ -373,7 +373,7 @@ proc finish_series {board label} {
   } elseif {$label eq "DMTD_FB_WAIT_STABLE0_LOW_SAMPLE"} {
     set delta [series_delta_mod16 $first $last $invalid]
   } elseif {$label eq "DMTD_REF_HIGH_QUAL_ABORT_COUNT" || $label eq "DMTD_FB_HIGH_QUAL_ABORT_COUNT" ||
-      $label eq "DMTD_REF_GOT_EDGE_ENTRY" || $label eq "DMTD_FB_GOT_EDGE_ENTRY" ||
+      $label eq "DMTD_REF_ATOMIC_GOT_EDGE_ENTRY" || $label eq "DMTD_FB_ATOMIC_GOT_EDGE_ENTRY" ||
       $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
       $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
     # These source-defined 32-bit diagnostics are free-running counters.
@@ -450,10 +450,10 @@ proc read_d0_stable_group {board} {
                  WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
                  DMTD_REF_WAIT_STABLE0_LOW_SAMPLE DMTD_FB_WAIT_STABLE0_LOW_SAMPLE \
                  REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
-                 DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_REF_GOT_EDGE_ENTRY \
+                 DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_REF_ATOMIC_GOT_EDGE_ENTRY \
                  NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
                  FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
-                 DMTD_FB_HIGH_QUAL_ABORT_COUNT DMTD_FB_GOT_EDGE_ENTRY \
+                 DMTD_FB_HIGH_QUAL_ABORT_COUNT DMTD_FB_ATOMIC_GOT_EDGE_ENTRY \
                  NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
     init_series $board $label
   }
@@ -546,7 +546,7 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board DMTD_REF_HIGH_QUAL_ABORT_COUNT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002F0]
-    add_timed_series_sample $board DMTD_REF_GOT_EDGE_ENTRY $sample $value \
+    add_timed_series_sample $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY $sample $value \
       [clock milliseconds]
 
     set previous [series_value $board FB_D0_STABLE_HIT_COUNT64 last]
@@ -566,7 +566,7 @@ proc read_d0_stable_group {board} {
     add_timed_series_sample $board DMTD_FB_HIGH_QUAL_ABORT_COUNT $sample $value \
       [clock milliseconds]
     set value [wb_read_validated 0x001002F4]
-    add_timed_series_sample $board DMTD_FB_GOT_EDGE_ENTRY $sample $value \
+    add_timed_series_sample $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY $sample $value \
       [clock milliseconds]
     if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
   }
@@ -580,13 +580,13 @@ proc read_d0_stable_group {board} {
   finish_series64 $board REF_D0_STABLE_HIT_COUNT64
   finish_series64 $board REF_D0_TRANSITION_COUNT64
   finish_series $board DMTD_REF_HIGH_QUAL_ABORT_COUNT
-  finish_series $board DMTD_REF_GOT_EDGE_ENTRY
+  finish_series $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY
   finish_series $board NATIVE_REF_SAMPLED
   finish_series $board NATIVE_REF_ACCEPT
   finish_series64 $board FB_D0_STABLE_HIT_COUNT64
   finish_series64 $board FB_D0_TRANSITION_COUNT64
   finish_series $board DMTD_FB_HIGH_QUAL_ABORT_COUNT
-  finish_series $board DMTD_FB_GOT_EDGE_ENTRY
+  finish_series $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY
   finish_series $board NATIVE_FB_SAMPLED
   finish_series $board NATIVE_FB_ACCEPT
 
@@ -720,11 +720,12 @@ proc read_mapping_group {board} {
   # addresses. QUAL_REACHED_8 is unpacked before the series bookkeeping so
   # unrelated low readback bits cannot be mistaken for a counter decrease.
   # No snapshot/control register is written.
+  # 0xF0/0xF4 are the atomic same-process WAIT_EDGE -> GOT_EDGE aliases.
   set items {
-    {REF_GOT_EDGE_ENTRY_MAPPING 0x001002F0 word32}
+    {REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING 0x001002F0 word32}
     {REF_QUAL8_MAPPING 0x00100268 packed16}
     {REF_ACCEPT_MAPPING 0x0010022C word32}
-    {FB_GOT_EDGE_ENTRY_MAPPING 0x001002F4 word32}
+    {FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING 0x001002F4 word32}
     {FB_QUAL8_MAPPING 0x0010026C packed16}
     {FB_ACCEPT_MAPPING 0x00100230 word32}
   }
@@ -760,18 +761,18 @@ proc read_mapping_group {board} {
     finish_series $board [lindex $item 0]
   }
 
-  set ref_got [series_delta_mod32 $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,first) \
-      $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,last) \
-      $::series($board,REF_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set ref_got [series_delta_mod32 $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,invalid)]
   set ref_qual [series_delta_mod16 $::series($board,REF_QUAL8_MAPPING,first) \
       $::series($board,REF_QUAL8_MAPPING,last) \
       $::series($board,REF_QUAL8_MAPPING,invalid)]
   set ref_accept [series_delta_mod32 $::series($board,REF_ACCEPT_MAPPING,first) \
       $::series($board,REF_ACCEPT_MAPPING,last) \
       $::series($board,REF_ACCEPT_MAPPING,invalid)]
-  set fb_got [series_delta_mod32 $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,first) \
-      $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,last) \
-      $::series($board,FB_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set fb_got [series_delta_mod32 $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,invalid)]
   set fb_qual [series_delta_mod16 $::series($board,FB_QUAL8_MAPPING,first) \
       $::series($board,FB_QUAL8_MAPPING,last) \
       $::series($board,FB_QUAL8_MAPPING,invalid)]
@@ -893,7 +894,7 @@ proc print_event_boundary {board} {
                DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
                WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
                DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_FB_HIGH_QUAL_ABORT_COUNT \
-               DMTD_REF_GOT_EDGE_ENTRY DMTD_FB_GOT_EDGE_ENTRY \
+               DMTD_REF_ATOMIC_GOT_EDGE_ENTRY DMTD_FB_ATOMIC_GOT_EDGE_ENTRY \
                DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8 \
                SPLL_DMTD_STATE}
   if {[has_invalid $board $labels]} {
@@ -911,8 +912,8 @@ proc print_event_boundary {board} {
                            [delta_positive $board DMTD_FB_ACCEPT]}]
   set high_qual_abort_active [expr {[delta_positive $board DMTD_REF_HIGH_QUAL_ABORT_COUNT] || \
                                     [delta_positive $board DMTD_FB_HIGH_QUAL_ABORT_COUNT]}]
-  set got_edge_entry_active [expr {[delta_positive $board DMTD_REF_GOT_EDGE_ENTRY] || \
-                                   [delta_positive $board DMTD_FB_GOT_EDGE_ENTRY]}]
+  set got_edge_entry_active [expr {[delta_positive $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY] || \
+                                   [delta_positive $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY]}]
   set qualification_progress_active [expr {[delta_positive $board DMTD_REF_QUAL_REACHED_8] || \
                                            [delta_positive $board DMTD_FB_QUAL_REACHED_8]}]
   set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
@@ -1060,8 +1061,8 @@ proc print_event_boundary {board} {
         $board [series_value $board DMTD_REF_HIGH_QUAL_ABORT_COUNT delta] \
         [series_value $board DMTD_FB_HIGH_QUAL_ABORT_COUNT delta]]
   puts [format "STEP4_GOT_EDGE_ENTRY board=%s ref=%s fb=%s" \
-        $board [series_value $board DMTD_REF_GOT_EDGE_ENTRY delta] \
-        [series_value $board DMTD_FB_GOT_EDGE_ENTRY delta]]
+        $board [series_value $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY delta]]
   puts [format "STEP4_QUALIFICATION_PROGRESS board=%s ref=%s fb=%s" \
         $board [series_value $board DMTD_REF_QUAL_REACHED_8 delta] \
         [series_value $board DMTD_FB_QUAL_REACHED_8 delta]]
@@ -1101,8 +1102,8 @@ proc read_event_group {board} {
     {DMTD_D0_LOW_RUN_MAX 0x0010025C}
     {DMTD_REF_HIGH_QUAL_ABORT_COUNT 0x001002A0}
     {DMTD_FB_HIGH_QUAL_ABORT_COUNT 0x001002A4}
-    {DMTD_REF_GOT_EDGE_ENTRY 0x001002F0}
-    {DMTD_FB_GOT_EDGE_ENTRY 0x001002F4}
+    {DMTD_REF_ATOMIC_GOT_EDGE_ENTRY 0x001002F0}
+    {DMTD_FB_ATOMIC_GOT_EDGE_ENTRY 0x001002F4}
     {DMTD_REF_QUAL_REACHED_8 0x00100268}
     {DMTD_FB_QUAL_REACHED_8 0x0010026C}
     {SPLL_DMTD_STATE 0x001002DC}

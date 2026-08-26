@@ -71,7 +71,7 @@ Slave:  GLOBAL_BUILD_INIT_CALL_COUNT=1, PREBOOT_LAST_CALLER=NONE,
 ## 判定
 
 1. Master/Slave final ELF 的 `shell_init_cmd`、`p.3055` storage address、section layout 與 initial pointer value 一致；Master ELF 本身沒有 `p = shell_init_cmd + 30`。
-2. Master/Slave MIF 在 `p.3055` 對應的 word 也一致為 `0x00017bc8`；不是 ELF→MIF generation 或 Quartus memory initialization 將 pointer 改壞。
+2. Master/Slave MIF 在 `p.3055` 對應的 word 也一致為 `0x00017bc8`；不是 ELF→MIF generation 或 Quartus memory initialization 將 pointer 改為 `+30`。
 3. 因此目前可排除：
 
    - compiler/linker 將 static initializer 生成为 `+30`

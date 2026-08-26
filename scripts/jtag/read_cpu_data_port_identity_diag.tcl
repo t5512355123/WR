@@ -20,7 +20,11 @@ proc number {value} {
 }
 
 proc display32 {value} {
-  set word [number $value]
+  if {[string is integer -strict $value]} {
+    set word $value
+  } else {
+    set word [number $value]
+  }
   if {$word < 0} { return $value }
   return [format %08X [expr {$word & 0xffffffff}]]
 }

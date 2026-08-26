@@ -373,14 +373,11 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 	static const char *p = shell_init_cmd;
 	uint32_t call_count = ++build_init_readcmd_call_count;
 	uint32_t p_offset_before = build_init_pointer_offset(p);
-	uint32_t current_char_before = p_offset_before == 0xff ? 0xff :
-		(uint8_t)p[0];
 	uint32_t flags = 0;
 	int i;
 
-	if (call_count == 2)
-		wdiags_boot_init_iterator_before(call_count, p_offset_before,
-						 current_char_before);
+	if (call_count == 1)
+		wdiags_boot_init_iterator_before(call_count, p_offset_before);
 
 	/* use semicolon as separator */
 	for (i = 0; i < maxlen && p[i] && p[i] != ';'; i++)
@@ -401,9 +398,14 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 		flags |= WRC_DIAGS_BOOT_ITER_RESET_TRIGGERED;
 		p = shell_init_cmd;
 	}
-	if (call_count == 2)
+	if (call_count == 1) {
+		uint32_t p_offset_after = build_init_pointer_offset(p);
+		uint32_t current_char_after = p_offset_after == 0xff ? 0xff :
+			(uint8_t)p[0];
+
 		wdiags_boot_init_iterator_after(call_count,
-						build_init_pointer_offset(p), i, i, flags);
+						p_offset_after, i, i, current_char_after, flags);
+	}
 	return i;
 }
 #endif

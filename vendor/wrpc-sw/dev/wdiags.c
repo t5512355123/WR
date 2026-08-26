@@ -31,7 +31,7 @@ static uint32_t wdiags_mapping_counter_shadow;
 static uint32_t wdiags_port_state_shadow;
 static uint32_t wdiags_aux_state_shadow;
 static uint32_t wdiags_boot_iter_p_offset_before_shadow;
-static uint32_t wdiags_boot_iter_p_offset_after_shadow;
+static uint32_t wdiags_boot_iter_call1_return_p_offset_sticky_shadow;
 static uint32_t wdiags_boot_iter_cmd_len_shadow;
 static uint32_t wdiags_boot_iter_call_count_shadow;
 static uint32_t wdiags_boot_iter_i_value_shadow;
@@ -158,7 +158,7 @@ static void wdiags_write_boot_init_iterator(void)
 		value |= (wdiags_boot_iter_p_offset_before_shadow &
 			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
 			 WRC_DIAGS_BOOT_ITER_P_OFFSET_BEFORE_SHIFT;
-		value |= (wdiags_boot_iter_p_offset_after_shadow &
+		value |= (wdiags_boot_iter_call1_return_p_offset_sticky_shadow &
 			  WRC_DIAGS_BOOT_ITER_BYTE_MASK) <<
 			 WRC_DIAGS_BOOT_ITER_P_OFFSET_AFTER_SHIFT;
 		value |= (wdiags_boot_iter_cmd_len_shadow &
@@ -190,7 +190,7 @@ static void wdiags_write_boot_init_iterator(void)
 void wdiags_boot_init_iterator_reset(void)
 {
 	wdiags_boot_iter_p_offset_before_shadow = 0;
-	wdiags_boot_iter_p_offset_after_shadow = 0;
+	wdiags_boot_iter_call1_return_p_offset_sticky_shadow = 0;
 	wdiags_boot_iter_cmd_len_shadow = 0;
 	wdiags_boot_iter_call_count_shadow = 0;
 	wdiags_boot_iter_i_value_shadow = 0;
@@ -201,12 +201,12 @@ void wdiags_boot_init_iterator_reset(void)
 }
 
 void wdiags_boot_init_iterator_before(uint32_t call_count,
-					      uint32_t p_offset,
-					      uint32_t current_char)
+					      uint32_t p_offset)
 {
+	if (call_count != 1)
+		return;
 	wdiags_boot_iter_call_count_shadow = call_count;
 	wdiags_boot_iter_p_offset_before_shadow = p_offset;
-	wdiags_boot_iter_current_char_shadow = current_char;
 	wdiags_boot_iter_flags_shadow |= WRC_DIAGS_BOOT_ITER_BEFORE_VALID;
 	wdiags_write_boot_init_iterator();
 }
@@ -215,12 +215,16 @@ void wdiags_boot_init_iterator_after(uint32_t call_count,
 					     uint32_t p_offset,
 					     uint32_t i_value,
 					     uint32_t cmd_len,
+					     uint32_t current_char,
 					     uint32_t flags)
 {
+	if (call_count != 1)
+		return;
 	wdiags_boot_iter_call_count_shadow = call_count;
-	wdiags_boot_iter_p_offset_after_shadow = p_offset;
+	wdiags_boot_iter_call1_return_p_offset_sticky_shadow = p_offset;
 	wdiags_boot_iter_i_value_shadow = i_value;
 	wdiags_boot_iter_cmd_len_shadow = cmd_len;
+	wdiags_boot_iter_current_char_shadow = current_char;
 	wdiags_boot_iter_flags_shadow |= flags |
 		WRC_DIAGS_BOOT_ITER_AFTER_VALID;
 	wdiags_write_boot_init_iterator();

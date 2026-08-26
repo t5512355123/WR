@@ -23,7 +23,8 @@
 #define WRC_DIAGS_WDIAG_PSTAT_LINK 0x1UL
 #define WRC_DIAGS_WDIAG_PSTAT_LOCKED 0x2UL
 /* Firmware-only iterator-state diagnostic carried in PSTAT/ASTAT high bits.
- * The command fetch is unchanged; only the second call is captured. */
+ * The command fetch is unchanged; only the first call is captured and kept
+ * sticky through the remainder of the boot script. */
 #define WRC_DIAGS_BOOT_ITER_P_OFFSET_BEFORE_SHIFT 2
 #define WRC_DIAGS_BOOT_ITER_P_OFFSET_AFTER_SHIFT 10
 #define WRC_DIAGS_BOOT_ITER_CMD_LEN_SHIFT 18

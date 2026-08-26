@@ -115,7 +115,9 @@ proc cpu_host_read {hardware_name word_address} {
 proc cpu_host_read_word {host_reads} {
   # UDATA is exposed through the host-endian CSR path; convert the settled
   # read back to the CPU's 32-bit word representation.
-  return [byte_swap32 [string trim [lindex [split $host_reads "/"] 1]]]
+  set word [byte_swap32 [string trim [lindex [split $host_reads "/"] 1]]]
+  if {$word < 0} { return -1 }
+  return [format %08X $word]
 }
 
 puts "PRE_MAIN_RAW_P_STORAGE_CONFIG reset_byte=0x0002E010 after_data_byte=0x0002E014 expected_shell_init_cmd=FROM_CURRENT_ELF"

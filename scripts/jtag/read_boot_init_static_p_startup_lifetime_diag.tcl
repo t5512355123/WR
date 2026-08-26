@@ -71,6 +71,19 @@ proc wb_read {hardware_name addr} {
   return TIMEOUT
 }
 
+proc wb_sync_toggle {hardware_name} {
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    set ::wb_toggle($hardware_name) 0
+    return
+  }
+  if {[is_hex $value]} {
+    scan $value %x word
+    set ::wb_toggle($hardware_name) [expr {($word >> 35) & 1}]
+  } else {
+    set ::wb_toggle($hardware_name) 0
+  }
+}
+
 proc wb_startup_sample {hardware_name sample start_ms} {
   set pstat_raw [wb_read $hardware_name 0x00100A0C]
   set astat_raw [wb_read $hardware_name 0x00100A14]
@@ -114,6 +127,7 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
     set start_ms [clock milliseconds]
     for {set sample 1} {$sample <= $samples} {incr sample} {
       wb_startup_sample $hardware_name $sample $start_ms

@@ -27,6 +27,7 @@ static void *wdiags_base = NULL;
 static uint32_t wdiags_ptp_state_shadow;
 static uint32_t wdiags_boot_init_debug_shadow;
 static uint16_t wdiags_vlan_pfilter_progress_shadow;
+static uint32_t wdiags_mapping_counter_shadow;
 
 
 static int wdiag_write( uint32_t reg, uint32_t value )
@@ -138,7 +139,7 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 
 static void wdiags_write_vlan_pfilter_progress(void)
 {
-	uint32_t counter = wdiag_read(WRC_DIAGS_WDIAG_MAPPING_COUNTER) & 0xffffu;
+	uint32_t counter = wdiags_mapping_counter_shadow & 0xffffu;
 	uint32_t progress = wdiags_vlan_pfilter_progress_shadow;
 
 	/* Keep the existing mapping counter/inverse in the low half-words and
@@ -382,6 +383,7 @@ void wdiags_write_mapping_self_test(uint32_t counter)
 	 * They never feed back into WR control or the SoftPLL. */
 	wdiag_write(0x12c, 0xA5A5122Cu);
 	wdiag_write(0x130, 0xA5A51330u);
+	wdiags_mapping_counter_shadow = counter;
 	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_COUNTER,
 			(counter & 0xffffu) |
 			((uint32_t)wdiags_vlan_pfilter_progress_shadow <<

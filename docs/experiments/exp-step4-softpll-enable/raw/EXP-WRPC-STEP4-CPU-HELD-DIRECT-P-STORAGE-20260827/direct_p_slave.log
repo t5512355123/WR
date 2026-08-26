@@ -1,0 +1,6 @@
+CPU_HELD_DIRECT_P_STORAGE_CONFIG p_byte=0x0001C304 p_word=0x000070C1 mif_expected=0x00017938 filter=1-11.2
+=== CPU_HELD_DIRECT_P_STORAGE_BOARD DE5 [1-11.2] ===
+CPU_HELD_DIRECT_P_STORAGE_SAMPLE board=DE5 [1-11.2] CPU_HOLD=00000000 DIRECT_STORAGE_CPU_WORD=00017938 HOST_READS=38790100 / 38790100 MIF_EXPECTED=00017938 CPU_RELEASE=00000001
+CPU_HELD_DIRECT_P_STORAGE_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_cpu_held_direct_p_storage_diag.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings

@@ -250,9 +250,13 @@ architecture rtl of dmtd_with_deglitcher is
    signal dbg_high_qual_max_stab_sys : std_logic_vector(15 downto 0);
   signal dbg_low_qual_abort_count : unsigned(31 downto 0);
   signal dbg_high_qual_abort_count : unsigned(31 downto 0);
+  -- Cross the high-qualification abort counter as Gray code.  The counter
+  -- runs in clk_dmtd_i and can change much faster than clk_sys_i; directly
+  -- synchronizing the binary value can produce torn, impossible readbacks.
+  signal dbg_high_qual_abort_count_gray : std_logic_vector(31 downto 0) := (others => '0');
+  signal dbg_high_qual_abort_count_gray_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_depth_sum : unsigned(63 downto 0);
   signal dbg_low_qual_abort_count_sys : std_logic_vector(31 downto 0);
-  signal dbg_high_qual_abort_count_sys : std_logic_vector(31 downto 0);
   signal dbg_high_qual_abort_depth_sum_sys : std_logic_vector(63 downto 0);
   signal dbg_native_edge_count_bin : unsigned(63 downto 0) := (others => '0');
   signal dbg_native_edge_count_gray : std_logic_vector(63 downto 0) := (others => '0');
@@ -459,8 +463,8 @@ begin  -- rtl
     port map (
       clk_i     => clk_sys_i,
       rst_n_a_i => rst_n_sysclk_i,
-      d_i       => std_logic_vector(dbg_high_qual_abort_count),
-      q_o       => dbg_high_qual_abort_count_sys);
+      d_i       => dbg_high_qual_abort_count_gray,
+      q_o       => dbg_high_qual_abort_count_gray_sys);
 
   U_sync_dbg_high_abort_depth_sum : entity work.gc_sync_register
     generic map (g_width => 64)
@@ -471,7 +475,8 @@ begin  -- rtl
       q_o       => dbg_high_qual_abort_depth_sum_sys);
 
   dbg_low_qual_abort_count_o <= dbg_low_qual_abort_count_sys;
-  dbg_high_qual_abort_count_o <= dbg_high_qual_abort_count_sys;
+  dbg_high_qual_abort_count_o <=
+    f_gray_to_binary(dbg_high_qual_abort_count_gray_sys);
   dbg_high_qual_abort_depth_sum_o <= dbg_high_qual_abort_depth_sum_sys;
 
   U_sync_dbg_input_high_run_max : entity work.gc_sync_register
@@ -637,6 +642,7 @@ begin  -- rtl
 
 -- glitchproof DMTD output edge detection
   p_deglitch : process (clk_dmtd_i)
+    variable next_high_qual_abort_count : unsigned(31 downto 0);
   begin  -- process deglitch
 
     if rising_edge(clk_dmtd_i) then     -- rising clock edge
@@ -651,8 +657,9 @@ begin  -- rtl
          dbg_wait_stable0_low_sample_count <= (others => '0');
          dbg_high_qual_max_stab <= (others => '0');
          dbg_low_qual_abort_count <= (others => '0');
-        dbg_high_qual_abort_count <= (others => '0');
-        dbg_high_qual_abort_depth_sum <= (others => '0');
+         dbg_high_qual_abort_count <= (others => '0');
+         dbg_high_qual_abort_count_gray <= (others => '0');
+         dbg_high_qual_abort_depth_sum <= (others => '0');
       else
 
         case state is
@@ -707,7 +714,11 @@ begin  -- rtl
              if stab_cntr /= 0 then
                 -- Diagnostic-only free-running counter.  Natural 32-bit wrap
                 -- preserves bounded-window activity after long runtimes.
-                dbg_high_qual_abort_count <= dbg_high_qual_abort_count + 1;
+                next_high_qual_abort_count := dbg_high_qual_abort_count + 1;
+                dbg_high_qual_abort_count <= next_high_qual_abort_count;
+                dbg_high_qual_abort_count_gray <=
+                  std_logic_vector(next_high_qual_abort_count xor
+                    shift_right(next_high_qual_abort_count, 1));
                 dbg_high_qual_abort_depth_sum <=
                   dbg_high_qual_abort_depth_sum +
                   resize(stab_cntr, dbg_high_qual_abort_depth_sum'length);

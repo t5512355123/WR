@@ -360,8 +360,8 @@ static uint32_t build_init_readcmd_call_count;
 
 static uint32_t build_init_pointer_offset(const char *ptr)
 {
-	uintptr_t base = (uintptr_t)shell_init_cmd;
-	uintptr_t current = (uintptr_t)ptr;
+	unsigned long base = (unsigned long)shell_init_cmd;
+	unsigned long current = (unsigned long)ptr;
 
 	if (current < base || current >= base + sizeof(shell_init_cmd))
 		return 0xff;

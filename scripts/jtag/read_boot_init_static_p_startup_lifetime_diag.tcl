@@ -125,6 +125,9 @@ foreach hardware_name [get_hardware_names] {
   puts [format "=== BOOT_INIT_STATIC_P_STARTUP_BOARD %s ===" $hardware_name]
   flush stdout
   if {[catch {
+    catch { end_insystem_source_probe }
+    get_insystem_source_probe_instance_info \
+      -hardware_name $hardware_name -device_name $device_name
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     set ::wb_toggle($hardware_name) 0
     wb_sync_toggle $hardware_name

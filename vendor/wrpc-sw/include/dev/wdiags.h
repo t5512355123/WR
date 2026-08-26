@@ -34,6 +34,15 @@ void wdiags_pfilter_after_rule_write(void);
 void wdiags_pfilter_before_enable(void);
 void wdiags_pfilter_return(void);
 void wdiags_vlan_cmd_return(void);
+/* Read-only shell_exec() dispatch checkpoints in PTPSTAT high bits. */
+void wdiags_shell_exec_enter(void);
+void wdiags_shell_tokenize_done(void);
+void wdiags_shell_command_name_parsed(void);
+void wdiags_shell_lookup_begin(void);
+void wdiags_shell_lookup_match_index(uint32_t index);
+void wdiags_shell_handler_found(void);
+void wdiags_shell_before_handler_call(void);
+void wdiags_shell_after_handler_return(void);
 void wdiags_write_aux_state(uint32_t aux_states);
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors);
 /* 診斷版：保存 PPSI 收發計數與協定狀態，不改變 WR 控制流程。 */

@@ -26,6 +26,8 @@ static void *wdiags_base = NULL;
 
 static uint32_t wdiags_ptp_state_shadow;
 static uint32_t wdiags_boot_init_debug_shadow;
+static uint16_t wdiags_shell_exec_progress_shadow;
+static int wdiags_shell_exec_progress_active;
 static uint16_t wdiags_vlan_pfilter_progress_shadow;
 static uint32_t wdiags_mapping_counter_shadow;
 
@@ -113,7 +115,11 @@ void wdiags_write_ptp_state(uint8_t ptpstate)
 		((uint32_t)ptpstate << WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_SHIFT) &
 		WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_MASK;
 	wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
-			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
+			wdiags_ptp_state_shadow |
+			(wdiags_shell_exec_progress_active ?
+			 ((uint32_t)wdiags_shell_exec_progress_shadow <<
+			  WRC_DIAGS_SHELL_PROGRESS_SHIFT) :
+			 wdiags_boot_init_debug_shadow));
 }
 
 void wdiags_write_boot_init_debug(uint32_t script_enter_count,
@@ -133,8 +139,70 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 		 WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_CALL_MASK) |
 		((mode_master_return_count << WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_RETURN_SHIFT) &
 		 WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_RETURN_MASK);
+	if (!wdiags_shell_exec_progress_active)
+		wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
+				wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
+}
+
+static void wdiags_write_shell_exec_progress(void)
+{
 	wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
-			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
+			wdiags_ptp_state_shadow |
+			((uint32_t)wdiags_shell_exec_progress_shadow <<
+			 WRC_DIAGS_SHELL_PROGRESS_SHIFT));
+}
+
+void wdiags_shell_exec_enter(void)
+{
+	wdiags_shell_exec_progress_active = 1;
+	wdiags_shell_exec_progress_shadow = WRC_DIAGS_SHELL_EXEC_ENTER;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_tokenize_done(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_TOKENIZE_DONE;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_command_name_parsed(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_COMMAND_NAME_PARSED;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_lookup_begin(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_LOOKUP_BEGIN;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_lookup_match_index(uint32_t index)
+{
+	wdiags_shell_exec_progress_shadow &= ~WRC_DIAGS_SHELL_MATCH_INDEX_MASK;
+	wdiags_shell_exec_progress_shadow |=
+		WRC_DIAGS_SHELL_LOOKUP_MATCH_INDEX |
+		((index << WRC_DIAGS_SHELL_MATCH_INDEX_SHIFT) &
+		 WRC_DIAGS_SHELL_MATCH_INDEX_MASK);
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_handler_found(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_HANDLER_FOUND;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_before_handler_call(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_BEFORE_HANDLER_CALL;
+	wdiags_write_shell_exec_progress();
+}
+
+void wdiags_shell_after_handler_return(void)
+{
+	wdiags_shell_exec_progress_shadow |= WRC_DIAGS_SHELL_AFTER_HANDLER_RETURN;
+	wdiags_write_shell_exec_progress();
 }
 
 static void wdiags_write_vlan_pfilter_progress(void)

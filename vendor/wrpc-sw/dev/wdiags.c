@@ -200,11 +200,22 @@ void wdiags_boot_init_iterator_reset(void)
 	wdiags_write_boot_init_iterator();
 }
 
+void wdiags_boot_init_iterator_preboot_snapshot(uint32_t global_call_count,
+							uint32_t last_caller)
+{
+	wdiags_boot_iter_call_count_shadow = global_call_count;
+	wdiags_boot_iter_flags_shadow &=
+		~(WRC_DIAGS_BOOT_ITER_CALLER_MASK <<
+		  WRC_DIAGS_BOOT_ITER_CALLER_SHIFT);
+	wdiags_boot_iter_flags_shadow |=
+		(last_caller & WRC_DIAGS_BOOT_ITER_CALLER_MASK) <<
+		WRC_DIAGS_BOOT_ITER_CALLER_SHIFT;
+	wdiags_write_boot_init_iterator();
+}
+
 void wdiags_boot_init_iterator_before(uint32_t call_count,
 					      uint32_t p_offset)
 {
-	if (call_count != 1)
-		return;
 	wdiags_boot_iter_call_count_shadow = call_count;
 	wdiags_boot_iter_p_offset_before_shadow = p_offset;
 	wdiags_boot_iter_flags_shadow |= WRC_DIAGS_BOOT_ITER_BEFORE_VALID;
@@ -218,8 +229,6 @@ void wdiags_boot_init_iterator_after(uint32_t call_count,
 					     uint32_t current_char,
 					     uint32_t flags)
 {
-	if (call_count != 1)
-		return;
 	wdiags_boot_iter_call_count_shadow = call_count;
 	wdiags_boot_iter_call1_return_p_offset_sticky_shadow = p_offset;
 	wdiags_boot_iter_i_value_shadow = i_value;

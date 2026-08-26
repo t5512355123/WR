@@ -356,7 +356,9 @@ int shell_interactive()
 
 #ifdef CONFIG_INIT_COMMAND
 static const char shell_init_cmd[] = CONFIG_INIT_COMMAND;
-static uint32_t build_init_readcmd_call_count;
+static uint32_t build_init_readcmd_global_call_count;
+static uint32_t build_init_readcmd_last_caller_id;
+static uint32_t shell_boot_init_build_call_count;
 
 static uint32_t build_init_pointer_offset(const char *ptr)
 {
@@ -368,16 +370,18 @@ static uint32_t build_init_pointer_offset(const char *ptr)
 	return (uint32_t)(current - base);
 }
 
-static int build_init_readcmd(uint8_t *cmd, int maxlen)
+static int build_init_readcmd(uint8_t *cmd, int maxlen, uint32_t caller_id)
 {
 	static const char *p = shell_init_cmd;
-	uint32_t call_count = ++build_init_readcmd_call_count;
+	uint32_t global_call_count = ++build_init_readcmd_global_call_count;
 	uint32_t p_offset_before = build_init_pointer_offset(p);
 	uint32_t flags = 0;
 	int i;
 
-	if (call_count == 1)
-		wdiags_boot_init_iterator_before(call_count, p_offset_before);
+	build_init_readcmd_last_caller_id = caller_id;
+	if (caller_id == WRC_DIAGS_BOOT_ITER_CALLER_BOOT_SCRIPT &&
+		++shell_boot_init_build_call_count == 1)
+		wdiags_boot_init_iterator_before(global_call_count, p_offset_before);
 
 	/* use semicolon as separator */
 	for (i = 0; i < maxlen && p[i] && p[i] != ';'; i++)
@@ -398,12 +402,13 @@ static int build_init_readcmd(uint8_t *cmd, int maxlen)
 		flags |= WRC_DIAGS_BOOT_ITER_RESET_TRIGGERED;
 		p = shell_init_cmd;
 	}
-	if (call_count == 1) {
+	if (caller_id == WRC_DIAGS_BOOT_ITER_CALLER_BOOT_SCRIPT &&
+		shell_boot_init_build_call_count == 1) {
 		uint32_t p_offset_after = build_init_pointer_offset(p);
 		uint32_t current_char_after = p_offset_after == 0xff ? 0xff :
 			(uint8_t)p[0];
 
-		wdiags_boot_init_iterator_after(call_count,
+		wdiags_boot_init_iterator_after(global_call_count,
 						p_offset_after, i, i, current_char_after, flags);
 	}
 	return i;
@@ -414,15 +419,20 @@ void shell_boot_script(void)
 {
 #ifdef CONFIG_INIT_COMMAND
 	uint32_t command_index = 0;
+	uint32_t preboot_call_count = build_init_readcmd_global_call_count;
+	uint32_t preboot_last_caller_id = build_init_readcmd_last_caller_id;
 
 	++shell_boot_init_script_enter_count;
-	build_init_readcmd_call_count = 0;
+	shell_boot_init_build_call_count = 0;
 	wdiags_boot_init_iterator_reset();
+	wdiags_boot_init_iterator_preboot_snapshot(preboot_call_count,
+							  preboot_last_caller_id);
 	shell_boot_init_command_index = 0;
 	shell_boot_init_diag_publish();
 	while (1) {
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
-					SH_MAX_LINE_LEN);
+					SH_MAX_LINE_LEN,
+					WRC_DIAGS_BOOT_ITER_CALLER_BOOT_SCRIPT);
 		if (!cmd_len)
 			break;
 		shell_boot_init_command_index = ++command_index;
@@ -465,7 +475,8 @@ void shell_show_build_init(void)
 #ifdef CONFIG_INIT_COMMAND
 	while (1) {
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
-					SH_MAX_LINE_LEN);
+					SH_MAX_LINE_LEN,
+					WRC_DIAGS_BOOT_ITER_CALLER_SHOW_BUILD_INIT);
 		if (!cmd_len)
 			break;
 		pp_printf("%s\n", cmd_buf);

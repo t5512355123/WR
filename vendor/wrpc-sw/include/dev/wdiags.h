@@ -25,11 +25,13 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
-/* Read-only first-call return-state diagnostic for build_init_readcmd(). */
+/* Read-only build_init_readcmd() state-lifetime diagnostic. */
 void wdiags_boot_init_iterator_reset(void);
-void wdiags_boot_init_iterator_before(uint32_t call_count,
+void wdiags_boot_init_iterator_preboot_snapshot(uint32_t global_call_count,
+                                                uint32_t last_caller);
+void wdiags_boot_init_iterator_before(uint32_t global_call_count,
                                      uint32_t p_offset);
-void wdiags_boot_init_iterator_after(uint32_t call_count,
+void wdiags_boot_init_iterator_after(uint32_t global_call_count,
                                     uint32_t p_offset,
                                     uint32_t i_value,
                                     uint32_t cmd_len,

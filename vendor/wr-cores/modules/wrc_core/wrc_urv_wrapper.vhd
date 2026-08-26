@@ -58,7 +58,10 @@ entity wrc_urv_wrapper is
     cpu_mepc_o : out std_logic_vector(31 downto 0);
     cpu_mcause_o : out std_logic_vector(31 downto 0);
     cpu_data_diag_addr_payload_o : out std_logic_vector(63 downto 0);
-    cpu_data_diag_meta_payload_o : out std_logic_vector(63 downto 0)
+    cpu_data_diag_meta_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_diag_addr_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_diag_q_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -121,6 +124,17 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_data_diag_pending : std_logic;
   signal cpu_data_diag_addr_payload : std_logic_vector(63 downto 0);
   signal cpu_data_diag_meta_payload : std_logic_vector(63 downto 0);
+  signal dm_addr_b_registered_debug : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_addr_request : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_addr_registered : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_q_cycle1 : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_q_cycle2 : std_logic_vector(31 downto 0);
+  signal cpu_ram_diag_sel : std_logic_vector(3 downto 0);
+  signal cpu_ram_diag_seen : std_logic;
+  signal cpu_ram_diag_q1_seen : std_logic;
+  signal cpu_ram_diag_q2_seen : std_logic;
+  signal cpu_ram_diag_expected_match : std_logic;
+  signal cpu_ram_diag_state : std_logic_vector(1 downto 0);
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -446,6 +460,57 @@ begin
     end if;
   end process p_cpu_data_port_observe;
 
+  -- Read-only sticky observation of the RAM port-B request/return pipeline.
+  -- dm_addr_b_registered_debug mirrors the clocked address register at U_iram
+  -- port B: ab_i is wired directly from dm_addr and the Altera RAM address
+  -- register is clocked by clk_sys_i.  Q samples are taken before the next
+  -- address-register update, giving the two successive port-B q values.
+  p_cpu_ram_port_b_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        dm_addr_b_registered_debug <= (others => '0');
+        cpu_ram_diag_addr_request  <= (others => '0');
+        cpu_ram_diag_addr_registered <= (others => '0');
+        cpu_ram_diag_q_cycle1      <= (others => '0');
+        cpu_ram_diag_q_cycle2      <= (others => '0');
+        cpu_ram_diag_sel           <= (others => '0');
+        cpu_ram_diag_seen          <= '0';
+        cpu_ram_diag_q1_seen       <= '0';
+        cpu_ram_diag_q2_seen       <= '0';
+        cpu_ram_diag_expected_match <= '0';
+        cpu_ram_diag_state         <= "00";
+      else
+        dm_addr_b_registered_debug <= dm_addr;
+        case cpu_ram_diag_state is
+          when "00" =>
+            if dm_load = '1' and dm_is_wishbone = '0' then
+              cpu_ram_diag_addr_request <= dm_addr;
+              cpu_ram_diag_sel          <= dm_data_select;
+              cpu_ram_diag_seen         <= '1';
+              if dm_addr = x"0001C304" then
+                cpu_ram_diag_expected_match <= '1';
+              else
+                cpu_ram_diag_expected_match <= '0';
+              end if;
+              cpu_ram_diag_state <= "01";
+            end if;
+          when "01" =>
+            cpu_ram_diag_addr_registered <= dm_addr_b_registered_debug;
+            cpu_ram_diag_q_cycle1        <= dm_mem_rdata;
+            cpu_ram_diag_q1_seen         <= '1';
+            cpu_ram_diag_state           <= "10";
+          when "10" =>
+            cpu_ram_diag_q_cycle2 <= dm_mem_rdata;
+            cpu_ram_diag_q2_seen  <= '1';
+            cpu_ram_diag_state    <= "11";
+          when others =>
+            null;
+        end case;
+      end if;
+    end if;
+  end process p_cpu_ram_port_b_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
@@ -468,5 +533,13 @@ begin
                                 cpu_data_diag_sel;
   cpu_data_diag_addr_payload_o <= cpu_data_diag_addr_payload;
   cpu_data_diag_meta_payload_o <= cpu_data_diag_meta_payload;
+  cpu_ram_diag_addr_payload_o <= cpu_ram_diag_addr_registered & cpu_ram_diag_addr_request;
+  cpu_ram_diag_q_payload_o <= cpu_ram_diag_q_cycle2 & cpu_ram_diag_q_cycle1;
+  cpu_ram_diag_meta_payload_o <= (63 downto 8 => '0') &
+                                 cpu_ram_diag_expected_match &
+                                 cpu_ram_diag_q2_seen &
+                                 cpu_ram_diag_q1_seen &
+                                 cpu_ram_diag_seen &
+                                 cpu_ram_diag_sel;
 
 end architecture arch;

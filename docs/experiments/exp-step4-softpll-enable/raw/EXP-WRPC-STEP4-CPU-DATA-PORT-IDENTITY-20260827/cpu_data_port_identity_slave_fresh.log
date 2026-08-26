@@ -1,0 +1,6 @@
+CPU_DATA_PORT_IDENTITY_CONFIG first_internal_load=true expected_addr=0001C304 addr_probe=9 meta_probe=10 filter=1-11.2
+=== CPU_DATA_PORT_IDENTITY_BOARD DE5 [1-11.2] ===
+CPU_DATA_PORT_IDENTITY_SAMPLE board=DE5 [1-11.2] ADDR_PROBE=000179380001C304 META_PROBE=000000000000007F DATA_ADDR=0001C304 RETURN_DATA=00017938 BYTE_ENABLE=F READ_SEEN=1 RETURN_SEEN=1 EXPECTED_ADDR_MATCH=1
+CPU_DATA_PORT_IDENTITY_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_cpu_data_port_identity_diag.tcl was successful
+Info: Quartus Prime SignalTap was successful. 0 errors, 0 warnings

@@ -308,7 +308,10 @@ entity xwr_core is
     cpu_ram_init_diag_payload1_o : out std_logic_vector(63 downto 0);
     cpu_ram_init_diag_payload2_o : out std_logic_vector(63 downto 0);
     cpu_ram_init_diag_payload3_o : out std_logic_vector(63 downto 0);
-    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_payload0_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_payload1_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end xwr_core;
 
@@ -527,6 +530,9 @@ begin
         cpu_ram_init_diag_payload2_o => cpu_ram_init_diag_payload2_o,
         cpu_ram_init_diag_payload3_o => cpu_ram_init_diag_payload3_o,
         cpu_ram_init_diag_meta_payload_o => cpu_ram_init_diag_meta_payload_o,
+        cpu_ram_primitive_diag_payload0_o => cpu_ram_primitive_diag_payload0_o,
+        cpu_ram_primitive_diag_payload1_o => cpu_ram_primitive_diag_payload1_o,
+        cpu_ram_primitive_diag_meta_payload_o => cpu_ram_primitive_diag_meta_payload_o,
 
         aux_diag_i => aux_diag_i,
       aux_diag_o => aux_diag_o

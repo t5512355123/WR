@@ -67,7 +67,10 @@ entity wrc_urv_wrapper is
     cpu_ram_init_diag_payload1_o : out std_logic_vector(63 downto 0);
     cpu_ram_init_diag_payload2_o : out std_logic_vector(63 downto 0);
     cpu_ram_init_diag_payload3_o : out std_logic_vector(63 downto 0);
-    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0)
+    cpu_ram_init_diag_meta_payload_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_payload0_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_payload1_o : out std_logic_vector(63 downto 0);
+    cpu_ram_primitive_diag_meta_payload_o : out std_logic_vector(63 downto 0)
     );
 end wrc_urv_wrapper;
 
@@ -156,6 +159,16 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_ram_init_release_seen : std_logic;
   signal cpu_ram_init_release_complete : std_logic;
   signal cpu_ram_init_first_load_seen : std_logic;
+  signal dm_ram_q_b_raw : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_q_prev : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_q_before_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_q_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_q_after_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_dm_at_load : std_logic_vector(31 downto 0);
+  signal cpu_ram_primitive_state : std_logic_vector(1 downto 0);
+  signal cpu_ram_primitive_load_seen : std_logic;
+  signal cpu_ram_primitive_after_seen : std_logic;
+  signal cpu_ram_primitive_same_at_load : std_logic;
 
   signal ha_im_addr     : std_logic_vector(31 downto 0);
   signal ha_im_wdata    : std_logic_vector(31 downto 0);
@@ -295,7 +308,8 @@ begin
       web_i   => dm_data_write,
       ab_i    => dm_addr(f_log2_size(g_IRAM_SIZE)+1 downto 2),
       db_i    => dm_data_s,
-      qb_o    => dm_mem_rdata);
+      qb_o    => dm_mem_rdata,
+      qb_raw_o => dm_ram_q_b_raw);
 
   --  Host access to the CPU memory (through instruction port)
   p_iram_host_access : process(clk_sys_i)
@@ -591,6 +605,51 @@ begin
     end if;
   end process p_cpu_ram_init_observe;
 
+  -- Read-only capture at the generic_dpram/Altera primitive boundary.
+  -- q_before_load is the previous system-clock sample of the primitive q_b;
+  -- q_at_load and dm_at_load are sampled on the first internal dm_load edge;
+  -- q_after_load is sampled on the following edge.  The additional raw-q
+  -- fanout does not alter RAM parameters, mode, latency, or arbitration.
+  p_cpu_ram_primitive_observe : process(clk_sys_i)
+  begin
+    if rising_edge(clk_sys_i) then
+      if rst_n_i = '0' then
+        cpu_ram_primitive_q_prev <= (others => '0');
+        cpu_ram_primitive_q_before_load <= (others => '0');
+        cpu_ram_primitive_q_at_load <= (others => '0');
+        cpu_ram_primitive_q_after_load <= (others => '0');
+        cpu_ram_primitive_dm_at_load <= (others => '0');
+        cpu_ram_primitive_state <= "00";
+        cpu_ram_primitive_load_seen <= '0';
+        cpu_ram_primitive_after_seen <= '0';
+        cpu_ram_primitive_same_at_load <= '0';
+      else
+        case cpu_ram_primitive_state is
+          when "00" =>
+            if dm_load = '1' and dm_is_wishbone = '0' then
+              cpu_ram_primitive_q_before_load <= cpu_ram_primitive_q_prev;
+              cpu_ram_primitive_q_at_load <= dm_ram_q_b_raw;
+              cpu_ram_primitive_dm_at_load <= dm_mem_rdata;
+              cpu_ram_primitive_load_seen <= '1';
+              if dm_ram_q_b_raw = dm_mem_rdata then
+                cpu_ram_primitive_same_at_load <= '1';
+              else
+                cpu_ram_primitive_same_at_load <= '0';
+              end if;
+              cpu_ram_primitive_state <= "01";
+            end if;
+          when "01" =>
+            cpu_ram_primitive_q_after_load <= dm_ram_q_b_raw;
+            cpu_ram_primitive_after_seen <= '1';
+            cpu_ram_primitive_state <= "10";
+          when others =>
+            null;
+        end case;
+        cpu_ram_primitive_q_prev <= dm_ram_q_b_raw;
+      end if;
+    end if;
+  end process p_cpu_ram_primitive_observe;
+
   cpu_rst        <= not rst_n_i or regs_in.reset_o(0);
 
   cpu_pc_o       <= im_addr;
@@ -635,5 +694,17 @@ begin
                                       cpu_ram_init_release_complete &
                                       cpu_ram_init_release_seen &
                                       cpu_ram_init_q_reset_seen;
+  cpu_ram_primitive_diag_payload0_o <= cpu_ram_primitive_q_before_load &
+                                      cpu_ram_primitive_q_at_load;
+  cpu_ram_primitive_diag_payload1_o <= cpu_ram_primitive_q_after_load &
+                                      cpu_ram_primitive_dm_at_load;
+  cpu_ram_primitive_diag_meta_payload_o <= (63 downto 10 => '0') &
+                                          cpu_rst &
+                                          (not rst_n_i) &
+                                          (7 downto 5 => '0') &
+                                          cpu_ram_primitive_state &
+                                          cpu_ram_primitive_same_at_load &
+                                          cpu_ram_primitive_after_seen &
+                                          cpu_ram_primitive_load_seen;
 
 end architecture arch;

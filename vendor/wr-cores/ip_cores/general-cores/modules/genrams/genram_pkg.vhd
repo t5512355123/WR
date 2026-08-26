@@ -106,7 +106,8 @@ package genram_pkg is
       web_i   : in  std_logic := '0';
       ab_i    : in  std_logic_vector(f_log2_size(g_size)-1 downto 0);
       db_i    : in  std_logic_vector(g_data_width-1 downto 0) := f_gen_dummy_vec('0', g_data_width);
-      qb_o    : out std_logic_vector(g_data_width-1 downto 0));
+      qb_o    : out std_logic_vector(g_data_width-1 downto 0);
+      qb_raw_o : out std_logic_vector(g_data_width-1 downto 0));
   end component;
 
   component generic_dpram_mixed

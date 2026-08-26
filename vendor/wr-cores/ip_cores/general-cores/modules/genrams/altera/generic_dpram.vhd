@@ -64,7 +64,8 @@ entity generic_dpram is
     web_i  : in  std_logic;
     ab_i   : in  std_logic_vector(f_log2_size(g_size)-1 downto 0);
     db_i   : in  std_logic_vector(g_data_width-1 downto 0);
-    qb_o   : out std_logic_vector(g_data_width-1 downto 0)
+    qb_o   : out std_logic_vector(g_data_width-1 downto 0);
+    qb_raw_o : out std_logic_vector(g_data_width-1 downto 0)
     );
 
 end generic_dpram;
@@ -139,11 +140,13 @@ begin
   case_qb_raw : if (g_addr_conflict_resolution /= "write_first") generate
     qa_o <= qa;
     qb_o <= qb;
+    qb_raw_o <= qb;
   end generate;
   
   case_qb_bypass : if (g_addr_conflict_resolution = "write_first") generate
     qa_o <= qa when nba else db;
     qb_o <= qb when nbb else da;
+    qb_raw_o <= qb;
     
     memoize : process(clka_i) is
     begin

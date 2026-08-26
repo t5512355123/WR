@@ -103,7 +103,7 @@ proc cpu_host_read {hardware_name word_address} {
   return "$first / $second"
 }
 
-puts "PRE_MAIN_RAW_P_STORAGE_CONFIG reset_byte=0x0002E010 after_data_byte=0x0002E014 expected_shell_init_cmd=0x00017908"
+puts "PRE_MAIN_RAW_P_STORAGE_CONFIG reset_byte=0x0002E010 after_data_byte=0x0002E014 expected_shell_init_cmd=FROM_CURRENT_ELF"
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -121,7 +121,7 @@ foreach hardware_name [get_hardware_names] {
     set hold [wb_write $hardware_name 0x00100D00 1]
     set reset_entry [cpu_host_read $hardware_name 0x0000B804]
     set after_data [cpu_host_read $hardware_name 0x0000B805]
-    puts [format "PRE_MAIN_RAW_P_STORAGE_SAMPLE board=%s CPU_HOLD=%s P_RAW_AT_RESET_ENTRY=%s P_RAW_AFTER_DATA_INIT=%s EXPECTED_SHELL_INIT_CMD=00017908" \
+    puts [format "PRE_MAIN_RAW_P_STORAGE_SAMPLE board=%s CPU_HOLD=%s P_RAW_AT_RESET_ENTRY=%s P_RAW_AFTER_DATA_INIT=%s EXPECTED_SHELL_INIT_CMD=FROM_CURRENT_ELF" \
       $hardware_name $hold [display32 [string trim [lindex [split $reset_entry "/"] 1]]] \
       [display32 [string trim [lindex [split $after_data "/"] 1]]]]
     puts [format "PRE_MAIN_RAW_P_STORAGE_READS board=%s RESET_READS=%s AFTER_DATA_READS=%s CPU_RELEASE=%s" \

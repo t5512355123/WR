@@ -684,8 +684,9 @@ begin
       source_ena => '1'
     );
 
-  -- Probe 14 carries the q value visible before the port-B address-register
-  -- update at the request edge (q cycle 0) in [31:0].
+  -- Probe 14 carries the previous port-B address-register input in [63:32]
+  -- and the q value visible before the update at the request edge (q cycle 0)
+  -- in [31:0].
   cpu_ram_diag_q0_probe <= cpu_ram_diag_q0_payload;
 
   u_cpu_ram_diag_q0_probe : altsource_probe

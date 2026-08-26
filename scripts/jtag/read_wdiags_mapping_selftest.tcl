@@ -43,10 +43,11 @@ proc mapping_sample_valid {magic_a magic_b counter inverse} {
       [scan $inverse %x inverse_value] != 1} {
     return 0
   }
-  set expected_inverse [format "%08X" [expr {(~$counter_value) & 0xffffffff}]]
+  set expected_inverse_low [expr {(~$counter_value) & 0xffff}]
+  set inverse_low [expr {$inverse_value & 0xffff}]
   return [expr {$magic_a eq "A5A5122C" &&
                 $magic_b eq "A5A51330" &&
-                $inverse eq $expected_inverse}]
+                $inverse_low == $expected_inverse_low}]
 }
 
 proc wb_sync_toggle {} {

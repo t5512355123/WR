@@ -26,6 +26,7 @@ static void *wdiags_base = NULL;
 
 static uint32_t wdiags_ptp_state_shadow;
 static uint32_t wdiags_boot_init_debug_shadow;
+static uint16_t wdiags_vlan_pfilter_progress_shadow;
 
 
 static int wdiag_write( uint32_t reg, uint32_t value )
@@ -133,6 +134,72 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 		 WRC_DIAGS_WDIAG_PTPSTAT_MODE_MASTER_RETURN_MASK);
 	wdiag_write(WRC_DIAGS_WDIAG_PTPSTAT,
 			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
+}
+
+static void wdiags_write_vlan_pfilter_progress(void)
+{
+	uint32_t counter = wdiag_read(WRC_DIAGS_WDIAG_MAPPING_COUNTER) & 0xffffu;
+	uint32_t progress = wdiags_vlan_pfilter_progress_shadow;
+
+	/* Keep the existing mapping counter/inverse in the low half-words and
+	 * expose the checkpoint bitmap/index in the high half-words. */
+	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_COUNTER,
+			counter | (progress << WRC_DIAGS_WDIAG_MAPPING_PROGRESS_SHIFT));
+	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_INVERSE,
+			((~counter) & 0xffffu) |
+			(((~progress) & 0xffffu) << WRC_DIAGS_WDIAG_MAPPING_PROGRESS_SHIFT));
+}
+
+void wdiags_vlan_cmd_enter(void)
+{
+	wdiags_vlan_pfilter_progress_shadow = WRC_DIAGS_VLAN_CMD_ENTER;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_enter(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_PFILTER_ENTER;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_before_disable(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_PFILTER_BEFORE_DISABLE;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_rule_index(uint32_t index)
+{
+	wdiags_vlan_pfilter_progress_shadow &=
+		~WRC_DIAGS_PFILTER_RULE_INDEX_MASK;
+	wdiags_vlan_pfilter_progress_shadow |=
+		(index << WRC_DIAGS_PFILTER_RULE_INDEX_SHIFT) &
+		WRC_DIAGS_PFILTER_RULE_INDEX_MASK;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_after_rule_write(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_PFILTER_AFTER_RULE_WRITE;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_before_enable(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_PFILTER_BEFORE_ENABLE;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_pfilter_return(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_PFILTER_RETURN;
+	wdiags_write_vlan_pfilter_progress();
+}
+
+void wdiags_vlan_cmd_return(void)
+{
+	wdiags_vlan_pfilter_progress_shadow |= WRC_DIAGS_VLAN_CMD_RETURN;
+	wdiags_write_vlan_pfilter_progress();
 }
 
 void wdiags_write_aux_state(uint32_t aux_states)
@@ -315,8 +382,14 @@ void wdiags_write_mapping_self_test(uint32_t counter)
 	 * They never feed back into WR control or the SoftPLL. */
 	wdiag_write(0x12c, 0xA5A5122Cu);
 	wdiag_write(0x130, 0xA5A51330u);
-	wdiag_write(0x134, counter);
-	wdiag_write(0x138, ~counter);
+	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_COUNTER,
+			(counter & 0xffffu) |
+			((uint32_t)wdiags_vlan_pfilter_progress_shadow <<
+			 WRC_DIAGS_WDIAG_MAPPING_PROGRESS_SHIFT));
+	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_INVERSE,
+			((~counter) & 0xffffu) |
+			(((uint32_t)(~wdiags_vlan_pfilter_progress_shadow) & 0xffffu) <<
+			 WRC_DIAGS_WDIAG_MAPPING_PROGRESS_SHIFT));
 }
 
 void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,

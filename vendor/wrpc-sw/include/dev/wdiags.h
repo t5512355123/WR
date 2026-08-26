@@ -25,6 +25,15 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
+/* Read-only VLAN/pfilter boot-progress checkpoints in the mapping words. */
+void wdiags_vlan_cmd_enter(void);
+void wdiags_pfilter_enter(void);
+void wdiags_pfilter_before_disable(void);
+void wdiags_pfilter_rule_index(uint32_t index);
+void wdiags_pfilter_after_rule_write(void);
+void wdiags_pfilter_before_enable(void);
+void wdiags_pfilter_return(void);
+void wdiags_vlan_cmd_return(void);
 void wdiags_write_aux_state(uint32_t aux_states);
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors);
 /* 診斷版：保存 PPSI 收發計數與協定狀態，不改變 WR 控制流程。 */

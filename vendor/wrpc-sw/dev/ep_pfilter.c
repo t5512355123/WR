@@ -20,6 +20,7 @@
 #include <wrc.h>
 #include <shell.h>
 #include <dev/endpoint.h>
+#include <dev/wdiags.h>
 #include <hw/endpoint_regs.h>
 #include "wrc_global.h"
 
@@ -40,6 +41,8 @@ void ep_pfilter_init_default(struct wr_endpoint_device *dev)
 	const uint8_t *vini, *vend, *v;
 	int i;
 
+	wdiags_pfilter_enter();
+
 	/* If vlan, use rule-set 1, else rule-set 0 */
 	if (wrc_vlan_number == 0) {
 		vini = pfilter_rules_novlan;
@@ -50,12 +53,15 @@ void ep_pfilter_init_default(struct wr_endpoint_device *dev)
 		vend = vini + ARRAY_SIZE(pfilter_rules_vlan);
 	}
 
+	wdiags_pfilter_before_disable();
 	ep_write( dev, EP_REG_PFCR0, 0);		// disable pfilter
 
 	for (i = 0, v = vini; v < vend; v += 5, i++) {
 		uint64_t cmd_word;
 		uint32_t l, h;
 		uint32_t cr0, cr1;
+
+		wdiags_pfilter_rule_index(i);
 
 		h = v[0];
 		l = (v[1] << 24) | (v[2] << 16) | (v[3] << 8) | v[4];
@@ -89,7 +95,10 @@ void ep_pfilter_init_default(struct wr_endpoint_device *dev)
 
 		ep_write( dev, EP_REG_PFCR1, cr1 );
 		ep_write( dev, EP_REG_PFCR0, cr0 );
+		wdiags_pfilter_after_rule_write();
 	}
 
+	wdiags_pfilter_before_enable();
 	ep_write( dev, EP_REG_PFCR0, EP_PFCR0_ENABLE);
+	wdiags_pfilter_return();
 }

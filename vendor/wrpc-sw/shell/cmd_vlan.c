@@ -11,11 +11,14 @@
 #include "wrc.h"
 #include "shell.h"
 #include "dev/endpoint.h"
+#include "dev/wdiags.h"
 #include "wrc_global.h"
 
 static int cmd_vlan(const char *args[])
 {
 	int i;
+
+	wdiags_vlan_cmd_enter();
 
 	if (!args[0] || !strcasecmp(args[0], "get")) {
 		/* nothing... */
@@ -36,6 +39,7 @@ static int cmd_vlan(const char *args[])
 	}
 	pp_printf("current vlan: %i (0x%x)\n",
 		  wrc_vlan_number, wrc_vlan_number);
+	wdiags_vlan_cmd_return();
 	return 0;
 }
 

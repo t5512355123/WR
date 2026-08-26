@@ -386,17 +386,34 @@ void shell_boot_script(void)
 	shell_boot_init_command_index = 0;
 	shell_boot_init_diag_publish();
 	while (1) {
+		/* command_index == 1 means command 1 returned and this is the
+		 * next loop iteration; trace only that transition, not the
+		 * initial command fetch. */
+		if (command_index == 1)
+			wdiags_boot_loop_before_build_init_readcmd();
 		cmd_len = build_init_readcmd((uint8_t *)cmd_buf,
 					SH_MAX_LINE_LEN);
+		if (command_index == 1)
+			wdiags_boot_loop_after_build_init_readcmd();
 		if (!cmd_len)
 			break;
+		if (command_index == 1)
+			wdiags_boot_loop_next_command_ptr_valid();
 		shell_boot_init_command_index = ++command_index;
+		if (command_index == 2)
+			wdiags_boot_loop_next_command_index_set();
 		wdiags_boot_init_trace_before(command_index);
+		if (command_index == 2)
+			wdiags_boot_loop_cmd2_before_published();
 		shell_boot_init_diag_publish();
 		pp_printf("executing: %s\n", cmd_buf);
 		{
 			int return_code = shell_exec(cmd_buf);
+			if (command_index == 1)
+				wdiags_boot_loop_after_shell_exec_return();
 			wdiags_boot_init_trace_after(command_index, return_code);
+			if (command_index == 1)
+				wdiags_boot_loop_cmd1_after_published();
 		}
 	}
 #endif

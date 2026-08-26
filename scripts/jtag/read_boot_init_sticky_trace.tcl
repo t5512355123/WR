@@ -3,8 +3,10 @@
 # Usage:
 #   quartus_stp -t read_boot_init_sticky_trace.tcl ?samples? ?gap_ms? ?filter?
 #
-# The trace is carried in the otherwise-unused high bits of WDIAGS_PSTAT
-# (0x00100A0C). The existing link/locked bits 0..1 are preserved. The
+# The command trace is carried in the otherwise-unused high bits of
+# WDIAGS_PSTAT (0x00100A0C). The existing link/locked bits 0..1 are preserved.
+# The command-loop transition trace is carried in ASTAT (0x00100A14) bits
+# 8..14; ASTAT bits 0..7 keep the regular auxiliary state. The
 # built-in DE5a init sequence is expected to be:
 #   1 vlan off; 2 ptp stop; 3 mode master; 4 ptp start
 #
@@ -103,23 +105,26 @@ proc rc_class_name {value} {
 
 proc read_trace_sample {hardware_name sample start_ms} {
   set pstat_raw [wb_read $hardware_name 0x00100A0C]
+  set astat_raw [wb_read $hardware_name 0x00100A14]
   set ptp_raw [wb_read $hardware_name 0x00100A10]
   set pstat [word32 $pstat_raw]
+  set astat [word32 $astat_raw]
   set ptp [word32 $ptp_raw]
   set elapsed [expr {[clock milliseconds] - $start_ms}]
-  if {$pstat < 0 || $ptp < 0} {
-    puts [format "BOOT_INIT_TRACE_SAMPLE board=%s sample=%03d elapsed_ms=%d PSTAT=%s PTPSTAT=%s TRACE=INVALID" \
-      $hardware_name $sample $elapsed [display32 $pstat_raw] [display32 $ptp_raw]]
+  if {$pstat < 0 || $astat < 0 || $ptp < 0} {
+    puts [format "BOOT_INIT_TRACE_SAMPLE board=%s sample=%03d elapsed_ms=%d PSTAT=%s ASTAT=%s PTPSTAT=%s TRACE=INVALID" \
+      $hardware_name $sample $elapsed [display32 $pstat_raw] [display32 $astat_raw] [display32 $ptp_raw]]
   } else {
     set trace [expr {($pstat >> 2) & 0xff}]
     set rc [expr {($pstat >> 18) & 0xff}]
+    set transition [expr {($astat >> 8) & 0x7f}]
     set ptp_state [expr {$ptp & 0xff}]
     set cmd1_rc [expr {$rc & 3}]
     set cmd2_rc [expr {($rc >> 2) & 3}]
     set cmd3_rc [expr {($rc >> 4) & 3}]
     set cmd4_rc [expr {($rc >> 6) & 3}]
-    puts [format "BOOT_INIT_TRACE_SAMPLE board=%s sample=%03d elapsed_ms=%d PSTAT=%s PTPSTAT=%s PTP_STATE=%d LINK=%d LOCKED=%d TRACE_VALID=%d SCRIPT_ENTER=%d CURRENT_INDEX=%d CMD1_BEFORE=%d CMD1_AFTER=%d CMD2_BEFORE=%d CMD2_AFTER=%d CMD3_BEFORE=%d CMD3_AFTER=%d CMD4_BEFORE=%d CMD4_AFTER=%d CMD1_RC_CLASS=%s CMD2_RC_CLASS=%s CMD3_RC_CLASS=%s CMD4_RC_CLASS=%s MODE_MASTER_CALL_COUNT=%d MODE_MASTER_RETURN_COUNT=%d" \
-      $hardware_name $sample $elapsed [display32 $pstat_raw] [display32 $ptp_raw] $ptp_state \
+    puts [format "BOOT_INIT_TRACE_SAMPLE board=%s sample=%03d elapsed_ms=%d PSTAT=%s ASTAT=%s PTPSTAT=%s PTP_STATE=%d LINK=%d LOCKED=%d TRACE_VALID=%d SCRIPT_ENTER=%d CURRENT_INDEX=%d CMD1_BEFORE=%d CMD1_AFTER=%d CMD2_BEFORE=%d CMD2_AFTER=%d CMD3_BEFORE=%d CMD3_AFTER=%d CMD4_BEFORE=%d CMD4_AFTER=%d CMD1_RC_CLASS=%s CMD2_RC_CLASS=%s CMD3_RC_CLASS=%s CMD4_RC_CLASS=%s MODE_MASTER_CALL_COUNT=%d MODE_MASTER_RETURN_COUNT=%d CMD1_AFTER_PUBLISHED=%d AFTER_SHELL_EXEC_RETURN=%d BEFORE_BUILD_INIT_READCMD=%d AFTER_BUILD_INIT_READCMD=%d NEXT_COMMAND_PTR_VALID=%d NEXT_COMMAND_INDEX_SET=%d CMD2_BEFORE_PUBLISHED=%d" \
+      $hardware_name $sample $elapsed [display32 $pstat_raw] [display32 $astat_raw] [display32 $ptp_raw] $ptp_state \
       [expr {$pstat & 1}] [expr {($pstat >> 1) & 1}] \
       [expr {($pstat >> 30) & 1}] [expr {($pstat >> 26) & 1}] \
       [expr {($pstat >> 27) & 7}] \
@@ -129,7 +134,11 @@ proc read_trace_sample {hardware_name sample start_ms} {
       [expr {($trace >> 3) & 1}] [expr {($trace >> 7) & 1}] \
       [rc_class_name $cmd1_rc] [rc_class_name $cmd2_rc] \
       [rc_class_name $cmd3_rc] [rc_class_name $cmd4_rc] \
-      [expr {($pstat >> 10) & 0xf}] [expr {($pstat >> 14) & 0xf}]]
+      [expr {($pstat >> 10) & 0xf}] [expr {($pstat >> 14) & 0xf}] \
+      [expr {$transition & 1}] [expr {($transition >> 1) & 1}] \
+      [expr {($transition >> 2) & 1}] [expr {($transition >> 3) & 1}] \
+      [expr {($transition >> 4) & 1}] [expr {($transition >> 5) & 1}] \
+      [expr {($transition >> 6) & 1}]]
   }
   flush stdout
 }

@@ -35,8 +35,11 @@ static uint32_t wdiags_boot_mode_call_shadow;
 static uint32_t wdiags_boot_mode_return_shadow;
 static uint32_t wdiags_boot_current_index_shadow;
 static int wdiags_boot_trace_active;
+static uint32_t wdiags_aux_state_shadow;
+static uint32_t wdiags_boot_loop_progress_shadow;
 
 static void wdiags_write_boot_init_trace(void);
+static void wdiags_write_boot_loop_progress(void);
 
 
 static int wdiag_write( uint32_t reg, uint32_t value )
@@ -178,8 +181,10 @@ void wdiags_boot_init_trace_reset(uint32_t script_enter_count)
 	wdiags_boot_mode_call_shadow = 0;
 	wdiags_boot_mode_return_shadow = 0;
 	wdiags_boot_current_index_shadow = 0;
+	wdiags_boot_loop_progress_shadow = 0;
 	wdiags_boot_trace_active = 1;
 	wdiags_write_boot_init_trace();
+	wdiags_write_boot_loop_progress();
 }
 
 void wdiags_boot_init_trace_before(uint32_t command_index)
@@ -224,6 +229,56 @@ void wdiags_boot_init_trace_mode_master_return(void)
 	if (wdiags_boot_mode_return_shadow < WRC_DIAGS_BOOT_MODE_COUNT_MASK)
 		++wdiags_boot_mode_return_shadow;
 	wdiags_write_boot_init_trace();
+}
+
+static void wdiags_write_boot_loop_progress(void)
+{
+	wdiag_write(WRC_DIAGS_WDIAG_ASTAT,
+			(wdiags_aux_state_shadow & WRC_DIAGS_WDIAG_ASTAT_AUX_MASK) |
+			((wdiags_boot_loop_progress_shadow <<
+			  WRC_DIAGS_BOOT_LOOP_PROGRESS_SHIFT) &
+			 WRC_DIAGS_BOOT_LOOP_PROGRESS_MASK));
+}
+
+static void wdiags_boot_loop_mark(uint32_t marker)
+{
+	wdiags_boot_loop_progress_shadow |= marker;
+	wdiags_write_boot_loop_progress();
+}
+
+void wdiags_boot_loop_cmd1_after_published(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_CMD1_AFTER_PUBLISHED);
+}
+
+void wdiags_boot_loop_after_shell_exec_return(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_AFTER_SHELL_EXEC_RETURN);
+}
+
+void wdiags_boot_loop_before_build_init_readcmd(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_BEFORE_BUILD_INIT_READCMD);
+}
+
+void wdiags_boot_loop_after_build_init_readcmd(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_AFTER_BUILD_INIT_READCMD);
+}
+
+void wdiags_boot_loop_next_command_ptr_valid(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_NEXT_COMMAND_PTR_VALID);
+}
+
+void wdiags_boot_loop_next_command_index_set(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_NEXT_COMMAND_INDEX_SET);
+}
+
+void wdiags_boot_loop_cmd2_before_published(void)
+{
+	wdiags_boot_loop_mark(WRC_DIAGS_BOOT_LOOP_CMD2_BEFORE_PUBLISHED);
 }
 
 static void wdiags_write_vlan_pfilter_progress(void)
@@ -294,7 +349,10 @@ void wdiags_vlan_cmd_return(void)
 
 void wdiags_write_aux_state(uint32_t aux_states)
 {
-	wdiag_write( WRC_DIAGS_WDIAG_ASTAT, aux_states << WRC_DIAGS_WDIAG_ASTAT_AUX_SHIFT );
+	wdiags_aux_state_shadow =
+		(aux_states << WRC_DIAGS_WDIAG_ASTAT_AUX_SHIFT) &
+		WRC_DIAGS_WDIAG_ASTAT_AUX_MASK;
+	wdiags_write_boot_loop_progress();
 }
 
 void wdiags_write_cnts(uint32_t tx, uint32_t rx, uint32_t rx_errors)

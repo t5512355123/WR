@@ -266,6 +266,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal wr_reset_delay       : unsigned(7 downto 0) := (others => '0');
   signal clk_sys_625           : std_logic;
   signal clk_sys_625_locked    : std_logic;
+  signal clk_dmtd_62m496       : std_logic := '0';
 begin
   u_sys_clk_625 : wr_sys_clk_625
     port map (
@@ -274,6 +275,15 @@ begin
       o_clk_625 => clk_sys_625,
       o_locked  => clk_sys_625_locked
     );
+
+  -- Core-side DMTD offset clock: 124.992 MHz -> 62.496 MHz, matching
+  -- the upstream board/platform clock topology.
+  p_dmtd_core_div2 : process(QSFPB_REFCLK_p)
+  begin
+    if rising_edge(QSFPB_REFCLK_p) then
+      clk_dmtd_62m496 <= not clk_dmtd_62m496;
+    end if;
+  end process;
 
   -- Keep the known 9f startup clock/reset behavior for Step 2.
   p_release_wr_core_reset : process(clk_sys_625)
@@ -706,7 +716,7 @@ begin
     )
     port map (
       clk_sys_i                  => clk_sys_625,
-      clk_dmtd_i                 => QSFPB_REFCLK_p,
+      clk_dmtd_i                 => clk_dmtd_62m496,
       clk_ref_i                  => QSFPA_REFCLK_p,
       clk_ext_rst_o              => open,
       rst_n_i                    => wr_core_reset_n,

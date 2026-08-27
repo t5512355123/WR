@@ -1,0 +1,37 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Thu Aug 27 10:08:19 2026
+    Info: System process ID: 2585804
+Info: Command: quartus_stp -t scripts/jtag/read_boot_generation_persistence_diag.tcl 0
+Info: Quartus(args): 0
+BOOT_GENERATION_CONFIG settle_ms=0 precrt_byte=0x0002E010 magic=0x424F4F54 expected_shell_init_cmd=FROM_CURRENT_ELF
+=== BOOT_GENERATION_BOARD DE5 [1-11.1] ===
+BOOT_GENERATION_SAMPLE board=DE5 [1-11.1] CPU_HOLD=00000000 SETTLE_MS=0 MAGIC=424F4F54 GENERATION=00000004 HISTORY0=000179A8 HISTORY1=000179A8 HISTORY2=000179B4 HISTORY3=000179B4 P_RAW_AT_RESET_ENTRY=000179B4 P_RAW_AFTER_DATA_INIT=000179B4 CPU_RELEASE=00000001
+BOOT_GENERATION_READS board=DE5 [1-11.1] MAGIC_READS=544F4F42 / 544F4F42 GENERATION_READS=04000000 / 04000000 HISTORY0_READS=A8790100 / A8790100 HISTORY1_READS=A8790100 / A8790100 HISTORY2_READS=B4790100 / B4790100 HISTORY3_READS=B4790100 / B4790100
+BOOT_GENERATION_CPU_WORDS board=DE5 [1-11.1] MAGIC=424F4F54 GENERATION=00000004 HISTORY0=000179A8 HISTORY1=000179A8 HISTORY2=000179B4 HISTORY3=000179B4
+=== BOOT_GENERATION_BOARD DE5 [1-11.2] ===
+BOOT_GENERATION_SAMPLE board=DE5 [1-11.2] CPU_HOLD=00000000 SETTLE_MS=0 MAGIC=424F4F54 GENERATION=00000002 HISTORY0=000179A8 HISTORY1=000179A8 HISTORY2=00000000 HISTORY3=00000000 P_RAW_AT_RESET_ENTRY=000179A8 P_RAW_AFTER_DATA_INIT=000179A8 CPU_RELEASE=00000001
+BOOT_GENERATION_READS board=DE5 [1-11.2] MAGIC_READS=544F4F42 / 544F4F42 GENERATION_READS=02000000 / 02000000 HISTORY0_READS=A8790100 / A8790100 HISTORY1_READS=A8790100 / A8790100 HISTORY2_READS=00000000 / 00000000 HISTORY3_READS=00000000 / 00000000
+BOOT_GENERATION_CPU_WORDS board=DE5 [1-11.2] MAGIC=424F4F54 GENERATION=00000002 HISTORY0=000179A8 HISTORY1=000179A8 HISTORY2=00000000 HISTORY3=00000000
+BOOT_GENERATION_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_boot_generation_persistence_diag.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Thu Aug 27 10:08:20 2026
+    Info: Elapsed time: 00:00:01
+    Info: System process ID: 2585804

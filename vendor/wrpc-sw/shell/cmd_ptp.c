@@ -8,6 +8,7 @@
 #include <string.h>
 #include "wrpc.h"
 #include "shell.h"
+#include "dev/wdiags.h"
 
 #ifdef CONFIG_CMD_PTP_ADV
 # define CONFIG_CMD_PTP_BMC

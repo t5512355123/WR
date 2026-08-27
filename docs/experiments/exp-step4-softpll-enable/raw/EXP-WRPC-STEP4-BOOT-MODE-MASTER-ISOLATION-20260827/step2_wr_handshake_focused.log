@@ -1,0 +1,53 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Thu Aug 27 11:34:33 2026
+    Info: System process ID: 2664170
+Info: Command: quartus_stp -t scripts/jtag/read_wr_handshake_focused.tcl 10 1000 25
+Info: Quartus(args): 10 1000 25
+FOCUSED_CONFIG samples=10 gap_ms=1000
+=== FOCUSED_BOARD DE5 [1-11.1] ===
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=001 valid=0 status=001E366138BC82EF
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=002 valid=0 status=001E36E1383C82EF
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=003 valid=0 status=001E36E138BC82EF
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=004 valid=0 status=001E36C1281C82EF
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=005 valid=0 status=001E366138F082EF
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=006 valid=1 status=EF mac=02:00:22:33:44:01 mode=3 ptp=8452 ptp_rx=145 ptp_tx=72 minic_tx=226 minic_rx=258 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/0 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=007 valid=1 status=EF mac=02:00:22:33:44:01 mode=3 ptp=8454 ptp_rx=145 ptp_tx=75 minic_tx=230 minic_rx=259 rxerr=0 foreign=0/255 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/0 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=008 valid=1 status=EF mac=02:00:22:33:44:01 mode=3 ptp=8452 ptp_rx=147 ptp_tx=78 minic_tx=234 minic_rx=262 rxerr=0 foreign=0/255 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/0 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=009 valid=1 status=EF mac=02:00:22:33:44:01 mode=3 ptp=8452 ptp_rx=150 ptp_tx=78 minic_tx=237 minic_rx=267 rxerr=0 foreign=0/255 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/0 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.1] sample=010 valid=1 status=EF mac=02:00:22:33:44:01 mode=3 ptp=8452 ptp_rx=152 ptp_tx=78 minic_tx=238 minic_rx=270 rxerr=0 foreign=0/255 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/0 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_GATE board=DE5 [1-11.1] valid_samples=5 invalid_samples=5 counter_decreased=0 PTP_TX_DELTA=6 STEP2_REGRESSION=FAIL STEP3_REGRESSION=FAIL POST_STEP3_LOCK_STAGE=NOT_OBSERVED STATE_EVIDENCE=READ_INCONSISTENT signal_good=0 signal_bad=5 state_idle=5 state_good=0
+=== FOCUSED_BOARD DE5 [1-11.2] ===
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=001 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16649 ptp_rx=78 ptp_tx=147 minic_tx=291 minic_rx=193 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=002 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16649 ptp_rx=78 ptp_tx=148 minic_tx=293 minic_rx=194 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=003 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16646 ptp_rx=78 ptp_tx=152 minic_tx=299 minic_rx=195 rxerr=0 foreign=0/255 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=004 valid=0 status=0010DAE135BC82EF
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=005 valid=0 status=0010DAE135BC82EF
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=006 valid=0 status=0010DAE335BC82EF
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=007 valid=0 status=0010DAC1255082EF
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=008 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16644 ptp_rx=84 ptp_tx=154 minic_tx=309 minic_rx=208 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=009 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16649 ptp_rx=84 ptp_tx=156 minic_tx=312 minic_rx=209 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_SAMPLE board=DE5 [1-11.2] sample=010 valid=1 status=EF mac=02:00:22:33:44:02 mode=3 ptp=16649 ptp_rx=84 ptp_tx=161 minic_tx=320 minic_rx=211 rxerr=0 foreign=1/0 detection=0 wr_config=0 parent=0/0/0 local_state=0 next_state=0 rx=0x0000/0 tx=0x0000/0 fail=0/0/1 reject=0/0 lock=0/0 polls=0 enable=0 rcer=0x00000000 sstat=0x00000001 pstat=0x00000001
+FOCUSED_GATE board=DE5 [1-11.2] valid_samples=6 invalid_samples=4 counter_decreased=0 PTP_TX_DELTA=14 STEP2_REGRESSION=FAIL STEP3_REGRESSION=FAIL POST_STEP3_LOCK_STAGE=NOT_OBSERVED STATE_EVIDENCE=READ_INCONSISTENT signal_good=0 signal_bad=6 state_idle=6 state_good=0
+FOCUSED_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wr_handshake_focused.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Thu Aug 27 11:34:58 2026
+    Info: Elapsed time: 00:00:25
+    Info: System process ID: 2664170

@@ -1,0 +1,6 @@
+SOURCE_COMMIT=5f7bd06ba90577f6007e76c7992ecdadbb532d14
+CONFIG_INIT_COMMAND=CONFIG_INIT_COMMAND="vlan off;ptp stop;mode slave;ptp start"
+SLAVE_COMPILE=Full Compilation was successful
+SLAVE_TIMING_CLOSED=NO
+Info (332146): Worst-case setup slack is -0.307
+Info (332146): Worst-case hold slack is 0.038

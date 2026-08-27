@@ -1,0 +1,42 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Thu Aug 27 11:33:32 2026
+    Info: System process ID: 2663787
+Info: Command: quartus_stp -t scripts/jtag/read_passive_boot_generation_no_cpu_hold.tcl 5000
+Info: Quartus(args): 5000
+PASSIVE_CONFIG gap_ms=5000 samples=0,5000,10000,20000,30000 read_only=1 cpu_hold_release=0 cpu_reset_write=0
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+PASSIVE_SAMPLE index=00 elapsed_ms=0 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=001000000002FF6C STORE_COUNT_RAW=000000000D4C2BC1 STATUS_RAW=001E3641285082EF CPU_RAW=0000007C00003E5C ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=01 elapsed_ms=5000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=000000000001D41C STORE_COUNT_RAW=000000000E78F0FD STATUS_RAW=001E364138F082EF CPU_RAW=0000007C000177C0 ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=02 elapsed_ms=10000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=39C535680002FFB8 STORE_COUNT_RAW=000000000FA5BED1 STATUS_RAW=001E36E138BC82EF CPU_RAW=0000007C0000F2B0 ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=03 elapsed_ms=20000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=3A1457000002FFB8 STORE_COUNT_RAW=0000000011FEE8EB STATUS_RAW=001E36C1285082EF CPU_RAW=0000007C0000B1DC ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=04 elapsed_ms=30000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=000164480001C560 STORE_COUNT_RAW=0000000014581E0C STATUS_RAW=001E3661283C82EF CPU_RAW=0000007C00007B20 ENTRY_RAW=00000002000179D8
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+PASSIVE_SAMPLE index=00 elapsed_ms=0 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=001000000002FF6C STORE_COUNT_RAW=0000000010BAD94E STATUS_RAW=00101CC125F082EF CPU_RAW=0000007C0001778C ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=01 elapsed_ms=5000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=000000260001D36C STORE_COUNT_RAW=0000000011E718FB STATUS_RAW=00101CC1255C82EF CPU_RAW=0000007C000177D4 ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=02 elapsed_ms=10000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=09FA6A700001C574 STORE_COUNT_RAW=000000001313621A STATUS_RAW=00101C41255C82EF CPU_RAW=0000007C000176BC ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=03 elapsed_ms=20000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=0000B8C40002FEBC STORE_COUNT_RAW=00000000156C72C9 STATUS_RAW=00101C43255882EF CPU_RAW=0000007C000176E0 ENTRY_RAW=00000002000179D8
+PASSIVE_SAMPLE index=04 elapsed_ms=30000 valid=1 BOOT_GENERATION=00000002 P_AT_ENTRY_LATEST=000179D8 CPU_RESET=0 CPU_RESET_n=1/1 wr_core_reset_n=1 si_config_done=1/1 clk_sys_625_locked=1 MARKER_RAW=000000010000B004 STORE_RAW=0001D4FC0002FF98 STORE_COUNT_RAW=0000000017C48865 STATUS_RAW=00101CE135BC82EF CPU_RAW=0000007C00003E6C ENTRY_RAW=00000002000179D8
+Info (23030): Evaluation of Tcl script scripts/jtag/read_passive_boot_generation_no_cpu_hold.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Thu Aug 27 11:34:33 2026
+    Info: Elapsed time: 00:01:01
+    Info: System process ID: 2663787

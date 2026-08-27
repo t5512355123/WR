@@ -96,6 +96,20 @@ volatile uint32_t debug_precrt_persistent_spll_check_lock_state_value
 	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_state_value")));
 volatile uint32_t debug_precrt_persistent_spll_check_lock_boot_generation
 	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_boot_generation")));
+/* Persistent manual VUART-to-shell dispatch evidence; command contents are
+ * represented only by byte count, last byte, length and a rolling hash. */
+volatile uint32_t debug_precrt_persistent_command_stage
+	__attribute__((used, section(".debug_precrt_persistent_command_stage")));
+volatile uint32_t debug_precrt_persistent_command_rx_byte_count
+	__attribute__((used, section(".debug_precrt_persistent_command_rx_byte_count")));
+volatile uint32_t debug_precrt_persistent_command_last_byte
+	__attribute__((used, section(".debug_precrt_persistent_command_last_byte")));
+volatile uint32_t debug_precrt_persistent_command_length
+	__attribute__((used, section(".debug_precrt_persistent_command_length")));
+volatile uint32_t debug_precrt_persistent_command_hash
+	__attribute__((used, section(".debug_precrt_persistent_command_hash")));
+volatile uint32_t debug_precrt_persistent_command_boot_generation
+	__attribute__((used, section(".debug_precrt_persistent_command_boot_generation")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

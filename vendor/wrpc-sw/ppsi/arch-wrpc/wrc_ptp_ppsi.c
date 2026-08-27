@@ -199,9 +199,12 @@ int wrc_ptp_set_mode(int mode)
 	typeof(ppg->rt_opts->clock_quality_clockClass) *class_ptr;
 	int error = 0;
 
-	if (mode == WRC_MODE_MASTER)
+	if (mode == WRC_MODE_MASTER) {
+		wdiags_write_shell_command_stage(
+			WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED);
 		wdiags_write_mode_master_stage(
 			WRC_DIAGS_MODE_MASTER_STAGE_ENTERED);
+	}
 
 	class_ptr = &ppg->rt_opts->clock_quality_clockClass;
 

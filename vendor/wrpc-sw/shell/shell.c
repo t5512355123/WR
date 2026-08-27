@@ -216,6 +216,9 @@ static int _shell_exec(void)
 	{
 		p = cmds[i];
 		if (!strcasecmp(p->name, tokptr[0])) {
+			if (!strcasecmp(p->name, "mode"))
+				wdiags_write_shell_command_stage(
+					WRC_DIAGS_PERSISTENT_CMD_LOOKUP_MODE);
 			rv = p->exec(tokptr + 1);
 			if (rv < 0)
 				pp_printf("Command \"%s\": error %d\n",
@@ -292,6 +295,8 @@ int shell_interactive()
 			case KEY_ENTER:
 			case KEY_ENTER10:
 				pp_printf("\n");
+				wdiags_write_shell_command_stage(
+					WRC_DIAGS_PERSISTENT_CMD_SHELL_LINE_READY);
 				state = SH_EXEC;
 				break;
 

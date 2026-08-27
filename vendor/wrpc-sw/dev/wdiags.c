@@ -29,6 +29,12 @@ extern volatile uint32_t debug_precrt_persistent_spll_check_lock_stage;
 extern volatile uint32_t debug_precrt_persistent_spll_check_lock_channel;
 extern volatile uint32_t debug_precrt_persistent_spll_check_lock_state_value;
 extern volatile uint32_t debug_precrt_persistent_spll_check_lock_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_command_stage;
+extern volatile uint32_t debug_precrt_persistent_command_rx_byte_count;
+extern volatile uint32_t debug_precrt_persistent_command_last_byte;
+extern volatile uint32_t debug_precrt_persistent_command_length;
+extern volatile uint32_t debug_precrt_persistent_command_hash;
+extern volatile uint32_t debug_precrt_persistent_command_boot_generation;
 
 #if defined(BASE_WDIAGS_PRIV)
 static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
@@ -65,6 +71,12 @@ static void wdiags_persistent_init_if_invalid(void)
 	debug_precrt_persistent_spll_check_lock_channel = 0;
 	debug_precrt_persistent_spll_check_lock_state_value = 0;
 	debug_precrt_persistent_spll_check_lock_boot_generation = 0;
+	debug_precrt_persistent_command_stage = 0;
+	debug_precrt_persistent_command_rx_byte_count = 0;
+	debug_precrt_persistent_command_last_byte = 0;
+	debug_precrt_persistent_command_length = 0;
+	debug_precrt_persistent_command_hash = 0;
+	debug_precrt_persistent_command_boot_generation = 0;
 	for (i = 0; i < 4; i++)
 		debug_precrt_persistent_stage_history[i] = 0;
 }
@@ -144,6 +156,18 @@ static void wdiags_publish_persistent_record(void)
 			debug_precrt_persistent_spll_check_lock_state_value);
 	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_SPLL_CHECK_LOCK_BOOT_GENERATION,
 			debug_precrt_persistent_spll_check_lock_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_STAGE,
+			debug_precrt_persistent_command_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_RX_BYTE_COUNT,
+			debug_precrt_persistent_command_rx_byte_count);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_LAST_BYTE,
+			debug_precrt_persistent_command_last_byte);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_LENGTH,
+			debug_precrt_persistent_command_length);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_HASH,
+			debug_precrt_persistent_command_hash);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_BOOT_GENERATION,
+			debug_precrt_persistent_command_boot_generation);
 }
 
 static uint32_t wdiag_read( uint32_t reg )
@@ -283,6 +307,64 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
 	debug_precrt_persistent_spll_check_lock_channel = channel;
 	debug_precrt_persistent_spll_check_lock_state_value = state_value;
 	debug_precrt_persistent_spll_check_lock_boot_generation =
+		debug_precrt_boot_generation;
+	wdiags_publish_persistent_record();
+}
+
+void wdiags_write_shell_command_rx_byte(uint32_t byte_value)
+{
+	uint32_t count;
+	uint32_t hash;
+	uint32_t next_stage;
+
+	wdiags_persistent_init_if_invalid();
+	count = debug_precrt_persistent_command_rx_byte_count;
+	if (count != 0xffffffffU)
+		++count;
+
+	/* FNV-1a gives a compact breadcrumb without retaining the command text. */
+	hash = debug_precrt_persistent_command_hash;
+	if (!hash)
+		hash = 2166136261U;
+	hash ^= byte_value & 0xffU;
+	hash *= 16777619U;
+
+	debug_precrt_persistent_command_rx_byte_count = count;
+	debug_precrt_persistent_command_last_byte = byte_value & 0xffU;
+	debug_precrt_persistent_command_length = count;
+	debug_precrt_persistent_command_hash = hash;
+
+	next_stage = debug_precrt_persistent_command_stage;
+	if (next_stage < WRC_DIAGS_PERSISTENT_CMD_RX_FIRST_BYTE)
+		next_stage = WRC_DIAGS_PERSISTENT_CMD_RX_FIRST_BYTE;
+	if (count >= 12 && next_stage < WRC_DIAGS_PERSISTENT_CMD_RX_ALL_BYTES)
+		next_stage = WRC_DIAGS_PERSISTENT_CMD_RX_ALL_BYTES;
+	if ((byte_value & 0xffU) == '\n' &&
+		next_stage < WRC_DIAGS_PERSISTENT_CMD_RX_NEWLINE)
+		next_stage = WRC_DIAGS_PERSISTENT_CMD_RX_NEWLINE;
+	if (next_stage != debug_precrt_persistent_command_stage) {
+		debug_precrt_persistent_command_stage = next_stage;
+		debug_precrt_persistent_command_boot_generation =
+			debug_precrt_boot_generation;
+	}
+	wdiags_publish_persistent_record();
+}
+
+void wdiags_write_shell_command_stage(uint32_t stage)
+{
+	uint32_t current;
+
+	if (stage < WRC_DIAGS_PERSISTENT_CMD_SHELL_LINE_READY || stage >
+		WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED)
+		return;
+
+	wdiags_persistent_init_if_invalid();
+	current = debug_precrt_persistent_command_stage;
+	if (current != stage - 1)
+		return;
+
+	debug_precrt_persistent_command_stage = stage;
+	debug_precrt_persistent_command_boot_generation =
 		debug_precrt_boot_generation;
 	wdiags_publish_persistent_record();
 }

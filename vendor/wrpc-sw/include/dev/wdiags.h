@@ -58,6 +58,19 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
 void wdiags_write_spll_check_lock_debug(uint32_t stage,
                                         uint32_t channel,
                                         uint32_t state_value);
+/* Persistent read-only VUART-to-shell dispatch breadcrumbs. */
+#define WRC_DIAGS_PERSISTENT_CMD_NO_EVIDENCE 0
+#define WRC_DIAGS_PERSISTENT_CMD_RX_FIRST_BYTE 1
+#define WRC_DIAGS_PERSISTENT_CMD_RX_ALL_BYTES 2
+#define WRC_DIAGS_PERSISTENT_CMD_RX_NEWLINE 3
+#define WRC_DIAGS_PERSISTENT_CMD_SHELL_LINE_READY 4
+#define WRC_DIAGS_PERSISTENT_CMD_LOOKUP_MODE 5
+#define WRC_DIAGS_PERSISTENT_CMD_MODE_HANDLER_ENTERED 6
+#define WRC_DIAGS_PERSISTENT_CMD_MASTER_ARGUMENT 7
+#define WRC_DIAGS_PERSISTENT_CMD_BEFORE_SET_MODE 8
+#define WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED 9
+void wdiags_write_shell_command_rx_byte(uint32_t byte_value);
+void wdiags_write_shell_command_stage(uint32_t stage);
 /* Read-only static-p startup-lifetime checkpoints. */
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1

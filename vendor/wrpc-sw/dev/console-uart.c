@@ -16,6 +16,7 @@
 #include "dev/simple_uart.h"
 #include "dev/console.h"
 #include "dev/console-uart.h"
+#include "dev/wdiags.h"
 
 struct console_uart_priv_data console_uart_priv;
 struct console_device console_uart_dev;
@@ -36,6 +37,9 @@ static int con_rx_internal(struct console_device* dev)
     }
 #endif
     int rx_char = suart_read_byte( &priv->uart_dev );
+
+    if (rx_char >= 0)
+        wdiags_write_shell_command_rx_byte((uint32_t)rx_char);
 
 #ifdef CONFIG_CONSOLE_UART_MODE
     if( rx_char < 0 )

@@ -14,6 +14,9 @@ _start:
     .extern build_init_readcmd_p
     .extern debug_precrt_p_raw_at_reset_entry
     .extern debug_precrt_p_raw_after_data_init
+    .extern debug_precrt_boot_magic
+    .extern debug_precrt_boot_generation
+    .extern debug_precrt_p_at_entry_history
 #endif
 
 .org 0x8
@@ -57,6 +60,32 @@ _reset_handler:
 _entry:
 
 #ifdef CONFIG_INIT_COMMAND
+    /* Preserve a generation counter across CPU-only resets. */
+    la     t0, debug_precrt_boot_magic
+    lw     t1, 0(t0)
+    li     t2, 0x424F4F54
+    bne    t1, t2, 1f
+    la     t0, debug_precrt_boot_generation
+    lw     t1, 0(t0)
+    addi   t1, t1, 1
+    sw     t1, 0(t0)
+    j      2f
+1:
+    sw     t2, 0(t0)
+    li     t1, 1
+    la     t0, debug_precrt_boot_generation
+    sw     t1, 0(t0)
+2:
+    /* Record p at each entry in a four-sample ring. */
+    addi   t1, t1, -1
+    andi   t1, t1, 3
+    slli   t1, t1, 2
+    la     t0, debug_precrt_p_at_entry_history
+    add    t0, t0, t1
+    la     t2, build_init_readcmd_p
+    lw     t3, 0(t2)
+    sw     t3, 0(t0)
+
     /* Capture p before any BSS clear or data initialization. */
     la     t0, build_init_readcmd_p
     lw     t1, 0(t0)

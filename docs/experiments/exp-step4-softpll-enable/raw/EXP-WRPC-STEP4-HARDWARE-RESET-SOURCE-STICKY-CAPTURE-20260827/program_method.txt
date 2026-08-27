@@ -1,0 +1,5 @@
+PROGRAM_METHOD=direct quartus_pgm without sudo
+MASTER_CABLE=DE5 [1-11.1]
+SLAVE_CABLE=DE5 [1-11.2]
+WRAPPER_SCRIPT_RESULT=blocked by sudo prompt; no sudo credential supplied
+DIRECT_PROGRAM_RESULT=Master and Slave configuration succeeded

@@ -1,0 +1,32 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Aug 27 23:06:27 2026
+Info: Command: quartus_stp -t scripts/jtag/read_reset_source_sticky_diag.tcl 5 100
+Info: Quartus(args): 5 100
+RESET_STICKY_CONFIG samples=5 gap_ms=100 probe=27 read_only=1 cpu_hold=0 cpu_release=0 cpu_reset_write=0
+=== RESET_STICKY_BOARD DE5 [1-11.1] ===
+RESET_STICKY_ERROR board=DE5 [1-11.1] message=can't read "::wb_toggle(DE5 [1-11.1])": no such element in array
+=== RESET_STICKY_BOARD DE5 [1-11.2] ===
+RESET_STICKY_ERROR board=DE5 [1-11.2] message=can't read "::wb_toggle(DE5 [1-11.2])": no such element in array
+RESET_STICKY_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_reset_source_sticky_diag.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Thu Aug 27 23:06:27 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00

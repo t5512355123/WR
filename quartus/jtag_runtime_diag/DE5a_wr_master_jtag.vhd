@@ -192,6 +192,8 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_im_valid         : std_logic;
   signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
   signal cpu_boot_stage_seen  : std_logic;
+  signal cpu_entry_p          : std_logic_vector(31 downto 0);
+  signal cpu_entry_generation : std_logic_vector(31 downto 0);
   signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
@@ -225,6 +227,7 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_debug_source     : std_logic_vector(0 downto 0);
   signal cpu_marker_probe     : std_logic_vector(63 downto 0);
   signal cpu_marker_source    : std_logic_vector(0 downto 0);
+  signal cpu_entry_probe      : std_logic_vector(63 downto 0);
   signal cpu_store_probe       : std_logic_vector(63 downto 0);
   signal cpu_store_source      : std_logic_vector(0 downto 0);
   signal cpu_store_count_probe : std_logic_vector(63 downto 0);
@@ -525,7 +528,11 @@ begin
   cpu_debug_probe(32) <= cpu_reset;
   cpu_debug_probe(33) <= cpu_fault;
   cpu_debug_probe(34) <= cpu_im_valid;
-  cpu_debug_probe(63 downto 35) <= (others => '0');
+  cpu_debug_probe(35) <= CPU_RESET_n;
+  cpu_debug_probe(36) <= wr_core_reset_n;
+  cpu_debug_probe(37) <= si_config_done;
+  cpu_debug_probe(38) <= clk_sys_625_locked;
+  cpu_debug_probe(63 downto 39) <= (others => '0');
 
   u_cpu_debug_probe : altsource_probe
     generic map (
@@ -557,6 +564,26 @@ begin
     port map (
       probe      => cpu_marker_probe,
       source     => cpu_marker_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  -- Passive pre-CRT entry snapshot: [31:0] p at entry and [63:32]
+  -- boot-generation.  This direct probe never controls or accesses the CPU.
+  cpu_entry_probe(31 downto 0) <= cpu_entry_p;
+  cpu_entry_probe(63 downto 32) <= cpu_entry_generation;
+
+  u_cpu_entry_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_CPU_ENTRY_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 26,
+      source_width            => 1
+    )
+    port map (
+      probe      => cpu_entry_probe,
+      source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
@@ -1104,6 +1131,8 @@ begin
       cpu_im_valid_o            => cpu_im_valid,
       cpu_boot_stage_value_o    => cpu_boot_stage_value,
       cpu_boot_stage_seen_o     => cpu_boot_stage_seen,
+      cpu_entry_p_o             => cpu_entry_p,
+      cpu_entry_generation_o    => cpu_entry_generation,
       cpu_last_store_addr_o     => cpu_last_store_addr,
       cpu_last_store_data_o     => cpu_last_store_data,
       cpu_last_store_seen_o     => cpu_last_store_seen,

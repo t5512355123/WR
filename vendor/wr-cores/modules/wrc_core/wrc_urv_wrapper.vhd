@@ -51,6 +51,8 @@ entity wrc_urv_wrapper is
     cpu_im_valid_o : out std_logic;
     cpu_boot_stage_value_o : out std_logic_vector(31 downto 0);
     cpu_boot_stage_seen_o  : out std_logic;
+    cpu_entry_p_o : out std_logic_vector(31 downto 0);
+    cpu_entry_generation_o : out std_logic_vector(31 downto 0);
     cpu_last_store_addr_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_data_o  : out std_logic_vector(31 downto 0);
     cpu_last_store_seen_o  : out std_logic;
@@ -121,6 +123,8 @@ architecture arch of wrc_urv_wrapper is
   signal cpu_fault : std_logic;
   signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
   signal cpu_boot_stage_seen  : std_logic;
+  signal cpu_entry_p : std_logic_vector(31 downto 0);
+  signal cpu_entry_generation : std_logic_vector(31 downto 0);
   signal cpu_last_store_addr  : std_logic_vector(31 downto 0);
   signal cpu_last_store_data  : std_logic_vector(31 downto 0);
   signal cpu_last_store_seen  : std_logic;
@@ -458,6 +462,8 @@ begin
       if rst_n_i = '0' then
         cpu_boot_stage_value <= (others => '0');
         cpu_boot_stage_seen  <= '0';
+        cpu_entry_p <= (others => '0');
+        cpu_entry_generation <= (others => '0');
         cpu_last_store_addr  <= (others => '0');
         cpu_last_store_data  <= (others => '0');
         cpu_last_store_seen  <= '0';
@@ -470,6 +476,10 @@ begin
         if dm_addr = x"0002E000" then
           cpu_boot_stage_value <= dm_data_s;
           cpu_boot_stage_seen  <= '1';
+        elsif dm_addr = x"0002E004" then
+          cpu_entry_p <= dm_data_s;
+        elsif dm_addr = x"0002E008" then
+          cpu_entry_generation <= dm_data_s;
         end if;
       end if;
     end if;
@@ -709,6 +719,8 @@ begin
   cpu_im_valid_o <= im_valid;
   cpu_boot_stage_value_o <= cpu_boot_stage_value;
   cpu_boot_stage_seen_o  <= cpu_boot_stage_seen;
+  cpu_entry_p_o <= cpu_entry_p;
+  cpu_entry_generation_o <= cpu_entry_generation;
   cpu_last_store_addr_o  <= cpu_last_store_addr;
   cpu_last_store_data_o  <= cpu_last_store_data;
   cpu_last_store_seen_o  <= cpu_last_store_seen;

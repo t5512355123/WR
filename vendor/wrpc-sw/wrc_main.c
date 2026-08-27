@@ -64,6 +64,11 @@ struct wr_endpoint_device wrc_endpoint_dev;
 /* Keep the marker at the fixed linker section observed by the JTAG wrapper. */
 volatile uint32_t debug_boot_stage
 	__attribute__((used, section(".debug_boot")));
+/* Read-only hardware-observed entry snapshots, before BSS/data init. */
+volatile uint32_t debug_boot_entry_p
+	__attribute__((used, section(".debug_boot")));
+volatile uint32_t debug_boot_entry_generation
+	__attribute__((used, section(".debug_boot")));
 
 /* Captured by crt0.S before and after the BSS/data initialization window. */
 volatile uint32_t debug_precrt_p_raw_at_reset_entry

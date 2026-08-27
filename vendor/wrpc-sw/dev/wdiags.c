@@ -109,12 +109,23 @@ static void wdiags_persistent_lock_wait_substage(uint32_t substage)
 	wdiags_publish_persistent_record();
 }
 
-static int wdiags_persistent_spll_check_lock_active(void)
+static int wdiags_persistent_spll_check_lock_active(uint32_t stage)
 {
-	return debug_precrt_persistent_mode_master_stage ==
+	/* The first call belongs to the mode-master lock-wait path when the
+	 * caller has published its entry.  Do not use boot generation as a
+	 * gate: the re-entry under investigation can happen between the mode
+	 * marker and spll_check_lock(), and that transition must remain visible. */
+	if (stage == WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_CALL)
+		return debug_precrt_persistent_spll_check_lock_stage ==
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_NOT_ENTERED &&
+			debug_precrt_persistent_mode_master_stage ==
 			WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_LOCK_WAIT &&
-		debug_precrt_persistent_boot_generation_at_stage ==
-			debug_precrt_boot_generation;
+			debug_precrt_persistent_lock_wait_substage ==
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_ENTERED;
+
+	return stage >= WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_ENTERED &&
+		stage <= WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED &&
+		debug_precrt_persistent_spll_check_lock_stage == stage - 1;
 }
 
 
@@ -297,10 +308,10 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
 						uint32_t channel,
 						uint32_t state_value)
 {
-	/* Only the mode-master lock-wait invocation may update this sticky
-	 * record. After CPU re-entry the generation mismatch freezes the last
-	 * pre-entry boundary for forensic reads. */
-	if (channel != 0 || !wdiags_persistent_spll_check_lock_active())
+	/* Only the first mode-master lock-wait invocation may claim this sticky
+	 * record.  Subsequent stages must advance monotonically, so a later
+	 * background spll_check_lock() call cannot overwrite the evidence. */
+	if (channel != 0 || !wdiags_persistent_spll_check_lock_active(stage))
 		return;
 
 	debug_precrt_persistent_spll_check_lock_stage = stage;

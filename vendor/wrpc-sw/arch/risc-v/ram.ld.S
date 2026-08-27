@@ -109,7 +109,16 @@ SECTIONS
        clear the reset-entry sample while clearing BSS. */
     .debug_precrt 0x0002e010 (NOLOAD) :
     {
-	KEEP(*(.debug_precrt))
+	KEEP(*(.debug_precrt_p_raw_at_reset_entry))
+	KEEP(*(.debug_precrt_p_raw_after_data_init))
+	KEEP(*(.debug_precrt_boot_magic))
+	KEEP(*(.debug_precrt_boot_generation))
+	KEEP(*(.debug_precrt_p_at_entry_history))
+	KEEP(*(.debug_precrt_persistent_magic))
+	KEEP(*(.debug_precrt_persistent_mode_master_stage))
+	KEEP(*(.debug_precrt_persistent_lock_wait_substage))
+	KEEP(*(.debug_precrt_persistent_boot_generation_at_stage))
+	KEEP(*(.debug_precrt_persistent_stage_history))
     } > ram
     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000,
 	   "debug_precrt must stay at least 4 KiB below the stack")

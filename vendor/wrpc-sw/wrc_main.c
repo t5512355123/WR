@@ -67,27 +67,27 @@ volatile uint32_t debug_boot_stage
 
 /* Captured by crt0.S before and after the BSS/data initialization window. */
 volatile uint32_t debug_precrt_p_raw_at_reset_entry
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_p_raw_at_reset_entry")));
 volatile uint32_t debug_precrt_p_raw_after_data_init
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_p_raw_after_data_init")));
 /* Persist across a CPU reset without FPGA reconfiguration. */
 volatile uint32_t debug_precrt_boot_magic
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_boot_magic")));
 volatile uint32_t debug_precrt_boot_generation
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_boot_generation")));
 volatile uint32_t debug_precrt_p_at_entry_history[4]
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_p_at_entry_history")));
 /* Persistent manual mode-master evidence; intentionally outside BSS. */
 volatile uint32_t debug_precrt_persistent_magic
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_persistent_magic")));
 volatile uint32_t debug_precrt_persistent_mode_master_stage
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_persistent_mode_master_stage")));
 volatile uint32_t debug_precrt_persistent_lock_wait_substage
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_persistent_lock_wait_substage")));
 volatile uint32_t debug_precrt_persistent_boot_generation_at_stage
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_persistent_boot_generation_at_stage")));
 volatile uint32_t debug_precrt_persistent_stage_history[4]
-	__attribute__((used, section(".debug_precrt")));
+	__attribute__((used, section(".debug_precrt_persistent_stage_history")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

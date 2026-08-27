@@ -1,0 +1,7 @@
+Master sof_checksum=0x30B37E9B
+Slave sof_checksum=0x30B4455C
+Master cable=DE5 [1-11.1]
+Slave cable=DE5 [1-11.2]
+JTAG_ID=0x02E660DD
+programming=successful
+VUART_final_newline=WB_RESULT_00000100

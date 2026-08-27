@@ -1,0 +1,41 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Thu Aug 27 17:00:06 2026
+    Info: System process ID: 2925316
+Info: Command: quartus_stp -t scripts/jtag/read_boot_init_execution_diag.tcl 5 500
+Info: Quartus(args): 5 500
+BOOT_INIT_DIAG_CONFIG samples=5 gap_ms=500 filter=
+=== BOOT_INIT_DIAG_BOARD DE5 [1-11.1] ===
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.1] sample=001 elapsed_ms=5 RAW=00002104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=2 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.1] sample=002 elapsed_ms=514 RAW=00002104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=2 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.1] sample=003 elapsed_ms=1023 RAW=00002104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=2 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.1] sample=004 elapsed_ms=1531 RAW=00002104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=2 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.1] sample=005 elapsed_ms=2040 RAW=00002104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=2 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+=== BOOT_INIT_DIAG_BOARD DE5 [1-11.2] ===
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.2] sample=001 elapsed_ms=6 RAW=00004104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=4 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.2] sample=002 elapsed_ms=515 RAW=00004104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=4 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.2] sample=003 elapsed_ms=1025 RAW=00004104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=4 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.2] sample=004 elapsed_ms=1534 RAW=00004104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=4 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_SAMPLE board=DE5 [1-11.2] sample=005 elapsed_ms=2043 RAW=00004104 PTP_STATE=4 BOOT_INIT_SCRIPT_ENTER_COUNT=1 BOOT_INIT_COMMAND_INDEX=4 MODE_MASTER_CALL_COUNT=0 MODE_MASTER_RETURN_COUNT=0
+BOOT_INIT_DIAG_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_boot_init_execution_diag.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Thu Aug 27 17:00:11 2026
+    Info: Elapsed time: 00:00:05
+    Info: System process ID: 2925316

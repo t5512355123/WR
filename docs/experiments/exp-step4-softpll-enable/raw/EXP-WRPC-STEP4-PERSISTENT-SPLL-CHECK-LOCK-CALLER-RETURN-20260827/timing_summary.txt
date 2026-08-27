@@ -1,0 +1,6 @@
+Master timing
+Info (332146): Worst-case setup slack is -0.383
+Info (332146): Worst-case hold slack is 0.038
+Slave timing
+Info (332146): Worst-case setup slack is -0.307
+Info (332146): Worst-case hold slack is 0.038

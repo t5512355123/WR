@@ -168,6 +168,7 @@ foreach hardware_name [get_hardware_names] {
   puts "=== RESET_STICKY_BOARD ${hardware_name} ==="
   catch { end_insystem_source_probe }
   if {[catch {
+    set ::wb_toggle($hardware_name) 0
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     set start_ms [clock milliseconds]
     for {set sample 1} {$sample <= $samples} {incr sample} {

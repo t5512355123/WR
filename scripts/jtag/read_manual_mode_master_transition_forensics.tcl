@@ -20,6 +20,9 @@
 # Persistent VUART-to-shell command breadcrumbs are at offsets 0x1a0..0x1b4
 # (CPU addresses 0x00100BA0..0x00100BB4): stage, RX byte count, last byte,
 # command length, FNV-1a hash and boot generation at the last stage.
+# Persistent trap/fault breadcrumbs are at offsets 0x1b8..0x1dc (CPU addresses
+# 0x00100BB8..0x00100BDC): validity magic, count, mcause, mepc, mbadaddr,
+# interrupted RA/SP, boot generation and last mode/SPLL stages.
 #
 # Optional fourth argument injects the single command through the JTAG
 # Wishbone virtual-UART HOST_TDR at the selected Master sample. This is a
@@ -208,8 +211,18 @@ proc read_sample {hardware_name sample elapsed_ms} {
   set persistent_command_length [wb_read $hardware_name 0x00100BAC]
   set persistent_command_hash [wb_read $hardware_name 0x00100BB0]
   set persistent_command_generation [wb_read $hardware_name 0x00100BB4]
+  set persistent_fault_magic [wb_read $hardware_name 0x00100BB8]
+  set persistent_fault_count [wb_read $hardware_name 0x00100BBC]
+  set persistent_fault_mcause [wb_read $hardware_name 0x00100BC0]
+  set persistent_fault_mepc [wb_read $hardware_name 0x00100BC4]
+  set persistent_fault_mtval [wb_read $hardware_name 0x00100BC8]
+  set persistent_fault_ra [wb_read $hardware_name 0x00100BCC]
+  set persistent_fault_sp [wb_read $hardware_name 0x00100BD0]
+  set persistent_fault_generation [wb_read $hardware_name 0x00100BD4]
+  set persistent_fault_mode_stage [wb_read $hardware_name 0x00100BD8]
+  set persistent_fault_spll_stage [wb_read $hardware_name 0x00100BDC]
 
-  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PERSIST_MAGIC=%s PERSIST_MODE_MASTER_STAGE=%s PERSIST_LOCK_WAIT_SUBSTAGE=%s PERSIST_BOOT_GENERATION_AT_STAGE=%s PERSIST_STAGE_HISTORY0=%s PERSIST_STAGE_HISTORY1=%s PERSIST_STAGE_HISTORY2=%s PERSIST_STAGE_HISTORY3=%s PERSIST_SPLL_CHECK_LOCK_STAGE=%s PERSIST_SPLL_CHECK_LOCK_CHANNEL=%s PERSIST_SPLL_CHECK_LOCK_STATE=%s PERSIST_SPLL_CHECK_LOCK_BOOT_GENERATION=%s PERSIST_CMD_STAGE=%s PERSIST_CMD_RX_BYTE_COUNT=%s PERSIST_CMD_LAST_BYTE=%s PERSIST_CMD_LENGTH=%s PERSIST_CMD_HASH=%s PERSIST_CMD_BOOT_GENERATION=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
+  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PERSIST_MAGIC=%s PERSIST_MODE_MASTER_STAGE=%s PERSIST_LOCK_WAIT_SUBSTAGE=%s PERSIST_BOOT_GENERATION_AT_STAGE=%s PERSIST_STAGE_HISTORY0=%s PERSIST_STAGE_HISTORY1=%s PERSIST_STAGE_HISTORY2=%s PERSIST_STAGE_HISTORY3=%s PERSIST_SPLL_CHECK_LOCK_STAGE=%s PERSIST_SPLL_CHECK_LOCK_CHANNEL=%s PERSIST_SPLL_CHECK_LOCK_STATE=%s PERSIST_SPLL_CHECK_LOCK_BOOT_GENERATION=%s PERSIST_CMD_STAGE=%s PERSIST_CMD_RX_BYTE_COUNT=%s PERSIST_CMD_LAST_BYTE=%s PERSIST_CMD_LENGTH=%s PERSIST_CMD_HASH=%s PERSIST_CMD_BOOT_GENERATION=%s PERSIST_FAULT_MAGIC=%s PERSIST_FAULT_COUNT=%s PERSIST_FAULT_MCAUSE=%s PERSIST_FAULT_MEPC=%s PERSIST_FAULT_MTVAL=%s PERSIST_FAULT_RA=%s PERSIST_FAULT_SP=%s PERSIST_FAULT_BOOT_GENERATION=%s PERSIST_FAULT_LAST_MODE_MASTER_STAGE=%s PERSIST_FAULT_LAST_SPLL_CHECK_LOCK_STAGE=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
     $hardware_name $sample $elapsed_ms [display32 $status] [display64 $entry] \
     $boot_generation $p_at_entry \
     [display32 $stage] [display32 $lock_wait_substage] [display32 $lock_wait_iteration] \
@@ -227,7 +240,13 @@ proc read_sample {hardware_name sample elapsed_ms} {
     [display32 $persistent_command_last_byte] \
     [display32 $persistent_command_length] \
     [display32 $persistent_command_hash] \
-    [display32 $persistent_command_generation] [display32 $ptp] \
+    [display32 $persistent_command_generation] \
+    [display32 $persistent_fault_magic] [display32 $persistent_fault_count] \
+    [display32 $persistent_fault_mcause] [display32 $persistent_fault_mepc] \
+    [display32 $persistent_fault_mtval] [display32 $persistent_fault_ra] \
+    [display32 $persistent_fault_sp] [display32 $persistent_fault_generation] \
+    [display32 $persistent_fault_mode_stage] [display32 $persistent_fault_spll_stage] \
+    [display32 $ptp] \
     [display32 $ptp_meta] \
     [display32 $spll_state] [display32 $lock_enable] [display32 $eic_isr] \
     [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] \

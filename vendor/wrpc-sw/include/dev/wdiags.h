@@ -12,6 +12,9 @@
 
 #include <stdint.h>
 
+/* "FAUL" marks a complete persistent trap/fault record. */
+#define WDIAGS_PERSISTENT_FAULT_MAGIC 0x4641554cU
+
 int wdiag_set_valid(int enable);
 int wdiag_get_valid(void);
 int wdiag_get_snapshot(void);

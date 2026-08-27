@@ -129,6 +129,16 @@ SECTIONS
 	KEEP(*(.debug_precrt_persistent_command_length))
 	KEEP(*(.debug_precrt_persistent_command_hash))
 	KEEP(*(.debug_precrt_persistent_command_boot_generation))
+	KEEP(*(.debug_precrt_persistent_fault_magic))
+	KEEP(*(.debug_precrt_persistent_fault_count))
+	KEEP(*(.debug_precrt_persistent_fault_mcause))
+	KEEP(*(.debug_precrt_persistent_fault_mepc))
+	KEEP(*(.debug_precrt_persistent_fault_mtval))
+	KEEP(*(.debug_precrt_persistent_fault_ra))
+	KEEP(*(.debug_precrt_persistent_fault_sp))
+	KEEP(*(.debug_precrt_persistent_fault_boot_generation))
+	KEEP(*(.debug_precrt_persistent_fault_last_mode_master_stage))
+	KEEP(*(.debug_precrt_persistent_fault_last_spll_check_lock_stage))
     } > ram
     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000,
 	   "debug_precrt must stay at least 4 KiB below the stack")

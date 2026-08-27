@@ -110,6 +110,28 @@ volatile uint32_t debug_precrt_persistent_command_hash
 	__attribute__((used, section(".debug_precrt_persistent_command_hash")));
 volatile uint32_t debug_precrt_persistent_command_boot_generation
 	__attribute__((used, section(".debug_precrt_persistent_command_boot_generation")));
+/* Persistent synchronous-fault evidence captured at the earliest trap entry.
+ * The magic word is written last so a partially captured record is invalid. */
+volatile uint32_t debug_precrt_persistent_fault_magic
+	__attribute__((used, section(".debug_precrt_persistent_fault_magic")));
+volatile uint32_t debug_precrt_persistent_fault_count
+	__attribute__((used, section(".debug_precrt_persistent_fault_count")));
+volatile uint32_t debug_precrt_persistent_fault_mcause
+	__attribute__((used, section(".debug_precrt_persistent_fault_mcause")));
+volatile uint32_t debug_precrt_persistent_fault_mepc
+	__attribute__((used, section(".debug_precrt_persistent_fault_mepc")));
+volatile uint32_t debug_precrt_persistent_fault_mtval
+	__attribute__((used, section(".debug_precrt_persistent_fault_mtval")));
+volatile uint32_t debug_precrt_persistent_fault_ra
+	__attribute__((used, section(".debug_precrt_persistent_fault_ra")));
+volatile uint32_t debug_precrt_persistent_fault_sp
+	__attribute__((used, section(".debug_precrt_persistent_fault_sp")));
+volatile uint32_t debug_precrt_persistent_fault_boot_generation
+	__attribute__((used, section(".debug_precrt_persistent_fault_boot_generation")));
+volatile uint32_t debug_precrt_persistent_fault_last_mode_master_stage
+	__attribute__((used, section(".debug_precrt_persistent_fault_last_mode_master_stage")));
+volatile uint32_t debug_precrt_persistent_fault_last_spll_check_lock_stage
+	__attribute__((used, section(".debug_precrt_persistent_fault_last_spll_check_lock_stage")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

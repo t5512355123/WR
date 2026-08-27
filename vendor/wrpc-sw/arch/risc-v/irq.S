@@ -6,6 +6,19 @@
 .section .text
 
 .global trap_entry
+.extern debug_precrt_persistent_fault_magic
+.extern debug_precrt_persistent_fault_count
+.extern debug_precrt_persistent_fault_mcause
+.extern debug_precrt_persistent_fault_mepc
+.extern debug_precrt_persistent_fault_mtval
+.extern debug_precrt_persistent_fault_ra
+.extern debug_precrt_persistent_fault_sp
+.extern debug_precrt_persistent_fault_boot_generation
+.extern debug_precrt_persistent_fault_last_mode_master_stage
+.extern debug_precrt_persistent_fault_last_spll_check_lock_stage
+.extern debug_precrt_boot_generation
+.extern debug_precrt_persistent_mode_master_stage
+.extern debug_precrt_persistent_spll_check_lock_stage
 trap_entry:
 	/* Allocate a frame */
 	addi	sp,sp,-68
@@ -31,9 +44,77 @@ trap_entry:
 	csrr	ra,mepc
 	csrr	t2,mcause
 	csrr	t3,mbadaddr
+	andi	t0,t2,0xff
+	li	t1,11	/* Cause irq */
+	beq	t0,t1, trap_irq
+
+	/* Capture synchronous-fault evidence before entering the existing
+	 * permanent fault loop. The magic word is written last, so a partial
+	 * record is not mistaken for a complete one after CPU-only re-entry. */
+	la	t0,debug_precrt_persistent_fault_count
+	lw	t1,0(t0)
+	addi	t1,t1,1
+	sw	t1,0(t0)
+	la	t0,debug_precrt_persistent_fault_mcause
+	sw	t2,0(t0)
+	la	t0,debug_precrt_persistent_fault_mepc
+	sw	ra,0(t0)
+	la	t0,debug_precrt_persistent_fault_mtval
+	sw	t3,0(t0)
+	la	t0,debug_precrt_persistent_fault_ra
+	lw	t1,4(sp)
+	sw	t1,0(t0)
+	la	t0,debug_precrt_persistent_fault_sp
+	addi	t1,sp,68
+	sw	t1,0(t0)
+	la	t0,debug_precrt_persistent_fault_boot_generation
+	la	t1,debug_precrt_boot_generation
+	lw	t1,0(t1)
+	sw	t1,0(t0)
+	la	t0,debug_precrt_persistent_fault_last_mode_master_stage
+	la	t1,debug_precrt_persistent_mode_master_stage
+	lw	t1,0(t1)
+	sw	t1,0(t0)
+	la	t0,debug_precrt_persistent_fault_last_spll_check_lock_stage
+	la	t1,debug_precrt_persistent_spll_check_lock_stage
+	lw	t1,0(t1)
+	sw	t1,0(t0)
+
+	/* Publish the same record through the read-only WDIAGS mirror. The
+	 * RISC-V board map fixes WDIAGS private RAM at 0x100a00. */
+	lui	t0,0x101
+	addi	t0,t0,-1536
+	la	t1,debug_precrt_persistent_fault_count
+	lw	t1,0(t1)
+	sw	t1,0x1bc(t0)
+	sw	t2,0x1c0(t0)
+	sw	ra,0x1c4(t0)
+	sw	t3,0x1c8(t0)
+	lw	t1,4(sp)
+	sw	t1,0x1cc(t0)
+	addi	t1,sp,68
+	sw	t1,0x1d0(t0)
+	la	t1,debug_precrt_persistent_fault_boot_generation
+	lw	t1,0(t1)
+	sw	t1,0x1d4(t0)
+	la	t1,debug_precrt_persistent_fault_last_mode_master_stage
+	lw	t1,0(t1)
+	sw	t1,0x1d8(t0)
+	la	t1,debug_precrt_persistent_fault_last_spll_check_lock_stage
+	lw	t1,0(t1)
+	sw	t1,0x1dc(t0)
+
+	/* Commit the validity marker only after both copies are populated. */
+	li	t1,0x4641554c
+	la	t0,debug_precrt_persistent_fault_magic
+	sw	t1,0(t0)
+	lui	t0,0x101
+	addi	t0,t0,-1536
+	sw	t1,0x1b8(t0)
+	j	fault_handler
+
+trap_irq:
 	andi	t2,t2,0xff
-	li	t0,11	/* Cause irq */
-	bne	t0,t2, fault_handler
 	jal	spll_irq_entry
 
 	/* Restore registers */

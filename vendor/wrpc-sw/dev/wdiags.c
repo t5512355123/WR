@@ -35,6 +35,16 @@ extern volatile uint32_t debug_precrt_persistent_command_last_byte;
 extern volatile uint32_t debug_precrt_persistent_command_length;
 extern volatile uint32_t debug_precrt_persistent_command_hash;
 extern volatile uint32_t debug_precrt_persistent_command_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_fault_magic;
+extern volatile uint32_t debug_precrt_persistent_fault_count;
+extern volatile uint32_t debug_precrt_persistent_fault_mcause;
+extern volatile uint32_t debug_precrt_persistent_fault_mepc;
+extern volatile uint32_t debug_precrt_persistent_fault_mtval;
+extern volatile uint32_t debug_precrt_persistent_fault_ra;
+extern volatile uint32_t debug_precrt_persistent_fault_sp;
+extern volatile uint32_t debug_precrt_persistent_fault_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_fault_last_mode_master_stage;
+extern volatile uint32_t debug_precrt_persistent_fault_last_spll_check_lock_stage;
 
 #if defined(BASE_WDIAGS_PRIV)
 static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
@@ -77,6 +87,19 @@ static void wdiags_persistent_init_if_invalid(void)
 	debug_precrt_persistent_command_length = 0;
 	debug_precrt_persistent_command_hash = 0;
 	debug_precrt_persistent_command_boot_generation = 0;
+	/* Preserve a valid fault record across CPU-only re-entry. */
+	if (debug_precrt_persistent_fault_magic !=
+		WDIAGS_PERSISTENT_FAULT_MAGIC) {
+		debug_precrt_persistent_fault_count = 0;
+		debug_precrt_persistent_fault_mcause = 0;
+		debug_precrt_persistent_fault_mepc = 0;
+		debug_precrt_persistent_fault_mtval = 0;
+		debug_precrt_persistent_fault_ra = 0;
+		debug_precrt_persistent_fault_sp = 0;
+		debug_precrt_persistent_fault_boot_generation = 0;
+		debug_precrt_persistent_fault_last_mode_master_stage = 0;
+		debug_precrt_persistent_fault_last_spll_check_lock_stage = 0;
+	}
 	for (i = 0; i < 4; i++)
 		debug_precrt_persistent_stage_history[i] = 0;
 }
@@ -179,6 +202,26 @@ static void wdiags_publish_persistent_record(void)
 			debug_precrt_persistent_command_hash);
 	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_BOOT_GENERATION,
 			debug_precrt_persistent_command_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_MAGIC,
+			debug_precrt_persistent_fault_magic);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_COUNT,
+			debug_precrt_persistent_fault_count);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_MCAUSE,
+			debug_precrt_persistent_fault_mcause);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_MEPC,
+			debug_precrt_persistent_fault_mepc);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_MTVAL,
+			debug_precrt_persistent_fault_mtval);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_RA,
+			debug_precrt_persistent_fault_ra);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_SP,
+			debug_precrt_persistent_fault_sp);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_BOOT_GENERATION,
+			debug_precrt_persistent_fault_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_MODE_MASTER_STAGE,
+			debug_precrt_persistent_fault_last_mode_master_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_SPLL_CHECK_LOCK_STAGE,
+			debug_precrt_persistent_fault_last_spll_check_lock_stage);
 }
 
 static uint32_t wdiag_read( uint32_t reg )

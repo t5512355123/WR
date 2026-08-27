@@ -82,6 +82,12 @@ int wrpc_spll_check_lock_with_timeout(int lock_timeout)
 			break;
 
 		last_lock_result = spll_check_lock(0);
+		/* This is deliberately in the caller: S5 means control returned
+		 * from spll_check_lock(), not merely that its return path was
+		 * reached from inside the function. */
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED,
+			0, last_lock_result);
 		wdiags_write_lock_wait_debug(
 			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_LOCK_CHECK,
 			iteration_count, start_tics, current_tics, last_lock_result);

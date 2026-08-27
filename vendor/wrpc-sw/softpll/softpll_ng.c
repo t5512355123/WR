@@ -532,9 +532,6 @@ int spll_check_lock(int channel)
 		wdiags_write_spll_check_lock_debug(
 			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_RETURN,
 			channel, state_value);
-		wdiags_write_spll_check_lock_debug(
-			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED,
-			channel, state_value);
 		return result;
 	}
 	else

@@ -316,7 +316,8 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
 
 	debug_precrt_persistent_spll_check_lock_stage = stage;
 	debug_precrt_persistent_spll_check_lock_channel = channel;
-	debug_precrt_persistent_spll_check_lock_state_value = state_value;
+	if (stage != WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED)
+		debug_precrt_persistent_spll_check_lock_state_value = state_value;
 	debug_precrt_persistent_spll_check_lock_boot_generation =
 		debug_precrt_boot_generation;
 	wdiags_publish_persistent_record();

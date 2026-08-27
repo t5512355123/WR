@@ -17,6 +17,14 @@
 #include "hw/wrc_diags_regs.h"
 
 #define WDIAGS_VERSION 2
+#define WDIAGS_PERSISTENT_MAGIC 0x504D5354U /* "PMST" */
+
+extern volatile uint32_t debug_precrt_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_magic;
+extern volatile uint32_t debug_precrt_persistent_mode_master_stage;
+extern volatile uint32_t debug_precrt_persistent_lock_wait_substage;
+extern volatile uint32_t debug_precrt_persistent_boot_generation_at_stage;
+extern volatile uint32_t debug_precrt_persistent_stage_history[4];
 
 #if defined(BASE_WDIAGS_PRIV)
 static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
@@ -35,6 +43,47 @@ static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
 
 static void wdiags_write_boot_startup(void);
+
+static void wdiags_persistent_init_if_invalid(void)
+{
+	int i;
+
+	if (debug_precrt_persistent_magic == WDIAGS_PERSISTENT_MAGIC)
+		return;
+
+	debug_precrt_persistent_magic = WDIAGS_PERSISTENT_MAGIC;
+	debug_precrt_persistent_mode_master_stage = 0;
+	debug_precrt_persistent_lock_wait_substage = 0;
+	debug_precrt_persistent_boot_generation_at_stage = 0;
+	for (i = 0; i < 4; i++)
+		debug_precrt_persistent_stage_history[i] = 0;
+}
+
+static void wdiags_persistent_mode_master_stage(uint32_t stage)
+{
+	int i;
+
+	if (stage == 0)
+		return;
+
+	wdiags_persistent_init_if_invalid();
+	for (i = 0; i < 3; i++)
+		debug_precrt_persistent_stage_history[i] =
+			debug_precrt_persistent_stage_history[i + 1];
+	debug_precrt_persistent_stage_history[3] = stage;
+	debug_precrt_persistent_mode_master_stage = stage;
+	debug_precrt_persistent_boot_generation_at_stage =
+		debug_precrt_boot_generation;
+}
+
+static void wdiags_persistent_lock_wait_substage(uint32_t substage)
+{
+	if (substage == 0)
+		return;
+
+	wdiags_persistent_init_if_invalid();
+	debug_precrt_persistent_lock_wait_substage = substage;
+}
 
 
 static int wdiag_write( uint32_t reg, uint32_t value )
@@ -150,6 +199,7 @@ void wdiags_write_mode_master_stage(uint32_t stage)
 	/* Direct sticky write: it must remain visible if the CPU wedges before
 	 * the periodic diagnostics task can publish another shadow. */
 	wdiag_write(WRC_DIAGS_WDIAG_MODE_MASTER_STAGE, stage);
+	wdiags_persistent_mode_master_stage(stage);
 }
 
 void wdiags_write_lock_wait_debug(uint32_t substage,
@@ -166,6 +216,7 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
 	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_CURRENT_TICS, current_tics);
 	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT,
 			(uint32_t)last_lock_result);
+	wdiags_persistent_lock_wait_substage(substage);
 }
 
 static void wdiags_write_boot_startup(void)
@@ -528,6 +579,10 @@ int wdiags_init(void)
 	{
 		dev_dbg("wdiags: base addr = 0x%x.\n", wdiags_base );
 	}
+
+	/* Preserve a valid record across CPU-only re-entry; initialize only a
+	 * record from an older image or an uninitialized NOLOAD region. */
+	wdiags_persistent_init_if_invalid();
 
 	for( i = 0; i < WRC_DIAGS_SIZE / 4; i++ )
 		wdiag_write( i * 4, 0 );

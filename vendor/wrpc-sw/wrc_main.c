@@ -77,6 +77,17 @@ volatile uint32_t debug_precrt_boot_generation
 	__attribute__((used, section(".debug_precrt")));
 volatile uint32_t debug_precrt_p_at_entry_history[4]
 	__attribute__((used, section(".debug_precrt")));
+/* Persistent manual mode-master evidence; intentionally outside BSS. */
+volatile uint32_t debug_precrt_persistent_magic
+	__attribute__((used, section(".debug_precrt")));
+volatile uint32_t debug_precrt_persistent_mode_master_stage
+	__attribute__((used, section(".debug_precrt")));
+volatile uint32_t debug_precrt_persistent_lock_wait_substage
+	__attribute__((used, section(".debug_precrt")));
+volatile uint32_t debug_precrt_persistent_boot_generation_at_stage
+	__attribute__((used, section(".debug_precrt")));
+volatile uint32_t debug_precrt_persistent_stage_history[4]
+	__attribute__((used, section(".debug_precrt")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

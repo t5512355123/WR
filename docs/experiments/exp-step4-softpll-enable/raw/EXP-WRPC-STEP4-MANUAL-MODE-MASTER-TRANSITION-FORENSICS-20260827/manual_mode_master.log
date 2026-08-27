@@ -1,0 +1,1 @@
+./vendor/wrpc-sw/tools/wrpc-vuart: vuart_open() failed: Permission denied

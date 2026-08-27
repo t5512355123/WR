@@ -1,0 +1,14 @@
+090091a33a3b96a6d80d175bdb53e5d491f188bfd2ee9e4b9fc9b9b10dadb3f9  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/baseline_boot_init_diag.log
+14bb7bad9c46f84be16a20909a0ac6e584f21079447f5adccd7e7c3206c4d8f4  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/baseline_read_probe.log
+26fa93e1ffdad353a16f838534d04457d3a4c357d00b9d81c4c76e41313a0a30  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/baseline_role_timeline.log
+2e93a054b736aa1a8386f07f0c9398eb732af55b14e1ac16fecb52164f80b745  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/firmware_master_build.log
+1e4cdc5e64971a74f11118a06c65334ae79aeefc34904a53829360907b369d27  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/firmware_slave_build.log
+c56abc08ce0223561525bdc30bd960fca4344b36b592605cf78d1695bb49edd0  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/forensics_jtag_vuart.log
+158efc71e244f807d9b0e93a94e2564c6a78f833618a55d2d1ec4ae3ad8bb761  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/forensics.log
+2a06eb43eeb8bf96d32244a0b4128c5782611f40aef5cd563c689e1084388696  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/forensics_post30s_generation.log
+cc854eaf57f1d36bf25162a8bf6ff18324f3f4ddbbafd7901c0e2efab60f5042  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/forensics_post30s.log
+f7c98608efa25b29c9f1c846d3c66e9fecb6fb67c9880ed82ebb0e2e1fc9cf45  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/forensics_retry.log
+81e344a4a1f4f2fd3c38ed52ebd83e906b41cf0a2ab1def2ea247cfcf02f15a8  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/manual_mode_master.log
+e426403df0300492630aebf95648d1c77ad42e1ae1bf02055adca7d4535749b8  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/manual_mode_master_sudo.log
+6a4380b8355f338b0f0731c981275be8b3daa17c4bcc5f63e86e537154c8e9da  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/program_master.log
+68cb52436e865f99f3f2dab64a6baf3b2d8f3146baa1a764e0844b1eb00e20b7  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-MANUAL-MODE-MASTER-TRANSITION-FORENSICS-20260827/program_slave.log

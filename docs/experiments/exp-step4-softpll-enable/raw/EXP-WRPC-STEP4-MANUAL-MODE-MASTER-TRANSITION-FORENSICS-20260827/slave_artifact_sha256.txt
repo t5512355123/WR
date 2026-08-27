@@ -1,0 +1,2 @@
+55b6b2f24613d1ddf28447909a8fd9b274b3c60d975cd4fac421a1b5932d60c8  build/firmware/slave/wrc.mif
+f8bbe3617110ce32d2d0148334638ce9168f266281cad6e5811097056735960f  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

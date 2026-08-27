@@ -1,0 +1,3 @@
+9422c28ef3b24df014f7970246abb5fe57097f41
+test: inject manual master command through JTAG VUART
+2026-08-27T12:21:41+08:00

@@ -1,0 +1,2 @@
+892fb85c5b1aba1bd6b2c68b4fb00ccf7a8663daa66e78360069cee6ebd84b3c  build/firmware/master/wrc.mif
+b22f7930f2da0eaa04204ed53b68d698dfc13da80f40f53088a7c6cc048c405a  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof

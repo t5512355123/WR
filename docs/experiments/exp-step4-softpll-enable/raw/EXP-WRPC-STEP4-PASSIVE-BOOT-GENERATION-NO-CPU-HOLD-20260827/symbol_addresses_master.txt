@@ -1,0 +1,11 @@
+                0x000000000001c3a4                build_init_readcmd_p
+                0x000000000002e000                debug_boot_stage
+.debug_precrt   0x000000000002e010       0x20
+ *(.debug_precrt)
+ .debug_precrt  0x000000000002e010       0x20 /tmp/wrc.elf.qY9r4t.ltrans1.ltrans.o
+                0x000000000002e010                debug_precrt_p_raw_at_reset_entry
+                0x000000000002e014                debug_precrt_p_raw_after_data_init
+                0x000000000002e018                debug_precrt_boot_magic
+                0x000000000002e01c                debug_precrt_boot_generation
+                0x000000000002e020                debug_precrt_p_at_entry_history
+                0x0000000000000001                ASSERT (((ADDR (.debug_precrt) + SIZEOF (.debug_precrt)) <= (ORIGIN (stack) - 0x1000)), debug_precrt must stay at least 4 KiB below the stack)

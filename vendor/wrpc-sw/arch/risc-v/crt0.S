@@ -12,8 +12,7 @@ _start:
 
 #ifdef CONFIG_INIT_COMMAND
     .extern build_init_readcmd_p
-    .extern debug_boot_entry_p
-    .extern debug_boot_entry_generation
+    .extern debug_boot_stage
     .extern debug_precrt_p_raw_at_reset_entry
     .extern debug_precrt_p_raw_after_data_init
     .extern debug_precrt_boot_magic
@@ -78,15 +77,19 @@ _entry:
     la     t0, debug_precrt_boot_generation
     sw     t1, 0(t0)
 2:
-    /* Mirror the pre-CRT entry values into fixed RAM words observed by the
-       read-only JTAG direct probe.  These stores happen before BSS/data init
-       and are not touched by main(). */
-    la     t0, debug_boot_entry_generation
-    sw     t1, 0(t0)
+    /* Mirror the pre-CRT entry values through the already-observed fixed
+       .debug_boot marker word.  The tag nibbles let the hardware probe
+       separate these snapshots from main()'s normal B000/B00x markers. */
+    la     t0, debug_boot_stage
+    li     t2, 0xE0000000
+    or     t2, t2, t1
+    sw     t2, 0(t0)
     la     t0, build_init_readcmd_p
     lw     t3, 0(t0)
-    la     t2, debug_boot_entry_p
-    sw     t3, 0(t2)
+    li     t2, 0xD0000000
+    or     t2, t2, t3
+    la     t0, debug_boot_stage
+    sw     t2, 0(t0)
 
     /* Record p at each entry in a four-sample ring. */
     addi   t1, t1, -1

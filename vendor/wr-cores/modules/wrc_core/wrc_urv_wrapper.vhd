@@ -476,10 +476,11 @@ begin
         if dm_addr = x"0002E000" then
           cpu_boot_stage_value <= dm_data_s;
           cpu_boot_stage_seen  <= '1';
-        elsif dm_addr = x"0002E004" then
-          cpu_entry_p <= dm_data_s;
-        elsif dm_addr = x"0002E008" then
-          cpu_entry_generation <= dm_data_s;
+          if dm_data_s(31 downto 28) = x"E" then
+            cpu_entry_generation <= x"0" & dm_data_s(27 downto 0);
+          elsif dm_data_s(31 downto 28) = x"D" then
+            cpu_entry_p <= x"0" & dm_data_s(27 downto 0);
+          end if;
         end if;
       end if;
     end if;

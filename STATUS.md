@@ -1,5 +1,42 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 WP0 parser offset prediction 實驗（2026-08-27，source/program commit `bf628b9`）
+
+本輪依分支 2 最新建議執行 WP0。唯一 functional variable 是 Master
+`CONFIG_INIT_COMMAND` 的順序；由原本
+`vlan off;ptp stop;mode master;ptp start` 改為
+`mode master;vlan off;ptp stop;ptp start`。沒有修改 Slave、RTL、MIF、RAM mode、
+`read_during_write_mode`、SoftPLL 參數、DMTD 除二拓撲或 PHY。使用既有
+`read_pre_main_raw_p_storage_diag.tcl` 做唯讀觀測。
+
+- Exact commit：`bf628b99f8827a8f7bbc8b7364b6170a83c8d082`。
+- Master/Slave firmware、Quartus 17 clean/full compile 均成功；兩台 DE5a 均成功
+  fresh-program，JTAG ID 均為 `0x02E660DD`，0 errors/0 warnings。
+- Master SOF checksum `0x30B1C0C2`，Slave SOF checksum `0x30B1E32B`；SOF SHA256
+  分別為 `766b1d5c8b4ee2c568cd8187329ed77dc30fb84af9517b79089a424a4a3d4496` 與
+  `13d698c18bdf38535317eb64f29767fc00f4f8917e6f6ef26071bdc33cadeff0`。
+- 新 build 的 `shell_init_cmd=0x00017938`、`build_init_readcmd_p` storage
+  `0x0001C304`。Master 四次讀取均為 `0x00017944`，所以 offset 均為 `+12`；
+  Slave 四次均為 `0x00017938`，offset 均為 `+0`。
+- 這是預測的 Case A：command reorder 使保存 pointer 從舊的 `+30` command boundary
+  移到新的 `+12` boundary。故 `PARSER_OFFSET_ORIGIN=PROVEN`，並關閉「此 observed
+  `build_init_readcmd_p` +offset anomaly 的 RAM/M20K 線」。
+- CPU restart/persistent `.data` mechanism 尚未由本輪單獨證明；整體 Step 4 仍不可標示
+  PASS，`ROOT_CAUSE=NOT_PROVEN`。
+- Master/Slave `TIMING_CLOSED=NO`，worst setup slack 分別 `-0.213/-0.239 ns`，
+  仍是 implementation caveat。
+
+```text
+WP0 = PASS
+RAM_LINE = CLOSED_FOR_OBSERVED_PARSER_OFFSET_ANOMALY
+PARSER_OFFSET_ORIGIN = PROVEN
+CPU_RESTART_PERSISTENCE = NOT_YET_PROVEN
+STEP4_RESULT = NOT_PASS
+ROOT_CAUSE = NOT_PROVEN
+```
+
+完整紀錄：`docs/experiments/exp-step4-softpll-enable/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827.md`
+
 ## 最新 fresh HEAD Step 2/3/4 回歸（2026-08-25，HEAD `841d709`，source `b040d1b`）
 
 本輪使用 `exp/step4-softpll-enable` 的 exact source HEAD

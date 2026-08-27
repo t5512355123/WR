@@ -1,0 +1,18 @@
+WP0 ELF symbol extraction (Quartus/pain, commit bf628b99f8827a8f7bbc8b7364b6170a83c8d082)
+
+MASTER
+00017938 r shell_init_cmd
+0001c304 D build_init_readcmd_p
+
+SLAVE
+00017938 r shell_init_cmd
+0001c304 D build_init_readcmd_p
+
+MASTER CONFIG_INIT_COMMAND
+mode master;vlan off;ptp stop;ptp start
+
+SLAVE CONFIG_INIT_COMMAND
+vlan off;ptp stop;mode slave;ptp start
+
+SCRIPT_LENGTH_MASTER=39 bytes (excluding NUL)
+SCRIPT_LENGTH_SLAVE=39 bytes (excluding NUL)

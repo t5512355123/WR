@@ -92,27 +92,27 @@ provenance、pointer 的真正 write/read 時間與 memory observation path。
 ## 執行後填寫項目
 
 ```text
-MODIFICATION_COMMIT =
-MASTER_MIF_SHA256 =
-SLAVE_MIF_SHA256 =
-MASTER_SOF_SHA256 =
-SLAVE_SOF_SHA256 =
-SHELL_INIT_CMD_ADDR =
-BUILD_INIT_READCMD_P_STORAGE_ADDR =
-P_RAW_AT_RESET_ENTRY =
-P_RAW_AFTER_DATA_INIT =
-P_OFFSET_AT_RESET_ENTRY =
-P_OFFSET_AFTER_DATA_INIT =
-REPEATED_RUN_CONSISTENCY =
-QUARTUS_VERSION =
-MASTER_PROGRAMMER_CHECKSUM =
-SLAVE_PROGRAMMER_CHECKSUM =
-TIMING_CLOSED =
-MASTER_WNS =
-MASTER_HNS =
-SLAVE_WNS =
-SLAVE_HNS =
-WP0_VERDICT =
+MODIFICATION_COMMIT = bf628b99f8827a8f7bbc8b7364b6170a83c8d082
+MASTER_MIF_SHA256 = 2d88eb25f8794669e9444c3b8f09f246bd2d6c3418c1eb6ef290b420e7c0c2d9
+SLAVE_MIF_SHA256 = 8b018b8f1dcb520877848d8dc6659e9337c6bb9f3a12a709f82b4fe4e88aadfb
+MASTER_SOF_SHA256 = 766b1d5c8b4ee2c568cd8187329ed77dc30fb84af9517b79089a424a4a3d4496
+SLAVE_SOF_SHA256 = 13d698c18bdf38535317eb64f29767fc00f4f8917e6f6ef26071bdc33cadeff0
+SHELL_INIT_CMD_ADDR = 0x00017938 (Master and Slave)
+BUILD_INIT_READCMD_P_STORAGE_ADDR = 0x0001C304 (Master and Slave)
+P_RAW_AT_RESET_ENTRY = Master 0x00017944; Slave 0x00017938
+P_RAW_AFTER_DATA_INIT = Master 0x00017944; Slave 0x00017938
+P_OFFSET_AT_RESET_ENTRY = Master +0x0000000C (+12); Slave +0x00000000 (+0)
+P_OFFSET_AFTER_DATA_INIT = Master +0x0000000C (+12); Slave +0x00000000 (+0)
+REPEATED_RUN_CONSISTENCY = Master 4/4 at +12; Slave 4/4 at +0
+QUARTUS_VERSION = 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+MASTER_PROGRAMMER_CHECKSUM = 0x30B1C0C2
+SLAVE_PROGRAMMER_CHECKSUM = 0x30B1E32B
+TIMING_CLOSED = NO (both)
+MASTER_WNS = -0.213 ns
+MASTER_HNS = +0.039 ns
+SLAVE_WNS = -0.239 ns
+SLAVE_HNS = +0.039 ns
+WP0_VERDICT = PASS — parser offset prediction matched
 ROOT_CAUSE = NOT_PROVEN
 ```
 
@@ -124,5 +124,66 @@ ROOT_CAUSE = NOT_PROVEN
 ```text
 docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/
 ```
+
+## 實際執行結果
+
+### Build / program
+
+本輪在 pain 以 exact commit `bf628b99f8827a8f7bbc8b7364b6170a83c8d082` 執行：
+
+- Master firmware 與 Slave firmware 均成功建置；Master staged config 確認為
+  `mode master;vlan off;ptp stop;ptp start`，Slave config 未變。
+- Master/Slave Quartus 17 clean/full compile 均成功，Fitter Status 均為 Successful。
+- Master SOF SHA256 為 `766b1d5c8b4ee2c568cd8187329ed77dc30fb84af9517b79089a424a4a3d4496`，
+  programmer checksum `0x30B1C0C2`。
+- Slave SOF SHA256 為 `13d698c18bdf38535317eb64f29767fc00f4f8917e6f6ef26071bdc33cadeff0`，
+  programmer checksum `0x30B1E32B`。
+- 兩台 DE5a 都回報 JTAG ID `0x02E660DD`、`Configuration succeeded`、0 errors/0 warnings。
+- 兩個 fit 都是 `TIMING_CLOSED=NO`；Master worst setup/hold `-0.213/+0.039 ns`，
+  Slave `-0.239/+0.039 ns`。這只列為 implementation caveat。
+
+### Pointer observation
+
+新 build 的 ELF symbol extraction 顯示兩個 image 都是：
+
+```text
+shell_init_cmd        = 0x00017938
+build_init_readcmd_p  = 0x0001C304
+```
+
+新 Master script 長度仍為 39 bytes；`mode master;` 長度為 12 bytes。四次
+fresh-program → CPU-hold → JTAG read 的 decoded CPU words 如下：
+
+| cycle | Master reset/after-data | Master offset | Slave reset/after-data | Slave offset |
+|---:|---|---:|---|---:|
+| 1 | `0x00017944 / 0x00017944` | `+12` | `0x00017938 / 0x00017938` | `+0` |
+| 2 | `0x00017944 / 0x00017944` | `+12` | `0x00017938 / 0x00017938` | `+0` |
+| 3 | `0x00017944 / 0x00017944` | `+12` | `0x00017938 / 0x00017938` | `+0` |
+| 4 | `0x00017944 / 0x00017944` | `+12` | `0x00017938 / 0x00017938` | `+0` |
+
+因此本輪為 Case A：
+
+```text
+PARSER_STATE_HYPOTHESIS = STRONGLY_CONFIRMED
+RAM_LINE = CLOSED for the observed build_init_readcmd_p +offset anomaly
+PARSER_OFFSET_ORIGIN = PROVEN
+CPU_RESTART_PERSISTENCE = NOT_YET_PROVEN
+ROOT_CAUSE = NOT_PROVEN
+```
+
+這個結果只證明 observed value follows parser command ordering；沒有把 CPU restart
+mechanism、IRQ storm、fault handler 或整體 Step 4 寫成已證明。依分支 2 最新指示，WP0 到此
+停止，不自行開始 WP1。
+
+## 原始證據索引
+
+- [measurement_summary.txt](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/measurement_summary.txt)
+- [symbol_addresses.txt](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/symbol_addresses.txt)
+- [read_1.log](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/read_1.log) 至 `read_4.log`
+- [program_master_2.log](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/program_master_2.log) 至 `program_master_4.log`
+- [program_slave_2.log](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/program_slave_2.log) 至 `program_slave_4.log`
+- [build_info_jtag_master.txt](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/build_info_jtag_master.txt)
+- [build_info_jtag_slave.txt](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/build_info_jtag_slave.txt)
+- [artifact_sha256.txt](raw/EXP-WRPC-STEP4-PARSER-OFFSET-PREDICTION-A-B-20260827/artifact_sha256.txt)
 
 WP0 完成後 STOP，等待分支 2 下一輪建議；不自行開始 WP1。

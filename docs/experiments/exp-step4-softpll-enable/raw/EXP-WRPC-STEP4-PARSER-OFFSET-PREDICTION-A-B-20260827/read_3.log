@@ -1,0 +1,36 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Thu Aug 27 09:27:46 2026
+    Info: System process ID: 2554570
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_pre_main_raw_p_storage_diag.tcl
+PRE_MAIN_RAW_P_STORAGE_CONFIG reset_byte=0x0002E010 after_data_byte=0x0002E014 expected_shell_init_cmd=FROM_CURRENT_ELF
+=== PRE_MAIN_RAW_P_STORAGE_BOARD DE5 [1-11.1] ===
+PRE_MAIN_RAW_P_STORAGE_SAMPLE board=DE5 [1-11.1] CPU_HOLD=00000000 P_RAW_AT_RESET_ENTRY=00017944 P_RAW_AFTER_DATA_INIT=00017944 EXPECTED_SHELL_INIT_CMD=FROM_CURRENT_ELF
+PRE_MAIN_RAW_P_STORAGE_READS board=DE5 [1-11.1] RESET_READS=44790100 / 44790100 AFTER_DATA_READS=00000001 / 44790100 CPU_RELEASE=00000001
+PRE_MAIN_RAW_P_STORAGE_CPU_WORDS board=DE5 [1-11.1] RESET_CPU_WORD=00017944 AFTER_DATA_CPU_WORD=00017944
+=== PRE_MAIN_RAW_P_STORAGE_BOARD DE5 [1-11.2] ===
+PRE_MAIN_RAW_P_STORAGE_SAMPLE board=DE5 [1-11.2] CPU_HOLD=00000000 P_RAW_AT_RESET_ENTRY=00017938 P_RAW_AFTER_DATA_INIT=00017938 EXPECTED_SHELL_INIT_CMD=FROM_CURRENT_ELF
+PRE_MAIN_RAW_P_STORAGE_READS board=DE5 [1-11.2] RESET_READS=38790100 / 38790100 AFTER_DATA_READS=38790100 / 38790100 CPU_RELEASE=00000001
+PRE_MAIN_RAW_P_STORAGE_CPU_WORDS board=DE5 [1-11.2] RESET_CPU_WORD=00017938 AFTER_DATA_CPU_WORD=00017938
+PRE_MAIN_RAW_P_STORAGE_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_pre_main_raw_p_storage_diag.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Thu Aug 27 09:27:47 2026
+    Info: Elapsed time: 00:00:01
+    Info: System process ID: 2554570

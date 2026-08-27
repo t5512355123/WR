@@ -1,0 +1,24 @@
+WP0 measurement summary
+Commit: bf628b99f8827a8f7bbc8b7364b6170a83c8d082
+Reader: scripts/jtag/read_pre_main_raw_p_storage_diag.tcl
+Provenance: each read followed fresh programming of both DE5 boards; CPU was held before host reads.
+
+Cycle 1 (read_1.log; initial fresh program)
+Master DE5 [1-11.1]: reset_entry=0x00017944, after_data_init=0x00017944, offset=+0x0000000C (+12)
+Slave  DE5 [1-11.2]: reset_entry=0x00017938, after_data_init=0x00017938, offset=+0x00000000 (+0)
+
+Cycle 2 (program_*_2.log then read_2.log)
+Master DE5 [1-11.1]: reset_entry=0x00017944, after_data_init=0x00017944, offset=+0x0000000C (+12)
+Slave  DE5 [1-11.2]: reset_entry=0x00017938, after_data_init=0x00017938, offset=+0x00000000 (+0)
+
+Cycle 3 (program_*_3.log then read_3.log)
+Master DE5 [1-11.1]: reset_entry=0x00017944, after_data_init=0x00017944, offset=+0x0000000C (+12)
+Slave  DE5 [1-11.2]: reset_entry=0x00017938, after_data_init=0x00017938, offset=+0x00000000 (+0)
+
+Cycle 4 (program_*_4.log then read_4.log)
+Master DE5 [1-11.1]: reset_entry=0x00017944, after_data_init=0x00017944, offset=+0x0000000C (+12)
+Slave  DE5 [1-11.2]: reset_entry=0x00017938, after_data_init=0x00017938, offset=+0x00000000 (+0)
+
+REPEATABILITY_MASTER=4/4 at +12
+REPEATABILITY_SLAVE=4/4 at +0
+All saved programmer logs report JTAG ID 0x02E660DD and configuration succeeded with 0 errors, 0 warnings.

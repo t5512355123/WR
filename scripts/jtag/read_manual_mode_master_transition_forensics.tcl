@@ -9,20 +9,27 @@
 #   0 not entered, 1 entered, 2 before spll_init, 3 after spll_init,
 #   4 before lock wait, 5 after lock-wait return.
 #
+# Optional fourth argument injects the single command through the JTAG
+# Wishbone virtual-UART HOST_TDR at the selected Master sample. This is a
+# test stimulus, not a WR/PHY/SoftPLL/reset write; the capture remains passive
+# before and after the one command injection.
+#
 # Usage:
 #   quartus_stp -t read_manual_mode_master_transition_forensics.tcl
-#       ?samples? ?gap_ms? ?poll_attempts?
+#       ?samples? ?gap_ms? ?poll_attempts? ?inject_sample?
 
 package require ::quartus::insystem_source_probe
 
 set samples 60
 set gap_ms 250
 set poll_attempts 25
+set inject_sample 0
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set poll_attempts [expr {int([lindex $argv 2])}] }
-if {$samples <= 0 || $gap_ms < 0 || $poll_attempts <= 0} {
-  error "samples must be > 0, gap_ms must be >= 0, poll_attempts must be > 0"
+if {[llength $argv] >= 4} { set inject_sample [expr {int([lindex $argv 3])}] }
+if {$samples <= 0 || $gap_ms < 0 || $poll_attempts <= 0 || $inject_sample < 0} {
+  error "samples > 0, gap_ms >= 0, poll_attempts > 0, inject_sample >= 0 required"
 }
 
 array set ::wb_toggle {}
@@ -78,6 +85,48 @@ proc wb_read {hardware_name addr} {
   return TIMEOUT
 }
 
+proc wb_write {hardware_name addr data} {
+  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
+  set toggle $::wb_toggle($hardware_name)
+  set cmd [expr {$toggle | (1 << 1) | (0xf << 2) |
+                (($addr & 0xffffffff) << 6) |
+                (($data & 0xffffffff) << 38)}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    return TIMEOUT
+  }
+  after 2
+  for {set n 0} {$n < $::poll_attempts} {incr n} {
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      set value TIMEOUT
+    }
+    if {[is_hex $value]} {
+      scan $value %x word
+      set done_toggle [expr {($word >> 35) & 1}]
+      set active [expr {($word >> 36) & 1}]
+      if {$done_toggle == $toggle && $active == 0} {
+        return [format %08X [expr {$word & 0xffffffff}]]
+      }
+    }
+    after 1
+  }
+  return TIMEOUT
+}
+
+proc inject_mode_master {hardware_name sample} {
+  set command "mode master\n"
+  set index 0
+  foreach character [split $command ""] {
+    scan $character %c byte
+    set result [wb_write $hardware_name 0x00100510 $byte]
+    puts [format "VUART_INJECT board=%s sample=%03d index=%02d BYTE=0x%02X WB_RESULT=%s" \
+      $hardware_name $sample $index $byte $result]
+    incr index
+  }
+  flush stdout
+}
+
 proc wb_sync_toggle {hardware_name} {
   set value [probe_read 1]
   if {[is_hex $value]} {
@@ -115,8 +164,8 @@ proc read_sample {hardware_name sample elapsed_ms} {
   flush stdout
 }
 
-puts [format "FORENSICS_CONFIG samples=%d gap_ms=%d poll_attempts=%d manual_command=mode_master_once read_only=1 cpu_hold_release=0 cpu_reset_write=0" \
-  $samples $gap_ms $poll_attempts]
+puts [format "FORENSICS_CONFIG samples=%d gap_ms=%d poll_attempts=%d manual_command=mode_master_once inject_sample=%d inject_via_jtag_vuart=%d read_only_before_after=1 cpu_hold_release=0 cpu_reset_write=0" \
+  $samples $gap_ms $poll_attempts $inject_sample [expr {$inject_sample > 0}]]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -131,6 +180,10 @@ foreach hardware_name [get_hardware_names] {
     for {set sample 1} {$sample <= $samples} {incr sample} {
       set elapsed [expr {[clock milliseconds] - $start_ms}]
       read_sample $hardware_name $sample $elapsed
+      if {$inject_sample > 0 && $sample == $inject_sample &&
+          [string first "1-11.1" $hardware_name] >= 0} {
+        inject_mode_master $hardware_name $sample
+      }
       if {$sample < $samples && $gap_ms > 0} { after $gap_ms }
     }
   } error_message]} {

@@ -80,37 +80,10 @@ trap_entry:
 	lw	t1,0(t1)
 	sw	t1,0(t0)
 
-	/* Publish the same record through the read-only WDIAGS mirror. The
-	 * RISC-V board map fixes WDIAGS private RAM at 0x100a00. */
-	lui	t0,0x101
-	addi	t0,t0,-1536
-	la	t1,debug_precrt_persistent_fault_count
-	lw	t1,0(t1)
-	sw	t1,0x1bc(t0)
-	sw	t2,0x1c0(t0)
-	sw	ra,0x1c4(t0)
-	sw	t3,0x1c8(t0)
-	lw	t1,4(sp)
-	sw	t1,0x1cc(t0)
-	addi	t1,sp,68
-	sw	t1,0x1d0(t0)
-	la	t1,debug_precrt_persistent_fault_boot_generation
-	lw	t1,0(t1)
-	sw	t1,0x1d4(t0)
-	la	t1,debug_precrt_persistent_fault_last_mode_master_stage
-	lw	t1,0(t1)
-	sw	t1,0x1d8(t0)
-	la	t1,debug_precrt_persistent_fault_last_spll_check_lock_stage
-	lw	t1,0(t1)
-	sw	t1,0x1dc(t0)
-
-	/* Commit the validity marker only after both copies are populated. */
+	/* Commit the validity marker only after the CPU-local record is populated. */
 	li	t1,0x4641554c
 	la	t0,debug_precrt_persistent_fault_magic
 	sw	t1,0(t0)
-	lui	t0,0x101
-	addi	t0,t0,-1536
-	sw	t1,0x1b8(t0)
 	j	fault_handler
 
 trap_irq:

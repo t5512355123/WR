@@ -66,9 +66,8 @@ entity wrc_periph is
     -- 0x154 is the firmware-side TRR FIFO pop counter; 0x158 is the
     -- sticky manual mode-master transition stage; 0x15c..0x16c are the
     -- lock-wait internal sub-stage and timing shadows.
-    -- Includes the private persistent command-dispatch evidence through 0x1b4
-    -- and the persistent trap/fault record through 0x1dc.
-    g_wdiags_num_words : integer := 120;
+    -- Includes the private persistent command-dispatch evidence through 0x1b4.
+    g_wdiags_num_words : integer := 110;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

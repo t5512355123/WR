@@ -61,11 +61,12 @@ entity wrc_periph is
     g_diag_ver        : integer := 0;
     g_diag_ro_size    : integer := 0;
     g_diag_rw_size    : integer := 0;
-    -- Extra read-only words at offsets 0x100..0x158 hold DE5a
+    -- Extra read-only words at offsets 0x100..0x16c hold DE5a
     -- SoftPLL correlation, mapping self-test and runtime-context diagnostics.
     -- 0x154 is the firmware-side TRR FIFO pop counter; 0x158 is the
-    -- sticky manual mode-master transition stage.
-    g_wdiags_num_words : integer := 88;
+    -- sticky manual mode-master transition stage; 0x15c..0x16c are the
+    -- lock-wait internal sub-stage and timing shadows.
+    g_wdiags_num_words : integer := 92;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

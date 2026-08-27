@@ -149,7 +149,23 @@ void wdiags_write_mode_master_stage(uint32_t stage)
 {
 	/* Direct sticky write: it must remain visible if the CPU wedges before
 	 * the periodic diagnostics task can publish another shadow. */
-	wdiag_write(0x158, stage);
+	wdiag_write(WRC_DIAGS_WDIAG_MODE_MASTER_STAGE, stage);
+}
+
+void wdiags_write_lock_wait_debug(uint32_t substage,
+					  uint32_t iteration_count,
+					  uint32_t start_tics,
+					  uint32_t current_tics,
+					  int32_t last_lock_result)
+{
+	/* These words are direct read-only shadows. They are written at each
+	 * boundary so a CPU wedge leaves the last completed boundary visible. */
+	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE, substage);
+	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION, iteration_count);
+	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_START_TICS, start_tics);
+	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_CURRENT_TICS, current_tics);
+	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT,
+			(uint32_t)last_lock_result);
 }
 
 static void wdiags_write_boot_startup(void)
@@ -517,6 +533,10 @@ int wdiags_init(void)
 		wdiag_write( i * 4, 0 );
 
 	wdiag_write( WRC_DIAGS_VER, WDIAGS_VERSION );
+	wdiags_write_mode_master_stage(
+		WRC_DIAGS_MODE_MASTER_STAGE_NOT_ENTERED);
+	wdiags_write_lock_wait_debug(
+		WRC_DIAGS_LOCK_WAIT_SUBSTAGE_NOT_ENTERED, 0, 0, 0, 0);
 	wdiags_write_boot_startup();
 
 	return 0;

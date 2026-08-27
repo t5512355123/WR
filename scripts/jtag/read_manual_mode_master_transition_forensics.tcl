@@ -8,6 +8,9 @@
 # Private WDIAGS 0x158 (CPU address 0x00100B58): sticky mode-master stage.
 #   0 not entered, 1 entered, 2 before spll_init, 3 after spll_init,
 #   4 before lock wait, 5 after lock-wait return.
+# Private WDIAGS 0x15c..0x16c (CPU addresses 0x00100B5C..0x00100B6C):
+#   lock-wait substage, iteration count, start tics, current tics,
+#   last spll_check_lock result.
 #
 # Optional fourth argument injects the single command through the JTAG
 # Wishbone virtual-UART HOST_TDR at the selected Master sample. This is a
@@ -173,11 +176,18 @@ proc read_sample {hardware_name sample elapsed_ms} {
   set helper_update [wb_read $hardware_name 0x00100B18]
   set ptp_rx [wb_read $hardware_name 0x00100A54]
   set ptp_tx [wb_read $hardware_name 0x00100A58]
+  set lock_wait_substage [wb_read $hardware_name 0x00100B5C]
+  set lock_wait_iteration [wb_read $hardware_name 0x00100B60]
+  set lock_wait_start_tics [wb_read $hardware_name 0x00100B64]
+  set lock_wait_current_tics [wb_read $hardware_name 0x00100B68]
+  set lock_wait_last_result [wb_read $hardware_name 0x00100B6C]
 
-  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
+  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
     $hardware_name $sample $elapsed_ms [display32 $status] [display64 $entry] \
     $boot_generation $p_at_entry \
-    [display32 $stage] [display32 $ptp] [display32 $ptp_meta] \
+    [display32 $stage] [display32 $lock_wait_substage] [display32 $lock_wait_iteration] \
+    [display32 $lock_wait_start_tics] [display32 $lock_wait_current_tics] \
+    [display32 $lock_wait_last_result] [display32 $ptp] [display32 $ptp_meta] \
     [display32 $spll_state] [display32 $lock_enable] [display32 $eic_isr] \
     [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] \
     [display32 $irq_count] [display32 $helper_update] [display32 $ptp_rx] \

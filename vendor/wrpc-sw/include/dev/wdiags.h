@@ -33,6 +33,21 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 #define WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_LOCK_WAIT 4
 #define WRC_DIAGS_MODE_MASTER_STAGE_AFTER_LOCK_WAIT 5
 void wdiags_write_mode_master_stage(uint32_t stage);
+/* Read-only sticky sub-stage and timing shadow for lock-wait forensics. */
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_NOT_ENTERED 0
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_ENTERED 1
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_LOCK_CHECK 2
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_BEFORE_SPLL_UPDATE 3
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_SPLL_UPDATE 4
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_BEFORE_TIMER_DELAY 5
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_TIMER_DELAY 6
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_TIMEOUT_CHECK 7
+#define WRC_DIAGS_LOCK_WAIT_SUBSTAGE_RETURN 8
+void wdiags_write_lock_wait_debug(uint32_t substage,
+                                   uint32_t iteration_count,
+                                   uint32_t start_tics,
+                                   uint32_t current_tics,
+                                   int32_t last_lock_result);
 /* Read-only static-p startup-lifetime checkpoints. */
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1

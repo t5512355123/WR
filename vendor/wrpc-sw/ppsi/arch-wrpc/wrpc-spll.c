@@ -15,6 +15,7 @@
 
 #include "../include/hw-specific/wrh.h"
 #include "wrpc.h"
+#include "dev/wdiags.h"
 
 int wrpc_spll_locking_enable(struct pp_instance *ppi)
 {
@@ -62,20 +63,65 @@ int wrpc_spll_locking_poll(struct pp_instance *ppi)
 int wrpc_spll_check_lock_with_timeout(int lock_timeout)
 {
 	uint32_t start_tics;
+	uint32_t current_tics = 0;
+	uint32_t iteration_count = 0;
+	int last_lock_result = 0;
+
 	start_tics = timer_get_tics();
+	current_tics = start_tics;
+	wdiags_write_lock_wait_debug(
+		WRC_DIAGS_LOCK_WAIT_SUBSTAGE_ENTERED,
+		iteration_count, start_tics, current_tics, last_lock_result);
 
 	pp_printf("Locking PLL");
 
-	while (!spll_check_lock(0) && lock_timeout) {
+	while (1) {
+		/* Preserve the original short-circuit behavior: with a zero timeout,
+		 * do not call spll_check_lock(). */
+		if (!lock_timeout)
+			break;
+
+		last_lock_result = spll_check_lock(0);
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_LOCK_CHECK,
+			iteration_count, start_tics, current_tics, last_lock_result);
+		if (last_lock_result)
+			break;
+
+		iteration_count++;
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_BEFORE_SPLL_UPDATE,
+			iteration_count, start_tics, current_tics, last_lock_result);
 		spll_update();
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_SPLL_UPDATE,
+			iteration_count, start_tics, current_tics, last_lock_result);
+
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_BEFORE_TIMER_DELAY,
+			iteration_count, start_tics, current_tics, last_lock_result);
 		timer_delay(TICS_PER_SECOND);
-		if (timer_get_tics() - start_tics > lock_timeout) {
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_TIMER_DELAY,
+			iteration_count, start_tics, current_tics, last_lock_result);
+
+		current_tics = timer_get_tics();
+		wdiags_write_lock_wait_debug(
+			WRC_DIAGS_LOCK_WAIT_SUBSTAGE_AFTER_TIMEOUT_CHECK,
+			iteration_count, start_tics, current_tics, last_lock_result);
+		if (current_tics - start_tics > lock_timeout) {
 			pp_printf("\nLock timeout.");
+			wdiags_write_lock_wait_debug(
+				WRC_DIAGS_LOCK_WAIT_SUBSTAGE_RETURN,
+				iteration_count, start_tics, current_tics, last_lock_result);
 			return -ETIMEDOUT;
 		}
 		pp_printf(".");
 	}
 	pp_printf("\n");
+	wdiags_write_lock_wait_debug(
+		WRC_DIAGS_LOCK_WAIT_SUBSTAGE_RETURN,
+		iteration_count, start_tics, current_tics, last_lock_result);
 	return 0;
 }
 

@@ -67,6 +67,15 @@
 #define WRC_DIAGS_PFILTER_RETURN (1UL << 11)
 #define WRC_DIAGS_VLAN_CMD_RETURN (1UL << 12)
 
+/* Private read-only lock-wait forensics words. These are firmware shadows
+ * outside the generated standard map and never feed back into WR control. */
+#define WRC_DIAGS_WDIAG_MODE_MASTER_STAGE 0x158UL
+#define WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE 0x15cUL
+#define WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION 0x160UL
+#define WRC_DIAGS_WDIAG_LOCK_WAIT_START_TICS 0x164UL
+#define WRC_DIAGS_WDIAG_LOCK_WAIT_CURRENT_TICS 0x168UL
+#define WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT 0x16cUL
+
 /* WRPC Diag: AUX state */
 #define WRC_DIAGS_WDIAG_ASTAT 0x14UL
 #define WRC_DIAGS_WDIAG_ASTAT_AUX_MASK 0xffUL

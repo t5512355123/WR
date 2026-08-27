@@ -1,0 +1,4 @@
+MAP_FILE=NOT_EMITTED_BY_BUILD_ARTIFACTS
+SYMBOL_EVIDENCE=symbol_table.txt
+SECTION_EVIDENCE=section_headers.txt
+DISASSEMBLY_EVIDENCE=master_wrc.elf.full.disasm.txt

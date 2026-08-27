@@ -1,0 +1,3 @@
+258c614d321bbdec5348b54e0b2377cd19f13514512d5574a924050ebc6b0118  build/firmware/master/wrc.elf
+c675d6046246d610bdc88a95b134eb7392316880ba58b1a624eba103f508d012  build/firmware/master/wrc.mif
+c8bb92cdc531bc0e33fd152168c023f0befdfb536636180c6fea5becd8bfc8e9  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof

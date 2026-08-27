@@ -1,0 +1,31 @@
+
+build/firmware/master/wrc.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+000043a4 <spll_check_lock.part.0>:
+    43a4:	ff010113          	addi	sp,sp,-16
+    43a8:	00000593          	li	a1,0
+    43ac:	00100513          	li	a0,1
+    43b0:	00112623          	sw	ra,12(sp)
+    43b4:	00812423          	sw	s0,8(sp)
+    43b8:	f79ff0ef          	jal	ra,4330 <wdiags_write_spll_check_lock_debug.constprop.0>
+    43bc:	00000593          	li	a1,0
+    43c0:	00200513          	li	a0,2
+    43c4:	f6dff0ef          	jal	ra,4330 <wdiags_write_spll_check_lock_debug.constprop.0>
+    43c8:	0001d7b7          	lui	a5,0x1d
+    43cc:	c5878793          	addi	a5,a5,-936 # 1cc58 <wrc_sdbfs>
+    43d0:	0bc7a403          	lw	s0,188(a5)
+    43d4:	00300513          	li	a0,3
+    43d8:	00040593          	mv	a1,s0
+    43dc:	f55ff0ef          	jal	ra,4330 <wdiags_write_spll_check_lock_debug.constprop.0>
+    43e0:	00040593          	mv	a1,s0
+    43e4:	00400513          	li	a0,4
+    43e8:	f49ff0ef          	jal	ra,4330 <wdiags_write_spll_check_lock_debug.constprop.0>
+    43ec:	00c12083          	lw	ra,12(sp)
+    43f0:	ff840513          	addi	a0,s0,-8
+    43f4:	00812403          	lw	s0,8(sp)
+    43f8:	00153513          	seqz	a0,a0
+    43fc:	01010113          	addi	sp,sp,16
+    4400:	00008067          	ret

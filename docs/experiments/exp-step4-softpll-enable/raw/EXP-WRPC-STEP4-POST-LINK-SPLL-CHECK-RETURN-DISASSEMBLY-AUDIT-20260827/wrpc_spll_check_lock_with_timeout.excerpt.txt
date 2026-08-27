@@ -1,0 +1,135 @@
+
+build/firmware/master/wrc.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+0000dfb4 <wrpc_spll_check_lock_with_timeout>:
+    dfb4:	fc010113          	addi	sp,sp,-64
+    dfb8:	001007b7          	lui	a5,0x100
+    dfbc:	02812c23          	sw	s0,56(sp)
+    dfc0:	41c7a403          	lw	s0,1052(a5) # 10041c <_fstack+0xd041c>
+    dfc4:	03412423          	sw	s4,40(sp)
+    dfc8:	00000713          	li	a4,0
+    dfcc:	00040693          	mv	a3,s0
+    dfd0:	00040613          	mv	a2,s0
+    dfd4:	00000593          	li	a1,0
+    dfd8:	00050a13          	mv	s4,a0
+    dfdc:	00100513          	li	a0,1
+    dfe0:	02112e23          	sw	ra,60(sp)
+    dfe4:	02912a23          	sw	s1,52(sp)
+    dfe8:	03212823          	sw	s2,48(sp)
+    dfec:	03512223          	sw	s5,36(sp)
+    dff0:	03612023          	sw	s6,32(sp)
+    dff4:	01712e23          	sw	s7,28(sp)
+    dff8:	01812c23          	sw	s8,24(sp)
+    dffc:	01912a23          	sw	s9,20(sp)
+    e000:	01a12823          	sw	s10,16(sp)
+    e004:	01b12623          	sw	s11,12(sp)
+    e008:	03312623          	sw	s3,44(sp)
+    e00c:	904f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e010:	0001b537          	lui	a0,0x1b
+    e014:	f4c50513          	addi	a0,a0,-180 # 1af4c <__clz_tab+0x1a78>
+    e018:	f2cf80ef          	jal	ra,6744 <pp_printf>
+    e01c:	00040913          	mv	s2,s0
+    e020:	00000493          	li	s1,0
+    e024:	0002eab7          	lui	s5,0x2e
+    e028:	00400b93          	li	s7,4
+    e02c:	00500c13          	li	s8,5
+    e030:	0002ecb7          	lui	s9,0x2e
+    e034:	0002ed37          	lui	s10,0x2e
+    e038:	0002edb7          	lui	s11,0x2e
+    e03c:	0001bb37          	lui	s6,0x1b
+    e040:	b64f60ef          	jal	ra,43a4 <spll_check_lock.part.0>
+    e044:	050aa783          	lw	a5,80(s5) # 2e050 <debug_precrt_persistent_spll_check_lock_stage>
+    e048:	00050993          	mv	s3,a0
+    e04c:	01779c63          	bne	a5,s7,e064 <wrpc_spll_check_lock_with_timeout+0xb0>
+    e050:	058aa823          	sw	s8,80(s5)
+    e054:	040caa23          	sw	zero,84(s9) # 2e054 <debug_precrt_persistent_spll_check_lock_channel>
+    e058:	01cd2783          	lw	a5,28(s10) # 2e01c <debug_precrt_boot_generation>
+    e05c:	04fdae23          	sw	a5,92(s11) # 2e05c <debug_precrt_persistent_spll_check_lock_boot_generation>
+    e060:	9a0f60ef          	jal	ra,4200 <wdiags_publish_persistent_record.lto_priv.0>
+    e064:	00098713          	mv	a4,s3
+    e068:	00090693          	mv	a3,s2
+    e06c:	00040613          	mv	a2,s0
+    e070:	00048593          	mv	a1,s1
+    e074:	00200513          	li	a0,2
+    e078:	898f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e07c:	10099663          	bnez	s3,e188 <wrpc_spll_check_lock_with_timeout+0x1d4>
+    e080:	00148493          	addi	s1,s1,1
+    e084:	00090693          	mv	a3,s2
+    e088:	00000713          	li	a4,0
+    e08c:	00040613          	mv	a2,s0
+    e090:	00048593          	mv	a1,s1
+    e094:	00300513          	li	a0,3
+    e098:	878f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e09c:	f21f40ef          	jal	ra,2fbc <spll_update>
+    e0a0:	00090693          	mv	a3,s2
+    e0a4:	00000713          	li	a4,0
+    e0a8:	00040613          	mv	a2,s0
+    e0ac:	00048593          	mv	a1,s1
+    e0b0:	00400513          	li	a0,4
+    e0b4:	85cf70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e0b8:	00090693          	mv	a3,s2
+    e0bc:	00000713          	li	a4,0
+    e0c0:	00040613          	mv	a2,s0
+    e0c4:	00048593          	mv	a1,s1
+    e0c8:	00500513          	li	a0,5
+    e0cc:	844f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e0d0:	3e800513          	li	a0,1000
+    e0d4:	dd5f70ef          	jal	ra,5ea8 <timer_delay>
+    e0d8:	00090693          	mv	a3,s2
+    e0dc:	00000713          	li	a4,0
+    e0e0:	00040613          	mv	a2,s0
+    e0e4:	00048593          	mv	a1,s1
+    e0e8:	00600513          	li	a0,6
+    e0ec:	824f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e0f0:	001007b7          	lui	a5,0x100
+    e0f4:	41c7a903          	lw	s2,1052(a5) # 10041c <_fstack+0xd041c>
+    e0f8:	00000713          	li	a4,0
+    e0fc:	00040613          	mv	a2,s0
+    e100:	00090693          	mv	a3,s2
+    e104:	00048593          	mv	a1,s1
+    e108:	00700513          	li	a0,7
+    e10c:	804f70ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e110:	408907b3          	sub	a5,s2,s0
+    e114:	06fa7463          	bgeu	s4,a5,e17c <wrpc_spll_check_lock_with_timeout+0x1c8>
+    e118:	0001b537          	lui	a0,0x1b
+    e11c:	f5850513          	addi	a0,a0,-168 # 1af58 <__clz_tab+0x1a84>
+    e120:	e24f80ef          	jal	ra,6744 <pp_printf>
+    e124:	00800513          	li	a0,8
+    e128:	00000713          	li	a4,0
+    e12c:	00090693          	mv	a3,s2
+    e130:	00040613          	mv	a2,s0
+    e134:	00048593          	mv	a1,s1
+    e138:	fd9f60ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e13c:	f8c00513          	li	a0,-116
+    e140:	03c12083          	lw	ra,60(sp)
+    e144:	03812403          	lw	s0,56(sp)
+    e148:	03412483          	lw	s1,52(sp)
+    e14c:	03012903          	lw	s2,48(sp)
+    e150:	02c12983          	lw	s3,44(sp)
+    e154:	02812a03          	lw	s4,40(sp)
+    e158:	02412a83          	lw	s5,36(sp)
+    e15c:	02012b03          	lw	s6,32(sp)
+    e160:	01c12b83          	lw	s7,28(sp)
+    e164:	01812c03          	lw	s8,24(sp)
+    e168:	01412c83          	lw	s9,20(sp)
+    e16c:	01012d03          	lw	s10,16(sp)
+    e170:	00c12d83          	lw	s11,12(sp)
+    e174:	04010113          	addi	sp,sp,64
+    e178:	00008067          	ret
+    e17c:	f68b0513          	addi	a0,s6,-152 # 1af68 <__clz_tab+0x1a94>
+    e180:	dc4f80ef          	jal	ra,6744 <pp_printf>
+    e184:	ebdff06f          	j	e040 <wrpc_spll_check_lock_with_timeout+0x8c>
+    e188:	0001a537          	lui	a0,0x1a
+    e18c:	1e450513          	addi	a0,a0,484 # 1a1e4 <__clz_tab+0xd10>
+    e190:	db4f80ef          	jal	ra,6744 <pp_printf>
+    e194:	00800513          	li	a0,8
+    e198:	00098713          	mv	a4,s3
+    e19c:	00090693          	mv	a3,s2
+    e1a0:	00040613          	mv	a2,s0
+    e1a4:	00048593          	mv	a1,s1
+    e1a8:	f69f60ef          	jal	ra,5110 <wdiags_write_lock_wait_debug>
+    e1ac:	00000513          	li	a0,0
+    e1b0:	f91ff06f          	j	e140 <wrpc_spll_check_lock_with_timeout+0x18c>

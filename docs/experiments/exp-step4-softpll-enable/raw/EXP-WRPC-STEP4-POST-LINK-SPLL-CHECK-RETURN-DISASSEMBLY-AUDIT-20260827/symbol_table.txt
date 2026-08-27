@@ -1,0 +1,834 @@
+
+build/firmware/master/wrc.elf:     file format elf32-littleriscv
+
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00017f18 l    d  .rodata	00000000 .rodata
+0001c768 l    d  .srodata	00000000 .srodata
+0001c960 l    d  .data	00000000 .data
+0001ca38 l    d  .sdata	00000000 .sdata
+0001ca64 l    d  .sbss	00000000 .sbss
+0001cc58 l    d  .bss	00000000 .bss
+0002e000 l    d  .debug_boot	00000000 .debug_boot
+0002e010 l    d  .debug_precrt	00000000 .debug_precrt
+00000000 l    d  .comment	00000000 .comment
+00000000 l    d  .riscv.attributes	00000000 .riscv.attributes
+00000000 l    d  .debug_info	00000000 .debug_info
+00000000 l    d  .debug_abbrev	00000000 .debug_abbrev
+00000000 l    d  .debug_loc	00000000 .debug_loc
+00000000 l    d  .debug_aranges	00000000 .debug_aranges
+00000000 l    d  .debug_line	00000000 .debug_line
+00000000 l    d  .debug_str	00000000 .debug_str
+00000000 l    d  .debug_frame	00000000 .debug_frame
+00000000 l    d  .debug_ranges	00000000 .debug_ranges
+00000000 l    df *ABS*	00000000 arch/risc-v/crt0.o
+0000002c l       .text	00000000 _entry
+00000008 l       .text	00000000 _exception_entry
+00000010 l       .text	00000000 wrpc_mark
+00000018 l       .text	00000000 wrc_global_addr
+0000001c l       .text	00000000 ppg_static_addr
+00000028 l       .text	00000000 version_wrpc
+00000029 l       .text	00000000 version_ppsi
+00000000 l    df *ABS*	00000000 
+0000012c l     F .text	00000038 strncmp.constprop.0
+00000164 l     F .text	00000050 sdbfs_fwrite.constprop.0
+000001b4 l     F .text	00000050 sdbfs_fread.constprop.0
+00000204 l     F .text	00000078 build_init_readcmd.constprop.0
+0000027c l     F .text	00000044 sdbfs_ferase.constprop.0
+000002c0 l     F .text	00000060 spll_read_ptracker.constprop.0
+00000320 l     F .text	00000088 storage_sdbfs_erase.constprop.0
+000003a8 l     F .text	00000028 set_channel_status.part.0
+000003d0 l     F .text	00000078 spll_get_aux_status
+0001c878 l     O .srodata	00000005 CSWTCH.91
+00000448 l     F .text	00000068 wrpc_spll_note_state
+0001cb98 l     O .sbss	00000004 wrpc_spll_clear_dacs_entry_count
+0001cb94 l     O .sbss	00000004 wrpc_spll_last_clear_dacs_tics
+000004b0 l     F .text	000000f0 ptrackers_update
+0001ca50 l     O .sdata	00000004 tag_ref
+000005a0 l     F .text	000000f8 mpll_init
+00000698 l     F .text	00000064 external_locked
+000006fc l     F .text	00000070 spll_enable_tagger
+0000076c l     F .text	00000044 ptracker_start
+000007b0 l     F .text	00000080 start_ptrackers.constprop.0
+00000830 l     F .text	0000011c mpll_start
+0000094c l     F .text	00000060 helper_start
+000009ac l     F .text	00000088 ld_update
+00000a34 l     F .text	0000010c pi_update
+00000b40 l     F .text	00000490 mpll_update.part.0
+00000fd0 l     F .text	00000018 bb_i2c_delay
+00000fe8 l     F .text	0000001c gen_gpio_in
+00001004 l     F .text	00000078 lookup_transition
+0000112c l     F .text	0000002c lldp_header_tlv
+0001cb3e l     O .sbss	00000002 lldpdu_len
+00001158 l     F .text	00000074 snmp_fix_size
+000011cc l     F .text	000000a0 snmp_prepare_error
+0000126c l     F .text	00000048 wrap_copy_out
+000012b4 l     F .text	0000008c wrap_copy_in
+00001340 l     F .text	00000038 wrc_task_not_yet
+00001378 l     F .text	00000060 strcasecmp
+000013d8 l     F .text	000000c0 decode_mac
+00001498 l     F .text	0000005c fromdec
+000014f4 l     F .text	00000020 atoi
+000015a0 l     F .text	00000024 set_channel_status.constprop.0
+000015c4 l     F .text	00000064 ipv4_checksum
+00001628 l     F .text	00000200 fill_udp
+00001828 l     F .text	0000006c setIP
+0001cb20 l     O .sbss	00000002 bootp_retry
+00001894 l     F .text	00000010 getIP
+000018a4 l     F .text	00000008 copy_eth_addr
+000018ac l     F .text	000001f0 func_table
+00001a9c l     F .text	00000188 func_group
+00001c24 l     F .text	00000110 sdbfs_scan.constprop.0
+00001d34 l     F .text	000000b0 sdbfs_open_id.constprop.0
+00001de4 l     F .text	00000064 storage_init_erase
+00001e48 l     F .text	00000064 storage_sfpdb_erase
+00001eac l     F .text	00000078 from_picos
+00001f24 l     F .text	00000174 storage_init_add
+00002098 l     F .text	00000794 pp_vsprintf
+0001cbe4 l     O .sbss	00000001 spll_ljd_present
+0001cbe0 l     O .sbss	00000004 timeout.1612
+0001cbdc l     O .sbss	00000004 wrpc_spll_init_count
+0001cbd8 l     O .sbss	00000004 wrpc_spll_last_init_tics
+0001cbd4 l     O .sbss	00000004 wrpc_spll_helper_last_tag
+0001cbd0 l     O .sbss	00000004 wrpc_spll_helper_expected_tag
+0001cbcc l     O .sbss	00000004 wrpc_spll_helper_preclamp_error
+0001cbc8 l     O .sbss	00000004 wrpc_spll_helper_tag_delta
+0001cbc4 l     O .sbss	00000004 wrpc_spll_helper_tag_source
+0001cbc0 l     O .sbss	00000004 wrpc_spll_helper_expected_delta
+0001cbbc l     O .sbss	00000004 wrpc_spll_helper_update_count
+0001cbb8 l     O .sbss	00000004 wrpc_spll_helper_p_adder
+0001cbb4 l     O .sbss	00000004 wrpc_spll_helper_tag_d0
+0001cbb0 l     O .sbss	00000004 wrpc_spll_helper_p_setpoint
+0001cbac l     O .sbss	00000004 wrpc_spll_helper_ref_src
+00003e54 l     F .text	0000000c wdiags_write_wr_state_debug
+00003e60 l     F .text	0000006c wdiags_write_vlan_pfilter_progress
+0001cb90 l     O .sbss	00000004 wdiags_mapping_counter_shadow
+0001cbec l     O .sbss	00000002 wdiags_vlan_pfilter_progress_shadow
+0001cb8c l     O .sbss	00000004 wdiags_port_state_shadow
+0001cb84 l     O .sbss	00000004 wdiags_aux_state_shadow
+000041c4 l     F .text	0000003c wdiag_set_valid
+0001cafc l     O .sbss	00000004 last_update_tick.3997
+0001caac l     O .sbss	00000004 wdiags_ptp_state_shadow
+0001caa8 l     O .sbss	00000004 wdiags_boot_init_debug_shadow
+0001cab0 l     O .sbss	00000004 mapping_self_test_counter.3998
+00004fa0 l     F .text	00000074 shell_boot_init_diag_publish
+0001ca80 l     O .sbss	00000004 shell_boot_init_script_enter_count
+0001ca7c l     O .sbss	00000004 shell_boot_init_command_index
+0001ca90 l     O .sbss	00000004 shell_boot_init_mode_master_call_count
+0001ca8c l     O .sbss	00000004 shell_boot_init_mode_master_return_count
+000055f0 l     F .text	0000005c bb_i2c_stop.constprop.0
+0001c850 l     O .srodata	00000008 pin_sysc_sfp1_sda
+0001c858 l     O .srodata	00000008 pin_sysc_sfp1_scl
+0000564c l     F .text	00000114 bb_i2c_get_byte.constprop.0
+00005760 l     F .text	000000f8 bb_i2c_put_byte.constprop.0
+00005858 l     F .text	00000040 bb_i2c_start.constprop.0
+00005b30 l     F .text	0000009c spi_flash_write_addr
+0001cb74 l     O .sbss	00000004 cal_cur_phase
+0001cb6c l     O .sbss	00000008 det_rising
+0001cb64 l     O .sbss	00000008 det_falling
+00005f40 l     F .text	00000118 format_time
+00006058 l     F .text	00000040 format_ip
+00006098 l     F .text	00000100 set_value
+00006198 l     F .text	00000060 set_ptp_restart
+000061f8 l     F .text	00000010 set_p
+00006208 l     F .text	00000124 get_value
+0001cb34 l     O .sbss	00000001 snmp_version
+0000632c l     F .text	00000054 get_sfp_pn_curr
+00006380 l     F .text	00000014 get_p
+00006394 l     F .text	00000018 get_pp
+000063ac l     F .text	000000a4 get_time
+00006450 l     F .text	00000064 get_port
+000064b4 l     F .text	00000234 get_servo
+00006780 l     F .text	000000d8 pp_fsm_printf.constprop.0
+00006934 l     F .text	00000258 storage_sdbfs_format.constprop.0
+00006b8c l     F .text	000000a8 set_sdb
+0001ca4c l     O .sdata	00000004 sdb_base_addr
+0001ca48 l     O .sdata	00000004 sdb_mem_type
+0001ca44 l     O .sdata	00000004 sdb_param
+00006c34 l     F .text	00000330 sfp_entry
+0001cb78 l     O .sbss	00000004 sfpcount.2037
+00006f64 l     F .text	00000094 storage_match_sfp
+00006ff8 l     F .text	000001bc storage_get_sfp
+000071b4 l     F .text	00000108 get_sfp
+00007490 l     F .text	000000b4 measure_t24p
+0001c86c l     O .srodata	00000008 pin_sysc_sfp1_det
+00007784 l     F .text	000000ec diag_read_word
+0001cb60 l     O .sbss	00000004 diag_rw_words
+0001cb5c l     O .sbss	00000004 diag_ro_words
+00007870 l     F .text	000003b4 lldp_update
+00007c24 l     F .text	000000b0 set_init_script_config
+00007cd4 l     F .text	0000016c set_ptp_config
+0001cb08 l     O .sbss	00000004 wrc_stats_last
+0001cb04 l     O .sbss	00000004 last_update_tick.3946
+0001cb00 l     O .sbss	00000004 wrc_stat_running
+0000a308 l     F .text	00000c38 wrc_mon_gui
+0001c864 l     O .srodata	00000008 is_run
+0001ca84 l     O .sbss	00000004 n_cmds
+00009184 l     F .text	000000bc sub_cmd
+0000a1d8 l     F .text	00000058 pprintf
+0000a230 l     F .text	00000074 pcprintf
+0000a2a4 l     F .text	00000064 cprintf
+0001ca40 l     O .sdata	00000001 gui_description
+0001ca78 l     O .sbss	00000004 last_servo_count.4428
+0001c860 l     O .srodata	00000003 CSWTCH.70
+0001cb54 l     O .sbss	00000004 lldp_next_run_ticks.4054
+0001cb4c l     O .sbss	00000006 old_mac.4058
+0001cb48 l     O .sbss	00000002 old_vlan.4059
+0001cb44 l     O .sbss	00000004 old_ipWR.4056
+0001cb40 l     O .sbss	00000004 lldp_socket
+0001cb38 l     O .sbss	00000004 snmp_socket
+0001cb24 l     O .sbss	00000004 arp_socket
+0000ba1c l     F .text	00000268 bootp_poll
+0001cb14 l     O .sbss	00000004 bootp_socket
+0001cb10 l     O .sbss	00000004 bootp_tics
+0001cb18 l     O .sbss	00000004 icmp_socket
+0001cb1c l     O .sbss	00000004 rdate_socket
+0000c4e8 l     F .text	000000fc set_shell_cmd
+0001cb30 l     O .sbss	00000004 shell_cmd_magic
+0001cb2c l     O .sbss	00000004 shell_cmd_return_code
+0001e3d0 l     O .bss	00000024 defaultDS
+0001e3b8 l     O .bss	00000018 currentDS
+0001e398 l     O .bss	00000020 parentDS
+0001e38c l     O .bss	0000000a timePropertiesDS
+0001ca38 l     O .sdata	00000008 wrpc_arch_data
+0001d678 l     O .bss	00000060 sfp_header
+0001cc58 l     O .bss	00000060 wrc_sdbfs
+0001d0c4 l     O .bss	0000009e lldpdu
+0001d170 l     O .bss	0000006c cal_data
+0001d558 l     O .bss	00000020 buf.1222
+0001d578 l     O .bss	00000100 print_buf
+0001d6d8 l     O .bss	00000020 init_script_line
+0001d6f8 l     O .bss	00000021 snmp_ptp_config
+0001d71c l     O .bss	000001e0 buffer.4058
+0001d8fc l     O .bss	0000000e hdr.4054
+0001dcfc l     O .bss	000000a0 cmds
+0001dd9c l     O .bss	00000012 addr
+0001ddb0 l     O .bss	00000024 lldp_socket_sockbuf
+0001ddd4 l     O .bss	00000124 snmp_socket_sockbuf
+0001def8 l     O .bss	000000a4 arp_socket_sockbuf
+0001df9c l     O .bss	00000224 bootp_socket_sockbuf
+0001e1c0 l     O .bss	00000084 rdate_socket_sockbuf
+0001e244 l     O .bss	000000a4 icmp_socket_sockbuf
+0001e2e8 l     O .bss	00000051 shell_cmd_line
+0001e33c l     O .bss	00000040 empty_frn_master.3034
+00018098 l     O .rodata	00000012 shell_init_cmd
+000180ac l     O .rodata	00000040 adj_tab.1465
+000180ec l     O .rodata	0000001c match_array
+00018108 l     O .rodata	00000010 digits.1465
+00018118 l     O .rodata	00000032 defaultDeviceAttributes
+0001814c l     O .rodata	0000009b pfilter_rules_novlan
+000181e8 l     O .rodata	0000008c pfilter_rules_vlan
+00018274 l     O .rodata	00000018 _ytab
+0001828c l     O .rodata	00000030 _months
+000182bc l     O .rodata	0000001c _days
+000182d8 l     O .rodata	00000140 sdbfs_default_bin
+00018420 l     O .rodata	00000060 build_id
+00018480 l     O .rodata	00000058 pp_state_table
+000184d8 l     O .rodata	0000000e __func__.2917
+000184e8 l     O .rodata	00000060 subcmd
+00018548 l     O .rodata	00000014 is_mode
+0001855c l     O .rodata	0000000c is_mech
+00018568 l     O .rodata	00000014 ptrack_cmds
+0001857c l     O .rodata	00000010 sdb_cmds
+0001858c l     O .rodata	00000010 time_cmds
+0001859c l     O .rodata	0000000c calib_cmds
+000185a8 l     O .rodata	00000028 pll_menu
+000185d0 l     O .rodata	0000000a nargs
+000185dc l     O .rodata	0000002c seq_states
+00018608 l     O .rodata	00000014 sfp_cmds
+0001861c l     O .rodata	00000010 mac_cmds
+0001862c l     O .rodata	00000010 proto_ext_info
+0001863c l     O .rodata	00000014 timing_mode_state
+00018650 l     O .rodata	0000002c pp_instance_state_to_name
+0001867c l     O .rodata	00000028 wr_instance_extension_state
+000186a4 l     O .rodata	00000014 prot_detection_state_name
+000186b8 l     O .rodata	000000b0 oid_limb_array
+00018dc4 l     O .rodata	00000009 oid_wrpcVersionGroup
+00018d60 l     O .rodata	00000064 oid_array_wrpcVersionGroup
+00018d54 l     O .rodata	00000009 oid_wrpcTimeGroup
+00018d04 l     O .rodata	00000050 oid_array_wrpcTimeGroup
+00018cf8 l     O .rodata	00000009 oid_wrpcSpllStatusGroup
+00018c30 l     O .rodata	000000c8 oid_array_wrpcSpllStatusGroup
+00018c24 l     O .rodata	00000009 oid_wrpcPtpGroup
+00018abc l     O .rodata	00000168 oid_array_wrpcPtpGroup
+00018ab0 l     O .rodata	00000009 oid_wrpcPtpConfigGroup
+00018a24 l     O .rodata	0000008c oid_array_wrpcPtpConfigGroup
+00018a18 l     O .rodata	00000009 oid_wrpcPortGroup
+000189a0 l     O .rodata	00000078 oid_array_wrpcPortGroup
+00018994 l     O .rodata	0000000a oid_wrpcSfpTable
+00018930 l     O .rodata	00000064 oid_array_wrpcSfpTable
+00018924 l     O .rodata	00000009 oid_wrpcInitScriptConfigGroup
+000188e8 l     O .rodata	0000003c oid_array_wrpcInitScriptConfigGroup
+000188dc l     O .rodata	00000009 oid_wrpcSdbGroup
+00018878 l     O .rodata	00000064 oid_array_wrpcSdbGroup
+0001886c l     O .rodata	00000009 oid_wrpcShellCmdGroup
+00018808 l     O .rodata	00000064 oid_array_wrpcShellCmdGroup
+00018768 l     O .rodata	00000019 __func__.3974
+0001878c l     O .rodata	00000010 init_cmds
+000187d4 l     O .rodata	0000000e type_length
+000187e4 l     O .rodata	00000013 __func__.3043
+000187f8 l     O .rodata	0000000e snmp_build_date
+0001c774 l     O .srodata	00000002 oid_wrpcShellCmdRun
+0001ca64 l     O .sbss	00000004 shell_cmd_apply_status
+0001c770 l     O .srodata	00000002 oid_wrpcShellCmdLine
+0001c76c l     O .srodata	00000002 oid_wrpcShellCmdMagic
+0001c768 l     O .srodata	00000002 oid_wrpcShellCmdReturnCode
+0001c784 l     O .srodata	00000002 oid_wrpcSdbApply
+0001ca68 l     O .sbss	00000004 sdb_apply_status
+0001c780 l     O .srodata	00000002 oid_wrpcSdbMemType
+0001c77c l     O .srodata	00000002 oid_wrpcSdbBaseAddr
+0001c778 l     O .srodata	00000002 oid_wrpcSdbParam
+0001c78c l     O .srodata	00000002 oid_wrpcInitScriptConfigApply
+0001ca6c l     O .sbss	00000004 init_script_config_apply_status
+0001c788 l     O .srodata	00000002 oid_wrpcInitScriptConfigLine
+0001c79c l     O .srodata	00000001 oid_wrpcSfpPn
+0001c798 l     O .srodata	00000001 oid_wrpcSfpDeltaTx
+0001c794 l     O .srodata	00000001 oid_wrpcSfpDeltaRx
+0001c790 l     O .srodata	00000001 oid_wrpcSfpAlpha
+0001c7b0 l     O .srodata	00000002 oid_wrpcPortLinkStatus
+0001c7ac l     O .srodata	00000002 oid_wrpcPortSfpPn
+0001c7a8 l     O .srodata	00000002 oid_wrpcPortSfpInDB
+0001c7a4 l     O .srodata	00000002 oid_wrpcPortInternalTX
+0001c7a0 l     O .srodata	00000002 oid_wrpcPortInternalRX
+0001c7c8 l     O .srodata	00000002 oid_wrpcPtpConfigRestart
+0001ca74 l     O .sbss	00000004 ptp_restart_status
+0001c7c4 l     O .srodata	00000002 oid_wrpcPtpConfigApply
+0001ca70 l     O .sbss	00000004 ptp_config_apply_status
+0001c7c0 l     O .srodata	00000002 oid_wrpcPtpConfigSfpPn
+0001c7bc l     O .srodata	00000002 oid_wrpcPtpConfigDeltaTx
+0001c7b8 l     O .srodata	00000002 oid_wrpcPtpConfigDeltaRx
+0001c7b4 l     O .srodata	00000002 oid_wrpcPtpConfigAlpha
+0001c80c l     O .srodata	00000002 oid_wrpcPtpServoStateN
+0001c808 l     O .srodata	00000002 oid_wrpcPtpClockOffsetPsHR
+0001c804 l     O .srodata	00000002 oid_wrpcPtpSkew
+0001c800 l     O .srodata	00000002 oid_wrpcPtpRTT
+0001c7fc l     O .srodata	00000002 oid_wrpcPtpServoUpdates
+0001c7f8 l     O .srodata	00000002 oid_wrpcPtpServoUpdateTime
+0001c7f4 l     O .srodata	00000002 oid_wrpcPtpDeltaTxM
+0001c7f0 l     O .srodata	00000002 oid_wrpcPtpDeltaRxM
+0001c7ec l     O .srodata	00000002 oid_wrpcPtpDeltaTxS
+0001c7e8 l     O .srodata	00000002 oid_wrpcPtpDeltaRxS
+0001c7e4 l     O .srodata	00000002 oid_wrpcPtpServoStateErrCnt
+0001c7e0 l     O .srodata	00000002 oid_wrpcPtpClockOffsetErrCnt
+0001c7dc l     O .srodata	00000002 oid_wrpcPtpRTTErrCnt
+0001c7d8 l     O .srodata	00000002 oid_wrpcPtpAsymmetry
+0001c7d4 l     O .srodata	00000002 oid_wrpcPtpTX
+0001c7d0 l     O .srodata	00000002 oid_wrpcPtpRX
+0001c7cc l     O .srodata	00000002 oid_wrpcPtpAlpha64
+0001c830 l     O .srodata	00000002 oid_wrpcSpllMode
+0001c82c l     O .srodata	00000002 oid_wrpcSpllIrqCnt
+0001c828 l     O .srodata	00000002 oid_wrpcSpllSeqState
+0001c824 l     O .srodata	00000002 oid_wrpcSpllAlignState
+0001c820 l     O .srodata	00000002 oid_wrpcSpllHlock
+0001c81c l     O .srodata	00000002 oid_wrpcSpllMlock
+0001c818 l     O .srodata	00000002 oid_wrpcSpllHY
+0001c814 l     O .srodata	00000002 oid_wrpcSpllMY
+0001c810 l     O .srodata	00000002 oid_wrpcSpllDelCnt
+0001c83c l     O .srodata	00000002 oid_wrpcTimeTAI
+0001c838 l     O .srodata	00000002 oid_wrpcTimeTAIString
+0001c834 l     O .srodata	00000002 oid_wrpcTimeSystemUptime
+0001c84c l     O .srodata	00000002 oid_wrpcVersionHwType
+0001c848 l     O .srodata	00000002 oid_wrpcVersionSwVersion
+0001c844 l     O .srodata	00000002 oid_wrpcVersionSwBuildBy
+0001c840 l     O .srodata	00000002 oid_wrpcVersionSwBuildDate
+00000000 l    df *ABS*	00000000 
+0000d368 l     F .text	0000004c next_pps_ms
+0000d3b4 l     F .text	00000018 st_com_handle_signaling
+0000d3dc l     F .text	0000001c wr_signal_parser_reject
+0000d3f8 l     F .text	00000044 wr_reset_process
+0000d43c l     F .text	00000034 wr_extension_state_changed
+0000d470 l     F .text	00000008 wrpc_spll_locking_disable
+0000d478 l     F .text	00000008 wr_is_correction_field_compliant
+0000d480 l     F .text	0000000c wr_get_latency
+0000d48c l     F .text	00000028 wr_require_precise_timestamp
+0000d4b4 l     F .text	0000003c wr_ready_for_slave
+0000d4f0 l     F .text	0000002c wrpc_net_exit
+0000d51c l     F .text	00000010 wrpc_calc_timeout
+0000d52c l     F .text	00000010 wrpc_time_set_utc_offset
+0001ca60 l     O .sdata	00000004 utcOffset
+0000d53c l     F .text	0000001c wrpc_time_get_utc_offset
+0000d558 l     F .text	00000014 wrpc_time_get_utc_time
+0000d56c l     F .text	0000017c normalize_pp_time
+0000d6e8 l     F .text	00000054 pp_time_add
+0000d73c l     F .text	0000004c pp_time_add_interval
+0000d794 l     F .text	0000000c wrpc_get_clock_period
+0000d7a0 l     F .text	00000070 wrpc_adjust_counters
+0000d810 l     F .text	00000044 wrpc_enable_timing_output
+0001cc30 l     O .sbss	00000004 pps_enable.3794
+0000d854 l     F .text	0000003c pp_timeout_log_to_ms
+0000d890 l     F .text	00000014 is_link_up
+0000d8a4 l     F .text	00000050 update_uptime
+0001cc10 l     O .sbss	00000004 fraction.4724
+0001cc14 l     O .sbss	00000004 uptime_lastj
+0000d8f4 l     F .text	00000014 init_uptime
+0000d908 l     F .text	000000b0 time_to_string
+0000d9b8 l     F .text	00000064 dump_1port
+0000da1c l     F .text	00000134 dumpstruct
+0000db50 l     F .text	00000200 __mulRelativeDifference
+0000dd50 l     F .text	00000088 __msg_pack_header
+0000ddd8 l     F .text	0000006c __pack_origin_timestamp
+0000de44 l     F .text	000000ac dump_1stamp
+0000def0 l     F .text	00000030 wrpc_adjust_in_progress
+0000df20 l     F .text	0000003c wrpc_get_GM_lock_state
+0000df5c l     F .text	00000038 wrpc_adjust_phase
+0000df94 l     F .text	00000020 wrpc_spll_enable_ptracker
+0000dfb4 l     F .text	00000200 wrpc_spll_check_lock_with_timeout
+0000e1b4 l     F .text	00000078 wrpc_spll_locking_reset
+0000e22c l     F .text	00000128 wrpc_spll_locking_poll
+0001cc2c l     O .sbss	00000004 t24p_calibrated.3771
+0000e354 l     F .text	00000078 wrpc_spll_locking_enable
+0000e3cc l     F .text	0000001c shell_boot_script_task_init
+0000e5fc l     F .text	0000030c ui_update
+0001cc1c l     O .sbss	00000004 cmd_pos
+0001cc0c l     O .sbss	00000002 current_key
+0000e920 l     F .text	000000b0 msg_pack_sync
+0000ea48 l     F .text	00000028 msg_from_current_master
+0000ea70 l     F .text	00000074 is_ebest
+0000eae4 l     F .text	00000030 is_qualified
+0000eb38 l     F .text	000000a4 bmc_remove_foreign_master
+0000ebdc l     F .text	00000148 wrpc_net_init
+0000ed24 l     F .text	00000740 dump_payloadpkt
+0000f81c l     F .text	000000ac wr_servo_got_sync
+0000f8c8 l     F .text	00000200 wrpc_net_recv
+0000fac8 l     F .text	00000230 wrc_ptp_update
+0001ca58 l     O .sdata	00000004 delay_ms
+0001cc34 l     O .sbss	00000004 start_tics
+0001cc38 l     O .sbss	00000004 wrpc_ptp_rx_announce_length
+0000fdd4 l     F .text	000000ec picos_to_interval
+0000fec0 l     F .text	00000144 picos_to_pp_time
+00010004 l     F .text	0000005c fixedDelta_to_pp_time
+000103f8 l     F .text	00000024 wr_get_tmo_lstate_detection
+0001041c l     F .text	00000088 pp_next_delay_2
+000104a4 l     F .text	00000054 pp_next_delay_1
+000104f8 l     F .text	00000054 __pp_timeout_set
+000105e4 l     F .text	000000fc _pp_servo_init
+000106e0 l     F .text	000000ec are_qualified
+00010ea0 l     F .text	00000170 __send_and_log
+00011010 l     F .text	00000188 master_handle_delay_request
+00011198 l     F .text	000001b4 msg_issue_wrsig
+0001134c l     F .text	00000068 wr_link_on
+000113b4 l     F .text	00000068 setState
+0001141c l     F .text	00000050 wrh_servo_reset
+0001146c l     F .text	00000004 wr_servo_reset
+00011808 l     F .text	000000ec wrc_check_link
+0001cc08 l     O .sbss	00000004 prev_state.4703
+000118f4 l     F .text	000000e4 wr_run_state_machine
+000119d8 l     F .text	000000cc wr_servo_init
+00011aa4 l     F .text	00000048 wr_new_slave
+00011aec l     F .text	00000128 wr_calibration
+00011c14 l     F .text	0000004c wr_handshake_retry
+00011c60 l     F .text	00000180 wr_bmca_s1
+00011de0 l     F .text	00000180 wr_unpack_announce
+00011f60 l     F .text	000000c4 wr_pack_announce
+00012024 l     F .text	0000005c wr_handle_followup
+00012080 l     F .text	0000005c wr_handle_sync
+000120dc l     F .text	00000054 wr_open
+0001c950 l     O .srodata	00000008 __func__.2911
+00012130 l     F .text	00000084 wr_init
+0001c948 l     O .srodata	00000008 __func__.2905
+000121b4 l     F .text	000001a0 wrpc_net_send
+00012354 l     F .text	00000084 wrpc_time_adjust_offset
+000123d8 l     F .text	00000058 wrpc_time_adjust
+00012430 l     F .text	00000094 wrpc_time_set
+000124c4 l     F .text	00000090 wrpc_time_get
+00012554 l     F .text	000000b4 is_timestamp_incorrect_thres
+00012608 l     F .text	000004a4 pp_servo_calculate_delays
+0001cc50 l     O .sbss	00000004 errcount.3023
+0001cc4c l     O .sbss	00000004 errcount.3012
+00012aac l     F .text	00000698 pp_servo_got_resp
+0001cc54 l     O .sbss	00000004 errcount.3048
+00013144 l     F .text	00000134 slave_handle_followup
+0001cc48 l     O .sbss	00000004 errcount.2966.lto_priv.1
+00013278 l     F .text	000006cc wrc_ptp_bmc_update
+0001cc3c l     O .sbss	00000004 start_tics_bmc.4036
+0001ca5c l     O .sdata	00000002 clockDeg_lastTimingModeState
+0001cc28 l     O .sbss	00000004 seed.2955
+00013b4c l     F .text	00000008 pp_timeout_reset.lto_priv.2
+00013b4c l     F .text	00000008 pp_timeout_reset.lto_priv.3
+00013b4c l     F .text	00000008 pp_timeout_reset.lto_priv.4
+00013b4c l     F .text	00000008 pp_timeout_reset.lto_priv.5
+00013b4c l     F .text	00000008 pp_timeout_reset.lto_priv.6
+00013b54 l     F .text	00000390 bmc_add_frgn_master
+00013ee4 l     F .text	00000060 listening_handle_announce
+00013f44 l     F .text	00000004 master_handle_announce
+00013f48 l     F .text	000000c0 passive_handle_announce
+00014074 l     F .text	0000006c pdstate_enable_extension
+000140e0 l     F .text	0000001c pdstate_set_state_pdetected
+000140fc l     F .text	000002e8 msg_unpack_wrsig
+000143e4 l     F .text	00000060 wr_handle_dreq
+00014444 l     F .text	0000070c wr_handle_resp
+0001cc40 l     O .sbss	00000004 errcount.2966.lto_priv.0
+00015688 l     F .text	000000bc slave_handle_announce
+00015768 l     F .text	00000104 st_com_check_announce_receive_timeout
+00015ca8 l     F .text	00000160 slave_handle_sync
+0001cc44 l     O .sbss	00000004 errcount.2956
+00015f64 l     F .text	00000194 slave_handle_response
+000164ec l     F .text	00000168 wr_idle
+0001c958 l     O .srodata	00000008 __FUNCTION__.2906
+00016654 l     F .text	000000a8 wr_handshake_fail
+000166fc l     F .text	00000168 wr_resp_calib_req
+00016864 l     F .text	00000168 wr_calibrated
+000169cc l     F .text	0000014c wr_locked
+00016b18 l     F .text	000000cc wr_s_lock
+00016be4 l     F .text	00000158 wr_m_lock
+00016d3c l     F .text	00000148 wr_present
+00016e84 l     F .text	00000168 wr_state_change
+0001cc18 l     O .sbss	00000004 console_uart_priv
+0001c898 l     O .srodata	00000008 pin_sysc_spi_ncs
+0001c888 l     O .srodata	00000008 pin_sysc_spi_miso
+0001c890 l     O .srodata	00000008 pin_sysc_spi_mosi
+0001c880 l     O .srodata	00000008 pin_sysc_spi_sclk
+0001c940 l     O .srodata	00000008 __wrc_cmd_calibration
+0001c938 l     O .srodata	00000008 __wrc_cmd_diag
+0001c930 l     O .srodata	00000008 __wrc_cmd_gui
+0001c928 l     O .srodata	00000008 __wrc_cmd_help
+0001c920 l     O .srodata	00000008 __wrc_cmd_init
+0001c918 l     O .srodata	00000008 __wrc_cmd_ip
+0001c910 l     O .srodata	00000008 __wrc_cmd_mac
+0001c908 l     O .srodata	00000008 __wrc_cmd_mode
+0001c900 l     O .srodata	00000008 __wrc_cmd_pll
+0001c8f8 l     O .srodata	00000008 __wrc_cmd_ps
+0001c8f0 l     O .srodata	00000008 __wrc_cmd_ptp
+0001c8e8 l     O .srodata	00000008 __wrc_cmd_ptrack
+0001c8e0 l     O .srodata	00000008 __wrc_cmd_sdb
+0001c8d8 l     O .srodata	00000008 __wrc_cmd_sfp
+0001c8d0 l     O .srodata	00000008 __wrc_cmd_sleep
+0001c8c8 l     O .srodata	00000008 __wrc_cmd_stat
+0001c8c0 l     O .srodata	00000008 __wrc_cmd_time
+0001c8b8 l     O .srodata	00000008 __wrc_cmd_uptime
+0001c8b0 l     O .srodata	00000008 __wrc_cmd_ver
+0001c8a8 l     O .srodata	00000008 __wrc_cmd_verbose
+0001c8a0 l     O .srodata	00000008 __wrc_cmd_vlan
+0001cc24 l     O .sbss	00000004 prev_nanos_for_profile
+0001cc20 l     O .sbss	00000004 prev_ticks_for_profile
+0001c9f4 l     O .data	00000044 __pp_default_rt_opts
+0001e3f8 l     O .bss	00000020 time_as_string
+0001e418 l     O .bss	00000224 ptp_socket_sockbuf
+0001e63c l     O .bss	00000010 console_uart_dev
+0001e64c l     O .bss	00000018 spi_wrc_flash
+0001e664 l     O .bss	00000014 wrc_flash_dev
+0001e678 l     O .bss	00000038 portDS
+0001e6b0 l     O .bss	00000080 __tx_buffer
+0001e730 l     O .bss	00000080 __rx_buffer
+0001e7b0 l     O .bss	000000e0 servo
+0001e890 l     O .bss	000000f8 wr_ext_data
+0001e988 l     O .bss	00000060 wr_dsport
+00018e58 l     O .rodata	0000000c errMsg.4316
+00018e64 l     O .rodata	00000084 pp_msgtype_info
+00018ef4 l     O .rodata	00000018 wr_message_name.3784
+00018f0c l     O .rodata	0000000c CSWTCH.35
+00018f18 l     O .rodata	00000060 timeOutConfigs
+00018f78 l     O .rodata	00000020 thing_name
+00018f98 l     O .rodata	00000011 __func__.3012
+00018fac l     O .rodata	0000000b __func__.2990.lto_priv.1
+00018fb8 l     O .rodata	00000010 __func__.3027
+00018fc8 l     O .rodata	00000018 wrh_servo_state_name
+00018fe0 l     O .rodata	00000024 wr_state_names
+00019004 l     O .rodata	00000024 wr_state_actions
+00019028 l     O .rodata	0000000f __func__.2952
+00019038 l     O .rodata	0000000b __func__.2960
+00019044 l     O .rodata	00000013 __func__.2951
+00019058 l     O .rodata	00000011 __func__.2942
+0001906c l     O .rodata	00000013 __func__.2934
+00019080 l     O .rodata	0000000f __func__.2929
+00019090 l     O .rodata	00000012 macaddr.3327
+000190a4 l     O .rodata	0000000e __func__.3328
+000190b4 l     O .rodata	00000018 __func__.3167
+000190cc l     O .rodata	00000011 __func__.3174
+000190e0 l     O .rodata	0000000e __func__.3161
+000190f0 l     O .rodata	0000000e __func__.3153
+00019100 l     O .rodata	0000000c ts_ppsi_offset.3701
+0001910c l     O .rodata	0000001d __func__.3714
+0001912c l     O .rodata	00000016 __func__.2969
+00019144 l     O .rodata	00000038 clockDegradation
+0001917c l     O .rodata	00000014 __func__.3216
+00019190 l     O .rodata	0000001a __func__.3166
+000191ac l     O .rodata	00000016 __func__.3113
+000191c4 l     O .rodata	00000011 __func__.3203
+000191d8 l     O .rodata	00000014 __func__.3079
+000191ec l     O .rodata	0000000f __func__.2921
+000191fc l     O .rodata	0000000f __func__.2916
+0001920c l     O .rodata	00000013 __FUNCTION__.2985
+00019220 l     O .rodata	00000013 __func__.2986
+00019234 l     O .rodata	00000013 __func__.3681
+00019248 l     O .rodata	00000034 actions.lto_priv.1
+0001927c l     O .rodata	00000016 __func__.2990.lto_priv.0
+00019294 l     O .rodata	00000034 actions.lto_priv.3
+000192c8 l     O .rodata	00000030 actions.lto_priv.2
+000192f8 l     O .rodata	00000034 actions.lto_priv.0
+0001932c l     O .rodata	00000012 __func__.2959
+00019340 l     O .rodata	00000010 __func__.2928
+00019350 l     O .rodata	00000016 __func__.2979
+00019368 l     O .rodata	00000010 __func__.2922
+00019378 l     O .rodata	00000010 __func__.2972
+00019388 l     O .rodata	0000000c spi_flash_rwops
+00019394 l     O .rodata	00000020 spi_flash_default_entry_points
+000193b4 l     O .rodata	00000014 wrpc_net_ops
+000193c8 l     O .rodata	00000030 wrpc_time_ops
+000193f8 l     O .rodata	00000070 __pp_default_instance_cfg
+00019468 l     O .rodata	0000006c wr_ext_hooks
+00000000 l    df *ABS*	00000000 arch/risc-v/irq.o
+00017094 l       .text	00000000 fault_handler
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+00000000 l    df *ABS*	00000000 libgcc2.c
+000059fc g     F .text	000000d4 .hidden bb_spi_write.constprop.0
+000050b4 g     F .text	0000005c .hidden wdiags_write_shell_command_stage
+0001caa4 g     O .sbss	00000004 .hidden shell_ui_callback
+000170d0 g     F .text	00000038 .hidden __ashldi3
+000100f0 g     F .text	00000008 .hidden format_hex8
+0001cb3c g     O .sbss	00000001 .hidden ptp_mode.lto_priv.0
+00005ea8 g     F .text	00000024 .hidden timer_delay
+0001c9c0 g     O .data	00000034 .hidden sfp_info
+0000ea04 g     F .text	00000044 .hidden bmc_pidcmp
+0001c960 g       .data	00000000 _fdata
+0000fcf8 g     F .text	000000dc .hidden __div64_32
+0000c2d8 g     F .text	00000040 .hidden shell_register_command
+00002a08 g     F .text	000000b0 .hidden ep_set_mac_addr.constprop.0
+0001cbf4 g     O .sbss	00000004 .hidden wrpc_ptp_prefilter_same_port_count
+0000c20c g     F .text	00000038 .hidden verify_lpj.lto_priv.0
+0001caf4 g     O .sbss	00000004 .hidden wrpc_ptp_rx_announce_count
+0001ccb8 g     O .bss	00000051 .hidden cmd_buf.lto_priv.0
+0001cb58 g     O .sbss	00000004 .hidden console_devs.lto_priv.0
+000103c0 g     F .text	00000038 .hidden __pp_get_counter.lto_priv.0
+0001c874 g     O .srodata	00000004 .hidden wdiags_base.lto_priv.0
+00002ab8 g     F .text	00000094 .hidden storage_get_persistent_mac.constprop.0
+0000e59c g     F .text	00000060 .hidden memmove
+000051cc g     F .text	00000080 .hidden wdiags_write_mode_master_stage
+00002944 g     F .text	0000006c .hidden bmc_set_default_device_attributes.constprop.0
+0000a0a8 g     F .text	00000130 .hidden cmd_mac.lto_priv.0
+0001cb88 g     O .sbss	00000004 .hidden wdiags_boot_startup_active.lto_priv.0
+00003ecc g     F .text	00000210 .hidden ep_pfilter_init_default.constprop.0
+0000b360 g     F .text	0000027c .hidden ptpd_netif_recvfrom
+0000107c g     F .text	00000024 .hidden sysc_gpio_read_pin.lto_priv.0
+00003e3c g     F .text	00000018 .hidden wdiag_write.lto_priv.0
+000086d4 g     F .text	0000010c .hidden cmd_vlan.lto_priv.0
+0001d93c g     O .bss	000003c0 .hidden tasks
+00008d84 g     F .text	0000011c .hidden cmd_ps.lto_priv.0
+0001ca9c g     O .sbss	00000004 .hidden next_update_ticks.lto_priv.0
+000055bc g     F .text	0000001c .hidden bb_spi_delay
+0001d90c g     O .bss	00000030 .hidden socks.lto_priv.0
+0002e040 g     O .debug_precrt	00000010 debug_precrt_persistent_stage_history
+0001cae8 g     O .sbss	00000004 .hidden wrpc_ptp_rx_announce_processed_count
+0001d238 g       .sdata	00000000 _gp
+0000c0ac g     F .text	00000040 .hidden snmp_init
+000171a4 g     F .text	00000034 .hidden __bswapsi2
+0001cac5 g     O .sbss	00000001 .hidden wrpc_wr_last_rx_signal_reject_reason
+0002e070 g     O .debug_precrt	00000004 debug_precrt_persistent_command_hash
+0001cad0 g     O .sbss	00000001 .hidden wrpc_wr_last_fail_state
+0002e010 g     O .debug_precrt	00000004 debug_precrt_p_raw_at_reset_entry
+0002e050 g     O .debug_precrt	00000004 debug_precrt_persistent_spll_check_lock_stage
+0000eb14 g     F .text	00000024 .hidden memcpy
+0000f550 g     F .text	000000a8 .hidden interval_to_string
+00010204 g     F .text	000001bc .hidden wrc_ptp_set_mode
+000093a0 g     F .text	00000188 .hidden cmd_sdb.lto_priv.0
+00006858 g     F .text	000000dc .hidden pp_leave_current_state.constprop.0
+00002b4c g     F .text	00000030 .hidden ep_pcs_write.constprop.0
+0001cadc g     O .sbss	00000004 .hidden wrpc_wr_rx_signaling_count
+0000c244 g     F .text	00000094 .hidden wrc_task_create
+00008a04 g     F .text	00000128 .hidden cmd_stat.lto_priv.0
+0001d164 g     O .bss	0000000c .hidden wrc_endpoint_dev
+0002e038 g     O .debug_precrt	00000004 debug_precrt_persistent_lock_wait_substage
+000160f8 g     F .text	00000394 .hidden pp_initializing
+000097f4 g     F .text	00000560 .hidden cmd_pll.lto_priv.0
+0000c36c g     F .text	0000017c .hidden _shell_exec.lto_priv.0
+00009070 g     F .text	00000094 .hidden cmd_ver.lto_priv.0
+00005cd8 g     F .text	000000b4 .hidden spi_flash_read
+0001879c g     O .rodata	00000038 .hidden pp_msgtype_name
+0001cad8 g     O .sbss	00000002 .hidden wrpc_wr_last_tx_msg_id
+00002b7c g     F .text	00000060 .hidden ep_sfp_enable.constprop.0
+0001cd10 g     O .bss	00000398 .hidden softpll
+000066e8 g     F .text	0000005c .hidden pp_vprintf
+00004404 g     F .text	00000b9c .hidden wrc_wr_diags
+00015e08 g     F .text	00000074 .hidden pp_faulty
+0000d788 g     F .text	0000000c .hidden wrc_ptp_sync_mech
+0000b22c g     F .text	00000134 .hidden lldp_poll
+0000bf08 g     F .text	00000110 .hidden ptpd_netif_create_socket
+00003e54 g     F .text	0000000c .hidden wdiags_write_temp
+00005378 g     F .text	00000108 .hidden storage_load_calibration
+0001cc00 g     O .sbss	00000004 .hidden wrpc_ptp_frame_parse_error_count
+0000b5dc g     F .text	00000318 .hidden snmp_poll
+0001cbf0 g     O .sbss	00000004 .hidden wrpc_ptp_prefilter_same_clock_count
+000089ac g     F .text	00000058 .hidden cmd_gui.lto_priv.0
+0002e064 g     O .debug_precrt	00000004 debug_precrt_persistent_command_rx_byte_count
+000029b0 g     F .text	00000058 .hidden storage_get_calibration_parameter.constprop.0
+0002e060 g     O .debug_precrt	00000004 debug_precrt_persistent_command_stage
+00005d8c g     F .text	000000e8 .hidden spi_flash_write
+000058dc g     F .text	00000018 .hidden gen_gpio_set_dir
+0001cba0 g     O .sbss	00000004 .hidden wrpc_spll_trr_pop_count
+0000f68c g     F .text	00000068 .hidden interval_to_picos
+000087e0 g     F .text	00000098 .hidden cmd_verbose.lto_priv.0
+0001cbfc g     O .sbss	00000004 .hidden wrpc_ptp_prefilter_wrong_domain_count
+00002f2c g     F .text	00000090 .hidden spll_set_phase_shift.part.0
+0000b8f4 g     F .text	00000128 .hidden arp_poll
+0000f464 g     F .text	00000024 .hidden strnlen
+00010c1c g     F .text	000000d4 .hidden bmc_dataset_cmp.lto_priv.0
+00002c84 g     F .text	00000054 .hidden pp_servo_got_sync.constprop.0
+000038f0 g     F .text	00000504 spll_irq_entry
+0001c960 g     O .data	00000020 .hidden wrc_global_link
+00008878 g     F .text	00000134 .hidden cmd_ip.lto_priv.0
+00011470 g     F .text	00000378 .hidden wrc_ptp_start
+0002e014 g     O .debug_precrt	00000004 debug_precrt_p_raw_after_data_init
+0000e4c0 g     F .text	00000064 .hidden convert_ps_to_str_ns.lto_priv.0
+00005898 g     F .text	00000044 .hidden bb_spi_cs
+00002cd8 g     F .text	00000194 .hidden bmc_store_frgn_master.constprop.0
+0000c5e4 g     F .text	000000bc .hidden shell_boot_script
+00030000 g       .debug_precrt	00000000 _fstack
+00002860 g     F .text	0000007c .hidden ep_link_up.constprop.0
+0000f6f4 g     F .text	000000d4 .hidden pp_time_to_picos
+0001d1dc g     O .bss	00000018 .hidden wdiags_boot_startup_p_offset_shadow.lto_priv.0
+0001cbe8 g     O .sbss	00000004 .hidden ptracker_mask.lto_priv.0
+000150e8 g     F .text	0000013c .hidden pp_abscal
+00009d54 g     F .text	00000354 .hidden cmd_sfp.lto_priv.0
+00017098 g     F .text	00000038 .hidden __lshrdi3
+00005014 g     F .text	000000a0 .hidden wdiags_persistent_init_if_invalid.lto_priv.0
+0001e37c g     O .bss	00000010 .hidden minic
+0001d0a8 g     O .bss	0000001c .hidden wrc_storage_dev
+00015e7c g     F .text	000000e8 .hidden pp_timeout_init
+00005480 g     F .text	0000013c .hidden storage_set_calibration_parameter_and_save
+0002e020 g     O .debug_precrt	00000010 debug_precrt_p_at_entry_history
+0000f488 g     F .text	000000c8 .hidden relative_interval_to_string
+0000c318 g     F .text	00000054 .hidden shell_boot_init_startup_checkpoint
+00004330 g     F .text	00000074 .hidden wdiags_write_spll_check_lock_debug.constprop.0
+0000bc84 g     F .text	00000284 .hidden ipv4_poll
+0001caf0 g     O .sbss	00000004 .hidden wrpc_ptp_rx_followup_count
+0001054c g     F .text	00000098 .hidden __pp_diag
+0000c018 g     F .text	00000094 .hidden lldp_init
+000028dc g     F .text	00000068 .hidden bmc_apply_configured_device_attributes.constprop.0
+0002e074 g     O .debug_precrt	00000004 debug_precrt_persistent_command_boot_generation
+0001cbf8 g     O .sbss	00000004 .hidden wrpc_ptp_prefilter_alternate_master_count
+0001cae0 g     O .sbss	00000002 .hidden wrpc_wr_last_rx_msg_id
+0000002c g     F .text	00000000 _reset_handler
+00017108 g     F .text	00000038 .hidden __ashrdi3
+00010cf0 g     F .text	000001b0 .hidden bmc_m1
+000040dc g     F .text	000000e8 .hidden wdiags_write_boot_startup.lto_priv.0
+00003df4 g     F .text	00000048 .hidden shw_pps_gen_get_time
+00013b4c g     F .text	00000008 .hidden pp_timeout_reset.lto_priv.1.lto_priv.0
+00000000 g       .text	00000000 _start
+00015744 g     F .text	00000024 .hidden bmc_m3
+0000282c g     F .text	00000034 .hidden ep_get_bitslide.constprop.0
+0001ca88 g     O .sbss	00000001 .hidden ptp_enabled.lto_priv.0
+000035e0 g     F .text	00000310 .hidden spll_init
+0000e460 g     F .text	00000044 .hidden strncpy
+000107cc g     F .text	00000244 .hidden bmc_topology_cmp.lto_priv.0
+0001cad1 g     O .sbss	00000001 .hidden wrpc_wr_last_fail_role
+0001caec g     O .sbss	00000004 .hidden wrpc_ptp_rx_signaling_count
+000171d8 g     F .text	00000064 .hidden __bswapdi2
+000055d8 g     F .text	00000018 .hidden gen_gpio_out
+0000e9d0 g     F .text	00000034 .hidden memcmp
+0002e000 g     O .debug_boot	00000004 debug_boot_stage
+00010a10 g     F .text	0000020c .hidden bmc_gm_cmp.lto_priv.0
+0001cbe5 g     O .sbss	00000001 .hidden spll_n_chan_out
+00006744 g     F .text	0000003c .hidden pp_printf
+0000af40 g     F .text	000002ec .hidden ptpd_netif_sendto
+0002e06c g     O .debug_precrt	00000004 debug_precrt_persistent_command_length
+0001cac0 g     O .sbss	00000004 .hidden wrpc_wr_lock_poll_count
+0001cad4 g     O .sbss	00000004 .hidden wrpc_wr_tx_signaling_count
+000010a0 g     F .text	00000028 .hidden sysc_gpio_set_out.lto_priv.0
+0000e908 g     F .text	00000018 .hidden memset
+0001586c g     F .text	000002b8 .hidden pp_slave
+0001723c g     F .text	00000cdc main
+0002e030 g     O .debug_precrt	00000004 debug_precrt_persistent_magic
+0002e05c g     O .debug_precrt	00000004 debug_precrt_persistent_spll_check_lock_boot_generation
+00016fec g       .text	00000000 trap_entry
+0001648c g     F .text	00000060 .hidden pdstate_disable_extension
+00000024 g       .text	00000000 uptime_sec
+0000c154 g     F .text	000000b8 .hidden ipv4_init
+00009528 g     F .text	000001bc .hidden cmd_time.lto_priv.0
+0001c980 g     O .data	00000040 ppg_static
+0001caa0 g     O .sbss	00000001 .hidden prev_gui_description.lto_priv.0
+00013b4c g     F .text	00000008 .hidden pp_timeout_reset.lto_priv.0.lto_priv.0
+00005110 g     F .text	000000bc .hidden wdiags_write_lock_wait_debug
+00002fbc g     F .text	00000624 .hidden spll_update
+00015b24 g     F .text	000000a4 .hidden pp_passive
+0001d1f4 g     O .bss	00000018 .hidden netif_devs.lto_priv.0
+0002e058 g     O .debug_precrt	00000004 debug_precrt_persistent_spll_check_lock_state_value
+0000e3e8 g     F .text	00000078 .hidden __unpack_origin_timestamp
+0001cba8 g     O .sbss	00000004 .hidden wrpc_spll_state_visit_mask
+0002e054 g     O .debug_precrt	00000004 debug_precrt_persistent_spll_check_lock_channel
+0000c0ec g     F .text	00000068 .hidden arp_init
+00013944 g     F .text	000000a4 .hidden pp_timeout
+00008ea0 g     F .text	000001d0 .hidden cmd_ptp.lto_priv.0
+000194d4 g     O .rodata	00000100 .hidden __clz_tab
+00005ad0 g     F .text	00000060 .hidden spi_flash_rsr.isra.0.lto_priv.0
+0000f5f8 g     F .text	00000094 .hidden optimized_pp_time_toString_ps_as_ns.lto_priv.0
+0001cabc g     O .sbss	00000004 .hidden wrpc_wr_lock_unlocked_count
+0002e018 g     O .debug_precrt	00000004 debug_precrt_boot_magic
+0002e068 g     O .debug_precrt	00000004 debug_precrt_persistent_command_last_byte
+00009240 g     F .text	00000160 .hidden cmd_ptrack.lto_priv.0
+0001cbe6 g     O .sbss	00000001 .hidden spll_n_chan_ref
+0000d3cc g     F .text	00000010 .hidden pp_disabled
+0001ca54 g     O .sdata	00000004 build_init_readcmd_p
+0001cacc g     O .sbss	00000004 .hidden wrpc_wr_handshake_fail_count
+00008b2c g     F .text	00000230 .hidden cmd_diag.lto_priv.0
+00007e40 g     F .text	000004b8 .hidden net_bh_poll
+0000e524 g     F .text	00000078 .hidden getStateAsString.lto_priv.0
+00001151 g       *ABS*	00000000 _binary__config_bin_size
+000096e4 g     F .text	00000110 .hidden cmd_calibration.lto_priv.0
+00005e74 g     F .text	00000034 .hidden calib_t24p_init
+0001cac8 g     O .sbss	00000004 .hidden wrpc_wr_rx_signal_reject_count
+0002f800 g       .debug_precrt	00000000 _endram
+00009104 g     F .text	00000080 .hidden cmd_help.lto_priv.0
+000117e8 g     F .text	00000020 .hidden wrc_ptp_run
+00004200 g     F .text	00000130 .hidden wdiags_publish_persistent_record.lto_priv.0
+0001caf8 g     O .sbss	00000004 .hidden wrpc_ptp_rx_sync_count
+0001cae4 g     O .sbss	00000004 .hidden wrpc_ptp_rx_announce_added_count
+00007544 g     F .text	00000240 .hidden sfp_match
+00002ec0 g     F .text	0000006c .hidden set_phase_shift.lto_priv.0
+000082f8 g     F .text	000003dc .hidden wrc_log_stats
+0001ca64 g       .sdata	00000000 _edata
+000100f8 g     F .text	0000010c .hidden wrc_ptp_stop
+00018dfc g     O .rodata	00000010 .hidden syscon_gpio.lto_priv.0
+0001cba4 g     O .sbss	00000004 .hidden wrpc_spll_state_transition_count
+00001514 g     F .text	0000008c .hidden cmd_sleep.lto_priv.0
+0002e004 g       .debug_boot	00000000 _end
+000010cc g     F .text	00000060 .hidden con_uart_put_string.lto_priv.0
+0000f7c8 g     F .text	00000054 .hidden pp_time_sub
+0001cc04 g     O .sbss	00000004 .hidden pp_global_d_flags
+00018dd0 g     O .rodata	0000002c wrc_global
+00005bcc g     F .text	0000010c .hidden spi_flash_erase
+000139e8 g     F .text	00000164 .hidden __pp_timeout_reset
+0001cb9c g     O .sbss	00000001 .hidden wrpc_spll_last_state
+0000c6a0 g     F .text	000001b0 .hidden cmd_init.lto_priv.0
+0001caa1 g     O .sbss	00000001 .hidden state.lto_priv.0
+00002e6c g     F .text	00000054 .hidden spll_enable_ptracker.part.0
+00005ecc g     F .text	0000003c .hidden console_getc
+00005f08 g     F .text	00000038 .hidden pp_sprintf
+00015bc8 g     F .text	000000e0 .hidden pp_listening
+00010060 g     F .text	00000090 .hidden format_hex.lto_priv.0
+0001d210 g     O .bss	00000348 .hidden ppi_static
+0001505c g     F .text	0000008c .hidden pp_timeout_set_rename
+00008d5c g     F .text	00000028 .hidden cmd_uptime.lto_priv.0
+00015224 g     F .text	00000464 .hidden bmc_s1
+0001cab8 g     O .sbss	00000004 .hidden wrpc_wr_lock_calibration_fail_count
+000010c8 g     F .text	00000004 .hidden sysc_gpio_set_dir.lto_priv.0
+0002e01c g     O .debug_precrt	00000004 debug_precrt_boot_generation
+0000e4a4 g     F .text	0000001c .hidden strlen
+000043a4 g     F .text	00000060 .hidden spll_check_lock.part.0
+0001cab4 g     O .sbss	00000004 .hidden wrpc_wr_lock_enable_count
+0001cb80 g     O .sbss	00000004 .hidden wdiags_boot_startup_valid_shadow.lto_priv.0
+0001cb0c g     O .sbss	00000001 .hidden ver_supported.lto_priv.0
+00014008 g     F .text	0000006c .hidden pp_timeout_setall
+0001cb0d g     O .sbss	00000001 .hidden netif_n_count.lto_priv.0
+0000c89c g     F .text	00000acc .hidden pp_state_machine.constprop.0
+0001cb7c g     O .sbss	00000001 .hidden calibration_loaded.lto_priv.0
+00014b50 g     F .text	0000050c .hidden pp_master
+00002bdc g     F .text	000000a8 .hidden storage_mount.constprop.0
+0001ca94 g     O .sbss	00000004 .hidden print_task_time_threshold
+0001cac4 g     O .sbss	00000001 .hidden wrpc_wr_lock_last_result
+00017140 g     F .text	00000064 .hidden __clzdi2
+0001cb28 g     O .sbss	00000004 .hidden cmd_len.lto_priv.0
+0000524c g     F .text	0000012c .hidden con_uart_getc.lto_priv.0
+0001ca98 g     O .sbss	00000004 .hidden usleep_lpj.lto_priv.0
+000072bc g     F .text	000001d4 .hidden rxts_calibration_update.lto_priv.0
+0001ca64 g       .sbss	00000000 _fbss
+000058f4 g     F .text	00000108 .hidden bb_spi_read.constprop.0
+0002e034 g     O .debug_precrt	00000004 debug_precrt_persistent_mode_master_stage
+0002e03c g     O .debug_precrt	00000004 debug_precrt_persistent_boot_generation_at_stage
+0000c850 g     F .text	0000004c .hidden delete.lto_priv.0
+
+

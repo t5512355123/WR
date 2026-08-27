@@ -42,7 +42,9 @@ static uint32_t wdiags_boot_startup_p_offset_shadow[WRC_DIAGS_BOOT_STARTUP_STAGE
 static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
 
+static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
+static void wdiags_publish_persistent_record(void);
 
 static void wdiags_persistent_init_if_invalid(void)
 {
@@ -74,6 +76,7 @@ static void wdiags_persistent_mode_master_stage(uint32_t stage)
 	debug_precrt_persistent_mode_master_stage = stage;
 	debug_precrt_persistent_boot_generation_at_stage =
 		debug_precrt_boot_generation;
+	wdiags_publish_persistent_record();
 }
 
 static void wdiags_persistent_lock_wait_substage(uint32_t substage)
@@ -83,6 +86,7 @@ static void wdiags_persistent_lock_wait_substage(uint32_t substage)
 
 	wdiags_persistent_init_if_invalid();
 	debug_precrt_persistent_lock_wait_substage = substage;
+	wdiags_publish_persistent_record();
 }
 
 
@@ -94,6 +98,28 @@ static int wdiag_write( uint32_t reg, uint32_t value )
 	
 	writel( value, (void*) ( wdiags_base + reg ) );
 	return 0;
+}
+
+static void wdiags_publish_persistent_record(void)
+{
+	/* Dedicated read-only WDIAGS mirror so passive JTAG reads do not need
+	 * CPU host-RAM access or CPU hold/release. */
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_MAGIC,
+			debug_precrt_persistent_magic);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_MODE_MASTER_STAGE,
+			debug_precrt_persistent_mode_master_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_LOCK_WAIT_SUBSTAGE,
+			debug_precrt_persistent_lock_wait_substage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_BOOT_GENERATION,
+			debug_precrt_persistent_boot_generation_at_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_STAGE_HISTORY0,
+			debug_precrt_persistent_stage_history[0]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_STAGE_HISTORY1,
+			debug_precrt_persistent_stage_history[1]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_STAGE_HISTORY2,
+			debug_precrt_persistent_stage_history[2]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_STAGE_HISTORY3,
+			debug_precrt_persistent_stage_history[3]);
 }
 
 static uint32_t wdiag_read( uint32_t reg )
@@ -592,6 +618,7 @@ int wdiags_init(void)
 		WRC_DIAGS_MODE_MASTER_STAGE_NOT_ENTERED);
 	wdiags_write_lock_wait_debug(
 		WRC_DIAGS_LOCK_WAIT_SUBSTAGE_NOT_ENTERED, 0, 0, 0, 0);
+	wdiags_publish_persistent_record();
 	wdiags_write_boot_startup();
 
 	return 0;

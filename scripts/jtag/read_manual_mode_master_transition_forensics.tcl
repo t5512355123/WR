@@ -11,7 +11,8 @@
 # Private WDIAGS 0x15c..0x16c (CPU addresses 0x00100B5C..0x00100B6C):
 #   lock-wait substage, iteration count, start tics, current tics,
 #   last spll_check_lock result.
-# Persistent .debug_precrt words (CPU host word addresses 0xB80C..0xB813):
+# Persistent .debug_precrt words are republished in dedicated read-only
+# WDIAGS offsets 0x170..0x18c (CPU addresses 0x00100B70..0x00100B8C):
 #   magic, mode-master stage, lock-wait substage, boot generation at stage,
 #   and the four-entry stage history. These reads do not hold the CPU.
 #
@@ -132,33 +133,6 @@ proc wb_write {hardware_name addr data} {
   return TIMEOUT
 }
 
-proc byte_swap32 {value} {
-  if {![is_hex $value]} { return -1 }
-  scan $value %x word
-  return [expr {(($word & 0x000000ff) << 24) |
-                (($word & 0x0000ff00) << 8) |
-                (($word & 0x00ff0000) >> 8) |
-                (($word & 0xff000000) >> 24)}]
-}
-
-proc cpu_host_read {hardware_name word_address} {
-  wb_write $hardware_name 0x00100D04 $word_address
-  # UDATA is registered; the second read is the settled value.
-  set first [wb_read $hardware_name 0x00100D08]
-  set second [wb_read $hardware_name 0x00100D08]
-  return "$first / $second"
-}
-
-proc cpu_host_read_word {host_reads} {
-  set word [byte_swap32 [string trim [lindex [split $host_reads "/"] 1]]]
-  if {$word < 0} { return -1 }
-  return [format %08X $word]
-}
-
-proc persistent_read {hardware_name word_address} {
-  return [cpu_host_read_word [cpu_host_read $hardware_name $word_address]]
-}
-
 proc inject_mode_master {hardware_name sample} {
   set command "mode master\n"
   set index 0
@@ -211,14 +185,14 @@ proc read_sample {hardware_name sample elapsed_ms} {
   set lock_wait_start_tics [wb_read $hardware_name 0x00100B64]
   set lock_wait_current_tics [wb_read $hardware_name 0x00100B68]
   set lock_wait_last_result [wb_read $hardware_name 0x00100B6C]
-  set persistent_magic [persistent_read $hardware_name 0x0000B80C]
-  set persistent_stage [persistent_read $hardware_name 0x0000B80D]
-  set persistent_lock_wait_substage [persistent_read $hardware_name 0x0000B80E]
-  set persistent_generation [persistent_read $hardware_name 0x0000B80F]
-  set persistent_history0 [persistent_read $hardware_name 0x0000B810]
-  set persistent_history1 [persistent_read $hardware_name 0x0000B811]
-  set persistent_history2 [persistent_read $hardware_name 0x0000B812]
-  set persistent_history3 [persistent_read $hardware_name 0x0000B813]
+  set persistent_magic [wb_read $hardware_name 0x00100B70]
+  set persistent_stage [wb_read $hardware_name 0x00100B74]
+  set persistent_lock_wait_substage [wb_read $hardware_name 0x00100B78]
+  set persistent_generation [wb_read $hardware_name 0x00100B7C]
+  set persistent_history0 [wb_read $hardware_name 0x00100B80]
+  set persistent_history1 [wb_read $hardware_name 0x00100B84]
+  set persistent_history2 [wb_read $hardware_name 0x00100B88]
+  set persistent_history3 [wb_read $hardware_name 0x00100B8C]
 
   puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PERSIST_MAGIC=%s PERSIST_MODE_MASTER_STAGE=%s PERSIST_LOCK_WAIT_SUBSTAGE=%s PERSIST_BOOT_GENERATION_AT_STAGE=%s PERSIST_STAGE_HISTORY0=%s PERSIST_STAGE_HISTORY1=%s PERSIST_STAGE_HISTORY2=%s PERSIST_STAGE_HISTORY3=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
     $hardware_name $sample $elapsed_ms [display32 $status] [display64 $entry] \

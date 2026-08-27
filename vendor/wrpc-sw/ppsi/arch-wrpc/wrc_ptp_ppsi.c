@@ -19,6 +19,7 @@
 #include "dev/pps_gen.h"
 #include "dev/console.h"
 #include "dev/rxts_calibrator.h"
+#include "dev/wdiags.h"
 
 #include "softpll_ng.h"
 
@@ -198,6 +199,10 @@ int wrc_ptp_set_mode(int mode)
 	typeof(ppg->rt_opts->clock_quality_clockClass) *class_ptr;
 	int error = 0;
 
+	if (mode == WRC_MODE_MASTER)
+		wdiags_write_mode_master_stage(
+			WRC_DIAGS_MODE_MASTER_STAGE_ENTERED);
+
 	class_ptr = &ppg->rt_opts->clock_quality_clockClass;
 
 	ptp_mode = 0;
@@ -240,11 +245,19 @@ int wrc_ptp_set_mode(int mode)
 		wrp->wrConfig = WR_M_AND_S;
 		WRPC_ARCH_G(ppg)->timingMode = WRH_TM_FREE_MASTER;
 #endif
+		wdiags_write_mode_master_stage(
+			WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_SPLL_INIT);
 		spll_init(SPLL_MODE_FREE_RUNNING_MASTER, 0, SPLL_FLAG_ALIGN_PPS);
+		wdiags_write_mode_master_stage(
+			WRC_DIAGS_MODE_MASTER_STAGE_AFTER_SPLL_INIT);
 
 		wrpc_enable_timing_output(ppg, 1);
 		*class_ptr = PP_FRUNNING_CLOCK_CLASS;
+		wdiags_write_mode_master_stage(
+			WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_LOCK_WAIT);
 		error = wrpc_spll_check_lock_with_timeout(LOCK_TIMEOUT_FM);
+		wdiags_write_mode_master_stage(
+			WRC_DIAGS_MODE_MASTER_STAGE_AFTER_LOCK_WAIT);
 
 		break;
 

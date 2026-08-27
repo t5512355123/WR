@@ -25,6 +25,14 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
                                   uint32_t command_index,
                                   uint32_t mode_master_call_count,
                                   uint32_t mode_master_return_count);
+/* Read-only sticky stage of the manual mode-master transition. */
+#define WRC_DIAGS_MODE_MASTER_STAGE_NOT_ENTERED 0
+#define WRC_DIAGS_MODE_MASTER_STAGE_ENTERED 1
+#define WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_SPLL_INIT 2
+#define WRC_DIAGS_MODE_MASTER_STAGE_AFTER_SPLL_INIT 3
+#define WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_LOCK_WAIT 4
+#define WRC_DIAGS_MODE_MASTER_STAGE_AFTER_LOCK_WAIT 5
+void wdiags_write_mode_master_stage(uint32_t stage);
 /* Read-only static-p startup-lifetime checkpoints. */
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1

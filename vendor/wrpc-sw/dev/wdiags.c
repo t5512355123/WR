@@ -145,6 +145,13 @@ void wdiags_write_boot_init_debug(uint32_t script_enter_count,
 			wdiags_ptp_state_shadow | wdiags_boot_init_debug_shadow);
 }
 
+void wdiags_write_mode_master_stage(uint32_t stage)
+{
+	/* Direct sticky write: it must remain visible if the CPU wedges before
+	 * the periodic diagnostics task can publish another shadow. */
+	wdiag_write(0x158, stage);
+}
+
 static void wdiags_write_boot_startup(void)
 {
 	uint32_t value = wdiags_port_state_shadow;

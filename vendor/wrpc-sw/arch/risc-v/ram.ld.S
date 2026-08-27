@@ -119,6 +119,10 @@ SECTIONS
 	KEEP(*(.debug_precrt_persistent_lock_wait_substage))
 	KEEP(*(.debug_precrt_persistent_boot_generation_at_stage))
 	KEEP(*(.debug_precrt_persistent_stage_history))
+	KEEP(*(.debug_precrt_persistent_spll_check_lock_stage))
+	KEEP(*(.debug_precrt_persistent_spll_check_lock_channel))
+	KEEP(*(.debug_precrt_persistent_spll_check_lock_state_value))
+	KEEP(*(.debug_precrt_persistent_spll_check_lock_boot_generation))
     } > ram
     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000,
 	   "debug_precrt must stay at least 4 KiB below the stack")

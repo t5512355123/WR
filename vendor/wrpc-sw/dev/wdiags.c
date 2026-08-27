@@ -25,6 +25,10 @@ extern volatile uint32_t debug_precrt_persistent_mode_master_stage;
 extern volatile uint32_t debug_precrt_persistent_lock_wait_substage;
 extern volatile uint32_t debug_precrt_persistent_boot_generation_at_stage;
 extern volatile uint32_t debug_precrt_persistent_stage_history[4];
+extern volatile uint32_t debug_precrt_persistent_spll_check_lock_stage;
+extern volatile uint32_t debug_precrt_persistent_spll_check_lock_channel;
+extern volatile uint32_t debug_precrt_persistent_spll_check_lock_state_value;
+extern volatile uint32_t debug_precrt_persistent_spll_check_lock_boot_generation;
 
 #if defined(BASE_WDIAGS_PRIV)
 static void *wdiags_base = (void *)(BASE_WDIAGS_PRIV);
@@ -57,6 +61,10 @@ static void wdiags_persistent_init_if_invalid(void)
 	debug_precrt_persistent_mode_master_stage = 0;
 	debug_precrt_persistent_lock_wait_substage = 0;
 	debug_precrt_persistent_boot_generation_at_stage = 0;
+	debug_precrt_persistent_spll_check_lock_stage = 0;
+	debug_precrt_persistent_spll_check_lock_channel = 0;
+	debug_precrt_persistent_spll_check_lock_state_value = 0;
+	debug_precrt_persistent_spll_check_lock_boot_generation = 0;
 	for (i = 0; i < 4; i++)
 		debug_precrt_persistent_stage_history[i] = 0;
 }
@@ -87,6 +95,14 @@ static void wdiags_persistent_lock_wait_substage(uint32_t substage)
 	wdiags_persistent_init_if_invalid();
 	debug_precrt_persistent_lock_wait_substage = substage;
 	wdiags_publish_persistent_record();
+}
+
+static int wdiags_persistent_spll_check_lock_active(void)
+{
+	return debug_precrt_persistent_mode_master_stage ==
+			WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_LOCK_WAIT &&
+		debug_precrt_persistent_boot_generation_at_stage ==
+			debug_precrt_boot_generation;
 }
 
 
@@ -120,6 +136,14 @@ static void wdiags_publish_persistent_record(void)
 			debug_precrt_persistent_stage_history[2]);
 	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_STAGE_HISTORY3,
 			debug_precrt_persistent_stage_history[3]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_SPLL_CHECK_LOCK_STAGE,
+			debug_precrt_persistent_spll_check_lock_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_SPLL_CHECK_LOCK_CHANNEL,
+			debug_precrt_persistent_spll_check_lock_channel);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_SPLL_CHECK_LOCK_STATE,
+			debug_precrt_persistent_spll_check_lock_state_value);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_SPLL_CHECK_LOCK_BOOT_GENERATION,
+			debug_precrt_persistent_spll_check_lock_boot_generation);
 }
 
 static uint32_t wdiag_read( uint32_t reg )
@@ -243,6 +267,24 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
 	wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT,
 			(uint32_t)last_lock_result);
 	wdiags_persistent_lock_wait_substage(substage);
+}
+
+void wdiags_write_spll_check_lock_debug(uint32_t stage,
+						uint32_t channel,
+						uint32_t state_value)
+{
+	/* Only the mode-master lock-wait invocation may update this sticky
+	 * record. After CPU re-entry the generation mismatch freezes the last
+	 * pre-entry boundary for forensic reads. */
+	if (channel != 0 || !wdiags_persistent_spll_check_lock_active())
+		return;
+
+	debug_precrt_persistent_spll_check_lock_stage = stage;
+	debug_precrt_persistent_spll_check_lock_channel = channel;
+	debug_precrt_persistent_spll_check_lock_state_value = state_value;
+	debug_precrt_persistent_spll_check_lock_boot_generation =
+		debug_precrt_boot_generation;
+	wdiags_publish_persistent_record();
 }
 
 static void wdiags_write_boot_startup(void)

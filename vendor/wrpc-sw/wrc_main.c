@@ -88,6 +88,14 @@ volatile uint32_t debug_precrt_persistent_boot_generation_at_stage
 	__attribute__((used, section(".debug_precrt_persistent_boot_generation_at_stage")));
 volatile uint32_t debug_precrt_persistent_stage_history[4]
 	__attribute__((used, section(".debug_precrt_persistent_stage_history")));
+volatile uint32_t debug_precrt_persistent_spll_check_lock_stage
+	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_stage")));
+volatile uint32_t debug_precrt_persistent_spll_check_lock_channel
+	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_channel")));
+volatile uint32_t debug_precrt_persistent_spll_check_lock_state_value
+	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_state_value")));
+volatile uint32_t debug_precrt_persistent_spll_check_lock_boot_generation
+	__attribute__((used, section(".debug_precrt_persistent_spll_check_lock_boot_generation")));
 
 int wrc_wr_diags(void); // fixme: move the header
 

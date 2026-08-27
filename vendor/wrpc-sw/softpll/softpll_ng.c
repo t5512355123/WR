@@ -15,6 +15,7 @@
 #include "board.h"
 #include "hw/softpll_regs.h"
 #include "hw/pps_gen_regs.h"
+#include "dev/wdiags.h"
 
 #include "softpll_ng.h"
 
@@ -513,8 +514,29 @@ void spll_stop_channel(int channel)
 
 int spll_check_lock(int channel)
 {
-	if (!channel)
-		return (softpll.seq_state == SEQ_READY);
+	if (!channel) {
+		int state_value;
+		int result;
+
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_CALL,
+			channel, 0);
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_ENTERED,
+			channel, 0);
+		state_value = softpll.seq_state;
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_AFTER_STATE_READ,
+			channel, state_value);
+		result = (state_value == SEQ_READY);
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_RETURN,
+			channel, state_value);
+		wdiags_write_spll_check_lock_debug(
+			WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED,
+			channel, state_value);
+		return result;
+	}
 	else
 		return (softpll.seq_state == SEQ_READY)
 		    && softpll.aux[channel - 1].pll.dmtd.phase_ld.locked;

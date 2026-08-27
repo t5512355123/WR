@@ -48,6 +48,16 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
                                    uint32_t start_tics,
                                    uint32_t current_tics,
                                    int32_t last_lock_result);
+/* Persistent read-only markers around spll_check_lock(0). */
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_NOT_ENTERED 0
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_CALL 1
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_ENTERED 2
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_AFTER_STATE_READ 3
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_RETURN 4
+#define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_RETURNED 5
+void wdiags_write_spll_check_lock_debug(uint32_t stage,
+                                        uint32_t channel,
+                                        uint32_t state_value);
 /* Read-only static-p startup-lifetime checkpoints. */
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1

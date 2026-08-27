@@ -1,0 +1,8 @@
+repo_head=07ceff8e4f7a2660496ffeea2b4fafc765b0e1f6
+status=?? docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-SPLL-CHECK-LOCK-ENTRY-EXIT-20260827/
+
+artifact_sha256
+33971434fad706009b22717b381cb63edfe7d955d1d339ba4794a92a6c22e9f9  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+59f905cb3d8905b6a61da73369efff72adfffbaad2f687dce8be82581e0b7acb  build/firmware/master/wrc.mif
+dc4c59bbe8c7a90a706cadb148b18cf5243d13391c288eff380b079448a2971a  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+cc8328d87540706b0fee2134dad0e597ba37350861a238452c9774f501a00325  build/firmware/slave/wrc.mif

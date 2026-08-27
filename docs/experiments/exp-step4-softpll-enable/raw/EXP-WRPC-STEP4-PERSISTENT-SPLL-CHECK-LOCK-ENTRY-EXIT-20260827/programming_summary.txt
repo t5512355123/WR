@@ -1,0 +1,3 @@
+Master programmer checksum=0x30B37E9B
+Slave programmer checksum=0x30B4455C
+JTAG ID=0x02E660DD

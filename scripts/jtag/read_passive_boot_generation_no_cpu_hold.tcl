@@ -39,16 +39,26 @@ proc read_word {instance_index} {
 proc sample {sample_index elapsed_ms} {
   set status_raw [read_word 0]
   set cpu_raw [read_word 2]
+  set marker_raw [read_word 3]
+  set store_raw [read_word 4]
+  set store_count_raw [read_word 5]
   set entry_raw [read_word 26]
 
   if {[string match {ERROR:*} $status_raw] ||
       [string match {INVALID:*} $status_raw] ||
       [string match {ERROR:*} $cpu_raw] ||
       [string match {INVALID:*} $cpu_raw] ||
+      [string match {ERROR:*} $marker_raw] ||
+      [string match {INVALID:*} $marker_raw] ||
+      [string match {ERROR:*} $store_raw] ||
+      [string match {INVALID:*} $store_raw] ||
+      [string match {ERROR:*} $store_count_raw] ||
+      [string match {INVALID:*} $store_count_raw] ||
       [string match {ERROR:*} $entry_raw] ||
       [string match {INVALID:*} $entry_raw]} {
-    puts [format "PASSIVE_SAMPLE index=%02d elapsed_ms=%d valid=0 STATUS=%s CPU=%s ENTRY=%s" \
-      $sample_index $elapsed_ms $status_raw $cpu_raw $entry_raw]
+    puts [format "PASSIVE_SAMPLE index=%02d elapsed_ms=%d valid=0 STATUS=%s CPU=%s MARKER=%s STORE=%s STORE_COUNT=%s ENTRY=%s" \
+      $sample_index $elapsed_ms $status_raw $cpu_raw $marker_raw $store_raw \
+      $store_count_raw $entry_raw]
     flush stdout
     return
   }
@@ -67,10 +77,11 @@ proc sample {sample_index elapsed_ms} {
   set p_at_entry_latest [expr {$entry_word & 0xffffffff}]
   set boot_generation [expr {($entry_word >> 32) & 0xffffffff}]
 
-  puts [format "PASSIVE_SAMPLE index=%02d elapsed_ms=%d valid=1 BOOT_GENERATION=%08X P_AT_ENTRY_LATEST=%08X CPU_RESET=%d CPU_RESET_n=%d/%d wr_core_reset_n=%d si_config_done=%d/%d clk_sys_625_locked=%d STATUS_RAW=%016X CPU_RAW=%016X ENTRY_RAW=%016X" \
+  puts [format "PASSIVE_SAMPLE index=%02d elapsed_ms=%d valid=1 BOOT_GENERATION=%08X P_AT_ENTRY_LATEST=%08X CPU_RESET=%d CPU_RESET_n=%d/%d wr_core_reset_n=%d si_config_done=%d/%d clk_sys_625_locked=%d MARKER_RAW=%s STORE_RAW=%s STORE_COUNT_RAW=%s STATUS_RAW=%016X CPU_RAW=%016X ENTRY_RAW=%016X" \
     $sample_index $elapsed_ms $boot_generation $p_at_entry_latest $cpu_reset \
     $cpu_reset_n $cpu_reset_n_status $wr_core_reset_n $si_config_done \
-    $si_config_done_status $clk_sys_625_locked $status_word $cpu_word $entry_word]
+    $si_config_done_status $clk_sys_625_locked $marker_raw $store_raw \
+    $store_count_raw $status_word $cpu_word $entry_word]
   flush stdout
 }
 

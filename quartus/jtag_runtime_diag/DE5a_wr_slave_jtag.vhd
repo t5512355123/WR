@@ -189,6 +189,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal core_link_ok         : std_logic;
   signal cpu_pc               : std_logic_vector(31 downto 0);
   signal cpu_reset            : std_logic;
+  signal cpu_software_reset   : std_logic;
   signal cpu_fault            : std_logic;
   signal cpu_im_valid         : std_logic;
   signal cpu_boot_stage_value : std_logic_vector(31 downto 0);
@@ -237,6 +238,50 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal cpu_store_count_source : std_logic_vector(0 downto 0);
   signal cpu_exception_probe   : std_logic_vector(63 downto 0);
   signal cpu_exception_source  : std_logic_vector(0 downto 0);
+  signal reset_sticky_probe    : std_logic_vector(63 downto 0);
+  signal reset_sticky_source   : std_logic_vector(0 downto 0);
+  signal reset_diag_armed      : std_logic := '0';
+  signal reset_diag_arm_count  : unsigned(7 downto 0) := (others => '0');
+  signal cpu_reset_seen        : std_logic := '0';
+  signal wr_core_reset_seen    : std_logic := '0';
+  signal external_reset_seen   : std_logic := '0';
+  signal si_config_drop_seen   : std_logic := '0';
+  signal sys_pll_drop_seen     : std_logic := '0';
+  signal software_reset_seen   : std_logic := '0';
+  signal phy_reset_seen        : std_logic := '0';
+  signal wr_ready_drop_seen    : std_logic := '0';
+  signal cpu_reset_count       : unsigned(7 downto 0) := (others => '0');
+  signal wr_core_reset_count   : unsigned(7 downto 0) := (others => '0');
+  signal external_reset_count  : unsigned(7 downto 0) := (others => '0');
+  signal si_config_drop_count  : unsigned(7 downto 0) := (others => '0');
+  signal sys_pll_drop_count    : unsigned(7 downto 0) := (others => '0');
+  signal software_reset_count  : unsigned(7 downto 0) := (others => '0');
+  signal cpu_reset_meta        : std_logic := '0';
+  signal cpu_reset_sync        : std_logic := '0';
+  signal cpu_reset_prev        : std_logic := '0';
+  signal wr_core_reset_meta    : std_logic := '0';
+  signal wr_core_reset_sync    : std_logic := '0';
+  signal wr_core_reset_prev    : std_logic := '0';
+  signal external_reset_meta   : std_logic := '0';
+  signal external_reset_sync   : std_logic := '0';
+  signal external_reset_prev   : std_logic := '0';
+  signal si_config_drop_meta   : std_logic := '0';
+  signal si_config_drop_sync   : std_logic := '0';
+  signal si_config_drop_prev   : std_logic := '0';
+  signal sys_pll_drop_meta     : std_logic := '0';
+  signal sys_pll_drop_sync     : std_logic := '0';
+  signal sys_pll_drop_prev     : std_logic := '0';
+  signal software_reset_meta   : std_logic := '0';
+  signal software_reset_sync   : std_logic := '0';
+  signal software_reset_prev   : std_logic := '0';
+  signal cpu_reset_event       : std_logic;
+  signal wr_core_reset_event   : std_logic;
+  signal external_reset_event  : std_logic;
+  signal si_config_drop_event  : std_logic;
+  signal sys_pll_drop_event    : std_logic;
+  signal software_reset_event  : std_logic;
+  signal phy_reset_event       : std_logic;
+  signal wr_ready_drop_event   : std_logic;
   signal cpu_data_diag_addr_payload : std_logic_vector(63 downto 0);
   signal cpu_data_diag_meta_payload : std_logic_vector(63 downto 0);
   signal cpu_data_diag_addr_probe : std_logic_vector(63 downto 0);
@@ -342,6 +387,12 @@ begin
   end process;
 
   reconfig_reset(0) <= not wr_core_reset_n;
+
+  -- The core exposes the final CPU reset.  Once the external WR core reset
+  -- is released, the remaining contributor is the CPU CSR software-reset bit.
+  -- Keeping this derivation at the diagnostic top level avoids changing the
+  -- shared WR core interfaces.
+  cpu_software_reset <= cpu_reset and wr_core_reset_n;
 
   -- Read-only activity markers. Each source clock toggles one bit every
   -- 256 cycles; the markers are synchronized into the 50 MHz observer clock
@@ -471,6 +522,151 @@ begin
       end if;
     end if;
   end process;
+
+  -- Arm only after the normal configuration/reset settle window.  This arm
+  -- state is diagnostic-only and never gates any functional reset.
+  p_reset_diag_arm : process(CLK_50_B2J)
+  begin
+    if rising_edge(CLK_50_B2J) then
+      if CPU_RESET_n = '1' and wr_core_reset_n = '1' and
+         si_config_done = '1' and clk_sys_625_locked = '1' and
+         cpu_reset = '0' then
+        if reset_diag_arm_count /= x"FF" then
+          reset_diag_arm_count <= reset_diag_arm_count + 1;
+        else
+          reset_diag_armed <= '1';
+        end if;
+      else
+        reset_diag_arm_count <= (others => '0');
+        reset_diag_armed <= '0';
+      end if;
+    end if;
+  end process;
+
+  cpu_reset_event      <= cpu_reset and reset_diag_armed;
+  wr_core_reset_event  <= (not wr_core_reset_n) and reset_diag_armed;
+  external_reset_event <= (not CPU_RESET_n) and reset_diag_armed;
+  si_config_drop_event <= (not si_config_done) and reset_diag_armed;
+  sys_pll_drop_event   <= (not clk_sys_625_locked) and reset_diag_armed;
+  software_reset_event <= cpu_software_reset and reset_diag_armed;
+  phy_reset_event      <= core_phy_rst and reset_diag_armed;
+  wr_ready_drop_event  <= (not wr_ready) and reset_diag_armed;
+
+  -- This observer-domain process has no CPU/WR reset input.  FPGA
+  -- configuration initializes the registers to zero.  Sticky bits use
+  -- asynchronous event sets; synchronized edge counters are auxiliary and
+  -- are explicitly not width-independent evidence.
+  p_reset_source_sticky : process(CLK_50_B2J,
+                                  cpu_reset_event, wr_core_reset_event,
+                                  external_reset_event, si_config_drop_event,
+                                  sys_pll_drop_event, software_reset_event,
+                                  phy_reset_event, wr_ready_drop_event)
+  begin
+    if cpu_reset_event = '1' then
+      cpu_reset_seen <= '1';
+    end if;
+    if wr_core_reset_event = '1' then
+      wr_core_reset_seen <= '1';
+    end if;
+    if external_reset_event = '1' then
+      external_reset_seen <= '1';
+    end if;
+    if si_config_drop_event = '1' then
+      si_config_drop_seen <= '1';
+    end if;
+    if sys_pll_drop_event = '1' then
+      sys_pll_drop_seen <= '1';
+    end if;
+    if software_reset_event = '1' then
+      software_reset_seen <= '1';
+    end if;
+    if phy_reset_event = '1' then
+      phy_reset_seen <= '1';
+    end if;
+    if wr_ready_drop_event = '1' then
+      wr_ready_drop_seen <= '1';
+    end if;
+
+    if rising_edge(CLK_50_B2J) then
+      cpu_reset_meta <= cpu_reset;
+      cpu_reset_sync <= cpu_reset_meta;
+      cpu_reset_prev <= cpu_reset_sync;
+      wr_core_reset_meta <= not wr_core_reset_n;
+      wr_core_reset_sync <= wr_core_reset_meta;
+      wr_core_reset_prev <= wr_core_reset_sync;
+      external_reset_meta <= not CPU_RESET_n;
+      external_reset_sync <= external_reset_meta;
+      external_reset_prev <= external_reset_sync;
+      si_config_drop_meta <= not si_config_done;
+      si_config_drop_sync <= si_config_drop_meta;
+      si_config_drop_prev <= si_config_drop_sync;
+      sys_pll_drop_meta <= not clk_sys_625_locked;
+      sys_pll_drop_sync <= sys_pll_drop_meta;
+      sys_pll_drop_prev <= sys_pll_drop_sync;
+      software_reset_meta <= cpu_software_reset;
+      software_reset_sync <= software_reset_meta;
+      software_reset_prev <= software_reset_sync;
+
+      if cpu_reset_sync = '1' and cpu_reset_prev = '0' and
+         cpu_reset_count /= x"FF" then
+        cpu_reset_count <= cpu_reset_count + 1;
+      end if;
+      if wr_core_reset_sync = '1' and wr_core_reset_prev = '0' and
+         wr_core_reset_count /= x"FF" then
+        wr_core_reset_count <= wr_core_reset_count + 1;
+      end if;
+      if external_reset_sync = '1' and external_reset_prev = '0' and
+         external_reset_count /= x"FF" then
+        external_reset_count <= external_reset_count + 1;
+      end if;
+      if si_config_drop_sync = '1' and si_config_drop_prev = '0' and
+         si_config_drop_count /= x"FF" then
+        si_config_drop_count <= si_config_drop_count + 1;
+      end if;
+      if sys_pll_drop_sync = '1' and sys_pll_drop_prev = '0' and
+         sys_pll_drop_count /= x"FF" then
+        sys_pll_drop_count <= sys_pll_drop_count + 1;
+      end if;
+      if software_reset_sync = '1' and software_reset_prev = '0' and
+         software_reset_count /= x"FF" then
+        software_reset_count <= software_reset_count + 1;
+      end if;
+    end if;
+  end process;
+
+  -- JTAG-readable hardware reset/drop evidence.  Bits 1..8 are sticky
+  -- flags; each following byte is a saturating synchronized-edge counter.
+  reset_sticky_probe(0) <= reset_diag_armed;
+  reset_sticky_probe(1) <= cpu_reset_seen;
+  reset_sticky_probe(2) <= wr_core_reset_seen;
+  reset_sticky_probe(3) <= external_reset_seen;
+  reset_sticky_probe(4) <= si_config_drop_seen;
+  reset_sticky_probe(5) <= sys_pll_drop_seen;
+  reset_sticky_probe(6) <= software_reset_seen;
+  reset_sticky_probe(7) <= phy_reset_seen;
+  reset_sticky_probe(8) <= wr_ready_drop_seen;
+  reset_sticky_probe(15 downto 9) <= (others => '0');
+  reset_sticky_probe(23 downto 16) <= std_logic_vector(cpu_reset_count);
+  reset_sticky_probe(31 downto 24) <= std_logic_vector(wr_core_reset_count);
+  reset_sticky_probe(39 downto 32) <= std_logic_vector(external_reset_count);
+  reset_sticky_probe(47 downto 40) <= std_logic_vector(si_config_drop_count);
+  reset_sticky_probe(55 downto 48) <= std_logic_vector(sys_pll_drop_count);
+  reset_sticky_probe(63 downto 56) <= std_logic_vector(software_reset_count);
+
+  u_reset_sticky_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_RESET_STICKY_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 27,
+      source_width            => 1
+    )
+    port map (
+      probe      => reset_sticky_probe,
+      source     => reset_sticky_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
 
   -- JTAG-readable status: bit 0 is the least-significant status bit.
   sync_probe(15 downto 0) <= CPU_RESET_n & wr_tx_enc_err & wr_rx_enc_err & si_id_error &

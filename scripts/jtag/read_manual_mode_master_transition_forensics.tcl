@@ -23,6 +23,10 @@
 # Persistent trap/fault breadcrumbs are kept in the CPU-local .debug_precrt
 # area and are read separately after the capture; the proven WDIAGS map ends
 # at the command-generation word 0x1b4.
+# Hardware reset/drop sticky evidence is read from instance 27.  Bits 1..8 are
+# sticky flags; bytes at bit positions 16, 24, 32, 40, 48 and 56 are the
+# synchronized-edge counters for CPU reset, WR core reset, external reset,
+# SI config drop, SYS PLL lock drop and software reset respectively.
 #
 # Optional fourth argument injects the single command through the JTAG
 # Wishbone virtual-UART HOST_TDR at the selected Master sample. This is a
@@ -75,6 +79,16 @@ proc display32 {value} {
   set word [word32 $value]
   if {$word < 0} { return $value }
   return [format %08X $word]
+}
+
+proc probe_bit {word bit_index} {
+  if {$word < 0} { return INVALID }
+  return [expr {($word >> $bit_index) & 1}]
+}
+
+proc probe_byte {word bit_index} {
+  if {$word < 0} { return INVALID }
+  return [format %02X [expr {($word >> $bit_index) & 0xff}]]
 }
 
 proc probe_read {instance} {
@@ -166,6 +180,10 @@ proc wb_sync_toggle {hardware_name} {
 
 proc read_sample {hardware_name sample elapsed_ms} {
   set status [probe_read 0]
+  set reset_sticky [probe_read 27]
+  set reset_sticky_word [word64 $reset_sticky]
+  set cpu_debug [probe_read 2]
+  set cpu_debug_word [word64 $cpu_debug]
   set entry [probe_read 26]
   set entry_word [word64 $entry]
   if {$entry_word < 0} {
@@ -212,9 +230,21 @@ proc read_sample {hardware_name sample elapsed_ms} {
   set persistent_command_hash [wb_read $hardware_name 0x00100BB0]
   set persistent_command_generation [wb_read $hardware_name 0x00100BB4]
 
-  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PERSIST_MAGIC=%s PERSIST_MODE_MASTER_STAGE=%s PERSIST_LOCK_WAIT_SUBSTAGE=%s PERSIST_BOOT_GENERATION_AT_STAGE=%s PERSIST_STAGE_HISTORY0=%s PERSIST_STAGE_HISTORY1=%s PERSIST_STAGE_HISTORY2=%s PERSIST_STAGE_HISTORY3=%s PERSIST_SPLL_CHECK_LOCK_STAGE=%s PERSIST_SPLL_CHECK_LOCK_CHANNEL=%s PERSIST_SPLL_CHECK_LOCK_STATE=%s PERSIST_SPLL_CHECK_LOCK_BOOT_GENERATION=%s PERSIST_CMD_STAGE=%s PERSIST_CMD_RX_BYTE_COUNT=%s PERSIST_CMD_LAST_BYTE=%s PERSIST_CMD_LENGTH=%s PERSIST_CMD_HASH=%s PERSIST_CMD_BOOT_GENERATION=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
-    $hardware_name $sample $elapsed_ms [display32 $status] [display64 $entry] \
-    $boot_generation $p_at_entry \
+  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s CPU_DEBUG_RAW=%s CPU_RESET_LIVE=%s WR_CORE_RESET_ASSERTED_LIVE=%s EXTERNAL_RESET_ASSERTED_LIVE=%s SI_CONFIG_DONE_LIVE=%s SYS_PLL_LOCK_LIVE=%s RESET_STICKY_RAW=%s RESET_ARMED=%s CPU_RESET_SEEN=%s WR_CORE_RESET_SEEN=%s EXTERNAL_RESET_SEEN=%s SI_CONFIG_DONE_DROP_SEEN=%s SYS_PLL_LOCK_DROP_SEEN=%s SOFTWARE_RESET_SEEN=%s PHY_RESET_SEEN=%s WR_READY_DROP_SEEN=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s EXTERNAL_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s SYS_PLL_DROP_COUNT=%s SOFTWARE_RESET_COUNT=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s LOCK_WAIT_SUBSTAGE=%s LOCK_WAIT_ITERATION=%s LOCK_WAIT_START_TICS=%s LOCK_WAIT_CURRENT_TICS=%s LOCK_WAIT_LAST_LOCK_RESULT=%s PERSIST_MAGIC=%s PERSIST_MODE_MASTER_STAGE=%s PERSIST_LOCK_WAIT_SUBSTAGE=%s PERSIST_BOOT_GENERATION_AT_STAGE=%s PERSIST_STAGE_HISTORY0=%s PERSIST_STAGE_HISTORY1=%s PERSIST_STAGE_HISTORY2=%s PERSIST_STAGE_HISTORY3=%s PERSIST_SPLL_CHECK_LOCK_STAGE=%s PERSIST_SPLL_CHECK_LOCK_CHANNEL=%s PERSIST_SPLL_CHECK_LOCK_STATE=%s PERSIST_SPLL_CHECK_LOCK_BOOT_GENERATION=%s PERSIST_CMD_STAGE=%s PERSIST_CMD_RX_BYTE_COUNT=%s PERSIST_CMD_LAST_BYTE=%s PERSIST_CMD_LENGTH=%s PERSIST_CMD_HASH=%s PERSIST_CMD_BOOT_GENERATION=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
+    $hardware_name $sample $elapsed_ms [display32 $status] \
+    [display64 $cpu_debug] [probe_bit $cpu_debug_word 32] \
+    [expr {[probe_bit $cpu_debug_word 36] eq "INVALID" ? "INVALID" : 1 - [probe_bit $cpu_debug_word 36]}] \
+    [expr {[probe_bit $cpu_debug_word 35] eq "INVALID" ? "INVALID" : 1 - [probe_bit $cpu_debug_word 35]}] \
+    [probe_bit $cpu_debug_word 37] [probe_bit $cpu_debug_word 38] \
+    [display64 $reset_sticky] [probe_bit $reset_sticky_word 0] \
+    [probe_bit $reset_sticky_word 1] [probe_bit $reset_sticky_word 2] \
+    [probe_bit $reset_sticky_word 3] [probe_bit $reset_sticky_word 4] \
+    [probe_bit $reset_sticky_word 5] [probe_bit $reset_sticky_word 6] \
+    [probe_bit $reset_sticky_word 7] [probe_bit $reset_sticky_word 8] \
+    [probe_byte $reset_sticky_word 16] [probe_byte $reset_sticky_word 24] \
+    [probe_byte $reset_sticky_word 32] [probe_byte $reset_sticky_word 40] \
+    [probe_byte $reset_sticky_word 48] [probe_byte $reset_sticky_word 56] \
+    [display64 $entry] $boot_generation $p_at_entry \
     [display32 $stage] [display32 $lock_wait_substage] [display32 $lock_wait_iteration] \
     [display32 $lock_wait_start_tics] [display32 $lock_wait_current_tics] \
     [display32 $lock_wait_last_result] [display32 $persistent_magic] \

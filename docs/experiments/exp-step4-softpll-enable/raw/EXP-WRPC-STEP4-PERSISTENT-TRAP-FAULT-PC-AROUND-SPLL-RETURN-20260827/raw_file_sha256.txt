@@ -1,0 +1,11 @@
+a6c28f7df7d7fba06c49780f51361faee14b886e0877407ef31222a0be160f14  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/baseline_boot_init_diag.log
+94cc54e7808ce0056f565d96bb0221e6c1e55159fbfce9c595f8b0032b7e39a5  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/build_info_jtag_master.txt
+cd6ffa265c19c52b392c0624a39210fbde17817c874ede14b6360226e9cddd80  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/build_info_jtag_slave.txt
+0d461a205e07241f5f23a9497862d0b1d16c142cced7571d5dbf21acfe7d6087  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/experiment_end.txt
+c975ff47eeab958715aa07022cf908494d233cbe059077ee2e642ee93165d061  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/experiment_start.txt
+9a863f6f42e722b87b7fdcbcd51a75ca1d12ce11f679254afc6c6ff851d5fc20  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/fault_record_readback.log
+4491aeb960d47d0ca4f089cc77fd069675586d6f82d9e95163cc07b817c7d6a7  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/forensics_manual_mode_master.log
+bb8da426c11f07418aa8e46e376dc8c564ae626744ca3cddc80b1c81e4f0d672  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/repo_head.txt
+09f07d6597963fbaab306d1759f990470aa0b22ec5737009e45fd8bdcfa54593  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/repo_status_after_capture.txt
+09f07d6597963fbaab306d1759f990470aa0b22ec5737009e45fd8bdcfa54593  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/repo_status.txt
+bb8da426c11f07418aa8e46e376dc8c564ae626744ca3cddc80b1c81e4f0d672  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-PERSISTENT-TRAP-FAULT-PC-AROUND-SPLL-RETURN-20260827/source_commit.txt

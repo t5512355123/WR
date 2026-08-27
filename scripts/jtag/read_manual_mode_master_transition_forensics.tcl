@@ -38,10 +38,22 @@ proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
 }
 
-proc word32 {value} {
+proc word64 {value} {
   if {![is_hex $value]} { return -1 }
   scan $value %x word
+  return $word
+}
+
+proc word32 {value} {
+  set word [word64 $value]
+  if {$word < 0} { return -1 }
   return [expr {$word & 0xffffffff}]
+}
+
+proc display64 {value} {
+  set word [word64 $value]
+  if {$word < 0} { return $value }
+  return [format %016X $word]
 }
 
 proc display32 {value} {
@@ -140,6 +152,14 @@ proc wb_sync_toggle {hardware_name} {
 proc read_sample {hardware_name sample elapsed_ms} {
   set status [probe_read 0]
   set entry [probe_read 26]
+  set entry_word [word64 $entry]
+  if {$entry_word < 0} {
+    set boot_generation INVALID
+    set p_at_entry INVALID
+  } else {
+    set boot_generation [format %08X [expr {($entry_word >> 32) & 0xffffffff}]]
+    set p_at_entry [format %08X [expr {$entry_word & 0xffffffff}]]
+  }
   set stage [wb_read $hardware_name 0x00100B58]
   set ptp [wb_read $hardware_name 0x00100A10]
   set ptp_meta [wb_read $hardware_name 0x00100A5C]
@@ -154,8 +174,9 @@ proc read_sample {hardware_name sample elapsed_ms} {
   set ptp_rx [wb_read $hardware_name 0x00100A54]
   set ptp_tx [wb_read $hardware_name 0x00100A58]
 
-  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY=%s MODE_MASTER_STAGE=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
-    $hardware_name $sample $elapsed_ms [display32 $status] [display32 $entry] \
+  puts [format "FORENSICS_SAMPLE board=%s sample=%03d elapsed_ms=%d STATUS=%s ENTRY_RAW=%s BOOT_GENERATION=%s P_AT_ENTRY_LATEST=%s MODE_MASTER_STAGE=%s PTP=%s PTP_META=%s SPLL_STATE=%s LOCK_ENABLE=%s EIC_ISR=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE=%s PTP_RX=%s PTP_TX=%s" \
+    $hardware_name $sample $elapsed_ms [display32 $status] [display64 $entry] \
+    $boot_generation $p_at_entry \
     [display32 $stage] [display32 $ptp] [display32 $ptp_meta] \
     [display32 $spll_state] [display32 $lock_enable] [display32 $eic_isr] \
     [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] \

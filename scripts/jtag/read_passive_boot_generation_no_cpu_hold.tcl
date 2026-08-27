@@ -75,7 +75,7 @@ proc sample {sample_index elapsed_ms} {
 }
 
 puts [format "PASSIVE_CONFIG gap_ms=%d samples=0,%d,%d,%d,%d read_only=1 cpu_hold_release=0 cpu_reset_write=0" \
-  $gap_ms $gap_ms [expr {2 * $gap_ms}] [expr {3 * $gap_ms}] [expr {4 * $gap_ms}]]
+  $gap_ms $gap_ms [expr {2 * $gap_ms}] [expr {4 * $gap_ms}] [expr {5 * $gap_ms}]]
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} {
@@ -95,10 +95,10 @@ foreach hardware_name [get_hardware_names] {
     sample 1 $gap_ms
     after $gap_ms
     sample 2 [expr {2 * $gap_ms}]
+    after [expr {2 * $gap_ms}]
+    sample 3 [expr {4 * $gap_ms}]
     after $gap_ms
-    sample 3 [expr {3 * $gap_ms}]
-    after $gap_ms
-    sample 4 [expr {4 * $gap_ms}]
+    sample 4 [expr {5 * $gap_ms}]
   } error_message]} {
     puts "error: ${error_message}"
   }

@@ -569,7 +569,7 @@ always@(posedge iCLK or negedge iRST_n)
 			begin
 				if (access_i2c_reg_start)
 					i2c_reg_state <= 1'b1;
-				else if (i2c_controller_config_done)
+				else if (i2c_controller_config_done && (i2c_reg_state > 0))
 					i2c_reg_state <= i2c_reg_state+1;
 				else if (i2c_reg_state == (`REG_NUM+1))
 					i2c_reg_state <= 0;	

@@ -355,15 +355,23 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal si_corr_probe3         : std_logic_vector(63 downto 0);
   signal si_corr_probe4         : std_logic_vector(63 downto 0);
   signal si_corr_probe5         : std_logic_vector(63 downto 0);
+  signal si_corr_probe6         : std_logic_vector(63 downto 0);
+  signal si_corr_probe7         : std_logic_vector(63 downto 0);
   signal si_corr_source0        : std_logic_vector(0 downto 0);
   signal si_corr_source1        : std_logic_vector(0 downto 0);
   signal si_corr_source2        : std_logic_vector(0 downto 0);
   signal si_corr_source3        : std_logic_vector(0 downto 0);
   signal si_corr_source4        : std_logic_vector(0 downto 0);
   signal si_corr_source5        : std_logic_vector(0 downto 0);
+  signal si_corr_source6        : std_logic_vector(0 downto 0);
+  signal si_corr_source7        : std_logic_vector(0 downto 0);
   signal si_corr_timestamp      : unsigned(31 downto 0) := (others => '0');
-  signal si_corr_arm_count      : unsigned(7 downto 0) := (others => '0');
-  signal si_corr_armed          : std_logic := '0';
+  signal si_corr_post_arm_count : unsigned(17 downto 0) := (others => '0');
+  signal si_corr_post_armed     : std_logic := '0';
+  signal si_corr_startup_system_start : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_startup_static_complete : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_post_arm_timestamp : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_startup_ready_final : std_logic := '0';
   signal si_corr_static_prev    : std_logic_vector(7 downto 0) := (others => '0');
   signal si_corr_ready_prev     : std_logic := '0';
   signal si_corr_config_prev    : std_logic := '0';
@@ -729,18 +737,49 @@ begin
       now_tick := si_corr_timestamp + 1;
       si_corr_timestamp <= now_tick;
 
-      if si_corr_armed = '0' then
-        if si_config_done = '1' and wr_core_reset_n = '1' and
-           clk_sys_625_locked = '1' and cpu_reset = '0' and
-           dco_system_start = '0' then
-          if si_corr_arm_count = x"FE" then
-            si_corr_arm_count <= x"FF";
-            si_corr_armed <= '1';
+      -- Preserve the normal startup provenance independently of the
+      -- post-startup runtime-only recorder.
+      if si_corr_startup_system_start = x"00000000" and
+         dco_system_start = '1' then
+        si_corr_startup_system_start <= now_tick;
+      end if;
+      if si_corr_startup_system_start /= x"00000000" and
+         si_corr_startup_static_complete = x"00000000" and
+         dco_static_state = x"00" and si_config_done = '1' and
+         wr_core_reset_n = '1' and cpu_reset = '0' and
+         dco_bus_state = '0' and dco_runtime_state = "000" then
+        si_corr_startup_static_complete <= now_tick;
+      end if;
+
+      -- A 5 ms stable window at the 50 MHz observer clock proves that the
+      -- diagnostic recorder is armed after startup, not during it.
+      if si_corr_post_armed = '0' then
+        if si_corr_startup_system_start /= x"00000000" and
+           si_corr_startup_static_complete /= x"00000000" and
+           dco_static_state = x"00" and si_config_done = '1' and
+           wr_core_reset_n = '1' and cpu_reset = '0' and
+           dco_bus_state = '0' and dco_runtime_state = "000" then
+          si_corr_startup_ready_final <= '1';
+          if si_corr_post_arm_count = to_unsigned(249999, 18) then
+            si_corr_post_armed <= '1';
+            si_corr_post_arm_timestamp <= now_tick;
+            si_corr_t_dac_load <= (others => '0');
+            si_corr_t_runtime_start <= (others => '0');
+            si_corr_t_bus_done <= (others => '0');
+            si_corr_t_static_done <= (others => '0');
+            si_corr_t_state_leave <= (others => '0');
+            si_corr_t_ready_drop <= (others => '0');
+            si_corr_t_config_drop <= (others => '0');
+            si_corr_t_wr_reset <= (others => '0');
+            si_corr_t_cpu_reset <= (others => '0');
+            si_corr_t_system_start <= (others => '0');
+            si_corr_static_before <= (others => '0');
+            si_corr_static_after <= (others => '0');
           else
-            si_corr_arm_count <= si_corr_arm_count + 1;
+            si_corr_post_arm_count <= si_corr_post_arm_count + 1;
           end if;
         else
-          si_corr_arm_count <= (others => '0');
+          si_corr_post_arm_count <= (others => '0');
         end if;
       else
         if si_corr_t_dac_load = x"00000000" and
@@ -809,7 +848,7 @@ begin
   si_corr_probe5(7 downto 0) <= si_corr_static_before;
   si_corr_probe5(15 downto 8) <= si_corr_static_after;
   si_corr_probe5(23 downto 16) <= dco_static_state;
-  si_corr_probe5(24) <= si_corr_armed;
+  si_corr_probe5(24) <= si_corr_post_armed;
   si_corr_probe5(25) <= si_config_done;
   si_corr_probe5(26) <= wr_core_reset_n;
   si_corr_probe5(27) <= cpu_reset;
@@ -822,6 +861,12 @@ begin
   si_corr_probe5(36) <= dco_runtime_bus_enable;
   si_corr_probe5(37) <= dco_system_start;
   si_corr_probe5(63 downto 38) <= (others => '0');
+  si_corr_probe6(31 downto 0) <= std_logic_vector(si_corr_post_arm_timestamp);
+  si_corr_probe6(63 downto 32) <= std_logic_vector(si_corr_startup_system_start);
+  si_corr_probe7(31 downto 0) <= std_logic_vector(si_corr_startup_static_complete);
+  si_corr_probe7(32) <= si_corr_startup_ready_final;
+  si_corr_probe7(33) <= si_corr_post_armed;
+  si_corr_probe7(63 downto 34) <= (others => '0');
 
   u_si_corr_probe0 : altsource_probe
     generic map (instance_id => "WR_SI_CORRELATION_0_SLAVE", probe_width => 64,
@@ -858,6 +903,18 @@ begin
                  sld_auto_instance_index => "NO", sld_instance_index => 33,
                  source_width => 1)
     port map (probe => si_corr_probe5, source => si_corr_source5,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe6 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_6_SLAVE", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 34,
+                 source_width => 1)
+    port map (probe => si_corr_probe6, source => si_corr_source6,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe7 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_7_SLAVE", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 35,
+                 source_width => 1)
+    port map (probe => si_corr_probe7, source => si_corr_source7,
               source_clk => CLK_50_B2J, source_ena => '1');
 
   -- JTAG-readable status: bit 0 is the least-significant status bit.

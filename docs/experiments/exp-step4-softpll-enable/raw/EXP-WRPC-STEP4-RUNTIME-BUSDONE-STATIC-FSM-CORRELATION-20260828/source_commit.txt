@@ -1,0 +1,14 @@
+commit 2b3c76eb6ee25eacc5eb3da49415c428c44a95f4
+Author:     Lucas <109497324+t5512355123@users.noreply.github.com>
+AuthorDate: Fri Aug 28 09:37:17 2026 +0800
+Commit:     Lucas <109497324+t5512355123@users.noreply.github.com>
+CommitDate: Fri Aug 28 09:37:17 2026 +0800
+
+    exp: correlate runtime bus done with static FSM
+
+ quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd  | 226 +++++++++++++++++++-
+ quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd   | 205 +++++++++++++++++-
+ quartus/jtag_runtime_diag/si5340a_controller_dco.v |  28 ++-
+ .../si5340a_i2c_reg_controller_dco.v               |   8 +-
+ ...read_runtime_busdone_static_fsm_correlation.tcl | 233 +++++++++++++++++++++
+ 5 files changed, 693 insertions(+), 7 deletions(-)

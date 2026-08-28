@@ -1,0 +1,17 @@
+experiment=EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828
+source_commit=209145d276c9ce67fbfc717553538be7ff1bed40
+baseline_commit=7230cd7
+quartus_version=17.0.0 Build 595 04/25/2017 SJ Standard Edition
+master_programmer=DE5 [1-11.1]
+master_program_checksum=0x30B00EC4
+master_program_jtag_id=0x02E660DD
+master_program_result=success_0_errors_0_warnings
+slave_programmer=DE5 [1-11.2]
+slave_program_checksum=0x30B7AD8B
+slave_program_jtag_id=0x02E660DD
+slave_program_result=success_0_errors_0_warnings
+stimulus=exactly_one_mode_master_newline_on_master_only_after_post_armed
+capture=samples_200_gap_ms_200_passive_after_injection
+primary_result=static_false_restart_not_observed_but_runtime_dco_not_reached
+persistent_result=master_command_stage_4_rx_newline_mode_stage_0_boot_generation_1
+slave_result=all_post_arm_runtime_timestamps_zero_no_stimulus

@@ -1,0 +1,11 @@
+a4020ebc0eab9d7dfc0e081b2c1dd3dc6bef6d441c99e9654e03840e9dca6089  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/build_info_jtag_master.txt
+9922997e706cbd964d4cbdd401fcfae68982a3c7aed967363be2a94cc39e0eab  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/build_info_jtag_slave.txt
+e6122663cc9b17c68178aa278bfcaa38d18460804463dbfde126faa18d7ea5e6  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/build_jtag_master.log
+e5830ef47ca62cadbc86d066cfea9040f6cc60b8ee4b96ef772f49018b7cd687  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/build_jtag_slave.log
+011da8dfecc4305d2b8050f686e3278c050697e3f7d22ab4010d51f0393c5e02  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/DE5a_wr_master_jtag.vhd
+9272d9744d4ca7acdb3e27eb56993316031d3df767acf8fff3da55015d95c07b  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/DE5a_wr_slave_jtag.vhd
+07987b7dfa2b215111d0662496725f9d0718fea8ecb70197f17aa56a26faf2d4  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/post_fix_runtime_correlation.log
+f8b249c4ee138d85e4b961fcb24c5520ef4f1ee87ce8d8301ee480b3f2038e5f  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/programming_and_config.txt
+4cb74761d0d6d0c9ab1ba3477fb0541ab04f0a522385c7d2a6756087360897cd  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/read_post_startup_armed_runtime_correlation.tcl
+04d4feb68e498a10a76f0e3e2df08926d158483ad932bda5169103c24a17c2c0  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/si5340a_i2c_reg_controller_dco.v
+99608e1e39ca4030324785e8bb44921e69c661a65742f3fc3216050416b6c6de  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-STATIC-FSM-IDLE-COMPLETION-GATE-FIX-20260828/source_diff_7230cd7_to_209145d.patch

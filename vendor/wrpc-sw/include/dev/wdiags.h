@@ -74,6 +74,23 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
 #define WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED 9
 void wdiags_write_shell_command_rx_byte(uint32_t byte_value);
 void wdiags_write_shell_command_stage(uint32_t stage);
+/* Persistent interactive VUART newline-to-dispatch microtrace. */
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_IDLE 0
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_NEWLINE_DETECTED 1
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_LINE_READY_SCHEDULED 2
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_SHELL_POLL_LINE_READY 3
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_BUFFER_TERMINATED 4
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_SHELL_EXEC_ENTERED 5
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_TOKEN_PARSED 6
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_MODE_LOOKUP_MATCHED 7
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_MODE_HANDLER_ENTERED 8
+#define WRC_DIAGS_PERSISTENT_CMD_MICRO_MASTER_ARGUMENT_MATCHED 9
+void wdiags_write_shell_command_micro_stage(uint32_t stage,
+                                            uint32_t command_length,
+                                            uint32_t command_pos,
+                                            uint32_t line_ready,
+                                            uint32_t shell_state,
+                                            const char *command_buffer);
 /* Read-only per-boot shell-ready gate. The markers are intentionally
  * generation-tagged so a stale pre-reentry value cannot arm a stimulus. */
 void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,

@@ -35,6 +35,14 @@ extern volatile uint32_t debug_precrt_persistent_command_last_byte;
 extern volatile uint32_t debug_precrt_persistent_command_length;
 extern volatile uint32_t debug_precrt_persistent_command_hash;
 extern volatile uint32_t debug_precrt_persistent_command_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_command_micro_stage;
+extern volatile uint32_t debug_precrt_persistent_command_micro_boot_generation;
+extern volatile uint32_t debug_precrt_persistent_command_micro_length;
+extern volatile uint32_t debug_precrt_persistent_command_micro_pos;
+extern volatile uint32_t debug_precrt_persistent_command_micro_line_ready;
+extern volatile uint32_t debug_precrt_persistent_command_micro_shell_state;
+extern volatile uint32_t debug_precrt_persistent_command_micro_buffer_capture_stage;
+extern volatile uint32_t debug_precrt_persistent_command_micro_buffer_word[4];
 extern volatile uint32_t debug_precrt_persistent_fault_magic;
 extern volatile uint32_t debug_precrt_persistent_fault_count;
 extern volatile uint32_t debug_precrt_persistent_fault_mcause;
@@ -87,6 +95,15 @@ static void wdiags_persistent_init_if_invalid(void)
 	debug_precrt_persistent_command_length = 0;
 	debug_precrt_persistent_command_hash = 0;
 	debug_precrt_persistent_command_boot_generation = 0;
+	debug_precrt_persistent_command_micro_stage = 0;
+	debug_precrt_persistent_command_micro_boot_generation = 0;
+	debug_precrt_persistent_command_micro_length = 0;
+	debug_precrt_persistent_command_micro_pos = 0;
+	debug_precrt_persistent_command_micro_line_ready = 0;
+	debug_precrt_persistent_command_micro_shell_state = 0;
+	debug_precrt_persistent_command_micro_buffer_capture_stage = 0;
+	for (i = 0; i < 4; i++)
+		debug_precrt_persistent_command_micro_buffer_word[i] = 0;
 	/* Preserve a valid fault record across CPU-only re-entry. */
 	if (debug_precrt_persistent_fault_magic !=
 		WDIAGS_PERSISTENT_FAULT_MAGIC) {
@@ -202,6 +219,28 @@ static void wdiags_publish_persistent_record(void)
 			debug_precrt_persistent_command_hash);
 	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_BOOT_GENERATION,
 			debug_precrt_persistent_command_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_STAGE,
+			debug_precrt_persistent_command_micro_stage);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BOOT_GENERATION,
+			debug_precrt_persistent_command_micro_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_LENGTH,
+			debug_precrt_persistent_command_micro_length);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_POS,
+			debug_precrt_persistent_command_micro_pos);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_LINE_READY,
+			debug_precrt_persistent_command_micro_line_ready);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_SHELL_STATE,
+			debug_precrt_persistent_command_micro_shell_state);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD0,
+			debug_precrt_persistent_command_micro_buffer_word[0]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD1,
+			debug_precrt_persistent_command_micro_buffer_word[1]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD2,
+			debug_precrt_persistent_command_micro_buffer_word[2]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD3,
+			debug_precrt_persistent_command_micro_buffer_word[3]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_CAPTURE_STAGE,
+			debug_precrt_persistent_command_micro_buffer_capture_stage);
 }
 
 static uint32_t wdiag_read( uint32_t reg )
@@ -401,6 +440,49 @@ void wdiags_write_shell_command_stage(uint32_t stage)
 	debug_precrt_persistent_command_stage = stage;
 	debug_precrt_persistent_command_boot_generation =
 		debug_precrt_boot_generation;
+	wdiags_publish_persistent_record();
+}
+
+void wdiags_write_shell_command_micro_stage(uint32_t stage,
+										uint32_t command_length,
+										uint32_t command_pos,
+										uint32_t line_ready,
+										uint32_t shell_state,
+										const char *command_buffer)
+{
+	uint32_t current;
+	int i;
+
+	if (stage < WRC_DIAGS_PERSISTENT_CMD_MICRO_NEWLINE_DETECTED ||
+		stage > WRC_DIAGS_PERSISTENT_CMD_MICRO_MASTER_ARGUMENT_MATCHED)
+		return;
+
+	wdiags_persistent_init_if_invalid();
+	current = debug_precrt_persistent_command_micro_stage;
+	if (stage <= current || (current != 0 && stage != current + 1))
+		return;
+
+	debug_precrt_persistent_command_micro_stage = stage;
+	debug_precrt_persistent_command_micro_boot_generation =
+		debug_precrt_boot_generation;
+	debug_precrt_persistent_command_micro_length = command_length;
+	debug_precrt_persistent_command_micro_pos = command_pos;
+	debug_precrt_persistent_command_micro_line_ready = line_ready;
+	debug_precrt_persistent_command_micro_shell_state = shell_state;
+
+	/* Capture the pre-tokenization line.  _shell_exec() replaces spaces with
+	 * NUL bytes, so later stages intentionally retain the stage-4 snapshot. */
+	if (stage <= WRC_DIAGS_PERSISTENT_CMD_MICRO_BUFFER_TERMINATED &&
+		command_buffer != NULL) {
+		for (i = 0; i < 4; i++)
+			debug_precrt_persistent_command_micro_buffer_word[i] = 0;
+		for (i = 0; i < 16; i++)
+			debug_precrt_persistent_command_micro_buffer_word[i / 4] |=
+				((uint32_t)(unsigned char)command_buffer[i]) <<
+				((i % 4) * 8);
+		debug_precrt_persistent_command_micro_buffer_capture_stage = stage;
+	}
+
 	wdiags_publish_persistent_record();
 }
 

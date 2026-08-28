@@ -110,6 +110,24 @@ volatile uint32_t debug_precrt_persistent_command_hash
 	__attribute__((used, section(".debug_precrt_persistent_command_hash")));
 volatile uint32_t debug_precrt_persistent_command_boot_generation
 	__attribute__((used, section(".debug_precrt_persistent_command_boot_generation")));
+/* Persistent microtrace of the interactive VUART newline-to-dispatch path.
+ * The buffer snapshot is captured before shell tokenization mutates cmd_buf. */
+volatile uint32_t debug_precrt_persistent_command_micro_stage
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_stage")));
+volatile uint32_t debug_precrt_persistent_command_micro_boot_generation
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_boot_generation")));
+volatile uint32_t debug_precrt_persistent_command_micro_length
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_length")));
+volatile uint32_t debug_precrt_persistent_command_micro_pos
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_pos")));
+volatile uint32_t debug_precrt_persistent_command_micro_line_ready
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_line_ready")));
+volatile uint32_t debug_precrt_persistent_command_micro_shell_state
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_shell_state")));
+volatile uint32_t debug_precrt_persistent_command_micro_buffer_capture_stage
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_buffer_capture_stage")));
+volatile uint32_t debug_precrt_persistent_command_micro_buffer_word[4]
+	__attribute__((used, section(".debug_precrt_persistent_command_micro_buffer_word")));
 /* Persistent synchronous-fault evidence captured at the earliest trap entry.
  * The magic word is written last so a partially captured record is invalid. */
 volatile uint32_t debug_precrt_persistent_fault_magic

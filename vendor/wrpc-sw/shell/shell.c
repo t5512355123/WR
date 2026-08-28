@@ -113,7 +113,17 @@ static const struct wrc_shell_cmd *cmds[ SHELL_MAX_COMMANDS ];
 static int n_cmds = 0;
 
 unsigned char shell_is_interacting;
+unsigned char shell_command_microtrace_active;
 int (*shell_ui_callback)(void);
+
+void shell_command_microtrace_stage(uint32_t stage)
+{
+	if (!shell_command_microtrace_active)
+		return;
+	wdiags_write_shell_command_micro_stage(
+		stage, (uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+		(uint32_t)state, cmd_buf);
+}
 
 volatile uint32_t shell_boot_init_script_enter_count;
 volatile uint32_t shell_boot_init_command_index;
@@ -212,13 +222,25 @@ static int _shell_exec(void)
 	if (*tokptr[0] == '#')
 		return 0;
 
+	if (shell_command_microtrace_active)
+		wdiags_write_shell_command_micro_stage(
+			WRC_DIAGS_PERSISTENT_CMD_MICRO_TOKEN_PARSED,
+			(uint32_t)cmd_len, (uint32_t)cmd_pos, 1, (uint32_t)state,
+			cmd_buf);
+
 	for (i = 0; i < n_cmds; i++)
 	{
 		p = cmds[i];
 		if (!strcasecmp(p->name, tokptr[0])) {
-			if (!strcasecmp(p->name, "mode"))
+			if (!strcasecmp(p->name, "mode")) {
+				if (shell_command_microtrace_active)
+					wdiags_write_shell_command_micro_stage(
+						WRC_DIAGS_PERSISTENT_CMD_MICRO_MODE_LOOKUP_MATCHED,
+						(uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+						(uint32_t)state, cmd_buf);
 				wdiags_write_shell_command_stage(
 					WRC_DIAGS_PERSISTENT_CMD_LOOKUP_MODE);
+			}
 			rv = p->exec(tokptr + 1);
 			if (rv < 0)
 				pp_printf("Command \"%s\": error %d\n",
@@ -295,9 +317,20 @@ int shell_interactive()
 			case KEY_ENTER:
 			case KEY_ENTER10:
 				pp_printf("\n");
+				if (!shell_command_microtrace_active) {
+					wdiags_write_shell_command_micro_stage(
+						WRC_DIAGS_PERSISTENT_CMD_MICRO_NEWLINE_DETECTED,
+						(uint32_t)cmd_len, (uint32_t)cmd_pos, 0,
+						(uint32_t)state, cmd_buf);
+					shell_command_microtrace_active = 1;
+				}
 				wdiags_write_shell_command_stage(
 					WRC_DIAGS_PERSISTENT_CMD_SHELL_LINE_READY);
 				state = SH_EXEC;
+				wdiags_write_shell_command_micro_stage(
+					WRC_DIAGS_PERSISTENT_CMD_MICRO_LINE_READY_SCHEDULED,
+					(uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+					(uint32_t)state, cmd_buf);
 				break;
 
 			case KEY_DELETE:
@@ -333,8 +366,24 @@ int shell_interactive()
 		return 1;
 
 	case SH_EXEC:
+		if (shell_command_microtrace_active)
+			wdiags_write_shell_command_micro_stage(
+				WRC_DIAGS_PERSISTENT_CMD_MICRO_SHELL_POLL_LINE_READY,
+				(uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+				(uint32_t)state, cmd_buf);
 		cmd_buf[cmd_len] = 0;
+		if (shell_command_microtrace_active)
+			wdiags_write_shell_command_micro_stage(
+				WRC_DIAGS_PERSISTENT_CMD_MICRO_BUFFER_TERMINATED,
+				(uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+				(uint32_t)state, cmd_buf);
+		if (shell_command_microtrace_active)
+			wdiags_write_shell_command_micro_stage(
+				WRC_DIAGS_PERSISTENT_CMD_MICRO_SHELL_EXEC_ENTERED,
+				(uint32_t)cmd_len, (uint32_t)cmd_pos, 1,
+				(uint32_t)state, cmd_buf);
 		_shell_exec();
+		shell_command_microtrace_active = 0;
 
 // fixme: ugly hack, we should manage the shell FSM state in a cleaner way.
 		if( state == SH_EXEC_UI )

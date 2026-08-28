@@ -109,6 +109,8 @@ static int cmd_ptp(const char *args[])
 	const struct subcmd *c;
 	int l_arg;
 
+	shell_command_microtrace_stage(
+		WRC_DIAGS_PERSISTENT_CMD_MICRO_MODE_HANDLER_ENTERED);
 	wdiags_write_shell_command_stage(
 		WRC_DIAGS_PERSISTENT_CMD_MODE_HANDLER_ENTERED);
 
@@ -143,6 +145,8 @@ static int cmd_ptp(const char *args[])
 				is_mode_master =
 					(c->fun == wrc_ptp_set_mode && l_arg == WRC_MODE_MASTER);
 				if (is_mode_master) {
+					shell_command_microtrace_stage(
+						WRC_DIAGS_PERSISTENT_CMD_MICRO_MASTER_ARGUMENT_MATCHED);
 					wdiags_write_shell_command_stage(
 						WRC_DIAGS_PERSISTENT_CMD_MASTER_ARGUMENT);
 					++shell_boot_init_mode_master_call_count;

@@ -44,6 +44,10 @@ void env_init(void);
 int shell_exec(const char *buf);
 int shell_interactive(void);
 extern unsigned char shell_is_interacting;
+/* Diagnostic-only flag: the microtrace is armed by an interactive newline,
+ * not by boot-script shell_exec() calls. */
+extern unsigned char shell_command_microtrace_active;
+void shell_command_microtrace_stage(uint32_t stage);
 
 /* Command sub-menu: the command of CMD (of length LEN) is selected
    according to ARGS[0] and its index returned.

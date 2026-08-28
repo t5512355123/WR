@@ -1,0 +1,13 @@
+experiment=EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828
+source_commit=382d30cd23e5f0580b7348d2c7812fdce95617ec
+quartus_version=17.0.0 Build 595 04/25/2017 SJ Standard Edition
+master_programmer=DE5 [1-11.1]
+master_program_checksum=0x30AF826D
+master_program_jtag_id=0x02E660DD
+master_program_result=success_0_errors_0_warnings
+slave_programmer=DE5 [1-11.2]
+slave_program_checksum=0x30B26152
+slave_program_jtag_id=0x02E660DD
+slave_program_result=success_0_errors_0_warnings
+stimulus=exactly_one_mode_master_newline_on_master_only_after_post_armed
+capture=samples_200_gap_ms_200_passive_after_injection

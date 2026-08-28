@@ -1,0 +1,10 @@
+9a59b45841c1fd601afadfe2966adbb4ffd90c946934f6350e791092e3e63994  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/build_info_jtag_master.txt
+77a5b1d8f1f859fdbcfbaaf133c2505a89b438498508c5a230aa0b3a3448e535  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/build_info_jtag_slave.txt
+feb55ab1d458a90a010319b83de229d95553806c41fe095f6851118347fdda52  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/build_jtag_master.log
+5c8efda70c4780160ccc12973fab90a60ca978c06f845ef19392bdd8c5a519b0  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/build_jtag_slave.log
+011da8dfecc4305d2b8050f686e3278c050697e3f7d22ab4010d51f0393c5e02  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/DE5a_wr_master_jtag.vhd
+9272d9744d4ca7acdb3e27eb56993316031d3df767acf8fff3da55015d95c07b  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/DE5a_wr_slave_jtag.vhd
+d0cd73e9d8002f4a87328bdc657551d9a6c4cbd8d3d7f2a474241a62ea3fae93  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/post_startup_armed_runtime_correlation.log
+66d0c47218f44a41146590c2fa2642ac02c7d46d13bcb403551ba293327faf4b  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/programming_and_config.txt
+4cb74761d0d6d0c9ab1ba3477fb0541ab04f0a522385c7d2a6756087360897cd  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/read_post_startup_armed_runtime_correlation.tcl
+bd12f756fbaeabeec82d68c1a0286f3e7ccc8c03a1154115c51a558adc4ec7a6  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-POST-STARTUP-ARMED-RUNTIME-CORRELATION-20260828/source_diff_0cdf6c9_to_382d30c.patch

@@ -1,0 +1,19 @@
+SourceCommit=d5f1c1b6979da88703c0b5c5fd24610dd7ac307a
+Scope=diagnostic-only persistent breadcrumbs and readback; no parser/VUART/scheduling/main-loop/mode-master/SoftPLL/DMTD/PTP/PHY functional change.
+
+RX path:
+vendor/wrpc-sw/dev/console-uart.c::con_rx_internal -> suart_read_byte -> wdiags_write_shell_command_rx_byte
+vendor/wrpc-sw/dev/console.c::console_getc -> shell_interactive
+vendor/wrpc-sw/shell/shell.c::KEY_ENTER -> stage 1 NEWLINE_DETECTED, then stage 2 LINE_READY_SCHEDULED and state SH_EXEC
+vendor/wrpc-sw/shell/shell.c::SH_EXEC -> stage 3 SHELL_POLL_LINE_READY, NUL terminator, stage 4 BUFFER_TERMINATED, stage 5 SHELL_EXEC_ENTERED
+vendor/wrpc-sw/shell/shell.c::_shell_exec -> stage 6 TOKEN_PARSED -> stage 7 MODE_LOOKUP_MATCHED
+vendor/wrpc-sw/shell/cmd_ptp.c::cmd_ptp -> stage 8 MODE_HANDLER_ENTERED -> stage 9 MASTER_ARGUMENT_MATCHED -> existing wrc_ptp_set_mode path
+
+Important boundary:
+The embedded firmware has no software RX write/read-index pair for this path. Hardware VUART FIFO data is consumed by suart_read_byte(); the new records are read-only breadcrumbs around the existing calls.
+
+WDIAGS private overlay:
+0x1e0..0x1ec = buffer words 0..3 after microtrace stage > 0; gate words while idle.
+0x1f0 = length[7:0], position[15:8], line_ready[16], shell_state[31:24].
+0x1f4 = microtrace boot generation; 0x1f8 = buffer capture stage; 0x1fc = microtrace stage commit marker.
+The writer publishes buffer/metadata first and stage last.

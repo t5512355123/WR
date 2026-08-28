@@ -1,0 +1,8 @@
+RemoteLog=/tmp/vuart-microtrace-overlay-final3-debug-20260828.log
+RemoteLogSHA256=74a4e87220fd31665a3dfc85c55602aa6796c935d01657a063afdef8b503a26a
+Stimulus=none
+MASTER_PRETRACE_STAGE=0
+MASTER_PRETRACE_GATE_WORDS=0x1e0..0x1f8 all read as 00000001
+SLAVE_PRETRACE_STAGE=0
+SLAVE_PRETRACE_GATE_WORDS=0x1e0..0x1f8 all read as 00000001
+All probe transactions completed with active=0 err=0 stall=0.

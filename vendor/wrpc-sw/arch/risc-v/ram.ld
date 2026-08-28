@@ -99,6 +99,12 @@ KEEP(*(.debug_precrt_persistent_command_boot_generation))
  KEEP(*(.debug_precrt_persistent_fault_boot_generation))
  KEEP(*(.debug_precrt_persistent_fault_last_mode_master_stage))
  KEEP(*(.debug_precrt_persistent_fault_last_spll_check_lock_stage))
+ KEEP(*(.debug_precrt_firmware_main_loop_reached))
+ KEEP(*(.debug_precrt_shell_poll_loop_reached))
+ KEEP(*(.debug_precrt_boot_init_sequence_done))
+ KEEP(*(.debug_precrt_firmware_main_loop_generation))
+ KEEP(*(.debug_precrt_shell_poll_generation))
+ KEEP(*(.debug_precrt_boot_init_generation))
     } > ram
     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000, "debug_precrt must stay at least 4 KiB below the stack")
     PROVIDE(_endram = ORIGIN(stack));

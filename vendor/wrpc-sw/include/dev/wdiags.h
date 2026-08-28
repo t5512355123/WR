@@ -74,6 +74,15 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
 #define WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED 9
 void wdiags_write_shell_command_rx_byte(uint32_t byte_value);
 void wdiags_write_shell_command_stage(uint32_t stage);
+/* Read-only per-boot shell-ready gate. The markers are intentionally
+ * generation-tagged so a stale pre-reentry value cannot arm a stimulus. */
+void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
+                                             uint32_t shell_poll_reached,
+                                             uint32_t boot_init_done,
+                                             uint32_t main_loop_generation,
+                                             uint32_t shell_poll_generation,
+                                             uint32_t boot_init_generation,
+                                             uint32_t current_generation);
 /* Read-only static-p startup-lifetime checkpoints. */
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
 #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1

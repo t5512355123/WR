@@ -404,6 +404,36 @@ void wdiags_write_shell_command_stage(uint32_t stage)
 	wdiags_publish_persistent_record();
 }
 
+void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
+							 uint32_t shell_poll_reached,
+							 uint32_t boot_init_done,
+							 uint32_t main_loop_generation,
+							 uint32_t shell_poll_generation,
+							 uint32_t boot_init_generation,
+							 uint32_t current_generation)
+{
+	uint32_t ready = main_loop_reached && shell_poll_reached &&
+		boot_init_done && main_loop_generation == current_generation &&
+		shell_poll_generation == current_generation &&
+		boot_init_generation == current_generation;
+
+	/* Dedicated read-only WDIAGS words. They are snapshots of firmware
+	 * breadcrumbs and never participate in WR/CPU control decisions. */
+	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED,
+			main_loop_reached);
+	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED,
+			shell_poll_reached);
+	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE,
+			boot_init_done);
+	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY, ready);
+	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION,
+			main_loop_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION,
+			shell_poll_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION,
+			boot_init_generation);
+}
+
 static void wdiags_write_boot_startup(void)
 {
 	uint32_t value = wdiags_port_state_shadow;

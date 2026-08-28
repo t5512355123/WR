@@ -132,6 +132,20 @@ volatile uint32_t debug_precrt_persistent_fault_last_mode_master_stage
 	__attribute__((used, section(".debug_precrt_persistent_fault_last_mode_master_stage")));
 volatile uint32_t debug_precrt_persistent_fault_last_spll_check_lock_stage
 	__attribute__((used, section(".debug_precrt_persistent_fault_last_spll_check_lock_stage")));
+/* Per-boot, read-only shell-ready evidence. The generation tags prevent a
+ * marker from a previous CPU re-entry from satisfying the next gate. */
+volatile uint32_t debug_precrt_firmware_main_loop_reached
+	__attribute__((used, section(".debug_precrt_firmware_main_loop_reached")));
+volatile uint32_t debug_precrt_shell_poll_loop_reached
+	__attribute__((used, section(".debug_precrt_shell_poll_loop_reached")));
+volatile uint32_t debug_precrt_boot_init_sequence_done
+	__attribute__((used, section(".debug_precrt_boot_init_sequence_done")));
+volatile uint32_t debug_precrt_firmware_main_loop_generation
+	__attribute__((used, section(".debug_precrt_firmware_main_loop_generation")));
+volatile uint32_t debug_precrt_shell_poll_generation
+	__attribute__((used, section(".debug_precrt_shell_poll_generation")));
+volatile uint32_t debug_precrt_boot_init_generation
+	__attribute__((used, section(".debug_precrt_boot_init_generation")));
 
 int wrc_wr_diags(void); // fixme: move the header
 
@@ -276,6 +290,19 @@ static int wrc_check_link(void)
 
 static int ui_update(void)
 {
+	if (debug_precrt_shell_poll_generation != debug_precrt_boot_generation ||
+	    debug_precrt_shell_poll_loop_reached == 0) {
+		debug_precrt_shell_poll_loop_reached = 1;
+		debug_precrt_shell_poll_generation = debug_precrt_boot_generation;
+		wdiags_write_firmware_shell_ready_debug(
+			debug_precrt_firmware_main_loop_reached,
+			debug_precrt_shell_poll_loop_reached,
+			debug_precrt_boot_init_sequence_done,
+			debug_precrt_firmware_main_loop_generation,
+			debug_precrt_shell_poll_generation,
+			debug_precrt_boot_init_generation,
+			debug_precrt_boot_generation);
+	}
 	return shell_interactive();
 }
 
@@ -284,6 +311,16 @@ static void shell_boot_script_task_init(void)
 	shell_boot_init_startup_checkpoint(
 		WRC_DIAGS_BOOT_STARTUP_STAGE_P_BEFORE_SHELL_BOOT_SCRIPT);
 	shell_boot_script();
+	debug_precrt_boot_init_sequence_done = 1;
+	debug_precrt_boot_init_generation = debug_precrt_boot_generation;
+	wdiags_write_firmware_shell_ready_debug(
+		debug_precrt_firmware_main_loop_reached,
+		debug_precrt_shell_poll_loop_reached,
+		debug_precrt_boot_init_sequence_done,
+		debug_precrt_firmware_main_loop_generation,
+		debug_precrt_shell_poll_generation,
+		debug_precrt_boot_init_generation,
+		debug_precrt_boot_generation);
 }
 
 /* initialize functions to be called after reset in check_reset function */
@@ -421,6 +458,16 @@ int main(void)
 	#ifdef CONFIG_WR_DIAG
 	wdiags_write_temp(0x0000B004);
 	#endif
+	debug_precrt_firmware_main_loop_reached = 1;
+	debug_precrt_firmware_main_loop_generation = debug_precrt_boot_generation;
+	wdiags_write_firmware_shell_ready_debug(
+		debug_precrt_firmware_main_loop_reached,
+		debug_precrt_shell_poll_loop_reached,
+		debug_precrt_boot_init_sequence_done,
+		debug_precrt_firmware_main_loop_generation,
+		debug_precrt_shell_poll_generation,
+		debug_precrt_boot_init_generation,
+		debug_precrt_boot_generation);
 
 	for (;;) {
 		// run all pending tasks

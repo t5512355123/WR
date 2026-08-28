@@ -5,15 +5,13 @@
 # writes are the normal JTAG VUART stimulus bytes on the Master; all other
 # accesses are readback mailbox transactions.
 #
-# New WDIAGS private read-only words:
+# The 0x1e0..0x1f8 gate words are overlaid after the trace is armed:
+#   0x1e0..0x1ec MICRO_BUFFER_WORD0..3
+#   0x1f0 MICRO_META0: length[7:0], pos[15:8], line_ready[16],
+#       shell_state[31:24]
+#   0x1f4 MICRO_META1: boot generation
+#   0x1f8 MICRO_META2: buffer capture stage
 #   0x1fc MICRO_STAGE
-#   0x200 MICRO_BOOT_GENERATION
-#   0x204 MICRO_LENGTH
-#   0x208 MICRO_POS
-#   0x20c MICRO_LINE_READY
-#   0x210 MICRO_SHELL_STATE
-#   0x214..0x220 MICRO_BUFFER_WORD0..3
-#   0x224 MICRO_BUFFER_CAPTURE_STAGE
 #
 # Usage:
 #   quartus_stp -t read_vuart_newline_to_shell_dispatch_microtrace.tcl
@@ -223,25 +221,32 @@ proc read_one {hardware_name sample elapsed_ms} {
   set boot_init_gen [word_field [word32 [wb_read $hardware_name 0x00100BF8]] 0]
 
   set micro_stage_word [word32 [wb_read $hardware_name 0x00100BFC]]
-  set micro_boot_gen_word [word32 [wb_read $hardware_name 0x00100C00]]
-  set micro_length_word [word32 [wb_read $hardware_name 0x00100C04]]
-  set micro_pos_word [word32 [wb_read $hardware_name 0x00100C08]]
-  set micro_line_ready_word [word32 [wb_read $hardware_name 0x00100C0C]]
-  set micro_shell_state_word [word32 [wb_read $hardware_name 0x00100C10]]
-  set micro_b0 [word32 [wb_read $hardware_name 0x00100C14]]
-  set micro_b1 [word32 [wb_read $hardware_name 0x00100C18]]
-  set micro_b2 [word32 [wb_read $hardware_name 0x00100C1C]]
-  set micro_b3 [word32 [wb_read $hardware_name 0x00100C20]]
-  set micro_capture_word [word32 [wb_read $hardware_name 0x00100C24]]
+  set micro_b0 [word32 [wb_read $hardware_name 0x00100BE0]]
+  set micro_b1 [word32 [wb_read $hardware_name 0x00100BE4]]
+  set micro_b2 [word32 [wb_read $hardware_name 0x00100BE8]]
+  set micro_b3 [word32 [wb_read $hardware_name 0x00100BEC]]
+  set micro_meta0_word [word32 [wb_read $hardware_name 0x00100BF0]]
+  set micro_boot_gen_word [word32 [wb_read $hardware_name 0x00100BF4]]
+  set micro_capture_word [word32 [wb_read $hardware_name 0x00100BF8]]
 
   set micro_stage [word_field $micro_stage_word 0]
-  set micro_boot_gen [word_field $micro_boot_gen_word 0]
-  set micro_length [word_field $micro_length_word 0]
-  set micro_pos [word_field $micro_pos_word 0]
-  set micro_line_ready [word_field $micro_line_ready_word 0]
-  set micro_shell_state [word_field $micro_shell_state_word 0]
-  set micro_capture [word_field $micro_capture_word 0]
-  set micro_buffer [format_buffer_hex [list $micro_b0 $micro_b1 $micro_b2 $micro_b3]]
+  if {$micro_stage > 0 && $micro_meta0_word ne "INVALID"} {
+    set micro_boot_gen [word_field $micro_boot_gen_word 0]
+    set micro_length [expr {$micro_meta0_word & 0xff}]
+    set micro_pos [expr {($micro_meta0_word >> 8) & 0xff}]
+    set micro_line_ready [expr {($micro_meta0_word >> 16) & 1}]
+    set micro_shell_state [expr {($micro_meta0_word >> 24) & 0xff}]
+    set micro_capture [word_field $micro_capture_word 0]
+    set micro_buffer [format_buffer_hex [list $micro_b0 $micro_b1 $micro_b2 $micro_b3]]
+  } else {
+    set micro_boot_gen 0
+    set micro_length 0
+    set micro_pos 0
+    set micro_line_ready 0
+    set micro_shell_state 0
+    set micro_capture 0
+    set micro_buffer 00000000000000000000000000000000
+  }
 
   set generation_match [expr {$boot_generation >= 0 &&
     $firmware_main_gen == $boot_generation &&

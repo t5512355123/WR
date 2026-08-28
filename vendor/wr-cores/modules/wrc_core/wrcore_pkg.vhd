@@ -249,7 +249,7 @@ package wrcore_pkg is
     sdb_component => (
       addr_first  => x"0000000000000000",
       -- Private WDIAGS includes the read-only helper correlation words at
-      -- offsets 0x100..0x128.
+      -- offsets 0x100..0x1fc.
       addr_last   => x"00000000000001ff",
       product     => (
         vendor_id => x"000000000000CE42",  -- CERN

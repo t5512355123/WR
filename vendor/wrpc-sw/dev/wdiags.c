@@ -74,6 +74,38 @@ static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
 static void wdiags_publish_persistent_record(void);
 
+static void wdiags_write_shell_microtrace_mirror(void)
+{
+	uint32_t meta0;
+
+	/* The private WDIAGS SDB window ends at 0x1ff.  While the shell-ready
+	 * gate is idle, 0x1e0..0x1f8 hold the gate words.  Once the newline arms
+	 * the trace, the gate is no longer used for stimulus decisions, so reuse
+	 * those seven words for the buffer and metadata snapshot. */
+	meta0 = (debug_precrt_persistent_command_micro_length & 0xffU) |
+		((debug_precrt_persistent_command_micro_pos & 0xffU) << 8) |
+		((debug_precrt_persistent_command_micro_line_ready & 0x1U) << 16) |
+		((debug_precrt_persistent_command_micro_shell_state & 0x7fU) << 24);
+
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD0,
+			debug_precrt_persistent_command_micro_buffer_word[0]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD1,
+			debug_precrt_persistent_command_micro_buffer_word[1]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD2,
+			debug_precrt_persistent_command_micro_buffer_word[2]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD3,
+			debug_precrt_persistent_command_micro_buffer_word[3]);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_META0, meta0);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_META1,
+			debug_precrt_persistent_command_micro_boot_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_META2,
+			debug_precrt_persistent_command_micro_buffer_capture_stage);
+	/* Publish the stage last so a reader can use it as the commit marker for
+	 * the preceding buffer and metadata writes. */
+	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_STAGE,
+			debug_precrt_persistent_command_micro_stage);
+}
+
 static void wdiags_persistent_init_if_invalid(void)
 {
 	int i;
@@ -219,28 +251,8 @@ static void wdiags_publish_persistent_record(void)
 			debug_precrt_persistent_command_hash);
 	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_BOOT_GENERATION,
 			debug_precrt_persistent_command_boot_generation);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_STAGE,
-			debug_precrt_persistent_command_micro_stage);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BOOT_GENERATION,
-			debug_precrt_persistent_command_micro_boot_generation);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_LENGTH,
-			debug_precrt_persistent_command_micro_length);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_POS,
-			debug_precrt_persistent_command_micro_pos);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_LINE_READY,
-			debug_precrt_persistent_command_micro_line_ready);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_SHELL_STATE,
-			debug_precrt_persistent_command_micro_shell_state);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD0,
-			debug_precrt_persistent_command_micro_buffer_word[0]);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD1,
-			debug_precrt_persistent_command_micro_buffer_word[1]);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD2,
-			debug_precrt_persistent_command_micro_buffer_word[2]);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD3,
-			debug_precrt_persistent_command_micro_buffer_word[3]);
-	wdiag_write(WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_CAPTURE_STAGE,
-			debug_precrt_persistent_command_micro_buffer_capture_stage);
+	if (debug_precrt_persistent_command_micro_stage != 0)
+		wdiags_write_shell_microtrace_mirror();
 }
 
 static uint32_t wdiag_read( uint32_t reg )

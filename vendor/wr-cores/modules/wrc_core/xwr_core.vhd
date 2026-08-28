@@ -53,6 +53,7 @@
 --      +0x600: OneWire
 --      +0x700: Auxillary space (Etherbone config, etc)
 --      +0x800: WRPC diagnostics registers
+--      +0xc00: Clock frequency monitor
 
 library ieee;
 use ieee.std_logic_1164.all;

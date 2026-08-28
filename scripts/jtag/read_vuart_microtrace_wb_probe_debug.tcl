@@ -54,16 +54,13 @@ proc wb_read_verbose {hardware_name addr} {
 set addresses {
   0x00100BA0
   0x00100BFC
-  0x00100C00
-  0x00100C04
-  0x00100C08
-  0x00100C0C
-  0x00100C10
-  0x00100C14
-  0x00100C18
-  0x00100C1C
-  0x00100C20
-  0x00100C24
+  0x00100BE0
+  0x00100BE4
+  0x00100BE8
+  0x00100BEC
+  0x00100BF0
+  0x00100BF4
+  0x00100BF8
 }
 
 puts "VUART_MICROTRACE_WB_DEBUG_CONFIG reads_per_address=3 stimulus=none"

@@ -68,8 +68,9 @@ entity wrc_periph is
     -- lock-wait internal sub-stage and timing shadows.
     -- Includes the private persistent command-dispatch evidence through 0x1b4.
     -- Keep the firmware-private diagnostic mirror large enough for the
-    -- read-only VUART shell microtrace words through offset 0x224.
-    g_wdiags_num_words : integer := 140;
+    -- read-only VUART shell microtrace words through offset 0x224.  The
+    -- DPRAM address decoder uses log2(g_size), so use the next power of two.
+    g_wdiags_num_words : integer := 256;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

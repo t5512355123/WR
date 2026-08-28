@@ -18,7 +18,7 @@
 # Usage:
 #   quartus_stp -t read_step4_dmtd_accept_to_helper_closure.tcl
 #       ?ready_timeout_ms? ?stable_ms? ?baseline_ms? ?measurement_ms?
-#       ?post_ms? ?gap_ms? ?poll_attempts?
+#       ?post_ms? ?gap_ms? ?poll_attempts? ?dispatch_timeout_ms?
 
 package require ::quartus::insystem_source_probe
 
@@ -29,6 +29,7 @@ set measurement_ms 30000
 set post_ms 10000
 set gap_ms 100
 set poll_attempts 25
+set dispatch_timeout_ms 30000
 if {[llength $argv] >= 1} { set ready_timeout_ms [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set stable_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set baseline_ms [expr {int([lindex $argv 2])}] }
@@ -36,10 +37,11 @@ if {[llength $argv] >= 4} { set measurement_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set post_ms [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set gap_ms [expr {int([lindex $argv 5])}] }
 if {[llength $argv] >= 7} { set poll_attempts [expr {int([lindex $argv 6])}] }
+if {[llength $argv] >= 8} { set dispatch_timeout_ms [expr {int([lindex $argv 7])}] }
 if {$ready_timeout_ms <= 0 || $stable_ms <= 0 || $baseline_ms <= 0 ||
     $measurement_ms <= 0 || $post_ms <= 0 || $gap_ms < 0 ||
-    $poll_attempts <= 0} {
-  error "ready_timeout_ms/stable_ms/baseline_ms/measurement_ms/post_ms/poll_attempts must be > 0 and gap_ms >= 0"
+    $poll_attempts <= 0 || $dispatch_timeout_ms <= 0} {
+  error "ready_timeout_ms/stable_ms/baseline_ms/measurement_ms/post_ms/poll_attempts/dispatch_timeout_ms must be > 0 and gap_ms >= 0"
 }
 
 array set ::wb_toggle {}
@@ -327,7 +329,7 @@ proc wait_dispatch {hardware_name start_ms sample_var} {
   upvar 1 $sample_var sample
   set wait_start [clock milliseconds]
   set ok 0
-  while {[clock milliseconds] - $wait_start < 10000} {
+  while {[clock milliseconds] - $wait_start < $::dispatch_timeout_ms} {
     incr sample
     set elapsed [expr {[clock milliseconds] - $start_ms}]
     set data [read_chain $hardware_name]
@@ -342,7 +344,7 @@ proc wait_dispatch {hardware_name start_ms sample_var} {
     if {$::gap_ms > 0} { after $::gap_ms }
   }
   if {!$ok} {
-    puts [format "CLOSURE_DISPATCH_TIMEOUT board=%s timeout_ms=10000" $hardware_name]
+    puts [format "CLOSURE_DISPATCH_TIMEOUT board=%s timeout_ms=%d" $hardware_name $::dispatch_timeout_ms]
   }
   return $ok
 }
@@ -476,8 +478,8 @@ proc run_board {hardware_name device_name} {
     $post_count [fmt32 $post_last_data(command_stage)] [fmt32 $post_last_data(mode_master_stage)]]
 }
 
-puts [format "CLOSURE_CONFIG experiment=EXP-WRPC-STEP4-DMTD-ACCEPT-TO-HELPER-CLOSURE-20260828 ready_timeout_ms=%d stable_ms=%d baseline_ms=%d measurement_ms=%d post_ms=%d gap_ms=%d poll_attempts=%d master_command=mode_master_once slave_stimulus=none" \
-  $ready_timeout_ms $stable_ms $baseline_ms $measurement_ms $post_ms $gap_ms $poll_attempts]
+puts [format "CLOSURE_CONFIG experiment=EXP-WRPC-STEP4-DMTD-ACCEPT-TO-HELPER-CLOSURE-20260828 ready_timeout_ms=%d stable_ms=%d baseline_ms=%d measurement_ms=%d post_ms=%d gap_ms=%d poll_attempts=%d dispatch_timeout_ms=%d master_command=mode_master_once slave_stimulus=none" \
+  $ready_timeout_ms $stable_ms $baseline_ms $measurement_ms $post_ms $gap_ms $poll_attempts $dispatch_timeout_ms]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]

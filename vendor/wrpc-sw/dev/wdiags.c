@@ -511,6 +511,12 @@ void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
 		shell_poll_generation == current_generation &&
 		boot_init_generation == current_generation;
 
+	/* The shell microtrace reuses these seven private words after the
+	 * newline arms the trace.  Do not let a later shell-ready refresh
+	 * overwrite the committed microtrace snapshot. */
+	if (debug_precrt_persistent_command_micro_stage != 0)
+		return;
+
 	/* Dedicated read-only WDIAGS words. They are snapshots of firmware
 	 * breadcrumbs and never participate in WR/CPU control decisions. */
 	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED,

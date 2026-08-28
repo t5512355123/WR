@@ -149,6 +149,20 @@ proc probe_high32 {value} {
   return [expr {$word & 0xffffffff}]
 }
 
+proc probe_counter_hex {value} {
+  # Store probe-derived counters in the same hexadecimal representation as
+  # Wishbone counters so delta32() cannot mistake decimal text for hex.
+  set numeric [word32 $value]
+  if {$numeric < 0} { return "INVALID" }
+  return [format %08X $numeric]
+}
+
+proc probe_high_counter_hex {value} {
+  set numeric [probe_high32 $value]
+  if {$numeric < 0} { return "INVALID" }
+  return [format %08X $numeric]
+}
+
 proc low16 {value} {
   set word [word32 $value]
   if {$word < 0} { return -1 }
@@ -171,6 +185,11 @@ proc bit64_high {value bit} {
   set word [probe_high32 $value]
   if {$word < 0 || $bit < 0 || $bit > 31} { return -1 }
   return [expr {($word >> $bit) & 1}]
+}
+
+proc probe_byte64 {value bit} {
+  if {$bit < 32} { return [bit64_low $value $bit] }
+  return [bit64_high $value [expr {$bit - 32}]]
 }
 
 proc field32 {value low width} {
@@ -331,6 +350,20 @@ proc required_delta_status {value} {
   if {$value eq "DECREASED"} { return "INFO" }
   if {$numeric > 0} { return "PASS" }
   return "FAIL"
+}
+
+proc required_zero_delta_status {value} {
+  if {$value eq "DECREASED"} { return "INVALID" }
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric == 0} { return "PASS" }
+  return "FAIL"
+}
+
+proc probe_byte_counter_hex {value bit} {
+  set numeric [probe_byte64 $value $bit]
+  if {$numeric < 0} { return "INVALID" }
+  return [format %08X $numeric]
 }
 
 proc raw_display {value} {
@@ -528,6 +561,20 @@ proc collect_snapshot {board label} {
   put_snap $board $label store_count [safe_probe_read 5]
   put_snap $board $label exception [safe_probe_read 6]
   put_snap $board $label clock [safe_probe_read 7]
+
+  # Persistent reset/re-entry evidence used by the Step 4 closure gate.
+  # These are read-only Direct Probe fields already used by the focused
+  # closure reader: probe 26 carries boot generation and probe 27 carries
+  # sticky CPU/WR/SI reset counters.
+  set entry_probe [safe_probe_read 26]
+  set reset_sticky_probe [safe_probe_read 27]
+  put_snap $board $label boot_generation [probe_high_counter_hex $entry_probe]
+  put_snap $board $label cpu_reset_count \
+    [probe_byte_counter_hex $reset_sticky_probe 16]
+  put_snap $board $label wr_core_reset_count \
+    [probe_byte_counter_hex $reset_sticky_probe 24]
+  put_snap $board $label si_config_drop_count \
+    [probe_byte_counter_hex $reset_sticky_probe 40]
 
   put_snap $board $label pps_cr [wb_read 0x00100300]
   put_snap $board $label pps_escr [wb_read 0x0010031C]
@@ -933,13 +980,82 @@ proc analyze_board {board} {
   puts [format "Step 3 %s" [step_status_text $step3]]
 
   # --------------------------------------------------------------
-  # Step 4: SoftPLL startup, not closed-loop lock
+  # Step 4: Master event-chain closure; Slave startup observation
   # --------------------------------------------------------------
   puts ""
-  puts "## \[Step 4\] SoftPLL Startup"
-  if {$role ne "SLAVE"} {
+  if {$role eq "MASTER"} {
+    puts "## \[Step 4\] SoftPLL Event Chain"
+    set step4 PASS
+
+    # Match the validated closure reader: the accepted event is the sum of
+    # the source-backed REF/FB dmtd_event_sys counters, followed by TAG,
+    # TRR write/pop, IRQ and helper activity in one before/after window.
+    set ref_b [get_snap $board $before dmtd_ref]
+    set ref_a [get_snap $board $after dmtd_ref]
+    set ref_d [delta32 $ref_b $ref_a]
+    set fb_b [get_snap $board $before dmtd_fb]
+    set fb_a [get_snap $board $after dmtd_fb]
+    set fb_d [delta32 $fb_b $fb_a]
+    set ref_status [delta_status $ref_d]
+    set fb_status [delta_status $fb_d]
+    print_delta $ref_status "DMTD reference accepted event" DMTD_REF_ACCEPT_EVENT \
+      $ref_b $ref_a $ref_d "wr_softpll_ng.vhd dmtd_event_sys REF counter" "Δ>=0"
+    print_delta $fb_status "DMTD feedback accepted event" DMTD_FB_ACCEPT_EVENT \
+      $fb_b $fb_a $fb_d "wr_softpll_ng.vhd dmtd_event_sys FB counter" "Δ>=0"
+    set accepted_delta INVALID
+    if {[string is integer -strict $ref_d] &&
+        [string is integer -strict $fb_d]} {
+      set accepted_delta [expr {$ref_d + $fb_d}]
+    }
+    set accepted_status [required_delta_status $accepted_delta]
+    puts [format "[%s] %-24s 結果: Δ=%s/Δ>0" \
+      [status_text $accepted_status] DMTD_ACCEPT [display_value $accepted_delta]]
+    set step4 [merge_status $step4 $accepted_status]
+
+    foreach counter {
+      {tag_valid tag SPLL_TAG_VALID_COUNT}
+      {trr_write TRR_WRITE SPLL_TRR_WRITE_COUNT}
+      {trr_pop trr_pop WRPC_SPLL_TRR_POP_COUNT}
+      {irq IRQ WDIAGS_IRQ_COUNT}
+      {helper_update HELPER_UPDATE WDIAGS_HELPER_UPDATE_COUNT}
+    } {
+      set field [lindex $counter 0]
+      set chinese [lindex $counter 1]
+      set symbol [lindex $counter 2]
+      set b [get_snap $board $before $field]
+      set a [get_snap $board $after $field]
+      set d [delta32 $b $a]
+      set current [required_delta_status $d]
+      set step4 [merge_status $step4 $current]
+      print_delta $current $chinese $symbol \
+        $b $a $d "validated Step 4 downstream event-chain counter" "Δ>0"
+    }
+
+    # The closure is only PASS when no boot generation or reset/re-entry
+    # counter changes during the same measurement window.
+    foreach counter {
+      {boot_generation BOOT_GENERATION}
+      {cpu_reset_count CPU_RESET_COUNT}
+      {wr_core_reset_count WR_CORE_RESET_COUNT}
+      {si_config_drop_count SI_CONFIG_DROP_COUNT}
+    } {
+      set field [lindex $counter 0]
+      set symbol [lindex $counter 1]
+      set b [get_snap $board $before $field]
+      set a [get_snap $board $after $field]
+      set d [delta32 $b $a]
+      set current [required_zero_delta_status $d]
+      set step4 [merge_status $step4 $current]
+      print_delta $current "Step 4 reset/re-entry guard" $symbol \
+        $b $a $d "closure reader requires zero reset/re-entry delta" "Δ=0"
+    }
+    puts [format "STEP4_EVENT_CHAIN = %s" $step4]
+    if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL accepted-event chain" }
+  } elseif {$role ne "SLAVE"} {
+    puts "## \[Step 4\] SoftPLL Event Chain"
     set step4 INFO
   } else {
+    puts "## \[Step 4\] SoftPLL Startup"
     set step4 PASS
     set lock_enable [word32 [get_snap $board $after lock_enable]]
     set lock_status [required_positive_status $lock_enable]
@@ -1060,7 +1176,9 @@ proc analyze_board {board} {
     if {$step == 1} { set label "PHY / Link" }
     if {$step == 2} { set label "Endpoint / PTP" }
     if {$step == 3} { set label "WR Handshake" }
-    if {$step == 4} { set label "SoftPLL Startup" }
+    if {$step == 4} {
+      set label [expr {$role eq "MASTER" ? "SoftPLL Event Chain" : "SoftPLL Startup"}]
+    }
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
     if {$s eq "INFO"} { set shown "NA" }
@@ -1095,6 +1213,7 @@ proc analyze_board {board} {
     puts [format "STEP2_REGRESSION = %s" $step2_reg]
     puts [format "STEP3_REGRESSION = %s" $step3_reg]
     puts [format "STEP4_ALLOWED = %s" $step4_allowed]
+    puts [format "STEP4_EVENT_CHAIN = %s" $::step_status($board,4)]
     puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
   }
   puts "============================================================"
@@ -1103,6 +1222,7 @@ proc analyze_board {board} {
 proc print_raw_snapshot {board label} {
   puts [format "RAW_SNAPSHOT board=%s label=%s" $::board_name($board) $label]
   foreach field {status cpu marker store store_count exception clock \
+    boot_generation cpu_reset_count wr_core_reset_count si_config_drop_count \
     pps_cr pps_escr ep_mach ep_macl ep_dsr ptp ptp_rx ptp_tx ptp_meta \
     tx rx rxerr ptp_types foreign_meta filter_meta parse_meta wr_rx_signal \
     wr_tx_signal wr_failure wr_state wr_reject pstat sstat sec_h sec_l ns \

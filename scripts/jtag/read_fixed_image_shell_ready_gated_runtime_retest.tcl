@@ -58,34 +58,34 @@ proc is_hex {value} {
 }
 
 proc word64 {value} {
-  if {![is_hex $value]} { return -1 }
+  if {![is_hex $value]} { return INVALID }
   scan $value %x word
   return $word
 }
 
 proc display64 {value} {
   set word [word64 $value]
-  if {$word < 0} { return $value }
+  if {$word eq "INVALID"} { return $value }
   return [format %016X $word]
 }
 
 proc display32_from_word {word shift} {
-  if {$word < 0} { return INVALID }
+  if {$word eq "INVALID"} { return INVALID }
   return [format %08X [expr {($word >> $shift) & 0xffffffff}]]
 }
 
 proc numeric32_from_word {word shift} {
-  if {$word < 0} { return -1 }
+  if {$word eq "INVALID"} { return -1 }
   return [expr {($word >> $shift) & 0xffffffff}]
 }
 
 proc field_bit {word bit_index} {
-  if {$word < 0} { return INVALID }
+  if {$word eq "INVALID"} { return INVALID }
   return [expr {($word >> $bit_index) & 1}]
 }
 
 proc field_byte {word bit_index} {
-  if {$word < 0} { return INVALID }
+  if {$word eq "INVALID"} { return INVALID }
   return [format %02X [expr {($word >> $bit_index) & 0xff}]]
 }
 

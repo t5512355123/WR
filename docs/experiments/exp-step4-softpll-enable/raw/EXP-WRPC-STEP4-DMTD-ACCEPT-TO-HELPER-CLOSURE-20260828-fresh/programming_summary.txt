@@ -1,0 +1,19 @@
+Experiment: EXP-WRPC-STEP4-DMTD-ACCEPT-TO-HELPER-CLOSURE-20260828
+Host: pain
+Programming pass: fresh reprogram immediately before the final closure run
+
+Master
+  Cable: DE5 [1-11.1]
+  SOF checksum: 0x30B00EC4
+  JTAG ID: 0x02E660DD
+  Operation: 1 device configured; 0 errors; 0 warnings
+  Programmer interval: 2026-08-28 16:49:43 - 16:50:02 (Asia/Taipei)
+
+Slave
+  Cable: DE5 [1-11.2]
+  SOF checksum: 0x30B7AD8B
+  JTAG ID: 0x02E660DD
+  Operation: 1 device configured; 0 errors; 0 warnings
+  Programmer interval: 2026-08-28 16:50:18 - 16:50:37 (Asia/Taipei)
+
+The final reader started at 2026-08-28 16:50:53 and completed at 16:52:57.

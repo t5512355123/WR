@@ -1,0 +1,21 @@
+experiment=EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828
+firmware_image_source_commit=6a0667d54e3c7285b555921e148e74cce5d3f8b0
+reader_source_commit=5279046
+reader_run=final_r2_after_fresh_reprogram
+quartus_command=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t scripts/jtag/read_fixed_image_shell_ready_gated_runtime_retest.tcl 30000 1500 180 200 25
+
+master_programmer=quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;DE5a_wr_master_jtag.sof
+master_programmer_result=SUCCESS
+master_programmer_checksum=0x30B00EC4
+master_jtag_id=0x02E660DD
+
+slave_programmer=quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;DE5a_wr_slave_jtag.sof
+slave_programmer_result=SUCCESS
+slave_programmer_checksum=0x30B7AD8B
+slave_jtag_id=0x02E660DD
+
+reader_gate=POST_STARTUP_ARMED=1 plus FIRMWARE_SHELL_READY=1 plus generation_match=1 plus CPU_RESET=0 for stable_ms=1500
+stimulus=Master only: mode master\\n exactly once
+slave_stimulus=none
+master_retest_stop=5 seconds after injection with PERSIST_CMD_STAGE=4; no runtime judgement
+quartus_stp_result=SUCCESS; 0 errors; 0 warnings

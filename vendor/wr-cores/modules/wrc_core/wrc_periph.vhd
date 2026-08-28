@@ -67,7 +67,9 @@ entity wrc_periph is
     -- sticky manual mode-master transition stage; 0x15c..0x16c are the
     -- lock-wait internal sub-stage and timing shadows.
     -- Includes the private persistent command-dispatch evidence through 0x1b4.
-    g_wdiags_num_words : integer := 110;
+    -- Keep the firmware-private diagnostic mirror large enough for the
+    -- read-only VUART shell microtrace words through offset 0x224.
+    g_wdiags_num_words : integer := 140;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

@@ -1008,7 +1008,7 @@ proc analyze_board {board} {
       set accepted_delta [expr {$ref_d + $fb_d}]
     }
     set accepted_status [required_delta_status $accepted_delta]
-    puts [format "[%s] %-24s 結果: Δ=%s/Δ>0" \
+    puts [format {[%s] %-24s 結果: Δ=%s/Δ>0} \
       [status_text $accepted_status] DMTD_ACCEPT [display_value $accepted_delta]]
     set step4 [merge_status $step4 $accepted_status]
 

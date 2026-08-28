@@ -18,6 +18,8 @@ array set ::snap {}
 array set ::board_name {}
 array set ::step_status {}
 array set ::first_anomaly {}
+set ::step4_master_status INFO
+set ::step4_master_name ""
 set ::board_count 0
 set ::raw_mode 0
 set ::max_read_attempts 5
@@ -1055,79 +1057,21 @@ proc analyze_board {board} {
     puts "## \[Step 4\] SoftPLL Event Chain"
     set step4 INFO
   } else {
-    puts "## \[Step 4\] SoftPLL Startup"
-    set step4 PASS
-    set lock_enable [word32 [get_snap $board $after lock_enable]]
-    set lock_status [required_positive_status $lock_enable]
-    set step4 [merge_status $step4 $lock_status]
-    print_signal $lock_status "SoftPLL channel enable" LOCK_ENABLE \
-      [display_value $lock_enable] "> 0" \
-      "只表示 locking_enable() 路徑曾被啟用，不把它當成 lock。"
-    set spll_word [word32 [get_snap $board $after spll_state]]
-    set seq [expr {$spll_word < 0 ? -1 : ($spll_word & 0xff)}]
-    set spll_mode [expr {$spll_word < 0 ? -1 : (($spll_word >> 16) & 0xff)}]
-    set mode_status [exact_status $spll_mode 3]
-    if {$seq < 0} {
-      set seq_status INVALID
-    } else {
-      set seq_status [expr {$seq == 0 || $seq == 7 ? "FAIL" : "PASS"}]
-    }
-    set step4 [merge_status $step4 $mode_status]
-    set step4 [merge_status $step4 $seq_status]
-    print_signal $mode_status "SoftPLL Mode" SPLL_STATE \
-      [format "%s %s" [display_value $spll_mode] [spll_mode_name $spll_mode]] \
-      "3 SLAVE" ""
-    print_signal $seq_status "Sequencer" SPLL_STATE \
-      [format "%s" [state_name $seq]] "NOT_DISABLED" ""
-    set rcer [word32 [get_snap $board $after spll_rcer]]
-    set ocer [word32 [get_snap $board $after spll_ocer]]
-    set rcer_status [required_positive_status $rcer]
-    set ocer_status [positive_status $ocer]
-    set step4 [merge_status $step4 $rcer_status]
-    print_signal $rcer_status "SoftPLL reference channel enable" RCER \
-      [display_value $rcer] "> 0" \
-      "既有 Step 4 shadow 的 SPLL->RCER read-only value；本階段要求 reference channel enabled。"
-    print_signal $ocer_status "SoftPLL output channel enable" OCER \
-      [display_value $ocer] "> 0" \
-      "只顯示 source-backed shadow，不因非零自行宣稱 output lock。"
-    set ref_max_word [word32 [get_snap $board $after wait_stable0_max_ref]]
-    set fb_max_word [word32 [get_snap $board $after wait_stable0_max_fb]]
-    if {$ref_max_word >= 0 && $fb_max_word >= 0} {
-      set ref_max [expr {($ref_max_word >> 16) & 0xffff}]
-      set fb_max [expr {($fb_max_word >> 18) & 0x3fff}]
-      print_signal INFO "WAIT_STABLE_0 REF max" WAIT_STABLE0_REF_MAX_STAB \
-        [format "%d (0x%04X)" $ref_max $ref_max] "NA" \
-        ""
-      print_signal INFO "WAIT_STABLE_0 FB max" WAIT_STABLE0_FB_MAX_STAB \
-        [format "%d (0x%04X)" $fb_max $fb_max] "NA" \
-        ""
-    } else {
-      print_signal INFO "WAIT_STABLE_0 max" WAIT_STABLE0_MAX_STAB \
-        "MEASUREMENT_INVALID_RETEST" "NA" ""
-    }
-    foreach counter {
-      {dmtd_ref "DMTD reference event" SPLL_DMTD_REF_EVENTS}
-      {dmtd_fb "DMTD feedback event" SPLL_DMTD_FB_EVENTS}
-      {tag_valid tag SPLL_TAG_VALID_COUNT}
-      {trr_write TRR_WRITE SPLL_TRR_WRITE_COUNT}
-      {trr_pop trr_pop WRPC_SPLL_TRR_POP_COUNT}
-      {irq IRQ WDIAGS_IRQ_COUNT}
-      {helper_update HELPER_UPDATE WDIAGS_HELPER_UPDATE_COUNT}
-    } {
-      set field [lindex $counter 0]
-      set chinese [lindex $counter 1]
-      set symbol [lindex $counter 2]
-      set b [get_snap $board $before $field]
-      set a [get_snap $board $after $field]
-      set d [delta32 $b $a]
-      set current [required_delta_status $d]
-      set step4 [merge_status $step4 $current]
-      print_delta $current $chinese $symbol \
-        $b $a $d "" "Δ>0"
-    }
-    if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL startup event chain" }
+    # The validated Step 4 closure experiment intentionally stimulates and
+    # judges the Master only. The Slave is a passive control board here;
+    # do not turn its expected lack of active SoftPLL counters into an error.
+    puts "## \[Step 4\] SoftPLL Event Chain (Master-owned)"
+    set step4 INFO
+    print_signal INFO "Slave Step 4 role" STEP4_ROLE \
+      "PASSIVE_CONTROL" "Master owns event-chain gate" \
+      "Slave is intentionally passive and is not an independent Step 4 PASS claim."
+    puts "Step 4 PASSIVE_CONTROL (Master owns event-chain gate)"
   }
   set ::step_status($board,4) $step4
+  if {$role eq "MASTER"} {
+    set ::step4_master_status $step4
+    set ::step4_master_name $name
+  }
   puts [format "Step 4 %s" [step_status_text $step4]]
 
   # --------------------------------------------------------------
@@ -1186,6 +1130,7 @@ proc analyze_board {board} {
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }
+    if {$step == 4 && $role eq "SLAVE"} { set shown "passive" }
     puts [format "Step %d %-22s %s" $step $label $shown]
   }
   set step1_reg [regression_status 1 $::step_status($board,1)]
@@ -1259,4 +1204,12 @@ foreach hardware_name [get_hardware_names] {
     puts [format {[info] JTAG_EXCEPTION 結果: %s/NA} $error_message]
   }
   catch { end_insystem_source_probe }
+}
+
+if {$::step4_master_name ne ""} {
+  puts ""
+  puts "============================================================"
+  puts [format "STEP4_ACTIVE_BOARD_RESULT board=%s result=%s" \
+    $::step4_master_name $::step4_master_status]
+  puts "============================================================"
 }

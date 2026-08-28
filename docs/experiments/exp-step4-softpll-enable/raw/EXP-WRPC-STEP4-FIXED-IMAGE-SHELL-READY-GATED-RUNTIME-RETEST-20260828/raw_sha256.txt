@@ -1,0 +1,11 @@
+f278e67cea76c5c6d7b704ca3b69fd8ca04651740a2a7c2e7913aa4847ffbe3a  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/build_info_jtag_master.txt
+bd81a609382da5a46fee0ace38711c38ea3460fccbecae47133f28c93280909c  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/build_info_jtag_slave.txt
+6bcd1665cd989e0d9d6e4f435a034f6ba21c3340de49d5fd7e9df2eec2abaebf  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/quartus_jtag_master_compile.log
+39f336aed6ede4d3129b8cc8adff7726a35c19b45f19160af8dcf4d56f043af5  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/quartus_jtag_slave_compile.log
+b435a0c4c83bd2197455a11a840f5e88e703ca4fffb8fce1cb08ffa87e6dfcc4  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/reader_source.tcl
+daee94e477738531cbad618dc996e2eec1225732c028daf752692428691caeb9  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/runtime_retest_r2.log
+a7c4c27cfa5a5f141d8288a059c78b915992a0fae465d3d68681c0632ed52f99  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/source_diff_7b96574_to_6a0667d.patch
+8cb534f3e7b9684f0f6f2e8d350d3b7080378b44e8252236170e40f231844646  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/wrc_master.elf
+33939dc5da621201bbf9f7f9658dff0eac7273271be8a873e92cd386ec69d6e5  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/wrc_master.mif
+50a13a967594e6bea332ec3b36a80cb574b7e5c02eab47d42d81add377494c11  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/wrc_slave.elf
+373c3ce3a0b9c98bf28e619ffacd1dd5ef318737b093a1426cb3a28e29298836  docs/experiments/exp-step4-softpll-enable/raw/EXP-WRPC-STEP4-FIXED-IMAGE-SHELL-READY-GATED-RUNTIME-RETEST-20260828/wrc_slave.mif

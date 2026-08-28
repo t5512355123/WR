@@ -1,0 +1,194 @@
+diff --git a/vendor/wrpc-sw/arch/risc-v/ram.ld b/vendor/wrpc-sw/arch/risc-v/ram.ld
+index b672fa2..49f1aa1 100644
+--- a/vendor/wrpc-sw/arch/risc-v/ram.ld
++++ b/vendor/wrpc-sw/arch/risc-v/ram.ld
+@@ -99,6 +99,12 @@ KEEP(*(.debug_precrt_persistent_command_boot_generation))
+  KEEP(*(.debug_precrt_persistent_fault_boot_generation))
+  KEEP(*(.debug_precrt_persistent_fault_last_mode_master_stage))
+  KEEP(*(.debug_precrt_persistent_fault_last_spll_check_lock_stage))
++ KEEP(*(.debug_precrt_firmware_main_loop_reached))
++ KEEP(*(.debug_precrt_shell_poll_loop_reached))
++ KEEP(*(.debug_precrt_boot_init_sequence_done))
++ KEEP(*(.debug_precrt_firmware_main_loop_generation))
++ KEEP(*(.debug_precrt_shell_poll_generation))
++ KEEP(*(.debug_precrt_boot_init_generation))
+     } > ram
+     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000, "debug_precrt must stay at least 4 KiB below the stack")
+     PROVIDE(_endram = ORIGIN(stack));
+diff --git a/vendor/wrpc-sw/arch/risc-v/ram.ld.S b/vendor/wrpc-sw/arch/risc-v/ram.ld.S
+index 8fe8096..5d814a6 100644
+--- a/vendor/wrpc-sw/arch/risc-v/ram.ld.S
++++ b/vendor/wrpc-sw/arch/risc-v/ram.ld.S
+@@ -139,6 +139,12 @@ SECTIONS
+ 	KEEP(*(.debug_precrt_persistent_fault_boot_generation))
+ 	KEEP(*(.debug_precrt_persistent_fault_last_mode_master_stage))
+ 	KEEP(*(.debug_precrt_persistent_fault_last_spll_check_lock_stage))
++	KEEP(*(.debug_precrt_firmware_main_loop_reached))
++	KEEP(*(.debug_precrt_shell_poll_loop_reached))
++	KEEP(*(.debug_precrt_boot_init_sequence_done))
++	KEEP(*(.debug_precrt_firmware_main_loop_generation))
++	KEEP(*(.debug_precrt_shell_poll_generation))
++	KEEP(*(.debug_precrt_boot_init_generation))
+     } > ram
+     ASSERT(ADDR(.debug_precrt) + SIZEOF(.debug_precrt) <= ORIGIN(stack) - 0x1000,
+ 	   "debug_precrt must stay at least 4 KiB below the stack")
+diff --git a/vendor/wrpc-sw/dev/wdiags.c b/vendor/wrpc-sw/dev/wdiags.c
+index 6596126..c0929ad 100644
+--- a/vendor/wrpc-sw/dev/wdiags.c
++++ b/vendor/wrpc-sw/dev/wdiags.c
+@@ -404,6 +404,36 @@ void wdiags_write_shell_command_stage(uint32_t stage)
+ 	wdiags_publish_persistent_record();
+ }
+ 
++void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
++							 uint32_t shell_poll_reached,
++							 uint32_t boot_init_done,
++							 uint32_t main_loop_generation,
++							 uint32_t shell_poll_generation,
++							 uint32_t boot_init_generation,
++							 uint32_t current_generation)
++{
++	uint32_t ready = main_loop_reached && shell_poll_reached &&
++		boot_init_done && main_loop_generation == current_generation &&
++		shell_poll_generation == current_generation &&
++		boot_init_generation == current_generation;
++
++	/* Dedicated read-only WDIAGS words. They are snapshots of firmware
++	 * breadcrumbs and never participate in WR/CPU control decisions. */
++	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED,
++			main_loop_reached);
++	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED,
++			shell_poll_reached);
++	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE,
++			boot_init_done);
++	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY, ready);
++	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION,
++			main_loop_generation);
++	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION,
++			shell_poll_generation);
++	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION,
++			boot_init_generation);
++}
++
+ static void wdiags_write_boot_startup(void)
+ {
+ 	uint32_t value = wdiags_port_state_shadow;
+diff --git a/vendor/wrpc-sw/include/dev/wdiags.h b/vendor/wrpc-sw/include/dev/wdiags.h
+index fed5192..d0e0c55 100644
+--- a/vendor/wrpc-sw/include/dev/wdiags.h
++++ b/vendor/wrpc-sw/include/dev/wdiags.h
+@@ -74,6 +74,15 @@ void wdiags_write_spll_check_lock_debug(uint32_t stage,
+ #define WRC_DIAGS_PERSISTENT_CMD_SET_MODE_ENTERED 9
+ void wdiags_write_shell_command_rx_byte(uint32_t byte_value);
+ void wdiags_write_shell_command_stage(uint32_t stage);
++/* Read-only per-boot shell-ready gate. The markers are intentionally
++ * generation-tagged so a stale pre-reentry value cannot arm a stimulus. */
++void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
++                                             uint32_t shell_poll_reached,
++                                             uint32_t boot_init_done,
++                                             uint32_t main_loop_generation,
++                                             uint32_t shell_poll_generation,
++                                             uint32_t boot_init_generation,
++                                             uint32_t current_generation);
+ /* Read-only static-p startup-lifetime checkpoints. */
+ #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AT_RESET_EARLY 0
+ #define WRC_DIAGS_BOOT_STARTUP_STAGE_P_AFTER_BSS_DATA_INIT 1
+diff --git a/vendor/wrpc-sw/include/hw/wrc_diags_regs.h b/vendor/wrpc-sw/include/hw/wrc_diags_regs.h
+index 68a21e8..9c93074 100644
+--- a/vendor/wrpc-sw/include/hw/wrc_diags_regs.h
++++ b/vendor/wrpc-sw/include/hw/wrc_diags_regs.h
+@@ -103,6 +103,15 @@
+ #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_BOOT_GENERATION 0x1d4UL
+ #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_MODE_MASTER_STAGE 0x1d8UL
+ #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_SPLL_CHECK_LOCK_STAGE 0x1dcUL
++/* Read-only firmware shell-ready gate. These words are diagnostic shadows
++ * only; they do not feed back into the WR control path. */
++#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED 0x1e0UL
++#define WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED 0x1e4UL
++#define WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE 0x1e8UL
++#define WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY 0x1ecUL
++#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x1f0UL
++#define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x1f4UL
++#define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
+ 
+ /* WRPC Diag: AUX state */
+ #define WRC_DIAGS_WDIAG_ASTAT 0x14UL
+diff --git a/vendor/wrpc-sw/wrc_main.c b/vendor/wrpc-sw/wrc_main.c
+index f1e61cd..d3ff67c 100644
+--- a/vendor/wrpc-sw/wrc_main.c
++++ b/vendor/wrpc-sw/wrc_main.c
+@@ -132,6 +132,20 @@ volatile uint32_t debug_precrt_persistent_fault_last_mode_master_stage
+ 	__attribute__((used, section(".debug_precrt_persistent_fault_last_mode_master_stage")));
+ volatile uint32_t debug_precrt_persistent_fault_last_spll_check_lock_stage
+ 	__attribute__((used, section(".debug_precrt_persistent_fault_last_spll_check_lock_stage")));
++/* Per-boot, read-only shell-ready evidence. The generation tags prevent a
++ * marker from a previous CPU re-entry from satisfying the next gate. */
++volatile uint32_t debug_precrt_firmware_main_loop_reached
++	__attribute__((used, section(".debug_precrt_firmware_main_loop_reached")));
++volatile uint32_t debug_precrt_shell_poll_loop_reached
++	__attribute__((used, section(".debug_precrt_shell_poll_loop_reached")));
++volatile uint32_t debug_precrt_boot_init_sequence_done
++	__attribute__((used, section(".debug_precrt_boot_init_sequence_done")));
++volatile uint32_t debug_precrt_firmware_main_loop_generation
++	__attribute__((used, section(".debug_precrt_firmware_main_loop_generation")));
++volatile uint32_t debug_precrt_shell_poll_generation
++	__attribute__((used, section(".debug_precrt_shell_poll_generation")));
++volatile uint32_t debug_precrt_boot_init_generation
++	__attribute__((used, section(".debug_precrt_boot_init_generation")));
+ 
+ int wrc_wr_diags(void); // fixme: move the header
+ 
+@@ -276,6 +290,19 @@ static int wrc_check_link(void)
+ 
+ static int ui_update(void)
+ {
++	if (debug_precrt_shell_poll_generation != debug_precrt_boot_generation ||
++	    debug_precrt_shell_poll_loop_reached == 0) {
++		debug_precrt_shell_poll_loop_reached = 1;
++		debug_precrt_shell_poll_generation = debug_precrt_boot_generation;
++		wdiags_write_firmware_shell_ready_debug(
++			debug_precrt_firmware_main_loop_reached,
++			debug_precrt_shell_poll_loop_reached,
++			debug_precrt_boot_init_sequence_done,
++			debug_precrt_firmware_main_loop_generation,
++			debug_precrt_shell_poll_generation,
++			debug_precrt_boot_init_generation,
++			debug_precrt_boot_generation);
++	}
+ 	return shell_interactive();
+ }
+ 
+@@ -284,6 +311,16 @@ static void shell_boot_script_task_init(void)
+ 	shell_boot_init_startup_checkpoint(
+ 		WRC_DIAGS_BOOT_STARTUP_STAGE_P_BEFORE_SHELL_BOOT_SCRIPT);
+ 	shell_boot_script();
++	debug_precrt_boot_init_sequence_done = 1;
++	debug_precrt_boot_init_generation = debug_precrt_boot_generation;
++	wdiags_write_firmware_shell_ready_debug(
++		debug_precrt_firmware_main_loop_reached,
++		debug_precrt_shell_poll_loop_reached,
++		debug_precrt_boot_init_sequence_done,
++		debug_precrt_firmware_main_loop_generation,
++		debug_precrt_shell_poll_generation,
++		debug_precrt_boot_init_generation,
++		debug_precrt_boot_generation);
+ }
+ 
+ /* initialize functions to be called after reset in check_reset function */
+@@ -421,6 +458,16 @@ int main(void)
+ 	#ifdef CONFIG_WR_DIAG
+ 	wdiags_write_temp(0x0000B004);
+ 	#endif
++	debug_precrt_firmware_main_loop_reached = 1;
++	debug_precrt_firmware_main_loop_generation = debug_precrt_boot_generation;
++	wdiags_write_firmware_shell_ready_debug(
++		debug_precrt_firmware_main_loop_reached,
++		debug_precrt_shell_poll_loop_reached,
++		debug_precrt_boot_init_sequence_done,
++		debug_precrt_firmware_main_loop_generation,
++		debug_precrt_shell_poll_generation,
++		debug_precrt_boot_init_generation,
++		debug_precrt_boot_generation);
+ 
+ 	for (;;) {
+ 		// run all pending tasks

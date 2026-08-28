@@ -52,6 +52,18 @@ proc word32 {value} {
   return [expr {$word & 0xffffffff}]
 }
 
+proc word64 {value} {
+  if {![is_hex $value]} { return INVALID }
+  scan $value %x word
+  return $word
+}
+
+proc display64 {value} {
+  set word [word64 $value]
+  if {$word eq "INVALID"} { return $value }
+  return [format %016X $word]
+}
+
 proc display32 {value} {
   set word [word32 $value]
   if {$word eq "INVALID"} { return $value }
@@ -186,15 +198,15 @@ proc inject_mode_master {hardware_name sample} {
 }
 
 proc read_one {hardware_name sample elapsed_ms} {
-  set corr0_word [word32 [probe_read 28]]
-  set corr1_word [word32 [probe_read 29]]
-  set corr2_word [word32 [probe_read 30]]
-  set corr3_word [word32 [probe_read 31]]
-  set corr4_word [word32 [probe_read 32]]
-  set corr5_word [word32 [probe_read 33]]
-  set corr7_word [word32 [probe_read 35]]
-  set entry_word [word32 [probe_read 26]]
-  set cpu_word [word32 [probe_read 2]]
+  set corr0_word [word64 [probe_read 28]]
+  set corr1_word [word64 [probe_read 29]]
+  set corr2_word [word64 [probe_read 30]]
+  set corr3_word [word64 [probe_read 31]]
+  set corr4_word [word64 [probe_read 32]]
+  set corr5_word [word64 [probe_read 33]]
+  set corr7_word [word64 [probe_read 35]]
+  set entry_word [word64 [probe_read 26]]
+  set cpu_word [word64 [probe_read 2]]
 
   set command_stage_word [word32 [wb_read $hardware_name 0x00100BA0]]
   set boot_generation [word_field $entry_word 32]
@@ -254,9 +266,9 @@ proc read_one {hardware_name sample elapsed_ms} {
     $shell_poll_gen $boot_init_gen $generation_match $micro_stage \
     [micro_stage_name $micro_stage] $micro_boot_gen $micro_length $micro_pos \
     $micro_line_ready $micro_shell_state $micro_capture $micro_buffer \
-    [display32 $corr0_word] [display32 $corr1_word] [display32 $corr2_word] \
-    [display32 $corr3_word] [display32 $corr4_word] [display32 $corr5_word] \
-    [display32 $corr7_word]]
+    [display64 $corr0_word] [display64 $corr1_word] [display64 $corr2_word] \
+    [display64 $corr3_word] [display64 $corr4_word] [display64 $corr5_word] \
+    [display64 $corr7_word]]
   flush stdout
 }
 

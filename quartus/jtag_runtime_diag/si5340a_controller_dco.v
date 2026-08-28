@@ -21,7 +21,16 @@ output                  oPLL_REG_CONFIG_DONE,
 output                  oDCO_BUSY,
 output                  oDCO_ERROR,
 output    [15:0]        oDCO_STEP_COUNT,
-output    [63:0]        oDCO_DEBUG
+output    [63:0]        oDCO_DEBUG,
+output    [7:0]         oDEBUG_STATIC_STATE,
+output                  oDEBUG_STATIC_CONFIG_DONE_PULSE,
+output                  oDEBUG_STATIC_ACCESS_START,
+output    [2:0]         oDEBUG_RUNTIME_STATE,
+output                  oDEBUG_BUS_STATE,
+output                  oDEBUG_BUS_DONE,
+output                  oDEBUG_RUNTIME_START,
+output                  oDEBUG_RUNTIME_BUS_ENABLE,
+output                  oDEBUG_SYSTEM_START
 );
 
 wire [6:0] static_slave_addr;
@@ -34,6 +43,9 @@ wire       bus_state;
 wire       bus_done;
 wire       static_controller_ready;
 wire       static_start_pulse;
+wire [7:0] static_i2c_reg_state;
+wire       static_config_done_pulse;
+wire       static_access_start;
 wire       initial_start;
 wire       user_start_rise;
 wire       i2c_system_clk;
@@ -89,6 +101,15 @@ assign oDCO_BUSY = (rt_state != 3'd0);
 assign oDCO_ERROR = dco_error;
 assign oDCO_STEP_COUNT = dco_step_count;
 assign oPLL_I2C_ID_READ_ERROR = 1'b0;
+assign oDEBUG_STATIC_STATE = static_i2c_reg_state;
+assign oDEBUG_STATIC_CONFIG_DONE_PULSE = static_config_done_pulse;
+assign oDEBUG_STATIC_ACCESS_START = static_access_start;
+assign oDEBUG_RUNTIME_STATE = rt_state;
+assign oDEBUG_BUS_STATE = bus_state;
+assign oDEBUG_BUS_DONE = bus_done;
+assign oDEBUG_RUNTIME_START = runtime_start;
+assign oDEBUG_RUNTIME_BUS_ENABLE = runtime_bus_enable;
+assign oDEBUG_SYSTEM_START = system_start;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
 // controller state without changing the request or I2C state machine.
@@ -139,7 +160,10 @@ si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iI2C_READ_DATA_RDY(static_read_data_rdy),
   .iI2C_READ_DATA(static_read_data),
   .oONE_CLK_CONFIG_DONE(),
-  .oController_Ready(static_controller_ready)
+  .oController_Ready(static_controller_ready),
+  .oDEBUG_STATIC_STATE(static_i2c_reg_state),
+  .oDEBUG_STATIC_CONFIG_DONE_PULSE(static_config_done_pulse),
+  .oDEBUG_STATIC_ACCESS_START(static_access_start)
 );
 
 initial_config u_initial_config(

@@ -75,7 +75,10 @@ output                        oStart,
 input                         iI2C_READ_DATA_RDY,
 input         [7:0]           iI2C_READ_DATA,
 output                        oONE_CLK_CONFIG_DONE,
-output	  reg                  oController_Ready
+output	  reg                  oController_Ready,
+output        [7:0]           oDEBUG_STATIC_STATE,
+output                        oDEBUG_STATIC_CONFIG_DONE_PULSE,
+output                        oDEBUG_STATIC_ACCESS_START
 
 );
 
@@ -112,6 +115,9 @@ assign  oBYTE_ADDR  = i2c_ctrl_data[16:9];
 assign  oBYTE_DATA  = i2c_ctrl_data[8:1];
 assign  oWR_CMD     = i2c_ctrl_data[0];
 assign  oStart      = access_next_i2c_reg_cmd;
+assign  oDEBUG_STATIC_STATE = i2c_reg_state;
+assign  oDEBUG_STATIC_CONFIG_DONE_PULSE = i2c_controller_config_done;
+assign  oDEBUG_STATIC_ACCESS_START = access_i2c_reg_start;
 
 //=============    wire   all  reg  =========================
 

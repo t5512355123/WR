@@ -64,7 +64,17 @@ architecture rtl of DE5a_wr_master_jtag is
       oPLL_REG_CONFIG_DONE  : out   std_logic;
       oDCO_BUSY             : out   std_logic;
       oDCO_ERROR            : out   std_logic;
-      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0)
+      oDCO_STEP_COUNT       : out   std_logic_vector(15 downto 0);
+      oDCO_DEBUG            : out   std_logic_vector(63 downto 0);
+      oDEBUG_STATIC_STATE   : out   std_logic_vector(7 downto 0);
+      oDEBUG_STATIC_CONFIG_DONE_PULSE : out std_logic;
+      oDEBUG_STATIC_ACCESS_START : out std_logic;
+      oDEBUG_RUNTIME_STATE  : out   std_logic_vector(2 downto 0);
+      oDEBUG_BUS_STATE      : out   std_logic;
+      oDEBUG_BUS_DONE       : out   std_logic;
+      oDEBUG_RUNTIME_START  : out   std_logic;
+      oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
+      oDEBUG_SYSTEM_START   : out   std_logic
     );
   end component;
 
@@ -327,6 +337,50 @@ architecture rtl of DE5a_wr_master_jtag is
   signal dco_busy              : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
+  signal dco_probe              : std_logic_vector(63 downto 0);
+  signal dco_debug              : std_logic_vector(63 downto 0);
+  signal dco_static_state       : std_logic_vector(7 downto 0);
+  signal dco_static_done_pulse  : std_logic;
+  signal dco_static_access_start : std_logic;
+  signal dco_runtime_state      : std_logic_vector(2 downto 0);
+  signal dco_bus_state          : std_logic;
+  signal dco_bus_done           : std_logic;
+  signal dco_runtime_start      : std_logic;
+  signal dco_runtime_bus_enable : std_logic;
+  signal dco_system_start       : std_logic;
+
+  signal si_corr_probe0         : std_logic_vector(63 downto 0);
+  signal si_corr_probe1         : std_logic_vector(63 downto 0);
+  signal si_corr_probe2         : std_logic_vector(63 downto 0);
+  signal si_corr_probe3         : std_logic_vector(63 downto 0);
+  signal si_corr_probe4         : std_logic_vector(63 downto 0);
+  signal si_corr_probe5         : std_logic_vector(63 downto 0);
+  signal si_corr_source0        : std_logic_vector(0 downto 0);
+  signal si_corr_source1        : std_logic_vector(0 downto 0);
+  signal si_corr_source2        : std_logic_vector(0 downto 0);
+  signal si_corr_source3        : std_logic_vector(0 downto 0);
+  signal si_corr_source4        : std_logic_vector(0 downto 0);
+  signal si_corr_source5        : std_logic_vector(0 downto 0);
+  signal si_corr_timestamp      : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_arm_count      : unsigned(7 downto 0) := (others => '0');
+  signal si_corr_armed          : std_logic := '0';
+  signal si_corr_static_prev    : std_logic_vector(7 downto 0) := (others => '0');
+  signal si_corr_ready_prev     : std_logic := '0';
+  signal si_corr_config_prev    : std_logic := '0';
+  signal si_corr_wr_reset_prev  : std_logic := '0';
+  signal si_corr_cpu_reset_prev : std_logic := '0';
+  signal si_corr_t_dac_load     : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_runtime_start : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_bus_done     : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_static_done  : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_state_leave  : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_ready_drop   : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_config_drop  : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_wr_reset     : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_cpu_reset    : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_t_system_start : unsigned(31 downto 0) := (others => '0');
+  signal si_corr_static_before  : std_logic_vector(7 downto 0) := (others => '0');
+  signal si_corr_static_after   : std_logic_vector(7 downto 0) := (others => '0');
 
   signal reconfig_read        : std_logic_vector(0 downto 0) := (others => '0');
   signal reconfig_write       : std_logic_vector(0 downto 0) := (others => '0');
@@ -667,6 +721,164 @@ begin
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
+
+  -- Read-only SI5340/runtime correlation observer.  This process is clocked
+  -- by CLK_50_B2J and deliberately has no CPU/WR reset in its sensitivity
+  -- list, so a reset under investigation cannot erase the first-event trace.
+  p_si_corr_observer : process(CLK_50_B2J)
+    variable now_tick : unsigned(31 downto 0);
+  begin
+    if rising_edge(CLK_50_B2J) then
+      now_tick := si_corr_timestamp + 1;
+      si_corr_timestamp <= now_tick;
+
+      if si_corr_armed = '0' then
+        if si_config_done = '1' and wr_core_reset_n = '1' and
+           clk_sys_625_locked = '1' and cpu_reset = '0' and
+           dco_system_start = '0' then
+          if si_corr_arm_count = x"FE" then
+            si_corr_arm_count <= x"FF";
+            si_corr_armed <= '1';
+          else
+            si_corr_arm_count <= si_corr_arm_count + 1;
+          end if;
+        else
+          si_corr_arm_count <= (others => '0');
+        end if;
+      else
+        if si_corr_t_dac_load = x"00000000" and
+           (dac_dpll_load = '1' or dac_hpll_load = '1') then
+          si_corr_t_dac_load <= now_tick;
+        end if;
+        if si_corr_t_runtime_start = x"00000000" and
+           dco_runtime_start = '1' then
+          si_corr_t_runtime_start <= now_tick;
+        end if;
+        if si_corr_t_bus_done = x"00000000" and dco_bus_done = '1' then
+          si_corr_t_bus_done <= now_tick;
+        end if;
+        if si_corr_t_static_done = x"00000000" and
+           dco_static_done_pulse = '1' then
+          si_corr_t_static_done <= now_tick;
+        end if;
+        if si_corr_t_state_leave = x"00000000" and
+           si_corr_static_prev = x"00" and dco_static_state /= x"00" then
+          si_corr_t_state_leave <= now_tick;
+          si_corr_static_before <= si_corr_static_prev;
+          si_corr_static_after <= dco_static_state;
+        end if;
+        if si_corr_t_ready_drop = x"00000000" and
+           si_corr_ready_prev = '1' and si_config_done = '0' then
+          si_corr_t_ready_drop <= now_tick;
+        end if;
+        if si_corr_t_config_drop = x"00000000" and
+           si_corr_config_prev = '1' and si_config_done = '0' then
+          si_corr_t_config_drop <= now_tick;
+        end if;
+        if si_corr_t_wr_reset = x"00000000" and
+           si_corr_wr_reset_prev = '1' and wr_core_reset_n = '0' then
+          si_corr_t_wr_reset <= now_tick;
+        end if;
+        if si_corr_t_cpu_reset = x"00000000" and
+           si_corr_cpu_reset_prev = '0' and cpu_reset = '1' then
+          si_corr_t_cpu_reset <= now_tick;
+        end if;
+        if si_corr_t_system_start = x"00000000" and
+           dco_system_start = '1' then
+          si_corr_t_system_start <= now_tick;
+        end if;
+      end if;
+
+      si_corr_static_prev <= dco_static_state;
+      si_corr_ready_prev <= si_config_done;
+      si_corr_config_prev <= si_config_done;
+      si_corr_wr_reset_prev <= wr_core_reset_n;
+      si_corr_cpu_reset_prev <= cpu_reset;
+    end if;
+  end process;
+
+  -- Correlation probes: timestamp pairs are in little-endian low/high
+  -- halves; probe 5 carries the state transition and a live snapshot.
+  si_corr_probe0(31 downto 0) <= std_logic_vector(si_corr_t_dac_load);
+  si_corr_probe0(63 downto 32) <= std_logic_vector(si_corr_t_runtime_start);
+  si_corr_probe1(31 downto 0) <= std_logic_vector(si_corr_t_bus_done);
+  si_corr_probe1(63 downto 32) <= std_logic_vector(si_corr_t_static_done);
+  si_corr_probe2(31 downto 0) <= std_logic_vector(si_corr_t_state_leave);
+  si_corr_probe2(63 downto 32) <= std_logic_vector(si_corr_t_ready_drop);
+  si_corr_probe3(31 downto 0) <= std_logic_vector(si_corr_t_config_drop);
+  si_corr_probe3(63 downto 32) <= std_logic_vector(si_corr_t_wr_reset);
+  si_corr_probe4(31 downto 0) <= std_logic_vector(si_corr_t_cpu_reset);
+  si_corr_probe4(63 downto 32) <= std_logic_vector(si_corr_t_system_start);
+  si_corr_probe5(7 downto 0) <= si_corr_static_before;
+  si_corr_probe5(15 downto 8) <= si_corr_static_after;
+  si_corr_probe5(23 downto 16) <= dco_static_state;
+  si_corr_probe5(24) <= si_corr_armed;
+  si_corr_probe5(25) <= si_config_done;
+  si_corr_probe5(26) <= wr_core_reset_n;
+  si_corr_probe5(27) <= cpu_reset;
+  si_corr_probe5(28) <= dco_runtime_start;
+  si_corr_probe5(29) <= dco_bus_done;
+  si_corr_probe5(30) <= dco_static_done_pulse;
+  si_corr_probe5(31) <= dco_static_access_start;
+  si_corr_probe5(34 downto 32) <= dco_runtime_state;
+  si_corr_probe5(35) <= dco_bus_state;
+  si_corr_probe5(36) <= dco_runtime_bus_enable;
+  si_corr_probe5(37) <= dco_system_start;
+  si_corr_probe5(63 downto 38) <= (others => '0');
+
+  dco_probe <= dco_debug;
+
+  u_dco_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_DCO_ACTIVITY_CLEAN9F_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 8,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_si_corr_probe0 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_0_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 28,
+                 source_width => 1)
+    port map (probe => si_corr_probe0, source => si_corr_source0,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe1 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_1_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 29,
+                 source_width => 1)
+    port map (probe => si_corr_probe1, source => si_corr_source1,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe2 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_2_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 30,
+                 source_width => 1)
+    port map (probe => si_corr_probe2, source => si_corr_source2,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe3 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_3_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 31,
+                 source_width => 1)
+    port map (probe => si_corr_probe3, source => si_corr_source3,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe4 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_4_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 32,
+                 source_width => 1)
+    port map (probe => si_corr_probe4, source => si_corr_source4,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_si_corr_probe5 : altsource_probe
+    generic map (instance_id => "WR_SI_CORRELATION_5_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 33,
+                 source_width => 1)
+    port map (probe => si_corr_probe5, source => si_corr_source5,
+              source_clk => CLK_50_B2J, source_ena => '1');
 
   -- JTAG-readable status: bit 0 is the least-significant status bit.
   sync_probe(15 downto 0) <= CPU_RESET_n & wr_tx_enc_err & wr_rx_enc_err & si_id_error &
@@ -1173,7 +1385,17 @@ begin
       oPLL_REG_CONFIG_DONE   => si_config_done,
       oDCO_BUSY              => dco_busy,
       oDCO_ERROR             => dco_error,
-      oDCO_STEP_COUNT        => dco_step_count
+      oDCO_STEP_COUNT        => dco_step_count,
+      oDCO_DEBUG             => dco_debug,
+      oDEBUG_STATIC_STATE    => dco_static_state,
+      oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
+      oDEBUG_STATIC_ACCESS_START => dco_static_access_start,
+      oDEBUG_RUNTIME_STATE   => dco_runtime_state,
+      oDEBUG_BUS_STATE       => dco_bus_state,
+      oDEBUG_BUS_DONE        => dco_bus_done,
+      oDEBUG_RUNTIME_START   => dco_runtime_start,
+      oDEBUG_RUNTIME_BUS_ENABLE => dco_runtime_bus_enable,
+      oDEBUG_SYSTEM_START    => dco_system_start
     );
 
   u_wr_arria10_transceiver : wr_arria10_transceiver

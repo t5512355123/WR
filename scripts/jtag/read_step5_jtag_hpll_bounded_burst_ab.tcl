@@ -1,8 +1,8 @@
 # Step5 JTAG-triggered bounded HPLL burst A/B.
 #
 # One 0->1->0 transition on source instance 36 arms the Slave controller's
-# internal eight-request serializer.  This script does not manually pulse
-# eight times.  Probe 37 carries burst-specific counters; probe 8 carries the
+# internal thirty-two-request serializer.  This script does not manually pulse
+# thirty-two times.  Probe 37 carries burst-specific counters; probe 8 carries the
 # existing DCO step counter.  The WB reads are read-only diagnostic shadows.
 #
 # Probe 37 payload:
@@ -16,7 +16,7 @@
 #
 # Usage:
 #   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl
-#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls? ?polarity_reverse?
+#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls? ?polarity_reverse? ?burst_size?
 
 package require ::quartus::insystem_source_probe
 
@@ -27,16 +27,19 @@ set poll_attempts 25
 set helper_poll_ms 0
 set max_helper_polls 0
 set polarity_reverse 0
+set burst_size 32
 if {[llength $argv] >= 1} { set a_seconds [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set poll_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set max_polls [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set helper_poll_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set max_helper_polls [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set polarity_reverse [expr {int([lindex $argv 5])}] }
+if {[llength $argv] >= 7} { set burst_size [expr {int([lindex $argv 6])}] }
 if {$a_seconds <= 0 || $poll_ms <= 0 || $max_polls <= 0 ||
     $helper_poll_ms < 0 || $max_helper_polls < 0 ||
     ($helper_poll_ms > 0 && $max_helper_polls <= 0) ||
-    ($polarity_reverse != 0 && $polarity_reverse != 1)} {
+    ($polarity_reverse != 0 && $polarity_reverse != 1) ||
+    $burst_size <= 0 || $burst_size > 255} {
   error "a_seconds, poll_ms, and max_polls must be > 0; helper wait is optional but requires both helper_poll_ms and max_helper_polls"
 }
 
@@ -246,7 +249,7 @@ proc delta_line {hardware_name before_tag after_tag} {
   flush stdout
 }
 
-puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d polarity_reverse=%d experiment=EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830 fixed_sof=1 burst_size=8" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls $polarity_reverse]
+puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d polarity_reverse=%d experiment=EXP-WRPC-STEP5-HPLL-32STEP-POLARITY-DRIFT-CANCELLED-AB-20260830 fixed_sof=1 burst_size=%d" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls $polarity_reverse $burst_size]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -269,11 +272,11 @@ foreach hardware_name [get_hardware_names] {
       delta_line $hardware_name A0 [format "A%02d" $a_seconds]
 
       # B: one source pulse; the FPGA controller, not this script, serializes
-      # the eight requests.
+      # the requested burst.
       read_snapshot $hardware_name B_BEFORE
       force_source_write 1
       force_source_write 0
-      puts [format "STEP5_BURST_TRIGGER board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0 controller_burst_size=8" $hardware_name]
+      puts [format "STEP5_BURST_TRIGGER board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0 controller_burst_size=%d" $hardware_name $burst_size]
       flush stdout
 
       set last_tag B_BEFORE
@@ -287,7 +290,7 @@ foreach hardware_name [get_hardware_names] {
         set poll_key [snapshot_key $hardware_name $poll_tag]
         set completed_delta [expr {($snap_forced_completed($poll_key) - $snap_forced_completed($before_key)) & 0xff}]
         set last_tag $poll_tag
-        if {$completed_delta >= 8} {
+        if {$completed_delta >= $burst_size} {
           set burst_done 1
           break
         }
@@ -322,7 +325,7 @@ foreach hardware_name [get_hardware_names] {
         flush stdout
       }
       puts [format "STEP5_BURST_RESULT board=%s BURST_COMPLETED=%d POLL_TAG=%s" $hardware_name $burst_done $last_tag]
-      puts [format "STEP5_BURST_EXPECTED board=%s DELTA_BURST_TRIGGER_COUNT=1 DELTA_FORCED_HPLL_PENDING_COUNT=8 DELTA_FORCED_HPLL_COMPLETED_COUNT=8 DELTA_STEP>=8" $hardware_name]
+      puts [format "STEP5_BURST_EXPECTED board=%s DELTA_BURST_TRIGGER_COUNT=1 DELTA_FORCED_HPLL_PENDING_COUNT=%d DELTA_FORCED_HPLL_COMPLETED_COUNT=%d DELTA_STEP>=%d" $hardware_name $burst_size $burst_size $burst_size]
       puts [format "STEP5_BURST_DONE board=%s" $hardware_name]
       flush stdout
     } else {

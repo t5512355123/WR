@@ -82,7 +82,7 @@ reg        force_hpll_reverse_meta;
 reg        force_hpll_reverse_sync;
 reg [7:0]  force_trigger_count;
 reg [7:0]  forced_pending_count;
-reg [3:0]  force_burst_remaining;
+reg [5:0]  force_burst_remaining;
 reg        hpll_pending_forced;
 reg        hpll_pending_forced_reverse;
 reg        current_request_forced;
@@ -177,7 +177,7 @@ always @* begin
 end
 
 // JTAG-triggered bounded-burst evidence.  A single accepted source rising
-// edge arms eight serialized HPLL requests; these counters distinguish the
+// edge arms thirty-two serialized HPLL requests; these counters distinguish the
 // trigger, request admission, and completed runtime transactions.
 always @* begin
   dco_step5_burst_debug = 64'd0;
@@ -336,12 +336,12 @@ always @(posedge iCLK or negedge iRST_n) begin
       force_hpll_seen <= 1'b1;
       force_trigger_count <= force_trigger_count + 1'b1;
       // The trigger is intentionally accepted only at the ready, idle
-      // boundary.  The burst variant arms eight requests and lets the
+      // boundary.  The burst variant arms thirty-two requests and lets the
       // controller serialize them; the legacy path still admits one request.
       if (static_controller_ready && hpll_prev_valid &&
           (rt_state == 3'd0)) begin
         if (ENABLE_JTAG_HPLL_BURST) begin
-          force_burst_remaining <= 4'd8;
+          force_burst_remaining <= 6'd32;
           force_burst_reverse <= force_hpll_reverse_sync;
           burst_trigger_count <= burst_trigger_count + 1'b1;
         end else begin
@@ -400,10 +400,10 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced <= 1'b0;
         end else if (ENABLE_JTAG_HPLL_BURST &&
                      static_controller_ready &&
-                     (force_burst_remaining != 4'd0)) begin
+                     (force_burst_remaining != 6'd0)) begin
           // Queue only one forced request at a time.  The next request is
           // admitted after the current three-write runtime sequence returns
-          // to idle, so the eight-step burst is controller-serialized.
+          // to idle, so the thirty-two-step burst is controller-serialized.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
           hpll_pending_forced_reverse <= force_burst_reverse;

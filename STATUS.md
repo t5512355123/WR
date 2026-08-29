@@ -4,9 +4,10 @@
 
 本輪從 exact `main@5578d3ce06461cc9c598e6bf97b890bf440a70b8` 建立 Step4B
 實驗線。分支4最新建議要求把原本 Slave 的 `PASSIVE_CONTROL` 改成真正的
-Slave SoftPLL Startup gate；目前已完成 laptop 端的唯讀 dashboard 語義修正與
-實驗紀錄骨架，尚未完成 pain fresh build/program/觀測，因此不能宣告 Step4B
-PASS。
+Slave SoftPLL Startup gate。已完成同一 source commit 的 pain fresh build、雙板
+fresh-program、JTAG mailbox raw 觀測與 focused Step2 regression；Step1 已通過，
+但 Slave 長時間停在 `PTP=LISTENING (state=4)`，沒有建立 Step2/3 upstream，故
+Step4B 被正確阻擋，不能宣告 PASS。
 
 本輪唯一程式變更是 `scripts/jtag/read_wb_runtime.tcl`：
 
@@ -15,6 +16,10 @@ PASS。
   的 Step4B startup/evidence gate。
 - 新增 `LOCK_ENABLE_COUNT`、`SPLL_INIT_COUNT`、`SPLL_MODE`、sequencer、
   state visit/transition/last state、`RCER/OCER/OCCR` 唯讀輸出。
+- 儀表板以固定 cable map 路由 `1-11.1=Master`、`1-11.2=Slave`；
+  `WDIAGS_MODE` 仍獨立作為 Step2 evidence，角色衝突不會被掩蓋。
+- PTP register 保留完整 metadata word，但 gate 只比較低 8-bit source-defined
+  state。
 - 若 Step1/2/3 未全部成立，輸出 `STEP4B_ALLOWED=NO` 與上游 blocker，
   不把上游缺失誤判成 SoftPLL FAIL。
 - 只有 startup、DMTD→TAG→TRR write/pop→IRQ→helper 與 reset guards 全部
@@ -23,11 +28,27 @@ PASS。
 完整實驗紀錄：
 `docs/experiments/exp-step4b-slave-softpll-startup/EXP-WRPC-STEP4B-SLAVE-SOFTPLL-STARTUP-BASELINE-20260829.md`
 
+本輪結果：
+
 ```text
-STEP4A_RESULT = PENDING_RUNTIME_OBSERVATION
-STEP4B_ALLOWED = PENDING_RUNTIME_OBSERVATION
-STEP4B_RESULT = NOT_YET_EVALUATED
+STEP1_REGRESSION = PASS
+STEP2_INDEPENDENT_MASTER = FAIL
+STEP2_INDEPENDENT_SLAVE = FAIL
+STEP4A_RESULT = FAIL
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP4B_PASS = NO
 ```
+
+重點證據：Slave `MODE=03020404`、`PTP=00004104` 在 focused Step2 的 20/20
+samples 維持 `SLAVE + LISTENING`；`LOCK_ENABLE=0`、`SPLL_INIT_COUNT=0`、
+`SPLL_SEQ_STATE=0`、`SPLL_STATE_VISIT_MASK=0`，所以沒有進入 Step4B startup。
+Master 亦為 `MODE=3`、`PTP state=4`，不符合 Master `2/6`，其 TAG/TRR/IRQ/
+helper counters 為零。
+
+初次使用的 `rs422_uart_diag` 沒有 JTAG Wishbone mailbox，相關讀值已標記為
+`WRONG_IMAGE_MEASUREMENT_INVALID`；最終結論只採用 `jtag_runtime_diag`。
 
 ## 最新 WP0 parser offset prediction 實驗（2026-08-27，source/program commit `bf628b9`）
 

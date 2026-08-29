@@ -1,0 +1,70 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Aug 29 08:42:43 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step23_register_reliability.tcl 30 500 all 25 --raw
+Info: Quartus(args): 30 500 all 25 --raw
+RELIABILITY_CONFIG samples=30 gap_ms=500 group=all raw=1
+=== RELIABILITY_BOARD DE5 [1-11.1] ===
+REG_SERIES board=DE5 [1-11.1] register=WDIAGS_TEMP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= states=none
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_H samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_L samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=MODE samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=PTP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=PTP_RX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=PTP_TX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=MINIC_TX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=MINIC_RX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=RXERR samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=FOREIGN_META samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=PARSE_META samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=WR_RX_SIGNAL samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=WR_TX_SIGNAL samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=LOCK_ENABLE samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=WR_SIGNAL_REJECT samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.1] register=WR_FAILURE_DEBUG samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=failure_states=none s_lock_evidence=0 fail_count_max=0 values=none
+REG_SERIES board=DE5 [1-11.1] register=WDIAGS_TEMP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= states=none
+STEP2_INDEPENDENT board=DE5 [1-11.1] result=INVALID
+STEP3_INDEPENDENT board=DE5 [1-11.1] result=NA
+=== RELIABILITY_BOARD DE5 [1-11.2] ===
+REG_SERIES board=DE5 [1-11.2] register=WDIAGS_TEMP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= states=none
+REG_SERIES board=DE5 [1-11.2] register=EP_MAC_H samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=EP_MAC_L samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=MODE samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=PTP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=PTP_RX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=PTP_TX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=MINIC_TX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=MINIC_RX samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=RXERR samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=FOREIGN_META samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=PARSE_META samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=WR_RX_SIGNAL samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=WR_TX_SIGNAL samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=LOCK_ENABLE samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=WR_SIGNAL_REJECT samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=none
+REG_SERIES board=DE5 [1-11.2] register=WR_FAILURE_DEBUG samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= values=failure_states=none s_lock_evidence=0 fail_count_max=0 values=none
+REG_SERIES board=DE5 [1-11.2] register=WDIAGS_TEMP samples=30 valid=0 invalid=30 distinct=0 decrease=0 expected=0 first= last= states=none
+STEP2_INDEPENDENT board=DE5 [1-11.2] result=INVALID
+STEP3_INDEPENDENT board=DE5 [1-11.2] result=INVALID
+RELIABILITY_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step23_register_reliability.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Aug 29 08:51:38 2026
+    Info: Elapsed time: 00:08:55
+    Info: Total CPU time (on all processors): 00:00:01

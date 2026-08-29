@@ -1,0 +1,411 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Sat Aug 29 09:57:18 2026
+    Info: System process ID: 4152324
+Info: Command: quartus_stp -t scripts/jtag/read_step23_register_reliability.tcl 20 500 step2 25 --raw
+Info: Quartus(args): 20 500 step2 25 --raw
+RELIABILITY_CONFIG samples=20 gap_ms=500 group=step2 raw=1
+=== RELIABILITY_BOARD DE5 [1-11.1] ===
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=001 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=002 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=003 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=004 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=005 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=006 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=007 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=008 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=009 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=010 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=011 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=012 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=013 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=014 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=015 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=016 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=017 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=018 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=019 value=02000200
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_H sample=020 value=02000200
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_H samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=02000200 last=02000200 values=02000200:20
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=001 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=002 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=003 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=004 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=005 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=006 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=007 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=008 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=009 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=010 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=011 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=012 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=013 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=014 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=015 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=016 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=017 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=018 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=019 value=22334401
+REG_SAMPLE board=DE5 [1-11.1] register=EP_MAC_L sample=020 value=22334401
+REG_SERIES board=DE5 [1-11.1] register=EP_MAC_L samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=22334401 last=22334401 values=22334401:20
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=001 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=002 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=003 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=004 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=005 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=006 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=007 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=008 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=009 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=010 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=011 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=012 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=013 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=014 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=015 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=016 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=017 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=018 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=019 value=03020404
+REG_SAMPLE board=DE5 [1-11.1] register=MODE sample=020 value=03020404
+REG_SERIES board=DE5 [1-11.1] register=MODE samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=03020404 last=03020404 values=03020404:20
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=001 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=002 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=003 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=004 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=005 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=006 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=007 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=008 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=009 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=010 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=011 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=012 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=013 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=014 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=015 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=016 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=017 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=018 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=019 value=00002104
+REG_SAMPLE board=DE5 [1-11.1] register=PTP sample=020 value=00002104
+REG_SERIES board=DE5 [1-11.1] register=PTP samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=0 first=00002104 last=00002104 values=00002104:20
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=001 value=000000F5
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=002 value=000000F5
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=003 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=004 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=005 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=006 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=007 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=008 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=009 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=010 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=011 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=012 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=013 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=014 value=000000F8
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=015 value=000000FB
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=016 value=000000FB
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=017 value=000000FB
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=018 value=000000FB
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=019 value=000000FB
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_RX sample=020 value=000000FB
+REG_SERIES board=DE5 [1-11.1] register=PTP_RX samples=20 valid=20 invalid=0 distinct=3 decrease=0 expected=0 first=000000F5 last=000000FB values=000000F5:2,000000F8:12,000000FB:6
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=001 value=000000B7
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=002 value=000000B7
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=003 value=000000B7
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=004 value=000000B7
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=005 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=006 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=007 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=008 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=009 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=010 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=011 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=012 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=013 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=014 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=015 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=016 value=000000BA
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=017 value=000000BD
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=018 value=000000BD
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=019 value=000000BD
+REG_SAMPLE board=DE5 [1-11.1] register=PTP_TX sample=020 value=000000BD
+REG_SERIES board=DE5 [1-11.1] register=PTP_TX samples=20 valid=20 invalid=0 distinct=3 decrease=0 expected=0 first=000000B7 last=000000BD values=000000B7:4,000000BA:12,000000BD:4
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=001 value=0000026B
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=002 value=0000026C
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=003 value=0000026C
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=004 value=0000026D
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=005 value=0000026D
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=006 value=0000026E
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=007 value=0000026E
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=008 value=00000270
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=009 value=00000270
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=010 value=00000274
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=011 value=00000274
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=012 value=00000275
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=013 value=00000275
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=014 value=00000276
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=015 value=00000276
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=016 value=00000277
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=017 value=00000277
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=018 value=00000279
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=019 value=00000279
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_TX sample=020 value=0000027A
+REG_SERIES board=DE5 [1-11.1] register=MINIC_TX samples=20 valid=20 invalid=0 distinct=11 decrease=0 expected=0 first=0000026B last=0000027A values=0000026B:1,0000026C:2,0000026D:2,0000026E:2,0000027A:1,00000270:2,00000274:2,00000275:2,00000276:2,00000277:2,00000279:2
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=001 value=00000265
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=002 value=00000265
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=003 value=00000266
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=004 value=00000266
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=005 value=0000026A
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=006 value=0000026A
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=007 value=0000026B
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=008 value=0000026B
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=009 value=0000026C
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=010 value=0000026C
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=011 value=0000026D
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=012 value=0000026D
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=013 value=0000026E
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=014 value=0000026E
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=015 value=0000026F
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=016 value=0000026F
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=017 value=00000273
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=018 value=00000274
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=019 value=00000274
+REG_SAMPLE board=DE5 [1-11.1] register=MINIC_RX sample=020 value=00000275
+REG_SERIES board=DE5 [1-11.1] register=MINIC_RX samples=20 valid=20 invalid=0 distinct=11 decrease=0 expected=0 first=00000265 last=00000275 values=0000026A:2,0000026B:2,0000026C:2,0000026D:2,0000026E:2,0000026F:2,00000265:2,00000266:2,00000273:1,00000274:2,00000275:1
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=001 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=002 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=003 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=004 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=005 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=006 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=007 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=008 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=009 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=010 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=011 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=012 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=013 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=014 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=015 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=016 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=017 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=018 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=019 value=00000000
+REG_SAMPLE board=DE5 [1-11.1] register=RXERR sample=020 value=00000000
+REG_SERIES board=DE5 [1-11.1] register=RXERR samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=0 first=00000000 last=00000000 values=00000000:20
+STEP2_INDEPENDENT board=DE5 [1-11.1] result=FAIL
+=== RELIABILITY_BOARD DE5 [1-11.2] ===
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=001 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=002 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=003 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=004 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=005 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=006 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=007 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=008 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=009 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=010 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=011 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=012 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=013 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=014 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=015 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=016 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=017 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=018 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=019 value=02000200
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_H sample=020 value=02000200
+REG_SERIES board=DE5 [1-11.2] register=EP_MAC_H samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=02000200 last=02000200 values=02000200:20
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=001 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=002 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=003 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=004 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=005 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=006 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=007 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=008 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=009 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=010 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=011 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=012 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=013 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=014 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=015 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=016 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=017 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=018 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=019 value=22334402
+REG_SAMPLE board=DE5 [1-11.2] register=EP_MAC_L sample=020 value=22334402
+REG_SERIES board=DE5 [1-11.2] register=EP_MAC_L samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=22334402 last=22334402 values=22334402:20
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=001 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=002 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=003 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=004 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=005 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=006 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=007 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=008 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=009 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=010 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=011 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=012 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=013 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=014 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=015 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=016 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=017 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=018 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=019 value=03020404
+REG_SAMPLE board=DE5 [1-11.2] register=MODE sample=020 value=03020404
+REG_SERIES board=DE5 [1-11.2] register=MODE samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=20 first=03020404 last=03020404 values=03020404:20
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=001 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=002 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=003 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=004 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=005 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=006 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=007 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=008 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=009 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=010 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=011 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=012 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=013 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=014 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=015 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=016 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=017 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=018 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=019 value=00004104
+REG_SAMPLE board=DE5 [1-11.2] register=PTP sample=020 value=00004104
+REG_SERIES board=DE5 [1-11.2] register=PTP samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=0 first=00004104 last=00004104 values=00004104:20
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=001 value=000000D5
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=002 value=000000D5
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=003 value=000000D5
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=004 value=000000D5
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=005 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=006 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=007 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=008 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=009 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=010 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=011 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=012 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=013 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=014 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=015 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=016 value=000000D8
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=017 value=000000DB
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=018 value=000000DB
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=019 value=000000DB
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_RX sample=020 value=000000DB
+REG_SERIES board=DE5 [1-11.2] register=PTP_RX samples=20 valid=20 invalid=0 distinct=3 decrease=0 expected=0 first=000000D5 last=000000DB values=000000D5:4,000000D8:12,000000DB:4
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=001 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=002 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=003 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=004 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=005 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=006 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=007 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=008 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=009 value=00000119
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=010 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=011 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=012 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=013 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=014 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=015 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=016 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=017 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=018 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=019 value=0000011C
+REG_SAMPLE board=DE5 [1-11.2] register=PTP_TX sample=020 value=0000011C
+REG_SERIES board=DE5 [1-11.2] register=PTP_TX samples=20 valid=20 invalid=0 distinct=2 decrease=0 expected=0 first=00000119 last=0000011C values=0000011C:11,00000119:9
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=001 value=0000030E
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=002 value=0000030E
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=003 value=00000313
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=004 value=00000313
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=005 value=00000314
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=006 value=00000314
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=007 value=00000315
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=008 value=00000315
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=009 value=00000316
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=010 value=00000316
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=011 value=00000317
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=012 value=00000319
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=013 value=00000319
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=014 value=0000031D
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=015 value=0000031D
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=016 value=0000031E
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=017 value=0000031E
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=018 value=0000031F
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=019 value=0000031F
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_TX sample=020 value=00000320
+REG_SERIES board=DE5 [1-11.2] register=MINIC_TX samples=20 valid=20 invalid=0 distinct=11 decrease=0 expected=0 first=0000030E last=00000320 values=0000030E:2,0000031D:2,0000031E:2,0000031F:2,00000313:2,00000314:2,00000315:2,00000316:2,00000317:1,00000319:2,00000320:1
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=001 value=00000289
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=002 value=00000289
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=003 value=0000028A
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=004 value=0000028A
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=005 value=0000028B
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=006 value=0000028B
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=007 value=0000028F
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=008 value=0000028F
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=009 value=00000290
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=010 value=00000290
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=011 value=00000291
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=012 value=00000291
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=013 value=00000292
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=014 value=00000292
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=015 value=00000293
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=016 value=00000293
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=017 value=00000294
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=018 value=00000294
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=019 value=00000298
+REG_SAMPLE board=DE5 [1-11.2] register=MINIC_RX sample=020 value=00000298
+REG_SERIES board=DE5 [1-11.2] register=MINIC_RX samples=20 valid=20 invalid=0 distinct=10 decrease=0 expected=0 first=00000289 last=00000298 values=0000028A:2,0000028B:2,0000028F:2,00000289:2,00000290:2,00000291:2,00000292:2,00000293:2,00000294:2,00000298:2
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=001 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=002 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=003 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=004 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=005 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=006 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=007 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=008 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=009 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=010 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=011 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=012 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=013 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=014 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=015 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=016 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=017 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=018 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=019 value=00000000
+REG_SAMPLE board=DE5 [1-11.2] register=RXERR sample=020 value=00000000
+REG_SERIES board=DE5 [1-11.2] register=RXERR samples=20 valid=20 invalid=0 distinct=1 decrease=0 expected=0 first=00000000 last=00000000 values=00000000:20
+STEP2_INDEPENDENT board=DE5 [1-11.2] result=FAIL
+RELIABILITY_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step23_register_reliability.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Sat Aug 29 10:00:18 2026
+    Info: Elapsed time: 00:03:00
+    Info: System process ID: 4152324

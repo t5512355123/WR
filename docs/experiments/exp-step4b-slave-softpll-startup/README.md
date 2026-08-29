@@ -48,6 +48,10 @@ STEP4B_RESULT
 STEP4B_FIRST_INACTIVE_BOUNDARY
 ```
 
+兩張固定 fixture 以 cable map 路由 milestone：`DE5 [1-11.1]` 為 Master、
+`DE5 [1-11.2]` 為 Slave。`WDIAGS_MODE` 不用來覆寫這個路由；它仍獨立作為
+Step 2 evidence，若和 fixture role 衝突會明確報錯。
+
 Slave Step4B 只有在同一輪 Step1、Step2、Step3 都是 `PASS` 時才會評估。若
 上游不成立，結果是 `BLOCKED_BY_STEP1`、`BLOCKED_BY_STEP2` 或
 `BLOCKED_BY_STEP3`，不是 SoftPLL `FAIL`。
@@ -95,4 +99,3 @@ EXP-WRPC-STEP4B-SLAVE-SOFTPLL-STARTUP-BASELINE-20260829
 
 若 Step1–3 未建立，停止 Step4B functional interpretation，記錄 upstream
 blocker，下一輪由分支4決定是否修正或改做上游實驗。
-

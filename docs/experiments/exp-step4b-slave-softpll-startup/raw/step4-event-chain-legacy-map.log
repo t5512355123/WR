@@ -1,0 +1,34 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Aug 29 08:55:27 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step4_event_chain.tcl 1000
+Info: Quartus(args): 1000
+EVENT_CHAIN_CONFIG gap_ms=1000 trr_r0_read=disabled
+=== DE5 [1-11.1] ===
+error: ERROR: No In-System Sources and Probes instance was found.
+
+=== DE5 [1-11.2] ===
+error: ERROR: No In-System Sources and Probes instance was found.
+
+EVENT_CHAIN_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step4_event_chain.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Aug 29 08:55:28 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

@@ -61,6 +61,7 @@ architecture rtl of DE5a_wr_master_jtag is
       iDPLL_DATA            : in    std_logic_vector(15 downto 0);
       iHPLL_LOAD            : in    std_logic;
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
+      iFORCE_HPLL_ONE_STEP  : in    std_logic;
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -77,7 +78,8 @@ architecture rtl of DE5a_wr_master_jtag is
       oDEBUG_BUS_DONE       : out   std_logic;
       oDEBUG_RUNTIME_START  : out   std_logic;
       oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
-      oDEBUG_SYSTEM_START   : out   std_logic
+      oDEBUG_SYSTEM_START   : out   std_logic;
+      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -1439,6 +1441,7 @@ begin
       iDPLL_DATA             => dac_dpll_data,
       iHPLL_LOAD             => dac_hpll_load,
       iHPLL_DATA             => dac_hpll_data,
+      iFORCE_HPLL_ONE_STEP   => '0',
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,
@@ -1447,6 +1450,7 @@ begin
       oDCO_ERROR             => dco_error,
       oDCO_STEP_COUNT        => dco_step_count,
       oDCO_DEBUG             => dco_debug,
+      oDCO_STEP5_DEBUG       => open,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

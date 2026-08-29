@@ -16,6 +16,7 @@ input                   iDPLL_LOAD,
 input     [15:0]        iDPLL_DATA,
 input                   iHPLL_LOAD,
 input     [15:0]        iHPLL_DATA,
+input                   iFORCE_HPLL_ONE_STEP,
 output                  I2C_CLK,
 inout                   I2C_DATA,
 output                  oPLL_I2C_ID_READ_ERROR,
@@ -32,7 +33,8 @@ output                  oDEBUG_BUS_STATE,
 output                  oDEBUG_BUS_DONE,
 output                  oDEBUG_RUNTIME_START,
 output                  oDEBUG_RUNTIME_BUS_ENABLE,
-output                  oDEBUG_SYSTEM_START
+output                  oDEBUG_SYSTEM_START,
+output    [63:0]        oDCO_STEP5_DEBUG
 );
 
 wire [6:0] static_slave_addr;
@@ -68,10 +70,23 @@ reg [15:0] hpll_prev_data;
 reg [15:0] dco_step_count;
 reg        dco_error;
 reg        same_code_test_fired;
+reg        force_hpll_meta;
+reg        force_hpll_sync;
+reg        force_hpll_sync_prev;
+reg        force_hpll_seen;
+reg [7:0]  force_trigger_count;
+reg [7:0]  forced_pending_count;
+reg [7:0]  rt_state_enter_count;
+reg [7:0]  runtime_start_count;
+reg [7:0]  bus_done_count;
+reg        runtime_start_prev;
+reg        bus_done_prev;
 reg [63:0] dco_debug;
+reg [63:0] dco_step5_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
+wire       force_hpll_rise = force_hpll_sync & ~force_hpll_sync_prev;
 // Keep the corrected-SOF three-write runtime sequence as the A/B baseline.
 // This experiment changes only the request handshake below.
 wire [7:0] runtime_byte_addr =
@@ -113,6 +128,7 @@ assign oDEBUG_BUS_DONE = bus_done;
 assign oDEBUG_RUNTIME_START = runtime_start;
 assign oDEBUG_RUNTIME_BUS_ENABLE = runtime_bus_enable;
 assign oDEBUG_SYSTEM_START = system_start;
+assign oDCO_STEP5_DEBUG = dco_step5_debug;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
 // controller state without changing the request or I2C state machine.
@@ -144,6 +160,26 @@ always @* begin
 end
 
 assign oDCO_DEBUG = dco_debug;
+
+// JTAG-triggered Step5 evidence.  The first five fields are 8-bit event
+// counters; the step count is copied as a 16-bit field.  The counters are
+// sticky until reset so a short JTAG probe read cannot miss a pulse.
+always @* begin
+  dco_step5_debug = 64'd0;
+  dco_step5_debug[7:0]   = force_trigger_count;
+  dco_step5_debug[15:8]  = forced_pending_count;
+  dco_step5_debug[23:16] = rt_state_enter_count;
+  dco_step5_debug[31:24] = runtime_start_count;
+  dco_step5_debug[39:32] = bus_done_count;
+  dco_step5_debug[55:40] = dco_step_count;
+  dco_step5_debug[56]    = force_hpll_seen;
+  dco_step5_debug[57]    = force_hpll_sync;
+  dco_step5_debug[58]    = force_hpll_rise;
+  dco_step5_debug[59]    = hpll_pending;
+  dco_step5_debug[60]    = hpll_prev_valid;
+  dco_step5_debug[61]    = static_controller_ready;
+  dco_step5_debug[63:62] = rt_state[1:0];
+end
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
@@ -230,7 +266,41 @@ always @(posedge iCLK or negedge iRST_n) begin
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
     same_code_test_fired <= 1'b0;
+    force_hpll_meta  <= 1'b0;
+    force_hpll_sync  <= 1'b0;
+    force_hpll_sync_prev <= 1'b0;
+    force_hpll_seen  <= 1'b0;
+    force_trigger_count <= 8'd0;
+    forced_pending_count <= 8'd0;
+    rt_state_enter_count <= 8'd0;
+    runtime_start_count <= 8'd0;
+    bus_done_count <= 8'd0;
+    runtime_start_prev <= 1'b0;
+    bus_done_prev <= 1'b0;
   end else begin
+    force_hpll_meta <= iFORCE_HPLL_ONE_STEP;
+    force_hpll_sync <= force_hpll_meta;
+    force_hpll_sync_prev <= force_hpll_sync;
+    runtime_start_prev <= runtime_start;
+    bus_done_prev <= bus_done;
+
+    if (runtime_start && !runtime_start_prev)
+      runtime_start_count <= runtime_start_count + 1'b1;
+    if (bus_done && !bus_done_prev)
+      bus_done_count <= bus_done_count + 1'b1;
+
+    if (force_hpll_rise && !force_hpll_seen) begin
+      force_hpll_seen <= 1'b1;
+      force_trigger_count <= force_trigger_count + 1'b1;
+      // The trigger is intentionally accepted only at the same-code,
+      // ready, idle boundary.  Direction remains the existing hpll_dir.
+      if (static_controller_ready && hpll_prev_valid &&
+          (iHPLL_DATA == hpll_prev_data) && (rt_state == 3'd0)) begin
+        hpll_pending <= 1'b1;
+        forced_pending_count <= forced_pending_count + 1'b1;
+      end
+    end
+
     if (iDPLL_LOAD) begin
       if (dpll_prev_valid && (iDPLL_DATA != dpll_prev_data)) begin
         dpll_pending <= 1'b1;
@@ -260,11 +330,13 @@ always @(posedge iCLK or negedge iRST_n) begin
         rt_seen_busy <= 1'b0;
         if (static_controller_ready && dpll_pending) begin
           rt_state <= 3'd1;
+          rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b1;
           rt_dir <= dpll_dir;
           dpll_pending <= 1'b0;
         end else if (static_controller_ready && hpll_pending) begin
           rt_state <= 3'd1;
+          rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b0;
           rt_dir <= hpll_dir;
           hpll_pending <= 1'b0;

@@ -61,6 +61,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       iDPLL_DATA            : in    std_logic_vector(15 downto 0);
       iHPLL_LOAD            : in    std_logic;
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
+      iFORCE_HPLL_ONE_STEP  : in    std_logic;
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -77,7 +78,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDEBUG_BUS_DONE       : out   std_logic;
       oDEBUG_RUNTIME_START  : out   std_logic;
       oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
-      oDEBUG_SYSTEM_START   : out   std_logic
+      oDEBUG_SYSTEM_START   : out   std_logic;
+      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -217,6 +219,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal dco_probe            : std_logic_vector(63 downto 0);
   signal dco_debug            : std_logic_vector(63 downto 0);
+  signal dco_step5_debug_probe : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -239,6 +242,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
   signal sync_source          : std_logic_vector(0 downto 0);
+  signal force_hpll_source    : std_logic_vector(0 downto 0);
   signal cpu_debug_probe      : std_logic_vector(63 downto 0);
   signal cpu_debug_source     : std_logic_vector(0 downto 0);
   signal cpu_marker_probe     : std_logic_vector(63 downto 0);
@@ -992,6 +996,24 @@ begin
       source_ena => '1'
     );
 
+  -- JTAG-controlled Step5 experiment probe.  The probe is read-only on the
+  -- 64-bit status path and exposes one dedicated source bit to the DCO.
+  u_step5_trigger_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_TRIGGER_DEBUG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 36,
+      source_initial_value    => "0",
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_step5_debug_probe,
+      source     => force_hpll_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1427,7 +1449,7 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      ENABLE_SAME_CODE_TEST => 1
+      ENABLE_SAME_CODE_TEST => 0
     )
     port map (
       iCLK                   => CLK_50_B2J,
@@ -1441,6 +1463,7 @@ begin
       iDPLL_DATA             => dac_dpll_data,
       iHPLL_LOAD             => dac_hpll_load,
       iHPLL_DATA             => dac_hpll_data,
+      iFORCE_HPLL_ONE_STEP   => force_hpll_source(0),
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,
@@ -1449,6 +1472,7 @@ begin
       oDCO_ERROR             => dco_error,
       oDCO_STEP_COUNT        => dco_step_count,
       oDCO_DEBUG             => dco_debug,
+      oDCO_STEP5_DEBUG       => dco_step5_debug_probe,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

@@ -1439,7 +1439,10 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      -- Keep the Master's normal HPLL path enabled: it is the upstream
+      -- frequency reference for the Slave calibration image.  The normal
+      -- tracker is disabled only in the Slave under test.
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

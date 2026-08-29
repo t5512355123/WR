@@ -767,6 +767,29 @@ proc analyze_board {board} {
   set role "UNKNOWN"
   if {$mode_num ne "" && $mode_num == 2} { set role MASTER }
   if {$mode_num ne "" && $mode_num == 3} { set role SLAVE }
+  # The two DE5 fixtures have fixed physical roles.  WDIAGS_MODE remains
+  # independent Step 2 evidence, but it must not route a board to the wrong
+  # milestone when startup firmware is intentionally isolated or transitional.
+  set observed_role $role
+  set fixture_role UNKNOWN
+  if {[string match "*1-11.1*" $name]} { set fixture_role MASTER }
+  if {[string match "*1-11.2*" $name]} { set fixture_role SLAVE }
+  set role_source WDIAGS_MODE
+  if {$fixture_role ne "UNKNOWN"} {
+    if {$role eq "UNKNOWN"} {
+      set role $fixture_role
+      set role_source FIXTURE_CABLE
+    } elseif {$role ne $fixture_role} {
+      set role $fixture_role
+      set role_source FIXTURE_CABLE_CONFLICT
+    }
+  }
+  if {$role_source ne "WDIAGS_MODE"} {
+    print_signal INFO "Role routing" ROLE_ROUTING \
+      [format "fixture=%s observed=%s" $role $observed_role] \
+      "fixed cable map" \
+      "Milestone routing only; WDIAGS_MODE remains independent Step 2 evidence."
+  }
   set mac_status WARN
   set mac_expected "ROLE"
   if {$role eq "MASTER"} {

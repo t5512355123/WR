@@ -47,6 +47,14 @@ samples 維持 `SLAVE + LISTENING`；`LOCK_ENABLE=0`、`SPLL_INIT_COUNT=0`、
 Master 亦為 `MODE=3`、`PTP state=4`，不符合 Master `2/6`，其 TAG/TRR/IRQ/
 helper counters 為零。
 
+2026-08-29 10:41 的 current-board live retest（同一 `8c32979` 映像、唯讀）
+顯示兩板 `core_tm_link_up=1`、`core_link_ok=1`，因此本次 Step1 為 PASS；
+先前的 `0/1` 是較早觀測窗口，不能與本次結果混用。核心 blocker 仍是
+Master `CONFIG_INIT_COMMAND="vlan off;ptp stop"`（commit `5f7bd06`）使其
+未進入 `mode master`/`ptp start`，兩板維持 `PTP=LISTENING`，故 Slave 的
+Step2/3 與 Step4B 仍未被允許。新增 raw：
+`docs/experiments/exp-step4b-slave-softpll-startup/raw/read-wb-runtime-jtag-live-retest-20260829-1039-raw.log`。
+
 初次使用的 `rs422_uart_diag` 沒有 JTAG Wishbone mailbox，相關讀值已標記為
 `WRONG_IMAGE_MEASUREMENT_INVALID`；最終結論只採用 `jtag_runtime_diag`。
 

@@ -197,6 +197,34 @@ Raw evidence：
 - `raw/read-wb-runtime-jtag-ptpfield-raw.log`
 - `raw/read-wb-runtime-jtag-routed-raw.log`
 
+### Current-board live retest (2026-08-29 10:41, read-only)
+
+為釐清「Step1/Step4 一直相同」的現象，在 pain 的 exact checkout
+`8c3297916db8bd8250afb047f71f40e2fa38f56a` 上重新執行同一份
+`read_wb_runtime.tcl --raw`；沒有重新燒錄，也沒有修改功能程式。
+
+本次兩板的 Step1 都讀到 `core_tm_link_up=1`、`core_link_ok=1`，所以
+Step1 在此觀測窗口為 `PASS`。先前顯示 `0/1` 的輸出不是此 exact
+觀測窗口的結果，應視為較早或不同時刻的瞬時狀態，不能與本次結果混用。
+
+但 upstream blocker 仍重現：
+
+- Master：`WDIAGS_MODE=3 SLAVE`、PTP `0x00002104`（state 4 LISTENING），
+  與預期 Master `2/6` 不符。
+- Slave：`WDIAGS_MODE=3 SLAVE`、PTP `0x00004104`（state 4 LISTENING），
+  `parentIsWRnode=0`、`parentCalibrated=0`、RX/TX WR signaling count 為 0、
+  `LOCK_ENABLE=0`。
+- 因此：`STEP4B_ALLOWED=NO`、`STEP4B_RESULT=BLOCKED_BY_STEP2`；這不是
+  `SoftPLL startup FAIL`，而是尚未進入 Step4B 的前置條件。
+
+Source audit 同時確認目前 Master 設定檔的 `CONFIG_INIT_COMMAND` 是
+`"vlan off;ptp stop"`（commit `5f7bd06`），刻意沒有 `mode master` 與
+`ptp start`。這可直接解釋 Master 為何保持 `SLAVE + LISTENING`，以及
+Slave 為何沒有 WR parent / `locking_enable()`。它是下一個應由分支4裁定的
+upstream functional experiment，不能在本輪 baseline 中自行改動。
+
+新增 raw evidence：`raw/read-wb-runtime-jtag-live-retest-20260829-1039-raw.log`。
+
 ## 結果
 
 `BLOCKED_UPSTREAM / NOT_PASS`。
@@ -213,4 +241,5 @@ Step4B startup/event processing；本輪不得詢問 merge 或合併到 main。
 ## 下一步
 
 已依使用者指定流程完成 pain pull、compile、燒錄、觀測與本地紀錄；下一步
-交由分支4審核上游 blocker。
+交由分支4審核上游 blocker。尚未取得分支4的新回覆，因此不重複送出同一
+詢問，也不合併到 main。

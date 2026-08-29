@@ -16,7 +16,7 @@
 #
 # Usage:
 #   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl
-#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls?
+#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls?
 
 package require ::quartus::insystem_source_probe
 
@@ -24,11 +24,17 @@ set a_seconds 5
 set poll_ms 500
 set max_polls 80
 set poll_attempts 25
+set helper_poll_ms 0
+set max_helper_polls 0
 if {[llength $argv] >= 1} { set a_seconds [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set poll_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set max_polls [expr {int([lindex $argv 2])}] }
-if {$a_seconds <= 0 || $poll_ms <= 0 || $max_polls <= 0} {
-  error "a_seconds, poll_ms, and max_polls must be > 0"
+if {[llength $argv] >= 4} { set helper_poll_ms [expr {int([lindex $argv 3])}] }
+if {[llength $argv] >= 5} { set max_helper_polls [expr {int([lindex $argv 4])}] }
+if {$a_seconds <= 0 || $poll_ms <= 0 || $max_polls <= 0 ||
+    $helper_poll_ms < 0 || $max_helper_polls < 0 ||
+    ($helper_poll_ms > 0 && $max_helper_polls <= 0)} {
+  error "a_seconds, poll_ms, and max_polls must be > 0; helper wait is optional but requires both helper_poll_ms and max_helper_polls"
 }
 
 array set ::wb_toggle {}
@@ -225,7 +231,7 @@ proc delta_line {hardware_name before_tag after_tag} {
   flush stdout
 }
 
-puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d experiment=EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830 fixed_sof=1 burst_size=8" $a_seconds $poll_ms $max_polls]
+puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d experiment=EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830 fixed_sof=1 burst_size=8" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -272,6 +278,33 @@ foreach hardware_name [get_hardware_names] {
       }
 
       delta_line $hardware_name B_BEFORE $last_tag
+
+      # The burst itself may finish between helper updates.  In correlation
+      # mode, keep the same image and trigger, then wait for the first later
+      # sample where the firmware helper update count advances.
+      set completion_tag $last_tag
+      set helper_tag $completion_tag
+      set helper_update_seen 0
+      set helper_update_delta 0
+      if {$burst_done && $helper_poll_ms > 0} {
+        set completion_key [snapshot_key $hardware_name $completion_tag]
+        set completion_update_count $snap_helper_update($completion_key)
+        for {set n 1} {$n <= $max_helper_polls} {incr n} {
+          after $helper_poll_ms
+          set candidate_tag [format "H%03d" $n]
+          read_snapshot $hardware_name $candidate_tag
+          set candidate_key [snapshot_key $hardware_name $candidate_tag]
+          set helper_update_delta [expr {($snap_helper_update($candidate_key) - $completion_update_count) & 0xffffffff}]
+          set helper_tag $candidate_tag
+          if {$helper_update_delta >= 1} {
+            set helper_update_seen 1
+            break
+          }
+        }
+        delta_line $hardware_name $completion_tag $helper_tag
+        puts [format "STEP5_HELPER_CORRELATION board=%s COMPLETION_TAG=%s FIRST_HELPER_TAG=%s HELPER_UPDATE_SEEN=%d DELTA_HELPER_UPDATE_COUNT=%s" $hardware_name $completion_tag $helper_tag $helper_update_seen $helper_update_delta]
+        flush stdout
+      }
       puts [format "STEP5_BURST_RESULT board=%s BURST_COMPLETED=%d POLL_TAG=%s" $hardware_name $burst_done $last_tag]
       puts [format "STEP5_BURST_EXPECTED board=%s DELTA_BURST_TRIGGER_COUNT=1 DELTA_FORCED_HPLL_PENDING_COUNT=8 DELTA_FORCED_HPLL_COMPLETED_COUNT=8 DELTA_STEP>=8" $hardware_name]
       puts [format "STEP5_BURST_DONE board=%s" $hardware_name]

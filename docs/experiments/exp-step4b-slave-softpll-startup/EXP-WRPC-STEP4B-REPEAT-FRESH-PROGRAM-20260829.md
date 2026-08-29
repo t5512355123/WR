@@ -110,6 +110,39 @@ event processing；不要求 Step5 的 `PSTAT.locked`、helper/main lock 或
 frequency/phase convergence。此輪 dashboard 的 Step5 `PSTAT.locked=0`
 仍屬下一階段，不否定 Step4B。
 
+## Post-sync rerun：啟動時間序列確認
+
+為釐清 pain 端看見的 `SoftPLL Startup error`，在同步到 repo 最新
+`8a8b5f5` 後重新 full compile、燒錄兩張板，並在同一組 image 上重跑
+dashboard。兩張板 programming 均為 0 errors / 0 warnings。
+
+重新燒錄後立即取樣時，Slave 的 `WDIAGS_PTP=8 UNCALIBRATED`，因此：
+
+```text
+STEP2_REGRESSION = INVALID
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+```
+
+這是 upstream PTP 尚未完成校準時的合法 gate 結果，不是 SoftPLL startup
+failure。等待 30 秒後重跑，同一張 Slave image 得到：
+
+```text
+WDIAGS_PTP = 9 SLAVE
+Step 1 pass
+Step 2 pass
+Step 3 pass
+LOCK_ENABLE_COUNT = 4
+SPLL_MODE = 3 (SPLL_MODE_SLAVE)
+SPLL_SEQ_STATE = 4 (SEQ_WAIT_HELPER)
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
+```
+
+這次延遲重跑再次確認原本的 Step4B PASS；畫面中的 error 是取樣時機
+造成的 upstream `UNCALIBRATED`，不是最新 image 或 Step4B 程式失效。
+
 ## Raw evidence
 
 - `raw/EXP-WRPC-STEP4B-REPEAT-FRESH-PROGRAM-20260829/dashboard-raw.log`
@@ -120,6 +153,7 @@ frequency/phase convergence。此輪 dashboard 的 Step5 `PSTAT.locked=0`
 - `raw/EXP-WRPC-STEP4B-REPEAT-FRESH-PROGRAM-20260829/build-jtag-slave.log`
 - `raw/EXP-WRPC-STEP4B-REPEAT-FRESH-PROGRAM-20260829/build_info_jtag_master.txt`
 - `raw/EXP-WRPC-STEP4B-REPEAT-FRESH-PROGRAM-20260829/build_info_jtag_slave.txt`
+- `raw/EXP-WRPC-STEP4B-REPEAT-FRESH-PROGRAM-20260829/dashboard-after-sync-wait-20260829.log`
 
 本輪結果支持 Step4B PASS 的可重複性確認，下一步應詢問分支4是否明確
 同意將本 branch merge 到 `main`。

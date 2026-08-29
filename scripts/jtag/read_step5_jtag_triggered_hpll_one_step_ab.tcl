@@ -175,11 +175,11 @@ proc delta_line {hardware_name before_tag after_tag} {
     $snap_step($before_tag) $snap_step($after_tag) $step_delta \
     $snap_helper_error($before_tag) $snap_helper_error($after_tag) \
     [expr {$snap_helper_error($after_tag) - $snap_helper_error($before_tag)}] \
-    [expr {$snap_force_trigger($after_tag) - $snap_force_trigger($before_tag)}] \
-    [expr {$snap_forced_pending($after_tag) - $snap_forced_pending($before_tag)}] \
-    [expr {$snap_rt_enter($after_tag) - $snap_rt_enter($before_tag)}] \
-    [expr {$snap_runtime_start($after_tag) - $snap_runtime_start($before_tag)}] \
-    [expr {$snap_bus_done($after_tag) - $snap_bus_done($before_tag)}]]
+    [expr {($snap_force_trigger($after_tag) - $snap_force_trigger($before_tag)) & 0xff}] \
+    [expr {($snap_forced_pending($after_tag) - $snap_forced_pending($before_tag)) & 0xff}] \
+    [expr {($snap_rt_enter($after_tag) - $snap_rt_enter($before_tag)) & 0xff}] \
+    [expr {($snap_runtime_start($after_tag) - $snap_runtime_start($before_tag)) & 0xff}] \
+    [expr {($snap_bus_done($after_tag) - $snap_bus_done($before_tag)) & 0xff}]]
   flush stdout
 }
 
@@ -207,10 +207,13 @@ foreach hardware_name [get_hardware_names] {
       # B: capture the trigger baseline, then issue exactly one 0->1->0 pulse.
       read_snapshot $hardware_name B_BEFORE
       force_source_write 1
-      force_source_write 0
-      puts [format "STEP5_TRIGGERED_PULSE board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0" $hardware_name]
-      flush stdout
-      for {set n 1} {$n <= $b_seconds} {incr n} {
+    force_source_write 0
+    puts [format "STEP5_TRIGGERED_PULSE board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0" $hardware_name]
+    flush stdout
+      after 1000
+      read_snapshot $hardware_name B01
+      delta_line $hardware_name B_BEFORE B01
+    for {set n 2} {$n <= $b_seconds} {incr n} {
         after 1000
         read_snapshot $hardware_name [format "B%02d" $n]
       }

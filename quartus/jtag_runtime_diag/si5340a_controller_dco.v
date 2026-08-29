@@ -21,7 +21,7 @@ input                   iHPLL_LOAD,
 input     [15:0]        iHPLL_DATA,
 input                   iFORCE_HPLL_ONE_STEP,
 input                   iFORCE_HPLL_REVERSE,
-input     [7:0]         iFORCE_HPLL_BURST_SIZE,
+input     [15:0]        iFORCE_HPLL_BURST_SIZE,
 output                  I2C_CLK,
 inout                   I2C_DATA,
 output                  oPLL_I2C_ID_READ_ERROR,
@@ -41,6 +41,7 @@ output                  oDEBUG_RUNTIME_BUS_ENABLE,
 output                  oDEBUG_SYSTEM_START,
 output    [63:0]        oDCO_STEP5_DEBUG,
 output    [63:0]        oDCO_STEP5_BURST_DEBUG,
+output    [63:0]        oDCO_STEP5_BURST_WIDE_DEBUG,
 output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
@@ -91,14 +92,14 @@ reg        force_hpll_reverse_meta;
 reg        force_hpll_reverse_sync;
 reg [7:0]  force_trigger_count;
 reg [7:0]  forced_pending_count;
-reg [7:0]  force_burst_remaining;
+reg [15:0] force_burst_remaining;
 reg        hpll_pending_forced;
 reg        hpll_pending_forced_reverse;
 reg        current_request_forced;
 reg        force_burst_reverse;
 reg [7:0]  burst_trigger_count;
-reg [7:0]  forced_hpll_pending_count;
-reg [7:0]  forced_hpll_completed_count;
+reg [15:0] forced_hpll_pending_count;
+reg [15:0] forced_hpll_completed_count;
 reg [7:0]  rt_state_enter_count;
 reg [7:0]  runtime_start_count;
 reg [7:0]  bus_done_count;
@@ -107,14 +108,15 @@ reg        bus_done_prev;
 reg [63:0] dco_debug;
 reg [63:0] dco_step5_debug;
 reg [63:0] dco_step5_burst_debug;
+reg [63:0] dco_step5_burst_wide_debug;
 reg [63:0] dco_step5_tracker_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
 wire       force_hpll_rise = force_hpll_sync & ~force_hpll_sync_prev;
-wire [7:0] force_hpll_burst_size =
-  (iFORCE_HPLL_BURST_SIZE != 8'd0) ?
-    iFORCE_HPLL_BURST_SIZE : JTAG_HPLL_BURST_SIZE[7:0];
+wire [15:0] force_hpll_burst_size =
+  (iFORCE_HPLL_BURST_SIZE != 16'd0) ?
+    iFORCE_HPLL_BURST_SIZE : JTAG_HPLL_BURST_SIZE[15:0];
 // Keep the corrected-SOF three-write runtime sequence as the A/B baseline.
 // This experiment changes only the request handshake below.
 wire [7:0] runtime_byte_addr =
@@ -158,6 +160,7 @@ assign oDEBUG_RUNTIME_BUS_ENABLE = runtime_bus_enable;
 assign oDEBUG_SYSTEM_START = system_start;
 assign oDCO_STEP5_DEBUG = dco_step5_debug;
 assign oDCO_STEP5_BURST_DEBUG = dco_step5_burst_debug;
+assign oDCO_STEP5_BURST_WIDE_DEBUG = dco_step5_burst_wide_debug;
 assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
@@ -202,6 +205,18 @@ always @* begin
   dco_step5_burst_debug[39:32] = runtime_start_count;
   dco_step5_burst_debug[47:40] = bus_done_count;
   dco_step5_burst_debug[63:48] = dco_step_count;
+end
+
+// Wide calibration-only evidence.  Probe 41 preserves the legacy probe 37
+// layout while exposing non-wrapping counters for the zero-crossing sweep:
+// [15:0] burst triggers, [31:16] forced requests admitted, [47:32] forced
+// transactions completed, and [63:48] total DCO transactions completed.
+always @* begin
+  dco_step5_burst_wide_debug = 64'd0;
+  dco_step5_burst_wide_debug[15:0]  = {8'd0, burst_trigger_count};
+  dco_step5_burst_wide_debug[31:16] = forced_hpll_pending_count;
+  dco_step5_burst_wide_debug[47:32] = forced_hpll_completed_count;
+  dco_step5_burst_wide_debug[63:48] = dco_step_count;
 end
 
 assign oDCO_DEBUG = dco_debug;
@@ -337,14 +352,14 @@ always @(posedge iCLK or negedge iRST_n) begin
     force_hpll_reverse_sync <= 1'b0;
     force_trigger_count <= 8'd0;
     forced_pending_count <= 8'd0;
-    force_burst_remaining <= 8'd0;
+    force_burst_remaining <= 16'd0;
     hpll_pending_forced <= 1'b0;
     hpll_pending_forced_reverse <= 1'b0;
     current_request_forced <= 1'b0;
     force_burst_reverse <= 1'b0;
     burst_trigger_count <= 8'd0;
-    forced_hpll_pending_count <= 8'd0;
-    forced_hpll_completed_count <= 8'd0;
+    forced_hpll_pending_count <= 16'd0;
+    forced_hpll_completed_count <= 16'd0;
     rt_state_enter_count <= 8'd0;
     runtime_start_count <= 8'd0;
     bus_done_count <= 8'd0;
@@ -443,7 +458,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced <= 1'b0;
         end else if (ENABLE_JTAG_HPLL_BURST &&
                      static_controller_ready &&
-                     (force_burst_remaining != 8'd0)) begin
+                     (force_burst_remaining != 16'd0)) begin
           // Queue only one forced request at a time.  The next request is
           // admitted after the current three-write runtime sequence returns
           // to idle, so the thirty-two-step burst is controller-serialized.

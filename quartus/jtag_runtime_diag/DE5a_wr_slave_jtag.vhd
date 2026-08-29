@@ -66,7 +66,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
-      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(7 downto 0);
+      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(15 downto 0);
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -86,6 +86,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDEBUG_SYSTEM_START   : out   std_logic;
       oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
       oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_BURST_WIDE_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_TRACKER_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
@@ -229,10 +230,11 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_debug            : std_logic_vector(63 downto 0);
   signal dco_step5_debug_probe : std_logic_vector(63 downto 0);
   signal dco_step5_burst_debug_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_burst_wide_debug_probe : std_logic_vector(63 downto 0);
   signal dco_step5_tracker_debug_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_source : std_logic_vector(0 downto 0);
-  signal step5_burst_size_source : std_logic_vector(7 downto 0);
+  signal step5_burst_size_source : std_logic_vector(15 downto 0);
   signal step5_polarity_active : std_logic;
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
@@ -1086,12 +1088,27 @@ begin
       probe_width             => 64,
       sld_auto_instance_index => "NO",
       sld_instance_index      => 40,
-      source_initial_value    => "00000000",
-      source_width            => 8
+      source_initial_value    => "0000000000000000",
+      source_width            => 16
     )
     port map (
       probe      => (others => '0'),
       source     => step5_burst_size_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_step5_burst_wide_debug_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_BURST_WIDE_DEBUG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 41,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_step5_burst_wide_debug_probe,
+      source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
@@ -1533,7 +1550,7 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 1,
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (
@@ -1561,6 +1578,7 @@ begin
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => dco_step5_debug_probe,
       oDCO_STEP5_BURST_DEBUG => dco_step5_burst_debug_probe,
+      oDCO_STEP5_BURST_WIDE_DEBUG => dco_step5_burst_wide_debug_probe,
       oDCO_STEP5_TRACKER_DEBUG => dco_step5_tracker_debug_probe,
       oDCO_STEP5_POLARITY_ACTIVE => step5_polarity_active,
       oDEBUG_STATIC_STATE    => dco_static_state,

@@ -66,7 +66,7 @@ architecture rtl of DE5a_wr_master_jtag is
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
-      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(7 downto 0);
+      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(15 downto 0);
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -86,6 +86,7 @@ architecture rtl of DE5a_wr_master_jtag is
       oDEBUG_SYSTEM_START   : out   std_logic;
       oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
       oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_BURST_WIDE_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_TRACKER_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
@@ -1438,7 +1439,7 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      ENABLE_NORMAL_HPLL_TRACKER => 1,
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (
@@ -1466,6 +1467,7 @@ begin
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => open,
       oDCO_STEP5_BURST_DEBUG => open,
+      oDCO_STEP5_BURST_WIDE_DEBUG => open,
       oDCO_STEP5_TRACKER_DEBUG => open,
       oDCO_STEP5_POLARITY_ACTIVE => open,
       oDEBUG_STATIC_STATE    => dco_static_state,

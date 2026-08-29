@@ -96,6 +96,37 @@ proc step5_sample_boundary {helper_state main_state pstat} {
   return "LOCKED_SAMPLE"
 }
 
+proc step5_fields_valid {ctrl_begin ctrl_end spll_state helper_state \
+                         helper_limits main_state main_limits phase_limits pstat} {
+  if {![is_u32 $ctrl_begin] || ![is_u32 $ctrl_end]} { return 0 }
+  scan $ctrl_begin %x ctrl_a
+  scan $ctrl_end %x ctrl_b
+  if {(($ctrl_a & 1) == 0) || (($ctrl_b & 1) == 0) || $ctrl_a != $ctrl_b} {
+    return 0
+  }
+  set values [list \
+    [u32_field $spll_state 0 8] \
+    [u32_field $spll_state 16 8] \
+    [u32_field $helper_state 0 1] \
+    [u32_field $helper_state 1 1] \
+    [u32_field $helper_state 8 8] \
+    [u32_field $helper_state 16 16] \
+    [u32_field $helper_limits 0 16] \
+    [u32_field $helper_limits 16 16] \
+    [u32_field $main_state 0 4] \
+    [u32_field $main_state 8 12] \
+    [u32_field $main_state 20 12] \
+    [u32_field $main_limits 0 16] \
+    [u32_field $main_limits 16 16] \
+    [u32_field $phase_limits 0 16] \
+    [u32_field $phase_limits 16 16] \
+    [u32_bit $pstat 1]]
+  foreach value $values {
+    if {$value < 0} { return 0 }
+  }
+  return 1
+}
+
 proc step5_update_series_state {hardware_name boundary delock_count} {
   if {![info exists ::step5_valid_samples($hardware_name)]} {
     set ::step5_seen_locked($hardware_name) 0
@@ -429,7 +460,10 @@ proc read_diag_sample {hardware_name sample attempt} {
   set main_phase_lock_samples [u32_field $wr_spll_main_phase_limits 16 16]
   set step5_boundary [step5_sample_boundary $wr_spll_helper_state \
       $wr_spll_main_state $pstat]
-  if {$frame_valid} {
+  set step5_sample_valid [step5_fields_valid $ctrl_begin $ctrl_end \
+      $wr_spll_state $wr_spll_helper_state $wr_spll_helper_limits \
+      $wr_spll_main_state $wr_spll_main_limits $wr_spll_main_phase_limits $pstat]
+  if {$step5_sample_valid} {
     step5_update_series_state $hardware_name $step5_boundary $wr_spll_delock_count
   } else {
     step5_update_series_state $hardware_name SOURCE_SEMANTICS_NOT_PROVEN -1
@@ -510,8 +544,14 @@ proc read_diag_sample {hardware_name sample attempt} {
         $main_locked $main_freq_locked $main_phase_locked $main_freq_cnt \
         $main_freq_lock_samples $main_phase_cnt $main_phase_lock_samples \
         [u32_bit $pstat 1]]
+  puts [format "STEP5_SAMPLE_VALID: %d (independent of live counter/DAC equality; full_frame_valid=%d)" \
+        $step5_sample_valid $frame_valid]
   flush stdout
-  return $frame_valid
+  # The retry loop may accept a sample when the Step5 fields themselves are
+  # valid even if unrelated live counters/DACs made the broader frame
+  # comparison non-stable.  This keeps one logical sample per second without
+  # pretending that the whole diagnostic frame was atomic.
+  return [expr {$frame_valid || $step5_sample_valid}]
 }
 
 puts [format "SESSION_TIME_SERIES_CONFIG samples=%d gap_ms=%d max_retries=%d" \

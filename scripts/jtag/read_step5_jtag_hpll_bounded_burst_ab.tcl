@@ -182,6 +182,16 @@ proc read_snapshot {hardware_name tag} {
   set burst_raw [probe_read 37]
   set polarity_raw [probe_read 38]
   set preclamp_raw [wb_read $hardware_name 0x00100B08]
+  # The WB shadow can return a transient zero immediately after a previous
+  # mailbox read.  During an active calibration window, retry once so the
+  # burst delta is not anchored to an invalid zero sample.
+  if {[is_hex $preclamp_raw] && [word64 $preclamp_raw] == 0} {
+    after 100
+    set preclamp_retry [wb_read $hardware_name 0x00100B08]
+    if {[is_hex $preclamp_retry] && [word64 $preclamp_retry] != 0} {
+      set preclamp_raw $preclamp_retry
+    }
+  }
   set raw_tag [wb_read $hardware_name 0x00100B00]
   set expected_tag [wb_read $hardware_name 0x00100B04]
   set tag_delta [wb_read $hardware_name 0x00100B0C]

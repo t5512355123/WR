@@ -48,7 +48,9 @@ architecture rtl of DE5a_wr_slave_jtag is
   component si5340a_controller_dco is
     generic (
       ENABLE_SAME_CODE_TEST : integer := 0;
-      ENABLE_JTAG_HPLL_BURST : integer := 0
+      ENABLE_JTAG_HPLL_BURST : integer := 0;
+      ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
+      JTAG_HPLL_BURST_SIZE : integer := 32
     );
     port (
       iCLK                  : in    std_logic;
@@ -64,6 +66,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
+      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(7 downto 0);
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -229,6 +232,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_step5_tracker_debug_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_source : std_logic_vector(0 downto 0);
+  signal step5_burst_size_source : std_logic_vector(7 downto 0);
   signal step5_polarity_active : std_logic;
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
@@ -1074,6 +1078,24 @@ begin
       source_ena => '1'
     );
 
+  -- Calibration-only source: select a bounded forced physical-step count
+  -- without changing the fixed Step5 probe indices above.
+  u_step5_burst_size_source : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_BURST_SIZE_SOURCE_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 40,
+      source_initial_value    => "00000000",
+      source_width            => 8
+    )
+    port map (
+      probe      => (others => '0'),
+      source     => step5_burst_size_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1510,7 +1532,9 @@ begin
   u_si5340a_controller : si5340a_controller_dco
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
-      ENABLE_JTAG_HPLL_BURST => 1
+      ENABLE_JTAG_HPLL_BURST => 1,
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      JTAG_HPLL_BURST_SIZE => 32
     )
     port map (
       iCLK                   => CLK_50_B2J,
@@ -1526,6 +1550,7 @@ begin
       iHPLL_DATA             => dac_hpll_data,
       iFORCE_HPLL_ONE_STEP   => force_hpll_source(0),
       iFORCE_HPLL_REVERSE    => step5_polarity_source(0),
+      iFORCE_HPLL_BURST_SIZE => step5_burst_size_source,
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,

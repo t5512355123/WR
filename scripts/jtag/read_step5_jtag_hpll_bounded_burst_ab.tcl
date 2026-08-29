@@ -1,8 +1,9 @@
 # Step5 JTAG-triggered bounded HPLL burst A/B.
 #
 # One 0->1->0 transition on source instance 36 arms the Slave controller's
-# internal thirty-two-request serializer.  This script does not manually pulse
-# thirty-two times.  Probe 37 carries burst-specific counters; probe 8 carries the
+# bounded-request serializer.  This script does not manually pulse the requests.
+# Source instance 40 selects the bounded physical-step count.  Probe 37 carries
+# burst-specific counters; probe 8 carries the
 # existing DCO step counter.  The WB reads are read-only diagnostic shadows.
 #
 # Probe 37 payload:
@@ -16,7 +17,7 @@
 #
 # Usage:
 #   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl
-#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls? ?polarity_reverse? ?burst_size?
+#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls? ?polarity_reverse? ?burst_size? ?board_filter?
 
 package require ::quartus::insystem_source_probe
 
@@ -28,6 +29,7 @@ set helper_poll_ms 0
 set max_helper_polls 0
 set polarity_reverse 0
 set burst_size 32
+set board_filter ""
 if {[llength $argv] >= 1} { set a_seconds [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set poll_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set max_polls [expr {int([lindex $argv 2])}] }
@@ -35,6 +37,7 @@ if {[llength $argv] >= 4} { set helper_poll_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set max_helper_polls [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set polarity_reverse [expr {int([lindex $argv 5])}] }
 if {[llength $argv] >= 7} { set burst_size [expr {int([lindex $argv 6])}] }
+if {[llength $argv] >= 8} { set board_filter [lindex $argv 7] }
 if {$a_seconds <= 0 || $poll_ms <= 0 || $max_polls <= 0 ||
     $helper_poll_ms < 0 || $max_helper_polls < 0 ||
     ($helper_poll_ms > 0 && $max_helper_polls <= 0) ||
@@ -146,6 +149,15 @@ proc force_source_write {value} {
   after 10
 }
 
+proc burst_size_source_write {value} {
+  if {[catch {
+    write_source_data -instance_index 40 -value [format %016X $value] -value_in_hex
+  } error_message]} {
+    error "HPLL burst-size source write failed: $error_message"
+  }
+  after 10
+}
+
 proc polarity_source_write {value} {
   if {[catch {
     write_source_data -instance_index 38 -value [format %016X $value] -value_in_hex
@@ -249,9 +261,10 @@ proc delta_line {hardware_name before_tag after_tag} {
   flush stdout
 }
 
-puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d polarity_reverse=%d experiment=EXP-WRPC-STEP5-HPLL-32STEP-POLARITY-DRIFT-CANCELLED-AB-20260830 fixed_sof=1 burst_size=%d" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls $polarity_reverse $burst_size]
+puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d polarity_reverse=%d experiment=EXP-WRPC-STEP5-HPLL-PHYSICAL-DCO-GAIN-CALIBRATION fixed_sof=1 burst_size=%d board_filter=%s" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls $polarity_reverse $burst_size $board_filter]
 
 foreach hardware_name [get_hardware_names] {
+  if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
   set device_name [lindex $device_names 0]
@@ -274,6 +287,7 @@ foreach hardware_name [get_hardware_names] {
       # B: one source pulse; the FPGA controller, not this script, serializes
       # the requested burst.
       read_snapshot $hardware_name B_BEFORE
+      burst_size_source_write $burst_size
       force_source_write 1
       force_source_write 0
       puts [format "STEP5_BURST_TRIGGER board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0 controller_burst_size=%d" $hardware_name $burst_size]

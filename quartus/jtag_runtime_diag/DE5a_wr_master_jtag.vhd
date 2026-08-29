@@ -48,7 +48,9 @@ architecture rtl of DE5a_wr_master_jtag is
   component si5340a_controller_dco is
     generic (
       ENABLE_SAME_CODE_TEST : integer := 0;
-      ENABLE_JTAG_HPLL_BURST : integer := 0
+      ENABLE_JTAG_HPLL_BURST : integer := 0;
+      ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
+      JTAG_HPLL_BURST_SIZE : integer := 32
     );
     port (
       iCLK                  : in    std_logic;
@@ -64,6 +66,7 @@ architecture rtl of DE5a_wr_master_jtag is
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
+      iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(7 downto 0);
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -1434,6 +1437,10 @@ begin
   SI5340A_RST_n   <= CPU_RESET_n;
 
   u_si5340a_controller : si5340a_controller_dco
+    generic map (
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      JTAG_HPLL_BURST_SIZE => 32
+    )
     port map (
       iCLK                   => CLK_50_B2J,
       iRST_n                 => CPU_RESET_n,
@@ -1448,6 +1455,7 @@ begin
       iHPLL_DATA             => dac_hpll_data,
       iFORCE_HPLL_ONE_STEP   => '0',
       iFORCE_HPLL_REVERSE    => '0',
+      iFORCE_HPLL_BURST_SIZE => (others => '0'),
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,

@@ -4,7 +4,9 @@
 
 module si5340a_controller_dco #(
 parameter integer ENABLE_SAME_CODE_TEST = 0,
-parameter integer ENABLE_JTAG_HPLL_BURST = 0
+parameter integer ENABLE_JTAG_HPLL_BURST = 0,
+parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
+parameter integer JTAG_HPLL_BURST_SIZE = 32
 )(
 input                   iCLK,
 input                   iRST_n,
@@ -19,6 +21,7 @@ input                   iHPLL_LOAD,
 input     [15:0]        iHPLL_DATA,
 input                   iFORCE_HPLL_ONE_STEP,
 input                   iFORCE_HPLL_REVERSE,
+input     [7:0]         iFORCE_HPLL_BURST_SIZE,
 output                  I2C_CLK,
 inout                   I2C_DATA,
 output                  oPLL_I2C_ID_READ_ERROR,
@@ -88,7 +91,7 @@ reg        force_hpll_reverse_meta;
 reg        force_hpll_reverse_sync;
 reg [7:0]  force_trigger_count;
 reg [7:0]  forced_pending_count;
-reg [5:0]  force_burst_remaining;
+reg [7:0]  force_burst_remaining;
 reg        hpll_pending_forced;
 reg        hpll_pending_forced_reverse;
 reg        current_request_forced;
@@ -109,6 +112,9 @@ reg [63:0] dco_step5_tracker_debug;
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
 wire       force_hpll_rise = force_hpll_sync & ~force_hpll_sync_prev;
+wire [7:0] force_hpll_burst_size =
+  (iFORCE_HPLL_BURST_SIZE != 8'd0) ?
+    iFORCE_HPLL_BURST_SIZE : JTAG_HPLL_BURST_SIZE[7:0];
 // Keep the corrected-SOF three-write runtime sequence as the A/B baseline.
 // This experiment changes only the request handshake below.
 wire [7:0] runtime_byte_addr =
@@ -185,7 +191,7 @@ always @* begin
 end
 
 // JTAG-triggered bounded-burst evidence.  A single accepted source rising
-// edge arms thirty-two serialized HPLL requests; these counters distinguish the
+// edge arms a bounded number of serialized HPLL requests; these counters distinguish the
 // trigger, request admission, and completed runtime transactions.
 always @* begin
   dco_step5_burst_debug = 64'd0;
@@ -331,7 +337,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     force_hpll_reverse_sync <= 1'b0;
     force_trigger_count <= 8'd0;
     forced_pending_count <= 8'd0;
-    force_burst_remaining <= 4'd0;
+    force_burst_remaining <= 8'd0;
     hpll_pending_forced <= 1'b0;
     hpll_pending_forced_reverse <= 1'b0;
     current_request_forced <= 1'b0;
@@ -367,7 +373,7 @@ always @(posedge iCLK or negedge iRST_n) begin
       if (static_controller_ready && hpll_prev_valid &&
           (rt_state == 3'd0)) begin
         if (ENABLE_JTAG_HPLL_BURST) begin
-          force_burst_remaining <= 6'd32;
+          force_burst_remaining <= force_hpll_burst_size;
           force_burst_reverse <= force_hpll_reverse_sync;
           burst_trigger_count <= burst_trigger_count + 1'b1;
         end else begin
@@ -432,7 +438,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced <= 1'b0;
         end else if (ENABLE_JTAG_HPLL_BURST &&
                      static_controller_ready &&
-                     (force_burst_remaining != 6'd0)) begin
+                     (force_burst_remaining != 8'd0)) begin
           // Queue only one forced request at a time.  The next request is
           // admitted after the current three-write runtime sequence returns
           // to idle, so the thirty-two-step burst is controller-serialized.
@@ -441,7 +447,8 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced_reverse <= force_burst_reverse;
           force_burst_remaining <= force_burst_remaining - 1'b1;
           forced_hpll_pending_count <= forced_hpll_pending_count + 1'b1;
-        end else if (static_controller_ready &&
+        end else if (ENABLE_NORMAL_HPLL_TRACKER &&
+                     static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
                      (hpll_applied_code != hpll_target_code)) begin
           // Normal HPLL closed-loop path: admit only one outstanding
@@ -493,7 +500,8 @@ always @(posedge iCLK or negedge iRST_n) begin
           if (current_request_forced) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
             current_request_forced <= 1'b0;
-          end else if (!rt_select_dpll && hpll_tracker_initialized) begin
+          end else if (ENABLE_NORMAL_HPLL_TRACKER &&
+                       !rt_select_dpll && hpll_tracker_initialized) begin
             // One physical FINC/FDEC has not been proven to equal one WR
             // DAC code.  Use the branch-approved 64-code virtual mapping,
             // saturating to the latest target so the tracker never overshoots

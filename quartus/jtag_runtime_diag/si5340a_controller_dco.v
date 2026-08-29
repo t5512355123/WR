@@ -38,6 +38,7 @@ output                  oDEBUG_RUNTIME_BUS_ENABLE,
 output                  oDEBUG_SYSTEM_START,
 output    [63:0]        oDCO_STEP5_DEBUG,
 output    [63:0]        oDCO_STEP5_BURST_DEBUG,
+output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -71,6 +72,11 @@ reg        dpll_prev_valid;
 reg        hpll_prev_valid;
 reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
+reg [15:0] hpll_target_code;
+reg [15:0] hpll_applied_code;
+reg        hpll_tracker_initialized;
+reg [15:0] normal_hpll_request_count;
+reg [15:0] normal_hpll_completed_count;
 reg [15:0] dco_step_count;
 reg        dco_error;
 reg        same_code_test_fired;
@@ -98,6 +104,7 @@ reg        bus_done_prev;
 reg [63:0] dco_debug;
 reg [63:0] dco_step5_debug;
 reg [63:0] dco_step5_burst_debug;
+reg [63:0] dco_step5_tracker_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -145,6 +152,7 @@ assign oDEBUG_RUNTIME_BUS_ENABLE = runtime_bus_enable;
 assign oDEBUG_SYSTEM_START = system_start;
 assign oDCO_STEP5_DEBUG = dco_step5_debug;
 assign oDCO_STEP5_BURST_DEBUG = dco_step5_burst_debug;
+assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -210,6 +218,19 @@ always @* begin
   dco_step5_debug[60]    = hpll_prev_valid;
   dco_step5_debug[61]    = static_controller_ready;
   dco_step5_debug[63:62] = rt_state[1:0];
+end
+
+// Normal HPLL absolute-target tracker evidence.  The target and virtual
+// applied code are both in the WR helper DAC-code domain.  Request and
+// completion counters are intentionally separate from the forced-burst
+// counters so the closed-loop experiment can prove that every completed
+// normal transaction advances the virtual code by exactly one.
+always @* begin
+  dco_step5_tracker_debug = 64'd0;
+  dco_step5_tracker_debug[15:0]  = hpll_target_code;
+  dco_step5_tracker_debug[31:16] = hpll_applied_code;
+  dco_step5_tracker_debug[47:32] = normal_hpll_request_count;
+  dco_step5_tracker_debug[63:48] = normal_hpll_completed_count;
 end
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
@@ -294,6 +315,11 @@ always @(posedge iCLK or negedge iRST_n) begin
     hpll_prev_valid  <= 1'b0;
     dpll_prev_data   <= 16'd0;
     hpll_prev_data   <= 16'd0;
+    hpll_target_code <= 16'd0;
+    hpll_applied_code <= 16'd0;
+    hpll_tracker_initialized <= 1'b0;
+    normal_hpll_request_count <= 16'd0;
+    normal_hpll_completed_count <= 16'd0;
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
     same_code_test_fired <= 1'b0;
@@ -362,12 +388,16 @@ always @(posedge iCLK or negedge iRST_n) begin
       dpll_prev_valid <= 1'b1;
     end
     if (iHPLL_LOAD) begin
-      if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data)) begin
-        hpll_pending <= 1'b1;
-        hpll_pending_forced <= 1'b0;
-        hpll_pending_forced_reverse <= 1'b0;
-        hpll_dir <= (iHPLL_DATA > hpll_prev_data);
-      end else if (ENABLE_SAME_CODE_TEST && hpll_prev_valid &&
+      // Keep the newest absolute target.  The idle-state tracker below
+      // serializes one FINC/FDEC request at a time until applied==target.
+      hpll_target_code <= iHPLL_DATA;
+      if (!hpll_tracker_initialized) begin
+        // WR node helper_start() uses pi.y_min, which is 5 for the DE5a
+        // generic 16-bit DAC configuration.
+        hpll_applied_code <= 16'd5;
+        hpll_tracker_initialized <= 1'b1;
+      end
+      if (ENABLE_SAME_CODE_TEST && hpll_prev_valid &&
                    (iHPLL_DATA == hpll_prev_data) &&
                    !same_code_test_fired) begin
         // Step5 causal A/B only: admit exactly one same-code request on the
@@ -397,6 +427,8 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
           hpll_pending <= 1'b0;
           current_request_forced <= hpll_pending_forced;
+          if (!hpll_pending_forced)
+            normal_hpll_request_count <= normal_hpll_request_count + 1'b1;
           hpll_pending_forced <= 1'b0;
         end else if (ENABLE_JTAG_HPLL_BURST &&
                      static_controller_ready &&
@@ -409,6 +441,15 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced_reverse <= force_burst_reverse;
           force_burst_remaining <= force_burst_remaining - 1'b1;
           forced_hpll_pending_count <= forced_hpll_pending_count + 1'b1;
+        end else if (static_controller_ready &&
+                     hpll_tracker_initialized && hpll_prev_valid &&
+                     (hpll_applied_code != hpll_target_code)) begin
+          // Normal HPLL closed-loop path: admit only one outstanding
+          // transaction and recompute direction from the latest target.
+          hpll_pending <= 1'b1;
+          hpll_pending_forced <= 1'b0;
+          hpll_pending_forced_reverse <= 1'b0;
+          hpll_dir <= (hpll_target_code > hpll_applied_code);
         end
       end
       3'd1: begin
@@ -452,6 +493,12 @@ always @(posedge iCLK or negedge iRST_n) begin
           if (current_request_forced) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
             current_request_forced <= 1'b0;
+          end else if (!rt_select_dpll && hpll_tracker_initialized) begin
+            if (rt_dir)
+              hpll_applied_code <= hpll_applied_code + 1'b1;
+            else if (hpll_applied_code != 16'd0)
+              hpll_applied_code <= hpll_applied_code - 1'b1;
+            normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
           end
         end
       end

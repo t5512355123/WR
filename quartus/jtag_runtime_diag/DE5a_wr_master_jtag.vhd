@@ -83,6 +83,7 @@ architecture rtl of DE5a_wr_master_jtag is
       oDEBUG_SYSTEM_START   : out   std_logic;
       oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
       oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_TRACKER_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
   end component;
@@ -1457,6 +1458,7 @@ begin
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => open,
       oDCO_STEP5_BURST_DEBUG => open,
+      oDCO_STEP5_TRACKER_DEBUG => open,
       oDCO_STEP5_POLARITY_ACTIVE => open,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,

@@ -47,7 +47,8 @@ end DE5a_wr_slave_jtag;
 architecture rtl of DE5a_wr_slave_jtag is
   component si5340a_controller_dco is
     generic (
-      ENABLE_SAME_CODE_TEST : integer := 0
+      ENABLE_SAME_CODE_TEST : integer := 0;
+      ENABLE_JTAG_HPLL_BURST : integer := 0
     );
     port (
       iCLK                  : in    std_logic;
@@ -79,7 +80,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDEBUG_RUNTIME_START  : out   std_logic;
       oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
       oDEBUG_SYSTEM_START   : out   std_logic;
-      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0)
+      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
+      oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -220,6 +222,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_probe            : std_logic_vector(63 downto 0);
   signal dco_debug            : std_logic_vector(63 downto 0);
   signal dco_step5_debug_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_burst_debug_probe : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -1014,6 +1017,21 @@ begin
       source_ena => '1'
     );
 
+  u_step5_burst_debug_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_BURST_DEBUG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 37,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_step5_burst_debug_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1449,7 +1467,8 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      ENABLE_SAME_CODE_TEST => 0
+      ENABLE_SAME_CODE_TEST => 0,
+      ENABLE_JTAG_HPLL_BURST => 1
     )
     port map (
       iCLK                   => CLK_50_B2J,
@@ -1473,6 +1492,7 @@ begin
       oDCO_STEP_COUNT        => dco_step_count,
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => dco_step5_debug_probe,
+      oDCO_STEP5_BURST_DEBUG => dco_step5_burst_debug_probe,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

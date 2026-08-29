@@ -47,7 +47,8 @@ end DE5a_wr_master_jtag;
 architecture rtl of DE5a_wr_master_jtag is
   component si5340a_controller_dco is
     generic (
-      ENABLE_SAME_CODE_TEST : integer := 0
+      ENABLE_SAME_CODE_TEST : integer := 0;
+      ENABLE_JTAG_HPLL_BURST : integer := 0
     );
     port (
       iCLK                  : in    std_logic;
@@ -79,7 +80,8 @@ architecture rtl of DE5a_wr_master_jtag is
       oDEBUG_RUNTIME_START  : out   std_logic;
       oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
       oDEBUG_SYSTEM_START   : out   std_logic;
-      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0)
+      oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
+      oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -1451,6 +1453,7 @@ begin
       oDCO_STEP_COUNT        => dco_step_count,
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => open,
+      oDCO_STEP5_BURST_DEBUG => open,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

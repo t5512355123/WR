@@ -39,14 +39,14 @@ Slave  SHA256 = 5c54f005795786920e55394026cca5484fa593d68f4e7f4ef9c0ef371e2df811
 | `STATIC_READY` | 1（全程） | 1（全程） |
 | `HPLL_PREV_VALID` | 1（全程） | 1（全程） |
 | `HPLL_PREV_DATA_LOW11` | 5 | 2043（低 11 位，代表 `0xFFFB` 的低位） |
-| `HPLL_LOAD` | 0（取樣窗內） | 0（取樣窗內） |
+| `HPLL_LOAD` | 0（1 秒取樣點皆未撞到短 pulse） | 0（1 秒取樣點皆未撞到短 pulse） |
 | `HPLL_PENDING` | 0（全程） | 0（全程） |
 | `RT_STATE` | 0（全程） | 0（全程） |
 | `DCO_BUSY` | 0（全程） | 0（全程） |
 | `DCO_ERROR` | 0（全程） | 0（全程） |
 | `STEP` | 956（無增量） | 1902（無增量） |
 | `HELPER_ERROR_SIGNED` | +150000 | -150000 |
-| `HELPER_OUTPUT` | +5 | -5 |
+| `HELPER_OUTPUT` | `0x0005`（絕對 DAC code） | `0xFFFB`（絕對 DAC code） |
 
 取樣窗內的 sticky 事件：
 
@@ -72,11 +72,13 @@ Slave:
 
 ```text
 HPLL_PREV_VALID = 1
-HPLL_LOAD       = 0（取樣窗內沒有新的 pulse）
+HPLL_LOAD       = 0（每個 1 秒取樣點都沒有剛好撞到短 pulse）
 HPLL_PENDING    = 0
 RT_STATE        = 0
 STEP            = constant
 ```
+
+`HPLL_LOAD` 是瞬時 debug bit，不能單獨用來宣稱整個取樣窗沒有 load。固定 SOF 的 `SYNC_RAW` 同時提供 `HPLL_LOAD_COUNT_MOD16`；本輪讀值會循環變化，表示取樣窗內確實持續發生 HPLL load，只是 load pulse 比 1 秒取樣間隔短而被漏採。
 
 現行 RTL 的 request capture 條件是：
 
@@ -92,7 +94,15 @@ end
 HPLL output/data-change → hpll_pending
 ```
 
-更精確地說：目前實測 helper output 已停在 Master `+5`、Slave `-5`，而 DCO 保存的 HPLL previous data 也維持固定；在沒有新的 data change 時，`hpll_pending` 不會被設起來，runtime state 不會離開 0，後續自然不會有 `runtime_start`、I2C bus transaction 或新的 step。
+更精確的軟體邊界名稱是：
+
+```text
+HPLL_ABSOLUTE_TARGET_TO_INCREMENTAL_DCO_REQUEST
+```
+
+也就是：HPLL 端持續載入，但在絕對 target code 沒有改變時，現行 data-change guard 不會產生下一筆 incremental DCO request。
+
+更精確地說：目前實測 helper output 已停在 Master `0x0005`、Slave `0xFFFB` 這兩個絕對 DAC code；DCO 保存的 HPLL previous data 也維持固定。當沒有新的 data change 時，`hpll_pending` 不會被設起來，runtime state 不會離開 0，後續自然不會有 `runtime_start`、I2C bus transaction 或新的 step。
 
 這一輪不能單獨證明「第一個 load 的 initialization guard 就是唯一根因」，但已排除以下判斷：
 

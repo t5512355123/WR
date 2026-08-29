@@ -106,6 +106,20 @@ HPLL output/data-change → hpll_pending
 ## Raw data
 
 - `raw/EXP-WRPC-STEP5-HPLL-PENDING-CORRELATION-20260829/hpll-pending-correlation-120s.log`
+- `raw/EXP-WRPC-STEP5-HPLL-PENDING-CORRELATION-20260829/dashboard-live-20260830.log`
+
+## 即時總覽交叉檢查（2026-08-30）
+
+在同一 pain、同一固定 SOF 上重新執行 `read_wb_runtime.tcl --raw`，得到：
+
+```text
+Master: Step1 pass, Step2 pass, Step4A pass
+Slave : Step1 pass, Step2 pass, Step3 pass, Step4B pass
+Slave : STEP5_RESULT = NEVER_LOCKED
+        STEP5_FIRST_INACTIVE_BOUNDARY = HELPER_LOCK
+```
+
+因此使用者貼出的 `Step1 PHY / Link error`、`Step4 SoftPLL Startup error` 不符合本次即時讀取結果；它應屬於舊畫面、舊 raw snapshot 或不同診斷入口。這不改變 Step5 的判定：Slave 仍卡在 Helper lock，尚未達成 Step5。
 
 ## 下一步建議給 branch5
 

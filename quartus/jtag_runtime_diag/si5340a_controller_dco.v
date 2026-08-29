@@ -494,10 +494,25 @@ always @(posedge iCLK or negedge iRST_n) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
             current_request_forced <= 1'b0;
           end else if (!rt_select_dpll && hpll_tracker_initialized) begin
-            if (rt_dir)
-              hpll_applied_code <= hpll_applied_code + 1'b1;
-            else if (hpll_applied_code != 16'd0)
-              hpll_applied_code <= hpll_applied_code - 1'b1;
+            // One physical FINC/FDEC has not been proven to equal one WR
+            // DAC code.  Use the branch-approved 64-code virtual mapping,
+            // saturating to the latest target so the tracker never overshoots
+            // or wraps when the helper target changes between transactions.
+            if (rt_dir) begin
+              if (hpll_target_code <= hpll_applied_code)
+                hpll_applied_code <= hpll_target_code;
+              else if ((hpll_target_code - hpll_applied_code) <= 16'd64)
+                hpll_applied_code <= hpll_target_code;
+              else
+                hpll_applied_code <= hpll_applied_code + 16'd64;
+            end else begin
+              if (hpll_target_code >= hpll_applied_code)
+                hpll_applied_code <= hpll_target_code;
+              else if ((hpll_applied_code - hpll_target_code) <= 16'd64)
+                hpll_applied_code <= hpll_target_code;
+              else
+                hpll_applied_code <= hpll_applied_code - 16'd64;
+            end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
           end
         end

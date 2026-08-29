@@ -762,8 +762,12 @@ proc analyze_board {board} {
   set ptp_meta [get_snap $board $after ptp_meta]
   set mode [field32 $ptp_meta 24 8]
   set ptp [word32 [get_snap $board $after ptp]]
+  # WDIAGS_PTP is a metadata-bearing word; the source-defined PTP state is
+  # its low byte.  Keep the full word in RAW_SNAPSHOT, but compare only the
+  # state field for the Step 2 role gate.
+  set ptp_state [field32 $ptp 0 8]
   set mode_num [numeric_value $mode]
-  set ptp_num [numeric_value $ptp]
+  set ptp_num [numeric_value $ptp_state]
   set role "UNKNOWN"
   if {$mode_num ne "" && $mode_num == 2} { set role MASTER }
   if {$mode_num ne "" && $mode_num == 3} { set role SLAVE }
@@ -802,7 +806,7 @@ proc analyze_board {board} {
       set mac_status PASS
     }
     set mode_status [exact_status $mode 2]
-    set ptp_status [exact_status $ptp 6]
+    set ptp_status [exact_status $ptp_state 6]
   } elseif {$role eq "SLAVE"} {
     set mac_expected "02:00:22:33:44:02"
     if {$mac eq "TIMEOUT" || $mac eq "INVALID"} {
@@ -819,7 +823,7 @@ proc analyze_board {board} {
     if {$ptp_num ne "" && $ptp_num == 8} {
       set ptp_status INFO
     } else {
-      set ptp_status [exact_status $ptp 9]
+      set ptp_status [exact_status $ptp_state 9]
     }
   } else {
     if {$mode_num eq "" || $ptp_num eq ""} {
@@ -842,7 +846,8 @@ proc analyze_board {board} {
         ([numeric_equal $mode 3] ? "SLAVE" : "UNKNOWN")}]] \
     [expr {$role eq "MASTER" ? "2 MASTER" : ($role eq "SLAVE" ? "3 SLAVE" : "ROLE")} ] ""
   print_signal $ptp_status "PTP State" WDIAGS_PTP \
-    [format "%s %s" [display_value $ptp] [ptp_state_name $ptp]] \
+    [format "%s %s (raw=%s)" [display_value $ptp_state] [ptp_state_name $ptp_state] \
+      [display_value $ptp]] \
     [expr {$role eq "MASTER" ? "6 MASTER" : ($role eq "SLAVE" ? "9 SLAVE" : "ROLE")} ] ""
 
   set step2_activity_invalid 0

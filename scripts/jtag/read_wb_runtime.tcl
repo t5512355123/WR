@@ -21,6 +21,8 @@ array set ::first_anomaly {}
 array set ::step4b_allowed {}
 array set ::step4b_result {}
 array set ::step4b_boundary {}
+array set ::step5_result {}
+array set ::step5_boundary {}
 set ::step4_master_status INFO
 set ::step4_master_name ""
 set ::step4a_master_status INFO
@@ -401,6 +403,54 @@ proc step4b_first_inactive_boundary {accepted_delta tag_delta trr_write_delta \
   return "ACTIVE"
 }
 
+proc step5_snapshot_boundary {label} {
+  set helper_state [get_snap $::active_board $label spll_helper_state]
+  set main_state [get_snap $::active_board $label spll_main_state]
+  set pstat [get_snap $::active_board $label pstat]
+  set helper_locked [field32 $helper_state 0 1]
+  set main_enabled [field32 $main_state 0 1]
+  set main_freq_locked [field32 $main_state 2 1]
+  set main_phase_locked [field32 $main_state 3 1]
+  set main_locked [field32 $main_state 1 1]
+  set pstat_locked [bit32 $pstat 1]
+  foreach value [list $helper_locked $main_enabled $main_freq_locked \
+      $main_phase_locked $main_locked $pstat_locked] {
+    if {$value < 0} { return "SOURCE_SEMANTICS_NOT_PROVEN" }
+  }
+  if {!$helper_locked} { return "HELPER_LOCK" }
+  if {!$main_enabled} { return "MAIN_START" }
+  if {!$main_freq_locked} { return "MAIN_FREQUENCY_LOCK" }
+  if {!$main_phase_locked || !$main_locked} { return "MAIN_PHASE_LOCK" }
+  if {!$pstat_locked} { return "PSTAT_LOCK" }
+  return "STABLE_WINDOW_REQUIRED"
+}
+
+proc step5_snapshot_fully_locked {label} {
+  set boundary [step5_snapshot_boundary $label]
+  if {$boundary eq "SOURCE_SEMANTICS_NOT_PROVEN"} { return -1 }
+  if {$boundary eq "STABLE_WINDOW_REQUIRED"} { return 1 }
+  return 0
+}
+
+proc step5_print_lockdet {label} {
+  set helper_state [get_snap $::active_board $label spll_helper_state]
+  set helper_limits [get_snap $::active_board $label spll_helper_limits]
+  set main_state [get_snap $::active_board $label spll_main_state]
+  set main_limits [get_snap $::active_board $label spll_main_limits]
+  set phase_limits [get_snap $::active_board $label spll_main_phase_limits]
+  set pstat [get_snap $::active_board $label pstat]
+  puts [format "STEP5_LOCKDET_%s: HELPER locked=%d changed=%d cnt=%d/%d threshold=%d ref_src=%d MAIN enabled=%d locked=%d freq=%d phase=%d freq_cnt=%d/%d phase_cnt=%d/%d PSTAT_locked=%d" \
+    [string toupper $label] \
+    [field32 $helper_state 0 1] [field32 $helper_state 1 1] \
+    [field32 $helper_state 16 16] [field32 $helper_limits 16 16] \
+    [field32 $helper_limits 0 16] [field32 $helper_state 8 8] \
+    [field32 $main_state 0 1] [field32 $main_state 1 1] \
+    [field32 $main_state 2 1] [field32 $main_state 3 1] \
+    [field32 $main_state 8 12] [field32 $main_limits 16 16] \
+    [field32 $main_state 20 12] [field32 $phase_limits 16 16] \
+    [bit32 $pstat 1]]
+}
+
 proc probe_byte_counter_hex {value bit} {
   set numeric [probe_byte64 $value $bit]
   if {$numeric < 0} { return "INVALID" }
@@ -595,6 +645,7 @@ proc get_snap {board label field} {
 }
 
 proc collect_snapshot {board label} {
+  set ::active_board $board
   put_snap $board $label status [safe_probe_read 0]
   put_snap $board $label cpu [safe_probe_read 2]
   put_snap $board $label marker [safe_probe_read 3]
@@ -646,6 +697,10 @@ proc collect_snapshot {board label} {
 
   # 這些地址與既有 Step 4 read-only scripts/source mapping 一致。
   put_snap $board $label lock_enable [wb_read_critical 0x00100A9C]
+  put_snap $board $label lock_result [wb_read_critical 0x00100A8C]
+  put_snap $board $label lock_polls [wb_read_counter 0x00100A90]
+  put_snap $board $label lock_unlocked [wb_read_counter 0x00100A94]
+  put_snap $board $label lock_calibration_fail [wb_read_counter 0x00100A98]
   put_snap $board $label spll_state [wb_read_critical 0x00100AA0]
   # OCER[7:0] is the functional field; the upper bits include a live
   # diagnostic alias, so do not require the full word to be stable.
@@ -653,6 +708,13 @@ proc collect_snapshot {board label} {
   put_snap $board $label spll_rcer [wb_read_critical 0x00100AA8]
   put_snap $board $label spll_occr [wb_read_critical 0x00100AAC]
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
+  put_snap $board $label spll_dac_hpll [wb_read 0x00100AB4]
+  put_snap $board $label spll_dac_main [wb_read 0x00100AB8]
+  put_snap $board $label spll_helper_state [wb_read_critical 0x00100ABC]
+  put_snap $board $label spll_helper_limits [wb_read_critical 0x00100AC0]
+  put_snap $board $label spll_main_state [wb_read_critical 0x00100AC4]
+  put_snap $board $label spll_main_limits [wb_read_critical 0x00100AC8]
+  put_snap $board $label spll_main_phase_limits [wb_read_critical 0x00100ACC]
   put_snap $board $label spll_state_visit_mask [wb_read 0x00100AE0]
   put_snap $board $label spll_state_transitions [wb_read 0x00100AE4]
   put_snap $board $label spll_last_state [wb_read 0x00100AE8]
@@ -672,6 +734,8 @@ proc collect_snapshot {board label} {
   put_snap $board $label trr_pop [wb_read 0x00100B54]
   put_snap $board $label irq [wb_read 0x00100AEC]
   put_snap $board $label helper_update [wb_read 0x00100B18]
+  put_snap $board $label spll_helper_error [wb_read 0x00100AD8]
+  put_snap $board $label spll_helper_output [wb_read 0x00100ADC]
   put_snap $board $label spll_init_count [wb_read 0x00100B44]
   put_snap $board $label eic_isr [wb_read 0x0010026C]
   put_snap $board $label current_tics [wb_read 0x00100B3C]
@@ -1341,20 +1405,58 @@ proc analyze_board {board} {
   puts [format "Step 4 %s" [step_status_text $step4]]
 
   # --------------------------------------------------------------
-  # Step 5: closed-loop lock, informational until Step 4 passes
+  # Step 5: closed-loop lock observability.  A two-snapshot dashboard window
+  # may characterize acquisition/loss, but never proves stable lock.
   # --------------------------------------------------------------
   puts ""
   puts "## \[Step 5\] Closed-loop Lock"
   set pstat_raw [get_snap $board $after pstat]
   set pstat_locked [bit32 $pstat_raw 1]
   set time_valid [bit64_low $status_raw 4]
-  if {$step4 ne "PASS"} {
+  set ::active_board $board
+  if {$role ne "SLAVE"} {
     set step5 INFO
+    set ::step5_result($board) NOT_APPLICABLE_MASTER
+    set ::step5_boundary($board) SLAVE_ONLY
+    puts "STEP5_RESULT = NOT_APPLICABLE_MASTER"
+    puts "STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY"
+    puts "Step 5 NA (Step5 closed-loop gate is for Slave)"
+  } elseif {$step4 ne "PASS"} {
+    set step5 INFO
+    set ::step5_result($board) UPSTREAM_NOT_READY
+    set ::step5_boundary($board) UPSTREAM_STEP4B
+    puts "STEP5_RESULT = UPSTREAM_NOT_READY"
+    puts "STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B"
     puts "Step 5 NA"
   } else {
-    set step5 [exact_status $pstat_locked 1]
-    print_signal $step5 "PSTAT Locked" WDIAGS_PSTAT [display_value $pstat_locked] "1" ""
-    puts [format "Step 5 %s" [step_status_text $step5]]
+    step5_print_lockdet before
+    step5_print_lockdet after
+    set before_boundary [step5_snapshot_boundary before]
+    set after_boundary [step5_snapshot_boundary after]
+    set before_locked [step5_snapshot_fully_locked before]
+    set after_locked [step5_snapshot_fully_locked after]
+    set step5 INFO
+    if {$before_locked < 0 || $after_locked < 0} {
+      set result OBSERVABILITY_INVALID
+      set boundary SOURCE_SEMANTICS_NOT_PROVEN
+    } elseif {$before_locked == 1 && $after_locked == 0} {
+      set result LOCK_ACQUIRED_THEN_LOST
+      set boundary $after_boundary
+    } elseif {$after_locked == 1} {
+      set result LOCK_ACQUIRED_NOT_STABLE
+      set boundary STABILITY_WINDOW
+    } else {
+      set result NEVER_LOCKED
+      set boundary $after_boundary
+    }
+    set ::step5_result($board) $result
+    set ::step5_boundary($board) $boundary
+    print_signal [exact_status $pstat_locked 1] "PSTAT Locked" WDIAGS_PSTAT \
+      [display_value $pstat_locked] "1" \
+      "WDIAGS_PSTAT bit 1；只作上層 lock supporting evidence。"
+    puts [format "STEP5_RESULT = %s" $result]
+    puts [format "STEP5_FIRST_INACTIVE_BOUNDARY = %s" $boundary]
+    puts "Step 5 NA (single window is not stable-lock proof)"
   }
   set ::step_status($board,5) $step5
   if {$step5 ne "PASS" && $step5 ne "INFO"} {
@@ -1439,6 +1541,10 @@ proc analyze_board {board} {
       puts [format "STEP4B_RESULT = %s" $::step4b_result($board)]
       puts [format "STEP4B_FIRST_INACTIVE_BOUNDARY = %s" $::step4b_boundary($board)]
     }
+    if {[info exists ::step5_result($board)]} {
+      puts [format "STEP5_RESULT = %s" $::step5_result($board)]
+      puts [format "STEP5_FIRST_INACTIVE_BOUNDARY = %s" $::step5_boundary($board)]
+    }
     puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
   }
   puts "============================================================"
@@ -1451,11 +1557,14 @@ proc print_raw_snapshot {board label} {
     pps_cr pps_escr ep_mach ep_macl ep_dsr ptp ptp_rx ptp_tx ptp_meta \
     tx rx rxerr ptp_types foreign_meta filter_meta parse_meta wr_rx_signal \
     wr_tx_signal wr_failure wr_state wr_reject pstat sstat sec_h sec_l ns \
-    lock_enable spll_state spll_ocer spll_rcer spll_occr spll_trr_csr \
+    lock_enable lock_result lock_polls lock_unlocked lock_calibration_fail \
+    spll_state spll_ocer spll_rcer spll_occr spll_trr_csr spll_dac_hpll \
+    spll_dac_main spll_helper_state spll_helper_limits spll_main_state \
+    spll_main_limits spll_main_phase_limits \
     spll_state_visit_mask spll_state_transitions spll_last_state \
     spll_init_count dmtd_ref dmtd_fb \
     dmtd_ref_high_qual_abort dmtd_fb_high_qual_abort tag_valid trr_write irq \
-    helper_update eic_isr current_tics} {
+    helper_update spll_helper_error spll_helper_output eic_isr current_tics} {
     puts [format "  %-16s = %s" $field [get_snap $board $label $field]]
   }
 }
@@ -1498,6 +1607,10 @@ if {$::step4_master_name ne "" || [array size ::step4b_result] > 0} {
     puts [format "STEP4B_ALLOWED = %s" $::step4b_allowed($board)]
     puts [format "STEP4B_RESULT = %s" $::step4b_result($board)]
     puts [format "STEP4B_FIRST_INACTIVE_BOUNDARY = %s" $::step4b_boundary($board)]
+  }
+  foreach board [array names ::step5_result] {
+    puts [format "STEP5_RESULT = %s" $::step5_result($board)]
+    puts [format "STEP5_FIRST_INACTIVE_BOUNDARY = %s" $::step5_boundary($board)]
   }
   puts "============================================================"
 }

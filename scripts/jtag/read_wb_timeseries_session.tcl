@@ -25,6 +25,12 @@ if {$samples <= 0 || $gap_ms < 0 || $max_retries < 0} {
 }
 
 set ::wb_toggle 0
+array set ::step5_seen_locked {}
+array set ::step5_seen_loss {}
+array set ::step5_all_samples_locked {}
+array set ::step5_valid_samples {}
+array set ::step5_initial_delock_count {}
+array set ::step5_delock_increased {}
 
 proc wb_read {addr} {
   set ::wb_toggle [expr {$::wb_toggle ^ 1}]
@@ -57,6 +63,89 @@ proc is_u32 {value} {
 
 proc is_u64 {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
+}
+
+proc u32_field {value low width} {
+  if {![is_u32 $value]} { return -1 }
+  scan $value %x word
+  if {((($word >> 16) & 0xffff) == 0xA5A5)} { return -1 }
+  set mask [expr {(1 << $width) - 1}]
+  return [expr {(($word & 0xffffffff) >> $low) & $mask}]
+}
+
+proc u32_bit {value bit} {
+  return [u32_field $value $bit 1]
+}
+
+proc step5_sample_boundary {helper_state main_state pstat} {
+  set helper_locked [u32_bit $helper_state 0]
+  set main_enabled [u32_bit $main_state 0]
+  set main_freq_locked [u32_bit $main_state 2]
+  set main_phase_locked [u32_bit $main_state 3]
+  set main_locked [u32_bit $main_state 1]
+  set pstat_locked [u32_bit $pstat 1]
+  foreach value [list $helper_locked $main_enabled $main_freq_locked \
+      $main_phase_locked $main_locked $pstat_locked] {
+    if {$value < 0} { return "SOURCE_SEMANTICS_NOT_PROVEN" }
+  }
+  if {!$helper_locked} { return "HELPER_LOCK" }
+  if {!$main_enabled} { return "MAIN_START" }
+  if {!$main_freq_locked} { return "MAIN_FREQUENCY_LOCK" }
+  if {!$main_phase_locked || !$main_locked} { return "MAIN_PHASE_LOCK" }
+  if {!$pstat_locked} { return "PSTAT_LOCK" }
+  return "LOCKED_SAMPLE"
+}
+
+proc step5_update_series_state {hardware_name boundary delock_count} {
+  if {![info exists ::step5_valid_samples($hardware_name)]} {
+    set ::step5_seen_locked($hardware_name) 0
+    set ::step5_seen_loss($hardware_name) 0
+    set ::step5_all_samples_locked($hardware_name) 1
+    set ::step5_valid_samples($hardware_name) 0
+    set ::step5_initial_delock_count($hardware_name) -1
+    set ::step5_delock_increased($hardware_name) 0
+  }
+  if {$boundary eq "SOURCE_SEMANTICS_NOT_PROVEN"} {
+    set ::step5_all_samples_locked($hardware_name) 0
+    return
+  }
+  incr ::step5_valid_samples($hardware_name)
+  if {$delock_count >= 0} {
+    if {$::step5_initial_delock_count($hardware_name) < 0} {
+      set ::step5_initial_delock_count($hardware_name) $delock_count
+    } elseif {$delock_count > $::step5_initial_delock_count($hardware_name)} {
+      set ::step5_delock_increased($hardware_name) 1
+    }
+  }
+  if {$boundary eq "LOCKED_SAMPLE"} {
+    set ::step5_seen_locked($hardware_name) 1
+  } else {
+    set ::step5_all_samples_locked($hardware_name) 0
+    if {$::step5_seen_locked($hardware_name)} {
+      set ::step5_seen_loss($hardware_name) 1
+    }
+  }
+}
+
+proc step5_series_result {hardware_name} {
+  if {![info exists ::step5_valid_samples($hardware_name)] ||
+      $::step5_valid_samples($hardware_name) == 0} {
+    return "OBSERVABILITY_INVALID"
+  }
+  if {$::step5_seen_loss($hardware_name)} {
+    return "LOCK_ACQUIRED_THEN_LOST"
+  }
+  if {$::step5_delock_increased($hardware_name) &&
+      $::step5_seen_locked($hardware_name)} {
+    return "LOCK_ACQUIRED_THEN_LOST"
+  }
+  if {!$::step5_seen_locked($hardware_name)} {
+    return "NEVER_LOCKED"
+  }
+  if {$::step5_all_samples_locked($hardware_name)} {
+    return "STABLE_LOCK_CANDIDATE"
+  }
+  return "LOCK_ACQUIRED_NOT_STABLE"
 }
 
 proc read_diag_sample {hardware_name sample attempt} {
@@ -322,6 +411,29 @@ proc read_diag_sample {hardware_name sample attempt} {
   set wr_spll_align_state [expr {($wr_spll_state_word >> 8) & 0xff}]
   set wr_spll_mode [expr {($wr_spll_state_word >> 16) & 0xff}]
   set wr_spll_delock_count [expr {($wr_spll_state_word >> 24) & 0xff}]
+  set helper_locked [u32_bit $wr_spll_helper_state 0]
+  set helper_changed [u32_bit $wr_spll_helper_state 1]
+  set helper_ref_src [u32_field $wr_spll_helper_state 8 8]
+  set helper_lock_cnt [u32_field $wr_spll_helper_state 16 16]
+  set helper_threshold [u32_field $wr_spll_helper_limits 0 16]
+  set helper_lock_samples [u32_field $wr_spll_helper_limits 16 16]
+  set main_enabled [u32_bit $wr_spll_main_state 0]
+  set main_locked [u32_bit $wr_spll_main_state 1]
+  set main_freq_locked [u32_bit $wr_spll_main_state 2]
+  set main_phase_locked [u32_bit $wr_spll_main_state 3]
+  set main_freq_cnt [u32_field $wr_spll_main_state 8 12]
+  set main_phase_cnt [u32_field $wr_spll_main_state 20 12]
+  set main_freq_threshold [u32_field $wr_spll_main_limits 0 16]
+  set main_freq_lock_samples [u32_field $wr_spll_main_limits 16 16]
+  set main_phase_threshold [u32_field $wr_spll_main_phase_limits 0 16]
+  set main_phase_lock_samples [u32_field $wr_spll_main_phase_limits 16 16]
+  set step5_boundary [step5_sample_boundary $wr_spll_helper_state \
+      $wr_spll_main_state $pstat]
+  if {$frame_valid} {
+    step5_update_series_state $hardware_name $step5_boundary $wr_spll_delock_count
+  } else {
+    step5_update_series_state $hardware_name SOURCE_SEMANTICS_NOT_PROVEN -1
+  }
 
   puts [format "SESSION_SAMPLE board=%s sample=%03d attempt=%d status=%s" \
         $hardware_name $sample $attempt $status]
@@ -392,6 +504,12 @@ proc read_diag_sample {hardware_name sample attempt} {
         $wr_lock_result_code $wr_lock_spll_locked $wr_lock_polls_word \
         $wr_lock_unlocked_word $wr_lock_calibration_fail_word $wr_lock_enable_word \
         $wr_spll_seq_state $wr_spll_align_state $wr_spll_mode $wr_spll_delock_count]
+  puts [format "STEP5_LOCKDET: boundary=%s HELPER locked=%d changed=%d cnt=%d/%d threshold=%d ref_src=%d MAIN enabled=%d locked=%d freq=%d phase=%d freq_cnt=%d/%d phase_cnt=%d/%d PSTAT_locked=%d" \
+        $step5_boundary $helper_locked $helper_changed $helper_lock_cnt \
+        $helper_lock_samples $helper_threshold $helper_ref_src $main_enabled \
+        $main_locked $main_freq_locked $main_phase_locked $main_freq_cnt \
+        $main_freq_lock_samples $main_phase_cnt $main_phase_lock_samples \
+        [u32_bit $pstat 1]]
   flush stdout
   return $frame_valid
 }
@@ -431,6 +549,11 @@ foreach hardware_name [get_hardware_names] {
     puts "error: ${error_message}"
   }
   catch { end_insystem_source_probe }
+  if {[info exists ::step5_valid_samples($hardware_name)]} {
+    puts [format "STEP5_SERIES_RESULT board=%s result=%s valid_samples=%d" \
+          $hardware_name [step5_series_result $hardware_name] \
+          $::step5_valid_samples($hardware_name)]
+  }
 }
 
 puts "SESSION_TIME_SERIES_DONE"

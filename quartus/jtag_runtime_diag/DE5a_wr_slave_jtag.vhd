@@ -63,6 +63,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       iHPLL_LOAD            : in    std_logic;
       iHPLL_DATA            : in    std_logic_vector(15 downto 0);
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
+      iFORCE_HPLL_REVERSE   : in    std_logic;
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -81,7 +82,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDEBUG_RUNTIME_BUS_ENABLE : out std_logic;
       oDEBUG_SYSTEM_START   : out   std_logic;
       oDCO_STEP5_DEBUG      : out   std_logic_vector(63 downto 0);
-      oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0)
+      oDCO_STEP5_BURST_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
   end component;
 
@@ -223,6 +225,9 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_debug            : std_logic_vector(63 downto 0);
   signal dco_step5_debug_probe : std_logic_vector(63 downto 0);
   signal dco_step5_burst_debug_probe : std_logic_vector(63 downto 0);
+  signal step5_polarity_probe : std_logic_vector(63 downto 0);
+  signal step5_polarity_source : std_logic_vector(0 downto 0);
+  signal step5_polarity_active : std_logic;
   signal clock_activity_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
@@ -1032,6 +1037,26 @@ begin
       source_ena => '1'
     );
 
+  step5_polarity_probe(0) <= step5_polarity_source(0);
+  step5_polarity_probe(1) <= step5_polarity_active;
+  step5_polarity_probe(63 downto 2) <= (others => '0');
+
+  u_step5_polarity_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_POLARITY_SELECT_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 38,
+      source_initial_value    => "0",
+      source_width            => 1
+    )
+    port map (
+      probe      => step5_polarity_probe,
+      source     => step5_polarity_source,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1483,6 +1508,7 @@ begin
       iHPLL_LOAD             => dac_hpll_load,
       iHPLL_DATA             => dac_hpll_data,
       iFORCE_HPLL_ONE_STEP   => force_hpll_source(0),
+      iFORCE_HPLL_REVERSE    => step5_polarity_source(0),
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,
@@ -1493,6 +1519,7 @@ begin
       oDCO_DEBUG             => dco_debug,
       oDCO_STEP5_DEBUG       => dco_step5_debug_probe,
       oDCO_STEP5_BURST_DEBUG => dco_step5_burst_debug_probe,
+      oDCO_STEP5_POLARITY_ACTIVE => step5_polarity_active,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

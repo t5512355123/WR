@@ -16,7 +16,7 @@
 #
 # Usage:
 #   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl
-#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls?
+#   quartus_stp -t read_step5_jtag_hpll_bounded_burst_ab.tcl ?a_seconds? ?poll_ms? ?max_polls? ?helper_poll_ms? ?max_helper_polls? ?polarity_reverse?
 
 package require ::quartus::insystem_source_probe
 
@@ -26,14 +26,17 @@ set max_polls 80
 set poll_attempts 25
 set helper_poll_ms 0
 set max_helper_polls 0
+set polarity_reverse 0
 if {[llength $argv] >= 1} { set a_seconds [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set poll_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set max_polls [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set helper_poll_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set max_helper_polls [expr {int([lindex $argv 4])}] }
+if {[llength $argv] >= 6} { set polarity_reverse [expr {int([lindex $argv 5])}] }
 if {$a_seconds <= 0 || $poll_ms <= 0 || $max_polls <= 0 ||
     $helper_poll_ms < 0 || $max_helper_polls < 0 ||
-    ($helper_poll_ms > 0 && $max_helper_polls <= 0)} {
+    ($helper_poll_ms > 0 && $max_helper_polls <= 0) ||
+    ($polarity_reverse != 0 && $polarity_reverse != 1)} {
   error "a_seconds, poll_ms, and max_polls must be > 0; helper wait is optional but requires both helper_poll_ms and max_helper_polls"
 }
 
@@ -140,6 +143,15 @@ proc force_source_write {value} {
   after 10
 }
 
+proc polarity_source_write {value} {
+  if {[catch {
+    write_source_data -instance_index 38 -value [format %016X $value] -value_in_hex
+  } error_message]} {
+    error "HPLL polarity source write failed: $error_message"
+  }
+  after 10
+}
+
 proc snapshot_key {hardware_name tag} {
   return "${hardware_name}|${tag}"
 }
@@ -153,6 +165,7 @@ proc read_snapshot {hardware_name tag} {
   set key [snapshot_key $hardware_name $tag]
   set dco_raw [probe_read 8]
   set burst_raw [probe_read 37]
+  set polarity_raw [probe_read 38]
   set preclamp_raw [wb_read $hardware_name 0x00100B08]
   set raw_tag [wb_read $hardware_name 0x00100B00]
   set expected_tag [wb_read $hardware_name 0x00100B04]
@@ -164,6 +177,7 @@ proc read_snapshot {hardware_name tag} {
 
   set dco [word64 $dco_raw]
   set burst [word64 $burst_raw]
+  set polarity [word64 $polarity_raw]
   set step [field_bits $dco 20 0xffff]
   set preclamp_signed [signed32 $preclamp_raw]
   set raw_tag_signed [signed32 $raw_tag]
@@ -186,8 +200,9 @@ proc read_snapshot {hardware_name tag} {
   set snap_expected_delta($key) $expected_delta_signed
   set snap_helper_update($key) $helper_update_unsigned
 
-  puts [format "STEP5_BURST_SAMPLE board=%s tag=%s DCO_RAW=%s BURST_RAW=%s STEP=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s RT_STATE_ENTER_COUNT=%s RUNTIME_START_COUNT=%s BUS_DONE_COUNT=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%s RAW_TAG=%s RAW_TAG_SIGNED=%s EXPECTED_TAG=%s EXPECTED_TAG_SIGNED=%s TAG_DELTA=%s TAG_DELTA_SIGNED=%s EXPECTED_DELTA=%s EXPECTED_DELTA_SIGNED=%s HELPER_UPDATE_COUNT=%s HELPER_ERROR=%s HELPER_OUTPUT=%s" \
-    $hardware_name $tag [display64 $dco_raw] [display64 $burst_raw] $step \
+  puts [format "STEP5_BURST_SAMPLE board=%s tag=%s DCO_RAW=%s BURST_RAW=%s POLARITY_RAW=%s POLARITY_SOURCE=%s POLARITY_ACTIVE=%s STEP=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s RT_STATE_ENTER_COUNT=%s RUNTIME_START_COUNT=%s BUS_DONE_COUNT=%s PRECLAMP_ERROR=%s PRECLAMP_ERROR_SIGNED=%s RAW_TAG=%s RAW_TAG_SIGNED=%s EXPECTED_TAG=%s EXPECTED_TAG_SIGNED=%s TAG_DELTA=%s TAG_DELTA_SIGNED=%s EXPECTED_DELTA=%s EXPECTED_DELTA_SIGNED=%s HELPER_UPDATE_COUNT=%s HELPER_ERROR=%s HELPER_OUTPUT=%s" \
+    $hardware_name $tag [display64 $dco_raw] [display64 $burst_raw] [display64 $polarity_raw] \
+    [field_bits $polarity 0 1] [field_bits $polarity 1 1] $step \
     [field_bits $burst 0 0xff] [field_bits $burst 8 0xff] \
     [field_bits $burst 16 0xff] [field_bits $burst 24 0xff] \
     [field_bits $burst 32 0xff] [field_bits $burst 40 0xff] \
@@ -231,7 +246,7 @@ proc delta_line {hardware_name before_tag after_tag} {
   flush stdout
 }
 
-puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d experiment=EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830 fixed_sof=1 burst_size=8" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls]
+puts [format "STEP5_JTAG_HPLL_BOUNDED_BURST_AB_CONFIG a_seconds=%d poll_ms=%d max_polls=%d helper_poll_ms=%d max_helper_polls=%d polarity_reverse=%d experiment=EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830 fixed_sof=1 burst_size=8" $a_seconds $poll_ms $max_polls $helper_poll_ms $max_helper_polls $polarity_reverse]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
@@ -244,6 +259,7 @@ foreach hardware_name [get_hardware_names] {
     if {[is_hex $burst_probe]} {
       # A: keep the trigger source low and establish the background window.
       force_source_write 0
+      polarity_source_write $polarity_reverse
       wb_sync_toggle $hardware_name
       read_snapshot $hardware_name A0
       for {set n 1} {$n <= $a_seconds} {incr n} {

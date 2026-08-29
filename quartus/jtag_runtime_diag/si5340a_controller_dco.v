@@ -18,6 +18,7 @@ input     [15:0]        iDPLL_DATA,
 input                   iHPLL_LOAD,
 input     [15:0]        iHPLL_DATA,
 input                   iFORCE_HPLL_ONE_STEP,
+input                   iFORCE_HPLL_REVERSE,
 output                  I2C_CLK,
 inout                   I2C_DATA,
 output                  oPLL_I2C_ID_READ_ERROR,
@@ -36,7 +37,8 @@ output                  oDEBUG_RUNTIME_START,
 output                  oDEBUG_RUNTIME_BUS_ENABLE,
 output                  oDEBUG_SYSTEM_START,
 output    [63:0]        oDCO_STEP5_DEBUG,
-output    [63:0]        oDCO_STEP5_BURST_DEBUG
+output    [63:0]        oDCO_STEP5_BURST_DEBUG,
+output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
 wire [6:0] static_slave_addr;
@@ -76,11 +78,15 @@ reg        force_hpll_meta;
 reg        force_hpll_sync;
 reg        force_hpll_sync_prev;
 reg        force_hpll_seen;
+reg        force_hpll_reverse_meta;
+reg        force_hpll_reverse_sync;
 reg [7:0]  force_trigger_count;
 reg [7:0]  forced_pending_count;
 reg [3:0]  force_burst_remaining;
 reg        hpll_pending_forced;
+reg        hpll_pending_forced_reverse;
 reg        current_request_forced;
+reg        force_burst_reverse;
 reg [7:0]  burst_trigger_count;
 reg [7:0]  forced_hpll_pending_count;
 reg [7:0]  forced_hpll_completed_count;
@@ -139,6 +145,7 @@ assign oDEBUG_RUNTIME_BUS_ENABLE = runtime_bus_enable;
 assign oDEBUG_SYSTEM_START = system_start;
 assign oDCO_STEP5_DEBUG = dco_step5_debug;
 assign oDCO_STEP5_BURST_DEBUG = dco_step5_burst_debug;
+assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
 // controller state without changing the request or I2C state machine.
@@ -294,11 +301,15 @@ always @(posedge iCLK or negedge iRST_n) begin
     force_hpll_sync  <= 1'b0;
     force_hpll_sync_prev <= 1'b0;
     force_hpll_seen  <= 1'b0;
+    force_hpll_reverse_meta <= 1'b0;
+    force_hpll_reverse_sync <= 1'b0;
     force_trigger_count <= 8'd0;
     forced_pending_count <= 8'd0;
     force_burst_remaining <= 4'd0;
     hpll_pending_forced <= 1'b0;
+    hpll_pending_forced_reverse <= 1'b0;
     current_request_forced <= 1'b0;
+    force_burst_reverse <= 1'b0;
     burst_trigger_count <= 8'd0;
     forced_hpll_pending_count <= 8'd0;
     forced_hpll_completed_count <= 8'd0;
@@ -311,6 +322,8 @@ always @(posedge iCLK or negedge iRST_n) begin
     force_hpll_meta <= iFORCE_HPLL_ONE_STEP;
     force_hpll_sync <= force_hpll_meta;
     force_hpll_sync_prev <= force_hpll_sync;
+    force_hpll_reverse_meta <= iFORCE_HPLL_REVERSE;
+    force_hpll_reverse_sync <= force_hpll_reverse_meta;
     runtime_start_prev <= runtime_start;
     bus_done_prev <= bus_done;
 
@@ -329,10 +342,12 @@ always @(posedge iCLK or negedge iRST_n) begin
           (rt_state == 3'd0)) begin
         if (ENABLE_JTAG_HPLL_BURST) begin
           force_burst_remaining <= 4'd8;
+          force_burst_reverse <= force_hpll_reverse_sync;
           burst_trigger_count <= burst_trigger_count + 1'b1;
         end else begin
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
+          hpll_pending_forced_reverse <= 1'b0;
           forced_pending_count <= forced_pending_count + 1'b1;
         end
       end
@@ -350,6 +365,7 @@ always @(posedge iCLK or negedge iRST_n) begin
       if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data)) begin
         hpll_pending <= 1'b1;
         hpll_pending_forced <= 1'b0;
+        hpll_pending_forced_reverse <= 1'b0;
         hpll_dir <= (iHPLL_DATA > hpll_prev_data);
       end else if (ENABLE_SAME_CODE_TEST && hpll_prev_valid &&
                    (iHPLL_DATA == hpll_prev_data) &&
@@ -378,7 +394,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b0;
-          rt_dir <= hpll_dir;
+          rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
           hpll_pending <= 1'b0;
           current_request_forced <= hpll_pending_forced;
           hpll_pending_forced <= 1'b0;
@@ -390,6 +406,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           // to idle, so the eight-step burst is controller-serialized.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
+          hpll_pending_forced_reverse <= force_burst_reverse;
           force_burst_remaining <= force_burst_remaining - 1'b1;
           forced_hpll_pending_count <= forced_hpll_pending_count + 1'b1;
         end

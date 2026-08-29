@@ -46,6 +46,9 @@ end DE5a_wr_master_jtag;
 
 architecture rtl of DE5a_wr_master_jtag is
   component si5340a_controller_dco is
+    generic (
+      ENABLE_SAME_CODE_TEST : integer := 0
+    );
     port (
       iCLK                  : in    std_logic;
       iRST_n                : in    std_logic;

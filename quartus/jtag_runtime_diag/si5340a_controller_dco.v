@@ -2,7 +2,9 @@
 // This diagnostic wrapper keeps the original startup table and adds a
 // serialized FINC/FDEC write path after static configuration is complete.
 
-module si5340a_controller_dco(
+module si5340a_controller_dco #(
+parameter integer ENABLE_SAME_CODE_TEST = 0
+)(
 input                   iCLK,
 input                   iRST_n,
 input                   iStart,
@@ -65,6 +67,7 @@ reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
 reg [15:0] dco_step_count;
 reg        dco_error;
+reg        same_code_test_fired;
 reg [63:0] dco_debug;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
@@ -135,8 +138,8 @@ always @* begin
   dco_debug[19]    = oDCO_BUSY;
   dco_debug[35:20] = dco_step_count;
   dco_debug[51:36] = dpll_prev_data;
-  // Bit 52 is retained as zero so existing JTAG decoders remain compatible.
-  dco_debug[52]    = 1'b0;
+  // Bit 52 records the one-shot Step5 same-code A/B on the Slave image.
+  dco_debug[52]    = same_code_test_fired;
   dco_debug[63:53] = hpll_prev_data[10:0];
 end
 
@@ -226,6 +229,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     hpll_prev_data   <= 16'd0;
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
+    same_code_test_fired <= 1'b0;
   end else begin
     if (iDPLL_LOAD) begin
       if (dpll_prev_valid && (iDPLL_DATA != dpll_prev_data)) begin
@@ -239,6 +243,13 @@ always @(posedge iCLK or negedge iRST_n) begin
       if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data)) begin
         hpll_pending <= 1'b1;
         hpll_dir <= (iHPLL_DATA > hpll_prev_data);
+      end else if (ENABLE_SAME_CODE_TEST && hpll_prev_valid &&
+                   (iHPLL_DATA == hpll_prev_data) &&
+                   !same_code_test_fired) begin
+        // Step5 causal A/B only: admit exactly one same-code request on the
+        // Slave image, then permanently disarm this experiment path.
+        hpll_pending <= 1'b1;
+        same_code_test_fired <= 1'b1;
       end
       hpll_prev_data <= iHPLL_DATA;
       hpll_prev_valid <= 1'b1;

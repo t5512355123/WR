@@ -26,7 +26,7 @@
 #   [19]    DCO_BUSY
 #   [35:20] dco_step_count
 #   [51:36] dpll_prev_data
-#   [52]    reserved
+#   [52]    same_code_test_fired (one-shot A/B; enabled only in Slave image)
 #   [63:53] hpll_prev_data[10:0]
 #
 # Correlation probes 28..33:
@@ -198,6 +198,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     [format "STEP=%s" [field_bits $dco_word 20 0xffff]] \
     [format "DPLL_PREV_DATA=%s" [field_bits $dco_word 36 0xffff]] \
     [format "HPLL_PREV_DATA_LOW11=%s" [field_bits $dco_word 53 0x7ff]] \
+    [format "SAME_CODE_TEST_FIRED=%s" [field_bit $dco_word 52]] \
     [format "T_DAC_LOAD=%s" [field32 $corr0_word 0]] \
     [format "T_RUNTIME_START=%s" [field32 $corr0_word 32]] \
     [format "T_BUS_DONE=%s" [field32 $corr1_word 0]] \
@@ -225,6 +226,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     [format "SYSTEM_START_LIVE=%s" [field_bit $corr5_word 37]] \
     [format "RESET_STICKY_RAW=%s" [display64 $reset_raw]] \
     [format "SYNC_RAW=%s" [display64 $sync_raw]] \
+    [format "DPLL_LOAD_COUNT_MOD16=%s" [field_bits [word64 $sync_raw] 56 0xf]] \
+    [format "HPLL_LOAD_COUNT_MOD16=%s" [field_bits [word64 $sync_raw] 60 0xf]] \
     [format "HELPER_ERROR=%s" $helper_error] \
     [format "HELPER_ERROR_SIGNED=%s" [signed32 $helper_error]] \
     [format "HELPER_OUTPUT=%s" $helper_output]]

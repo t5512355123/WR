@@ -46,6 +46,9 @@ end DE5a_wr_slave_jtag;
 
 architecture rtl of DE5a_wr_slave_jtag is
   component si5340a_controller_dco is
+    generic (
+      ENABLE_SAME_CODE_TEST : integer := 0
+    );
     port (
       iCLK                  : in    std_logic;
       iRST_n                : in    std_logic;
@@ -1423,6 +1426,9 @@ begin
   SI5340A_RST_n   <= CPU_RESET_n;
 
   u_si5340a_controller : si5340a_controller_dco
+    generic map (
+      ENABLE_SAME_CODE_TEST => 1
+    )
     port map (
       iCLK                   => CLK_50_B2J,
       iRST_n                 => CPU_RESET_n,

@@ -761,7 +761,10 @@ proc analyze_board {board} {
   set mac [mac_from_registers $mach $macl]
   set ptp_meta [get_snap $board $after ptp_meta]
   set mode [field32 $ptp_meta 24 8]
-  set ptp [word32 [get_snap $board $after ptp]]
+  # Keep the mailbox word in hexadecimal text while extracting fields;
+  # converting it to a Tcl integer first would make a later field32() call
+  # reinterpret the decimal text as hexadecimal.
+  set ptp [get_snap $board $after ptp]
   # WDIAGS_PTP is a metadata-bearing word; the source-defined PTP state is
   # its low byte.  Keep the full word in RAW_SNAPSHOT, but compare only the
   # state field for the Step 2 role gate.

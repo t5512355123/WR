@@ -131,8 +131,14 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set step [field_bits $burst_word 48 0xffff]
   set rt_state [field_bits $dco_word 0 0x7]
   set gap INVALID
+  set quantized_settled UNKNOWN
   if {$target ne "INVALID" && $applied ne "INVALID"} {
     set gap [expr {$target - $applied}]
+    if {[expr {abs($gap) < 34}]} {
+      set quantized_settled PASS
+    } else {
+      set quantized_settled NOT_SETTLED
+    }
   }
 
   if {$sample == 1} {
@@ -142,8 +148,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::tracker_last($hardware_name) [list $target $applied $normal_req $normal_done]
   set ::burst_last($hardware_name) [list $trigger $forced_pending $forced_done $step]
 
-  puts [format "STEP5_TRACKER_SAMPLE board=%s sample=%03d elapsed_ms=%d TRACKER_RAW=%s TARGET_CODE=%s APPLIED_CODE=%s TARGET_MINUS_APPLIED=%s NORMAL_HPLL_REQUEST_COUNT=%s NORMAL_HPLL_COMPLETED_COUNT=%s BURST_RAW=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s DCO_STEP_COUNT=%s RT_STATE=%s PSTAT=%s HELPER_STATE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s TAG_COUNT=%s" \
-    $hardware_name $sample $elapsed_ms [display64 $tracker_raw] $target $applied $gap $normal_req $normal_done \
+  puts [format "STEP5_TRACKER_SAMPLE board=%s sample=%03d elapsed_ms=%d TRACKER_RAW=%s TARGET_CODE=%s APPLIED_CODE=%s TARGET_MINUS_APPLIED=%s QUANTIZED_SETTLED=%s NORMAL_HPLL_REQUEST_COUNT=%s NORMAL_HPLL_COMPLETED_COUNT=%s BURST_RAW=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s DCO_STEP_COUNT=%s RT_STATE=%s PSTAT=%s HELPER_STATE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s TAG_COUNT=%s" \
+    $hardware_name $sample $elapsed_ms [display64 $tracker_raw] $target $applied $gap $quantized_settled $normal_req $normal_done \
     [display64 $burst_raw] $trigger $forced_pending $forced_done $step $rt_state $pstat $helper_state $helper_error $helper_output $tag_count]
   flush stdout
 }
@@ -170,17 +176,23 @@ proc emit_delta {hardware_name} {
   set final_gap [expr {$t1 - $a1}]
   set progress "INCONCLUSIVE"
   if {abs($final_gap) < abs($initial_gap)} { set progress "TOWARD_TARGET" }
-  if {$dr == $dc && $dc > 0 && $db == 0 && $dp == 0 && $df == 0} {
-    set transaction_accounting "PASS"
+  if {$dc == 0 && abs($final_gap) < 34 &&
+      $db == 0 && $dp == 0 && $df == 0} {
+    set transaction_accounting "PASS_SETTLED"
+  } elseif {$dr == $dc && $dc > 0 && $db == 0 && $dp == 0 && $df == 0 &&
+            (abs($da) == (34 * $dc))} {
+    set transaction_accounting "PASS_QUANTIZED_NET"
   } else {
-    set transaction_accounting "CHECK"
+    set transaction_accounting "CHECK_FINE_GRAIN"
   }
-  puts [format "STEP5_TRACKER_DELTA board=%s TARGET_DELTA=%d APPLIED_DELTA=%d NORMAL_REQUEST_DELTA=%d NORMAL_COMPLETED_DELTA=%d BURST_TRIGGER_DELTA=%d FORCED_PENDING_DELTA=%d FORCED_COMPLETED_DELTA=%d DCO_STEP_DELTA=%d INITIAL_TARGET_MINUS_APPLIED=%d FINAL_TARGET_MINUS_APPLIED=%d TRACKER_PROGRESS=%s NORMAL_TRANSACTION_ACCOUNTING=%s" \
-    $hardware_name $dt $da $dr $dc $db $dp $df $ds $initial_gap $final_gap $progress $transaction_accounting]
+  set quantized_settled "NOT_SETTLED"
+  if {abs($final_gap) < 34} { set quantized_settled "PASS" }
+  puts [format "STEP5_TRACKER_DELTA board=%s TARGET_DELTA=%d APPLIED_DELTA=%d NORMAL_REQUEST_DELTA=%d NORMAL_COMPLETED_DELTA=%d BURST_TRIGGER_DELTA=%d FORCED_PENDING_DELTA=%d FORCED_COMPLETED_DELTA=%d DCO_STEP_DELTA=%d INITIAL_TARGET_MINUS_APPLIED=%d FINAL_TARGET_MINUS_APPLIED=%d QUANTIZED_SETTLED=%s TRACKER_PROGRESS=%s NORMAL_TRANSACTION_ACCOUNTING=%s" \
+    $hardware_name $dt $da $dr $dc $db $dp $df $ds $initial_gap $final_gap $quantized_settled $progress $transaction_accounting]
   flush stdout
 }
 
-puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ABSOLUTE-TARGET-TRACKER-CLOSED-LOOP-20260830 read_only=1 probe=39" $samples $gap_ms $board_filter]
+puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-TRACKER-34-QUANTIZED-RESIDUAL-CLOSED-LOOP-20260830 read_only=1 probe=39" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

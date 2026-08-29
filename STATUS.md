@@ -1,5 +1,34 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step4B Slave SoftPLL Startup 實驗線（2026-08-29，branch `exp/step4b-slave-softpll-startup`）
+
+本輪從 exact `main@5578d3ce06461cc9c598e6bf97b890bf440a70b8` 建立 Step4B
+實驗線。分支4最新建議要求把原本 Slave 的 `PASSIVE_CONTROL` 改成真正的
+Slave SoftPLL Startup gate；目前已完成 laptop 端的唯讀 dashboard 語義修正與
+實驗紀錄骨架，尚未完成 pain fresh build/program/觀測，因此不能宣告 Step4B
+PASS。
+
+本輪唯一程式變更是 `scripts/jtag/read_wb_runtime.tcl`：
+
+- 保留 Master 的 Step4A event-chain closure。
+- Slave 改為 `LOCK -> WRS_S_LOCK -> locking_enable() -> spll_init(SLAVE)`
+  的 Step4B startup/evidence gate。
+- 新增 `LOCK_ENABLE_COUNT`、`SPLL_INIT_COUNT`、`SPLL_MODE`、sequencer、
+  state visit/transition/last state、`RCER/OCER/OCCR` 唯讀輸出。
+- 若 Step1/2/3 未全部成立，輸出 `STEP4B_ALLOWED=NO` 與上游 blocker，
+  不把上游缺失誤判成 SoftPLL FAIL。
+- 只有 startup、DMTD→TAG→TRR write/pop→IRQ→helper 與 reset guards 全部
+  成立，才輸出 `STEP4B_RESULT=PASS`。
+
+完整實驗紀錄：
+`docs/experiments/exp-step4b-slave-softpll-startup/EXP-WRPC-STEP4B-SLAVE-SOFTPLL-STARTUP-BASELINE-20260829.md`
+
+```text
+STEP4A_RESULT = PENDING_RUNTIME_OBSERVATION
+STEP4B_ALLOWED = PENDING_RUNTIME_OBSERVATION
+STEP4B_RESULT = NOT_YET_EVALUATED
+```
+
 ## 最新 WP0 parser offset prediction 實驗（2026-08-27，source/program commit `bf628b9`）
 
 本輪依分支 2 最新建議執行 WP0。唯一 functional variable 是 Master

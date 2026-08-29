@@ -18,8 +18,12 @@ array set ::snap {}
 array set ::board_name {}
 array set ::step_status {}
 array set ::first_anomaly {}
+array set ::step4b_allowed {}
+array set ::step4b_result {}
+array set ::step4b_boundary {}
 set ::step4_master_status INFO
 set ::step4_master_name ""
+set ::step4a_master_status INFO
 set ::board_count 0
 set ::raw_mode 0
 set ::max_read_attempts 5
@@ -362,6 +366,35 @@ proc required_zero_delta_status {value} {
   return "FAIL"
 }
 
+proc spll_sequence_status {value} {
+  # SEQ_DISABLED (7) and the zero-initialized diagnostic value are not
+  # acceptable evidence of a started SoftPLL.  Values 1..6 and 8..10 are
+  # source-defined active/terminal startup states.
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric == 0 || $numeric == 7} { return "FAIL" }
+  if {$numeric >= 1 && $numeric <= 10} { return "PASS" }
+  return "WARN"
+}
+
+proc nonzero_state_status {value} {
+  set numeric [numeric_value $value]
+  if {$numeric eq ""} { return "INVALID" }
+  if {$numeric > 0} { return "PASS" }
+  return "FAIL"
+}
+
+proc step4b_first_inactive_boundary {accepted_delta tag_delta trr_write_delta \
+                                      trr_pop_delta irq_delta helper_delta} {
+  if {![numeric_greater_than $accepted_delta 0]} { return "DMTD_ACCEPT" }
+  if {![numeric_greater_than $tag_delta 0]} { return "DMTD_ACCEPT_TO_TAG" }
+  if {![numeric_greater_than $trr_write_delta 0]} { return "TAG_TO_TRR_WRITE" }
+  if {![numeric_greater_than $trr_pop_delta 0]} { return "TRR_WRITE_TO_TRR_POP" }
+  if {![numeric_greater_than $irq_delta 0]} { return "TRR_POP_TO_IRQ" }
+  if {![numeric_greater_than $helper_delta 0]} { return "IRQ_TO_HELPER_UPDATE" }
+  return "ACTIVE"
+}
+
 proc probe_byte_counter_hex {value bit} {
   set numeric [probe_byte64 $value $bit]
   if {$numeric < 0} { return "INVALID" }
@@ -610,7 +643,11 @@ proc collect_snapshot {board label} {
   put_snap $board $label spll_state [wb_read_critical 0x00100AA0]
   put_snap $board $label spll_ocer [wb_read_critical 0x00100AA4]
   put_snap $board $label spll_rcer [wb_read_critical 0x00100AA8]
+  put_snap $board $label spll_occr [wb_read_critical 0x00100AAC]
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
+  put_snap $board $label spll_state_visit_mask [wb_read 0x00100AE0]
+  put_snap $board $label spll_state_transitions [wb_read 0x00100AE4]
+  put_snap $board $label spll_last_state [wb_read 0x00100AE8]
   put_snap $board $label dmtd_ref [wb_read 0x00100298]
   put_snap $board $label dmtd_fb [wb_read 0x0010029C]
   # Read-only aliases added for the functional WAIT_STABLE_0 stab_cntr max.
@@ -627,6 +664,7 @@ proc collect_snapshot {board label} {
   put_snap $board $label trr_pop [wb_read 0x00100B54]
   put_snap $board $label irq [wb_read 0x00100AEC]
   put_snap $board $label helper_update [wb_read 0x00100B18]
+  put_snap $board $label spll_init_count [wb_read 0x00100B44]
   put_snap $board $label eic_isr [wb_read 0x0010026C]
   put_snap $board $label current_tics [wb_read 0x00100B3C]
 }
@@ -986,7 +1024,7 @@ proc analyze_board {board} {
   # --------------------------------------------------------------
   puts ""
   if {$role eq "MASTER"} {
-    puts "## \[Step 4\] SoftPLL Event Chain"
+    puts "## \[Step 4A\] Master SoftPLL Event Chain"
     set step4 PASS
 
     # Match the validated closure reader: the accepted event is the sum of
@@ -1051,24 +1089,210 @@ proc analyze_board {board} {
       print_delta $current "Step 4 reset/re-entry guard" $symbol \
         $b $a $d "closure reader requires zero reset/re-entry delta" "Δ=0"
     }
-    puts [format "STEP4_EVENT_CHAIN = %s" $step4]
+    puts [format "STEP4A_MASTER_EVENT_CHAIN = %s" $step4]
+    set ::step4_master_status $step4
+    set ::step4_master_name $name
     if {$step4 ne "PASS"} { mark_anomaly $board 4 $step4 "SoftPLL accepted-event chain" }
   } elseif {$role ne "SLAVE"} {
-    puts "## \[Step 4\] SoftPLL Event Chain"
+    puts "## \[Step 4\] SoftPLL Startup"
     set step4 INFO
+    set ::step4b_allowed($board) NO
+    set ::step4b_result($board) NOT_APPLICABLE
+    set ::step4b_boundary($board) NOT_APPLICABLE
   } else {
-    # The validated Step 4 closure experiment intentionally stimulates and
-    # judges the Master only. The Slave is a passive control board here;
-    # do not turn its expected lack of active SoftPLL counters into an error.
-    puts "## \[Step 4\] SoftPLL Event Chain (Master-owned)"
-    set step4 INFO
-    print_signal INFO "Slave Step 4 role" STEP4_ROLE \
-      "PASSIVE_CONTROL" "Master owns event-chain gate" \
-      "Slave is intentionally passive and is not an independent Step 4 PASS claim."
-    puts "Step 4 PASSIVE_CONTROL (Master owns event-chain gate)"
+    puts "## \[Step 4B\] Slave SoftPLL Startup"
+
+    # Step 4B is a gated Slave milestone.  A single dashboard observation is
+    # deliberately not allowed to convert absent upstream service into a
+    # SoftPLL failure claim.
+    set step4b_allowed [expr {$::step_status($board,1) eq "PASS" &&
+                              $::step_status($board,2) eq "PASS" &&
+                              $::step_status($board,3) eq "PASS" ? "YES" : "NO"}]
+    set ::step4b_allowed($board) $step4b_allowed
+
+    if {$step4b_allowed eq "NO"} {
+      if {$::step_status($board,1) ne "PASS"} {
+        set blocker BLOCKED_BY_STEP1
+      } elseif {$::step_status($board,2) ne "PASS"} {
+        set blocker BLOCKED_BY_STEP2
+      } else {
+        set blocker BLOCKED_BY_STEP3
+      }
+      set step4 INFO
+      set ::step4b_result($board) $blocker
+      set ::step4b_boundary($board) UPSTREAM_PREREQUISITE
+      print_signal INFO "Step4B upstream gate" STEP4B_UPSTREAM_GATE \
+        "BLOCKED" "Step1=PASS,Step2=PASS,Step3=PASS" \
+        "Step4B is not evaluated until the Slave upstream PHY/PTP/WR gates are established."
+      puts [format "STEP4B_ALLOWED = NO"]
+      puts [format "STEP4B_RESULT = %s" $blocker]
+      puts "STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE"
+      puts "Step 4B BLOCKED (upstream prerequisite)"
+    } else {
+      # ------------------------------------------------------------
+      # Startup control evidence: LOCK -> WRS_S_LOCK -> locking_enable()
+      # -> spll_init(SLAVE) -> active sequencer/RCER/OCER.
+      # ------------------------------------------------------------
+      set spll_state_word [word32 [get_snap $board $after spll_state]]
+      set spll_mode [field32 $spll_state_word 16 8]
+      set spll_align [field32 $spll_state_word 8 8]
+      set spll_seq [field32 $spll_state_word 0 8]
+      set lock_enable [word32 [get_snap $board $after lock_enable]]
+      set spll_init [word32 [get_snap $board $after spll_init_count]]
+      set spll_visit [word32 [get_snap $board $after spll_state_visit_mask]]
+      set spll_transitions [word32 [get_snap $board $after spll_state_transitions]]
+      set spll_last [word32 [get_snap $board $after spll_last_state]]
+      set spll_ocode [word32 [get_snap $board $after spll_ocer]]
+      set spll_rcode [word32 [get_snap $board $after spll_rcer]]
+      set spll_occr_code [word32 [get_snap $board $after spll_occr]]
+
+      set startup_status PASS
+      set current [required_positive_status $lock_enable]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "LOCK_ENABLE_COUNT" LOCK_ENABLE_COUNT \
+        [display_value $lock_enable] "> 0" \
+        "wrpc_spll_locking_enable() entry counter。"
+      set current [exact_status $spll_mode 3]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "SoftPLL mode" SPLL_MODE \
+        [format "%s (%s)" [display_value $spll_mode] [spll_mode_name $spll_mode]] \
+        "3 SPLL_MODE_SLAVE" "spll_init(SPLL_MODE_SLAVE, ...) 的 source-backed shadow。"
+      set current [spll_sequence_status $spll_seq]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "SoftPLL sequencer" SPLL_SEQ_STATE \
+        [format "%s (%s)" [display_value $spll_seq] [state_name $spll_seq]] \
+        "active, not 0/7" "SEQ_DISABLED=7；0 是未初始化診斷值。"
+      set current [nonzero_state_status $spll_visit]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "SoftPLL state visits" SPLL_STATE_VISIT_MASK \
+        [format "0x%08X" $spll_visit] "> 0" \
+        "state visit mask proves the sequencer entered a source-defined state。"
+      set current [required_positive_status $spll_init]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "SoftPLL init count" SPLL_INIT_COUNT \
+        [display_value $spll_init] "> 0" \
+        "spll_init() entry counter。"
+      set current [required_positive_status $spll_rcode]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "Reference channel enable" RCER \
+        [format "0x%08X" $spll_rcode] "> 0" \
+        "SoftPLL RCER readback after Slave startup。"
+      set current [required_positive_status $spll_ocode]
+      set startup_status [merge_status $startup_status $current]
+      print_signal $current "Output channel enable" OCER \
+        [format "0x%08X" $spll_ocode] "> 0" \
+        "SoftPLL OCER readback after spll_init()。"
+      print_signal INFO "Alignment state" SPLL_ALIGN_STATE \
+        [display_value $spll_align] "source-defined" \
+        "SoftPLL ext.align_state；不是 Step5 lock 判定。"
+      print_signal INFO "State transitions" SPLL_STATE_TRANSITIONS \
+        [format "0x%08X" $spll_transitions] "source-defined" \
+        "wrpc_spll_state_transition_count。"
+      set last_status [spll_sequence_status $spll_last]
+      print_signal INFO "Last sequencer state" SPLL_LAST_STATE \
+        [format "%s (%s)" [display_value $spll_last] [state_name $spll_last]] \
+        "source-defined" "診斷 shadow，不單獨宣告 Step5 lock。"
+      print_signal INFO "Output control register" OCCR \
+        [format "0x%08X" $spll_occr_code] "source-defined" \
+        "SoftPLL OCCR readback；保留作 startup context。"
+
+      # ------------------------------------------------------------
+      # Fixed-window event processing evidence.  This is downstream of
+      # startup and is required for a complete Step4B PASS.
+      # ------------------------------------------------------------
+      set ref_b [get_snap $board $before dmtd_ref]
+      set ref_a [get_snap $board $after dmtd_ref]
+      set ref_d [delta32 $ref_b $ref_a]
+      set fb_b [get_snap $board $before dmtd_fb]
+      set fb_a [get_snap $board $after dmtd_fb]
+      set fb_d [delta32 $fb_b $fb_a]
+      print_delta [delta_status $ref_d] "DMTD reference accepted event" DMTD_REF_ACCEPT_EVENT \
+        $ref_b $ref_a $ref_d "source-backed dmtd_event_sys REF counter" "Δ>=0"
+      print_delta [delta_status $fb_d] "DMTD feedback accepted event" DMTD_FB_ACCEPT_EVENT \
+        $fb_b $fb_a $fb_d "source-backed dmtd_event_sys FB counter" "Δ>=0"
+      set accepted_delta INVALID
+      if {[string is integer -strict $ref_d] && [string is integer -strict $fb_d]} {
+        set accepted_delta [expr {$ref_d + $fb_d}]
+      }
+      set event_status [required_delta_status $accepted_delta]
+      puts [format {[%s] %-24s 結果: Δ=%s/Δ>0} \
+        [status_text $event_status] DMTD_ACCEPT [display_value $accepted_delta]]
+
+      set tag_delta INVALID
+      set trr_write_delta INVALID
+      set trr_pop_delta INVALID
+      set irq_delta INVALID
+      set helper_delta INVALID
+      foreach counter {
+        {tag_valid tag SPLL_TAG_VALID_COUNT}
+        {trr_write TRR_WRITE SPLL_TRR_WRITE_COUNT}
+        {trr_pop trr_pop WRPC_SPLL_TRR_POP_COUNT}
+        {irq IRQ WDIAGS_IRQ_COUNT}
+        {helper_update HELPER_UPDATE WDIAGS_HELPER_UPDATE_COUNT}
+      } {
+        set field [lindex $counter 0]
+        set chinese [lindex $counter 1]
+        set symbol [lindex $counter 2]
+        set b [get_snap $board $before $field]
+        set a [get_snap $board $after $field]
+        set d [delta32 $b $a]
+        set current [required_delta_status $d]
+        set event_status [merge_status $event_status $current]
+        if {$field eq "tag_valid"} { set tag_delta $d }
+        if {$field eq "trr_write"} { set trr_write_delta $d }
+        if {$field eq "trr_pop"} { set trr_pop_delta $d }
+        if {$field eq "irq"} { set irq_delta $d }
+        if {$field eq "helper_update"} { set helper_delta $d }
+        print_delta $current $chinese $symbol $b $a $d \
+          "source-backed Step4B downstream event counter" "Δ>0"
+      }
+
+      set reset_status PASS
+      foreach counter {
+        {boot_generation BOOT_GENERATION}
+        {cpu_reset_count CPU_RESET_COUNT}
+        {wr_core_reset_count WR_CORE_RESET_COUNT}
+        {si_config_drop_count SI_CONFIG_DROP_COUNT}
+      } {
+        set field [lindex $counter 0]
+        set symbol [lindex $counter 1]
+        set b [get_snap $board $before $field]
+        set a [get_snap $board $after $field]
+        set d [delta32 $b $a]
+        set current [required_zero_delta_status $d]
+        set reset_status [merge_status $reset_status $current]
+        print_delta $current "Step4B reset/re-entry guard" $symbol \
+          $b $a $d "Step4B requires zero reset/re-entry delta" "Δ=0"
+      }
+
+      set ::step4b_boundary($board) \
+        [step4b_first_inactive_boundary $accepted_delta $tag_delta \
+          $trr_write_delta $trr_pop_delta $irq_delta $helper_delta]
+      if {$startup_status eq "PASS" && $event_status eq "PASS" &&
+          $reset_status eq "PASS"} {
+        set step4 PASS
+        set ::step4b_result($board) PASS
+      } elseif {$startup_status eq "PASS"} {
+        set step4 INFO
+        set ::step4b_result($board) STARTUP_PROVEN_EVENT_PROCESSING_NOT_PROVEN
+      } else {
+        set step4 INFO
+        set ::step4b_result($board) STARTUP_NOT_PROVEN
+        set ::step4b_boundary($board) SPLL_STARTUP
+      }
+      puts "STEP4B_ALLOWED = YES"
+      puts [format "STEP4B_RESULT = %s" $::step4b_result($board)]
+      puts [format "STEP4B_FIRST_INACTIVE_BOUNDARY = %s" $::step4b_boundary($board)]
+      if {$step4 eq "PASS"} {
+        puts "Step 4B pass"
+      } else {
+        puts [format "Step 4B %s" $::step4b_result($board)]
+      }
+    }
   }
   set ::step_status($board,4) $step4
   if {$role eq "MASTER"} {
+    set ::step4a_master_status $step4
     set ::step4_master_status $step4
     set ::step4_master_name $name
   }
@@ -1121,7 +1345,7 @@ proc analyze_board {board} {
     if {$step == 2} { set label "Endpoint / PTP" }
     if {$step == 3} { set label "WR Handshake" }
     if {$step == 4} {
-      set label [expr {$role eq "MASTER" ? "SoftPLL Event Chain" : "SoftPLL Startup"}]
+      set label [expr {$role eq "MASTER" ? "Step4A Master Event Chain" : "Step4B Slave SoftPLL Startup"}]
     }
     if {$step == 5} { set label "Closed-loop Lock" }
     if {$step == 6} { set label "Global Time" }
@@ -1130,7 +1354,16 @@ proc analyze_board {board} {
     if {$s eq "PASS"} { set shown "pass" }
     if {$s eq "WARN"} { set shown "error" }
     if {$s eq "FAIL"} { set shown "error" }
-    if {$step == 4 && $role eq "SLAVE"} { set shown "passive" }
+    if {$step == 4 && $role eq "SLAVE"} {
+      if {[info exists ::step4b_allowed($board)] &&
+          $::step4b_allowed($board) eq "NO"} {
+        set shown "blocked"
+      } elseif {$s eq "PASS"} {
+        set shown "pass"
+      } else {
+        set shown "NA"
+      }
+    }
     puts [format "Step %d %-22s %s" $step $label $shown]
   }
   set step1_reg [regression_status 1 $::step_status($board,1)]
@@ -1157,8 +1390,13 @@ proc analyze_board {board} {
     puts [format "STEP1_REGRESSION = %s" $step1_reg]
     puts [format "STEP2_REGRESSION = %s" $step2_reg]
     puts [format "STEP3_REGRESSION = %s" $step3_reg]
-    puts [format "STEP4_ALLOWED = %s" $step4_allowed]
-    puts [format "STEP4_EVENT_CHAIN = %s" $::step_status($board,4)]
+    if {$role eq "MASTER"} {
+      puts [format "STEP4A_RESULT = %s" $::step4a_master_status]
+    } elseif {$role eq "SLAVE"} {
+      puts [format "STEP4B_ALLOWED = %s" $::step4b_allowed($board)]
+      puts [format "STEP4B_RESULT = %s" $::step4b_result($board)]
+      puts [format "STEP4B_FIRST_INACTIVE_BOUNDARY = %s" $::step4b_boundary($board)]
+    }
     puts [format "FAILURE_CLASSIFICATION = %s" $failure_class]
   }
   puts "============================================================"
@@ -1171,7 +1409,9 @@ proc print_raw_snapshot {board label} {
     pps_cr pps_escr ep_mach ep_macl ep_dsr ptp ptp_rx ptp_tx ptp_meta \
     tx rx rxerr ptp_types foreign_meta filter_meta parse_meta wr_rx_signal \
     wr_tx_signal wr_failure wr_state wr_reject pstat sstat sec_h sec_l ns \
-    lock_enable spll_state spll_ocer spll_rcer spll_trr_csr dmtd_ref dmtd_fb \
+    lock_enable spll_state spll_ocer spll_rcer spll_occr spll_trr_csr \
+    spll_state_visit_mask spll_state_transitions spll_last_state \
+    spll_init_count dmtd_ref dmtd_fb \
     dmtd_ref_high_qual_abort dmtd_fb_high_qual_abort tag_valid trr_write irq \
     helper_update eic_isr current_tics} {
     puts [format "  %-16s = %s" $field [get_snap $board $label $field]]
@@ -1206,10 +1446,16 @@ foreach hardware_name [get_hardware_names] {
   catch { end_insystem_source_probe }
 }
 
-if {$::step4_master_name ne ""} {
+if {$::step4_master_name ne "" || [array size ::step4b_result] > 0} {
   puts ""
   puts "============================================================"
-  puts [format "STEP4_ACTIVE_BOARD_RESULT board=%s result=%s" \
-    $::step4_master_name $::step4_master_status]
+  if {$::step4_master_name ne ""} {
+    puts [format "STEP4A_RESULT = %s" $::step4a_master_status]
+  }
+  foreach board [array names ::step4b_result] {
+    puts [format "STEP4B_ALLOWED = %s" $::step4b_allowed($board)]
+    puts [format "STEP4B_RESULT = %s" $::step4b_result($board)]
+    puts [format "STEP4B_FIRST_INACTIVE_BOUNDARY = %s" $::step4b_boundary($board)]
+  }
   puts "============================================================"
 }

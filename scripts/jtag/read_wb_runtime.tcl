@@ -131,10 +131,16 @@ proc register_value_valid {addr value} {
       return [expr {$sequence <= 10 &&
                     $alignment <= 10 && $mode <= 3}]
     }
-    0x00100AA4 - 0x00100AA8 {
-      # The source-backed OCER/RCER readback uses the low control byte;
-      # reject a mailbox filler/torn word with unexpected upper bits.
-      return [expr {($word & 0xffffff00) == 0}]
+    0x00100AA4 {
+      # OCER[7:0] is the functional source field.  The hand-maintained
+      # spll_wb_slave.vhd exposes a live FB qualification counter in the
+      # otherwise undefined upper bits, so the full word is intentionally
+      # not stable and must not be constrained to zero.
+      return 1
+    }
+    0x00100AA8 {
+      # RCER is a full source-defined 32-bit control register.
+      return 1
     }
   }
   return 1
@@ -641,7 +647,9 @@ proc collect_snapshot {board label} {
   # 這些地址與既有 Step 4 read-only scripts/source mapping 一致。
   put_snap $board $label lock_enable [wb_read_critical 0x00100A9C]
   put_snap $board $label spll_state [wb_read_critical 0x00100AA0]
-  put_snap $board $label spll_ocer [wb_read_critical 0x00100AA4]
+  # OCER[7:0] is the functional field; the upper bits include a live
+  # diagnostic alias, so do not require the full word to be stable.
+  put_snap $board $label spll_ocer [wb_read_validated 0x00100AA4]
   put_snap $board $label spll_rcer [wb_read_critical 0x00100AA8]
   put_snap $board $label spll_occr [wb_read_critical 0x00100AAC]
   put_snap $board $label spll_trr_csr [wb_read 0x00100AB0]
@@ -1164,10 +1172,13 @@ proc analyze_board {board} {
       # Startup control evidence: LOCK -> WRS_S_LOCK -> locking_enable()
       # -> spll_init(SLAVE) -> active sequencer/RCER/OCER.
       # ------------------------------------------------------------
-      set spll_state_word [word32 [get_snap $board $after spll_state]]
-      set spll_mode [field32 $spll_state_word 16 8]
-      set spll_align [field32 $spll_state_word 8 8]
-      set spll_seq [field32 $spll_state_word 0 8]
+      # Keep the mailbox word as hexadecimal text while extracting fields.
+      # field32() performs the single hex parse; converting to a Tcl integer
+      # first would make field32() reinterpret its decimal rendering as hex.
+      set spll_state_raw [get_snap $board $after spll_state]
+      set spll_mode [field32 $spll_state_raw 16 8]
+      set spll_align [field32 $spll_state_raw 8 8]
+      set spll_seq [field32 $spll_state_raw 0 8]
       set lock_enable [word32 [get_snap $board $after lock_enable]]
       set spll_init [word32 [get_snap $board $after spll_init_count]]
       set spll_visit [word32 [get_snap $board $after spll_state_visit_mask]]

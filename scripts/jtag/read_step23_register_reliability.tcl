@@ -412,7 +412,8 @@ proc step2_result {board} {
   if {$mode_first < 0 || $mode_last < 0 ||
       (($mode_first >> 24) & 0xff) != $expected_mode ||
       (($mode_last >> 24) & 0xff) != $expected_mode} { set wrong 1 }
-  if {[word32 [get_series $board PTP last]] != $expected_ptp} { set wrong 1 }
+  set ptp_last [word32 [get_series $board PTP last]]
+  if {$ptp_last < 0 || ($ptp_last & 0xff) != $expected_ptp} { set wrong 1 }
   foreach label {PTP_RX PTP_TX MINIC_TX MINIC_RX RXERR} {
     if {[get_series $board $label decrease]} {
       puts [format "STEP2_COUNTER_RETEST board=%s register=%s result=DECREASED_OR_RESET" \

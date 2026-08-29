@@ -191,7 +191,10 @@ proc read_snapshot {hardware_name tag} {
   set preclamp [signed32 $preclamp_raw]
   set tag_delta [signed32 $tag_delta_raw]
   set expected_delta [signed32 $expected_delta_raw]
-  set helper_update [expr {[word64 $helper_update_raw] & 0xffffffff}]
+  # WDIAGS_HELPER_UPDATE_COUNT is a 16-bit monotonic counter in the
+  # diagnostic register map; compare it modulo 2^16 so a window crossing
+  # 0xffff remains valid.
+  set helper_update [expr {[word64 $helper_update_raw] & 0xffff}]
   set tag_minus_expected INVALID
   if {$tag_delta ne "INVALID" && $expected_delta ne "INVALID"} {
     set tag_minus_expected [expr {$tag_delta - $expected_delta}]
@@ -251,7 +254,7 @@ foreach hardware_name [get_hardware_names] {
     set a_last [snapshot_key $hardware_name [format "A%02d" $baseline_seconds]]
     puts [format "STEP5_ZERO_BACKGROUND board=%s DELTA_HELPER_UPDATE_COUNT=%s DELTA_PRECLAMP_ERROR=%s" \
       $hardware_name \
-      [expr {$snap_helper_update($a_last) - $snap_helper_update($a0)}] \
+      [expr {($snap_helper_update($a_last) - $snap_helper_update($a0)) & 0xffff}] \
       [expr {$snap_preclamp($a_last) - $snap_preclamp($a0)}]]
 
     read_snapshot $hardware_name B_BEFORE
@@ -301,7 +304,7 @@ foreach hardware_name [get_hardware_names] {
         read_snapshot $hardware_name $tag
         set key [snapshot_key $hardware_name $tag]
         set settle_tag $tag
-        if {[expr {($snap_helper_update($key) - $settle_start) & 0xffffffff}] >= $settle_updates} {
+        if {[expr {($snap_helper_update($key) - $settle_start) & 0xffff}] >= $settle_updates} {
           set settled 1
           set completion_key $key
           break
@@ -330,7 +333,7 @@ foreach hardware_name [get_hardware_names] {
       read_snapshot $hardware_name $tag
       set key [snapshot_key $hardware_name $tag]
       set window_last $key
-      set window_seen [expr {($snap_helper_update($key) - $start_update) & 0xffffffff}]
+      set window_seen [expr {($snap_helper_update($key) - $start_update) & 0xffff}]
       if {$snap_tag_minus_expected($key) ne "INVALID"} {
         set tag_sum [expr {$tag_sum + $snap_tag_minus_expected($key)}]
         incr tag_samples
@@ -338,7 +341,7 @@ foreach hardware_name [get_hardware_names] {
     }
 
     set window_end $window_last
-    set helper_delta [expr {($snap_helper_update($window_end) - $snap_helper_update($window_start)) & 0xffffffff}]
+    set helper_delta [expr {($snap_helper_update($window_end) - $snap_helper_update($window_start)) & 0xffff}]
     set preclamp_delta [expr {$snap_preclamp($window_end) - $snap_preclamp($window_start)}]
     set freq_error INVALID
     if {$helper_delta > 0} { set freq_error [expr {$preclamp_delta / $helper_delta}] }

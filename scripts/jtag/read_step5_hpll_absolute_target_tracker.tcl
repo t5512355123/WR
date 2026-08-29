@@ -25,8 +25,10 @@ package require ::quartus::insystem_source_probe
 set samples 120
 set gap_ms 1000
 set poll_attempts 25
+set board_filter ""
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
+if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
 if {$samples <= 0 || $gap_ms < 0} {
   error "samples must be > 0 and gap_ms must be >= 0"
 }
@@ -178,9 +180,10 @@ proc emit_delta {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_CONFIG samples=%d gap_ms=%d experiment=EXP-WRPC-STEP5-HPLL-ABSOLUTE-TARGET-TRACKER-CLOSED-LOOP-20260830 read_only=1 probe=39" $samples $gap_ms]
+puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ABSOLUTE-TARGET-TRACKER-CLOSED-LOOP-20260830 read_only=1 probe=39" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
+  if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
   set device_name [lindex $device_names 0]

@@ -61,13 +61,18 @@ proc is_hex {value} {
 proc word64 {value} {
   if {![is_hex $value]} { return -1 }
   scan $value %x word
+  # Quartus Tcl may return a 64-bit probe word as a signed wide integer.
+  # Normalize valid words with bit 63 set to a positive Tcl bignum so the
+  # field decoders do not confuse them with the INVALID sentinel.
+  if {$word < 0} {
+    set word [expr {$word + 0x10000000000000000}]
+  }
   return $word
 }
 
 proc display64 {value} {
-  set word [word64 $value]
-  if {$word < 0} { return $value }
-  return [format %016X $word]
+  if {![is_hex $value]} { return $value }
+  return [string toupper $value]
 }
 
 proc field_bit {word bit_index} {

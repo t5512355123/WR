@@ -292,10 +292,12 @@ always @(posedge iCLK or negedge iRST_n) begin
     if (force_hpll_rise && !force_hpll_seen) begin
       force_hpll_seen <= 1'b1;
       force_trigger_count <= force_trigger_count + 1'b1;
-      // The trigger is intentionally accepted only at the same-code,
-      // ready, idle boundary.  Direction remains the existing hpll_dir.
+      // The trigger is intentionally accepted only at the ready, idle
+      // boundary.  It bypasses the normal data-change guard so the JTAG
+      // experiment can prove the pending-to-step path directly.  Direction
+      // remains the existing hpll_dir.
       if (static_controller_ready && hpll_prev_valid &&
-          (iHPLL_DATA == hpll_prev_data) && (rt_state == 3'd0)) begin
+          (rt_state == 3'd0)) begin
         hpll_pending <= 1'b1;
         forced_pending_count <= forced_pending_count + 1'b1;
       end

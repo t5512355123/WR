@@ -193,37 +193,36 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     set event_probe [probe_read 36]
-    if {![is_hex $event_probe]} {
+    if {[is_hex $event_probe]} {
+      # A: hold the dedicated source low and prove no spontaneous step.
+      force_source_write 0
+      wb_sync_toggle $hardware_name
+      read_snapshot $hardware_name A0
+      for {set n 1} {$n <= $a_seconds} {incr n} {
+        after 1000
+        read_snapshot $hardware_name [format "A%02d" $n]
+      }
+      delta_line $hardware_name A0 [format "A%02d" $a_seconds]
+
+      # B: capture the trigger baseline, then issue exactly one 0->1->0 pulse.
+      read_snapshot $hardware_name B_BEFORE
+      force_source_write 1
+      force_source_write 0
+      puts [format "STEP5_TRIGGERED_PULSE board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0" $hardware_name]
+      flush stdout
+      for {set n 1} {$n <= $b_seconds} {incr n} {
+        after 1000
+        read_snapshot $hardware_name [format "B%02d" $n]
+      }
+      read_snapshot $hardware_name B_AFTER
+      delta_line $hardware_name B_BEFORE B_AFTER
+      delta_line $hardware_name A0 B_BEFORE
+      puts [format "STEP5_TRIGGERED_DONE board=%s" $hardware_name]
+      flush stdout
+    } else {
       puts [format "STEP5_TRIGGERED_SKIP board=%s reason=probe36_unavailable" $hardware_name]
-      catch { end_insystem_source_probe }
-      continue
+      flush stdout
     }
-
-    # A: hold the dedicated source low and prove no spontaneous step.
-    force_source_write 0
-    wb_sync_toggle $hardware_name
-    read_snapshot $hardware_name A0
-    for {set n 1} {$n <= $a_seconds} {incr n} {
-      after 1000
-      read_snapshot $hardware_name [format "A%02d" $n]
-    }
-    delta_line $hardware_name A0 [format "A%02d" $a_seconds]
-
-    # B: capture the trigger baseline, then issue exactly one 0->1->0 pulse.
-    read_snapshot $hardware_name B_BEFORE
-    force_source_write 1
-    force_source_write 0
-    puts [format "STEP5_TRIGGERED_PULSE board=%s source=FORCE_HPLL_ONE_STEP transition=0->1->0" $hardware_name]
-    flush stdout
-    for {set n 1} {$n <= $b_seconds} {incr n} {
-      after 1000
-      read_snapshot $hardware_name [format "B%02d" $n]
-    }
-    read_snapshot $hardware_name B_AFTER
-    delta_line $hardware_name B_BEFORE B_AFTER
-    delta_line $hardware_name A0 B_BEFORE
-    puts [format "STEP5_TRIGGERED_DONE board=%s" $hardware_name]
-    flush stdout
   } error_message]} {
     puts [format "STEP5_TRIGGERED_ERROR board=%s message=%s" $hardware_name $error_message]
   }

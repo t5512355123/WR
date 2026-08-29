@@ -455,9 +455,14 @@ always @(posedge iCLK or negedge iRST_n) begin
         end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                      static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
-                     (hpll_applied_code != hpll_target_code)) begin
+                     (((hpll_target_code > hpll_applied_code) &&
+                       ((hpll_target_code - hpll_applied_code) >= 16'd34)) ||
+                      ((hpll_applied_code > hpll_target_code) &&
+                       ((hpll_applied_code - hpll_target_code) >= 16'd34)))) begin
           // Normal HPLL closed-loop path: admit only one outstanding
-          // transaction and recompute direction from the latest target.
+          // transaction, but only when the residual spans a complete
+          // physical DCO step.  A sub-step residual is retained until a
+          // later target update moves it across the quantization boundary.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b0;
           hpll_pending_forced_reverse <= 1'b0;
@@ -507,24 +512,16 @@ always @(posedge iCLK or negedge iRST_n) begin
             current_request_forced <= 1'b0;
           end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                        !rt_select_dpll && hpll_tracker_initialized) begin
-            // One physical FINC/FDEC has not been proven to equal one WR
-            // DAC code.  Use the branch-approved 34-code virtual mapping,
-            // saturating to the latest target so the tracker never overshoots
-            // or wraps when the helper target changes between transactions.
+            // One physical FINC/FDEC maps to exactly 34 virtual WR DAC
+            // codes.  Keep the virtual position quantized: a completed
+            // physical transaction always advances it by exactly one full
+            // 34-code step.  The admission guard above prevents a
+            // sub-step request, so no partial credit or target snap is
+            // allowed here.
             if (rt_dir) begin
-              if (hpll_target_code <= hpll_applied_code)
-                hpll_applied_code <= hpll_target_code;
-              else if ((hpll_target_code - hpll_applied_code) <= 16'd34)
-                hpll_applied_code <= hpll_target_code;
-              else
-                hpll_applied_code <= hpll_applied_code + 16'd34;
+              hpll_applied_code <= hpll_applied_code + 16'd34;
             end else begin
-              if (hpll_target_code >= hpll_applied_code)
-                hpll_applied_code <= hpll_target_code;
-              else if ((hpll_applied_code - hpll_target_code) <= 16'd34)
-                hpll_applied_code <= hpll_target_code;
-              else
-                hpll_applied_code <= hpll_applied_code - 16'd34;
+              hpll_applied_code <= hpll_applied_code - 16'd34;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
           end

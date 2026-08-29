@@ -1533,7 +1533,7 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

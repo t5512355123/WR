@@ -1438,7 +1438,7 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

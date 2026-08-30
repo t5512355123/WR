@@ -4,7 +4,7 @@
 # not write a functional control register.  The private WDIAGS words at
 # 0x1e0..0x1fc are used as a temporary attribution overlay:
 #   0x1e0..0x1ec : last reason/mode/flags/tics
-#   0x1f0..0x1fc : sixteen 16-bit reason counters, packed two per word
+#   0x1f0..0x1fc : sixteen 8-bit reason counters, packed four per word
 #
 # Usage:
 #   quartus_stp -t read_step5_spll_reinit_causality_audit.tcl ?samples? ?gap_ms? ?board_filter?
@@ -215,12 +215,14 @@ proc read_reason_snapshot {hardware_name} {
     set last_flags [word32 [wb_read $hardware_name 0x00100BE8]]
     set last_tics [word32 [wb_read $hardware_name 0x00100BEC]]
     set counters {}
-    for {set i 0} {$i < 8} {incr i} {
-      set packed [word32 [wb_read $hardware_name [expr {0x00100BF0 + $i * 4}]]]
-      if {$packed < 0} {
-        lappend counters INVALID INVALID
-      } else {
-        lappend counters [expr {$packed & 0xffff}] [expr {($packed >> 16) & 0xffff}]
+  for {set i 0} {$i < 4} {incr i} {
+    set packed [word32 [wb_read $hardware_name [expr {0x00100BF0 + $i * 4}]]]
+    if {$packed < 0} {
+      lappend counters INVALID INVALID INVALID INVALID
+    } else {
+      for {set j 0} {$j < 4} {incr j} {
+        lappend counters [expr {($packed >> ($j * 8)) & 0xff}]
+      }
       }
     }
     set stamp_after [word32 [wb_read $hardware_name 0x00100BEC]]
@@ -391,7 +393,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_SPLL_REINIT_CAUSALITY_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6208-64-SPLL-REINIT-CAUSALITY-AUDIT read_only_observer=1 shell_commands=0 bootstrap_steps=6208 normal_hpll_tracker=1 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 reason_overlay=0x00100BE0..0x00100BFC packed_reason_counter_width=16" $samples $gap_ms $board_filter]
+puts [format "STEP5_SPLL_REINIT_CAUSALITY_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6208-64-SPLL-REINIT-CAUSALITY-AUDIT read_only_observer=1 shell_commands=0 bootstrap_steps=6208 normal_hpll_tracker=1 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 reason_overlay=0x00100BE0..0x00100BFC packed_reason_counter_width=8" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

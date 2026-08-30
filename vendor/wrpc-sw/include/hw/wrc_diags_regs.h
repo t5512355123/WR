@@ -128,8 +128,8 @@
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT 0x120UL
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT 0x124UL
 
-/* Private read-only SoftPLL re-init attribution overlay.  The eight
- * reason-counter words pack two 16-bit counters per word. */
+/* Private read-only SoftPLL re-init attribution overlay.  The four
+ * reason-counter words pack four 8-bit counters per word. */
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON       0x1e0UL
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_MODE         0x1e4UL
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_FLAGS        0x1e8UL

@@ -903,6 +903,7 @@ void wdiags_write_wr_spll_reinit_debug(uint32_t last_reason,
 						uint32_t reason_count)
 {
 	uint32_t i;
+	uint32_t j;
 	uint32_t packed;
 
 	/* Claim the 0x1e0..0x1fc overlay for this read-only audit. */
@@ -916,11 +917,12 @@ void wdiags_write_wr_spll_reinit_debug(uint32_t last_reason,
 			last_reason_tics);
 	if (reason_count > WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT)
 		reason_count = WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT;
-	for (i = 0; i < reason_count; i += 2) {
-		packed = reason_counts[i] & 0xffff;
-		if (i + 1 < reason_count)
-			packed |= (reason_counts[i + 1] & 0xffff) << 16;
-		wdiag_write(WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNTS + (i / 2) * 4,
+	for (i = 0; i < reason_count; i += 4) {
+		packed = 0;
+		for (j = 0; j < 4 && i + j < reason_count; j++)
+			packed |= (reason_counts[i + j] > 0xff ? 0xff :
+				   reason_counts[i + j]) << (j * 8);
+		wdiag_write(WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNTS + (i / 4) * 4,
 				packed);
 	}
 }

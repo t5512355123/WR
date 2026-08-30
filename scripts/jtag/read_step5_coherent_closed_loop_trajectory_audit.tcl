@@ -360,6 +360,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   foreach {position_ok position_epoch target applied finc fdec normal_done dco_step bootstrap_completed} $position break
   set tracker_word [word64 [probe_read 39]]
   set burst_word [word64 [probe_read 37]]
+  set burst_wide_word [word64 [probe_read 41]]
   set bootstrap_word [word64 [probe_read 42]]
   set entry_probe [probe_read 26]
   set reset_probe [probe_read 27]
@@ -374,7 +375,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set normal_req [expr {$tracker_word < 0 ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
   set forced_trigger [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 0) & 0xff)}]
   set forced_pending [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 8) & 0xff)}]
-  set forced_done [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 16) & 0xffff)}]
+  # Probe 37 exposes only the low 8 bits in this field. Probe 41 carries the
+  # complete 16-bit forced-completion counter used for post-bootstrap deltas.
+  set forced_done [expr {$burst_wide_word < 0 ? "INVALID" : (($burst_wide_word >> 32) & 0xffff)}]
   set bootstrap_probe [expr {$bootstrap_word < 0 ? "INVALID" : (($bootstrap_word >> 16) & 0xffff)}]
   set bootstrap_done [expr {$bootstrap_word < 0 ? "INVALID" : (($bootstrap_word >> 33) & 1)}]
   set entry_generation [probe_high32 $entry_probe]

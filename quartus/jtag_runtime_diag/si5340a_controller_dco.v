@@ -8,6 +8,7 @@ parameter integer ENABLE_JTAG_HPLL_BURST = 0,
 parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
 parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
 parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
+parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
 parameter integer JTAG_HPLL_BURST_SIZE = 32
 )(
 input                   iCLK,
@@ -267,7 +268,8 @@ end
 
 // Step5 bootstrap evidence.  The bootstrap is intentionally separate from
 // the normal tracker: after fresh-program, it applies the measured physical
-// zero-point offset before any normal 34-code transaction is admitted.
+// zero-point offset before any normal quantized tracker transaction is
+// admitted.
 // [15:0] remaining bootstrap steps, [31:16] completed bootstrap steps,
 // bit 32 started, bit 33 done, bit 34 pending, bit 35 current transaction.
 always @* begin
@@ -530,9 +532,9 @@ always @(posedge iCLK or negedge iRST_n) begin
                      static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
                      (((hpll_target_code > hpll_applied_code) &&
-                       ((hpll_target_code - hpll_applied_code) >= 16'd34)) ||
+                       ((hpll_target_code - hpll_applied_code) >= HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0])) ||
                       ((hpll_applied_code > hpll_target_code) &&
-                       ((hpll_applied_code - hpll_target_code) >= 16'd34)))) begin
+                       ((hpll_applied_code - hpll_target_code) >= HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0])))) begin
           // Normal HPLL closed-loop path: admit only one outstanding
           // transaction, but only when the residual spans a complete
           // physical DCO step.  A sub-step residual is retained until a
@@ -595,16 +597,17 @@ always @(posedge iCLK or negedge iRST_n) begin
             current_request_forced <= 1'b0;
           end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                        !rt_select_dpll && hpll_tracker_initialized) begin
-            // One physical FINC/FDEC maps to exactly 34 virtual WR DAC
+            // One physical FINC/FDEC maps to exactly one configured number
+            // of virtual WR DAC
             // codes.  Keep the virtual position quantized: a completed
             // physical transaction always advances it by exactly one full
-            // 34-code step.  The admission guard above prevents a
+            // physical-step code.  The admission guard above prevents a
             // sub-step request, so no partial credit or target snap is
             // allowed here.
             if (rt_dir) begin
-              hpll_applied_code <= hpll_applied_code + 16'd34;
+              hpll_applied_code <= hpll_applied_code + HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
             end else begin
-              hpll_applied_code <= hpll_applied_code - 16'd34;
+              hpll_applied_code <= hpll_applied_code - HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
           end

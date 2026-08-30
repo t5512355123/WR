@@ -408,7 +408,7 @@ proc emit_summary {hardware_name} {
   set saturation_fraction [expr {$valid > 0 ? 100.0 * $::plus150000_count($hardware_name) / double($valid) : 0.0}]
   puts [format "STEP5_POSITION_AUDIT_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f TAG_VALID_DELTA=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s BOOTSTRAP_COMPLETED_DELTA=%s FINC_DELTA=%s FDEC_DELTA=%s SIGNED_NORMAL_NET=%s APPLIED_FINAL=%s EXPECTED_APPLIED_FROM_NET=%s POSITION_MATCH_SAMPLES=%d POSITION_INVARIANT_FAILS=%d TRANSACTION_INVARIANT_FAILS=%d DCO_INVARIANT_FAILS=%d FIRST_RAIL_SAMPLE=%s RAIL5_SAMPLES=%d RAIL5_FRACTION=%.3f FIRST_PLUS150000_SAMPLE=%s PLUS150000_SAMPLES=%d PLUS150000_FRACTION=%.3f TARGET_FINAL=%s PRECLAMP_ERROR_FINAL=%s TAG_DELTA_FINAL=%s EXPECTED_DELTA_FINAL=%s FREQ_ERROR_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
     $hardware_name $::sample_count($hardware_name) $valid $::invalid_frame_count($hardware_name) \
-    ($::elapsed_final($hardware_name) / 1000.0) $tag_delta $req_delta $done_delta $step_delta $boot_delta \
+    [expr {$::elapsed_final($hardware_name) / 1000.0}] $tag_delta $req_delta $done_delta $step_delta $boot_delta \
     $finc_delta $fdec_delta $signed_net $::applied_final($hardware_name) $expected_applied \
     $::position_match_count($hardware_name) $::position_invariant_fail_count($hardware_name) \
     $::transaction_invariant_fail_count($hardware_name) $::dco_invariant_fail_count($hardware_name) \

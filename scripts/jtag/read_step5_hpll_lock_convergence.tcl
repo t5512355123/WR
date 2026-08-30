@@ -101,6 +101,15 @@ proc signed32 {value} {
   return $word
 }
 
+proc helper_error_is_trustworthy {value} {
+  set signed [signed32 $value]
+  if {$signed eq "INVALID"} { return 0 }
+  # Values beyond this range are not physically consistent with the
+  # 6272+64 run and have been observed only as a stale mailbox word. Keep
+  # them visible in the sample line but exclude them from error statistics.
+  return [expr {abs($signed) <= 0x100000}]
+}
+
 proc probe_read {instance} {
   if {[catch {set value [read_probe_data -instance_index $instance -value_in_hex]}]} {
     return TIMEOUT
@@ -340,7 +349,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::main_freq_locked_final($hardware_name) $main_freq_locked
     set ::main_phase_locked_final($hardware_name) $main_phase_locked
     set ::pstat_locked_final($hardware_name) $pstat_locked
-    if {$helper_error_signed ne "INVALID"} {
+    if {[helper_error_is_trustworthy $helper_error]} {
       set abs_error [expr {abs($helper_error_signed)}]
       incr ::helper_error_count($hardware_name)
       set ::helper_error_sum($hardware_name) [expr {$::helper_error_sum($hardware_name) + $helper_error_signed}]

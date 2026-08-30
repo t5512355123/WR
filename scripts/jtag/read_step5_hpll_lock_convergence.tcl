@@ -15,7 +15,7 @@ package require ::quartus::insystem_source_probe
 set samples 18000
 set gap_ms 100
 set board_filter ""
-set poll_attempts 25
+set poll_attempts 100
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -137,7 +137,7 @@ proc wb_read {hardware_name addr} {
   }]} {
     return TIMEOUT
   }
-  after 2
+  after 5
   for {set n 0} {$n < $poll_attempts} {incr n} {
     if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
       set value INVALID

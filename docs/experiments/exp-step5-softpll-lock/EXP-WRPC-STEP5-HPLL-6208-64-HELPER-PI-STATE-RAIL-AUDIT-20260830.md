@@ -25,6 +25,9 @@ Hardware firmware commit = 1f6d732a979ce8cb7c91e1030eb651162fa1edb5
 Observer script commit = 2c3ed63
 Evidence commit = 1e543ae
 Latest settled-dashboard evidence commit = c2370c9
+Stationarity image commit = 98d9c31
+Stationarity observer fix commit = 377b1aa
+Stationarity evidence commit = 0b8d2ab
 Board under audit = DE5 [1-11.2]
 
 Bootstrap physical steps = 6208
@@ -181,6 +184,59 @@ failures (`PI_ACCOUNTING_FAILS=32`, `PI_OUTPUT_MISMATCH_FAILS=8`, and
 `ANTI_WINDUP_VIOLATIONS=7`), so it is retained as trajectory context, not as
 clean acceptance evidence.
 
+## Physical-floor stationarity follow-up
+
+Following the reviewer instruction, the Slave image was rebuilt with
+`ENABLE_NORMAL_HPLL_TRACKER=0`. The 6208-step bootstrap remained enabled, so
+the physical actuator was allowed to complete bootstrap and then held at that
+position. The observer ran for the complete requested 18,000 samples:
+
+```text
+SAMPLES = 18000
+VALID_FRAMES = 17992
+INVALID_FRAMES = 8
+WINDOW_SECONDS = 2829.726
+BOOTSTRAP_COMPLETED_FINAL = 6208
+BOOTSTRAP_DONE_SAMPLE = 1
+NORMAL_REQ_DELTA = 0
+NORMAL_COMPLETED_DELTA = 0
+FORCED_COMPLETED_DELTA = 0
+DCO_STEP_DELTA = 0
+ACTUATOR_HOLD = PASS
+RESET deltas = 0
+```
+
+Using the first 300 valid post-bootstrap frequency samples as the baseline and
+the configured 300-sample rolling window:
+
+```text
+FREQ_BASELINE_MEAN = 65108.5466667
+FREQ_BASELINE_SIGMA = 677355.933959
+FREQ_MEAN = -99733.957759
+FREQ_RMS = 320629.199194
+FREQ_MIN = -10927548
+FREQ_MAX = 300000
+ROLLING_MEAN_VIOLATIONS = 0
+SUSTAINED_VIOLATION_SAMPLES = 0
+PHYSICAL_FLOOR_STATIONARITY = PASS
+```
+
+The run did observe both output rails while the physical position was held:
+
+```text
+LOW_RAIL_SAMPLES = 11936
+HIGH_RAIL_SAMPLES = 6033
+HELPER_LOCK_COUNT_MAX = 17
+HELPER_LOCKED_FINAL = 0
+```
+
+The stationarity PASS is specifically the configured rolling-envelope result;
+the large baseline sigma and frequency excursions remain important evidence
+that the floor behavior is not a tight frequency lock. The run therefore
+does not imply Step5 success. Its settled dashboard still reported Step1/2/3
+pass, `STEP4B_RESULT=PASS`, `STEP5_RESULT=NEVER_LOCKED`, and the first inactive
+boundary `HELPER_LOCK`.
+
 ## Step5 conclusion
 
 The Helper PI state is now observable and internally consistent when a
@@ -210,4 +266,6 @@ raw/raw-20260830-checked-observer-180s.txt
 raw/raw-20260830-fenced-final.txt
 raw/raw-20260830-pair-dashboard-final-2.txt
 raw/raw-20260830-current-settled-dashboard.txt
+raw/raw-20260830-physical-floor-stationarity-1800s.txt
+raw/raw-20260830-floor-settled-dashboard.txt
 ```

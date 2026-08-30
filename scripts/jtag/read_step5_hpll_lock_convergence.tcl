@@ -32,6 +32,8 @@ array set ::helper_error_sum {}
 array set ::helper_error_sumsq {}
 array set ::helper_error_max_abs {}
 array set ::helper_error_in_window {}
+array set ::helper_output_rail_samples {}
+array set ::helper_error_saturation_samples {}
 array set ::helper_lock_max {}
 array set ::helper_lock_final {}
 array set ::helper_locked_seen {}
@@ -227,6 +229,8 @@ proc initialize_board {hardware_name} {
   set ::helper_error_sumsq($hardware_name) 0.0
   set ::helper_error_max_abs($hardware_name) 0
   set ::helper_error_in_window($hardware_name) 0
+  set ::helper_output_rail_samples($hardware_name) 0
+  set ::helper_error_saturation_samples($hardware_name) 0
   set ::helper_lock_max($hardware_name) 0
   set ::helper_lock_final($hardware_name) INVALID
   set ::helper_locked_seen($hardware_name) 0
@@ -367,6 +371,12 @@ proc emit_sample {hardware_name sample elapsed_ms} {
       if {$helper_threshold eq "INVALID" || $abs_error <= $helper_threshold} {
         incr ::helper_error_in_window($hardware_name)
       }
+      if {$helper_error_signed == 150000} {
+        incr ::helper_error_saturation_samples($hardware_name)
+      }
+    }
+    if {$helper_output_signed ne "INVALID" && $helper_output_signed == 5} {
+      incr ::helper_output_rail_samples($hardware_name)
     }
   } else {
     incr ::invalid_frame_count($hardware_name)
@@ -413,11 +423,18 @@ proc emit_summary {hardware_name} {
   set tics_delta [counter_delta $::current_tics_first($hardware_name) $::current_tics_final($hardware_name) 32]
   set bootstrap_pass [expr {$doneboot1 eq "1"}]
   set transaction_accounting [expr {$normal_req_delta ne "INVALID" && $normal_done_delta ne "INVALID" && $normal_req_delta == $normal_done_delta ? "PASS" : "CHECK"}]
-  puts [format "STEP5_LOCK_CONVERGENCE_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s LOCK_CHANGED_EVENTS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s HELPER_ERROR_FRACTION_ABS_LE_THRESHOLD=%s MAIN_ENABLED_FINAL=%s MAIN_LOCKED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s CURRENT_TICS_DELTA=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_ACTIVITY_DELTA=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s NORMAL_TRANSACTION_ACCOUNTING=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
+  if {$::valid_frame_count($hardware_name) > 0} {
+    set rail_fraction [expr {100.0 * $::helper_output_rail_samples($hardware_name) / double($::valid_frame_count($hardware_name))}]
+    set saturation_fraction [expr {100.0 * $::helper_error_saturation_samples($hardware_name) / double($::valid_frame_count($hardware_name))}]
+  } else {
+    set rail_fraction INVALID
+    set saturation_fraction INVALID
+  }
+  puts [format "STEP5_LOCK_CONVERGENCE_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s LOCK_CHANGED_EVENTS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s HELPER_ERROR_FRACTION_ABS_LE_THRESHOLD=%s HELPER_OUTPUT_RAIL5_SAMPLES=%d HELPER_OUTPUT_RAIL5_FRACTION=%s HELPER_ERROR_PLUS150000_SAMPLES=%d HELPER_ERROR_PLUS150000_FRACTION=%s MAIN_ENABLED_FINAL=%s MAIN_LOCKED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s CURRENT_TICS_DELTA=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_ACTIVITY_DELTA=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s NORMAL_TRANSACTION_ACCOUNTING=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
     $hardware_name $::sample_count($hardware_name) $::valid_frame_count($hardware_name) $::invalid_frame_count($hardware_name) $window_seconds \
     $::helper_lock_max($hardware_name) $::helper_lock_final($hardware_name) $::helper_locked_seen($hardware_name) $::helper_locked_final($hardware_name) \
     $::helper_first_locked_sample($hardware_name) $::helper_lock_changed_events($hardware_name) $error_count $error_mean $error_rms \
-    $::helper_error_max_abs($hardware_name) $error_fraction $::main_enabled_final($hardware_name) $::main_locked_final($hardware_name) \
+    $::helper_error_max_abs($hardware_name) $error_fraction $::helper_output_rail_samples($hardware_name) $rail_fraction $::helper_error_saturation_samples($hardware_name) $saturation_fraction $::main_enabled_final($hardware_name) $::main_locked_final($hardware_name) \
     $::main_freq_locked_final($hardware_name) $::main_phase_locked_final($hardware_name) $::pstat_locked_final($hardware_name) \
     $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $tics_delta \
     $normal_req_delta $normal_done_delta $dco_delta $forced_delta [counter_delta $boot0 $boot1 16] $bootstrap_pass \
@@ -425,7 +442,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_LOCK_CONVERGENCE_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6272-64-LONG-LOCK-CONVERGENCE-1800S read_only=1 helper_state=0x00100ABC helper_error=0x00100AD8 helper_output=0x00100ADC cadence_ms=100" $samples $gap_ms $board_filter]
+puts [format "STEP5_LOCK_CONVERGENCE_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6208-PLUS-64-TRACKER-LONG-LOCK-1800S read_only=1 helper_state=0x00100ABC helper_error=0x00100AD8 helper_output=0x00100ADC cadence_ms=100" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

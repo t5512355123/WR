@@ -1005,7 +1005,7 @@ proc emit_summary {hardware_name} {
     $::pi_ld_error_final($hardware_name) $::pi_prop_final($hardware_name) $::pi_preround_final($hardware_name)]
 }
 
-puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6208-64-GUARDED-HELPER-LOW-RAIL-CAUSALITY-AUDIT read_only=1 bootstrap_steps=6208 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6144-64-GUARDED-ACTUATOR-HEADROOM-PERTURBATION-1800S-20260831 read_only=1 bootstrap_steps=6144 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

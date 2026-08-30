@@ -1604,12 +1604,12 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 coherent closed-loop trajectory audit: retain the 6208-step
-      -- bootstrap and re-enable the normal HPLL tracker. All other Step5
-      -- control parameters remain unchanged.
+      -- Step5 guarded actuator-headroom perturbation: use the branch5-approved
+      -- 6144-step bootstrap. All other Step5 control parameters remain
+      -- unchanged.
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 6208,
+      STEP5_BOOTSTRAP_STEPS => 6144,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       JTAG_HPLL_BURST_SIZE => 32
     )

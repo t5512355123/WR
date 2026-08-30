@@ -67,9 +67,10 @@ entity wrc_periph is
     -- sticky manual mode-master transition stage; 0x15c..0x16c are the
     -- lock-wait internal sub-stage and timing shadows.
     -- Includes the private persistent command-dispatch evidence through 0x1b4.
-    -- Keep the firmware-private diagnostic mirror aligned with the 0x400-byte
-    -- SDB window.  The upper half carries the coherent Helper PI trace.
-    g_wdiags_num_words : integer := 256;
+    -- Keep the firmware-private diagnostic mirror aligned with the 0x200-byte
+    -- SDB window.  The existing helper-correlation slots are overlaid by the
+    -- Step5 PI audit while that observer is running.
+    g_wdiags_num_words : integer := 128;
     g_hwbld_date      : std_logic_vector(31 downto 0));
   port(
     clk_sys_i : in std_logic;

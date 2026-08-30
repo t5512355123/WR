@@ -186,7 +186,8 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
                                           int64_t integrator_after,
                                           int32_t y_unclamped,
                                           int32_t y_clamped,
-                                          int32_t clamp_side);
+                                          int32_t tag_delta,
+                                          int32_t expected_delta);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

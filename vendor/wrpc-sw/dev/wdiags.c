@@ -882,7 +882,8 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
                                           int64_t integrator_after,
                                           int32_t y_unclamped,
                                           int32_t y_clamped,
-                                          int32_t clamp_side)
+                                          int32_t tag_delta,
+                                          int32_t expected_delta)
 {
 	/* The epoch is written last.  A passive reader brackets its reads with
 	 * this commit word and accepts the data only when the epoch is unchanged
@@ -903,8 +904,10 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 			(uint32_t)y_unclamped);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT,
 			(uint32_t)y_clamped);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_CLAMP_SIDE,
-			(uint32_t)clamp_side);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TAG_DELTA,
+			(uint32_t)tag_delta);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_EXPECTED_DELTA,
+			(uint32_t)expected_delta);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
 }
 

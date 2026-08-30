@@ -1,7 +1,7 @@
 # Read-only Helper PI state and rail audit for Step5.
 #
 # The firmware mirror publishes the last completed Helper PI update through
-# WDIAGS 0x200..0x224.  The epoch is written last and is accepted only when
+# WDIAGS 0x100..0x128.  The epoch is written last and is accepted only when
 # the beginning/end values match and are even.  This keeps the multiword
 # signed 64-bit values coherent while the interrupt-driven Helper continues
 # to run.  Probe 43/44 provide the signed physical-position context.
@@ -210,38 +210,37 @@ proc read_pi_snapshot {hardware_name} {
   # word so the observer rejects a refresh crossing.
   for {set attempt 0} {$attempt < 8} {incr attempt} {
     set ctrl_begin [wb_read $hardware_name 0x00100A04]
-    set epoch_begin [wb_read $hardware_name 0x00100C00]
+    set epoch_begin [wb_read $hardware_name 0x00100B00]
     set epoch_word [word32 $epoch_begin]
     if {$epoch_word < 0 || ($epoch_word & 1)} {
       after 2
       continue
     }
-    set before_lo [wb_read $hardware_name 0x00100C04]
-    set before_hi [wb_read $hardware_name 0x00100C08]
-    set i_new_lo [wb_read $hardware_name 0x00100C0C]
-    set i_new_hi [wb_read $hardware_name 0x00100C10]
-    set after_lo [wb_read $hardware_name 0x00100C14]
-    set after_hi [wb_read $hardware_name 0x00100C18]
-    set unclamped [wb_read $hardware_name 0x00100C1C]
-    set clamped [wb_read $hardware_name 0x00100C20]
-    set clamp_side [wb_read $hardware_name 0x00100C24]
+    set before_lo [wb_read $hardware_name 0x00100B04]
+    set before_hi [wb_read $hardware_name 0x00100B08]
+    set i_new_lo [wb_read $hardware_name 0x00100B0C]
+    set i_new_hi [wb_read $hardware_name 0x00100B10]
+    set after_lo [wb_read $hardware_name 0x00100B14]
+    set after_hi [wb_read $hardware_name 0x00100B18]
+    set unclamped [wb_read $hardware_name 0x00100B1C]
+    set clamped [wb_read $hardware_name 0x00100B20]
+    set tag_delta [wb_read $hardware_name 0x00100B24]
+    set expected_delta [wb_read $hardware_name 0x00100B28]
     set helper_state [wb_read $hardware_name 0x00100ABC]
     set helper_error [wb_read $hardware_name 0x00100AD8]
     set helper_output [wb_read $hardware_name 0x00100ADC]
-    set tag_delta [wb_read $hardware_name 0x00100B0C]
-    set expected_delta [wb_read $hardware_name 0x00100B14]
     set ctrl_end [wb_read $hardware_name 0x00100A04]
-    set epoch_end [wb_read $hardware_name 0x00100C00]
+    set epoch_end [wb_read $hardware_name 0x00100B00]
     if {[string equal -nocase $epoch_begin $epoch_end] &&
         [frame_valid $ctrl_begin $ctrl_end]} {
       return [list 1 $epoch_word $before_lo $before_hi $i_new_lo $i_new_hi \
-        $after_lo $after_hi $unclamped $clamped $clamp_side $helper_state \
-        $helper_error $helper_output $tag_delta $expected_delta]
+        $after_lo $after_hi $unclamped $clamped $helper_state $helper_error \
+        $helper_output $tag_delta $expected_delta]
     }
     after 2
   }
   return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+    INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
 }
 
 proc initialize_board {hardware_name} {
@@ -315,16 +314,25 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set si_drop [probe_field32 $reset_probe 40 8]
 
   foreach {pi_valid pi_epoch before_lo before_hi i_new_lo i_new_hi \
-           after_lo after_hi unclamped_raw clamped_raw side_raw \
-           helper_state_raw helper_error_raw helper_output_raw tag_delta_raw \
-           expected_delta_raw} [read_pi_snapshot $hardware_name] break
+           after_lo after_hi unclamped_raw clamped_raw helper_state_raw \
+           helper_error_raw helper_output_raw tag_delta_raw expected_delta_raw} \
+      [read_pi_snapshot $hardware_name] break
   set ctrl_valid $pi_valid
   set pi_before [signed64_words $before_lo $before_hi]
   set pi_i_new [signed64_words $i_new_lo $i_new_hi]
   set pi_after [signed64_words $after_lo $after_hi]
   set pi_unclamped [signed32 $unclamped_raw]
   set pi_clamped [signed32 $clamped_raw]
-  set pi_side [signed32 $side_raw]
+  set pi_side INVALID
+  if {$pi_unclamped ne "INVALID"} {
+    if {$pi_unclamped < $PI_Y_MIN} {
+      set pi_side -1
+    } elseif {$pi_unclamped > $PI_Y_MAX} {
+      set pi_side 1
+    } else {
+      set pi_side 0
+    }
+  }
   set helper_error [signed32 $helper_error_raw]
   set helper_output [signed32 $helper_output_raw]
   set tag_delta [signed32 $tag_delta_raw]

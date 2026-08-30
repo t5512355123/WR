@@ -221,26 +221,25 @@ proc read_pi_snapshot {hardware_name} {
     set i_new_lo [wb_read $hardware_name 0x00100B0C]
     set i_new_hi [wb_read $hardware_name 0x00100B10]
     set after_lo [wb_read $hardware_name 0x00100B14]
-    set after_hi [wb_read $hardware_name 0x00100B18]
+    set after_hi [wb_read $hardware_name 0x00100B30]
     set unclamped [wb_read $hardware_name 0x00100B1C]
     set clamped [wb_read $hardware_name 0x00100B20]
-    set tag_delta [wb_read $hardware_name 0x00100B24]
-    set expected_delta [wb_read $hardware_name 0x00100B28]
+    set helper_error [wb_read $hardware_name 0x00100B24]
+    set helper_output [wb_read $hardware_name 0x00100B28]
+    set freq_error [wb_read $hardware_name 0x00100B2C]
     set helper_state [wb_read $hardware_name 0x00100ABC]
-    set helper_error [wb_read $hardware_name 0x00100B2C]
-    set helper_output [wb_read $hardware_name 0x00100B30]
     set ctrl_end [wb_read $hardware_name 0x00100A04]
     set epoch_end [wb_read $hardware_name 0x00100B00]
     if {[string equal -nocase $epoch_begin $epoch_end] &&
         [frame_valid $ctrl_begin $ctrl_end]} {
       return [list 1 $epoch_word $before_lo $before_hi $i_new_lo $i_new_hi \
         $after_lo $after_hi $unclamped $clamped $helper_state $helper_error \
-        $helper_output $tag_delta $expected_delta]
+        $helper_output $freq_error]
     }
     after 2
   }
   return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+    INVALID INVALID INVALID INVALID INVALID INVALID]
 }
 
 proc initialize_board {hardware_name} {
@@ -315,7 +314,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 
   foreach {pi_valid pi_epoch before_lo before_hi i_new_lo i_new_hi \
            after_lo after_hi unclamped_raw clamped_raw helper_state_raw \
-           helper_error_raw helper_output_raw tag_delta_raw expected_delta_raw} \
+           helper_error_raw helper_output_raw freq_error_raw} \
       [read_pi_snapshot $hardware_name] break
   set ctrl_valid $pi_valid
   set pi_before [signed64_words $before_lo $before_hi]
@@ -335,12 +334,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   }
   set helper_error [signed32 $helper_error_raw]
   set helper_output [signed32 $helper_output_raw]
-  set tag_delta [signed32 $tag_delta_raw]
-  set expected_delta [signed32 $expected_delta_raw]
-  set freq_error INVALID
-  if {$tag_delta ne "INVALID" && $expected_delta ne "INVALID"} {
-    set freq_error [expr {$tag_delta - $expected_delta}]
-  }
+  set freq_error [signed32 $freq_error_raw]
   set helper_locked [probe_field32 $helper_state_raw 0 1]
   set helper_count [probe_field32 $helper_state_raw 16 16]
   set tag_valid [signed32 [wb_read $hardware_name 0x00100AF8]]

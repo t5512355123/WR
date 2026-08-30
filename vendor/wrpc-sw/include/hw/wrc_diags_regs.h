@@ -114,20 +114,21 @@
 #define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
 /* Read-only Helper PI state trace.  These words overlay the former helper
  * correlation slots while the Step5 PI audit is active; they never feed back
- * into the controller.  Clamp side is derived from the unclamped output. */
+ * into the controller.  0x118 remains the existing Helper update counter so
+ * the Step4B dashboard keeps its source-backed event meaning. */
 #define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH          0x100UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO 0x104UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI 0x108UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO             0x10cUL
 #define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI             0x110UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO  0x114UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI  0x118UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT         0x118UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT     0x11cUL
 #define WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT       0x120UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_TAG_DELTA            0x124UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_EXPECTED_DELTA       0x128UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_ERROR                0x12cUL
-#define WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT               0x130UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_ERROR                0x124UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT               0x128UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR           0x12cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI  0x130UL
 
 /* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
  * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those

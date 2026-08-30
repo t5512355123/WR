@@ -40,7 +40,8 @@ int wrc_wr_diags(void)
 	int64_t pi_integrator_before = 0, pi_i_new = 0, pi_integrator_after = 0;
 	int32_t pi_helper_error = 0, pi_helper_output = 0;
 	int32_t pi_y_unclamped = 0, pi_y_clamped = 0;
-	int32_t pi_tag_delta = 0, pi_expected_delta = 0;
+	int32_t pi_freq_error = 0;
+	uint32_t pi_helper_update_count = 0;
 	int pi_snapshot_valid;
 
 	struct pp_instance *ppi = ppg->pp_instances;
@@ -242,8 +243,9 @@ int wrc_wr_diags(void)
 				pi_helper_output = softpll.helper.pi.trace_y_clamped;
 				pi_y_unclamped = softpll.helper.pi.trace_y_unclamped;
 				pi_y_clamped = softpll.helper.pi.trace_y_clamped;
-				pi_tag_delta = wrpc_spll_helper_tag_delta;
-				pi_expected_delta = wrpc_spll_helper_expected_delta;
+				pi_freq_error = wrpc_spll_helper_tag_delta -
+					wrpc_spll_helper_expected_delta;
+				pi_helper_update_count = wrpc_spll_helper_update_count;
 				pi_epoch_after = softpll.helper.pi.trace_epoch;
 				if (pi_epoch_before == pi_epoch_after &&
 				    !(pi_epoch_after & 1u)) {
@@ -262,8 +264,8 @@ int wrc_wr_diags(void)
 				pi_helper_output,
 				pi_y_unclamped,
 				pi_y_clamped,
-				pi_tag_delta,
-				pi_expected_delta);
+				pi_freq_error,
+				pi_helper_update_count);
 		}
 	}
 

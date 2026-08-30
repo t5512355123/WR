@@ -884,8 +884,8 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
                                           int32_t helper_output,
                                           int32_t y_unclamped,
                                           int32_t y_clamped,
-                                          int32_t tag_delta,
-                                          int32_t expected_delta)
+                                          int32_t freq_error,
+                                          uint32_t helper_update_count)
 {
 	/* The epoch is written last.  A passive reader brackets its reads with
 	 * this commit word and accepts the data only when the epoch is unchanged
@@ -902,18 +902,21 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 			(uint32_t)integrator_after);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
 			(uint32_t)(integrator_after >> 32));
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
+			(uint32_t)(integrator_after >> 32));
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT,
 			(uint32_t)y_unclamped);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT,
 			(uint32_t)y_clamped);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TAG_DELTA,
-			(uint32_t)tag_delta);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_EXPECTED_DELTA,
-			(uint32_t)expected_delta);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_ERROR,
 			(uint32_t)helper_error);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT,
 			(uint32_t)helper_output);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR,
+			(uint32_t)freq_error);
+	/* Keep the Step4B dashboard's existing update-count address source-backed. */
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT,
+			helper_update_count);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
 }
 

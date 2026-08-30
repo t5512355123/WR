@@ -887,9 +887,16 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
                                           int32_t freq_error,
                                           uint32_t helper_update_count)
 {
-	/* The epoch is written last.  A passive reader brackets its reads with
-	 * this commit word and accepts the data only when the epoch is unchanged
-	 * and even. */
+	/* Publish an odd epoch before changing any payload word.  A passive
+	 * reader brackets its reads with this commit word and accepts the data
+	 * only when the epoch is unchanged and even.  Without the odd marker,
+	 * the reader could observe a mixture of two successive 64-bit snapshots
+	 * while the payload is being rewritten. */
+	if (trace_epoch == 0xffffffffu || (trace_epoch & 1u)) {
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, 0xffffffffu);
+		return;
+	}
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch | 1u);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO,
 			(uint32_t)integrator_before);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI,
@@ -900,8 +907,6 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 			(uint32_t)(i_new >> 32));
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO,
 			(uint32_t)integrator_after);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
-			(uint32_t)(integrator_after >> 32));
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
 			(uint32_t)(integrator_after >> 32));
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT,

@@ -182,6 +182,26 @@ proc frame_valid {ctrl_begin ctrl_end} {
   return [expr {(($a & 1) != 0) && (($b & 1) != 0) && $a == $b}]
 }
 
+proc read_helper_pair {hardware_name} {
+  # The experiment keeps the source-defined Helper settings at threshold=200
+  # and lock_samples=10000. Reject a mailbox response that cannot represent
+  # that configuration or a lock counter beyond its configured maximum, then
+  # retry the pair so one stale response cannot become evidence.
+  for {set attempt 0} {$attempt < 4} {incr attempt} {
+    set state [wb_read $hardware_name 0x00100ABC]
+    set limits [wb_read $hardware_name 0x00100AC0]
+    set threshold [field32 $limits 0 16]
+    set lock_samples [field32 $limits 16 16]
+    set lock_count [field32 $state 16 16]
+    if {$threshold eq "200" && $lock_samples eq "10000" &&
+        $lock_count ne "INVALID" && $lock_count <= $lock_samples} {
+      return [list $state $limits]
+    }
+    after 2
+  }
+  return [list INVALID INVALID]
+}
+
 proc initialize_board {hardware_name} {
   set ::sample_count($hardware_name) 0
   set ::valid_frame_count($hardware_name) 0
@@ -230,8 +250,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set bootstrap_raw [probe_read 42]
   set entry_probe [probe_read 26]
   set reset_probe [probe_read 27]
-  set helper_state [wb_read $hardware_name 0x00100ABC]
-  set helper_limits [wb_read $hardware_name 0x00100AC0]
+  foreach {helper_state helper_limits} [read_helper_pair $hardware_name] break
   set main_state [wb_read $hardware_name 0x00100AC4]
   set pstat [wb_read $hardware_name 0x00100A0C]
   set spll_state [wb_read $hardware_name 0x00100AA0]
@@ -337,9 +356,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     incr ::invalid_frame_count($hardware_name)
   }
 
-  puts [format "STEP5_LOCK_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d CTRL_BEGIN=%s CTRL_END=%s HELPER_LOCKED=%s HELPER_LOCK_CHANGED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%s HELPER_OUTPUT=%s HELPER_OUTPUT_SIGNED=%s MAIN_ENABLED=%s MAIN_LOCKED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s WR_LOCK_UNLOCKED=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s DCO_STEP=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s CURRENT_TICS=%s" \
+  puts [format "STEP5_LOCK_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d CTRL_BEGIN=%s CTRL_END=%s HELPER_STATE=%s HELPER_LIMITS=%s HELPER_LOCKED=%s HELPER_LOCK_CHANGED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%s HELPER_OUTPUT=%s HELPER_OUTPUT_SIGNED=%s MAIN_ENABLED=%s MAIN_LOCKED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s WR_LOCK_UNLOCKED=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s DCO_STEP=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s CURRENT_TICS=%s" \
     $hardware_name $sample $elapsed_ms $valid [display_value $ctrl_begin] [display_value $ctrl_end] \
-    $helper_locked $helper_changed $helper_lock_count $helper_threshold $helper_lock_samples \
+    [display_value $helper_state] [display_value $helper_limits] $helper_locked $helper_changed $helper_lock_count $helper_threshold $helper_lock_samples \
     [display_value $helper_error] $helper_error_signed [display_value $helper_output] $helper_output_signed \
     $main_enabled $main_locked $main_freq_locked $main_phase_locked $pstat_locked $spll_delock \
     [display_value $wr_lock_unlocked] $normal_req $normal_done $dco_step $bootstrap_completed $bootstrap_done \

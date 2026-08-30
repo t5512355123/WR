@@ -24,6 +24,8 @@ int wrpc_spll_locking_enable(struct pp_instance *ppi)
 		/* If in grand master don't change pll mode */
 		return WRH_SPLL_OK;
 	}
+	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_WRPC_LOCKING_ENABLE,
+					SPLL_MODE_SLAVE, SPLL_FLAG_ALIGN_PPS);
 	spll_init(SPLL_MODE_SLAVE, 0, SPLL_FLAG_ALIGN_PPS);
 	WRPC_ARCH_I(ppi)->timingMode = WRH_TM_BOUNDARY_CLOCK;
 	spll_enable_ptracker(0, 1);
@@ -135,6 +137,8 @@ int wrpc_spll_locking_reset(struct pp_instance *ppi)
 {
 	/* if configured as master, but due to BMCA changed into BC */
 	if (wrc_ptp_get_mode() == WRC_MODE_MASTER && WRPC_ARCH_I(ppi)->timingMode == WRH_TM_BOUNDARY_CLOCK) {
+		wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_WRPC_LOCKING_RESET,
+					SPLL_MODE_FREE_RUNNING_MASTER, SPLL_FLAG_ALIGN_PPS);
 		spll_init(SPLL_MODE_FREE_RUNNING_MASTER, 0, SPLL_FLAG_ALIGN_PPS);
 		WRPC_ARCH_I(ppi)->timingMode = WRH_TM_FREE_MASTER;
 		/* wait for spll to lock */

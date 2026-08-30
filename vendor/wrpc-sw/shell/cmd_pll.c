@@ -77,6 +77,8 @@ static int cmd_pll(const char *args[])
 
 	switch (icmd) {
 	case CMD_INIT:
+		wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_SHELL_CMD_PLL,
+					vals[1], vals[3]);
 		spll_init(vals[1], vals[2], vals[3]);
 		return 0;
 	case CMD_CL:

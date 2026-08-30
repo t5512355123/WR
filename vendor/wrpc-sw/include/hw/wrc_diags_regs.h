@@ -128,6 +128,15 @@
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT 0x120UL
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT 0x124UL
 
+/* Private read-only SoftPLL re-init attribution overlay.  The eight
+ * reason-counter words pack two 16-bit counters per word. */
+#define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON       0x1e0UL
+#define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_MODE         0x1e4UL
+#define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_FLAGS        0x1e8UL
+#define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON_TICS  0x1ecUL
+#define WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNTS     0x1f0UL
+#define WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT      16
+
 /* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
  * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those
  * same words carry the buffer and packed metadata so the 0x200-byte private

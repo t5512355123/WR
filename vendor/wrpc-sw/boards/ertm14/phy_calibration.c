@@ -206,7 +206,10 @@ static int tx_fsm_update(struct wrc_lpdc_state *lpdc)
     {
         case TX_SETUP_STATE_START:
         {
-         	spll_init( SPLL_MODE_FREE_RUNNING_MASTER, 0, 0 );
+		wrpc_spll_note_init_reason(
+			WRPC_SPLL_INIT_REASON_ERTM14_PHY_CALIBRATION,
+			SPLL_MODE_FREE_RUNNING_MASTER, 0);
+		 spll_init( SPLL_MODE_FREE_RUNNING_MASTER, 0, 0 );
             spll_set_ptracker_average_samples( 0, LPDC_NUM_PTRACKER_SAMPLES );
             tmo_init(&fsm->spll_lock_timeout, FSM_SPLL_LOCK_TIMEOUT_MS);
             ep_sfp_enable( lpdc->endpoint, 0 );

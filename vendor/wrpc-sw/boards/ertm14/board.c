@@ -3042,6 +3042,8 @@ void ertm14_sync_pulse_cal(void)
         clkab_enable_sync( ertm14_current_state, ERTM14_OUT_CLKB, i, 1 );
     }
 
+	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_ERTM14_BOARD_INIT,
+				SPLL_MODE_FREE_RUNNING_MASTER, 0);
     spll_init( SPLL_MODE_FREE_RUNNING_MASTER, 0, 0 );
 
     int quit = 0;

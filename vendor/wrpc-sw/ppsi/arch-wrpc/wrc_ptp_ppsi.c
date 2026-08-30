@@ -236,6 +236,8 @@ int wrc_ptp_set_mode(int mode)
 		WRPC_ARCH_G(ppg)->timingMode = WRH_TM_GRAND_MASTER;
 #endif
 		*class_ptr = PP_PTP_CLASS_GM_LOCKED;
+		wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_PTP_SET_MODE_GM,
+					SPLL_MODE_GRAND_MASTER, SPLL_FLAG_ALIGN_PPS);
 		spll_init(SPLL_MODE_GRAND_MASTER, 0, SPLL_FLAG_ALIGN_PPS);
 		error = wrpc_spll_check_lock_with_timeout(LOCK_TIMEOUT_GM);
 		/* generate PPS no matter if PLL locked */
@@ -250,6 +252,8 @@ int wrc_ptp_set_mode(int mode)
 #endif
 		wdiags_write_mode_master_stage(
 			WRC_DIAGS_MODE_MASTER_STAGE_BEFORE_SPLL_INIT);
+		wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_PTP_SET_MODE_MASTER,
+					SPLL_MODE_FREE_RUNNING_MASTER, SPLL_FLAG_ALIGN_PPS);
 		spll_init(SPLL_MODE_FREE_RUNNING_MASTER, 0, SPLL_FLAG_ALIGN_PPS);
 		wdiags_write_mode_master_stage(
 			WRC_DIAGS_MODE_MASTER_STAGE_AFTER_SPLL_INIT);
@@ -438,6 +442,8 @@ int wrc_ptp_link_down(void)
 		    and entering PP_SLAVE state */
 		if (WRPC_ARCH_G(ppg)->timingMode == WRH_TM_BOUNDARY_CLOCK) {
 			WRPC_ARCH_G(ppg)->timingMode = WRH_TM_FREE_MASTER;
+			wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_PTP_LINK_DOWN,
+					SPLL_MODE_FREE_RUNNING_MASTER, SPLL_FLAG_ALIGN_PPS);
 			spll_init(SPLL_MODE_FREE_RUNNING_MASTER, 0, SPLL_FLAG_ALIGN_PPS);
 		}
 	}

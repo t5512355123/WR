@@ -179,6 +179,13 @@ void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
 						 uint32_t dac_timeout,
 						 uint32_t last_init_tics,
 						 uint32_t last_clear_dacs_tics);
+/* Read-only attribution of spll_init() call sites. */
+void wdiags_write_wr_spll_reinit_debug(uint32_t last_reason,
+						uint32_t last_mode,
+						uint32_t last_flags,
+						uint32_t last_reason_tics,
+						const uint32_t *reason_counts,
+						uint32_t reason_count);
 /* Read-only coherent Helper-update measurement snapshot. The caller must
  * provide values captured from one accepted helper_update() invocation. */
 void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,

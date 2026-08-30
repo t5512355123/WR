@@ -254,6 +254,8 @@ int cm_check_vcos(const char *args[])
     pp_printf("Checking VCOs. Note: the board must have its uplink connected to a stable frequency reference. Press ESC to abort anytime.\n");
 
     wrc_ptp_run(0);
+	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_FREQMON,
+				SPLL_MODE_DISABLED, 0);
     spll_init(SPLL_MODE_DISABLED, 0, 0);
 
     wb_cm_configure(&cmon_dev, CM_CHANNEL_RX, CM_DEFAULT_PRESCALER, CM_DEFAULT_GATE_FREQ);

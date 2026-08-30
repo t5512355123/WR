@@ -233,6 +233,13 @@ int wrc_wr_diags(void)
 				softpll.dac_timeout,
 				wrpc_spll_last_init_tics,
 				wrpc_spll_last_clear_dacs_tics);
+			wdiags_write_wr_spll_reinit_debug(
+				wrpc_spll_last_init_reason,
+				wrpc_spll_last_init_reason_mode,
+				wrpc_spll_last_init_reason_flags,
+				wrpc_spll_last_init_reason_tics,
+				(const uint32_t *)wrpc_spll_init_reason_counts,
+				WRPC_SPLL_INIT_REASON_COUNT);
 
 			/* Copy one complete Helper invocation from the RAM seqlock.  The
 			 * source payload is captured in helper_update(); WDIAGS is only a

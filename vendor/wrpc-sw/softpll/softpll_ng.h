@@ -45,6 +45,28 @@
 #define SPLL_FLAG_ALIGN_PPS (1<<0) /* enables rephasing of the local oscillator to the external PPS signal */
 #define SPLL_FLAG_USE_LJD (1<<1)   /* enables the Low Jitter Daughterboard mezzanine (WRS V3 - specific) */
 
+/* Read-only attribution for every source call site that can invoke
+ * spll_init(). These counters are never consulted by the SoftPLL. */
+enum wrpc_spll_init_reason {
+	WRPC_SPLL_INIT_REASON_UNKNOWN = 0,
+	WRPC_SPLL_INIT_REASON_WRPC_LOCKING_ENABLE,
+	WRPC_SPLL_INIT_REASON_WRPC_LOCKING_RESET,
+	WRPC_SPLL_INIT_REASON_PTP_SET_MODE_GM,
+	WRPC_SPLL_INIT_REASON_PTP_SET_MODE_MASTER,
+	WRPC_SPLL_INIT_REASON_PTP_LINK_DOWN,
+	WRPC_SPLL_INIT_REASON_SHELL_CMD_PLL,
+	WRPC_SPLL_INIT_REASON_FREQMON,
+	WRPC_SPLL_INIT_REASON_RTS_SET_MODE,
+	WRPC_SPLL_INIT_REASON_RTS_LOCK_CHANNEL,
+	WRPC_SPLL_INIT_REASON_RXTS_CALIBRATION,
+	WRPC_SPLL_INIT_REASON_ERTM14_PHY_CALIBRATION,
+	WRPC_SPLL_INIT_REASON_ERTM14_BOARD_INIT,
+	WRPC_SPLL_INIT_REASON_RT_IPC_MODE,
+	WRPC_SPLL_INIT_REASON_RT_IPC_DISABLE,
+	WRPC_SPLL_INIT_REASON_RT_IPC_SLAVE,
+	WRPC_SPLL_INIT_REASON_COUNT
+};
+
 
 /* Note on channel naming:
  - ref_channel means a PHY recovered clock input. There can be one (as in
@@ -73,6 +95,8 @@ Initializes the SoftPLL to work in mode (mode). Extra parameters depend on choic
 */
 void spll_init(int mode, int ref_channel, int flags);
 void spll_very_init(void);
+void wrpc_spll_note_init_reason(uint32_t reason, uint32_t mode,
+				uint32_t flags);
 
 /* Disables the SoftPLL and cleans up stuff */
 void spll_shutdown(void);
@@ -231,5 +255,11 @@ extern volatile uint32_t wrpc_spll_init_count;
 extern volatile uint32_t wrpc_spll_clear_dacs_entry_count;
 extern volatile uint32_t wrpc_spll_last_init_tics;
 extern volatile uint32_t wrpc_spll_last_clear_dacs_tics;
+extern volatile uint32_t wrpc_spll_init_reason_counts[
+		WRPC_SPLL_INIT_REASON_COUNT];
+extern volatile uint32_t wrpc_spll_last_init_reason;
+extern volatile uint32_t wrpc_spll_last_init_reason_mode;
+extern volatile uint32_t wrpc_spll_last_init_reason_flags;
+extern volatile uint32_t wrpc_spll_last_init_reason_tics;
 
 #endif // __SOFTPLL_NG_H

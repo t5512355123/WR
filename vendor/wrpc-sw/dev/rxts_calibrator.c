@@ -202,6 +202,8 @@ int measure_t24p(void)
 	while (!ep_link_up(&wrc_endpoint_dev, NULL))
 		timer_delay_ms(100);
 
+	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_RXTS_CALIBRATION,
+				SPLL_MODE_SLAVE, 0);
 	spll_init(SPLL_MODE_SLAVE, 0, 0);
 	pp_printf("Locking PLL...\n");
 	while (!spll_check_lock(0))

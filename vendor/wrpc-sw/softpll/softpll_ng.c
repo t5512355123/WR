@@ -77,6 +77,24 @@ volatile uint32_t wrpc_spll_init_count;
 volatile uint32_t wrpc_spll_clear_dacs_entry_count;
 volatile uint32_t wrpc_spll_last_init_tics;
 volatile uint32_t wrpc_spll_last_clear_dacs_tics;
+volatile uint32_t wrpc_spll_init_reason_counts[
+		WRPC_SPLL_INIT_REASON_COUNT];
+volatile uint32_t wrpc_spll_last_init_reason;
+volatile uint32_t wrpc_spll_last_init_reason_mode;
+volatile uint32_t wrpc_spll_last_init_reason_flags;
+volatile uint32_t wrpc_spll_last_init_reason_tics;
+
+void wrpc_spll_note_init_reason(uint32_t reason, uint32_t mode,
+				uint32_t flags)
+{
+	if (reason >= WRPC_SPLL_INIT_REASON_COUNT)
+		reason = WRPC_SPLL_INIT_REASON_UNKNOWN;
+	wrpc_spll_init_reason_counts[reason]++;
+	wrpc_spll_last_init_reason = reason;
+	wrpc_spll_last_init_reason_mode = mode;
+	wrpc_spll_last_init_reason_flags = flags;
+	wrpc_spll_last_init_reason_tics = timer_get_tics();
+}
 
 static inline void wrpc_spll_note_state(int state)
 {
@@ -330,6 +348,8 @@ void spll_irq_entry(void)
 
 void spll_very_init(void)
 {
+	int i;
+
 	PPSG->ESCR = 0;
 	PPSG->CR = PPSG_CR_CNT_EN | PPSG_CR_CNT_RST | PPSG_CR_PWIDTH_W(PPS_WIDTH);
 
@@ -349,6 +369,12 @@ void spll_very_init(void)
 	wrpc_spll_helper_measurement_output = 0;
 	wrpc_spll_helper_measurement_dmtd_ref_accept_count = 0;
 	wrpc_spll_helper_measurement_dmtd_fb_accept_count = 0;
+	wrpc_spll_last_init_reason = WRPC_SPLL_INIT_REASON_UNKNOWN;
+	wrpc_spll_last_init_reason_mode = SPLL_MODE_DISABLED;
+	wrpc_spll_last_init_reason_flags = 0;
+	wrpc_spll_last_init_reason_tics = 0;
+	for (i = 0; i < WRPC_SPLL_INIT_REASON_COUNT; i++)
+		wrpc_spll_init_reason_counts[i] = 0;
 
 	uint32_t csr = SPLL->CSR;
 

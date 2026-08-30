@@ -69,6 +69,7 @@ static uint32_t wdiags_aux_state_shadow;
 static uint32_t wdiags_boot_startup_p_offset_shadow[WRC_DIAGS_BOOT_STARTUP_STAGE_COUNT];
 static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
+static int wdiags_reinit_attribution_active;
 
 static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
@@ -86,6 +87,12 @@ static inline void wdiag_publish_barrier(void)
 static void wdiags_write_shell_microtrace_mirror(void)
 {
 	uint32_t meta0;
+
+	/* During the Step5 causality audit this window is owned by the
+	 * source-attribution overlay. The audit is read-only and must not inject
+	 * shell commands, so keep the overlay stable. */
+	if (wdiags_reinit_attribution_active)
+		return;
 
 	/* The private WDIAGS SDB window ends at 0x1ff.  While the shell-ready
 	 * gate is idle, 0x1e0..0x1f8 hold the gate words.  Once the newline arms
@@ -523,7 +530,8 @@ void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
 	/* The shell microtrace reuses these seven private words after the
 	 * newline arms the trace.  Do not let a later shell-ready refresh
 	 * overwrite the committed microtrace snapshot. */
-	if (debug_precrt_persistent_command_micro_stage != 0)
+	if (debug_precrt_persistent_command_micro_stage != 0 ||
+	    wdiags_reinit_attribution_active)
 		return;
 
 	/* Dedicated read-only WDIAGS words. They are snapshots of firmware
@@ -885,6 +893,36 @@ void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
 	wdiag_write(0x148, clear_dacs_count);
 	wdiag_write(0x14c, last_init_tics);
 	wdiag_write(0x150, last_clear_dacs_tics);
+}
+
+void wdiags_write_wr_spll_reinit_debug(uint32_t last_reason,
+						uint32_t last_mode,
+						uint32_t last_flags,
+						uint32_t last_reason_tics,
+						const uint32_t *reason_counts,
+						uint32_t reason_count)
+{
+	uint32_t i;
+	uint32_t packed;
+
+	/* Claim the 0x1e0..0x1fc overlay for this read-only audit. */
+	wdiags_reinit_attribution_active = 1;
+
+	/* These words are passive source-attribution shadows. */
+	wdiag_write(WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON, last_reason);
+	wdiag_write(WRC_DIAGS_WDIAG_SPLL_LAST_INIT_MODE, last_mode);
+	wdiag_write(WRC_DIAGS_WDIAG_SPLL_LAST_INIT_FLAGS, last_flags);
+	wdiag_write(WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON_TICS,
+			last_reason_tics);
+	if (reason_count > WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT)
+		reason_count = WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT;
+	for (i = 0; i < reason_count; i += 2) {
+		packed = reason_counts[i] & 0xffff;
+		if (i + 1 < reason_count)
+			packed |= (reason_counts[i + 1] & 0xffff) << 16;
+		wdiag_write(WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNTS + (i / 2) * 4,
+				packed);
+	}
 }
 
 void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,

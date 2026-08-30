@@ -80,10 +80,15 @@ int rts_set_mode(int mode)
 				if( scb_ljd_present )
 					flags |= SPLL_FLAG_USE_LJD;
 
+				wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_RT_IPC_MODE,
+						options[i].mode_spll, flags);
 				spll_init(options[i].mode_spll, 0, flags);
 			}
-			else
+			else {
+				wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_RT_IPC_DISABLE,
+						SPLL_MODE_DISABLED, 0);
 				spll_init(SPLL_MODE_DISABLED, 0, 0);
+			}
 		}
 
 	return 0;
@@ -100,6 +105,8 @@ int rts_lock_channel(int channel, int priority)
 
 
 	pp_printf("RT [slave]: Locking to: %d (prio %d)\n", channel, priority);
+	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_RT_IPC_SLAVE,
+				SPLL_MODE_SLAVE, 0);
 	spll_init(SPLL_MODE_SLAVE, channel, 0);
     pstate.current_ref = channel;
 

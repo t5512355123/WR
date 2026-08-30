@@ -179,17 +179,18 @@ void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
 						 uint32_t dac_timeout,
 						 uint32_t last_init_tics,
 						 uint32_t last_clear_dacs_tics);
-/* Read-only coherent Helper PI trace for Step5 rail/anti-windup audit. */
-void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
-                                          int64_t integrator_before,
-                                          int64_t i_new,
-                                          int64_t integrator_after,
-                                          int32_t helper_error,
-                                          int32_t helper_output,
-                                          int32_t y_unclamped,
-                                          int32_t y_clamped,
-                                          int32_t freq_error,
-                                          uint32_t helper_update_count);
+/* Read-only coherent Helper-update measurement snapshot. The caller must
+ * provide values captured from one accepted helper_update() invocation. */
+void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,
+                                                   int32_t tag_delta,
+                                                   int32_t expected_delta,
+                                                   int32_t freq_error,
+                                                   int32_t preclamp_error,
+                                                   int32_t helper_error,
+                                                   uint32_t helper_update_count,
+                                                   int32_t helper_output,
+                                                   uint32_t dmtd_ref_accept_count,
+                                                   uint32_t dmtd_fb_accept_count);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

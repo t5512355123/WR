@@ -112,23 +112,20 @@
 #define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x1f0UL
 #define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x1f4UL
 #define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
-/* Read-only Helper PI state trace.  These words overlay the former helper
- * correlation slots while the Step5 PI audit is active; they never feed back
- * into the controller.  0x118 remains the existing Helper update counter so
- * the Step4B dashboard keeps its source-backed event meaning. */
-#define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH          0x100UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO 0x104UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI 0x108UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO             0x10cUL
-#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI             0x110UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO  0x114UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT         0x118UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT     0x11cUL
-#define WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT       0x120UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_ERROR                0x124UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT               0x128UL
-#define WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR           0x12cUL
-#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI  0x130UL
+/* Read-only coherent Helper-update measurement snapshot.  It is published
+ * directly by helper_update(), so every payload word belongs to one
+ * accepted Helper invocation.  0x118 remains the existing Helper update
+ * counter so the Step4B dashboard keeps its source-backed meaning. */
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH       0x100UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_TAG_DELTA   0x104UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EXPECTED_DELTA 0x108UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_FREQ_ERROR  0x10cUL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_PRECLAMP_ERROR 0x110UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_HELPER_ERROR 0x114UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_UPDATE_COUNT 0x118UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_HELPER_OUTPUT 0x11cUL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT 0x120UL
+#define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT 0x124UL
 
 /* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
  * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those

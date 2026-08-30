@@ -63,6 +63,7 @@ volatile int32_t wrpc_spll_helper_p_adder;
 volatile int32_t wrpc_spll_helper_tag_d0;
 volatile int32_t wrpc_spll_helper_p_setpoint;
 volatile int32_t wrpc_spll_helper_ref_src;
+volatile uint32_t wrpc_spll_helper_measurement_epoch;
 volatile uint32_t wrpc_spll_init_count;
 volatile uint32_t wrpc_spll_clear_dacs_entry_count;
 volatile uint32_t wrpc_spll_last_init_tics;
@@ -329,6 +330,7 @@ void spll_very_init(void)
 	wrpc_spll_state_transition_count = 0;
 	wrpc_spll_last_state = SEQ_DISABLED;
 	wrpc_spll_trr_pop_count = 0;
+	wrpc_spll_helper_measurement_epoch = 0;
 
 	uint32_t csr = SPLL->CSR;
 
@@ -380,6 +382,7 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 	wrpc_spll_helper_tag_d0 = 0;
 	wrpc_spll_helper_p_setpoint = 0;
 	wrpc_spll_helper_ref_src = 0;
+	wrpc_spll_helper_measurement_epoch = 0;
 
 	SPLL->OCER = 0;
 	SPLL->RCER = 0;

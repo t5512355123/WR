@@ -887,57 +887,47 @@ void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
 	wdiag_write(0x150, last_clear_dacs_tics);
 }
 
-void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
-                                          int64_t integrator_before,
-                                          int64_t i_new,
-                                          int64_t integrator_after,
-                                          int32_t helper_error,
-                                          int32_t helper_output,
-                                          int32_t y_unclamped,
-                                          int32_t y_clamped,
-                                          int32_t freq_error,
-                                          uint32_t helper_update_count)
+void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,
+                                                   int32_t tag_delta,
+                                                   int32_t expected_delta,
+                                                   int32_t freq_error,
+                                                   int32_t preclamp_error,
+                                                   int32_t helper_error,
+                                                   uint32_t helper_update_count,
+                                                   int32_t helper_output,
+                                                   uint32_t dmtd_ref_accept_count,
+                                                   uint32_t dmtd_fb_accept_count)
 {
 	/* Publish an odd epoch before changing any payload word.  A passive
 	 * reader brackets its reads with this commit word and accepts the data
-	 * only when the epoch is unchanged and even.  Without the odd marker,
-	 * the reader could observe a mixture of two successive 64-bit snapshots
-	 * while the payload is being rewritten. */
-	if (trace_epoch == 0xffffffffu || (trace_epoch & 1u)) {
-		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT,
-				helper_update_count);
-		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, 0xffffffffu);
+	 * only when the epoch is unchanged and even. */
+	if (measurement_epoch == 0xffffffffu || (measurement_epoch & 1u)) {
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH, 0xffffffffu);
 		return;
 	}
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch | 1u);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH,
+			measurement_epoch | 1u);
 	wdiag_publish_barrier();
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO,
-			(uint32_t)integrator_before);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI,
-			(uint32_t)(integrator_before >> 32));
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO,
-			(uint32_t)i_new);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI,
-			(uint32_t)(i_new >> 32));
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO,
-			(uint32_t)integrator_after);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
-			(uint32_t)(integrator_after >> 32));
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT,
-			(uint32_t)y_unclamped);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT,
-			(uint32_t)y_clamped);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_ERROR,
-			(uint32_t)helper_error);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT,
-			(uint32_t)helper_output);
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR,
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_TAG_DELTA,
+			(uint32_t)tag_delta);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EXPECTED_DELTA,
+			(uint32_t)expected_delta);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_FREQ_ERROR,
 			(uint32_t)freq_error);
-	/* Keep the Step4B dashboard's existing update-count address source-backed. */
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT,
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_PRECLAMP_ERROR,
+			(uint32_t)preclamp_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_HELPER_ERROR,
+			(uint32_t)helper_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_UPDATE_COUNT,
 			helper_update_count);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_HELPER_OUTPUT,
+			(uint32_t)helper_output);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT,
+			dmtd_ref_accept_count);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT,
+			dmtd_fb_accept_count);
 	wdiag_publish_barrier();
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH, measurement_epoch);
 }
 
 void wdiags_set_base_address( void *base )

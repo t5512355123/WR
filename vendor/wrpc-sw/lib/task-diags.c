@@ -36,13 +36,6 @@ int wrc_wr_diags(void)
 	int n_out;
 	uint32_t aux_stat = 0;
 	int temp = 0, valid = 0, snapshot = 0, i;
-	uint32_t pi_epoch_before, pi_epoch_after, pi_epoch = 0;
-	int64_t pi_integrator_before = 0, pi_i_new = 0, pi_integrator_after = 0;
-	int32_t pi_helper_error = 0, pi_helper_output = 0;
-	int32_t pi_y_unclamped = 0, pi_y_clamped = 0;
-	int32_t pi_freq_error = 0;
-	uint32_t pi_helper_update_count = 0;
-	int pi_snapshot_valid;
 
 	struct pp_instance *ppi = ppg->pp_instances;
 	valid    = wdiag_get_valid();
@@ -229,43 +222,6 @@ int wrc_wr_diags(void)
 				wrpc_spll_last_init_tics,
 				wrpc_spll_last_clear_dacs_tics);
 
-			/* Capture the Helper PI trace only when its odd/even publication
-			 * protocol gives us a coherent multiword snapshot. */
-			pi_snapshot_valid = 0;
-			for (i = 0; i < 4 && !pi_snapshot_valid; i++) {
-				pi_epoch_before = softpll.helper.pi.trace_epoch;
-				if (pi_epoch_before & 1u)
-					continue;
-				pi_integrator_before = softpll.helper.pi.trace_integrator_before;
-				pi_i_new = softpll.helper.pi.trace_i_new;
-				pi_integrator_after = softpll.helper.pi.trace_integrator_after;
-				pi_helper_error = softpll.helper.pi.trace_x;
-				pi_helper_output = softpll.helper.pi.trace_y_clamped;
-				pi_y_unclamped = softpll.helper.pi.trace_y_unclamped;
-				pi_y_clamped = softpll.helper.pi.trace_y_clamped;
-				pi_freq_error = wrpc_spll_helper_tag_delta -
-					wrpc_spll_helper_expected_delta;
-				pi_helper_update_count = wrpc_spll_helper_update_count;
-				pi_epoch_after = softpll.helper.pi.trace_epoch;
-				if (pi_epoch_before == pi_epoch_after &&
-				    !(pi_epoch_after & 1u)) {
-					pi_epoch = pi_epoch_after;
-					pi_snapshot_valid = 1;
-				}
-			}
-			if (!pi_snapshot_valid)
-				pi_epoch = 0xffffffffu;
-			wdiags_write_wr_spll_helper_pi_debug(
-				pi_epoch,
-				pi_integrator_before,
-				pi_i_new,
-				pi_integrator_after,
-				pi_helper_error,
-				pi_helper_output,
-				pi_y_unclamped,
-				pi_y_clamped,
-				pi_freq_error,
-				pi_helper_update_count);
 		}
 	}
 

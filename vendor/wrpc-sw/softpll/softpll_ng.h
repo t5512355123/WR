@@ -213,6 +213,9 @@ extern volatile int32_t wrpc_spll_helper_p_adder;
 extern volatile int32_t wrpc_spll_helper_tag_d0;
 extern volatile int32_t wrpc_spll_helper_p_setpoint;
 extern volatile int32_t wrpc_spll_helper_ref_src;
+/* Monotonic even sequence for the coherent Helper-update measurement
+ * snapshot published directly from helper_update(). */
+extern volatile uint32_t wrpc_spll_helper_measurement_epoch;
 
 /* Read-only runtime context counters; these never alter SoftPLL control. */
 extern volatile uint32_t wrpc_spll_init_count;

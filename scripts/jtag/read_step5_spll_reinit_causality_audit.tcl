@@ -43,6 +43,8 @@ array set ::last_reason_name_final {}
 array set ::last_reason_delta_final {}
 array set ::cause_final {}
 array set ::cause_index_final {}
+array set ::lock_enable_first {}
+array set ::lock_enable_final {}
 
 array set ::reason_names {
   0 UNKNOWN
@@ -255,6 +257,8 @@ proc initialize_board {hardware_name} {
   set ::last_reason_delta_final($hardware_name) NONE
   set ::cause_final($hardware_name) NONE
   set ::cause_index_final($hardware_name) NONE
+  set ::lock_enable_first($hardware_name) INVALID
+  set ::lock_enable_final($hardware_name) INVALID
 }
 
 proc reason_deltas {previous current} {
@@ -283,6 +287,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set init_count [word32 [wb_read $hardware_name 0x00100B44]]
   set clear_dacs [word32 [wb_read $hardware_name 0x00100B48]]
   set last_init_tics [word32 [wb_read $hardware_name 0x00100B4C]]
+  set lock_enable_count [word32 [wb_read $hardware_name 0x00100A9C]]
   set state [wb_read $hardware_name 0x00100AA0]
   set state_transitions [word32 [wb_read $hardware_name 0x00100AE4]]
   set last_state [word32 [wb_read $hardware_name 0x00100AE8]]
@@ -313,6 +318,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::init_first($hardware_name) $init_count
     set ::helper_epoch_first($hardware_name) $epoch
     set ::helper_update_first($hardware_name) $update_count
+    set ::lock_enable_first($hardware_name) $lock_enable_count
     set ::reset_first($hardware_name) [list $boot_generation $cpu_reset $wr_reset $si_drop]
     set ::previous_init($hardware_name) $init_count
     set ::previous_epoch($hardware_name) $epoch
@@ -367,12 +373,13 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::init_final($hardware_name) $init_count
   set ::helper_epoch_final($hardware_name) $epoch
   set ::helper_update_final($hardware_name) $update_count
+  set ::lock_enable_final($hardware_name) $lock_enable_count
   set ::reset_final($hardware_name) [list $boot_generation $cpu_reset $wr_reset $si_drop]
   set ::last_reason_final($hardware_name) $last_reason
   set ::last_reason_name_final($hardware_name) [reason_name $last_reason]
 
-  puts [format "STEP5_SPLL_REINIT_SAMPLE board=%s sample=%d elapsed_ms=%d COHERENT=%d EPOCH=%s TAG_DELTA=%s EXPECTED_DELTA=%s FREQ_ERROR=%s HELPER_UPDATE_COUNT=%s DMTD_REF_ACCEPT_COUNT=%s DMTD_FB_ACCEPT_COUNT=%s SPLL_INIT_COUNT=%s CLEAR_DACS_COUNT=%s LAST_INIT_TICS=%s LAST_REASON=%s LAST_REASON_NAME=%s LAST_REASON_MODE=%s LAST_REASON_FLAGS=%s LAST_REASON_TICS=%s REASON_COUNTS=%s SPLL_STATE=%s STATE_TRANSITIONS=%s LAST_STATE=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_LOCK_SAMPLES=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s PSTAT_LOCKED=%s PTP_STATE=%s PTP_META=%s WR_STATE=%s WR_RX_SIGNAL=%s WR_TX_SIGNAL=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
-    $hardware_name $sample $elapsed_ms $measurement_ok $epoch $tag $expected $freq $update_count $ref_accept $fb_accept $init_count $clear_dacs $last_init_tics $last_reason [reason_name $last_reason] $last_mode $last_flags $last_reason_tics [join $reason_counters ,] $state $state_transitions $last_state $helper_locked $helper_lock_count $helper_lock_samples $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked $ptp_state $ptp_meta $wr_state $wr_rx_signal $wr_tx_signal $boot_generation $cpu_reset $wr_reset $si_drop]
+  puts [format "STEP5_SPLL_REINIT_SAMPLE board=%s sample=%d elapsed_ms=%d COHERENT=%d EPOCH=%s TAG_DELTA=%s EXPECTED_DELTA=%s FREQ_ERROR=%s HELPER_UPDATE_COUNT=%s DMTD_REF_ACCEPT_COUNT=%s DMTD_FB_ACCEPT_COUNT=%s SPLL_INIT_COUNT=%s CLEAR_DACS_COUNT=%s LOCK_ENABLE_COUNT=%s LAST_INIT_TICS=%s LAST_REASON=%s LAST_REASON_NAME=%s LAST_REASON_MODE=%s LAST_REASON_FLAGS=%s LAST_REASON_TICS=%s REASON_COUNTS=%s SPLL_STATE=%s STATE_TRANSITIONS=%s LAST_STATE=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_LOCK_SAMPLES=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s PSTAT_LOCKED=%s PTP_STATE=%s PTP_META=%s WR_STATE=%s WR_RX_SIGNAL=%s WR_TX_SIGNAL=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
+    $hardware_name $sample $elapsed_ms $measurement_ok $epoch $tag $expected $freq $update_count $ref_accept $fb_accept $init_count $clear_dacs $lock_enable_count $last_init_tics $last_reason [reason_name $last_reason] $last_mode $last_flags $last_reason_tics [join $reason_counters ,] $state $state_transitions $last_state $helper_locked $helper_lock_count $helper_lock_samples $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked $ptp_state $ptp_meta $wr_state $wr_rx_signal $wr_tx_signal $boot_generation $cpu_reset $wr_reset $si_drop]
   flush stdout
 }
 
@@ -388,8 +395,11 @@ proc emit_summary {hardware_name} {
   set causal_result [expr {$::init_event_count($hardware_name) > 0 &&
       $::aligned_event_count($hardware_name) > 0 &&
       $::exact_reason_event_count($hardware_name) > 0 ? "CONFIRMED" : "NOT_CONFIRMED"}]
-  puts [format "STEP5_SPLL_REINIT_CAUSALITY_SUMMARY board=%s SAMPLES=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d MEASUREMENT_ACCOUNTING_FAILS=%d ACCOUNTING_REJECTED=%d SPLL_INIT_COUNT_FIRST=%s SPLL_INIT_COUNT_FINAL=%s SPLL_INIT_COUNT_DELTA=%s REINIT_EVENTS=%d HELPER_EPOCH_FIRST=%s HELPER_EPOCH_FINAL=%s HELPER_UPDATE_FIRST=%s HELPER_UPDATE_FINAL=%s HELPER_EPOCH_OR_UPDATE_RESET_ALIGNED=%d EXACTLY_ONE_REASON_CHANGED=%d LAST_REASON=%s LAST_REASON_NAME=%s REASON_INDEX=%s REASON_DELTA=%s SPLL_REINIT_DURING_LOCK_ATTEMPT=%s SPLL_REINIT_CAUSE=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s RESET_STABLE=%s MEASUREMENT_COHERENCE=%s NOTE=0x1e0..0x1fc_is_read_only_reinit_attribution_overlay" \
-    $hardware_name $::sample_count($hardware_name) $::coherent_count($hardware_name) $::measurement_failures($hardware_name) $::accounting_reject_count($hardware_name) $::init_first($hardware_name) $::init_final($hardware_name) [counter_delta32 $::init_first($hardware_name) $::init_final($hardware_name)] $::init_event_count($hardware_name) $::helper_epoch_first($hardware_name) $::helper_epoch_final($hardware_name) $::helper_update_first($hardware_name) $::helper_update_final($hardware_name) $::aligned_event_count($hardware_name) $::exact_reason_event_count($hardware_name) $::last_reason_final($hardware_name) $::last_reason_name_final($hardware_name) $::cause_index_final($hardware_name) $::last_reason_delta_final($hardware_name) $causal_result $::cause_final($hardware_name) $boot_delta $cpu_delta $wr_delta $si_delta $reset_stable $measurement_result]
+  set lock_enable_delta [counter_delta32 $::lock_enable_first($hardware_name) $::lock_enable_final($hardware_name)]
+  set init_delta [counter_delta32 $::init_first($hardware_name) $::init_final($hardware_name)]
+  set redundant_calls [expr {$lock_enable_delta ne "INVALID" && $lock_enable_delta ne "DECREASED" && $init_delta ne "INVALID" && $init_delta ne "DECREASED" ? $lock_enable_delta - $init_delta : "INVALID"}]
+  puts [format "STEP5_SPLL_REINIT_CAUSALITY_SUMMARY board=%s SAMPLES=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d MEASUREMENT_ACCOUNTING_FAILS=%d ACCOUNTING_REJECTED=%d SPLL_INIT_COUNT_FIRST=%s SPLL_INIT_COUNT_FINAL=%s SPLL_INIT_COUNT_DELTA=%s LOCK_ENABLE_COUNT_FIRST=%s LOCK_ENABLE_COUNT_FINAL=%s LOCK_ENABLE_COUNT_DELTA=%s REDUNDANT_LOCK_ENABLE_CALLS=%s REINIT_EVENTS=%d HELPER_EPOCH_FIRST=%s HELPER_EPOCH_FINAL=%s HELPER_UPDATE_FIRST=%s HELPER_UPDATE_FINAL=%s HELPER_EPOCH_OR_UPDATE_RESET_ALIGNED=%d EXACTLY_ONE_REASON_CHANGED=%d LAST_REASON=%s LAST_REASON_NAME=%s REASON_INDEX=%s REASON_DELTA=%s SPLL_REINIT_DURING_LOCK_ATTEMPT=%s SPLL_REINIT_CAUSE=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s RESET_STABLE=%s MEASUREMENT_COHERENCE=%s NOTE=0x1e0..0x1fc_is_read_only_reinit_attribution_overlay" \
+    $hardware_name $::sample_count($hardware_name) $::coherent_count($hardware_name) $::measurement_failures($hardware_name) $::accounting_reject_count($hardware_name) $::init_first($hardware_name) $::init_final($hardware_name) $init_delta $::lock_enable_first($hardware_name) $::lock_enable_final($hardware_name) $lock_enable_delta $redundant_calls $::init_event_count($hardware_name) $::helper_epoch_first($hardware_name) $::helper_epoch_final($hardware_name) $::helper_update_first($hardware_name) $::helper_update_final($hardware_name) $::aligned_event_count($hardware_name) $::exact_reason_event_count($hardware_name) $::last_reason_final($hardware_name) $::last_reason_name_final($hardware_name) $::cause_index_final($hardware_name) $::last_reason_delta_final($hardware_name) $causal_result $::cause_final($hardware_name) $boot_delta $cpu_delta $wr_delta $si_delta $reset_stable $measurement_result]
   flush stdout
 }
 

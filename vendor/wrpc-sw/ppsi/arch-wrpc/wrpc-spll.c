@@ -24,6 +24,19 @@ int wrpc_spll_locking_enable(struct pp_instance *ppi)
 		/* If in grand master don't change pll mode */
 		return WRH_SPLL_OK;
 	}
+	/*
+	 * PPSI may revisit the locking-enable hook while the same Slave
+	 * locking session is already active. Reinitializing here clears the
+	 * Helper state and restarts lock accumulation, so make this transition
+	 * idempotent. A disabled SoftPLL, a different mode, or a different
+	 * timing mode still takes the normal initialization path below.
+	 */
+	if (softpll.mode == SPLL_MODE_SLAVE &&
+	    WRPC_ARCH_I(ppi)->timingMode == WRH_TM_BOUNDARY_CLOCK &&
+	    softpll.seq_state != SEQ_DISABLED) {
+		spll_enable_ptracker(0, 1);
+		return WRH_SPLL_OK;
+	}
 	wrpc_spll_note_init_reason(WRPC_SPLL_INIT_REASON_WRPC_LOCKING_ENABLE,
 					SPLL_MODE_SLAVE, SPLL_FLAG_ALIGN_PPS);
 	spll_init(SPLL_MODE_SLAVE, 0, SPLL_FLAG_ALIGN_PPS);

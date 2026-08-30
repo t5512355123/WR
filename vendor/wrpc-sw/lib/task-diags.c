@@ -21,7 +21,9 @@
 #include "dev/pps_gen.h"
 #include "wrc_global.h"
 
-#define WRC_DIAG_REFRESH_PERIOD (1 * TICS_PER_SECOND)
+/* Keep the existing read-only WDIAGS shadow current at the cadence used by
+ * the long-lock convergence observer. This changes observability only. */
+#define WRC_DIAG_REFRESH_PERIOD (TICS_PER_SECOND / 10)
 
 int wrc_wr_diags(void)
 {

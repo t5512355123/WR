@@ -34,6 +34,7 @@ array set ::sample_count {}
 array set ::valid_frame_count {}
 array set ::invalid_frame_count {}
 array set ::pi_present_count {}
+array set ::pi_snapshot_reject_count {}
 array set ::pi_accounting_fail_count {}
 array set ::pi_output_mismatch_count {}
 array set ::anti_windup_violation_count {}
@@ -242,11 +243,73 @@ proc read_pi_snapshot {hardware_name} {
     INVALID INVALID INVALID INVALID INVALID INVALID]
 }
 
+proc pi_snapshot_math_valid {snapshot} {
+  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
+  foreach {pi_valid pi_epoch before_lo before_hi i_new_lo i_new_hi \
+           after_lo after_hi unclamped_raw clamped_raw helper_state_raw \
+           helper_error_raw helper_output_raw freq_error_raw} $snapshot break
+  if {!$pi_valid || $pi_epoch eq "INVALID" || $pi_epoch == 0} { return 0 }
+  set before [signed64_words $before_lo $before_hi]
+  set i_new [signed64_words $i_new_lo $i_new_hi]
+  set after [signed64_words $after_lo $after_hi]
+  set unclamped [signed32 $unclamped_raw]
+  set clamped [signed32 $clamped_raw]
+  set helper_error [signed32 $helper_error_raw]
+  set helper_output [signed32 $helper_output_raw]
+  if {$before eq "INVALID" || $i_new eq "INVALID" || $after eq "INVALID" ||
+      $unclamped eq "INVALID" || $clamped eq "INVALID" ||
+      $helper_error eq "INVALID" || $helper_output eq "INVALID"} {
+    return 0
+  }
+  set expected_i_new [expr {$before + $PI_KI * $helper_error}]
+  set expected_unclamped [expr {(($expected_i_new + $PI_KP * $helper_error + \
+    (1 << ($PI_SHIFT - 1))) >> $PI_SHIFT) + $PI_BIAS}]
+  set expected_clamped $expected_unclamped
+  set expected_side 0
+  if {$expected_clamped < $PI_Y_MIN} {
+    set expected_clamped $PI_Y_MIN
+    set expected_side -1
+  } elseif {$expected_clamped > $PI_Y_MAX} {
+    set expected_clamped $PI_Y_MAX
+    set expected_side 1
+  }
+  set expected_after $expected_i_new
+  if {$expected_side == -1 && $expected_i_new <= $before} {
+    set expected_after $before
+  } elseif {$expected_side == 1 && $expected_i_new >= $before} {
+    set expected_after $before
+  }
+  return [expr {$i_new == $expected_i_new && $after == $expected_after &&
+    $unclamped == $expected_unclamped && $clamped == $expected_clamped &&
+    $clamped == $helper_output}]
+}
+
+proc read_pi_snapshot_checked {hardware_name} {
+  global poll_attempts
+  set rejects 0
+  set last_snapshot [list 0 INVALID INVALID INVALID INVALID INVALID INVALID \
+    INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  for {set attempt 0} {$attempt < 6} {incr attempt} {
+    set snapshot [read_pi_snapshot $hardware_name]
+    set last_snapshot $snapshot
+    if {[lindex $snapshot 0] && [pi_snapshot_math_valid $snapshot]} {
+      return [list 1 $rejects {*}$snapshot]
+    }
+    if {[lindex $snapshot 0] && [lindex $snapshot 1] ne "INVALID" &&
+        [lindex $snapshot 1] != 0} {
+      incr rejects
+    }
+    after 2
+  }
+  return [list 0 $rejects {*}$last_snapshot]
+}
+
 proc initialize_board {hardware_name} {
   set ::sample_count($hardware_name) 0
   set ::valid_frame_count($hardware_name) 0
   set ::invalid_frame_count($hardware_name) 0
   set ::pi_present_count($hardware_name) 0
+  set ::pi_snapshot_reject_count($hardware_name) 0
   set ::pi_accounting_fail_count($hardware_name) 0
   set ::pi_output_mismatch_count($hardware_name) 0
   set ::anti_windup_violation_count($hardware_name) 0
@@ -312,11 +375,15 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set wr_reset [probe_field32 $reset_probe 24 8]
   set si_drop [probe_field32 $reset_probe 40 8]
 
+  set checked_snapshot [read_pi_snapshot_checked $hardware_name]
+  set checked_valid [lindex $checked_snapshot 0]
+  set checked_rejects [lindex $checked_snapshot 1]
+  incr ::pi_snapshot_reject_count($hardware_name) $checked_rejects
+  set raw_snapshot [lrange $checked_snapshot 2 end]
   foreach {pi_valid pi_epoch before_lo before_hi i_new_lo i_new_hi \
            after_lo after_hi unclamped_raw clamped_raw helper_state_raw \
-           helper_error_raw helper_output_raw freq_error_raw} \
-      [read_pi_snapshot $hardware_name] break
-  set ctrl_valid $pi_valid
+           helper_error_raw helper_output_raw freq_error_raw} $raw_snapshot break
+  set ctrl_valid $checked_valid
   set pi_before [signed64_words $before_lo $before_hi]
   set pi_i_new [signed64_words $i_new_lo $i_new_hi]
   set pi_after [signed64_words $after_lo $after_hi]
@@ -457,8 +524,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     }
   }
 
-  puts [format "STEP5_PI_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d PI_TRACE_PRESENT=%d PI_EPOCH=%s PI_INTEGRATOR_BEFORE=%s PI_I_NEW=%s PI_INTEGRATOR_AFTER=%s PI_UNCLAMPED_OUTPUT=%s PI_CLAMPED_OUTPUT=%s PI_CLAMP_SIDE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s FREQ_ERROR=%s TARGET_CODE=%s APPLIED_CODE=%s NORMAL_COMPLETED=%s NORMAL_FINC=%s NORMAL_FDEC=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
-    $hardware_name $sample $elapsed_ms $valid $pi_present $pi_epoch $pi_before $pi_i_new $pi_after \
+  puts [format "STEP5_PI_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d PI_TRACE_PRESENT=%d PI_SNAPSHOT_REJECTS=%d PI_EPOCH=%s PI_INTEGRATOR_BEFORE=%s PI_I_NEW=%s PI_INTEGRATOR_AFTER=%s PI_UNCLAMPED_OUTPUT=%s PI_CLAMPED_OUTPUT=%s PI_CLAMP_SIDE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s FREQ_ERROR=%s TARGET_CODE=%s APPLIED_CODE=%s NORMAL_COMPLETED=%s NORMAL_FINC=%s NORMAL_FDEC=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
+    $hardware_name $sample $elapsed_ms $valid $pi_present $checked_rejects $pi_epoch $pi_before $pi_i_new $pi_after \
     $pi_unclamped $pi_clamped $pi_side $helper_error $helper_output $freq_error \
     $position_target $position_applied $normal_completed $normal_finc $normal_fdec $helper_locked $helper_count \
     $entry_generation $cpu_reset $wr_reset $si_drop]
@@ -477,10 +544,11 @@ proc emit_summary {hardware_name} {
   set cpu_delta [expr {($cpu0 ne "INVALID" && $cpu1 ne "INVALID") ? ($cpu1 - $cpu0) : "INVALID"}]
   set wr_delta [expr {($wr0 ne "INVALID" && $wr1 ne "INVALID") ? ($wr1 - $wr0) : "INVALID"}]
   set si_delta [expr {($si0 ne "INVALID" && $si1 ne "INVALID") ? ($si1 - $si0) : "INVALID"}]
-  puts [format "STEP5_PI_AUDIT_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f PI_TRACE_PRESENT=%d PI_TRACE_FRACTION=%.3f PI_ACCOUNTING_FAILS=%d PI_OUTPUT_MISMATCH_FAILS=%d ANTI_WINDUP_VIOLATIONS=%d LOW_RAIL_SAMPLES=%d LOW_RAIL_FRACTION=%.3f HIGH_RAIL_SAMPLES=%d HIGH_RAIL_FRACTION=%.3f FIRST_HIGH_RAIL_SAMPLE=%s FIRST_LOW_RAIL_SAMPLE=%s FREQ_ZERO_CROSSINGS=%d FIRST_ZERO_CROSSING_SAMPLE=%s FIRST_LOW_LEAVE_SAMPLE=%s HIGH_TO_LOW_SEEN=%d LOW_AFTER_ZERO_SEEN=%d RAIL_TO_RAIL_CYCLE_COMPLETE=%d POSITION_CONTEXT_FAILS=%d KP=%d KI=%d SHIFT=%d BIAS=%d Y_MIN=%d Y_MAX=%d TAG_VALID_FIRST=%s TAG_VALID_FINAL=%s NORMAL_COMPLETED_FIRST=%s NORMAL_COMPLETED_FINAL=%s TARGET_FINAL=%s APPLIED_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s PI_EPOCH_FINAL=%s PI_INTEGRATOR_BEFORE_FINAL=%s PI_I_NEW_FINAL=%s PI_INTEGRATOR_AFTER_FINAL=%s PI_UNCLAMPED_FINAL=%s PI_CLAMPED_FINAL=%s PI_CLAMP_SIDE_FINAL=%s HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
+  puts [format "STEP5_PI_AUDIT_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f PI_TRACE_PRESENT=%d PI_TRACE_FRACTION=%.3f PI_SNAPSHOT_REJECTS=%d PI_ACCOUNTING_FAILS=%d PI_OUTPUT_MISMATCH_FAILS=%d ANTI_WINDUP_VIOLATIONS=%d LOW_RAIL_SAMPLES=%d LOW_RAIL_FRACTION=%.3f HIGH_RAIL_SAMPLES=%d HIGH_RAIL_FRACTION=%.3f FIRST_HIGH_RAIL_SAMPLE=%s FIRST_LOW_RAIL_SAMPLE=%s FREQ_ZERO_CROSSINGS=%d FIRST_ZERO_CROSSING_SAMPLE=%s FIRST_LOW_LEAVE_SAMPLE=%s HIGH_TO_LOW_SEEN=%d LOW_AFTER_ZERO_SEEN=%d RAIL_TO_RAIL_CYCLE_COMPLETE=%d POSITION_CONTEXT_FAILS=%d KP=%d KI=%d SHIFT=%d BIAS=%d Y_MIN=%d Y_MAX=%d TAG_VALID_FIRST=%s TAG_VALID_FINAL=%s NORMAL_COMPLETED_FIRST=%s NORMAL_COMPLETED_FINAL=%s TARGET_FINAL=%s APPLIED_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s PI_EPOCH_FINAL=%s PI_INTEGRATOR_BEFORE_FINAL=%s PI_I_NEW_FINAL=%s PI_INTEGRATOR_AFTER_FINAL=%s PI_UNCLAMPED_FINAL=%s PI_CLAMPED_FINAL=%s PI_CLAMP_SIDE_FINAL=%s HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
     $hardware_name $::sample_count($hardware_name) $valid $::invalid_frame_count($hardware_name) \
     [expr {$::elapsed_final($hardware_name) / 1000.0}] $::pi_present_count($hardware_name) $pi_fraction \
-    $::pi_accounting_fail_count($hardware_name) $::pi_output_mismatch_count($hardware_name) \
+    $::pi_snapshot_reject_count($hardware_name) $::pi_accounting_fail_count($hardware_name) \
+    $::pi_output_mismatch_count($hardware_name) \
     $::anti_windup_violation_count($hardware_name) \
     $::low_rail_count($hardware_name) $rail_fraction $::high_rail_count($hardware_name) $high_fraction \
     $::first_high_rail_sample($hardware_name) $::first_low_rail_sample($hardware_name) \

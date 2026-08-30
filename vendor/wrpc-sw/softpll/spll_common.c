@@ -57,6 +57,7 @@ int pi_update(spll_pi_t *pi, int x)
 	pi->trace_integrator_before = integrator_before;
 	pi->trace_i_new = i_new;
 	pi->trace_integrator_after = pi->integrator;
+	pi->trace_x = x;
 	pi->trace_y_unclamped = y_unclamped;
 	pi->trace_y_clamped = y;
 	pi->trace_clamp_side = clamp_side;
@@ -74,6 +75,7 @@ void pi_init(spll_pi_t *pi)
 	pi->trace_integrator_before = 0;
 	pi->trace_i_new = 0;
 	pi->trace_integrator_after = 0;
+	pi->trace_x = 0;
 	pi->trace_y_unclamped = pi->bias;
 	pi->trace_y_clamped = pi->bias;
 	pi->trace_clamp_side = 0;

@@ -38,6 +38,7 @@ int wrc_wr_diags(void)
 	int temp = 0, valid = 0, snapshot = 0, i;
 	uint32_t pi_epoch_before, pi_epoch_after, pi_epoch = 0;
 	int64_t pi_integrator_before = 0, pi_i_new = 0, pi_integrator_after = 0;
+	int32_t pi_helper_error = 0, pi_helper_output = 0;
 	int32_t pi_y_unclamped = 0, pi_y_clamped = 0;
 	int32_t pi_tag_delta = 0, pi_expected_delta = 0;
 	int pi_snapshot_valid;
@@ -237,6 +238,8 @@ int wrc_wr_diags(void)
 				pi_integrator_before = softpll.helper.pi.trace_integrator_before;
 				pi_i_new = softpll.helper.pi.trace_i_new;
 				pi_integrator_after = softpll.helper.pi.trace_integrator_after;
+				pi_helper_error = softpll.helper.pi.trace_x;
+				pi_helper_output = softpll.helper.pi.trace_y_clamped;
 				pi_y_unclamped = softpll.helper.pi.trace_y_unclamped;
 				pi_y_clamped = softpll.helper.pi.trace_y_clamped;
 				pi_tag_delta = wrpc_spll_helper_tag_delta;
@@ -255,6 +258,8 @@ int wrc_wr_diags(void)
 				pi_integrator_before,
 				pi_i_new,
 				pi_integrator_after,
+				pi_helper_error,
+				pi_helper_output,
 				pi_y_unclamped,
 				pi_y_clamped,
 				pi_tag_delta,

@@ -880,6 +880,8 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
                                           int64_t integrator_before,
                                           int64_t i_new,
                                           int64_t integrator_after,
+                                          int32_t helper_error,
+                                          int32_t helper_output,
                                           int32_t y_unclamped,
                                           int32_t y_clamped,
                                           int32_t tag_delta,
@@ -908,6 +910,10 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 			(uint32_t)tag_delta);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_EXPECTED_DELTA,
 			(uint32_t)expected_delta);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_ERROR,
+			(uint32_t)helper_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT,
+			(uint32_t)helper_output);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
 }
 

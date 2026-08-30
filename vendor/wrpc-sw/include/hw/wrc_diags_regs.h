@@ -126,6 +126,8 @@
 #define WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT       0x120UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_TAG_DELTA            0x124UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_EXPECTED_DELTA       0x128UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_ERROR                0x12cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_OUTPUT               0x130UL
 
 /* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
  * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those

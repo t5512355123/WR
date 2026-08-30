@@ -55,6 +55,7 @@ typedef struct {
 	int64_t trace_integrator_before;
 	int64_t trace_i_new;
 	int64_t trace_integrator_after;
+	int trace_x;
 	int trace_y_unclamped;
 	int trace_y_clamped;
 	int trace_clamp_side;

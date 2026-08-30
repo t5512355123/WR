@@ -227,8 +227,8 @@ proc read_pi_snapshot {hardware_name} {
     set tag_delta [wb_read $hardware_name 0x00100B24]
     set expected_delta [wb_read $hardware_name 0x00100B28]
     set helper_state [wb_read $hardware_name 0x00100ABC]
-    set helper_error [wb_read $hardware_name 0x00100AD8]
-    set helper_output [wb_read $hardware_name 0x00100ADC]
+    set helper_error [wb_read $hardware_name 0x00100B2C]
+    set helper_output [wb_read $hardware_name 0x00100B30]
     set ctrl_end [wb_read $hardware_name 0x00100A04]
     set epoch_end [wb_read $hardware_name 0x00100B00]
     if {[string equal -nocase $epoch_begin $epoch_end] &&

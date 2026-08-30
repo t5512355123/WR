@@ -188,20 +188,20 @@ proc read_coherent_measurement {hardware_name} {
   # Return: accepted epoch tag_delta expected_delta freq_error preclamp
   #         helper_error update_count helper_output ref_accept fb_accept.
   for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set epoch_before_raw [wb_read $hardware_name 0x00100100]
+    set epoch_before_raw [wb_read $hardware_name 0x00100B00]
     set epoch_before [word32 $epoch_before_raw]
     if {$epoch_before < 0 || ($epoch_before & 1)} { continue }
 
-    set tag_delta_raw [wb_read $hardware_name 0x00100104]
-    set expected_delta_raw [wb_read $hardware_name 0x00100108]
-    set freq_error_raw [wb_read $hardware_name 0x0010010C]
-    set preclamp_raw [wb_read $hardware_name 0x00100110]
-    set helper_error_raw [wb_read $hardware_name 0x00100114]
-    set update_count_raw [wb_read $hardware_name 0x00100118]
-    set helper_output_raw [wb_read $hardware_name 0x0010011C]
-    set ref_accept_raw [wb_read $hardware_name 0x00100120]
-    set fb_accept_raw [wb_read $hardware_name 0x00100124]
-    set epoch_after_raw [wb_read $hardware_name 0x00100100]
+    set tag_delta_raw [wb_read $hardware_name 0x00100B04]
+    set expected_delta_raw [wb_read $hardware_name 0x00100B08]
+    set freq_error_raw [wb_read $hardware_name 0x00100B0C]
+    set preclamp_raw [wb_read $hardware_name 0x00100B10]
+    set helper_error_raw [wb_read $hardware_name 0x00100B14]
+    set update_count_raw [wb_read $hardware_name 0x00100B18]
+    set helper_output_raw [wb_read $hardware_name 0x00100B1C]
+    set ref_accept_raw [wb_read $hardware_name 0x00100B20]
+    set fb_accept_raw [wb_read $hardware_name 0x00100B24]
+    set epoch_after_raw [wb_read $hardware_name 0x00100B00]
     set epoch_after [word32 $epoch_after_raw]
 
     if {$epoch_before == $epoch_after && $epoch_after >= 0 && !($epoch_after & 1)} {

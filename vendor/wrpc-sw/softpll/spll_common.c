@@ -17,24 +17,35 @@
 int pi_update(spll_pi_t *pi, int x)
 {
 	int64_t i_new;
+	int64_t integrator_before;
+	int y_unclamped;
+	int clamp_side;
 	int y;
+
+	/* Mark the read-only trace as in-flight before touching its fields. */
+	pi->trace_epoch++;
+	integrator_before = pi->integrator;
 	pi->x = x;
 	i_new = pi->integrator + (int64_t) pi->ki * x;
 
 	int64_t y_preround = (i_new + (int64_t) x * pi->kp) + ( 1 << (pi->shift - 1) );
 
 	y = ( y_preround >> pi->shift) + pi->bias;
+	y_unclamped = y;
+	clamp_side = 0;
 
 	/* clamping (output has to be in <y_min, y_max>) and
 	   anti-windup: stop the integrator if the output is already
 	   out of range and the output is going further away from
 	   y_min/y_max. */
 	if (y < pi->y_min) {
+		clamp_side = -1;
 		y = pi->y_min;
 		if ((pi->anti_windup && (i_new > pi->integrator))
 		    || !pi->anti_windup)
 			pi->integrator = i_new;
 	} else if (y > pi->y_max) {
+		clamp_side = 1;
 		y = pi->y_max;
 		if ((pi->anti_windup && (i_new < pi->integrator))
 		    || !pi->anti_windup)
@@ -43,6 +54,14 @@ int pi_update(spll_pi_t *pi, int x)
 		pi->integrator = i_new;
 
 	pi->y = y;
+	pi->trace_integrator_before = integrator_before;
+	pi->trace_i_new = i_new;
+	pi->trace_integrator_after = pi->integrator;
+	pi->trace_y_unclamped = y_unclamped;
+	pi->trace_y_clamped = y;
+	pi->trace_clamp_side = clamp_side;
+	/* Publish the completed, coherent trace. */
+	pi->trace_epoch++;
 	return y;
 }
 
@@ -51,6 +70,13 @@ void pi_init(spll_pi_t *pi)
 	pi->integrator = 0;
 	pi->y = pi->bias;
 	pi->dithered = 0;
+	pi->trace_epoch = 0;
+	pi->trace_integrator_before = 0;
+	pi->trace_i_new = 0;
+	pi->trace_integrator_after = 0;
+	pi->trace_y_unclamped = pi->bias;
+	pi->trace_y_clamped = pi->bias;
+	pi->trace_clamp_side = 0;
 }
 
 /* Lock detector state machine. Takes an error sample (y) and checks

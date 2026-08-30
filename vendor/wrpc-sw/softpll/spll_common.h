@@ -46,6 +46,18 @@ typedef struct {
 	int y_max;
 	int x, y;		/* Current input (x) and output value (y) */
 	int dithered;		/* Enable dithering of DAC output */
+
+	/* Read-only PI trace.  These fields are updated around pi_update() and
+	 * are mirrored by the diagnostics task; they never participate in the
+	 * controller calculation.  trace_epoch is odd while the trace is being
+	 * published and even when the snapshot is coherent. */
+	uint32_t trace_epoch;
+	int64_t trace_integrator_before;
+	int64_t trace_i_new;
+	int64_t trace_integrator_after;
+	int trace_y_unclamped;
+	int trace_y_clamped;
+	int trace_clamp_side;
 } spll_pi_t;
 
 /* lock detector state */

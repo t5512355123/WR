@@ -112,6 +112,20 @@
 #define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x1f0UL
 #define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x1f4UL
 #define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
+/* Read-only Helper PI state trace.  The WDIAGS DPRAM is extended to 0x3ff
+ * for this observability block; these words are snapshots only and never
+ * feed back into the controller. */
+#define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH          0x200UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO 0x204UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI 0x208UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO             0x20cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI             0x210UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO  0x214UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI  0x218UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT     0x21cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_CLAMPED_OUTPUT       0x220UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_CLAMP_SIDE           0x224UL
+
 /* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
  * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those
  * same words carry the buffer and packed metadata so the 0x200-byte private

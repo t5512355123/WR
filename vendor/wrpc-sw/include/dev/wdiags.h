@@ -174,11 +174,19 @@ void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
 /* Read-only register-map self-test for DE5a JTAG observability. */
 void wdiags_write_mapping_self_test(uint32_t counter);
 void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
-						uint32_t clear_dacs_count,
-						uint32_t current_tics,
-						uint32_t dac_timeout,
-						uint32_t last_init_tics,
-						uint32_t last_clear_dacs_tics);
+						 uint32_t clear_dacs_count,
+						 uint32_t current_tics,
+						 uint32_t dac_timeout,
+						 uint32_t last_init_tics,
+						 uint32_t last_clear_dacs_tics);
+/* Read-only coherent Helper PI trace for Step5 rail/anti-windup audit. */
+void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
+                                          int64_t integrator_before,
+                                          int64_t i_new,
+                                          int64_t integrator_after,
+                                          int32_t y_unclamped,
+                                          int32_t y_clamped,
+                                          int32_t clamp_side);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

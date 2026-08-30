@@ -215,14 +215,14 @@ proc read_reason_snapshot {hardware_name} {
     set last_flags [word32 [wb_read $hardware_name 0x00100BE8]]
     set last_tics [word32 [wb_read $hardware_name 0x00100BEC]]
     set counters {}
-  for {set i 0} {$i < 4} {incr i} {
-    set packed [word32 [wb_read $hardware_name [expr {0x00100BF0 + $i * 4}]]]
-    if {$packed < 0} {
-      lappend counters INVALID INVALID INVALID INVALID
-    } else {
-      for {set j 0} {$j < 4} {incr j} {
-        lappend counters [expr {($packed >> ($j * 8)) & 0xff}]
-      }
+    for {set i 0} {$i < 4} {incr i} {
+      set packed [word32 [wb_read $hardware_name [expr {0x00100BF0 + $i * 4}]]]
+      if {$packed < 0} {
+        lappend counters INVALID INVALID INVALID INVALID
+      } else {
+        for {set j 0} {$j < 4} {incr j} {
+          lappend counters [expr {($packed >> ($j * 8)) & 0xff}]
+        }
       }
     }
     set stamp_after [word32 [wb_read $hardware_name 0x00100BEC]]

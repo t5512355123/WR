@@ -408,12 +408,12 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 proc emit_summary {hardware_name} {
   foreach {gen0 cpu0 wr0 si0} $::reset_first($hardware_name) break
   foreach {gen1 cpu1 wr1 si1} $::reset_final($hardware_name) break
-  foreach {target0 applied0 req0 done0} $::tracker_first($hardware_name) break
-  foreach {target1 applied1 req1 done1} $::tracker_final($hardware_name) break
-  foreach {boot0 done0} $::bootstrap_first($hardware_name) break
-  foreach {boot1 done1} $::bootstrap_final($hardware_name) break
+  foreach {target0 applied0 req0 normal_done0} $::tracker_first($hardware_name) break
+  foreach {target1 applied1 req1 normal_done1} $::tracker_final($hardware_name) break
+  foreach {boot0 boot_done0} $::bootstrap_first($hardware_name) break
+  foreach {boot1 boot_done1} $::bootstrap_final($hardware_name) break
   set normal_req_delta [counter_delta $::normal_req_base($hardware_name) $req1 16]
-  set normal_done_delta [counter_delta $::normal_done_base($hardware_name) $done1 16]
+  set normal_done_delta [counter_delta $::normal_done_base($hardware_name) $normal_done1 16]
   set forced_delta [counter_delta $::forced_done_base($hardware_name) $::forced_done_final($hardware_name) 16]
   set dco_delta [counter_delta $::dco_step_base($hardware_name) $::dco_step_final($hardware_name) 16]
   set gen_delta [expr {($gen0 ne "INVALID" && $gen1 ne "INVALID") ? ($gen1 - $gen0) : "INVALID"}]
@@ -434,7 +434,7 @@ proc emit_summary {hardware_name} {
   }
   puts [format "STEP5_FLOOR_STATIONARITY_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_DONE_FINAL=%s BOOTSTRAP_DONE_SAMPLE=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s FORCED_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s ACTUATOR_HOLD=%s BASELINE_COUNT=%d FREQ_BASELINE_MEAN=%s FREQ_BASELINE_SIGMA=%s FREQ_MEAN=%s FREQ_RMS=%s FREQ_MIN=%s FREQ_MAX=%s FREQ_FIRST=%s FREQ_LAST=%s ROLLING_MEAN_LAST=%s ROLLING_MEAN_VIOLATIONS=%d MAX_ROLLING_MEAN_DEVIATION=%s SUSTAINED_VIOLATION_SAMPLES=%d PHYSICAL_FLOOR_STATIONARITY=%s LOW_RAIL_SAMPLES=%d HIGH_RAIL_SAMPLES=%d HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s RESET_STABLE=%s" \
     $hardware_name $::sample_count($hardware_name) $::valid_frame_count($hardware_name) $::invalid_frame_count($hardware_name) \
-    [expr {$::elapsed_final($hardware_name) / 1000.0}] $::bootstrap_completed_final($hardware_name) $done1 $::bootstrap_done_sample($hardware_name) \
+    [expr {$::elapsed_final($hardware_name) / 1000.0}] $::bootstrap_completed_final($hardware_name) $boot_done1 $::bootstrap_done_sample($hardware_name) \
     $normal_req_delta $normal_done_delta $forced_delta $dco_delta $hold_result $::baseline_count($hardware_name) \
     $::baseline_mean($hardware_name) $::baseline_sigma($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) \
     $::first_freq($hardware_name) $::last_freq($hardware_name) $::last_rolling_mean($hardware_name) \

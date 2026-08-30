@@ -48,6 +48,7 @@ output    [63:0]        oDCO_STEP5_BURST_WIDE_DEBUG,
 output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
 output    [63:0]        oDCO_STEP5_BOOTSTRAP_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_DEBUG,
+output    [63:0]        oDCO_STEP5_POSITION_ACCOUNTING_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -121,10 +122,12 @@ reg [63:0] dco_step5_burst_wide_debug;
 reg [63:0] dco_step5_tracker_debug;
 reg [63:0] dco_step5_bootstrap_debug;
 reg [63:0] dco_step5_position_debug;
+reg [63:0] dco_step5_position_accounting_debug;
 reg [15:0] bootstrap_remaining;
 reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
 reg        bootstrap_done;
+reg [15:0] position_audit_epoch;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -179,6 +182,7 @@ assign oDCO_STEP5_BURST_WIDE_DEBUG = dco_step5_burst_wide_debug;
 assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
 assign oDCO_STEP5_BOOTSTRAP_DEBUG = dco_step5_bootstrap_debug;
 assign oDCO_STEP5_POSITION_DEBUG = dco_step5_position_debug;
+assign oDCO_STEP5_POSITION_ACCOUNTING_DEBUG = dco_step5_position_accounting_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -302,6 +306,20 @@ always @* begin
   dco_step5_position_debug[63:48] = normal_fdec_completed_count;
 end
 
+// A second read-only audit word keeps the transaction accounting fields in
+// one RTL snapshot.  The epoch increments on every completed physical
+// transaction; the observer reads this word before and after probe 43 and
+// accepts the pair only when the epoch is unchanged.
+// [15:0] normal completed, [31:16] total DCO completed,
+// [47:32] bootstrap completed, [63:48] completion epoch.
+always @* begin
+  dco_step5_position_accounting_debug = 64'd0;
+  dco_step5_position_accounting_debug[15:0]  = normal_hpll_completed_count;
+  dco_step5_position_accounting_debug[31:16] = dco_step_count;
+  dco_step5_position_accounting_debug[47:32] = bootstrap_completed_count;
+  dco_step5_position_accounting_debug[63:48] = position_audit_epoch;
+end
+
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
   .iRST_n(iRST_n),
@@ -416,6 +434,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     bootstrap_completed_count <= 16'd0;
     bootstrap_started <= 1'b0;
     bootstrap_done <= 1'b0;
+    position_audit_epoch <= 16'd0;
     rt_state_enter_count <= 8'd0;
     runtime_start_count <= 8'd0;
     bus_done_count <= 8'd0;
@@ -605,6 +624,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_state <= 3'd0;
           rt_seen_busy <= 1'b0;
           dco_step_count <= dco_step_count + 1'b1;
+          position_audit_epoch <= position_audit_epoch + 1'b1;
           if (current_request_forced) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
             if (current_request_bootstrap) begin

@@ -132,6 +132,24 @@ proc probe_read {instance} {
   return $value
 }
 
+proc read_stable_audit_pair {} {
+  # Probe 43 carries target/applied/FINC/FDEC. Probe 44 carries the
+  # accounting counters plus an epoch that advances on every completed
+  # physical transaction. Accept only a pair bracketed by the same epoch.
+  for {set attempt 0} {$attempt < 10} {incr attempt} {
+    set accounting_before [probe_read 44]
+    set position [probe_read 43]
+    set accounting_after [probe_read 44]
+    if {[is_hex $accounting_before] && [is_hex $position] &&
+        [is_hex $accounting_after] &&
+        [string equal -nocase $accounting_before $accounting_after]} {
+      return [list $position $accounting_after]
+    }
+    after 1
+  }
+  return [list INVALID INVALID]
+}
+
 proc wb_read {hardware_name addr} {
   global poll_attempts
   set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
@@ -252,8 +270,7 @@ proc initialize_board {hardware_name} {
 proc emit_sample {hardware_name sample elapsed_ms} {
   set ctrl_begin [wb_read $hardware_name 0x00100A04]
   set tracker_raw [probe_read 39]
-  set position_raw [probe_read 43]
-  set burst_raw [probe_read 37]
+  foreach {position_raw accounting_raw} [read_stable_audit_pair] break
   set bootstrap_raw [probe_read 42]
   set entry_probe [probe_read 26]
   set reset_probe [probe_read 27]
@@ -268,17 +285,18 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 
   set tracker_word [word64 $tracker_raw]
   set position_word [word64 $position_raw]
-  set burst_word [word64 $burst_raw]
+  set accounting_word [word64 $accounting_raw]
   set bootstrap_word [word64 $bootstrap_raw]
-  set target [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 0) & 0xffff)}]
-  set applied [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 16) & 0xffff)}]
+  set target [expr {($position_word < 0) ? "INVALID" : (($position_word >> 0) & 0xffff)}]
+  set applied [expr {($position_word < 0) ? "INVALID" : (($position_word >> 16) & 0xffff)}]
   set normal_req [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
-  set normal_done [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 48) & 0xffff)}]
-  set dco_step [expr {($burst_word < 0) ? "INVALID" : (($burst_word >> 48) & 0xffff)}]
-  set bootstrap_completed [expr {($bootstrap_word < 0) ? "INVALID" : (($bootstrap_word >> 16) & 0xffff)}]
+  set normal_done [expr {($accounting_word < 0) ? "INVALID" : (($accounting_word >> 0) & 0xffff)}]
+  set dco_step [expr {($accounting_word < 0) ? "INVALID" : (($accounting_word >> 16) & 0xffff)}]
+  set bootstrap_completed [expr {($accounting_word < 0) ? "INVALID" : (($accounting_word >> 32) & 0xffff)}]
+  set audit_epoch [expr {($accounting_word < 0) ? "INVALID" : (($accounting_word >> 48) & 0xffff)}]
   set bootstrap_done [expr {($bootstrap_word < 0) ? "INVALID" : (($bootstrap_word >> 33) & 1)}]
-  set position_target [expr {($position_word < 0) ? "INVALID" : (($position_word >> 0) & 0xffff)}]
-  set position_applied [expr {($position_word < 0) ? "INVALID" : (($position_word >> 16) & 0xffff)}]
+  set position_target $target
+  set position_applied $applied
   set finc [expr {($position_word < 0) ? "INVALID" : (($position_word >> 32) & 0xffff)}]
   set fdec [expr {($position_word < 0) ? "INVALID" : (($position_word >> 48) & 0xffff)}]
   set helper_locked [field32 $helper_state 0 1]

@@ -828,27 +828,29 @@ void wdiags_write_wr_spll_helper_correlation(int32_t last_tag,
                                              int32_t p_setpoint,
                                              int32_t ref_src)
 {
-	/* These registers are sampled shadows only. The periodic diagnostics task
-	 * writes them outside the interrupt-driven SoftPLL loop. */
-	wdiag_write(0x100, (uint32_t)last_tag);
-	wdiag_write(0x104, (uint32_t)expected_tag);
-	wdiag_write(0x108, (uint32_t)preclamp_error);
-	wdiag_write(0x10c, (uint32_t)tag_delta);
-	wdiag_write(0x110, (uint32_t)tag_source);
-	wdiag_write(0x114, (uint32_t)expected_delta);
-	wdiag_write(0x118, update_count);
-	wdiag_write(0x11c, (uint32_t)p_adder);
-	wdiag_write(0x120, (uint32_t)tag_d0);
-	wdiag_write(0x124, (uint32_t)p_setpoint);
-	wdiag_write(0x128, (uint32_t)ref_src);
+	/* The former correlation slots 0x100..0x128 are reserved exclusively for
+	 * the coherent Helper PI snapshot.  Keeping this legacy entry point as a
+	 * no-op prevents an older shadow writer from tearing that snapshot between
+	 * the epoch marker and its payload.  The PI publisher preserves the
+	 * source-backed update counter at 0x118. */
+	(void)last_tag;
+	(void)expected_tag;
+	(void)preclamp_error;
+	(void)tag_delta;
+	(void)tag_source;
+	(void)expected_delta;
+	(void)update_count;
+	(void)p_adder;
+	(void)tag_d0;
+	(void)p_setpoint;
+	(void)ref_src;
 }
 
 void wdiags_write_mapping_self_test(uint32_t counter)
 {
 	/* These values validate firmware write -> DPRAM -> JTAG read mapping.
 	 * They never feed back into WR control or the SoftPLL. */
-	wdiag_write(0x12c, 0xA5A5122Cu);
-	wdiag_write(0x130, 0xA5A51330u);
+	/* 0x12c and 0x130 are part of the coherent Helper PI snapshot. */
 	wdiags_mapping_counter_shadow = counter;
 	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_COUNTER,
 			(counter & 0xffffu) |
@@ -893,6 +895,8 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 	 * the reader could observe a mixture of two successive 64-bit snapshots
 	 * while the payload is being rewritten. */
 	if (trace_epoch == 0xffffffffu || (trace_epoch & 1u)) {
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT,
+				helper_update_count);
 		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, 0xffffffffu);
 		return;
 	}

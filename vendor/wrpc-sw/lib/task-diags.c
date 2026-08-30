@@ -48,7 +48,6 @@ int wrc_wr_diags(void)
 	int32_t measurement_helper_error = 0;
 	int32_t measurement_output = 0;
 	int measurement_snapshot_valid;
-	uint32_t pi_trace_epoch_before, pi_trace_epoch_after;
 	uint32_t pi_trace_epoch = 0xffffffffu;
 	uint32_t pi_trace_lock_state = 0;
 	uint32_t pi_trace_update_count = 0;
@@ -299,9 +298,6 @@ int wrc_wr_diags(void)
 					wrpc_spll_helper_measurement_dmtd_ref_accept_count;
 				measurement_fb_accept_count =
 					wrpc_spll_helper_measurement_dmtd_fb_accept_count;
-				pi_trace_epoch_before = softpll.helper.pi.trace_epoch;
-				if (pi_trace_epoch_before & 1u)
-					continue;
 				pi_trace_tag_raw = wrpc_spll_helper_last_tag;
 				pi_trace_p_adder = wrpc_spll_helper_p_adder;
 				/* The error is formed against expected_tag before the next
@@ -340,12 +336,9 @@ int wrc_wr_diags(void)
 				pi_trace_lock_threshold = softpll.helper.ld.threshold;
 				pi_trace_lock_samples = softpll.helper.ld.lock_samples;
 				pi_trace_ref_src = softpll.helper.ref_src;
-				pi_trace_epoch_after = softpll.helper.pi.trace_epoch;
 				measurement_epoch_after =
 					wrpc_spll_helper_measurement_epoch;
 				if (measurement_epoch_before == measurement_epoch_after &&
-				    pi_trace_epoch_before == pi_trace_epoch_after &&
-				    !(pi_trace_epoch_after & 1u) &&
 				    !(measurement_epoch_after & 1u)) {
 					measurement_epoch = measurement_epoch_after;
 					measurement_snapshot_valid = 1;

@@ -970,6 +970,99 @@ void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH, measurement_epoch);
 }
 
+static void wdiags_write_i64_pair(uint32_t lo_reg, uint32_t hi_reg,
+					 int64_t value)
+{
+	uint64_t bits = (uint64_t)value;
+
+	wdiag_write(lo_reg, (uint32_t)bits);
+	wdiag_write(hi_reg, (uint32_t)(bits >> 32));
+}
+
+void wdiags_write_wr_spll_helper_pi_trace(
+									uint32_t trace_epoch,
+									int32_t tag_raw,
+									int32_t p_adder,
+									int32_t p_setpoint,
+									int32_t raw_error,
+									int32_t ld_error,
+									uint32_t lock_state,
+									int64_t integrator_before,
+									int64_t i_new,
+									int64_t integrator_after,
+									int64_t prop_term,
+									int64_t y_preround,
+									int32_t unclamped_output,
+									int32_t y_min,
+									int32_t y_max,
+									int32_t clamp_side,
+									int32_t final_output,
+									int32_t x,
+									int32_t kp,
+									int32_t ki,
+									int32_t shift,
+									int32_t bias,
+									int32_t anti_windup,
+									uint32_t update_count,
+									int32_t freq_error,
+									int32_t lock_threshold,
+									int32_t lock_samples,
+									int32_t ref_src)
+{
+	/* The PI trace owns the 0x158..0x1dc private overlay for this audit.
+	 * Keep the re-init attribution at 0x1e0..0x1fc independent. */
+	if (trace_epoch == 0xffffffffu || (trace_epoch & 1u)) {
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, 0xffffffffu);
+		return;
+	}
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch | 1u);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TAG_RAW, (uint32_t)tag_raw);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_P_ADDER, (uint32_t)p_adder);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_P_SETPOINT, (uint32_t)p_setpoint);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_RAW_ERROR, (uint32_t)raw_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_LD_ERROR, (uint32_t)ld_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_LOCK_STATE, lock_state);
+	wdiags_write_i64_pair(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO,
+					 WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI,
+					 integrator_before);
+	wdiags_write_i64_pair(WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO,
+					 WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI, i_new);
+	wdiags_write_i64_pair(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO,
+					 WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI,
+					 integrator_after);
+	wdiags_write_i64_pair(WRC_DIAGS_WDIAG_HELPER_PI_PROP_TERM_LO,
+					 WRC_DIAGS_WDIAG_HELPER_PI_PROP_TERM_HI, prop_term);
+	wdiags_write_i64_pair(WRC_DIAGS_WDIAG_HELPER_PI_Y_PREROUND_LO,
+					 WRC_DIAGS_WDIAG_HELPER_PI_Y_PREROUND_HI, y_preround);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT,
+				(uint32_t)unclamped_output);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_Y_MIN, (uint32_t)y_min);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_Y_MAX, (uint32_t)y_max);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_CLAMP_SIDE, (uint32_t)clamp_side);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_FINAL_OUTPUT,
+				(uint32_t)final_output);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_X, (uint32_t)x);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_KP, (uint32_t)kp);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_KI, (uint32_t)ki);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SHIFT, (uint32_t)shift);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_BIAS, (uint32_t)bias);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_ANTI_WINDUP,
+				(uint32_t)anti_windup);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT, update_count);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR,
+				(uint32_t)freq_error);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_LOCK_THRESHOLD,
+				(uint32_t)lock_threshold);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_LOCK_SAMPLES,
+				(uint32_t)lock_samples);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_REF_SRC, (uint32_t)ref_src);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_MAGIC,
+				WRC_DIAGS_WDIAG_HELPER_PI_TRACE_VERSION);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;

@@ -48,6 +48,36 @@ int wrc_wr_diags(void)
 	int32_t measurement_helper_error = 0;
 	int32_t measurement_output = 0;
 	int measurement_snapshot_valid;
+	uint32_t pi_trace_epoch_before, pi_trace_epoch_after;
+	uint32_t pi_trace_epoch = 0xffffffffu;
+	uint32_t pi_trace_lock_state = 0;
+	uint32_t pi_trace_update_count = 0;
+	int32_t pi_trace_tag_raw = 0;
+	int32_t pi_trace_p_adder = 0;
+	int32_t pi_trace_p_setpoint = 0;
+	int32_t pi_trace_raw_error = 0;
+	int32_t pi_trace_ld_error = 0;
+	int64_t pi_trace_integrator_before = 0;
+	int64_t pi_trace_i_new = 0;
+	int64_t pi_trace_integrator_after = 0;
+	int64_t pi_trace_prop_term = 0;
+	int64_t pi_trace_y_preround = 0;
+	int32_t pi_trace_unclamped_output = 0;
+	int32_t pi_trace_y_min = 0;
+	int32_t pi_trace_y_max = 0;
+	int32_t pi_trace_clamp_side = 0;
+	int32_t pi_trace_final_output = 0;
+	int32_t pi_trace_x = 0;
+	int32_t pi_trace_kp = 0;
+	int32_t pi_trace_ki = 0;
+	int32_t pi_trace_shift = 0;
+	int32_t pi_trace_bias = 0;
+	int32_t pi_trace_anti_windup = 0;
+	int32_t pi_trace_freq_error = 0;
+	int32_t pi_trace_lock_threshold = 0;
+	int32_t pi_trace_lock_samples = 0;
+	int32_t pi_trace_ref_src = 0;
+	int pi_trace_snapshot_valid;
 
 	struct pp_instance *ppi = ppg->pp_instances;
 	valid    = wdiag_get_valid();
@@ -245,6 +275,7 @@ int wrc_wr_diags(void)
 			 * source payload is captured in helper_update(); WDIAGS is only a
 			 * slower transport window for the passive JTAG observer. */
 			measurement_snapshot_valid = 0;
+			pi_trace_snapshot_valid = 0;
 			for (i = 0; i < 4 && !measurement_snapshot_valid; i++) {
 				measurement_epoch_before =
 					wrpc_spll_helper_measurement_epoch;
@@ -268,12 +299,58 @@ int wrc_wr_diags(void)
 					wrpc_spll_helper_measurement_dmtd_ref_accept_count;
 				measurement_fb_accept_count =
 					wrpc_spll_helper_measurement_dmtd_fb_accept_count;
+				pi_trace_epoch_before = softpll.helper.pi.trace_epoch;
+				if (pi_trace_epoch_before & 1u)
+					continue;
+				pi_trace_tag_raw = wrpc_spll_helper_last_tag;
+				pi_trace_p_adder = wrpc_spll_helper_p_adder;
+				/* The error is formed against expected_tag before the next
+				 * setpoint is advanced by one HPLL period. */
+				pi_trace_p_setpoint = wrpc_spll_helper_expected_tag;
+				pi_trace_raw_error = measurement_preclamp_error;
+				pi_trace_ld_error = measurement_helper_error;
+				pi_trace_lock_state =
+					((uint32_t)(softpll.helper.ld.locked ? 1u : 0u)) |
+					(((uint32_t)softpll.helper.ld.lock_cnt & 0xffffu) << 16);
+				pi_trace_integrator_before =
+					softpll.helper.pi.trace_integrator_before;
+				pi_trace_i_new = softpll.helper.pi.trace_i_new;
+				pi_trace_integrator_after =
+					softpll.helper.pi.trace_integrator_after;
+				pi_trace_x = softpll.helper.pi.trace_x;
+				pi_trace_kp = softpll.helper.pi.kp;
+				pi_trace_ki = softpll.helper.pi.ki;
+				pi_trace_shift = softpll.helper.pi.shift;
+				pi_trace_bias = softpll.helper.pi.bias;
+				pi_trace_anti_windup = softpll.helper.pi.anti_windup;
+				pi_trace_prop_term =
+					(int64_t)pi_trace_x * (int64_t)pi_trace_kp;
+				pi_trace_y_preround = pi_trace_i_new + pi_trace_prop_term;
+				if (pi_trace_shift > 0)
+					pi_trace_y_preround +=
+						((int64_t)1 << (pi_trace_shift - 1));
+				pi_trace_unclamped_output =
+					softpll.helper.pi.trace_y_unclamped;
+				pi_trace_y_min = softpll.helper.pi.y_min;
+				pi_trace_y_max = softpll.helper.pi.y_max;
+				pi_trace_clamp_side = softpll.helper.pi.trace_clamp_side;
+				pi_trace_final_output = softpll.helper.pi.trace_y_clamped;
+				pi_trace_update_count = measurement_update_count;
+				pi_trace_freq_error = measurement_freq_error;
+				pi_trace_lock_threshold = softpll.helper.ld.threshold;
+				pi_trace_lock_samples = softpll.helper.ld.lock_samples;
+				pi_trace_ref_src = softpll.helper.ref_src;
+				pi_trace_epoch_after = softpll.helper.pi.trace_epoch;
 				measurement_epoch_after =
 					wrpc_spll_helper_measurement_epoch;
 				if (measurement_epoch_before == measurement_epoch_after &&
+				    pi_trace_epoch_before == pi_trace_epoch_after &&
+				    !(pi_trace_epoch_after & 1u) &&
 				    !(measurement_epoch_after & 1u)) {
 					measurement_epoch = measurement_epoch_after;
 					measurement_snapshot_valid = 1;
+					pi_trace_epoch = measurement_epoch_after;
+					pi_trace_snapshot_valid = 1;
 				}
 			}
 			wdiags_write_wr_spll_helper_measurement_debug(
@@ -287,6 +364,35 @@ int wrc_wr_diags(void)
 				measurement_output,
 				measurement_ref_accept_count,
 				measurement_fb_accept_count);
+			wdiags_write_wr_spll_helper_pi_trace(
+				pi_trace_snapshot_valid ? pi_trace_epoch : 0xffffffffu,
+				pi_trace_tag_raw,
+				pi_trace_p_adder,
+				pi_trace_p_setpoint,
+				pi_trace_raw_error,
+				pi_trace_ld_error,
+				pi_trace_lock_state,
+				pi_trace_integrator_before,
+				pi_trace_i_new,
+				pi_trace_integrator_after,
+				pi_trace_prop_term,
+				pi_trace_y_preround,
+				pi_trace_unclamped_output,
+				pi_trace_y_min,
+				pi_trace_y_max,
+				pi_trace_clamp_side,
+				pi_trace_final_output,
+				pi_trace_x,
+				pi_trace_kp,
+				pi_trace_ki,
+				pi_trace_shift,
+				pi_trace_bias,
+				pi_trace_anti_windup,
+				pi_trace_update_count,
+				pi_trace_freq_error,
+				pi_trace_lock_threshold,
+				pi_trace_lock_samples,
+				pi_trace_ref_src);
 
 		}
 	}

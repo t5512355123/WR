@@ -128,6 +128,47 @@
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT 0x120UL
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT 0x124UL
 
+/* Read-only Helper PI low-rail causality overlay.  These words reuse the
+ * private 0x158..0x1dc diagnostic window only while the Step5 PI audit is
+ * running; they never feed back into SoftPLL.  The 0x1e0..0x1fc re-init
+ * attribution overlay remains separate.  Signed 64-bit values use LO/HI
+ * pairs in little-endian word order. */
+#define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH          0x158UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_TAG_RAW              0x15cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_P_ADDER             0x160UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_P_SETPOINT          0x164UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_RAW_ERROR           0x168UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_LD_ERROR            0x16cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_LOCK_STATE          0x170UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO 0x174UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI 0x178UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_LO             0x17cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_I_NEW_HI             0x180UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_LO  0x184UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_AFTER_HI  0x188UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_PROP_TERM_LO         0x18cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_PROP_TERM_HI         0x190UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_Y_PREROUND_LO        0x194UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_Y_PREROUND_HI        0x198UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_UNCLAMPED_OUTPUT     0x19cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_Y_MIN                0x1a0UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_Y_MAX                0x1a4UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_CLAMP_SIDE           0x1a8UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_FINAL_OUTPUT         0x1acUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_X                    0x1b0UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_KP                   0x1b4UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_KI                   0x1b8UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SHIFT                0x1bcUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_BIAS                 0x1c0UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_ANTI_WINDUP          0x1c4UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT         0x1c8UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_FREQ_ERROR           0x1ccUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_LOCK_THRESHOLD       0x1d0UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_LOCK_SAMPLES         0x1d4UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_REF_SRC              0x1d8UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_MAGIC          0x1dcUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_VERSION        1UL
+
 /* Private read-only SoftPLL re-init attribution overlay.  The four
  * reason-counter words pack four 8-bit counters per word. */
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON       0x1e0UL

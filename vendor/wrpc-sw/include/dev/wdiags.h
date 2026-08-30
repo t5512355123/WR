@@ -198,6 +198,38 @@ void wdiags_write_wr_spll_helper_measurement_debug(uint32_t measurement_epoch,
                                                    int32_t helper_output,
                                                    uint32_t dmtd_ref_accept_count,
                                                    uint32_t dmtd_fb_accept_count);
+/* Read-only Helper PI/rail causality snapshot.  This is a diagnostic overlay
+ * only; signed 64-bit values are transported as native int64_t values and
+ * published with an epoch seqlock in the implementation. */
+void wdiags_write_wr_spll_helper_pi_trace(
+                                                   uint32_t trace_epoch,
+                                                   int32_t tag_raw,
+                                                   int32_t p_adder,
+                                                   int32_t p_setpoint,
+                                                   int32_t raw_error,
+                                                   int32_t ld_error,
+                                                   uint32_t lock_state,
+                                                   int64_t integrator_before,
+                                                   int64_t i_new,
+                                                   int64_t integrator_after,
+                                                   int64_t prop_term,
+                                                   int64_t y_preround,
+                                                   int32_t unclamped_output,
+                                                   int32_t y_min,
+                                                   int32_t y_max,
+                                                   int32_t clamp_side,
+                                                   int32_t final_output,
+                                                   int32_t x,
+                                                   int32_t kp,
+                                                   int32_t ki,
+                                                   int32_t shift,
+                                                   int32_t bias,
+                                                   int32_t anti_windup,
+                                                   uint32_t update_count,
+                                                   int32_t freq_error,
+                                                   int32_t lock_threshold,
+                                                   int32_t lock_samples,
+                                                   int32_t ref_src);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

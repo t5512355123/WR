@@ -73,6 +73,8 @@ array set ::burst_final {}
 array set ::bootstrap_first {}
 array set ::bootstrap_final {}
 array set ::bootstrap_done_final {}
+array set ::post_bootstrap_baseline_set {}
+array set ::post_bootstrap_baseline_sample {}
 array set ::position_first {}
 array set ::position_final {}
 array set ::reset_first {}
@@ -320,6 +322,8 @@ proc initialize_board {hardware_name} {
   set ::bootstrap_first($hardware_name) INVALID
   set ::bootstrap_final($hardware_name) INVALID
   set ::bootstrap_done_final($hardware_name) INVALID
+  set ::post_bootstrap_baseline_set($hardware_name) 0
+  set ::post_bootstrap_baseline_sample($hardware_name) NONE
   set ::position_first($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
   set ::position_final($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
   set ::reset_first($hardware_name) [list INVALID INVALID INVALID INVALID]
@@ -370,7 +374,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set normal_req [expr {$tracker_word < 0 ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
   set forced_trigger [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 0) & 0xff)}]
   set forced_pending [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 8) & 0xff)}]
-  set forced_done [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 16) & 0xff)}]
+  set forced_done [expr {$burst_word < 0 ? "INVALID" : (($burst_word >> 16) & 0xffff)}]
   set bootstrap_probe [expr {$bootstrap_word < 0 ? "INVALID" : (($bootstrap_word >> 16) & 0xffff)}]
   set bootstrap_done [expr {$bootstrap_word < 0 ? "INVALID" : (($bootstrap_word >> 33) & 1)}]
   set entry_generation [probe_high32 $entry_probe]
@@ -407,6 +411,21 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::reset_final($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
   set ::spll_delock_final($hardware_name) $spll_delock
   if {$spll_delock ne "INVALID" && $spll_delock > $::spll_delock_max($hardware_name)} { set ::spll_delock_max($hardware_name) $spll_delock }
+
+  # Establish all post-bootstrap deltas at the first complete 6208-step
+  # boundary.  A fresh-program observer can begin while bootstrap is still in
+  # flight, so sample 1 is not a valid actuator baseline.
+  if {!$::post_bootstrap_baseline_set($hardware_name) && $bootstrap_done == 1 &&
+      $bootstrap_completed == 6208 && $position_ok} {
+    set ::post_bootstrap_baseline_set($hardware_name) 1
+    set ::post_bootstrap_baseline_sample($hardware_name) $sample
+    set ::tracker_first($hardware_name) [list $target_probe $applied_probe $normal_req $normal_done]
+    set ::burst_first($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
+    set ::bootstrap_first($hardware_name) $bootstrap_completed
+    set ::position_first($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed]
+    set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
+    set ::spll_delock_first($hardware_name) $spll_delock
+  }
 
   if {$measurement_ok} {
     incr ::coherent_count($hardware_name)
@@ -487,7 +506,7 @@ proc emit_summary {hardware_name} {
   set finc_delta [counter_delta $finc0 $finc1 16]
   set fdec_delta [counter_delta $fdec0 $fdec1 16]
   set dco_delta [counter_delta $pdco0 $pdco1 16]
-  set forced_delta [counter_delta $forced0 $forced1 8]
+  set forced_delta [counter_delta $forced0 $forced1 16]
   set bootstrap_delta [counter_delta $pboot0 $pboot1 16]
   set gen_delta [counter_delta $gen0 $gen1 32]
   set cpu_delta [counter_delta $cpu0 $cpu1 8]
@@ -500,7 +519,7 @@ proc emit_summary {hardware_name} {
     set freq_mean [expr {$::freq_sum($hardware_name) / double($::freq_count($hardware_name))}]
     set freq_rms [expr {sqrt($::freq_sumsq($hardware_name) / double($::freq_count($hardware_name)))}]
   }
-  set position_accounting [expr {$::position_count($hardware_name) > 0 && $::position_failures($hardware_name) == 0 &&
+  set position_accounting [expr {$::post_bootstrap_baseline_set($hardware_name) && $::position_count($hardware_name) > 0 && $::position_failures($hardware_name) == 0 &&
     $::transaction_failures($hardware_name) == 0 && $::dco_failures($hardware_name) == 0 ? "PASS" : "FAIL"}]
   set measurement_accounting [expr {$::coherent_count($hardware_name) > 0 && $::measurement_failures($hardware_name) == 0 ? "PASS" : "FAIL"}]
   set reset_result [expr {$gen_delta eq "0" && $cpu_delta eq "0" && $wr_delta eq "0" && $si_delta eq "0" ? "PASS" : "FAIL"}]
@@ -515,8 +534,8 @@ proc emit_summary {hardware_name} {
     $::main_phase_locked_final($hardware_name) == 1 && $::main_locked_final($hardware_name) == 1 &&
     $::pstat_locked_final($hardware_name) == 1 && $reset_result eq "PASS" &&
     $measurement_accounting eq "PASS" && $position_accounting eq "PASS" ? "CANDIDATE" : "NOT_COMPLETE"}]
-  puts [format "STEP5_CLOSED_LOOP_TRAJECTORY_SUMMARY board=%s SAMPLES=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d REJECTED_EPOCH_SNAPSHOTS=%d REJECTED_ACCOUNTING_CANDIDATES=%d MEASUREMENT_ACCOUNTING_FAILS=%d POSITION_SNAPSHOTS=%d POSITION_INVARIANT_FAILS=%d TRANSACTION_INVARIANT_FAILS=%d DCO_INVARIANT_FAILS=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_LAST=%s EXTREME_THRESHOLD=1000000 EXTREME_COHERENT_SAMPLES=%d EXTREME_MAX_ABS=%s TARGET_FINAL=%s APPLIED_FINAL=%s EXPECTED_APPLIED_ABSOLUTE=%s NORMAL_REQ_DELTA_OBSERVED=%s NORMAL_COMPLETED_DELTA=%s FINC_DELTA=%s FDEC_DELTA=%s DCO_STEP_DELTA=%s BOOTSTRAP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_DONE_FINAL=%s HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s FULL_CHAIN_MAX_SECONDS=%.3f FULL_CHAIN_300S=%s STEP5_CHAIN_RESULT=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s RESET_STABLE=%s LAST_EPOCH=%s LAST_HELPER_UPDATE_COUNT=%s LAST_DMTD_REF_ACCEPT_COUNT=%s LAST_DMTD_FB_ACCEPT_COUNT=%s PRECLAMP_FIRST=%s PRECLAMP_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s" \
-    $hardware_name $::sample_count($hardware_name) $::coherent_count($hardware_name) $::rejected_count($hardware_name) $::accounting_reject_count($hardware_name) $::measurement_failures($hardware_name) $::position_count($hardware_name) $::position_failures($hardware_name) $::transaction_failures($hardware_name) $::dco_failures($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) $::freq_first($hardware_name) $::freq_last($hardware_name) $::extreme_count($hardware_name) $::extreme_max_abs($hardware_name) $ptarget1 $papplied1 $expected_applied $req_delta $done_delta $finc_delta $fdec_delta $dco_delta $bootstrap_delta $forced_delta $pboot1 $::bootstrap_done_final($hardware_name) $::helper_lock_max($hardware_name) $::helper_lock_final($hardware_name) $::helper_locked_seen($hardware_name) $::helper_locked_final($hardware_name) $::helper_first_locked_sample($hardware_name) $::main_enabled_final($hardware_name) $::main_freq_locked_final($hardware_name) $::main_phase_locked_final($hardware_name) $::main_locked_final($hardware_name) $::pstat_locked_final($hardware_name) [expr {$full_span_ms / 1000.0}] $full_chain_300s $step5_candidate $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $gen_delta $cpu_delta $wr_delta $si_delta $measurement_accounting $position_accounting $reset_result $::last_epoch($hardware_name) $::last_update_count($hardware_name) $::last_ref_accept_count($hardware_name) $::last_fb_accept_count($hardware_name) $::preclamp_first($hardware_name) $::preclamp_final($hardware_name) $::helper_error_final($hardware_name) $::helper_output_final($hardware_name)]
+  puts [format "STEP5_CLOSED_LOOP_TRAJECTORY_SUMMARY board=%s SAMPLES=%d POST_BOOTSTRAP_BASELINE_SAMPLE=%s POST_BOOTSTRAP_BASELINE_SET=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d REJECTED_EPOCH_SNAPSHOTS=%d REJECTED_ACCOUNTING_CANDIDATES=%d MEASUREMENT_ACCOUNTING_FAILS=%d POSITION_SNAPSHOTS=%d POSITION_INVARIANT_FAILS=%d TRANSACTION_INVARIANT_FAILS=%d DCO_INVARIANT_FAILS=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_LAST=%s EXTREME_THRESHOLD=1000000 EXTREME_COHERENT_SAMPLES=%d EXTREME_MAX_ABS=%s TARGET_FINAL=%s APPLIED_FINAL=%s EXPECTED_APPLIED_ABSOLUTE=%s NORMAL_REQ_DELTA_OBSERVED=%s NORMAL_COMPLETED_DELTA=%s FINC_DELTA=%s FDEC_DELTA=%s DCO_STEP_DELTA=%s BOOTSTRAP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_DONE_FINAL=%s HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s FULL_CHAIN_MAX_SECONDS=%.3f FULL_CHAIN_300S=%s STEP5_CHAIN_RESULT=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s RESET_STABLE=%s LAST_EPOCH=%s LAST_HELPER_UPDATE_COUNT=%s LAST_DMTD_REF_ACCEPT_COUNT=%s LAST_DMTD_FB_ACCEPT_COUNT=%s PRECLAMP_FIRST=%s PRECLAMP_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s" \
+    $hardware_name $::sample_count($hardware_name) $::post_bootstrap_baseline_sample($hardware_name) $::post_bootstrap_baseline_set($hardware_name) $::coherent_count($hardware_name) $::rejected_count($hardware_name) $::accounting_reject_count($hardware_name) $::measurement_failures($hardware_name) $::position_count($hardware_name) $::position_failures($hardware_name) $::transaction_failures($hardware_name) $::dco_failures($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) $::freq_first($hardware_name) $::freq_last($hardware_name) $::extreme_count($hardware_name) $::extreme_max_abs($hardware_name) $ptarget1 $papplied1 $expected_applied $req_delta $done_delta $finc_delta $fdec_delta $dco_delta $bootstrap_delta $forced_delta $pboot1 $::bootstrap_done_final($hardware_name) $::helper_lock_max($hardware_name) $::helper_lock_final($hardware_name) $::helper_locked_seen($hardware_name) $::helper_locked_final($hardware_name) $::helper_first_locked_sample($hardware_name) $::main_enabled_final($hardware_name) $::main_freq_locked_final($hardware_name) $::main_phase_locked_final($hardware_name) $::main_locked_final($hardware_name) $::pstat_locked_final($hardware_name) [expr {$full_span_ms / 1000.0}] $full_chain_300s $step5_candidate $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $gen_delta $cpu_delta $wr_delta $si_delta $measurement_accounting $position_accounting $reset_result $::last_epoch($hardware_name) $::last_update_count($hardware_name) $::last_ref_accept_count($hardware_name) $::last_fb_accept_count($hardware_name) $::preclamp_first($hardware_name) $::preclamp_final($hardware_name) $::helper_error_final($hardware_name) $::helper_output_final($hardware_name)]
   flush stdout
 }
 

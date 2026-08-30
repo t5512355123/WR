@@ -74,6 +74,15 @@ static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
 static void wdiags_publish_persistent_record(void);
 
+static inline void wdiag_publish_barrier(void)
+{
+	/* Keep the seqlock markers ordered with the MMIO payload writes on the
+	 * RISC-V CPU.  Volatile accesses constrain the compiler, while this fence
+	 * also prevents posted I/O writes from becoming visible out of order to a
+	 * concurrent JTAG reader. */
+	__asm__ __volatile__("fence iorw, iorw" ::: "memory");
+}
+
 static void wdiags_write_shell_microtrace_mirror(void)
 {
 	uint32_t meta0;
@@ -901,6 +910,7 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 		return;
 	}
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch | 1u);
+	wdiag_publish_barrier();
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_LO,
 			(uint32_t)integrator_before);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_INTEGRATOR_BEFORE_HI,
@@ -926,6 +936,7 @@ void wdiags_write_wr_spll_helper_pi_debug(uint32_t trace_epoch,
 	/* Keep the Step4B dashboard's existing update-count address source-backed. */
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_UPDATE_COUNT,
 			helper_update_count);
+	wdiag_publish_barrier();
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
 }
 

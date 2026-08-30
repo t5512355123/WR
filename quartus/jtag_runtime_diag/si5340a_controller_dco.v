@@ -47,6 +47,7 @@ output    [63:0]        oDCO_STEP5_BURST_DEBUG,
 output    [63:0]        oDCO_STEP5_BURST_WIDE_DEBUG,
 output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
 output    [63:0]        oDCO_STEP5_BOOTSTRAP_DEBUG,
+output    [63:0]        oDCO_STEP5_POSITION_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -85,6 +86,8 @@ reg [15:0] hpll_applied_code;
 reg        hpll_tracker_initialized;
 reg [15:0] normal_hpll_request_count;
 reg [15:0] normal_hpll_completed_count;
+reg [15:0] normal_finc_completed_count;
+reg [15:0] normal_fdec_completed_count;
 reg [15:0] dco_step_count;
 reg        dco_error;
 reg        same_code_test_fired;
@@ -117,6 +120,7 @@ reg [63:0] dco_step5_burst_debug;
 reg [63:0] dco_step5_burst_wide_debug;
 reg [63:0] dco_step5_tracker_debug;
 reg [63:0] dco_step5_bootstrap_debug;
+reg [63:0] dco_step5_position_debug;
 reg [15:0] bootstrap_remaining;
 reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
@@ -174,6 +178,7 @@ assign oDCO_STEP5_BURST_DEBUG = dco_step5_burst_debug;
 assign oDCO_STEP5_BURST_WIDE_DEBUG = dco_step5_burst_wide_debug;
 assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
 assign oDCO_STEP5_BOOTSTRAP_DEBUG = dco_step5_bootstrap_debug;
+assign oDCO_STEP5_POSITION_DEBUG = dco_step5_position_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -282,6 +287,21 @@ always @* begin
   dco_step5_bootstrap_debug[35] = current_request_bootstrap;
 end
 
+// Step5 signed physical-position audit evidence.  These counters record
+// only completed normal HPLL FINC/FDEC transactions; bootstrap and forced
+// calibration requests are intentionally excluded.  The host-side audit
+// reconstructs the signed normal net as FINC-FDEC and checks it against the
+// virtual applied code: applied = 5 + 64 * (FINC-FDEC).
+// [15:0] target, [31:16] virtual applied, [47:32] normal FINC completed,
+// [63:48] normal FDEC completed.
+always @* begin
+  dco_step5_position_debug = 64'd0;
+  dco_step5_position_debug[15:0]  = hpll_target_code;
+  dco_step5_position_debug[31:16] = hpll_applied_code;
+  dco_step5_position_debug[47:32] = normal_finc_completed_count;
+  dco_step5_position_debug[63:48] = normal_fdec_completed_count;
+end
+
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
   .iRST_n(iRST_n),
@@ -369,6 +389,8 @@ always @(posedge iCLK or negedge iRST_n) begin
     hpll_tracker_initialized <= 1'b0;
     normal_hpll_request_count <= 16'd0;
     normal_hpll_completed_count <= 16'd0;
+    normal_finc_completed_count <= 16'd0;
+    normal_fdec_completed_count <= 16'd0;
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
     same_code_test_fired <= 1'b0;
@@ -606,8 +628,10 @@ always @(posedge iCLK or negedge iRST_n) begin
             // allowed here.
             if (rt_dir) begin
               hpll_applied_code <= hpll_applied_code + HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
+              normal_finc_completed_count <= normal_finc_completed_count + 1'b1;
             end else begin
               hpll_applied_code <= hpll_applied_code - HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
+              normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
           end

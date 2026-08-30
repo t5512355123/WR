@@ -1604,10 +1604,10 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 physical-floor stationarity experiment: hold the physical
-      -- HPLL position after the 6208-step bootstrap and observe the
-      -- unactuated frequency error for 1800 seconds.
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      -- Step5 coherent closed-loop trajectory audit: retain the 6208-step
+      -- bootstrap and re-enable the normal HPLL tracker. All other Step5
+      -- control parameters remain unchanged.
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 6208,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,

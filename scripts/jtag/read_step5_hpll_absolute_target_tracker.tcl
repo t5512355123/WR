@@ -34,7 +34,7 @@ set samples 120
 set gap_ms 1000
 set poll_attempts 25
 set board_filter ""
-set tracker_code_per_physical_step 64
+set tracker_code_per_physical_step 128
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -291,7 +291,7 @@ proc emit_delta {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_HPLL_BOOTSTRAP_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s code_per_physical_step=%d experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6336-PLUS-64-TRACKER-CLOSED-LOOP-20260830 read_only=1 tracker_probe=39 bootstrap_probe=42" $samples $gap_ms $board_filter $tracker_code_per_physical_step]
+puts [format "STEP5_HPLL_BOOTSTRAP_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s code_per_physical_step=%d experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6336-PLUS-128-TRACKER-CLOSED-LOOP-20260830 read_only=1 tracker_probe=39 bootstrap_probe=42" $samples $gap_ms $board_filter $tracker_code_per_physical_step]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

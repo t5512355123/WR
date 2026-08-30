@@ -1,0 +1,2 @@
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+Slave Quartus build passed: /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)

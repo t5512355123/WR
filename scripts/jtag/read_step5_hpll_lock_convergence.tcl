@@ -343,7 +343,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     [display_value $helper_error] $helper_error_signed [display_value $helper_output] $helper_output_signed \
     $main_enabled $main_locked $main_freq_locked $main_phase_locked $pstat_locked $spll_delock \
     [display_value $wr_lock_unlocked] $normal_req $normal_done $dco_step $bootstrap_completed $bootstrap_done \
-    $entry_generation $cpu_reset $wr_reset $si_drop [display_value $current_tics]
+    $entry_generation $cpu_reset $wr_reset $si_drop [display_value $current_tics]]
   flush stdout
 }
 

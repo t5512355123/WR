@@ -36,6 +36,18 @@ int wrc_wr_diags(void)
 	int n_out;
 	uint32_t aux_stat = 0;
 	int temp = 0, valid = 0, snapshot = 0, i;
+	uint32_t measurement_epoch_before, measurement_epoch_after;
+	uint32_t measurement_epoch = 0xffffffffu;
+	uint32_t measurement_update_count = 0;
+	uint32_t measurement_ref_accept_count = 0;
+	uint32_t measurement_fb_accept_count = 0;
+	int32_t measurement_tag_delta = 0;
+	int32_t measurement_expected_delta = 0;
+	int32_t measurement_freq_error = 0;
+	int32_t measurement_preclamp_error = 0;
+	int32_t measurement_helper_error = 0;
+	int32_t measurement_output = 0;
+	int measurement_snapshot_valid;
 
 	struct pp_instance *ppi = ppg->pp_instances;
 	valid    = wdiag_get_valid();
@@ -221,6 +233,53 @@ int wrc_wr_diags(void)
 				softpll.dac_timeout,
 				wrpc_spll_last_init_tics,
 				wrpc_spll_last_clear_dacs_tics);
+
+			/* Copy one complete Helper invocation from the RAM seqlock.  The
+			 * source payload is captured in helper_update(); WDIAGS is only a
+			 * slower transport window for the passive JTAG observer. */
+			measurement_snapshot_valid = 0;
+			for (i = 0; i < 4 && !measurement_snapshot_valid; i++) {
+				measurement_epoch_before =
+					wrpc_spll_helper_measurement_epoch;
+				if (measurement_epoch_before & 1u)
+					continue;
+				measurement_tag_delta =
+					wrpc_spll_helper_measurement_tag_delta;
+				measurement_expected_delta =
+					wrpc_spll_helper_measurement_expected_delta;
+				measurement_freq_error =
+					wrpc_spll_helper_measurement_freq_error;
+				measurement_preclamp_error =
+					wrpc_spll_helper_measurement_preclamp_error;
+				measurement_helper_error =
+					wrpc_spll_helper_measurement_error;
+				measurement_update_count =
+					wrpc_spll_helper_measurement_update_count;
+				measurement_output =
+					wrpc_spll_helper_measurement_output;
+				measurement_ref_accept_count =
+					wrpc_spll_helper_measurement_dmtd_ref_accept_count;
+				measurement_fb_accept_count =
+					wrpc_spll_helper_measurement_dmtd_fb_accept_count;
+				measurement_epoch_after =
+					wrpc_spll_helper_measurement_epoch;
+				if (measurement_epoch_before == measurement_epoch_after &&
+				    !(measurement_epoch_after & 1u)) {
+					measurement_epoch = measurement_epoch_after;
+					measurement_snapshot_valid = 1;
+				}
+			}
+			wdiags_write_wr_spll_helper_measurement_debug(
+				measurement_epoch,
+				measurement_tag_delta,
+				measurement_expected_delta,
+				measurement_freq_error,
+				measurement_preclamp_error,
+				measurement_helper_error,
+				measurement_update_count,
+				measurement_output,
+				measurement_ref_accept_count,
+				measurement_fb_accept_count);
 
 		}
 	}

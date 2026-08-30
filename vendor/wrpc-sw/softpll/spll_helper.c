@@ -10,7 +10,39 @@
 /* spll_helper.c - implmentation of the Helper PLL servo algorithm. */
 
 #include "softpll_ng.h"
-#include "dev/wdiags.h"
+
+static inline void helper_publish_measurement(int32_t tag_delta,
+						      int32_t expected_delta,
+						      int32_t freq_error,
+						      int32_t preclamp_error,
+						      int32_t helper_error,
+						      uint32_t update_count,
+						      int32_t helper_output)
+{
+	uint32_t epoch = wrpc_spll_helper_measurement_epoch;
+
+	if (epoch >= 0xfffffffdU || (epoch & 1u))
+		epoch = 0;
+	else
+		epoch += 2u;
+
+	/* This RAM seqlock is updated once per accepted Helper invocation.  The
+	 * periodic diagnostics task copies one coherent instance to WDIAGS, where
+	 * the passive JTAG observer can bracket its slower MMIO reads. */
+	wrpc_spll_helper_measurement_epoch = epoch | 1u;
+	wrpc_spll_helper_measurement_tag_delta = tag_delta;
+	wrpc_spll_helper_measurement_expected_delta = expected_delta;
+	wrpc_spll_helper_measurement_freq_error = freq_error;
+	wrpc_spll_helper_measurement_preclamp_error = preclamp_error;
+	wrpc_spll_helper_measurement_error = helper_error;
+	wrpc_spll_helper_measurement_update_count = update_count;
+	wrpc_spll_helper_measurement_output = helper_output;
+	wrpc_spll_helper_measurement_dmtd_ref_accept_count =
+		SPLL->DMTD_REF_ACCEPT_COUNT;
+	wrpc_spll_helper_measurement_dmtd_fb_accept_count =
+		SPLL->DMTD_FB_ACCEPT_COUNT;
+	wrpc_spll_helper_measurement_epoch = epoch;
+}
 
 void helper_very_init( struct spll_helper_state *s )
 {
@@ -43,7 +75,6 @@ void helper_update(struct spll_helper_state *s, int tag,
 {
 	int err, y, tag_delta, raw_err;
 	int expected_delta;
-	uint32_t measurement_epoch;
 
 	/* Helper pll tracks the ref clock */
 	if (source != s->ref_src)
@@ -55,10 +86,6 @@ void helper_update(struct spll_helper_state *s, int tag,
 	expected_delta = (1 << HPLL_N);
 	wrpc_spll_helper_update_count++;
 	wrpc_spll_helper_ref_src = s->ref_src;
-	measurement_epoch = wrpc_spll_helper_measurement_epoch;
-	if (measurement_epoch & 1u)
-		measurement_epoch++;
-	measurement_epoch += 2u;
 	
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_TAG, tag, 0);
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_REF, s->p_setpoint, 0);
@@ -73,11 +100,8 @@ void helper_update(struct spll_helper_state *s, int tag,
 		wrpc_spll_helper_p_adder = s->p_adder;
 		wrpc_spll_helper_tag_d0 = s->tag_d0;
 		wrpc_spll_helper_p_setpoint = s->p_setpoint;
-		wrpc_spll_helper_measurement_epoch = measurement_epoch;
-		wdiags_write_wr_spll_helper_measurement_debug(
-			measurement_epoch, 0, expected_delta, 0, 0, 0,
-			wrpc_spll_helper_update_count, s->pi.y,
-			SPLL->DMTD_REF_ACCEPT_COUNT, SPLL->DMTD_FB_ACCEPT_COUNT);
+		helper_publish_measurement(0, expected_delta, 0, 0, 0,
+			wrpc_spll_helper_update_count, s->pi.y);
 
 		return;
 	}
@@ -134,12 +158,9 @@ void helper_update(struct spll_helper_state *s, int tag,
 	wrpc_spll_helper_p_adder = s->p_adder;
 	wrpc_spll_helper_tag_d0 = s->tag_d0;
 	wrpc_spll_helper_p_setpoint = s->p_setpoint;
-	wrpc_spll_helper_measurement_epoch = measurement_epoch;
-	wdiags_write_wr_spll_helper_measurement_debug(
-		measurement_epoch, tag_delta, expected_delta,
+	helper_publish_measurement(tag_delta, expected_delta,
 		tag_delta - expected_delta, raw_err, err,
-		wrpc_spll_helper_update_count, y,
-		SPLL->DMTD_REF_ACCEPT_COUNT, SPLL->DMTD_FB_ACCEPT_COUNT);
+		wrpc_spll_helper_update_count, y);
 }
 
 void helper_start(struct spll_helper_state *s)

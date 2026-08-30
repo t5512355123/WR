@@ -64,6 +64,15 @@ volatile int32_t wrpc_spll_helper_tag_d0;
 volatile int32_t wrpc_spll_helper_p_setpoint;
 volatile int32_t wrpc_spll_helper_ref_src;
 volatile uint32_t wrpc_spll_helper_measurement_epoch;
+volatile int32_t wrpc_spll_helper_measurement_tag_delta;
+volatile int32_t wrpc_spll_helper_measurement_expected_delta;
+volatile int32_t wrpc_spll_helper_measurement_freq_error;
+volatile int32_t wrpc_spll_helper_measurement_preclamp_error;
+volatile int32_t wrpc_spll_helper_measurement_error;
+volatile uint32_t wrpc_spll_helper_measurement_update_count;
+volatile int32_t wrpc_spll_helper_measurement_output;
+volatile uint32_t wrpc_spll_helper_measurement_dmtd_ref_accept_count;
+volatile uint32_t wrpc_spll_helper_measurement_dmtd_fb_accept_count;
 volatile uint32_t wrpc_spll_init_count;
 volatile uint32_t wrpc_spll_clear_dacs_entry_count;
 volatile uint32_t wrpc_spll_last_init_tics;
@@ -331,6 +340,15 @@ void spll_very_init(void)
 	wrpc_spll_last_state = SEQ_DISABLED;
 	wrpc_spll_trr_pop_count = 0;
 	wrpc_spll_helper_measurement_epoch = 0;
+	wrpc_spll_helper_measurement_tag_delta = 0;
+	wrpc_spll_helper_measurement_expected_delta = 0;
+	wrpc_spll_helper_measurement_freq_error = 0;
+	wrpc_spll_helper_measurement_preclamp_error = 0;
+	wrpc_spll_helper_measurement_error = 0;
+	wrpc_spll_helper_measurement_update_count = 0;
+	wrpc_spll_helper_measurement_output = 0;
+	wrpc_spll_helper_measurement_dmtd_ref_accept_count = 0;
+	wrpc_spll_helper_measurement_dmtd_fb_accept_count = 0;
 
 	uint32_t csr = SPLL->CSR;
 
@@ -383,6 +401,15 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 	wrpc_spll_helper_p_setpoint = 0;
 	wrpc_spll_helper_ref_src = 0;
 	wrpc_spll_helper_measurement_epoch = 0;
+	wrpc_spll_helper_measurement_tag_delta = 0;
+	wrpc_spll_helper_measurement_expected_delta = 0;
+	wrpc_spll_helper_measurement_freq_error = 0;
+	wrpc_spll_helper_measurement_preclamp_error = 0;
+	wrpc_spll_helper_measurement_error = 0;
+	wrpc_spll_helper_measurement_update_count = 0;
+	wrpc_spll_helper_measurement_output = 0;
+	wrpc_spll_helper_measurement_dmtd_ref_accept_count = 0;
+	wrpc_spll_helper_measurement_dmtd_fb_accept_count = 0;
 
 	SPLL->OCER = 0;
 	SPLL->RCER = 0;

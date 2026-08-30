@@ -113,8 +113,9 @@
 #define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x1f4UL
 #define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
 /* Read-only coherent Helper-update measurement snapshot.  It is published
- * directly by helper_update(), so every payload word belongs to one
- * accepted Helper invocation.  0x118 remains the existing Helper update
+ * from a RAM snapshot captured by helper_update(), so every payload word
+ * belongs to one accepted Helper invocation.  0x118 remains the existing
+ * Helper update
  * counter so the Step4B dashboard keeps its source-backed meaning. */
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_EPOCH       0x100UL
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_TAG_DELTA   0x104UL

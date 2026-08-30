@@ -228,8 +228,11 @@ proc read_coherent_measurement {hardware_name} {
     set fb_accept [word32 [wb_read $hardware_name 0x00100B24]]
     set epoch_after [word32 [wb_read $hardware_name 0x00100B00]]
     if {$epoch_before == $epoch_after && $epoch_after >= 0 && !($epoch_after & 1)} {
+      set helper_payload_valid [expr {$helper_error ne "INVALID" &&
+        abs($helper_error) <= 150000 && $helper_output ne "INVALID" &&
+        $helper_output >= 5 && $helper_output <= 65531}]
       if {$tag ne "INVALID" && $expected ne "INVALID" && $freq ne "INVALID" &&
-          $freq == ($tag - $expected)} {
+          $freq == ($tag - $expected) && $helper_payload_valid} {
         return [list 1 $epoch_after $tag $expected $freq $preclamp $helper_error \
           $update_count $helper_output $ref_accept $fb_accept]
       }

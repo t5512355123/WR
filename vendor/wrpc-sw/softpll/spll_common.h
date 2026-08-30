@@ -51,14 +51,14 @@ typedef struct {
 	 * are mirrored by the diagnostics task; they never participate in the
 	 * controller calculation.  trace_epoch is odd while the trace is being
 	 * published and even when the snapshot is coherent. */
-	uint32_t trace_epoch;
-	int64_t trace_integrator_before;
-	int64_t trace_i_new;
-	int64_t trace_integrator_after;
-	int trace_x;
-	int trace_y_unclamped;
-	int trace_y_clamped;
-	int trace_clamp_side;
+	volatile uint32_t trace_epoch;
+	volatile int64_t trace_integrator_before;
+	volatile int64_t trace_i_new;
+	volatile int64_t trace_integrator_after;
+	volatile int trace_x;
+	volatile int trace_y_unclamped;
+	volatile int trace_y_clamped;
+	volatile int trace_clamp_side;
 } spll_pi_t;
 
 /* lock detector state */

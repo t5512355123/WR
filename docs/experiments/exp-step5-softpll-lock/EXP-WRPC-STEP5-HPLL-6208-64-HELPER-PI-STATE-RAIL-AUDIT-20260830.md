@@ -24,6 +24,7 @@ Branch = exp/step5-softpll-lock
 Hardware firmware commit = 1f6d732a979ce8cb7c91e1030eb651162fa1edb5
 Observer script commit = 2c3ed63
 Evidence commit = 1e543ae
+Latest settled-dashboard evidence commit = c2370c9
 Board under audit = DE5 [1-11.2]
 
 Bootstrap physical steps = 6208
@@ -77,6 +78,24 @@ STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
 STEP5_RESULT = NEVER_LOCKED
 STEP5_FIRST_INACTIVE_BOUNDARY = HELPER_LOCK
 ```
+
+After the later fresh reprogram and the checked observer run, a new direct
+settled dashboard read reproduced the same gate:
+
+```text
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           pass
+Step 4 Step4B Slave SoftPLL Startup pass
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
+STEP5_RESULT = NEVER_LOCKED
+STEP5_FIRST_INACTIVE_BOUNDARY = HELPER_LOCK
+```
+
+This current rerun is preserved in
+`raw/raw-20260830-current-settled-dashboard.txt`.
 
 Therefore the displayed screen showing `Step 1 error` and `Step 4 SoftPLL
 Startup error` is not the settled result reproduced by the latest paired
@@ -190,4 +209,5 @@ raw/raw-20260830-checked-observer-fresh.txt
 raw/raw-20260830-checked-observer-180s.txt
 raw/raw-20260830-fenced-final.txt
 raw/raw-20260830-pair-dashboard-final-2.txt
+raw/raw-20260830-current-settled-dashboard.txt
 ```

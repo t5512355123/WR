@@ -6,6 +6,8 @@ module si5340a_controller_dco #(
 parameter integer ENABLE_SAME_CODE_TEST = 0,
 parameter integer ENABLE_JTAG_HPLL_BURST = 0,
 parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
+parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
+parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
 parameter integer JTAG_HPLL_BURST_SIZE = 32
 )(
 input                   iCLK,
@@ -43,6 +45,7 @@ output    [63:0]        oDCO_STEP5_DEBUG,
 output    [63:0]        oDCO_STEP5_BURST_DEBUG,
 output    [63:0]        oDCO_STEP5_BURST_WIDE_DEBUG,
 output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
+output    [63:0]        oDCO_STEP5_BOOTSTRAP_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -95,7 +98,9 @@ reg [7:0]  forced_pending_count;
 reg [15:0] force_burst_remaining;
 reg        hpll_pending_forced;
 reg        hpll_pending_forced_reverse;
+reg        hpll_pending_bootstrap;
 reg        current_request_forced;
+reg        current_request_bootstrap;
 reg        force_burst_reverse;
 reg [7:0]  burst_trigger_count;
 reg [15:0] forced_hpll_pending_count;
@@ -110,6 +115,11 @@ reg [63:0] dco_step5_debug;
 reg [63:0] dco_step5_burst_debug;
 reg [63:0] dco_step5_burst_wide_debug;
 reg [63:0] dco_step5_tracker_debug;
+reg [63:0] dco_step5_bootstrap_debug;
+reg [15:0] bootstrap_remaining;
+reg [15:0] bootstrap_completed_count;
+reg        bootstrap_started;
+reg        bootstrap_done;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -162,6 +172,7 @@ assign oDCO_STEP5_DEBUG = dco_step5_debug;
 assign oDCO_STEP5_BURST_DEBUG = dco_step5_burst_debug;
 assign oDCO_STEP5_BURST_WIDE_DEBUG = dco_step5_burst_wide_debug;
 assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
+assign oDCO_STEP5_BOOTSTRAP_DEBUG = dco_step5_bootstrap_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -252,6 +263,21 @@ always @* begin
   dco_step5_tracker_debug[31:16] = hpll_applied_code;
   dco_step5_tracker_debug[47:32] = normal_hpll_request_count;
   dco_step5_tracker_debug[63:48] = normal_hpll_completed_count;
+end
+
+// Step5 bootstrap evidence.  The bootstrap is intentionally separate from
+// the normal tracker: after fresh-program, it applies the measured physical
+// zero-point offset before any normal 34-code transaction is admitted.
+// [15:0] remaining bootstrap steps, [31:16] completed bootstrap steps,
+// bit 32 started, bit 33 done, bit 34 pending, bit 35 current transaction.
+always @* begin
+  dco_step5_bootstrap_debug = 64'd0;
+  dco_step5_bootstrap_debug[15:0]  = bootstrap_remaining;
+  dco_step5_bootstrap_debug[31:16] = bootstrap_completed_count;
+  dco_step5_bootstrap_debug[32] = bootstrap_started;
+  dco_step5_bootstrap_debug[33] = bootstrap_done;
+  dco_step5_bootstrap_debug[34] = hpll_pending_bootstrap;
+  dco_step5_bootstrap_debug[35] = current_request_bootstrap;
 end
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
@@ -355,11 +381,17 @@ always @(posedge iCLK or negedge iRST_n) begin
     force_burst_remaining <= 16'd0;
     hpll_pending_forced <= 1'b0;
     hpll_pending_forced_reverse <= 1'b0;
+    hpll_pending_bootstrap <= 1'b0;
     current_request_forced <= 1'b0;
+    current_request_bootstrap <= 1'b0;
     force_burst_reverse <= 1'b0;
     burst_trigger_count <= 8'd0;
     forced_hpll_pending_count <= 16'd0;
     forced_hpll_completed_count <= 16'd0;
+    bootstrap_remaining <= 16'd0;
+    bootstrap_completed_count <= 16'd0;
+    bootstrap_started <= 1'b0;
+    bootstrap_done <= 1'b0;
     rt_state_enter_count <= 8'd0;
     runtime_start_count <= 8'd0;
     bus_done_count <= 8'd0;
@@ -453,9 +485,36 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
           hpll_pending <= 1'b0;
           current_request_forced <= hpll_pending_forced;
+          current_request_bootstrap <= hpll_pending_bootstrap;
           if (!hpll_pending_forced)
             normal_hpll_request_count <= normal_hpll_request_count + 1'b1;
           hpll_pending_forced <= 1'b0;
+          hpll_pending_bootstrap <= 1'b0;
+        end else if (ENABLE_STEP5_BOOTSTRAP &&
+                     static_controller_ready && hpll_tracker_initialized &&
+                     hpll_prev_valid && !bootstrap_started &&
+                     (STEP5_BOOTSTRAP_STEPS > 0)) begin
+          // Start exactly once after the first valid HPLL target has been
+          // observed.  The first physical step is queued here; the remaining
+          // steps are serialized below at the idle boundary.
+          bootstrap_started <= 1'b1;
+          bootstrap_remaining <= STEP5_BOOTSTRAP_STEPS - 1;
+          hpll_pending <= 1'b1;
+          hpll_pending_forced <= 1'b1;
+          hpll_pending_forced_reverse <= 1'b0;
+          hpll_pending_bootstrap <= 1'b1;
+        end else if (ENABLE_STEP5_BOOTSTRAP && bootstrap_started &&
+                     !bootstrap_done && static_controller_ready &&
+                     (bootstrap_remaining != 16'd0)) begin
+          // Queue one A-direction bootstrap request at a time.  This uses
+          // the same serialized runtime transaction path as the proven
+          // forced-burst stimulus, but is automatic and runs before normal
+          // tracker admission.
+          hpll_pending <= 1'b1;
+          hpll_pending_forced <= 1'b1;
+          hpll_pending_forced_reverse <= 1'b0;
+          hpll_pending_bootstrap <= 1'b1;
+          bootstrap_remaining <= bootstrap_remaining - 1'b1;
         end else if (ENABLE_JTAG_HPLL_BURST &&
                      static_controller_ready &&
                      (force_burst_remaining != 16'd0)) begin
@@ -524,6 +583,15 @@ always @(posedge iCLK or negedge iRST_n) begin
           dco_step_count <= dco_step_count + 1'b1;
           if (current_request_forced) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
+            if (current_request_bootstrap) begin
+              bootstrap_completed_count <= bootstrap_completed_count + 1'b1;
+              // remaining reaches zero when the final bootstrap transaction
+              // is queued, so completion of that in-flight request is the
+              // precise bootstrap_done boundary.
+              if (bootstrap_remaining == 16'd0)
+                bootstrap_done <= 1'b1;
+              current_request_bootstrap <= 1'b0;
+            end
             current_request_forced <= 1'b0;
           end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                        !rt_select_dpll && hpll_tracker_initialized) begin

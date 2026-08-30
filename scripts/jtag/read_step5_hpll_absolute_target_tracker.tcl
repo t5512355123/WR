@@ -17,6 +17,14 @@
 #   [23:16] forced HPLL completed count
 #   [63:48] total DCO transaction step count
 #
+# Bootstrap probe 42:
+#   [15:0]  remaining measured physical bootstrap steps
+#   [31:16] completed measured physical bootstrap steps
+#   bit 32  bootstrap started
+#   bit 33  bootstrap done
+#   bit 34  bootstrap request pending
+#   bit 35  bootstrap request in flight
+#
 # Usage:
 #   quartus_stp -t read_step5_hpll_absolute_target_tracker.tcl ?samples? ?gap_ms?
 
@@ -38,6 +46,9 @@ array set ::tracker_first {}
 array set ::tracker_last {}
 array set ::burst_first {}
 array set ::burst_last {}
+array set ::bootstrap_first {}
+array set ::bootstrap_last {}
+array set ::normal_nonzero_before_bootstrap_done {}
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -111,6 +122,7 @@ proc wb_sync_toggle {hardware_name} {
 proc emit_sample {hardware_name sample elapsed_ms} {
   set tracker_raw [probe_read 39]
   set burst_raw [probe_read 37]
+  set bootstrap_raw [probe_read 42]
   set dco_raw [probe_read 8]
   set pstat [wb_read $hardware_name 0x00100A0C]
   set helper_state [wb_read $hardware_name 0x00100ABC]
@@ -121,6 +133,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set tracker_word [word64 $tracker_raw]
   set burst_word [word64 $burst_raw]
   set dco_word [word64 $dco_raw]
+  set bootstrap_word [word64 $bootstrap_raw]
   set target [field_bits $tracker_word 0 0xffff]
   set applied [field_bits $tracker_word 16 0xffff]
   set normal_req [field_bits $tracker_word 32 0xffff]
@@ -130,6 +143,18 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set forced_done [field_bits $burst_word 16 0xff]
   set step [field_bits $burst_word 48 0xffff]
   set rt_state [field_bits $dco_word 0 0x7]
+  set bootstrap_remaining [field_bits $bootstrap_word 0 0xffff]
+  set bootstrap_completed [field_bits $bootstrap_word 16 0xffff]
+  set bootstrap_started [field_bits $bootstrap_word 32 0x1]
+  set bootstrap_done [field_bits $bootstrap_word 33 0x1]
+  set bootstrap_pending [field_bits $bootstrap_word 34 0x1]
+  set bootstrap_current [field_bits $bootstrap_word 35 0x1]
+  if {$sample == 1} {
+    set ::normal_nonzero_before_bootstrap_done($hardware_name) 0
+  }
+  if {$bootstrap_done == 0 && $normal_req != 0} {
+    set ::normal_nonzero_before_bootstrap_done($hardware_name) 1
+  }
   set gap INVALID
   set quantized_settled UNKNOWN
   if {$target ne "INVALID" && $applied ne "INVALID"} {
@@ -144,13 +169,15 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   if {$sample == 1} {
     set ::tracker_first($hardware_name) [list $target $applied $normal_req $normal_done]
     set ::burst_first($hardware_name) [list $trigger $forced_pending $forced_done $step]
+    set ::bootstrap_first($hardware_name) [list $bootstrap_remaining $bootstrap_completed $bootstrap_started $bootstrap_done $bootstrap_pending $bootstrap_current]
   }
   set ::tracker_last($hardware_name) [list $target $applied $normal_req $normal_done]
   set ::burst_last($hardware_name) [list $trigger $forced_pending $forced_done $step]
+  set ::bootstrap_last($hardware_name) [list $bootstrap_remaining $bootstrap_completed $bootstrap_started $bootstrap_done $bootstrap_pending $bootstrap_current]
 
-  puts [format "STEP5_TRACKER_SAMPLE board=%s sample=%03d elapsed_ms=%d TRACKER_RAW=%s TARGET_CODE=%s APPLIED_CODE=%s TARGET_MINUS_APPLIED=%s QUANTIZED_SETTLED=%s NORMAL_HPLL_REQUEST_COUNT=%s NORMAL_HPLL_COMPLETED_COUNT=%s BURST_RAW=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s DCO_STEP_COUNT=%s RT_STATE=%s PSTAT=%s HELPER_STATE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s TAG_COUNT=%s" \
+  puts [format "STEP5_TRACKER_SAMPLE board=%s sample=%03d elapsed_ms=%d TRACKER_RAW=%s TARGET_CODE=%s APPLIED_CODE=%s TARGET_MINUS_APPLIED=%s QUANTIZED_SETTLED=%s NORMAL_HPLL_REQUEST_COUNT=%s NORMAL_HPLL_COMPLETED_COUNT=%s BURST_RAW=%s BURST_TRIGGER_COUNT=%s FORCED_HPLL_PENDING_COUNT=%s FORCED_HPLL_COMPLETED_COUNT=%s DCO_STEP_COUNT=%s BOOTSTRAP_RAW=%s BOOTSTRAP_REMAINING=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_STARTED=%s BOOTSTRAP_DONE=%s BOOTSTRAP_PENDING=%s BOOTSTRAP_CURRENT=%s RT_STATE=%s PSTAT=%s HELPER_STATE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s TAG_COUNT=%s" \
     $hardware_name $sample $elapsed_ms [display64 $tracker_raw] $target $applied $gap $quantized_settled $normal_req $normal_done \
-    [display64 $burst_raw] $trigger $forced_pending $forced_done $step $rt_state $pstat $helper_state $helper_error $helper_output $tag_count]
+    [display64 $burst_raw] $trigger $forced_pending $forced_done $step [display64 $bootstrap_raw] $bootstrap_remaining $bootstrap_completed $bootstrap_started $bootstrap_done $bootstrap_pending $bootstrap_current $rt_state $pstat $helper_state $helper_error $helper_output $tag_count]
   flush stdout
 }
 
@@ -160,20 +187,30 @@ proc emit_delta {hardware_name} {
     puts [format "STEP5_TRACKER_DELTA board=%s status=NO_VALID_SAMPLE" $hardware_name]
     return
   }
-  foreach {t0 a0 r0 c0} $::tracker_first($hardware_name) break
-  foreach {t1 a1 r1 c1} $::tracker_last($hardware_name) break
-  foreach {b0 p0 f0 s0} $::burst_first($hardware_name) break
-  foreach {b1 p1 f1 s1} $::burst_last($hardware_name) break
-  set dt [expr {$t1 - $t0}]
-  set da [expr {$a1 - $a0}]
-  set dr [expr {$r1 - $r0}]
-  set dc [expr {$c1 - $c0}]
-  set db [expr {$b1 - $b0}]
-  set dp [expr {$p1 - $p0}]
-  set df [expr {$f1 - $f0}]
-  set ds [expr {$s1 - $s0}]
-  set initial_gap [expr {$t0 - $a0}]
-  set final_gap [expr {$t1 - $a1}]
+  foreach {tr_t0 tr_a0 tr_r0 tr_c0} $::tracker_first($hardware_name) break
+  foreach {tr_t1 tr_a1 tr_r1 tr_c1} $::tracker_last($hardware_name) break
+  foreach {br_b0 br_p0 br_f0 br_s0} $::burst_first($hardware_name) break
+  foreach {br_b1 br_p1 br_f1 br_s1} $::burst_last($hardware_name) break
+  foreach {bs_rem0 bs_comp0 bs_started0 bs_done0 bs_pending0 bs_current0} $::bootstrap_first($hardware_name) break
+  foreach {bs_rem1 bs_comp1 bs_started1 bs_done1 bs_pending1 bs_current1} $::bootstrap_last($hardware_name) break
+  set dt [expr {$tr_t1 - $tr_t0}]
+  set da [expr {$tr_a1 - $tr_a0}]
+  set dr [expr {$tr_r1 - $tr_r0}]
+  set dc [expr {$tr_c1 - $tr_c0}]
+  set db [expr {$br_b1 - $br_b0}]
+  set dp [expr {$br_p1 - $br_p0}]
+  set df [expr {$br_f1 - $br_f0}]
+  set ds [expr {$br_s1 - $br_s0}]
+  set dbootstrap [expr {$bs_comp1 - $bs_comp0}]
+  set bootstrap_started $bs_started1
+  set bootstrap_done $bs_done1
+  set normal_before_bootstrap PASS
+  if {[info exists ::normal_nonzero_before_bootstrap_done($hardware_name)] &&
+      $::normal_nonzero_before_bootstrap_done($hardware_name) != 0} {
+    set normal_before_bootstrap FAIL
+  }
+  set initial_gap [expr {$tr_t0 - $tr_a0}]
+  set final_gap [expr {$tr_t1 - $tr_a1}]
   set progress "INCONCLUSIVE"
   if {abs($final_gap) < abs($initial_gap)} { set progress "TOWARD_TARGET" }
   if {$dc == 0 && abs($final_gap) < 34 &&
@@ -187,19 +224,19 @@ proc emit_delta {hardware_name} {
   }
   set quantized_settled "NOT_SETTLED"
   if {abs($final_gap) < 34} { set quantized_settled "PASS" }
-  puts [format "STEP5_TRACKER_DELTA board=%s TARGET_DELTA=%d APPLIED_DELTA=%d NORMAL_REQUEST_DELTA=%d NORMAL_COMPLETED_DELTA=%d BURST_TRIGGER_DELTA=%d FORCED_PENDING_DELTA=%d FORCED_COMPLETED_DELTA=%d DCO_STEP_DELTA=%d INITIAL_TARGET_MINUS_APPLIED=%d FINAL_TARGET_MINUS_APPLIED=%d QUANTIZED_SETTLED=%s TRACKER_PROGRESS=%s NORMAL_TRANSACTION_ACCOUNTING=%s" \
-    $hardware_name $dt $da $dr $dc $db $dp $df $ds $initial_gap $final_gap $quantized_settled $progress $transaction_accounting]
+  puts [format "STEP5_TRACKER_DELTA board=%s TARGET_DELTA=%d APPLIED_DELTA=%d NORMAL_REQUEST_DELTA=%d NORMAL_COMPLETED_DELTA=%d BURST_TRIGGER_DELTA=%d FORCED_PENDING_DELTA=%d FORCED_COMPLETED_DELTA=%d DCO_STEP_DELTA=%d INITIAL_TARGET_MINUS_APPLIED=%d FINAL_TARGET_MINUS_APPLIED=%d BOOTSTRAP_COMPLETED_DELTA=%d BOOTSTRAP_STARTED=%d BOOTSTRAP_DONE=%d BOOTSTRAP_NORMAL_ZERO_BEFORE_DONE=%s QUANTIZED_SETTLED=%s TRACKER_PROGRESS=%s NORMAL_TRANSACTION_ACCOUNTING=%s" \
+    $hardware_name $dt $da $dr $dc $db $dp $df $ds $initial_gap $final_gap $dbootstrap $bootstrap_started $bootstrap_done $normal_before_bootstrap $quantized_settled $progress $transaction_accounting]
   flush stdout
 }
 
-puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-TRACKER-34-QUANTIZED-RESIDUAL-CLOSED-LOOP-20260830 read_only=1 probe=39" $samples $gap_ms $board_filter]
+puts [format "STEP5_HPLL_BOOTSTRAP_TRACKER_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6336-PLUS-34-TRACKER-CLOSED-LOOP-20260830 read_only=1 tracker_probe=39 bootstrap_probe=42" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
   set device_name [lindex $device_names 0]
-  puts [format "=== STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_BOARD %s ===" $hardware_name]
+  puts [format "=== STEP5_HPLL_BOOTSTRAP_TRACKER_BOARD %s ===" $hardware_name]
   catch { end_insystem_source_probe }
   if {[catch {
     set ::wb_toggle($hardware_name) 0
@@ -212,9 +249,9 @@ foreach hardware_name [get_hardware_names] {
     }
     emit_delta $hardware_name
   } error_message]} {
-    puts [format "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_ERROR board=%s message=%s" $hardware_name $error_message]
+    puts [format "STEP5_HPLL_BOOTSTRAP_TRACKER_ERROR board=%s message=%s" $hardware_name $error_message]
   }
   catch { end_insystem_source_probe }
 }
 
-puts "STEP5_HPLL_ABSOLUTE_TARGET_TRACKER_DONE"
+puts "STEP5_HPLL_BOOTSTRAP_TRACKER_DONE"

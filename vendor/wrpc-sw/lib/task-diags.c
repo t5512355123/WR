@@ -29,6 +29,7 @@ int wrc_wr_diags(void)
 {
 	static uint32_t last_update_tick;
 	static uint32_t mapping_self_test_counter;
+	static uint32_t pi_trace_refresh_divider;
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
 	uint64_t sec;
@@ -357,8 +358,14 @@ int wrc_wr_diags(void)
 				measurement_output,
 				measurement_ref_accept_count,
 				measurement_fb_accept_count);
-			wdiags_write_wr_spll_helper_pi_trace(
-				pi_trace_snapshot_valid ? pi_trace_epoch : 0xffffffffu,
+			/* The causality packet is deliberately refreshed every fifth
+			 * diagnostics tick.  It is wider than the 100 ms MMIO refresh
+			 * budget, so this gives the passive JTAG reader enough time to
+			 * consume all words under one epoch without changing control. */
+			if (pi_trace_snapshot_valid && ++pi_trace_refresh_divider >= 5) {
+				pi_trace_refresh_divider = 0;
+				wdiags_write_wr_spll_helper_pi_trace(
+				pi_trace_epoch,
 				pi_trace_tag_raw,
 				pi_trace_p_adder,
 				pi_trace_p_setpoint,
@@ -386,6 +393,7 @@ int wrc_wr_diags(void)
 				pi_trace_lock_threshold,
 				pi_trace_lock_samples,
 				pi_trace_ref_src);
+			}
 
 		}
 	}

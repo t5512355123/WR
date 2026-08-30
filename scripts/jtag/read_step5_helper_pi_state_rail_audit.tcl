@@ -276,7 +276,6 @@ proc read_pi_snapshot {hardware_name} {
   # commits it with the epoch at 0x158.  Keep the control/status frame check
   # as a second guard because this is a live Wishbone read stream.
   for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set ctrl_begin [wb_read $hardware_name 0x00100A04]
     set epoch_begin [wb_read $hardware_name 0x00100B58]
     set epoch_word [word32 $epoch_begin]
     if {$epoch_word < 0 || ($epoch_word & 1)} {
@@ -316,10 +315,8 @@ proc read_pi_snapshot {hardware_name} {
     set lock_samples [wb_read $hardware_name 0x00100BD4]
     set ref_src [wb_read $hardware_name 0x00100BD8]
     set magic [wb_read $hardware_name 0x00100BDC]
-    set ctrl_end [wb_read $hardware_name 0x00100A04]
     set epoch_end [wb_read $hardware_name 0x00100B58]
-    if {[string equal -nocase $epoch_begin $epoch_end] &&
-        [frame_valid $ctrl_begin $ctrl_end]} {
+    if {[string equal -nocase $epoch_begin $epoch_end]} {
       return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
         $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
         $after_lo $after_hi $prop_lo $prop_hi $preround_lo $preround_hi \

@@ -412,7 +412,7 @@ foreach hardware_name [get_hardware_names] {
     }
     emit_summary $hardware_name
   } error_message]} {
-    puts [format "STEP5_LOCK_CONVERGENCE_ERROR board=%s message=%s" $hardware_name $error_message]
+    puts [format "STEP5_LOCK_CONVERGENCE_ERROR board=%s message=%s error_info=%s" $hardware_name $error_message [string map [list "\n" " | "] $::errorInfo]]
   }
   catch { end_insystem_source_probe }
 }

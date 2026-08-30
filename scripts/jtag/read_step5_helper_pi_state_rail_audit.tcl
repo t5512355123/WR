@@ -23,7 +23,7 @@ if {$samples <= 0 || $gap_ms < 0} {
 }
 
 set PI_KP -150
-set PI_KI -2
+set PI_KI -1
 set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
@@ -1005,7 +1005,7 @@ proc emit_summary {hardware_name} {
     $::pi_ld_error_final($hardware_name) $::pi_prop_final($hardware_name) $::pi_preround_final($hardware_name)]
 }
 
-puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-BOOTSTRAP-BISECTION-1800S-20260831 read_only=1 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-1800S-20260831 read_only=1 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

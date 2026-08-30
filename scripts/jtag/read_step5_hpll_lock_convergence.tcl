@@ -202,9 +202,16 @@ proc read_helper_pair {hardware_name} {
     set threshold [field32 $limits 0 16]
     set lock_samples [field32 $limits 16 16]
     set lock_count [field32 $state 16 16]
+    set locked [field32 $state 0 1]
     if {$threshold eq "200" && $lock_samples eq "10000" &&
-        $lock_count ne "INVALID" && $lock_count <= $lock_samples} {
-      return [list $state $limits]
+        $lock_count ne "INVALID" && $lock_count <= $lock_samples &&
+        $locked ne "INVALID"} {
+      # ld_update() only permits locked=1 after lock_cnt reaches
+      # lock_samples. A different pair is a torn shadow read and must not
+      # be counted as a real lock event.
+      if {$locked == 0 || ($locked == 1 && $lock_count == $lock_samples)} {
+        return [list $state $limits]
+      }
     }
     after 2
   }

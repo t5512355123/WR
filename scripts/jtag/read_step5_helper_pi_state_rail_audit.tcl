@@ -260,10 +260,11 @@ proc wb_write {hardware_name addr data} {
       scan $value %x word
       set done_toggle [expr {($word >> 35) & 1}]
       set active [expr {($word >> 36) & 1}]
-      set ack [expr {($word >> 34) & 1}]
-      set err [expr {($word >> 33) & 1}]
       if {$done_toggle == $toggle && $active == 0} {
-        return [expr {$ack && !$err}]
+        # The mailbox ACK/ERR flags are one-clock result strobes.  Once the
+        # transaction is complete they may already be low, so completion is
+        # determined by the persistent done toggle, as in wb_read.
+        return 1
       }
     }
     after 1

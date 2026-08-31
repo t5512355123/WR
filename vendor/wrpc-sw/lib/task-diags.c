@@ -38,6 +38,7 @@ int wrc_wr_diags(void)
 	int temp = 0, valid = 0, snapshot = 0, i;
 	uint32_t measurement_epoch_before, measurement_epoch_after;
 	uint32_t measurement_epoch = 0xffffffffu;
+	uint32_t pi_source_epoch_before, pi_source_epoch_after;
 	uint32_t measurement_update_count = 0;
 	uint32_t measurement_ref_accept_count = 0;
 	uint32_t measurement_fb_accept_count = 0;
@@ -281,7 +282,12 @@ int wrc_wr_diags(void)
 			for (i = 0; i < 4 && !measurement_snapshot_valid; i++) {
 				measurement_epoch_before =
 					wrpc_spll_helper_measurement_epoch;
-				if (measurement_epoch_before & 1u)
+				pi_source_epoch_before = softpll.helper.pi.trace_epoch;
+				/* The measurement seqlock does not cover the PI trace fields.
+				 * Bracket both epochs: pi_update() can be interrupted between
+				 * its trace-field stores and helper_publish_measurement(). */
+				if ((measurement_epoch_before & 1u) ||
+				    (pi_source_epoch_before & 1u))
 					continue;
 				measurement_tag_delta =
 					wrpc_spll_helper_measurement_tag_delta;
@@ -341,8 +347,11 @@ int wrc_wr_diags(void)
 				pi_trace_ref_src = softpll.helper.ref_src;
 				measurement_epoch_after =
 					wrpc_spll_helper_measurement_epoch;
+				pi_source_epoch_after = softpll.helper.pi.trace_epoch;
 				if (measurement_epoch_before == measurement_epoch_after &&
-				    !(measurement_epoch_after & 1u)) {
+				    !(measurement_epoch_after & 1u) &&
+				    pi_source_epoch_before == pi_source_epoch_after &&
+				    !(pi_source_epoch_after & 1u)) {
 					measurement_epoch = measurement_epoch_after;
 					measurement_snapshot_valid = 1;
 					pi_trace_epoch = measurement_epoch_after;

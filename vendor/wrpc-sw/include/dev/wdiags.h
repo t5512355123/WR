@@ -18,6 +18,9 @@
 int wdiag_set_valid(int enable);
 int wdiag_get_valid(void);
 int wdiag_get_snapshot(void);
+/* Diagnostic-only atomic Helper PI snapshot transport. */
+int wdiags_helper_pi_snapshot_request_pending(uint32_t *request_seq);
+void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq);
 void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 			      uint64_t dms, int32_t asym, int32_t cko,
 			      int32_t setp, int32_t ucnt, uint32_t restart_cnt, uint64_t up_timestamp );

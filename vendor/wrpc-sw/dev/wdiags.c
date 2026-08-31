@@ -12,6 +12,7 @@
 
 #include "board.h"
 #include "dev/wdiags.h"
+#include "dev/syscon.h"
 #include "wrc-debug.h"
 #include "hw/rawmem.h"
 #include "hw/wrc_diags_regs.h"
@@ -70,6 +71,10 @@ static uint32_t wdiags_boot_startup_p_offset_shadow[WRC_DIAGS_BOOT_STARTUP_STAGE
 static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
 static int wdiags_reinit_attribution_active;
+static uint32_t wdiags_helper_pi_snapshot_ack_seq;
+static uint32_t wdiags_helper_pi_snapshot_last_request_seq;
+static uint32_t wdiags_helper_pi_snapshot_req_count;
+static uint32_t wdiags_helper_pi_snapshot_ack_count;
 
 static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
@@ -307,6 +312,32 @@ int wdiag_get_snapshot(void)
 	uint32_t ctl = wdiag_read( WRC_DIAGS_CTRL );
 
 	return (ctl & WRC_DIAGS_CTRL_DATA_SNAPSHOT ) ? 1 : 0;
+}
+
+int wdiags_helper_pi_snapshot_request_pending(uint32_t *request_seq)
+{
+	uint32_t request = 0;
+
+	/* The request lives in the one-word SYSCON User-Diag R/W bank.  It is
+	 * intentionally separate from WDIAGS CTRL because the external/JTAG
+	 * WDIAGS port is read-only except for its legacy control word. */
+	if (diag_read_word(0, DIAG_RW_BANK, &request) != 0)
+		return 0;
+	if (request_seq)
+		*request_seq = request;
+
+	if (request == 0 || request == wdiags_helper_pi_snapshot_ack_seq)
+		return 0;
+
+	/* Count each newly observed request once, even if the 100 ms diagnostics
+	 * task sees it more than once before the payload is published. */
+	if (request != wdiags_helper_pi_snapshot_last_request_seq) {
+		wdiags_helper_pi_snapshot_last_request_seq = request;
+		wdiags_helper_pi_snapshot_req_count++;
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT,
+				wdiags_helper_pi_snapshot_req_count);
+	}
+	return 1;
 }
 
 void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
@@ -1063,6 +1094,23 @@ void wdiags_write_wr_spll_helper_pi_trace(
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
 }
 
+void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq)
+{
+	if (request_seq == 0 || request_seq == wdiags_helper_pi_snapshot_ack_seq)
+		return;
+
+	/* The PI payload is already complete and its even epoch has been
+	 * published before these counters and the final ACK sequence are written.
+	 * The WB observer therefore never treats a partially copied payload as a
+	 * valid snapshot. */
+	wdiags_helper_pi_snapshot_ack_count++;
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT,
+			wdiags_helper_pi_snapshot_ack_count);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, request_seq);
+	wdiags_helper_pi_snapshot_ack_seq = request_seq;
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;
@@ -1088,6 +1136,14 @@ int wdiags_init(void)
 
 	for( i = 0; i < WRC_DIAGS_SIZE / 4; i++ )
 		wdiag_write( i * 4, 0 );
+
+	wdiags_helper_pi_snapshot_ack_seq = 0;
+	wdiags_helper_pi_snapshot_last_request_seq = 0;
+	wdiags_helper_pi_snapshot_req_count = 0;
+	wdiags_helper_pi_snapshot_ack_count = 0;
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT, 0);
 
 	wdiag_write( WRC_DIAGS_VER, WDIAGS_VERSION );
 	wdiags_write_mode_master_stage(

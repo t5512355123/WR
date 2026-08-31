@@ -1,10 +1,12 @@
 # Read-only Helper PI state and rail audit for Step5.
 #
-# The firmware mirror publishes the last completed Helper PI update through
-# WDIAGS 0x100..0x128.  The epoch is written last and is accepted only when
-# the beginning/end values match and are even.  This keeps the multiword
-# signed 64-bit values coherent while the interrupt-driven Helper continues
-# to run.  Probe 43/44 provide the signed physical-position context.
+# The firmware mirror publishes one completed Helper PI update through the
+# private WDIAGS snapshot bank at 0x158..0x1dc.  The observer first writes one
+# request sequence to SYSCON User-Diag RW word 0, waits for the matching ACK,
+# reads the complete bank, and then reads ACK again.  The bank is not changed
+# between requests, so the interrupt-driven Helper is never paused and a slow
+# JTAG read cannot starve the payload seqlock.  Probe 43/44 provide the signed
+# physical-position context.
 #
 # Usage:
 #   quartus_stp -t read_step5_helper_pi_state_rail_audit.tcl ?samples? ?gap_ms? ?board_filter?
@@ -15,6 +17,7 @@ set samples 600
 set gap_ms 100
 set board_filter ""
 set poll_attempts 100
+set snapshot_poll_attempts 1000
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -128,6 +131,13 @@ array set ::pi_y_max_final {}
 array set ::reset_first {}
 array set ::reset_final {}
 array set ::elapsed_final {}
+array set ::snapshot_next_seq {}
+array set ::snapshot_req_first {}
+array set ::snapshot_req_final {}
+array set ::snapshot_ack_first {}
+array set ::snapshot_ack_final {}
+array set ::snapshot_ack_seq_final {}
+array set ::snapshot_ack_mismatch_count {}
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -229,6 +239,38 @@ proc wb_read {hardware_name addr} {
   return INVALID
 }
 
+proc wb_write {hardware_name addr data} {
+  global poll_attempts
+  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
+  set toggle $::wb_toggle($hardware_name)
+  set cmd [expr {$toggle | (1 << 1) | (0xf << 2) |
+                 (($addr & 0xffffffff) << 6) |
+                 (($data & 0xffffffff) << 38)}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    return 0
+  }
+  after 5
+  for {set n 0} {$n < $poll_attempts} {incr n} {
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      set value INVALID
+    }
+    if {[is_hex $value]} {
+      scan $value %x word
+      set done_toggle [expr {($word >> 35) & 1}]
+      set active [expr {($word >> 36) & 1}]
+      set ack [expr {($word >> 34) & 1}]
+      set err [expr {($word >> 33) & 1}]
+      if {$done_toggle == $toggle && $active == 0} {
+        return [expr {$ack && !$err}]
+      }
+    }
+    after 1
+  }
+  return 0
+}
+
 proc wb_sync_toggle {hardware_name} {
   set value [probe_read 1]
   if {[is_hex $value]} {
@@ -271,66 +313,96 @@ proc read_stable_position_pair {} {
   return [list INVALID INVALID]
 }
 
-proc read_pi_snapshot {hardware_name} {
-  # The firmware writes the low-rail causality overlay at 0x158..0x1dc and
-  # commits it with the epoch at 0x158.  Keep the control/status frame check
-  # as a second guard because this is a live Wishbone read stream.
-  for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set epoch_begin [wb_read $hardware_name 0x00100B58]
-    set epoch_word [word32 $epoch_begin]
-    if {$epoch_word < 0 || ($epoch_word & 1)} {
-      after 2
-      continue
-    }
-    set tag_raw [wb_read $hardware_name 0x00100B5C]
-    set p_adder [wb_read $hardware_name 0x00100B60]
-    set p_setpoint [wb_read $hardware_name 0x00100B64]
-    set raw_error [wb_read $hardware_name 0x00100B68]
-    set ld_error [wb_read $hardware_name 0x00100B6C]
-    set lock_state [wb_read $hardware_name 0x00100B70]
-    set before_lo [wb_read $hardware_name 0x00100B74]
-    set before_hi [wb_read $hardware_name 0x00100B78]
-    set i_new_lo [wb_read $hardware_name 0x00100B7C]
-    set i_new_hi [wb_read $hardware_name 0x00100B80]
-    set after_lo [wb_read $hardware_name 0x00100B84]
-    set after_hi [wb_read $hardware_name 0x00100B88]
-    set prop_lo [wb_read $hardware_name 0x00100B8C]
-    set prop_hi [wb_read $hardware_name 0x00100B90]
-    set preround_lo [wb_read $hardware_name 0x00100B94]
-    set preround_hi [wb_read $hardware_name 0x00100B98]
-    set unclamped [wb_read $hardware_name 0x00100B9C]
-    set y_min [wb_read $hardware_name 0x00100BA0]
-    set y_max [wb_read $hardware_name 0x00100BA4]
-    set clamp_side [wb_read $hardware_name 0x00100BA8]
-    set final_output [wb_read $hardware_name 0x00100BAC]
-    set x [wb_read $hardware_name 0x00100BB0]
-    set kp [wb_read $hardware_name 0x00100BB4]
-    set ki [wb_read $hardware_name 0x00100BB8]
-    set shift [wb_read $hardware_name 0x00100BBC]
-    set bias [wb_read $hardware_name 0x00100BC0]
-    set anti_windup [wb_read $hardware_name 0x00100BC4]
-    set update_count [wb_read $hardware_name 0x00100BC8]
-    set freq_error [wb_read $hardware_name 0x00100BCC]
-    set lock_threshold [wb_read $hardware_name 0x00100BD0]
-    set lock_samples [wb_read $hardware_name 0x00100BD4]
-    set ref_src [wb_read $hardware_name 0x00100BD8]
-    set magic [wb_read $hardware_name 0x00100BDC]
-    set epoch_end [wb_read $hardware_name 0x00100B58]
-    if {[string equal -nocase $epoch_begin $epoch_end]} {
-      return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
-        $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
-        $after_lo $after_hi $prop_lo $prop_hi $preround_lo $preround_hi \
-        $unclamped $y_min $y_max $clamp_side $final_output $x $kp $ki \
-        $shift $bias $anti_windup $update_count $freq_error $lock_threshold \
-        $lock_samples $ref_src $magic]
-    }
-    after 2
+proc next_snapshot_seq {hardware_name} {
+  if {![info exists ::snapshot_next_seq($hardware_name)]} {
+    set ::snapshot_next_seq($hardware_name) 1
   }
-  return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID]
+  if {![info exists ::snapshot_ack_mismatch_count($hardware_name)]} {
+    set ::snapshot_ack_mismatch_count($hardware_name) 0
+  }
+  set seq $::snapshot_next_seq($hardware_name)
+  incr ::snapshot_next_seq($hardware_name)
+  if {$::snapshot_next_seq($hardware_name) >= 0x10000} {
+    set ::snapshot_next_seq($hardware_name) 1
+  }
+  return $seq
+}
+
+proc request_atomic_pi_snapshot {hardware_name request_seq} {
+  global snapshot_poll_attempts
+  # SYSCON BASE_SYSCON + DIAG_DAT/DIAG_CR.  The one enabled RW word is index 0.
+  if {![wb_write $hardware_name 0x0010042C $request_seq] ||
+      ![wb_write $hardware_name 0x00100428 0x80000000]} {
+    incr ::snapshot_ack_mismatch_count($hardware_name)
+    return 0
+  }
+  for {set n 0} {$n < $snapshot_poll_attempts} {incr n} {
+    set ack [word32 [wb_read $hardware_name 0x00100B28]]
+    if {$ack >= 0 && $ack == $request_seq} {
+      return 1
+    }
+    after 1
+  }
+  incr ::snapshot_ack_mismatch_count($hardware_name)
+  return 0
+}
+
+proc read_pi_snapshot {hardware_name request_seq} {
+  # Firmware ACK is published only after the full bank has been copied.  The
+  # second ACK read is the transport-level stability check required by Step5.
+  if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
+    return [read_pi_snapshot_invalid]
+  }
+  set ack_begin [word32 [wb_read $hardware_name 0x00100B28]]
+  set epoch_begin [wb_read $hardware_name 0x00100B58]
+  set epoch_word [word32 $epoch_begin]
+  set tag_raw [wb_read $hardware_name 0x00100B5C]
+  set p_adder [wb_read $hardware_name 0x00100B60]
+  set p_setpoint [wb_read $hardware_name 0x00100B64]
+  set raw_error [wb_read $hardware_name 0x00100B68]
+  set ld_error [wb_read $hardware_name 0x00100B6C]
+  set lock_state [wb_read $hardware_name 0x00100B70]
+  set before_lo [wb_read $hardware_name 0x00100B74]
+  set before_hi [wb_read $hardware_name 0x00100B78]
+  set i_new_lo [wb_read $hardware_name 0x00100B7C]
+  set i_new_hi [wb_read $hardware_name 0x00100B80]
+  set after_lo [wb_read $hardware_name 0x00100B84]
+  set after_hi [wb_read $hardware_name 0x00100B88]
+  set prop_lo [wb_read $hardware_name 0x00100B8C]
+  set prop_hi [wb_read $hardware_name 0x00100B90]
+  set preround_lo [wb_read $hardware_name 0x00100B94]
+  set preround_hi [wb_read $hardware_name 0x00100B98]
+  set unclamped [wb_read $hardware_name 0x00100B9C]
+  set y_min [wb_read $hardware_name 0x00100BA0]
+  set y_max [wb_read $hardware_name 0x00100BA4]
+  set clamp_side [wb_read $hardware_name 0x00100BA8]
+  set final_output [wb_read $hardware_name 0x00100BAC]
+  set x [wb_read $hardware_name 0x00100BB0]
+  set kp [wb_read $hardware_name 0x00100BB4]
+  set ki [wb_read $hardware_name 0x00100BB8]
+  set shift [wb_read $hardware_name 0x00100BBC]
+  set bias [wb_read $hardware_name 0x00100BC0]
+  set anti_windup [wb_read $hardware_name 0x00100BC4]
+  set update_count [wb_read $hardware_name 0x00100BC8]
+  set freq_error [wb_read $hardware_name 0x00100BCC]
+  set lock_threshold [wb_read $hardware_name 0x00100BD0]
+  set lock_samples [wb_read $hardware_name 0x00100BD4]
+  set ref_src [wb_read $hardware_name 0x00100BD8]
+  set magic [wb_read $hardware_name 0x00100BDC]
+  set epoch_end [wb_read $hardware_name 0x00100B58]
+  set ack_end [word32 [wb_read $hardware_name 0x00100B28]]
+  if {$ack_begin >= 0 && $ack_end >= 0 && $ack_begin == $request_seq &&
+      $ack_end == $request_seq && [string equal -nocase $epoch_begin $epoch_end] &&
+      $epoch_word >= 0 && !($epoch_word & 1)} {
+    return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
+      $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
+      $after_lo $after_hi $prop_lo $prop_hi $preround_lo $preround_hi \
+      $unclamped $y_min $y_max $clamp_side $final_output $x $kp $ki \
+      $shift $bias $anti_windup $update_count $freq_error $lock_threshold \
+      $lock_samples $ref_src $magic]
+  }
+  incr ::snapshot_ack_mismatch_count($hardware_name)
+  return [read_pi_snapshot_invalid]
 }
 
 proc pi_snapshot_math_valid {snapshot} {
@@ -418,22 +490,12 @@ proc pi_snapshot_math_valid {snapshot} {
 }
 
 proc read_pi_snapshot_checked {hardware_name} {
-  global poll_attempts
-  set rejects 0
-  set last_snapshot [read_pi_snapshot_invalid]
-  for {set attempt 0} {$attempt < 6} {incr attempt} {
-    set snapshot [read_pi_snapshot $hardware_name]
-    set last_snapshot $snapshot
-    if {[lindex $snapshot 0] && [pi_snapshot_math_valid $snapshot]} {
-      return [list 1 $rejects {*}$snapshot]
-    }
-    if {[lindex $snapshot 0] && [lindex $snapshot 1] ne "INVALID" &&
-        [lindex $snapshot 1] != 0} {
-      incr rejects
-    }
-    after 2
+  set request_seq [next_snapshot_seq $hardware_name]
+  set snapshot [read_pi_snapshot $hardware_name $request_seq]
+  if {[lindex $snapshot 0] && [pi_snapshot_math_valid $snapshot]} {
+    return [list 1 0 {*}$snapshot]
   }
-  return [list 0 $rejects {*}$last_snapshot]
+  return [list 0 1 {*}$snapshot]
 }
 
 proc read_pi_snapshot_invalid {} {
@@ -543,6 +605,12 @@ proc initialize_board {hardware_name} {
   set ::reset_first($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::reset_final($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::elapsed_final($hardware_name) 0
+  set ::snapshot_req_first($hardware_name) INVALID
+  set ::snapshot_req_final($hardware_name) INVALID
+  set ::snapshot_ack_first($hardware_name) INVALID
+  set ::snapshot_ack_final($hardware_name) INVALID
+  set ::snapshot_ack_seq_final($hardware_name) INVALID
+  set ::snapshot_ack_mismatch_count($hardware_name) 0
 }
 
 proc emit_sample {hardware_name sample elapsed_ms} {
@@ -599,6 +667,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set checked_rejects [lindex $checked_snapshot 1]
   incr ::pi_snapshot_reject_count($hardware_name) $checked_rejects
   set raw_snapshot [lrange $checked_snapshot 2 end]
+  set snapshot_req_count [word32 [wb_read $hardware_name 0x00100B2C]]
+  set snapshot_ack_count [word32 [wb_read $hardware_name 0x00100B30]]
+  set snapshot_ack_seq [word32 [wb_read $hardware_name 0x00100B28]]
   foreach {pi_valid pi_epoch tag_raw p_adder p_setpoint raw_error_raw ld_error_raw \
            helper_state_raw before_lo before_hi i_new_lo i_new_hi after_lo after_hi \
            prop_lo prop_hi preround_lo preround_hi unclamped_raw y_min_raw y_max_raw \
@@ -654,7 +725,6 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set pstat_locked [probe_field32 $pstat 1 1]
 
   if {$sample == 1} {
-    initialize_board $hardware_name
     set ::tag_valid_first($hardware_name) $tag_valid
     set ::normal_completed_first($hardware_name) $normal_completed
     set ::normal_req_first($hardware_name) $normal_req
@@ -671,6 +741,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::main_locked_first($hardware_name) $main_locked
     set ::pstat_locked_first($hardware_name) $pstat_locked
     set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
+    set ::snapshot_req_first($hardware_name) $snapshot_req_count
+    set ::snapshot_ack_first($hardware_name) $snapshot_ack_count
   }
   incr ::sample_count($hardware_name)
   set ::elapsed_final($hardware_name) $elapsed_ms
@@ -689,6 +761,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::main_phase_locked_final($hardware_name) $main_phase_locked
   set ::main_locked_final($hardware_name) $main_locked
   set ::pstat_locked_final($hardware_name) $pstat_locked
+  set ::snapshot_req_final($hardware_name) $snapshot_req_count
+  set ::snapshot_ack_final($hardware_name) $snapshot_ack_count
+  set ::snapshot_ack_seq_final($hardware_name) $snapshot_ack_seq
   set ::position_target_final($hardware_name) $position_target
   set ::position_applied_final($hardware_name) $position_applied
   set ::helper_error_final($hardware_name) $helper_error
@@ -876,6 +951,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     $position_target $position_applied $normal_req $normal_completed $normal_finc $normal_fdec $dco_step $forced_completed \
     $bootstrap_completed_counter $bootstrap_done $spll_init_count $clear_dacs_count $spll_delock $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked $helper_locked $helper_count \
     $entry_generation $cpu_reset $wr_reset $si_drop]
+  puts [format "STEP5_ATOMIC_SNAPSHOT_SAMPLE board=%s sample=%d REQUEST_SEQ=%d SNAPSHOT_ACK_SEQ=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_ACK_COUNT=%s ACK_MISMATCH=%d" \
+    $hardware_name $sample [expr {$::snapshot_next_seq($hardware_name) - 1}] $snapshot_ack_seq \
+    $snapshot_req_count $snapshot_ack_count $::snapshot_ack_mismatch_count($hardware_name)]
   flush stdout
 }
 
@@ -926,6 +1004,8 @@ proc emit_summary {hardware_name} {
   set dco_step_delta [counter_delta $::dco_step_first($hardware_name) $::dco_step_final($hardware_name) 16]
   set forced_completed_delta [counter_delta $::forced_completed_first($hardware_name) $::forced_completed_final($hardware_name) 16]
   set bootstrap_completed_delta [counter_delta $::bootstrap_completed_first($hardware_name) $::bootstrap_completed_final($hardware_name) 16]
+  set snapshot_req_delta [counter_delta $::snapshot_req_first($hardware_name) $::snapshot_req_final($hardware_name) 32]
+  set snapshot_ack_delta [counter_delta $::snapshot_ack_first($hardware_name) $::snapshot_ack_final($hardware_name) 32]
   set transaction_accounting [expr {$normal_req_delta ne "INVALID" && $normal_completed_delta ne "INVALID" &&
     $normal_req_delta == $normal_completed_delta ? "PASS" : "CHECK"}]
   set position_accounting [expr {$::physical_position_mismatch_count($hardware_name) == 0 &&
@@ -1003,9 +1083,12 @@ proc emit_summary {hardware_name} {
     $::pi_i_new_final($hardware_name) $::pi_after_final($hardware_name) $::pi_unclamped_final($hardware_name) \
     $::pi_clamped_final($hardware_name) $::pi_side_final($hardware_name) $::pi_raw_error_final($hardware_name) \
     $::pi_ld_error_final($hardware_name) $::pi_prop_final($hardware_name) $::pi_preround_final($hardware_name)]
+  puts [format "STEP5_ATOMIC_SNAPSHOT_TRANSPORT board=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_REQ_DELTA=%s SNAPSHOT_ACK_DELTA=%s ACK_MISMATCH=%d" \
+    $hardware_name $::snapshot_req_final($hardware_name) $::snapshot_ack_final($hardware_name) \
+    $snapshot_req_delta $snapshot_ack_delta $::snapshot_ack_mismatch_count($hardware_name)]
 }
 
-puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-1800S-20260831 read_only=1 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-ATOMIC-DIAG-SNAPSHOT-REPEAT-1800S-20260831 read_only=1 snapshot_transport=atomic_request_ack bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }
@@ -1017,6 +1100,7 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle $hardware_name
+    initialize_board $hardware_name
     for {set sample 1} {$sample <= $samples} {incr sample} {
       set elapsed_ms [expr {($sample - 1) * $gap_ms}]
       emit_sample $hardware_name $sample $elapsed_ms

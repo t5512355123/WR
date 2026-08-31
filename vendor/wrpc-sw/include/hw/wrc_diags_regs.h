@@ -12,6 +12,13 @@
 #define WRC_DIAGS_CTRL_DATA_VALID 0x1UL
 #define WRC_DIAGS_CTRL_DATA_SNAPSHOT 0x100UL
 
+/* The atomic PI snapshot request is carried by the SYSCON User-Diag
+ * read/write bank.  These private WDIAGS words publish the completed
+ * request/acknowledgement state; they are read-only from the WB observer. */
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ   0x128UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT 0x12cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT 0x130UL
+
 /* WRPC Diag: servo status */
 #define WRC_DIAGS_WDIAG_SSTAT 0x8UL
 #define WRC_DIAGS_WDIAG_SSTAT_WR_MODE 0x1UL

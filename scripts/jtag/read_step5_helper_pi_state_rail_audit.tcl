@@ -435,6 +435,7 @@ proc read_pi_snapshot {hardware_name request_seq} {
 
 proc pi_snapshot_math_valid {snapshot} {
   global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
+  set ::pi_math_last_reason UNKNOWN
   foreach {pi_valid pi_epoch tag_raw p_adder p_setpoint raw_error_raw ld_error_raw \
            lock_state_raw before_lo before_hi i_new_lo i_new_hi after_lo after_hi \
            prop_lo prop_hi preround_lo preround_hi unclamped_raw y_min_raw y_max_raw \
@@ -443,7 +444,10 @@ proc pi_snapshot_math_valid {snapshot} {
            magic_raw} $snapshot break
   set epoch [word32 $pi_epoch]
   set magic [word32 $magic_raw]
-  if {!$pi_valid || $epoch < 1 || ($epoch & 1) || $magic != 1} { return 0 }
+  if {!$pi_valid || $epoch < 1 || ($epoch & 1) || $magic != 1} {
+    set ::pi_math_last_reason [format "header pi_valid=%s epoch=%s magic=%s" $pi_valid $epoch $magic]
+    return 0
+  }
   set before [signed64_words $before_lo $before_hi]
   set i_new [signed64_words $i_new_lo $i_new_hi]
   set after [signed64_words $after_lo $after_hi]
@@ -481,19 +485,31 @@ proc pi_snapshot_math_valid {snapshot} {
       $anti_windup eq "INVALID" || $update_count < 0 || $freq_error eq "INVALID" ||
       $lock_threshold eq "INVALID" || $lock_samples eq "INVALID" ||
       $ref_src eq "INVALID"} {
+    set ::pi_math_last_reason INVALID_FIELD
     return 0
   }
-  if {$tag + $adder - $setpoint != $raw_error} { return 0 }
+  if {$tag + $adder - $setpoint != $raw_error} {
+    set ::pi_math_last_reason [format "raw_error expected=%s actual=%s" [expr {$tag + $adder - $setpoint}] $raw_error]
+    return 0
+  }
   set expected_ld_error $raw_error
   if {$expected_ld_error < -150000} { set expected_ld_error -150000 }
   if {$expected_ld_error > 150000} { set expected_ld_error 150000 }
-  if {$ld_error != $expected_ld_error} { return 0 }
+  if {$ld_error != $expected_ld_error} {
+    set ::pi_math_last_reason [format "ld_error expected=%s actual=%s" $expected_ld_error $ld_error]
+    return 0
+  }
   if {$kp != $PI_KP || $ki != $PI_KI || $shift != $PI_SHIFT ||
       $bias != $PI_BIAS || $y_min != $PI_Y_MIN || $y_max != $PI_Y_MAX ||
       $anti_windup != 1 || $lock_threshold != 200 || $lock_samples != 10000} {
+    set ::pi_math_last_reason [format "constants kp=%s ki=%s shift=%s bias=%s ymin=%s ymax=%s anti=%s threshold=%s samples=%s" \
+      $kp $ki $shift $bias $y_min $y_max $anti_windup $lock_threshold $lock_samples]
     return 0
   }
-  if {$prop != $x * $kp} { return 0 }
+  if {$prop != $x * $kp} {
+    set ::pi_math_last_reason [format "prop expected=%s actual=%s x=%s kp=%s" [expr {$x * $kp}] $prop $x $kp]
+    return 0
+  }
   set expected_i_new [expr {$before + $ki * $ld_error}]
   set expected_preround [expr {$expected_i_new + $prop + (1 << ($shift - 1))}]
   set expected_unclamped [expr {($expected_preround >> $shift) + $bias}]
@@ -512,9 +528,15 @@ proc pi_snapshot_math_valid {snapshot} {
   } elseif {$expected_side == 1 && !($anti_windup && $expected_i_new < $before)} {
     set expected_after $before
   }
-  return [expr {$i_new == $expected_i_new && $preround == $expected_preround &&
+  set result [expr {$i_new == $expected_i_new && $preround == $expected_preround &&
     $after == $expected_after && $unclamped == $expected_unclamped &&
     $final_output == $expected_clamped && $side == $expected_side}]
+  if {!$result} {
+    set ::pi_math_last_reason [format "state expected_i_new=%s actual=%s expected_preround=%s actual=%s expected_after=%s actual=%s expected_unclamped=%s actual=%s expected_output=%s actual=%s expected_side=%s actual=%s" \
+      $expected_i_new $i_new $expected_preround $preround $expected_after $after \
+      $expected_unclamped $unclamped $expected_clamped $final_output $expected_side $side]
+  }
+  return $result
 }
 
 proc read_pi_snapshot_checked {hardware_name} {
@@ -522,6 +544,10 @@ proc read_pi_snapshot_checked {hardware_name} {
   set snapshot [read_pi_snapshot $hardware_name $request_seq]
   if {[lindex $snapshot 0] && [pi_snapshot_math_valid $snapshot]} {
     return [list 1 0 {*}$snapshot]
+  }
+  if {[lindex $snapshot 0]} {
+    puts [format "PI_MATH_REJECT board=%s request_seq=%d reason=%s" \
+      $hardware_name $request_seq $::pi_math_last_reason]
   }
   return [list 0 1 {*}$snapshot]
 }

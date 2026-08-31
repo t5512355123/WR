@@ -338,8 +338,14 @@ proc request_atomic_pi_snapshot {hardware_name request_seq} {
     set diag_nw [wb_read $hardware_name 0x00100424]
     set diag_cr_read [wb_write $hardware_name 0x00100428 0]
     set request_readback [wb_read $hardware_name 0x0010042C]
-    puts [format "ATOMIC_TRANSPORT_PROBE board=%s DATA_WRITE_DONE=%d CR_WRITE_DONE=%d DIAG_NW=%s DIAG_CR_READ_DONE=%d REQUEST_READBACK=%s" \
-      $hardware_name $data_write_ok $cr_write_ok $diag_nw $diag_cr_read $request_readback]
+    set diag_cr_after [wb_read $hardware_name 0x00100428]
+    set cpu_store [probe_read 4]
+    set cpu_store_count [probe_read 5]
+    set cpu_data_diag_addr [probe_read 9]
+    set cpu_data_diag_meta [probe_read 10]
+    puts [format "ATOMIC_TRANSPORT_PROBE board=%s DATA_WRITE_DONE=%d CR_WRITE_DONE=%d DIAG_NW=%s DIAG_CR_READ_DONE=%d REQUEST_READBACK=%s DIAG_CR_AFTER=%s CPU_STORE=%s CPU_STORE_COUNT=%s CPU_DATA_DIAG_ADDR=%s CPU_DATA_DIAG_META=%s" \
+      $hardware_name $data_write_ok $cr_write_ok $diag_nw $diag_cr_read $request_readback \
+      $diag_cr_after $cpu_store $cpu_store_count $cpu_data_diag_addr $cpu_data_diag_meta]
   }
   if {!$data_write_ok || !$cr_write_ok} {
     incr ::snapshot_ack_mismatch_count($hardware_name)

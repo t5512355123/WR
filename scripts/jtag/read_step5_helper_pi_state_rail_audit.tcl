@@ -332,8 +332,16 @@ proc next_snapshot_seq {hardware_name} {
 proc request_atomic_pi_snapshot {hardware_name request_seq} {
   global snapshot_poll_attempts
   # SYSCON BASE_SYSCON + DIAG_DAT/DIAG_CR.  The one enabled RW word is index 0.
-  if {![wb_write $hardware_name 0x0010042C $request_seq] ||
-      ![wb_write $hardware_name 0x00100428 0x80000000]} {
+  set data_write_ok [wb_write $hardware_name 0x0010042C $request_seq]
+  set cr_write_ok [wb_write $hardware_name 0x00100428 0x80000000]
+  if {$request_seq == 1} {
+    set diag_nw [wb_read $hardware_name 0x00100424]
+    set diag_cr_read [wb_write $hardware_name 0x00100428 0]
+    set request_readback [wb_read $hardware_name 0x0010042C]
+    puts [format "ATOMIC_TRANSPORT_PROBE board=%s DATA_WRITE_DONE=%d CR_WRITE_DONE=%d DIAG_NW=%s DIAG_CR_READ_DONE=%d REQUEST_READBACK=%s" \
+      $hardware_name $data_write_ok $cr_write_ok $diag_nw $diag_cr_read $request_readback]
+  }
+  if {!$data_write_ok || !$cr_write_ok} {
     incr ::snapshot_ack_mismatch_count($hardware_name)
     return 0
   }

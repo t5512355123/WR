@@ -106,6 +106,12 @@ foreach hardware_name [get_hardware_names] {
     set dat_before [wb_read $hardware_name 0x0010042C]
     puts [format "DIAG_RW_BEFORE board=%s DIAG_NW=%s DIAG_CR=%s DIAG_DAT=%s" \
       $hardware_name $nw_before $cr_before $dat_before]
+    set direct_data_done [wb_write $hardware_name 0x0010042C 2]
+    set direct_cr_done [wb_write $hardware_name 0x00100428 0x80000000]
+    set direct_clear_done [wb_write $hardware_name 0x00100428 0]
+    set direct_readback [wb_read $hardware_name 0x0010042C]
+    puts [format "DIAG_RW_AFTER_JTAG board=%s DATA_WRITE_DONE=%d CR_WRITE_DONE=%d CR_CLEAR_DONE=%d DIAG_DAT=%s" \
+      $hardware_name $direct_data_done $direct_cr_done $direct_clear_done $direct_readback]
     send_vuart $hardware_name "diag w 0 1\n"
     after 500
     set cr_after_fw [wb_write $hardware_name 0x00100428 0]

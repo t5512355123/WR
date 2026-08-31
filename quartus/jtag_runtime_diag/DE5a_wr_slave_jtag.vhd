@@ -264,6 +264,31 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal ref_activity_count   : unsigned(15 downto 0) := (others => '0');
   signal dmtd_activity_count  : unsigned(15 downto 0) := (others => '0');
   signal rx_activity_count    : unsigned(15 downto 0) := (others => '0');
+  -- Diagnostic-only receive/link attribution counters.  The PHY event
+  -- counters live in the recovered RX clock domain so short error pulses are
+  -- not lost by the 50 MHz JTAG observer.  They never drive WR control.
+  signal phy_rx_enc_err_prev       : std_logic := '0';
+  signal phy_rx_disperr_prev       : std_logic := '0';
+  signal phy_rx_errdetect_prev     : std_logic := '0';
+  signal phy_rx_syncstatus_prev    : std_logic := '0';
+  signal phy_rx_locked_to_data_prev : std_logic := '0';
+  signal phy_rx_enc_err_count      : unsigned(31 downto 0) := (others => '0');
+  signal phy_rx_disperr_count      : unsigned(31 downto 0) := (others => '0');
+  signal phy_rx_errdetect_count    : unsigned(31 downto 0) := (others => '0');
+  signal phy_rx_sync_loss_count    : unsigned(31 downto 0) := (others => '0');
+  signal phy_rx_lock_loss_count    : unsigned(31 downto 0) := (others => '0');
+  signal core_link_ok_prev         : std_logic := '0';
+  signal core_tm_link_up_prev      : std_logic := '0';
+  signal core_link_ok_drop_count   : unsigned(31 downto 0) := (others => '0');
+  signal core_tm_link_up_drop_count : unsigned(31 downto 0) := (others => '0');
+  signal rx_error_attribution_probe0 : std_logic_vector(63 downto 0);
+  signal rx_error_attribution_probe1 : std_logic_vector(63 downto 0);
+  signal rx_error_attribution_probe2 : std_logic_vector(63 downto 0);
+  signal rx_error_attribution_probe3 : std_logic_vector(63 downto 0);
+  signal rx_error_attribution_source0 : std_logic_vector(0 downto 0);
+  signal rx_error_attribution_source1 : std_logic_vector(0 downto 0);
+  signal rx_error_attribution_source2 : std_logic_vector(0 downto 0);
+  signal rx_error_attribution_source3 : std_logic_vector(0 downto 0);
   signal core_wb_i            : t_wishbone_slave_in;
   signal core_wb_o            : t_wishbone_slave_out;
   signal sync_source          : std_logic_vector(0 downto 0);
@@ -571,6 +596,132 @@ begin
       end if;
     end if;
   end process;
+
+  -- Keep a source-domain history of PHY error indications and lock loss.
+  -- These are saturating edge/event counters. They are observation-only;
+  -- no counter output is connected to the WR core, reset tree, or SoftPLL.
+  p_phy_error_attribution : process(wr_rx_clk)
+  begin
+    if rising_edge(wr_rx_clk) then
+      if CPU_RESET_n = '0' then
+        phy_rx_enc_err_prev        <= '0';
+        phy_rx_disperr_prev        <= '0';
+        phy_rx_errdetect_prev      <= '0';
+        phy_rx_syncstatus_prev     <= '0';
+        phy_rx_locked_to_data_prev <= '0';
+        phy_rx_enc_err_count       <= (others => '0');
+        phy_rx_disperr_count       <= (others => '0');
+        phy_rx_errdetect_count     <= (others => '0');
+        phy_rx_sync_loss_count     <= (others => '0');
+        phy_rx_lock_loss_count     <= (others => '0');
+      else
+        if wr_rx_enc_err = '1' and phy_rx_enc_err_prev = '0' and
+           phy_rx_enc_err_count /= x"FFFFFFFF" then
+          phy_rx_enc_err_count <= phy_rx_enc_err_count + 1;
+        end if;
+        if wr_rx_disperr = '1' and phy_rx_disperr_prev = '0' and
+           phy_rx_disperr_count /= x"FFFFFFFF" then
+          phy_rx_disperr_count <= phy_rx_disperr_count + 1;
+        end if;
+        if wr_rx_errdetect = '1' and phy_rx_errdetect_prev = '0' and
+           phy_rx_errdetect_count /= x"FFFFFFFF" then
+          phy_rx_errdetect_count <= phy_rx_errdetect_count + 1;
+        end if;
+        if wr_rx_syncstatus = '0' and phy_rx_syncstatus_prev = '1' and
+           phy_rx_sync_loss_count /= x"FFFFFFFF" then
+          phy_rx_sync_loss_count <= phy_rx_sync_loss_count + 1;
+        end if;
+        if wr_rx_locked_to_data = '0' and
+           phy_rx_locked_to_data_prev = '1' and
+           phy_rx_lock_loss_count /= x"FFFFFFFF" then
+          phy_rx_lock_loss_count <= phy_rx_lock_loss_count + 1;
+        end if;
+
+        phy_rx_enc_err_prev        <= wr_rx_enc_err;
+        phy_rx_disperr_prev        <= wr_rx_disperr;
+        phy_rx_errdetect_prev      <= wr_rx_errdetect;
+        phy_rx_syncstatus_prev     <= wr_rx_syncstatus;
+        phy_rx_locked_to_data_prev <= wr_rx_locked_to_data;
+      end if;
+    end if;
+  end process;
+
+  -- The WR core link outputs are observed in the 50 MHz top-level domain.
+  -- Count only 1->0 transitions, leaving the live link states untouched.
+  p_link_drop_attribution : process(CLK_50_B2J)
+  begin
+    if rising_edge(CLK_50_B2J) then
+      if CPU_RESET_n = '0' then
+        core_link_ok_prev          <= '0';
+        core_tm_link_up_prev       <= '0';
+        core_link_ok_drop_count    <= (others => '0');
+        core_tm_link_up_drop_count <= (others => '0');
+      else
+        if core_link_ok_prev = '1' and core_link_ok = '0' and
+           core_link_ok_drop_count /= x"FFFFFFFF" then
+          core_link_ok_drop_count <= core_link_ok_drop_count + 1;
+        end if;
+        if core_tm_link_up_prev = '1' and core_tm_link_up = '0' and
+           core_tm_link_up_drop_count /= x"FFFFFFFF" then
+          core_tm_link_up_drop_count <= core_tm_link_up_drop_count + 1;
+        end if;
+        core_link_ok_prev    <= core_link_ok;
+        core_tm_link_up_prev <= core_tm_link_up;
+      end if;
+    end if;
+  end process;
+
+  -- Four 64-bit probes expose two 32-bit counters each. Probe words are
+  -- intentionally redundant and read-only so the attribution script can
+  -- compare start/end snapshots without touching the runtime path.
+  rx_error_attribution_probe0(31 downto 0) <= std_logic_vector(phy_rx_enc_err_count);
+  rx_error_attribution_probe0(63 downto 32) <= std_logic_vector(phy_rx_disperr_count);
+  rx_error_attribution_probe1(31 downto 0) <= std_logic_vector(phy_rx_errdetect_count);
+  rx_error_attribution_probe1(63 downto 32) <= std_logic_vector(phy_rx_sync_loss_count);
+  rx_error_attribution_probe2(31 downto 0) <= std_logic_vector(phy_rx_lock_loss_count);
+  rx_error_attribution_probe2(63 downto 32) <= std_logic_vector(core_link_ok_drop_count);
+  rx_error_attribution_probe3(31 downto 0) <= std_logic_vector(core_tm_link_up_drop_count);
+  rx_error_attribution_probe3(63 downto 32) <= (others => '0');
+
+  u_rx_error_attribution_probe0 : altsource_probe
+    generic map (instance_id => "WR_RX_ERROR_ATTRIBUTION_0_SLAVE",
+                 probe_width => 64,
+                 sld_auto_instance_index => "NO",
+                 sld_instance_index => 45,
+                 source_width => 1)
+    port map (probe => rx_error_attribution_probe0,
+              source => rx_error_attribution_source0,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_rx_error_attribution_probe1 : altsource_probe
+    generic map (instance_id => "WR_RX_ERROR_ATTRIBUTION_1_SLAVE",
+                 probe_width => 64,
+                 sld_auto_instance_index => "NO",
+                 sld_instance_index => 46,
+                 source_width => 1)
+    port map (probe => rx_error_attribution_probe1,
+              source => rx_error_attribution_source1,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_rx_error_attribution_probe2 : altsource_probe
+    generic map (instance_id => "WR_RX_ERROR_ATTRIBUTION_2_SLAVE",
+                 probe_width => 64,
+                 sld_auto_instance_index => "NO",
+                 sld_instance_index => 47,
+                 source_width => 1)
+    port map (probe => rx_error_attribution_probe2,
+              source => rx_error_attribution_source2,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_rx_error_attribution_probe3 : altsource_probe
+    generic map (instance_id => "WR_RX_ERROR_ATTRIBUTION_3_SLAVE",
+                 probe_width => 64,
+                 sld_auto_instance_index => "NO",
+                 sld_instance_index => 48,
+                 source_width => 1)
+    port map (probe => rx_error_attribution_probe3,
+              source => rx_error_attribution_source3,
+              source_clk => CLK_50_B2J, source_ena => '1');
 
   clock_activity_probe(15 downto 0) <= std_logic_vector(ref_activity_count);
   clock_activity_probe(31 downto 16) <= std_logic_vector(dmtd_activity_count);

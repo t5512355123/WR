@@ -239,15 +239,28 @@ proc wb_read {hardware_name addr} {
   return INVALID
 }
 
+proc wb_command_hex {toggle write addr data} {
+  # The mailbox source is 96 bits wide: data[31:0] is carried in command
+  # bits 69:38.  Tcl's integer formatter is only wide enough for the lower
+  # 64 bits on the Quartus 17.0 host, so build the high and low words as
+  # separate fields instead of formatting one 96-bit integer.
+  set data32 [expr {$data & 0xffffffff}]
+  set addr32 [expr {$addr & 0xffffffff}]
+  set high32 [expr {($data32 >> 26) & 0x3f}]
+  set low64 [expr {(($data32 & 0x03ffffff) << 38) |
+                   (($addr32 & 0xffffffff) << 6) |
+                   (($write & 1) << 1) |
+                   (($toggle & 1) | (0xf << 2))}]
+  return [format %08X%016X $high32 $low64]
+}
+
 proc wb_write {hardware_name addr data} {
   global poll_attempts
   set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
   set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (1 << 1) | (0xf << 2) |
-                 (($addr & 0xffffffff) << 6) |
-                 (($data & 0xffffffff) << 38)}]
+  set cmd [wb_command_hex $toggle 1 $addr $data]
   if {[catch {
-    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+    write_source_data -instance_index 1 -value $cmd -value_in_hex
   }]} {
     return 0
   }

@@ -32,6 +32,20 @@ proc wb_sync_toggle {hardware_name} {
   }
 }
 
+proc wb_command_hex {toggle write addr data} {
+  # Preserve the complete 96-bit mailbox command.  Formatting one Tcl
+  # integer with %X truncates command bits above bit 63 on Quartus 17.0;
+  # DIAG_CR.RW is command bit 69 and would otherwise be lost.
+  set data32 [expr {$data & 0xffffffff}]
+  set addr32 [expr {$addr & 0xffffffff}]
+  set high32 [expr {($data32 >> 26) & 0x3f}]
+  set low64 [expr {(($data32 & 0x03ffffff) << 38) |
+                   (($addr32 & 0xffffffff) << 6) |
+                   (($write & 1) << 1) |
+                   (($toggle & 1) | (0xf << 2))}]
+  return [format %08X%016X $high32 $low64]
+}
+
 proc wb_read {hardware_name addr} {
   global poll_attempts
   set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
@@ -60,11 +74,9 @@ proc wb_write {hardware_name addr data} {
   global poll_attempts
   set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
   set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (1 << 1) | (0xf << 2) |
-                 (($addr & 0xffffffff) << 6) |
-                 (($data & 0xffffffff) << 38)}]
+  set cmd [wb_command_hex $toggle 1 $addr $data]
   if {[catch {
-    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+    write_source_data -instance_index 1 -value $cmd -value_in_hex
   }]} { return 0 }
   after 5
   for {set n 0} {$n < $poll_attempts} {incr n} {

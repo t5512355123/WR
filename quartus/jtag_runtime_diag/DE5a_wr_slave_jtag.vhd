@@ -1747,7 +1747,7 @@ begin
 
   QSFPA_MOD_SEL_n <= '0';
   QSFPA_RST_n     <= CPU_RESET_n;
-  QSFPA_TX_p(3 downto 2) <= (others => '0');
+  QSFPA_TX_p(3) <= '0';
   SI5340A_OE_n    <= '0';
   SI5340A_RST_n   <= CPU_RESET_n;
 
@@ -1848,13 +1848,13 @@ begin
       rx_runningdisp_o       => wr_rx_runningdisp,
       debug_o                => wr_debug,
       debug_i                => (others => '0'),
-      -- Step5 upstream isolation: use QSFP-A lane 1 for WR data.
-      pad_txp_o              => QSFPA_TX_p(1),
-      pad_rxp_i              => QSFPA_RX_p(1)
+      -- Step5 upstream isolation: use QSFP-A lane 2 for WR data.
+      pad_txp_o              => QSFPA_TX_p(2),
+      pad_rxp_i              => QSFPA_RX_p(2)
     );
 
   -- QSFP-A provides the 125 MHz PHY/reference clock. WR data uses QSFP-A
-  -- lane 1 for the Step5 upstream isolation experiment. QSFP-B is unused as
+  -- lane 2 for the Step5 upstream isolation experiment. QSFP-B is unused as
   -- a data lane, but its on-board reference input carries the 124.992 MHz
   -- offset clock required by the DDMTD phase detector.
   -- JTAG-only runtime observation path. It does not participate in WR timing.

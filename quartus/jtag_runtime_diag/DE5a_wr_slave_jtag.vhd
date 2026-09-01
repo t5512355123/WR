@@ -1756,12 +1756,13 @@ begin
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
       -- Step5 guarded actuator-headroom perturbation: use the branch5-approved
-      -- 6176-step bootstrap bisection. All other Step5 control parameters remain
-      -- unchanged.
+      -- 6176-step bootstrap bisection. The branch5-approved actuator mapping
+      -- experiment changes only the normal tracker code-per-physical-step
+      -- from 64 to 128; all other Step5 control parameters remain unchanged.
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 6176,
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 128,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

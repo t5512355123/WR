@@ -1,0 +1,190 @@
+# EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS310-KI-MINUS1-LANE2-TRUSTED-PROPORTIONAL-GAIN-BRACKET-REFINEMENT-600S-20260902-RECOVERED
+
+## Scope and control
+
+This is the recovered-link Step 5 run at the existing `kp=-310` control point. No controller parameter or observer logic was changed in this recovery attempt.
+
+```text
+branch = exp/step5-softpll-lock
+experiment HEAD = e91211b
+source/control point = 68c0580
+kp = -310
+ki = -1
+bootstrap = 6208
+code_per_physical_step = 128
+shift = 12
+bias = 5
+threshold = 200
+lock_samples = 10000
+QSFPA lane = 2
+CONTROL_VARIABLE = NONE
+FITTER_STATUS = Successful
+TIMING_CLOSED = NO
+```
+
+The laptop source was kept unchanged because the required recovery experiment explicitly fixes the existing `kp=-310` image and changes no controller variable. The branch was pulled on pain, rebuilt, and freshly programmed Slave first and Master second.
+
+## Settled preflight gate
+
+The first post-program retry12 was excluded as startup settling: the Slave still reported `WDIAGS_PTP=UNCALIBRATED` although its RXERR delta was zero. The next three settled windows all passed:
+
+```text
+retry13 = PASS
+retry14 = PASS
+retry15 = PASS
+```
+
+For each of retry13/14/15:
+
+```text
+Master Step1/Step2/Step4A = PASS
+Slave Step1/Step2/Step3/Step4B = PASS
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
+Master RXERR_DELTA = 0
+Slave RXERR_DELTA = 0
+WDIAGS_PTP = valid MASTER/SLAVE state
+PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = PASS
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+```
+
+Representative raw preflight logs on pain:
+
+```text
+/home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-LANE2-LINK-RECOVERY-PREFLIGHT-RETRY12-20260902.log
+/home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-LANE2-LINK-RECOVERY-PREFLIGHT-RETRY13-20260902.log
+/home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-LANE2-LINK-RECOVERY-PREFLIGHT-RETRY14-20260902.log
+/home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-LANE2-LINK-RECOVERY-PREFLIGHT-RETRY15-20260902.log
+```
+
+## Trusted 600-second Step 5 run
+
+Raw log:
+
+```text
+/home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS310-KI-MINUS1-LANE2-TRUSTED-PROPORTIONAL-GAIN-BRACKET-REFINEMENT-600S-20260902-RUN1-RECOVERED.log
+```
+
+The run completed normally:
+
+```text
+SAMPLES = 600
+VALID_FRAMES = 600
+INVALID_FRAMES = 0
+WINDOW_SECONDS = 599.000
+PI_TRACE_PRESENT = 600
+PI_TRACE_FRACTION = 100.000%
+PI_SNAPSHOT_REJECTS = 0
+PI_ACCOUNTING_FAILS = 0
+PI_OUTPUT_MISMATCH_FAILS = 0
+ANTI_WINDUP_VIOLATIONS = 0
+POSITION_CONTEXT_FAILS = 0
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = PASS
+TRANSACTION_ACCOUNTING = PASS
+```
+
+Transport and frozen-bank validation:
+
+```text
+SNAPSHOT_REQ/BANK_COMMIT/ACK = 600/600/600
+SNAPSHOT_OVERWRITE_COUNT = 0
+ACK_TIMEOUT = 0
+ACK_MISMATCH = 0
+EPOCH_GENERATION_MISMATCH = 0
+EPOCH_CHANGED_DURING_READ = 0
+ATOMIC_SNAPSHOT_TRANSPORT_V3 = PASS
+FROZEN_BANK_READ_STABILITY = PASS
+REJECT_PI_MATH_RAW_ERROR_FAIL = 0
+REJECT_OTHER = 0
+```
+
+## kp=-310 dynamics
+
+```text
+HELPER_ERROR_MEAN = -36000.000000
+HELPER_ERROR_RMS = 150000.0
+HELPER_ERROR_MAX_ABS = 150000
+FRACTION_ABS_ERROR_LE_200 = 0.0%
+RAW_ERROR_MEAN = -306465952.66
+RAW_ERROR_MIN = -2143689740
+RAW_ERROR_MAX = 2145726824
+RAW_ERROR_POSITIVE_FRACTION = 38.0%
+UNCLAMPED_BELOW_MIN_SAMPLES = 227
+LOW_RAIL_SAMPLES = 227 / 600 = 37.833%
+HIGH_RAIL_SAMPLES = 372 / 600 = 62.000%
+NO_RAIL_FRACTION = 0.167%
+ERROR_BAND_EXIT_EVENTS = 0
+FREQ_ERROR_MEAN = -1244.98333333
+FREQ_ERROR_RMS = 1272.09215468
+FREQ_ERROR_MAX_ABS = 1637
+FREQ_ZERO_CROSSINGS = 0
+RAIL_TO_RAIL_CYCLE_COMPLETE = 0
+DYNAMICS_CANDIDATE = STEADY_BIAS_OR_ACTUATOR_RANGE_LIMIT_CANDIDATE
+LOW_RAIL_SATURATION = NO
+ACTUATOR_RANGE_LIMIT_OR_REQUIRED_NEGATIVE_AUTHORITY = NOT_CONFIRMED
+CAUSALITY_CASE = B
+```
+
+The controller remained stable from a runtime perspective but never locked:
+
+```text
+HELPER_LOCKED_EVER = 0
+HELPER_LOCKED_FINAL = 0
+HELPER_LOCK_COUNT_MAX = 0
+HELPER_LOCK_COUNT_FINAL = 0
+MAIN_ENABLED_EVER = 0
+MAIN_FREQ_LOCKED_EVER = 0
+MAIN_PHASE_LOCKED_EVER = 0
+MAIN_LOCKED_EVER = 0
+PSTAT_LOCKED_EVER = 0
+PSTAT_LOCKED_FINAL = 0
+SPLL_INIT_COUNT_FIRST/FINAL = 1/1
+POST_INITIAL_SPLL_INIT_DELTA = 0
+CLEAR_DACS_DELTA = 0
+SPLL_DELOCK_COUNT_FIRST/FINAL = 0/0
+RESET_BOOT_GENERATION_DELTA = 0
+RESET_CPU_DELTA = 0
+RESET_WR_CORE_DELTA = 0
+RESET_SI_CONFIG_DELTA = 0
+RESET_STABLE = PASS
+RXERR_DELTA = 0
+```
+
+Final controller state:
+
+```text
+TARGET_FINAL = 5
+APPLIED_FINAL = 5
+HELPER_ERROR_FINAL = 150000
+HELPER_OUTPUT_FINAL = 5
+PI_EPOCH_FINAL = 1200
+PI_INTEGRATOR_BEFORE_FINAL = 46570156
+PI_I_NEW_FINAL = 46420156
+PI_INTEGRATOR_AFTER_FINAL = 46570156
+PI_UNCLAMPED_FINAL = -14
+PI_CLAMPED_FINAL = 5
+PI_CLAMP_SIDE_FINAL = -1
+RAW_ERROR_FINAL = 1905728301
+LD_ERROR_FINAL = 150000
+PI_PROP_TERM_FINAL = -46500000
+PI_Y_PREROUND_FINAL = -77796
+```
+
+## Provisional verdict
+
+This is a trusted valid Step 5 negative result: the external link and observation path are now clean, but the controller produced a full-window rail-saturated/biased response and no Helper/Main/PSTAT lock.
+
+```text
+STEP4B_COMPLETE = YES
+STEP4B_REVALIDATED = YES
+CURRENT_KP_MINUS310_PREFLIGHT = PASS (3 consecutive settled windows)
+KP_MINUS310_DYNAMICS_VERDICT = TRUSTED_NO_LOCK
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
+
+The hard Step 5 lock gate remains unmet because `HELPER_LOCK_COUNT_MAX` must be greater than zero and the observed value is zero. No merge is requested or performed pending the branch5 formal decision.

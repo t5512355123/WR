@@ -147,6 +147,34 @@ array set ::snapshot_overwrite_final {}
 array set ::snapshot_request_seq_final {}
 array set ::snapshot_last_req_seq_final {}
 array set ::snapshot_bank_seq_final {}
+array set ::primary_reject_count {}
+
+set ::primary_reject_reason_order {
+  REQUEST_DATA_WRITE_FAIL
+  REQUEST_TRIGGER_WRITE_FAIL
+  ACK_TIMEOUT
+  ACK_BEGIN_MISMATCH
+  EPOCH_BEGIN_INVALID
+  EPOCH_GENERATION_MISMATCH
+  PAYLOAD_READ_INVALID
+  EPOCH_CHANGED_DURING_READ
+  ACK_END_MISMATCH
+  MAGIC_MISMATCH
+  PI_MATH_HEADER_FAIL
+  PI_MATH_CONSTANT_FAIL
+  PI_MATH_RAW_ERROR_FAIL
+  PI_MATH_I_NEW_FAIL
+  PI_MATH_INTEGRATOR_FAIL
+  PI_MATH_PROP_FAIL
+  PI_MATH_PREROUND_FAIL
+  PI_MATH_OUTPUT_FAIL
+  PI_MATH_CLAMP_FAIL
+  POSITION_CONTEXT_FAIL
+  OTHER
+}
+
+set ::snapshot_last_primary_reason OTHER
+set ::snapshot_last_failed_field NONE
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -321,6 +349,36 @@ proc frame_valid {ctrl_begin ctrl_end} {
   return [expr {(($a & 1) != 0) && (($b & 1) != 0) && $a == $b}]
 }
 
+proc set_snapshot_reject {reason field} {
+  set ::snapshot_last_primary_reason $reason
+  set ::snapshot_last_failed_field $field
+}
+
+proc set_pi_math_failure {reason field detail} {
+  set ::snapshot_last_primary_reason $reason
+  set ::snapshot_last_failed_field $field
+  set ::pi_math_last_reason [format "field=%s %s" $field $detail]
+}
+
+proc record_primary_reject {hardware_name sample request_seq frame_valid reason field} {
+  if {$frame_valid} {
+    set reason NONE
+    set field NONE
+  } else {
+    if {$reason eq "" || $reason eq "NONE"} { set reason OTHER }
+    if {[lsearch -exact $::primary_reject_reason_order $reason] < 0} {
+      set reason OTHER
+    }
+    set key [format "%s|%s" $hardware_name $reason]
+    if {![info exists ::primary_reject_count($key)]} {
+      set ::primary_reject_count($key) 0
+    }
+    incr ::primary_reject_count($key)
+  }
+  puts [format "V3_REJECT_ATTRIBUTION board=%s sample=%d request_seq=%s FRAME_VALID=%d PRIMARY_REJECT_REASON=%s FAILED_FIELD=%s" \
+    $hardware_name $sample $request_seq $frame_valid $reason $field]
+}
+
 proc read_stable_position_pair {} {
   for {set attempt 0} {$attempt < 10} {incr attempt} {
     set accounting_before [probe_read 44]
@@ -353,6 +411,8 @@ proc next_snapshot_seq {hardware_name} {
 
 proc request_atomic_pi_snapshot {hardware_name request_seq} {
   global snapshot_poll_attempts
+  set ::snapshot_last_primary_reason OTHER
+  set ::snapshot_last_failed_field NONE
   # SYSCON BASE_SYSCON + DIAG_DAT/DIAG_CR.  The one enabled RW word is index 0.
   set data_write_ok [wb_write $hardware_name 0x0010042C $request_seq]
   set cr_write_ok [wb_write $hardware_name 0x00100428 0x80000000]
@@ -369,8 +429,12 @@ proc request_atomic_pi_snapshot {hardware_name request_seq} {
       $hardware_name $data_write_ok $cr_write_ok $diag_nw $diag_cr_read $request_readback \
       $diag_cr_after $cpu_store $cpu_store_count $cpu_data_diag_addr $cpu_data_diag_meta]
   }
-  if {!$data_write_ok || !$cr_write_ok} {
-    incr ::snapshot_ack_mismatch_count($hardware_name)
+  if {!$data_write_ok} {
+    set_snapshot_reject REQUEST_DATA_WRITE_FAIL DIAG_DAT
+    return 0
+  }
+  if {!$cr_write_ok} {
+    set_snapshot_reject REQUEST_TRIGGER_WRITE_FAIL DIAG_CR
     return 0
   }
   for {set n 0} {$n < $snapshot_poll_attempts} {incr n} {
@@ -381,6 +445,7 @@ proc request_atomic_pi_snapshot {hardware_name request_seq} {
     after 1
   }
   incr ::snapshot_ack_timeout_count($hardware_name)
+  set_snapshot_reject ACK_TIMEOUT SNAPSHOT_ACK_SEQ
   return 0
 }
 
@@ -393,7 +458,13 @@ proc read_pi_snapshot {hardware_name request_seq} {
     set ::snapshot_bank_seq_final($hardware_name) INVALID
     return [read_pi_snapshot_invalid]
   }
-  set ack_begin [word32 [wb_read $hardware_name 0x00100B28]]
+  set ack_begin_raw [wb_read $hardware_name 0x00100B28]
+  set ack_begin [word32 $ack_begin_raw]
+  if {$ack_begin < 0 || $ack_begin != $request_seq} {
+    incr ::snapshot_ack_mismatch_count($hardware_name)
+    set_snapshot_reject ACK_BEGIN_MISMATCH SNAPSHOT_ACK_SEQ_BEGIN
+    return [read_pi_snapshot_invalid]
+  }
   set epoch_begin [wb_read $hardware_name 0x00100B58]
   set epoch_word [word32 $epoch_begin]
   set tag_raw [wb_read $hardware_name 0x00100B5C]
@@ -436,11 +507,6 @@ proc read_pi_snapshot {hardware_name request_seq} {
   set epoch_end_word [word32 $epoch_end]
   set magic_word [word32 $magic]
   set expected_epoch [expr {($request_seq * 2) & 0xffffffff}]
-  set ack_ok [expr {$ack_begin >= 0 && $ack_end >= 0 &&
-      $ack_begin == $request_seq && $ack_end == $request_seq}]
-  if {!$ack_ok} {
-    incr ::snapshot_ack_mismatch_count($hardware_name)
-  }
   set epoch_changed 0
   if {$epoch_begin_word >= 0 && $epoch_end_word >= 0 &&
       $epoch_begin_word != $epoch_end_word} {
@@ -451,20 +517,84 @@ proc read_pi_snapshot {hardware_name request_seq} {
       $epoch_end_word >= 0 && $epoch_begin_word == $expected_epoch &&
       $epoch_end_word == $expected_epoch && !($epoch_begin_word & 1) &&
       !($epoch_end_word & 1)}]
+  if {$epoch_begin_word < 0} {
+    incr ::snapshot_epoch_generation_mismatch_count($hardware_name)
+    set_snapshot_reject EPOCH_BEGIN_INVALID PI_TRACE_EPOCH_BEGIN
+    return [read_pi_snapshot_invalid]
+  }
   if {!$epoch_generation_ok} {
     incr ::snapshot_epoch_generation_mismatch_count($hardware_name)
+    set_snapshot_reject EPOCH_GENERATION_MISMATCH PI_TRACE_EPOCH
+    return [read_pi_snapshot_invalid]
   }
-  if {$ack_ok && !$epoch_changed && $epoch_generation_ok && $magic_word == 1} {
-    set ::snapshot_bank_seq_final($hardware_name) $bank_seq_end
-    return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
-      $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
-      $after_lo $after_hi $prop_lo $prop_hi $preround_lo $preround_hi \
-      $unclamped $y_min $y_max $clamp_side $final_output $x $kp $ki \
-      $shift $bias $anti_windup $update_count $freq_error $lock_threshold \
-      $lock_samples $ref_src $magic]
+
+  set payload_pairs [list \
+    PI_TRACE_EPOCH_BEGIN $epoch_begin \
+    PI_TAG_RAW $tag_raw \
+    PI_P_ADDER $p_adder \
+    PI_P_SETPOINT $p_setpoint \
+    PI_RAW_ERROR $raw_error \
+    PI_LD_ERROR $ld_error \
+    PI_HELPER_STATE $lock_state \
+    PI_INTEGRATOR_BEFORE_LO $before_lo \
+    PI_INTEGRATOR_BEFORE_HI $before_hi \
+    PI_I_NEW_LO $i_new_lo \
+    PI_I_NEW_HI $i_new_hi \
+    PI_INTEGRATOR_AFTER_LO $after_lo \
+    PI_INTEGRATOR_AFTER_HI $after_hi \
+    PI_PROP_TERM_LO $prop_lo \
+    PI_PROP_TERM_HI $prop_hi \
+    PI_Y_PREROUND_LO $preround_lo \
+    PI_Y_PREROUND_HI $preround_hi \
+    PI_UNCLAMPED_OUTPUT $unclamped \
+    PI_Y_MIN $y_min \
+    PI_Y_MAX $y_max \
+    PI_CLAMP_SIDE $clamp_side \
+    PI_CLAMPED_OUTPUT $final_output \
+    PI_X $x \
+    PI_KP $kp \
+    PI_KI $ki \
+    PI_SHIFT $shift \
+    PI_BIAS $bias \
+    PI_ANTI_WINDUP $anti_windup \
+    PI_UPDATE_COUNT $update_count \
+    PI_FREQ_ERROR $freq_error \
+    PI_LOCK_THRESHOLD $lock_threshold \
+    PI_LOCK_SAMPLES $lock_samples \
+    PI_REF_SRC $ref_src \
+    PI_TRACE_MAGIC $magic \
+    PI_TRACE_EPOCH_END $epoch_end]
+  set first_bad_field NONE
+  foreach {field value} $payload_pairs {
+    if {![is_hex $value]} {
+      set first_bad_field $field
+      break
+    }
+  }
+  if {$first_bad_field ne "NONE"} {
+    set_snapshot_reject PAYLOAD_READ_INVALID $first_bad_field
+    return [read_pi_snapshot_invalid]
+  }
+  if {$epoch_changed} {
+    set_snapshot_reject EPOCH_CHANGED_DURING_READ PI_TRACE_EPOCH
+    return [read_pi_snapshot_invalid]
+  }
+  if {$ack_end < 0 || $ack_end != $request_seq} {
+    incr ::snapshot_ack_mismatch_count($hardware_name)
+    set_snapshot_reject ACK_END_MISMATCH SNAPSHOT_ACK_SEQ_END
+    return [read_pi_snapshot_invalid]
+  }
+  if {$magic_word != 1} {
+    set_snapshot_reject MAGIC_MISMATCH PI_TRACE_MAGIC
+    return [read_pi_snapshot_invalid]
   }
   set ::snapshot_bank_seq_final($hardware_name) $bank_seq_end
-  return [read_pi_snapshot_invalid]
+  return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
+    $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
+    $after_lo $after_hi $prop_lo $prop_hi $preround_lo $preround_hi \
+    $unclamped $y_min $y_max $clamp_side $final_output $x $kp $ki \
+    $shift $bias $anti_windup $update_count $freq_error $lock_threshold \
+    $lock_samples $ref_src $magic]
 }
 
 proc pi_snapshot_math_valid {snapshot} {
@@ -479,7 +609,8 @@ proc pi_snapshot_math_valid {snapshot} {
   set epoch [word32 $pi_epoch]
   set magic [word32 $magic_raw]
   if {!$pi_valid || $epoch < 1 || ($epoch & 1) || $magic != 1} {
-    set ::pi_math_last_reason [format "header pi_valid=%s epoch=%s magic=%s" $pi_valid $epoch $magic]
+    set_pi_math_failure PI_MATH_HEADER_FAIL PI_TRACE_HEADER \
+      [format "pi_valid=%s epoch=%s magic=%s" $pi_valid $epoch $magic]
     return 0
   }
   set before [signed64_words $before_lo $before_hi]
@@ -509,43 +640,69 @@ proc pi_snapshot_math_valid {snapshot} {
   set lock_threshold [signed32 $lock_threshold_raw]
   set lock_samples [signed32 $lock_samples_raw]
   set ref_src [signed32 $ref_src_raw]
-  if {$before eq "INVALID" || $i_new eq "INVALID" || $after eq "INVALID" ||
-      $prop eq "INVALID" || $preround eq "INVALID" || $tag eq "INVALID" ||
-      $adder eq "INVALID" || $setpoint eq "INVALID" || $raw_error eq "INVALID" ||
-      $ld_error eq "INVALID" || $lock_state < 0 || $unclamped eq "INVALID" ||
-      $y_min eq "INVALID" || $y_max eq "INVALID" || $side eq "INVALID" ||
-      $final_output eq "INVALID" || $x eq "INVALID" || $kp eq "INVALID" ||
-      $ki eq "INVALID" || $shift eq "INVALID" || $bias eq "INVALID" ||
-      $anti_windup eq "INVALID" || $update_count < 0 || $freq_error eq "INVALID" ||
-      $lock_threshold eq "INVALID" || $lock_samples eq "INVALID" ||
-      $ref_src eq "INVALID"} {
-    set ::pi_math_last_reason INVALID_FIELD
+
+  if {$kp != $PI_KP || $ki != $PI_KI || $shift != $PI_SHIFT ||
+      $bias != $PI_BIAS || $y_min != $PI_Y_MIN || $y_max != $PI_Y_MAX ||
+      $anti_windup != 1 || $lock_threshold != 200 || $lock_samples != 10000} {
+    set_pi_math_failure PI_MATH_CONSTANT_FAIL PI_CONSTANTS \
+      [format "kp=%s ki=%s shift=%s bias=%s ymin=%s ymax=%s anti=%s threshold=%s samples=%s" \
+        $kp $ki $shift $bias $y_min $y_max $anti_windup $lock_threshold $lock_samples]
     return 0
   }
+
+  set invalid_fields [list \
+    PI_INTEGRATOR_BEFORE $before \
+    PI_I_NEW $i_new \
+    PI_INTEGRATOR_AFTER $after \
+    PI_PROP_TERM $prop \
+    PI_Y_PREROUND $preround \
+    PI_TAG_RAW $tag \
+    PI_P_ADDER $adder \
+    PI_P_SETPOINT $setpoint \
+    PI_RAW_ERROR $raw_error \
+    PI_LD_ERROR $ld_error \
+    PI_HELPER_STATE $lock_state \
+    PI_UNCLAMPED_OUTPUT $unclamped \
+    PI_Y_MIN $y_min \
+    PI_Y_MAX $y_max \
+    PI_CLAMP_SIDE $side \
+    PI_CLAMPED_OUTPUT $final_output \
+    PI_X $x \
+    PI_KP $kp \
+    PI_KI $ki \
+    PI_SHIFT $shift \
+    PI_BIAS $bias \
+    PI_ANTI_WINDUP $anti_windup \
+    PI_UPDATE_COUNT $update_count \
+    PI_FREQ_ERROR $freq_error \
+    PI_LOCK_THRESHOLD $lock_threshold \
+    PI_LOCK_SAMPLES $lock_samples \
+    PI_REF_SRC $ref_src]
+  foreach {field value} $invalid_fields {
+    if {$value eq "INVALID" || ($field eq "PI_HELPER_STATE" && $value < 0) ||
+        ($field eq "PI_UPDATE_COUNT" && $value < 0)} {
+      set_pi_math_failure PI_MATH_HEADER_FAIL $field INVALID_FIELD
+      return 0
+    }
+  }
+
   if {$tag + $adder - $setpoint != $raw_error} {
-    set ::pi_math_last_reason [format "raw_error expected=%s actual=%s" [expr {$tag + $adder - $setpoint}] $raw_error]
+    set_pi_math_failure PI_MATH_RAW_ERROR_FAIL PI_RAW_ERROR \
+      [format "expected=%s actual=%s" [expr {$tag + $adder - $setpoint}] $raw_error]
     return 0
   }
   set expected_ld_error $raw_error
   if {$expected_ld_error < -150000} { set expected_ld_error -150000 }
   if {$expected_ld_error > 150000} { set expected_ld_error 150000 }
   if {$ld_error != $expected_ld_error} {
-    set ::pi_math_last_reason [format "ld_error expected=%s actual=%s" $expected_ld_error $ld_error]
+    set_pi_math_failure PI_MATH_RAW_ERROR_FAIL PI_LD_ERROR \
+      [format "expected=%s actual=%s" $expected_ld_error $ld_error]
     return 0
   }
-  if {$kp != $PI_KP || $ki != $PI_KI || $shift != $PI_SHIFT ||
-      $bias != $PI_BIAS || $y_min != $PI_Y_MIN || $y_max != $PI_Y_MAX ||
-      $anti_windup != 1 || $lock_threshold != 200 || $lock_samples != 10000} {
-    set ::pi_math_last_reason [format "constants kp=%s ki=%s shift=%s bias=%s ymin=%s ymax=%s anti=%s threshold=%s samples=%s" \
-      $kp $ki $shift $bias $y_min $y_max $anti_windup $lock_threshold $lock_samples]
-    return 0
-  }
-  if {$prop != $x * $kp} {
-    set ::pi_math_last_reason [format "prop expected=%s actual=%s x=%s kp=%s" [expr {$x * $kp}] $prop $x $kp]
-    return 0
-  }
+
+  set expected_prop [expr {$x * $kp}]
   set expected_i_new [expr {$before + $ki * $ld_error}]
-  set expected_preround [expr {$expected_i_new + $prop + (1 << ($shift - 1))}]
+  set expected_preround [expr {$expected_i_new + $expected_prop + (1 << ($shift - 1))}]
   set expected_unclamped [expr {($expected_preround >> $shift) + $bias}]
   set expected_clamped $expected_unclamped
   set expected_side 0
@@ -562,15 +719,41 @@ proc pi_snapshot_math_valid {snapshot} {
   } elseif {$expected_side == 1 && !($anti_windup && $expected_i_new < $before)} {
     set expected_after $before
   }
-  set result [expr {$i_new == $expected_i_new && $preround == $expected_preround &&
-    $after == $expected_after && $unclamped == $expected_unclamped &&
-    $final_output == $expected_clamped && $side == $expected_side}]
-  if {!$result} {
-    set ::pi_math_last_reason [format "state expected_i_new=%s actual=%s expected_preround=%s actual=%s expected_after=%s actual=%s expected_unclamped=%s actual=%s expected_output=%s actual=%s expected_side=%s actual=%s" \
-      $expected_i_new $i_new $expected_preround $preround $expected_after $after \
-      $expected_unclamped $unclamped $expected_clamped $final_output $expected_side $side]
+
+  if {$i_new != $expected_i_new} {
+    set_pi_math_failure PI_MATH_I_NEW_FAIL PI_I_NEW \
+      [format "expected=%s actual=%s" $expected_i_new $i_new]
+    return 0
   }
-  return $result
+  if {$after != $expected_after} {
+    set_pi_math_failure PI_MATH_INTEGRATOR_FAIL PI_INTEGRATOR_AFTER \
+      [format "expected=%s actual=%s" $expected_after $after]
+    return 0
+  }
+  if {$prop != $expected_prop} {
+    set_pi_math_failure PI_MATH_PROP_FAIL PI_PROP_TERM \
+      [format "expected=%s actual=%s x=%s kp=%s" $expected_prop $prop $x $kp]
+    return 0
+  }
+  if {$preround != $expected_preround} {
+    set_pi_math_failure PI_MATH_PREROUND_FAIL PI_Y_PREROUND \
+      [format "expected=%s actual=%s" $expected_preround $preround]
+    return 0
+  }
+  if {$unclamped != $expected_unclamped || $final_output != $expected_clamped} {
+    set_pi_math_failure PI_MATH_OUTPUT_FAIL PI_OUTPUT \
+      [format "expected_unclamped=%s actual_unclamped=%s expected_output=%s actual_output=%s" \
+        $expected_unclamped $unclamped $expected_clamped $final_output]
+    return 0
+  }
+  if {$side != $expected_side} {
+    set_pi_math_failure PI_MATH_CLAMP_FAIL PI_CLAMP_SIDE \
+      [format "expected=%s actual=%s" $expected_side $side]
+    return 0
+  }
+  set ::snapshot_last_primary_reason NONE
+  set ::snapshot_last_failed_field NONE
+  return 1
 }
 
 proc read_pi_snapshot_checked {hardware_name} {
@@ -710,6 +893,12 @@ proc initialize_board {hardware_name} {
   set ::snapshot_request_seq_final($hardware_name) INVALID
   set ::snapshot_last_req_seq_final($hardware_name) INVALID
   set ::snapshot_bank_seq_final($hardware_name) INVALID
+  foreach reason $::primary_reject_reason_order {
+    set key [format "%s|%s" $hardware_name $reason]
+    set ::primary_reject_count($key) 0
+  }
+  set ::snapshot_last_primary_reason OTHER
+  set ::snapshot_last_failed_field NONE
 
   # Capture the transport baseline before sample 1 issues its first request.
   # This makes the report deltas cover exactly all requested samples.
@@ -833,6 +1022,21 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set main_phase_locked [probe_field32 $main_state 3 1]
   set pstat_locked [probe_field32 $pstat 1 1]
 
+  set position_context_ok 1
+  set position_context_field NONE
+  if {$position_applied eq "INVALID" || $normal_finc eq "INVALID" ||
+      $normal_fdec eq "INVALID"} {
+    set position_context_ok 0
+    set position_context_field POSITION_APPLIED_OR_FIN_COUNT
+  } else {
+    set expected_applied [expr {(5 + 64 * ($normal_finc - $normal_fdec)) & 0xffff}]
+    if {$position_applied != $expected_applied} {
+      set position_context_ok 0
+      set position_context_field POSITION_APPLIED
+      incr ::physical_position_mismatch_count($hardware_name)
+    }
+  }
+
   if {$sample == 1} {
     set ::tag_valid_first($hardware_name) $tag_valid
     set ::normal_completed_first($hardware_name) $normal_completed
@@ -899,7 +1103,20 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::pi_y_max_final($hardware_name) $pi_y_max
   set ::reset_final($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
 
-  set valid [expr {$ctrl_valid && $helper_error ne "INVALID"}]
+  set valid [expr {$ctrl_valid && $helper_error ne "INVALID" && $position_context_ok}]
+  set primary_reason $::snapshot_last_primary_reason
+  set primary_field $::snapshot_last_failed_field
+  if {$ctrl_valid && $helper_error ne "INVALID" && !$position_context_ok} {
+    set primary_reason POSITION_CONTEXT_FAIL
+    set primary_field $position_context_field
+  }
+  if {!$valid && ($primary_reason eq "" || $primary_reason eq "NONE") &&
+      $helper_error eq "INVALID"} {
+    set primary_reason PAYLOAD_READ_INVALID
+    set primary_field PI_LD_ERROR
+  }
+  record_primary_reject $hardware_name $sample $::snapshot_request_seq_final($hardware_name) \
+    $valid $primary_reason $primary_field
   if {$valid} {
     incr ::valid_frame_count($hardware_name)
   } else {
@@ -1047,15 +1264,6 @@ proc emit_sample {hardware_name sample elapsed_ms} {
       set ::cycle_complete($hardware_name) 1
     }
     set ::previous_freq_error($hardware_name) $freq_error
-    if {$position_applied ne "INVALID" && $normal_finc ne "INVALID" &&
-        $normal_fdec ne "INVALID"} {
-      # Retain the signed virtual-to-physical invariant in the same stream
-      # so the PI trajectory cannot be detached from the actuator position.
-      set expected_applied [expr {(5 + 64 * ($normal_finc - $normal_fdec)) & 0xffff}]
-      if {$position_applied != $expected_applied} {
-        incr ::physical_position_mismatch_count($hardware_name)
-      }
-    }
   }
 
   puts [format "STEP5_PI_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d PI_TRACE_PRESENT=%d PI_SNAPSHOT_REJECTS=%d PI_EPOCH=%s TAG_RAW=%s P_ADDER=%s P_SETPOINT=%s RAW_ERROR=%s LD_ERROR=%s PI_INTEGRATOR_BEFORE=%s PI_I_NEW=%s PI_INTEGRATOR_AFTER=%s PI_PROP_TERM=%s PI_Y_PREROUND=%s PI_UNCLAMPED_OUTPUT=%s PI_Y_MIN=%s PI_Y_MAX=%s PI_CLAMPED_OUTPUT=%s PI_CLAMP_SIDE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s FREQ_ERROR=%s TARGET_CODE=%s APPLIED_CODE=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s NORMAL_FINC=%s NORMAL_FDEC=%s DCO_STEP=%s FORCED_COMPLETED=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s SPLL_INIT_COUNT=%s CLEAR_DACS_COUNT=%s SPLL_DELOCK_COUNT=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s PSTAT_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
@@ -1223,11 +1431,29 @@ proc emit_summary {hardware_name} {
     $snapshot_req_delta $snapshot_bank_commit_delta $snapshot_ack_delta $snapshot_overwrite_delta \
     $::snapshot_last_req_seq_final($hardware_name) $::snapshot_bank_seq_final($hardware_name) \
     $::snapshot_ack_seq_final($hardware_name) $::snapshot_ack_timeout_count($hardware_name) \
-    $::snapshot_ack_mismatch_count($hardware_name) $::snapshot_epoch_generation_mismatch_count($hardware_name) \
-    $::snapshot_epoch_changed_count($hardware_name) $snapshot_transport_v3]
+     $::snapshot_ack_mismatch_count($hardware_name) $::snapshot_epoch_generation_mismatch_count($hardware_name) \
+     $::snapshot_epoch_changed_count($hardware_name) $snapshot_transport_v3]
+  set primary_sum 0
+  set primary_fields {}
+  foreach reason $::primary_reject_reason_order {
+    set key [format "%s|%s" $hardware_name $reason]
+    set count $::primary_reject_count($key)
+    incr primary_sum $count
+    lappend primary_fields [format "REJECT_%s=%d" $reason $count]
+  }
+  set unclassified $::primary_reject_count([format "%s|OTHER" $hardware_name])
+  if {$invalid > 0} {
+    set coverage [format "%d/%d (%.1f%%)" $primary_sum $invalid \
+      [expr {100.0 * $primary_sum / double($invalid)}]]
+  } else {
+    set coverage "0/0 (100.0%)"
+  }
+  puts [format "STEP5_V3_REJECT_ATTRIBUTION_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d REJECT_ATTRIBUTION_COVERAGE=%s UNCLASSIFIED_INVALID_FRAMES=%d SUM_PRIMARY_REJECT_COUNTS=%d %s" \
+    $hardware_name $::sample_count($hardware_name) $valid $invalid $coverage $unclassified $primary_sum \
+    [join $primary_fields " "]]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-ATOMIC-SNAPSHOT-TRANSACTION-V3-INBAND-EPOCH-SMOKE-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-INVALID-FRAME-REJECT-ATTRIBUTION-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

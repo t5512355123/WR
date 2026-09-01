@@ -1806,6 +1806,7 @@ proc emit_summary {hardware_name} {
     $::wb_invalid_count($hardware_name) == 0 &&
     $::wb_unstable_transaction_count($hardware_name) == 0 &&
     $::wb_probe_3way_match_count($hardware_name) == $::wb_request_count($hardware_name) ? "PASS" : "FAIL"}]
+  set jtag_path [expr {$transport_pass eq "PASS" ? "TRUSTED" : "UNTRUSTED"}]
   set v4_math_pass [expr {
     $::double_read_pass_a_math_valid_count($hardware_name) >= $double_valid &&
     $::double_read_pass_b_math_valid_count($hardware_name) >= $double_valid}]
@@ -1823,7 +1824,7 @@ proc emit_summary {hardware_name} {
     $::wb_preload_unexpected_trigger_count($hardware_name) $::wb_probe_3way_match_count($hardware_name) \
     $::wb_stable_response_wrong_count($hardware_name) $::wb_address_cross_contamination_count($hardware_name) \
     $::wb_timeout_count($hardware_name) $::wb_invalid_count($hardware_name) \
-    $::wb_stale_count($hardware_name) $::wb_unstable_transaction_count($hardware_name) $transport_pass]
+    $::wb_stale_count($hardware_name) $::wb_unstable_transaction_count($hardware_name) $jtag_path]
   puts [format "STEP5_V4_SMOKE_RESULT board=%s SAMPLES=%d DOUBLE_READ_TRANSACTIONS_VALID=%d DOUBLE_READ_TRANSACTIONS_INVALID=%d BANK_WORD_FOR_WORD_MISMATCH_COUNT=%d PASS_A_PI_MATH_VALID=%d PASS_B_PI_MATH_VALID=%d ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d PI_SNAPSHOT_TRANSPORT=%s V4_SMOKE=%s" \
     $hardware_name $::sample_count($hardware_name) $double_valid $double_invalid $double_mismatch \
     $::double_read_pass_a_math_valid_count($hardware_name) $::double_read_pass_b_math_valid_count($hardware_name) \

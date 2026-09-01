@@ -28,7 +28,7 @@ if {$samples <= 0 || $gap_ms < 0 || ($double_read_enabled != 0 && $double_read_e
 set ::double_read_enabled $double_read_enabled
 
 set PI_KP -225
-set PI_KI 0
+set PI_KI -2
 set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
@@ -1929,10 +1929,10 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS225-KI-ZERO-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260902
+    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS225-KI-MINUS2-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260902
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS225-KI-ZERO-LANE2-TRUSTED-INTEGRAL-DISABLE-600S-20260902
+    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS225-KI-MINUS2-LANE2-TRUSTED-INTEGRAL-GAIN-UPPER-BRACKET-600S-20260902
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
   puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=6208 code_per_physical_step=%d kp=-225 ki=0 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]

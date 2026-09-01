@@ -88,7 +88,9 @@
 #define WRC_DIAGS_VLAN_CMD_RETURN (1UL << 12)
 
 /* Private read-only lock-wait forensics words. These are firmware shadows
- * outside the generated standard map and never feed back into WR control. */
+ * outside the generated standard map and never feed back into WR control.
+ * The 0x158..0x1dc range is legacy-owned only before a PI snapshot request;
+ * after that request the Helper PI frozen bank owns the range exclusively. */
 #define WRC_DIAGS_WDIAG_MODE_MASTER_STAGE 0x158UL
 #define WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE 0x15cUL
 #define WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION 0x160UL
@@ -148,11 +150,12 @@
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_REF_ACCEPT_COUNT 0x120UL
 #define WRC_DIAGS_WDIAG_HELPER_MEASUREMENT_DMTD_FB_ACCEPT_COUNT 0x124UL
 
-/* Read-only Helper PI low-rail causality overlay.  These words reuse the
- * private 0x158..0x1dc diagnostic window only while the Step5 PI audit is
- * running; they never feed back into SoftPLL.  The 0x1e0..0x1fc re-init
- * attribution overlay remains separate.  Signed 64-bit values use LO/HI
- * pairs in little-endian word order. */
+/* Read-only Helper PI low-rail causality overlay.  These words exclusively
+ * own the private 0x158..0x1dc diagnostic window after the first Step5 PI
+ * snapshot request; legacy mirrors are suppressed for the remainder of the
+ * firmware lifetime.  They never feed back into SoftPLL.  The 0x1e0..0x1fc
+ * re-init attribution overlay remains separate.  Signed 64-bit values use
+ * LO/HI pairs in little-endian word order. */
 #define WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH          0x158UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_TAG_RAW              0x15cUL
 #define WRC_DIAGS_WDIAG_HELPER_PI_P_ADDER             0x160UL

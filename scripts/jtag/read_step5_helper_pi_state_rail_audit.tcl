@@ -148,6 +148,28 @@ array set ::snapshot_request_seq_final {}
 array set ::snapshot_last_req_seq_final {}
 array set ::snapshot_bank_seq_final {}
 array set ::primary_reject_count {}
+array set ::double_read_transaction_valid_count {}
+array set ::double_read_transaction_invalid_count {}
+array set ::double_read_match_count {}
+array set ::double_read_mismatch_count {}
+array set ::double_read_first_difference_count {}
+array set ::double_read_first_difference_final {}
+array set ::double_read_pass_a_snapshot {}
+array set ::double_read_pass_b_snapshot {}
+array set ::double_read_pass_a_math_valid_count {}
+array set ::double_read_pass_b_math_valid_count {}
+array set ::double_read_pass_a_transport_valid_count {}
+array set ::double_read_pass_b_transport_valid_count {}
+
+set ::double_read_compare_fields {
+  PI_VALID PI_TRACE_EPOCH PI_TAG_RAW PI_P_ADDER PI_P_SETPOINT PI_RAW_ERROR
+  PI_LD_ERROR PI_HELPER_STATE PI_INTEGRATOR_BEFORE_LO PI_INTEGRATOR_BEFORE_HI
+  PI_I_NEW_LO PI_I_NEW_HI PI_INTEGRATOR_AFTER_LO PI_INTEGRATOR_AFTER_HI
+  PI_PROP_TERM_LO PI_PROP_TERM_HI PI_Y_PREROUND_LO PI_Y_PREROUND_HI
+  PI_UNCLAMPED_OUTPUT PI_Y_MIN PI_Y_MAX PI_CLAMP_SIDE PI_CLAMPED_OUTPUT
+  PI_X PI_KP PI_KI PI_SHIFT PI_BIAS PI_ANTI_WINDUP PI_UPDATE_COUNT
+  PI_FREQ_ERROR PI_LOCK_THRESHOLD PI_LOCK_SAMPLES PI_REF_SRC PI_TRACE_MAGIC
+}
 
 set ::primary_reject_reason_order {
   REQUEST_DATA_WRITE_FAIL
@@ -170,6 +192,7 @@ set ::primary_reject_reason_order {
   PI_MATH_OUTPUT_FAIL
   PI_MATH_CLAMP_FAIL
   POSITION_CONTEXT_FAIL
+  FROZEN_BANK_DOUBLE_READ_MISMATCH
   OTHER
 }
 
@@ -449,15 +472,13 @@ proc request_atomic_pi_snapshot {hardware_name request_seq} {
   return 0
 }
 
-proc read_pi_snapshot {hardware_name request_seq} {
+proc read_pi_snapshot_bank {hardware_name request_seq pass_label} {
+  # Read one already-frozen bank.  The caller owns the request and may invoke
+  # this twice without publishing a new request between Pass A and Pass B.
   # Firmware ACK is published only after the full bank has been copied and
   # committed with the request generation in PI_TRACE_EPOCH.  The in-band
   # epoch and the second ACK read are the transport-level checks required by
   # Step5; BANK_SEQ is retained only as forensic data.
-  if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
-    set ::snapshot_bank_seq_final($hardware_name) INVALID
-    return [read_pi_snapshot_invalid]
-  }
   set ack_begin_raw [wb_read $hardware_name 0x00100B28]
   set ack_begin [word32 $ack_begin_raw]
   if {$ack_begin < 0 || $ack_begin != $request_seq} {
@@ -595,6 +616,88 @@ proc read_pi_snapshot {hardware_name request_seq} {
     $unclamped $y_min $y_max $clamp_side $final_output $x $kp $ki \
     $shift $bias $anti_windup $update_count $freq_error $lock_threshold \
     $lock_samples $ref_src $magic]
+}
+
+proc first_difference_field {first second} {
+  set count [llength $::double_read_compare_fields]
+  for {set i 0} {$i < $count} {incr i} {
+    set field [lindex $::double_read_compare_fields $i]
+    if {[lindex $first $i] ne [lindex $second $i]} {
+      return $field
+    }
+  }
+  return NONE
+}
+
+proc read_pi_snapshot {hardware_name request_seq} {
+  # One request freezes one bank.  Read that same bank twice before the next
+  # request and compare every exported word.  A mismatch is kept separate
+  # from the normal transport counters so the experiment can distinguish a
+  # Wishbone/bank read instability from source/checker semantics.
+  set ::snapshot_last_primary_reason OTHER
+  set ::snapshot_last_failed_field NONE
+  if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
+    set ::snapshot_bank_seq_final($hardware_name) INVALID
+    set ::double_read_pass_a_snapshot($hardware_name) [read_pi_snapshot_invalid]
+    set ::double_read_pass_b_snapshot($hardware_name) [read_pi_snapshot_invalid]
+    incr ::double_read_transaction_invalid_count($hardware_name)
+    return [read_pi_snapshot_invalid]
+  }
+
+  set pass_a [read_pi_snapshot_bank $hardware_name $request_seq A]
+  set pass_a_reason $::snapshot_last_primary_reason
+  set pass_a_field $::snapshot_last_failed_field
+  set pass_b [read_pi_snapshot_bank $hardware_name $request_seq B]
+  set pass_b_reason $::snapshot_last_primary_reason
+  set pass_b_field $::snapshot_last_failed_field
+  set ::double_read_pass_a_snapshot($hardware_name) $pass_a
+  set ::double_read_pass_b_snapshot($hardware_name) $pass_b
+
+  set pass_a_valid [lindex $pass_a 0]
+  set pass_b_valid [lindex $pass_b 0]
+  if {$pass_a_valid} {
+    incr ::double_read_pass_a_transport_valid_count($hardware_name)
+  }
+  if {$pass_b_valid} {
+    incr ::double_read_pass_b_transport_valid_count($hardware_name)
+  }
+
+  if {!$pass_a_valid || !$pass_b_valid} {
+    incr ::double_read_transaction_invalid_count($hardware_name)
+    puts [format "FROZEN_BANK_DOUBLE_READ_STATUS board=%s request_seq=%d PASS_A_VALID=%d PASS_B_VALID=%d MATCH=NOT_COMPARED" \
+      $hardware_name $request_seq $pass_a_valid $pass_b_valid]
+    if {!$pass_a_valid} {
+      set_snapshot_reject $pass_a_reason $pass_a_field
+    } else {
+      set_snapshot_reject $pass_b_reason $pass_b_field
+    }
+    return [read_pi_snapshot_invalid]
+  }
+
+  set difference [first_difference_field $pass_a $pass_b]
+  if {$difference eq "NONE"} {
+    incr ::double_read_transaction_valid_count($hardware_name)
+    incr ::double_read_match_count($hardware_name)
+    set ::double_read_first_difference_final($hardware_name) NONE
+    puts [format "FROZEN_BANK_DOUBLE_READ_STATUS board=%s request_seq=%d PASS_A_VALID=1 PASS_B_VALID=1 MATCH=YES" \
+      $hardware_name $request_seq]
+    return $pass_a
+  }
+
+  incr ::double_read_transaction_invalid_count($hardware_name)
+  incr ::double_read_mismatch_count($hardware_name)
+  set key [format "%s|%s" $hardware_name $difference]
+  if {![info exists ::double_read_first_difference_count($key)]} {
+    set ::double_read_first_difference_count($key) 0
+  }
+  incr ::double_read_first_difference_count($key)
+  set ::double_read_first_difference_final($hardware_name) $difference
+  set_snapshot_reject FROZEN_BANK_DOUBLE_READ_MISMATCH FROZEN_BANK_DOUBLE_READ_MISMATCH
+  puts [format "FROZEN_BANK_DOUBLE_READ board=%s request_seq=%d PASS_A=VALID PASS_B=VALID MATCH=NO FIRST_DIFFERING_FIELD=%s A_VALUE=%s B_VALUE=%s" \
+    $hardware_name $request_seq $difference \
+    [lindex $pass_a [lsearch -exact $::double_read_compare_fields $difference]] \
+    [lindex $pass_b [lsearch -exact $::double_read_compare_fields $difference]]]
+  return [read_pi_snapshot_invalid]
 }
 
 proc pi_snapshot_math_valid {snapshot} {
@@ -760,8 +863,43 @@ proc read_pi_snapshot_checked {hardware_name} {
   set request_seq [next_snapshot_seq $hardware_name]
   set ::snapshot_request_seq_final($hardware_name) $request_seq
   set snapshot [read_pi_snapshot $hardware_name $request_seq]
-  if {[lindex $snapshot 0] && [pi_snapshot_math_valid $snapshot]} {
+  set pass_a [lindex $::double_read_pass_a_snapshot($hardware_name) 0]
+  set pass_b [lindex $::double_read_pass_b_snapshot($hardware_name) 0]
+  set pass_a_math 0
+  set pass_b_math 0
+  set pass_a_math_reason UNKNOWN
+  set pass_a_math_field NONE
+  set pass_b_math_reason UNKNOWN
+  set pass_b_math_field NONE
+  if {$pass_a} {
+    set pass_a_math [pi_snapshot_math_valid $::double_read_pass_a_snapshot($hardware_name)]
+    set pass_a_math_reason $::pi_math_last_reason
+    set pass_a_math_field $::snapshot_last_failed_field
+    if {$pass_a_math} {
+      incr ::double_read_pass_a_math_valid_count($hardware_name)
+    }
+  }
+  if {$pass_b} {
+    set pass_b_math [pi_snapshot_math_valid $::double_read_pass_b_snapshot($hardware_name)]
+    set pass_b_math_reason $::pi_math_last_reason
+    set pass_b_math_field $::snapshot_last_failed_field
+    if {$pass_b_math} {
+      incr ::double_read_pass_b_math_valid_count($hardware_name)
+    }
+  }
+  if {[lindex $snapshot 0] && $pass_a_math && $pass_b_math} {
+    set ::snapshot_last_primary_reason NONE
+    set ::snapshot_last_failed_field NONE
     return [list 1 0 {*}$snapshot]
+  }
+  if {[lindex $snapshot 0] && (!$pass_a_math || !$pass_b_math)} {
+    if {!$pass_a_math} {
+      set ::pi_math_last_reason $pass_a_math_reason
+      set_snapshot_reject $pass_a_math_reason $pass_a_math_field
+    } else {
+      set ::pi_math_last_reason $pass_b_math_reason
+      set_snapshot_reject $pass_b_math_reason $pass_b_math_field
+    }
   }
   if {[lindex $snapshot 0]} {
     puts [format "PI_MATH_REJECT board=%s request_seq=%d reason=%s" \
@@ -893,6 +1031,21 @@ proc initialize_board {hardware_name} {
   set ::snapshot_request_seq_final($hardware_name) INVALID
   set ::snapshot_last_req_seq_final($hardware_name) INVALID
   set ::snapshot_bank_seq_final($hardware_name) INVALID
+  set ::double_read_transaction_valid_count($hardware_name) 0
+  set ::double_read_transaction_invalid_count($hardware_name) 0
+  set ::double_read_match_count($hardware_name) 0
+  set ::double_read_mismatch_count($hardware_name) 0
+  set ::double_read_first_difference_final($hardware_name) NONE
+  set ::double_read_pass_a_snapshot($hardware_name) [read_pi_snapshot_invalid]
+  set ::double_read_pass_b_snapshot($hardware_name) [read_pi_snapshot_invalid]
+  set ::double_read_pass_a_math_valid_count($hardware_name) 0
+  set ::double_read_pass_b_math_valid_count($hardware_name) 0
+  set ::double_read_pass_a_transport_valid_count($hardware_name) 0
+  set ::double_read_pass_b_transport_valid_count($hardware_name) 0
+  foreach field $::double_read_compare_fields {
+    set key [format "%s|%s" $hardware_name $field]
+    set ::double_read_first_difference_count($key) 0
+  }
   foreach reason $::primary_reject_reason_order {
     set key [format "%s|%s" $hardware_name $reason]
     set ::primary_reject_count($key) 0
@@ -1433,7 +1586,42 @@ proc emit_summary {hardware_name} {
     $::snapshot_last_req_seq_final($hardware_name) $::snapshot_bank_seq_final($hardware_name) \
     $::snapshot_ack_seq_final($hardware_name) $::snapshot_ack_timeout_count($hardware_name) \
      $::snapshot_ack_mismatch_count($hardware_name) $::snapshot_epoch_generation_mismatch_count($hardware_name) \
-     $::snapshot_epoch_changed_count($hardware_name) $snapshot_transport_v3]
+      $::snapshot_epoch_changed_count($hardware_name) $snapshot_transport_v3]
+  set double_valid $::double_read_transaction_valid_count($hardware_name)
+  set double_invalid $::double_read_transaction_invalid_count($hardware_name)
+  set double_mismatch $::double_read_mismatch_count($hardware_name)
+  if {$double_mismatch > 0} {
+    set frozen_stability FAIL
+    set double_interpretation JTAG_WB_OR_BANK_OWNERSHIP_INSTABILITY_CONFIRMED
+  } elseif {$double_invalid > 0} {
+    set frozen_stability INCONCLUSIVE
+    set double_interpretation INSUFFICIENT_DOUBLE_READ_TRANSACTIONS
+  } elseif {$double_valid == $::sample_count($hardware_name)} {
+    set frozen_stability PASS
+    if {$::double_read_pass_a_math_valid_count($hardware_name) < $double_valid ||
+        $::double_read_pass_b_math_valid_count($hardware_name) < $double_valid} {
+      set double_interpretation SOURCE_OR_CHECKER_SEMANTIC_MISMATCH_CANDIDATE
+    } else {
+      set double_interpretation ALL_WORDS_AND_MATH_PASS_FAILURE_NOT_REPRODUCED
+    }
+  } else {
+    set frozen_stability INCONCLUSIVE
+    set double_interpretation INSUFFICIENT_DOUBLE_READ_TRANSACTIONS
+  }
+  set difference_fields {}
+  foreach field $::double_read_compare_fields {
+    set key [format "%s|%s" $hardware_name $field]
+    lappend difference_fields [format "FIRST_DIFFERENCE_%s=%d" $field $::double_read_first_difference_count($key)]
+  }
+  puts [format "STEP5_FROZEN_BANK_DOUBLE_READ_SUMMARY board=%s SAMPLES=%d DOUBLE_READ_TRANSACTIONS_VALID=%d DOUBLE_READ_TRANSACTIONS_INVALID=%d PASS_A_TRANSPORT_VALID=%d PASS_B_TRANSPORT_VALID=%d BANK_WORD_FOR_WORD_MATCH_COUNT=%d BANK_WORD_FOR_WORD_MISMATCH_COUNT=%d FIRST_DIFFERING_FIELD_FINAL=%s PASS_A_PI_MATH_VALID=%d PASS_B_PI_MATH_VALID=%d FROZEN_BANK_READ_STABILITY=%s DOUBLE_READ_INTERPRETATION=%s %s" \
+    $hardware_name $::sample_count($hardware_name) $double_valid $double_invalid \
+    $::double_read_pass_a_transport_valid_count($hardware_name) \
+    $::double_read_pass_b_transport_valid_count($hardware_name) \
+    $::double_read_match_count($hardware_name) $double_mismatch \
+    $::double_read_first_difference_final($hardware_name) \
+    $::double_read_pass_a_math_valid_count($hardware_name) \
+    $::double_read_pass_b_math_valid_count($hardware_name) \
+    $frozen_stability $double_interpretation [join $difference_fields " "]]
   set primary_sum 0
   set primary_fields {}
   foreach reason $::primary_reject_reason_order {
@@ -1454,7 +1642,7 @@ proc emit_summary {hardware_name} {
     [join $primary_fields " "]]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-INVALID-FRAME-REJECT-ATTRIBUTION-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-FROZEN-BANK-DOUBLE-READ-STABILITY-AUDIT-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=pass_a_pass_b_same_request bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

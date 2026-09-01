@@ -56,6 +56,10 @@ set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_RX_p
 set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_TX_p[0]
 set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_RX_p[0]
 set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_TX_p[0]
+set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_RX_p[1]
+set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_TX_p[1]
+set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_RX_p[1]
+set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_TX_p[1]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[0]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[1]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[2]
@@ -70,9 +74,11 @@ set_location_assignment PIN_AH5 -to QSFPA_REFCLK_p
 set_location_assignment PIN_AD5 -to QSFPB_REFCLK_p
 set_location_assignment PIN_AA9 -to QSFPA_RST_n
 set_location_assignment PIN_BB5 -to QSFPA_RX_p[0]
+set_location_assignment PIN_AY5 -to QSFPA_RX_p[1]
 set_location_assignment PIN_AA10 -to QSFPA_SCL
 set_location_assignment PIN_Y9 -to QSFPA_SDA
 set_location_assignment PIN_BD5 -to QSFPA_TX_p[0]
+set_location_assignment PIN_BC3 -to QSFPA_TX_p[1]
 set_instance_assignment -name IO_STANDARD "1.8 V" -to SI5340A_I2C_SCL
 set_instance_assignment -name IO_STANDARD "1.8 V" -to SI5340A_I2C_SDA
 set_instance_assignment -name IO_STANDARD "1.8 V" -to SI5340A_INTR

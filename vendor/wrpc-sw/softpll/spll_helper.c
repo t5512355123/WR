@@ -51,7 +51,7 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
 	s->pi.kp = -225;
-	s->pi.ki = -1;
+	s->pi.ki = 0;
 #else
 	s->pi.kp = 150;
 	s->pi.ki = 2;

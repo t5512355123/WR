@@ -457,7 +457,11 @@ if {[catch {
 if {$probe_started} { catch {end_insystem_source_probe} }
 
 puts ""
-puts "JTAG_WB_COMPLETION_STABLE_AUDIT_SUMMARY"
+if {$::preload_then_toggle_commit} {
+  puts "JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_SUMMARY"
+} else {
+  puts "JTAG_WB_COMPLETION_STABLE_AUDIT_SUMMARY"
+}
 puts [format "ITERATIONS = %d" $iterations]
 puts [format "TOTAL_WB_REQUESTS = %d" $::total_wb_requests]
 puts [format "TOTAL_PROBE_READS = %d" $::total_probe_reads]

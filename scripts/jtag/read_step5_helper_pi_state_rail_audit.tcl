@@ -1935,7 +1935,7 @@ proc emit_summary {hardware_name} {
     set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS225-KI-MINUS2-LANE2-TRUSTED-INTEGRAL-GAIN-UPPER-BRACKET-600S-20260902
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=6208 code_per_physical_step=%d kp=-225 ki=0 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=6208 code_per_physical_step=%d kp=-225 ki=-2 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

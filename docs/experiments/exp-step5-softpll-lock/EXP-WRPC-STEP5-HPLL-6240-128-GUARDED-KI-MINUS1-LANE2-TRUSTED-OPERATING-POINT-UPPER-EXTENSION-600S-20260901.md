@@ -1,22 +1,21 @@
-# EXP-WRPC-STEP5-HPLL-6208-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-BRACKET-600S-20260901
+# EXP-WRPC-STEP5-HPLL-6240-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-EXTENSION-600S-20260901
 
 ## Purpose
 
-Test the branch5-specified upper operating-point bracket by changing the
-Slave bootstrap from `6144` to `6208`, while retaining the tested actuator
-mapping `code_per_physical_step=128`.
+Extend the branch5-specified operating-point sweep from bootstrap `6208` to
+`6240`, while retaining `code_per_physical_step=128` and all other control
+parameters.
 
-This experiment changes only the Slave bootstrap operating point. The PI
-parameters, lane, PHY/PTP setup, and trusted observer are unchanged.
+This experiment changes only the Slave bootstrap operating point.
 
 ## Configuration
 
 ```text
 branch       = exp/step5-softpll-lock
-source HEAD  = d91924d
+source HEAD  = 5e7cd70
 board        = DE5 [1-11.2]
 lane         = QSFPA lane 2
-bootstrap    = 6208
+bootstrap    = 6240
 code_step    = 128
 kp           = -150
 ki           = -1
@@ -33,20 +32,20 @@ transport    = trusted preload-then-toggle-commit
 snapshot     = one atomic frozen snapshot per sample
 ```
 
-The Slave JTAG image was rebuilt and programmed successfully. Build identity:
+The Slave image was rebuilt and programmed successfully. Build identity:
 
 ```text
-GIT_COMMIT    = d91924d87eeb2f304e795df1ff86df8304255e7d
-SOF_SHA256    = 2c84f26b3945a4e222aac33e66c3f75ca4e29c3d4803a7f8fe57faadf15afb1d
-FITTER_STATUS= Successful
+GIT_COMMIT    = 5e7cd7033b9986fdd27c6917a218a5e3cc835421
+SOF_SHA256    = cfa263c0d7408c3d7ab9daa7db1299eab0ddaa79f8580497193b80b63275735d
+FITTER_STATUS = Successful
 TIMING_CLOSED = NO
 ```
 
 ## Preflight
 
-The first post-programming preflight observed the expected transient Slave
-PTP-uncalibrated state and was not used for the long run. After waiting for
-startup recovery, the retry preflight passed:
+The first post-programming preflight saw the expected transient Slave
+`PTP=UNCALIBRATED` state and was not used to start the long run. After the
+startup recovery interval, the retry preflight passed:
 
 ```text
 Master Step1/Step2/Step4A = PASS
@@ -61,16 +60,16 @@ reset deltas                      = 0
 SPLL init stability                = PASS
 ```
 
-The first and retry preflight raw outputs are retained remotely at:
+Preflight raw outputs are retained remotely at:
 
 ```text
-remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-BRACKET-600S-20260901-PREFLIGHT.log
-remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-BRACKET-600S-20260901-PREFLIGHT-RETRY2.log
+remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6240-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-EXTENSION-600S-20260901-PREFLIGHT.log
+remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6240-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-EXTENSION-600S-20260901-PREFLIGHT-RETRY2.log
 ```
 
 ## Long-run result
 
-The complete trusted 600-sample run finished successfully. All frames were
+The complete trusted 600-sample run finished successfully. Every frame was
 valid and coherent:
 
 ```text
@@ -89,7 +88,7 @@ POSITION_ACCOUNTING            = PASS
 TRANSACTION_ACCOUNTING         = PASS
 ```
 
-The trusted transport remained clean:
+Trusted transport remained clean for the full window:
 
 ```text
 SNAPSHOT_REQ_COUNT              = 600
@@ -107,20 +106,20 @@ ATOMIC_SNAPSHOT_TRANSPORT_V3    = PASS
 ## Operating-point and lock evidence
 
 ```text
-HELPER_ERROR_MEAN               = 76983.1866667
-HELPER_ERROR_RMS                = 107480.886829
+HELPER_ERROR_MEAN               = 150000.0
+HELPER_ERROR_RMS                = 150000.0
 HELPER_ERROR_MAX_ABS            = 150000
-FRACTION_ABS_ERROR_LE_200       = 3.5
-LOW_RAIL_SAMPLES                = 308 (51.333%)
+FRACTION_ABS_ERROR_LE_200       = 0.0
+LOW_RAIL_SAMPLES                = 600 (100.000%)
 HIGH_RAIL_SAMPLES               = 0   (0.000%)
-NO_RAIL_FRACTION                = 48.667%
-ERROR_BAND_EXIT_EVENTS          = 20
-FREQ_ERROR_ZERO_CROSSINGS       = 75
+NO_RAIL_FRACTION                = 0.000%
+ERROR_BAND_EXIT_EVENTS          = 0
+FREQ_ERROR_ZERO_CROSSINGS       = 1
 RAIL_TO_RAIL_CYCLE_COMPLETE     = 0
 ```
 
-The run briefly entered an interior operating region, but later saturated at
-the low rail. No Helper lock accumulated:
+The higher operating point produced a confirmed steady low-rail result and no
+lock progress:
 
 ```text
 HELPER_LOCK_COUNT_MAX            = 0
@@ -147,38 +146,39 @@ CPU reset delta                  = 0
 WR-core reset delta              = 0
 SI_CONFIG drop delta             = 0
 RESET_STABLE                     = PASS
-DYNAMICS_CANDIDATE               = UNDERDAMPED_OR_OVERAGGRESSIVE_CANDIDATE
-CAUSALITY_CASE                   = B
+KI_REDUCTION_DIRECTION_EFFECTIVE = NO
+STEADY_LOW_RAIL_SATURATION       = CONFIRMED
+ACTUATOR_RANGE_LIMIT_OR_REQUIRED_NEGATIVE_AUTHORITY = CONFIRMED
+CAUSALITY_CASE                   = A
 ```
 
 ## Interpretation
 
-The three operating points now form the requested bracket:
+The upper extension reverses the monotonic improvement seen through 6208:
 
 ```text
-metric                         6144/128       6176/128       6208/128
-NO_RAIL_FRACTION               0%             14.833%        48.667%
-LOW_RAIL_FRACTION              100%           85.167%        51.333%
-FRACTION_ABS_ERROR_LE_200      0.0            1.0            3.5
-HELPER_LOCK_COUNT_MAX          0              0              0
+metric                         6144/128       6176/128       6208/128       6240/128
+NO_RAIL_FRACTION               0.000%         14.833%        48.667%        0.000%
+LOW_RAIL_FRACTION              100.000%       85.167%        51.333%        100.000%
+FRACTION_ABS_ERROR_LE_200      0.0            1.0            3.5            0.0
+HELPER_LOCK_COUNT_MAX          0              0              0              0
 ```
 
-The 6208 setting improves interior occupancy relative to 6176, but it still
-does not produce the required lock progress (`HELPER_LOCK_COUNT_MAX > 0`).
-Therefore this is not Step5 completion evidence. The observer and transport
-evidence are valid; the no-lock result is a genuine runtime result, not a
-diagnostic read failure.
+Thus the operating point is now bracketed between `6208` and `6240` for the
+best observed interior occupancy, but neither setting produced Helper lock.
+The 6240 result is a valid negative runtime result, not a diagnostic read
+failure.
 
 The observer was run in single-snapshot mode. Its compatibility-labelled
-double-read counters are not treated as evidence of a double-read experiment.
+double-read counters are not treated as double-read evidence.
 
 ## Milestone status pending branch5 review
 
 ```text
 STEP4B_COMPLETE                   = YES
 STEP4B_REVALIDATED                = YES
-UPPER_OPERATING_POINT_DIRECTION_IMPROVED = YES
-OPERATING_POINT_SHIFT_EFFECTIVE   = NO (strict gate: no Helper lock)
+UPPER_EXTENSION_EFFECTIVE        = NO
+OPERATING_POINT_OPTIMUM_BRACKETED = YES (6208..6240)
 STEP5_COMPLETE                    = NO
 MERGE_APPROVED                    = NO
 ```
@@ -186,5 +186,5 @@ MERGE_APPROVED                    = NO
 The complete raw run is retained on the remote host at:
 
 ```text
-remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-BRACKET-600S-20260901.log
+remote: docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6240-128-GUARDED-KI-MINUS1-LANE2-TRUSTED-OPERATING-POINT-UPPER-EXTENSION-600S-20260901.log
 ```

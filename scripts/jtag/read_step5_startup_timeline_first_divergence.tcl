@@ -16,6 +16,8 @@ package require ::quartus::insystem_source_probe
 
 set ::trial_id "TRIAL"
 if {[llength $argv] >= 1} { set ::trial_id [lindex $argv 0] }
+set ::board_filter ""
+if {[llength $argv] >= 2} { set ::board_filter [lindex $argv 1] }
 set ::duration_ms 120000
 set ::early_window_ms 30000
 set ::early_gap_ms 1000
@@ -260,6 +262,9 @@ proc collect_targets {} {
   set masters {}
   set slaves {}
   foreach hardware_name [get_hardware_names] {
+    if {$::board_filter ne "" && [string first $::board_filter $hardware_name] < 0} {
+      continue
+    }
     set role ""
     if {[string first "1-11.1" $hardware_name] >= 0} { set role MASTER }
     if {[string first "1-11.2" $hardware_name] >= 0} { set role SLAVE }
@@ -460,8 +465,8 @@ foreach role {MASTER SLAVE} {
   set ::sample_error($role) 0
 }
 
-puts [format "STARTUP_TIMELINE_CONFIG trial=%s duration_ms=%d early_window_ms=%d early_gap_ms=%d late_gap_ms=%d targets=%s" \
-  $::trial_id $::duration_ms $::early_window_ms $::early_gap_ms $::late_gap_ms $::targets]
+puts [format "STARTUP_TIMELINE_CONFIG trial=%s board_filter=%s duration_ms=%d early_window_ms=%d early_gap_ms=%d late_gap_ms=%d targets=%s" \
+  $::trial_id $::board_filter $::duration_ms $::early_window_ms $::early_gap_ms $::late_gap_ms $::targets]
 flush stdout
 
 while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
@@ -482,6 +487,8 @@ while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
   }
 }
 
-foreach role {MASTER SLAVE} { print_board_summary $role }
+foreach role {MASTER SLAVE} {
+  if {$::sample_count($role) > 0} { print_board_summary $role }
+}
 puts [format "STARTUP_TIMELINE_DONE trial=%s elapsed_ms=%d" $::trial_id [expr {[clock milliseconds] - $::start_ms}]]
 flush stdout

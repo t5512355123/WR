@@ -255,6 +255,14 @@ proc signed32 {value} {
   return $word
 }
 
+proc signed32_arithmetic {value} {
+  set word [expr {$value & 0xffffffff}]
+  if {$word >= 0x80000000} {
+    return [expr {$word - 0x100000000}]
+  }
+  return $word
+}
+
 proc signed64_words {lo_raw hi_raw} {
   set lo [word32 $lo_raw]
   set hi [word32 $hi_raw]
@@ -980,9 +988,15 @@ proc pi_snapshot_math_valid {snapshot} {
     }
   }
 
-  if {$tag + $adder - $setpoint != $raw_error} {
+  # The firmware computes raw_err in the target's signed 32-bit arithmetic.
+  # Tcl integers are unbounded, so explicitly wrap the expected result before
+  # comparing it with the signed 32-bit WDIAGS payload.  Without this wrap,
+  # legitimate phase/position crossings above INT32_MAX were misclassified as
+  # PI_RAW_ERROR observer failures.
+  set expected_raw_error [signed32_arithmetic [expr {$tag + $adder - $setpoint}]]
+  if {$expected_raw_error != $raw_error} {
     set_pi_math_failure PI_MATH_RAW_ERROR_FAIL PI_RAW_ERROR \
-      [format "expected=%s actual=%s" [expr {$tag + $adder - $setpoint}] $raw_error]
+      [format "expected=%s actual=%s" $expected_raw_error $raw_error]
     return 0
   }
   set expected_ld_error $raw_error

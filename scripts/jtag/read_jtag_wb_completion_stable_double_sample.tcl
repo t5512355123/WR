@@ -17,6 +17,16 @@ if {[llength $argv] >= 1} { set iterations [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set board_filter [lindex $argv 1] }
 if {$iterations <= 0} { error "iterations must be > 0" }
 
+# The preload/commit experiment is enabled by the dedicated wrapper script,
+# or by passing "preload" as the third argument.  The default path remains
+# the original single-write completion audit.
+if {![info exists ::preload_then_toggle_commit]} {
+  set ::preload_then_toggle_commit 0
+}
+if {[llength $argv] >= 3 && [lindex $argv 2] eq "preload"} {
+  set ::preload_then_toggle_commit 1
+}
+
 set STATIC_SIGNATURE_ADDR 0x00100124
 set STATIC_SIGNATURE_EXPECTED 0x02000200
 set BOARD_ID_ADDR 0x00100128
@@ -47,6 +57,9 @@ set ::probe_2way_match_count 0
 set ::probe_3way_match_count 0
 set ::stable_transaction_count 0
 set ::unstable_transaction_count 0
+set ::preload_count 0
+set ::commit_count 0
+set ::preload_unexpected_trigger_count 0
 set ::first_error_recorded 0
 set ::first_error_text ""
 
@@ -139,15 +152,47 @@ proc completion_probe_valid {value expected_toggle} {
 }
 
 proc mailbox_read_stable {label addr expected iteration} {
-  set ::wb_toggle [expr {($::wb_toggle ^ 1) & 1}]
+  set preload_probe "NOT_APPLICABLE"
+  if {$::preload_then_toggle_commit} {
+    # Hold the currently completed toggle while presenting the next command.
+    # This is intentionally a separate JTAG write from the toggle commit.
+    set preload_toggle $::wb_toggle
+    set preload_cmd [expr {$preload_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+    incr ::preload_count
+    if {[catch {
+      write_source_data -instance_index 1 -value [format %024X $preload_cmd] -value_in_hex
+    }]} {
+      incr ::timeout_count
+      return [list TIMEOUT 0 "" "" "" "" $preload_probe]
+    }
+
+    # The unchanged toggle must not launch a transaction.  Check the mailbox
+    # status after the requested 2 ms preload settling interval.
+    after 2
+    set preload_probe [safe_probe_read]
+    note_probe_value PRELOAD $preload_probe $iteration
+    if {[is_hex $preload_probe] && ![stale_jtag_word $preload_probe] &&
+        ![completion_probe_valid $preload_probe $preload_toggle]} {
+      incr ::preload_unexpected_trigger_count
+      remember_first_error [format \
+        "iteration=%d requested=%s address=0x%08X preload_probe=%s classification=PRELOAD_UNEXPECTED_TRIGGER" \
+        $iteration $label $addr $preload_probe]
+    }
+
+    # Commit the exact same bundle with only the request toggle changed.
+    set ::wb_toggle [expr {($preload_toggle ^ 1) & 1}]
+  } else {
+    set ::wb_toggle [expr {($::wb_toggle ^ 1) & 1}]
+  }
   set expected_toggle $::wb_toggle
   set cmd [expr {$expected_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
   incr ::total_wb_requests
+  if {$::preload_then_toggle_commit} { incr ::commit_count }
   if {[catch {
     write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
   }]} {
     incr ::timeout_count
-    return [list TIMEOUT 0 "" "" "" ""]
+    return [list TIMEOUT 0 "" "" "" "" $preload_probe]
   }
 
   after 5
@@ -235,11 +280,11 @@ proc mailbox_read_stable {label addr expected iteration} {
 
   incr ::unstable_transaction_count
   incr ::probe_stabilization_timeout_count
-  remember_first_error [format \
-    "iteration=%d requested=%s address=0x%08X first_completion_probe=%s stable_probe_1=%s stable_probe_2=%s stable_probe_3=%s classification=PROBE_STABILIZATION_TIMEOUT" \
-    $iteration $label $addr [normalize64 $first_completion] [normalize64 $last1] \
-    [normalize64 $last2] [normalize64 $last3]]
-  return [list UNSTABLE 0 $first_completion $last1 $last2 $last3]
+    remember_first_error [format \
+      "iteration=%d requested=%s address=0x%08X preload_probe=%s first_completion_probe=%s stable_probe_1=%s stable_probe_2=%s stable_probe_3=%s classification=PROBE_STABILIZATION_TIMEOUT" \
+      $iteration $label $addr $preload_probe [normalize64 $first_completion] [normalize64 $last1] \
+      [normalize64 $last2] [normalize64 $last3]]
+  return [list UNSTABLE 0 $first_completion $last1 $last2 $last3 $preload_probe]
 }
 
 proc audited_read {label addr expected iteration prev_label_name prev_value_name prev_stable_name} {
@@ -269,6 +314,7 @@ proc audited_read {label addr expected iteration prev_label_name prev_value_name
   set ::last_read_stable_probe1 [lindex $tuple 3]
   set ::last_read_stable_probe2 [lindex $tuple 4]
   set ::last_read_stable_probe3 [lindex $tuple 5]
+  set ::last_read_preload_probe [lindex $tuple 6]
   return $value
 }
 
@@ -288,8 +334,11 @@ proc checked_static_read {label addr expected iteration prev_label_name prev_val
   if {[word32 $value] != $expected} {
     if {$label eq "STATIC_A"} { incr ::static_signature_mismatch }
     if {$label eq "STATIC_B"} { incr ::board_id_mismatch }
-    remember_first_error [format "iteration=%d requested=%s expected=%08X observed=%s classification=STABLE_RESPONSE_WRONG" \
-      $iteration $label $expected $value]
+    remember_first_error [format \
+      "iteration=%d requested=%s address=0x%08X preload_probe=%s commit_completion_probe=%s stable_P1=%s stable_P2=%s stable_P3=%s expected=%08X observed=%s classification=STABLE_RESPONSE_WRONG" \
+      $iteration $label $addr $::last_read_preload_probe $::last_read_first_probe \
+      $::last_read_stable_probe1 $::last_read_stable_probe2 $::last_read_stable_probe3 \
+      $expected $value]
     return 0
   }
   return 1
@@ -381,8 +430,13 @@ foreach hardware_name [get_hardware_names] {
 }
 if {$selected_hardware eq ""} { error [format "board not found: %s" $board_filter] }
 
-puts [format "JTAG_WB_COMPLETION_STABLE_AUDIT_START board=%s device=%s iterations=%d" \
-  $selected_hardware $selected_device $iterations]
+if {$::preload_then_toggle_commit} {
+  puts [format "JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_START board=%s device=%s iterations=%d" \
+    $selected_hardware $selected_device $iterations]
+} else {
+  puts [format "JTAG_WB_COMPLETION_STABLE_AUDIT_START board=%s device=%s iterations=%d" \
+    $selected_hardware $selected_device $iterations]
+}
 puts [format "STATIC_SIGNATURE addr=0x%08X expected=0x%08X" $STATIC_SIGNATURE_ADDR $STATIC_SIGNATURE_EXPECTED]
 puts [format "BOARD_ID addr=0x%08X expected=0x%08X" $BOARD_ID_ADDR $BOARD_ID_EXPECTED]
 puts [format "DMTD_REF addr=0x%08X DMTD_FB addr=0x%08X" $DMTD_REF_ADDR $DMTD_FB_ADDR]
@@ -425,6 +479,11 @@ puts [format "PROBE_2WAY_MATCH_COUNT = %d" $::probe_2way_match_count]
 puts [format "PROBE_3WAY_MATCH_COUNT = %d" $::probe_3way_match_count]
 puts [format "STABLE_TRANSACTION_COUNT = %d" $::stable_transaction_count]
 puts [format "UNSTABLE_TRANSACTION_COUNT = %d" $::unstable_transaction_count]
+if {$::preload_then_toggle_commit} {
+  puts [format "PRELOAD_COUNT = %d" $::preload_count]
+  puts [format "COMMIT_COUNT = %d" $::commit_count]
+  puts [format "PRELOAD_UNEXPECTED_TRIGGER_COUNT = %d" $::preload_unexpected_trigger_count]
+}
 puts [format "STATIC_SEQUENCE_VALID = %d" $::static_sequence_valid]
 puts [format "ADDRESS_SEQUENCE_VALID = %d" $::address_sequence_valid]
 if {$::first_error_recorded} {
@@ -436,8 +495,19 @@ if {$::first_error_recorded} {
 set generic_fail [expr {$::static_signature_mismatch > 0 || $::board_id_mismatch > 0 ||
                          $::stale_a5a5_count > 0 || $::timeout_count > 0 ||
                          $::invalid_count > 0 || $::address_cross_contamination_count > 0 ||
-                         $::stable_response_wrong_count > 0}]
-if {$generic_fail} {
+                         $::stable_response_wrong_count > 0 ||
+                         ($::preload_then_toggle_commit && $::preload_unexpected_trigger_count > 0)}]
+if {$::preload_then_toggle_commit} {
+  if {$generic_fail} {
+    puts "PRELOAD_THEN_TOGGLE_COMMIT = FAIL"
+    puts "REQUEST_BUNDLE_CAPTURE_RACE = NOT_CONFIRMED"
+    puts "JTAG_WB_READ_PATH_WITH_PRELOAD_PROTOCOL = FAIL"
+  } else {
+    puts "PRELOAD_THEN_TOGGLE_COMMIT = PASS"
+    puts "REQUEST_BUNDLE_CAPTURE_RACE = CONFIRMED"
+    puts "JTAG_WB_READ_PATH_WITH_PRELOAD_PROTOCOL = PASS"
+  }
+} elseif {$generic_fail} {
   puts "JTAG_WB_TRANSACTION_PATH = FAIL"
   puts "JTAG_PROBE_OR_MAILBOX_STABILITY = FAIL"
 } elseif {$::initial_data_wrong_but_stabilized_correct_count > 0 ||

@@ -1913,7 +1913,14 @@ proc emit_summary {hardware_name} {
     [join $primary_fields " "]]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260901 read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=%d bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $::double_read_enabled]
+  if {$::double_read_enabled} {
+    set experiment_name EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260901
+    set snapshot_mode serialized_request_in_band_epoch_v3_double_read
+  } else {
+    set experiment_name EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-TRUSTED-TRANSPORT-LONG-DYNAMICS-1800S-20260901
+    set snapshot_mode serialized_request_in_band_epoch_v3_single_read
+  }
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

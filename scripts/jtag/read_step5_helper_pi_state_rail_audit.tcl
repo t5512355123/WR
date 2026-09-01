@@ -32,6 +32,20 @@ set PI_Y_MIN 5
 set PI_Y_MAX 65531
 
 array set ::wb_toggle {}
+array set ::wb_request_count {}
+array set ::wb_preload_count {}
+array set ::wb_commit_count {}
+array set ::wb_probe_read_count {}
+array set ::wb_preload_unexpected_trigger_count {}
+array set ::wb_probe_3way_match_count {}
+array set ::wb_stable_response_wrong_count {}
+array set ::wb_address_cross_contamination_count {}
+array set ::wb_timeout_count {}
+array set ::wb_invalid_count {}
+array set ::wb_stale_count {}
+array set ::wb_unstable_transaction_count {}
+array set ::wb_last_static_addr {}
+array set ::wb_last_static_value {}
 array set ::sample_count {}
 array set ::valid_frame_count {}
 array set ::invalid_frame_count {}
@@ -271,34 +285,6 @@ proc probe_read {instance} {
   return $value
 }
 
-proc wb_read {hardware_name addr} {
-  global poll_attempts
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
-  if {[catch {
-    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
-  }]} {
-    return INVALID
-  }
-  after 5
-  for {set n 0} {$n < $poll_attempts} {incr n} {
-    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
-      set value INVALID
-    }
-    if {[is_hex $value]} {
-      scan $value %x word
-      set done_toggle [expr {($word >> 35) & 1}]
-      set active [expr {($word >> 36) & 1}]
-      if {$done_toggle == $toggle && $active == 0} {
-        return [format %08X [expr {$word & 0xffffffff}]]
-      }
-    }
-    after 1
-  }
-  return INVALID
-}
-
 proc wb_command_hex {toggle write addr data} {
   # The mailbox source is 96 bits wide: data[31:0] is carried in command
   # bits 69:38.  Tcl's integer formatter is only wide enough for the lower
@@ -314,34 +300,208 @@ proc wb_command_hex {toggle write addr data} {
   return [format %08X%016X $high32 $low64]
 }
 
-proc wb_write {hardware_name addr data} {
-  global poll_attempts
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [wb_command_hex $toggle 1 $addr $data]
-  if {[catch {
-    write_source_data -instance_index 1 -value $cmd -value_in_hex
-  }]} {
-    return 0
+proc stale_jtag_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc normalize_probe64 {value} {
+  if {![is_hex $value]} { return $value }
+  set text $value
+  if {[string length $text] > 16} {
+    set text [string range $text end-15 end]
   }
+  return [string repeat 0 [expr {16 - [string length $text]}]]$text
+}
+
+proc probe_equal64 {left right} {
+  if {![is_hex $left] || ![is_hex $right]} { return 0 }
+  return [expr {[normalize_probe64 $left] eq [normalize_probe64 $right]}]
+}
+
+proc completion_probe_valid {value expected_toggle} {
+  if {![is_hex $value] || [stale_jtag_word $value]} { return 0 }
+  set high [probe_high32 $value]
+  if {$high eq "INVALID"} { return 0 }
+  set done_toggle [expr {($high >> 3) & 1}]
+  set active [expr {($high >> 4) & 1}]
+  return [expr {$done_toggle == $expected_toggle && $active == 0}]
+}
+
+proc wb_probe_read {hardware_name} {
+  incr ::wb_probe_read_count($hardware_name)
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    incr ::wb_timeout_count($hardware_name)
+    return TIMEOUT
+  }
+  if {![is_hex $value]} {
+    incr ::wb_invalid_count($hardware_name)
+    return INVALID
+  }
+  set value [normalize_probe64 $value]
+  if {[stale_jtag_word $value]} { incr ::wb_stale_count($hardware_name) }
+  return $value
+}
+
+proc note_stable_wb_result {hardware_name addr value} {
+  set key [format "0x%08X" [expr {$addr & 0xffffffff}]]
+  set word [word32 $value]
+  if {$key eq "0x00100124" && $word != 0x02000200} {
+    incr ::wb_stable_response_wrong_count($hardware_name)
+  }
+  if {$key eq "0x00100128" &&
+      $word != 0x22334401 && $word != 0x22334402} {
+    incr ::wb_stable_response_wrong_count($hardware_name)
+  }
+  if {($key eq "0x00100124" || $key eq "0x00100128") &&
+      $::wb_last_static_addr($hardware_name) ne "" &&
+      $key ne $::wb_last_static_addr($hardware_name) &&
+      [word32 $value] == [word32 $::wb_last_static_value($hardware_name)]} {
+    incr ::wb_address_cross_contamination_count($hardware_name)
+  }
+  if {$key eq "0x00100124" || $key eq "0x00100128"} {
+    set ::wb_last_static_addr($hardware_name) $key
+    set ::wb_last_static_value($hardware_name) $value
+  }
+}
+
+proc wb_read {hardware_name addr} {
+  # Phase 1: preload the complete read request while leaving the completed
+  # toggle unchanged.  This is intentionally a no-trigger operation.
+  global poll_attempts
+  set preload_toggle $::wb_toggle($hardware_name)
+  set preload_cmd [expr {$preload_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  incr ::wb_preload_count($hardware_name)
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $preload_cmd] -value_in_hex
+  }]} {
+    incr ::wb_timeout_count($hardware_name)
+    return INVALID
+  }
+  after 2
+  set preload_probe [wb_probe_read $hardware_name]
+  if {[is_hex $preload_probe] && ![stale_jtag_word $preload_probe] &&
+      ![completion_probe_valid $preload_probe $preload_toggle]} {
+    incr ::wb_preload_unexpected_trigger_count($hardware_name)
+  }
+
+  # Phase 2: commit the identical request by changing only the toggle.
+  set ::wb_toggle($hardware_name) [expr {($preload_toggle ^ 1) & 1}]
+  set expected_toggle $::wb_toggle($hardware_name)
+  set cmd [expr {$expected_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  incr ::wb_request_count($hardware_name)
+  incr ::wb_commit_count($hardware_name)
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+  }]} {
+    incr ::wb_timeout_count($hardware_name)
+    return INVALID
+  }
+
   after 5
+  set first_completion ""
   for {set n 0} {$n < $poll_attempts} {incr n} {
-    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
-      set value INVALID
-    }
-    if {[is_hex $value]} {
-      scan $value %x word
-      set done_toggle [expr {($word >> 35) & 1}]
-      set active [expr {($word >> 36) & 1}]
-      if {$done_toggle == $toggle && $active == 0} {
-        # The mailbox ACK/ERR flags are one-clock result strobes.  Once the
-        # transaction is complete they may already be low, so completion is
-        # determined by the persistent done toggle, as in wb_read.
-        return 1
-      }
+    set value [wb_probe_read $hardware_name]
+    if {[completion_probe_valid $value $expected_toggle]} {
+      set first_completion $value
+      break
     }
     after 1
   }
+  if {$first_completion eq ""} {
+    incr ::wb_timeout_count($hardware_name)
+    return INVALID
+  }
+
+  # Require the complete 64-bit probe to remain coherent across three
+  # samples.  This rejects the done-toggle/new-data visibility race.
+  for {set attempt 1} {$attempt <= 10} {incr attempt} {
+    set p1 [wb_probe_read $hardware_name]
+    after 1
+    set p2 [wb_probe_read $hardware_name]
+    after 1
+    set p3 [wb_probe_read $hardware_name]
+    if {[completion_probe_valid $p1 $expected_toggle] &&
+        [completion_probe_valid $p2 $expected_toggle] &&
+        [completion_probe_valid $p3 $expected_toggle] &&
+        [probe_equal64 $p1 $p2] && [probe_equal64 $p2 $p3]} {
+      incr ::wb_probe_3way_match_count($hardware_name)
+      set result [format %08X [word32 $p3]]
+      note_stable_wb_result $hardware_name $addr $p3
+      return $result
+    }
+    after 1
+  }
+  incr ::wb_unstable_transaction_count($hardware_name)
+  incr ::wb_timeout_count($hardware_name)
+  return INVALID
+}
+
+proc wb_write {hardware_name addr data} {
+  # Writes use the same preload/commit protocol as reads.  The preload keeps
+  # the old toggle, while the commit changes only the toggle and therefore
+  # creates exactly one mailbox transaction.
+  global poll_attempts
+  set preload_toggle $::wb_toggle($hardware_name)
+  set preload_cmd [wb_command_hex $preload_toggle 1 $addr $data]
+  incr ::wb_preload_count($hardware_name)
+  if {[catch {
+    write_source_data -instance_index 1 -value $preload_cmd -value_in_hex
+  }]} {
+    incr ::wb_timeout_count($hardware_name)
+    return 0
+  }
+  after 2
+  set preload_probe [wb_probe_read $hardware_name]
+  if {[is_hex $preload_probe] && ![stale_jtag_word $preload_probe] &&
+      ![completion_probe_valid $preload_probe $preload_toggle]} {
+    incr ::wb_preload_unexpected_trigger_count($hardware_name)
+  }
+
+  set ::wb_toggle($hardware_name) [expr {($preload_toggle ^ 1) & 1}]
+  set expected_toggle $::wb_toggle($hardware_name)
+  set cmd [wb_command_hex $expected_toggle 1 $addr $data]
+  incr ::wb_request_count($hardware_name)
+  incr ::wb_commit_count($hardware_name)
+  if {[catch {
+    write_source_data -instance_index 1 -value $cmd -value_in_hex
+  }]} {
+    incr ::wb_timeout_count($hardware_name)
+    return 0
+  }
+  after 5
+  set first_completion ""
+  for {set n 0} {$n < $poll_attempts} {incr n} {
+    set value [wb_probe_read $hardware_name]
+    if {[completion_probe_valid $value $expected_toggle]} {
+      set first_completion $value
+      break
+    }
+    after 1
+  }
+  if {$first_completion eq ""} {
+    incr ::wb_timeout_count($hardware_name)
+    return 0
+  }
+  for {set attempt 1} {$attempt <= 10} {incr attempt} {
+    set p1 [wb_probe_read $hardware_name]
+    after 1
+    set p2 [wb_probe_read $hardware_name]
+    after 1
+    set p3 [wb_probe_read $hardware_name]
+    if {[completion_probe_valid $p1 $expected_toggle] &&
+        [completion_probe_valid $p2 $expected_toggle] &&
+        [completion_probe_valid $p3 $expected_toggle] &&
+        [probe_equal64 $p1 $p2] && [probe_equal64 $p2 $p3]} {
+      incr ::wb_probe_3way_match_count($hardware_name)
+      note_stable_wb_result $hardware_name $addr $p3
+      return 1
+    }
+    after 1
+  }
+  incr ::wb_unstable_transaction_count($hardware_name)
+  incr ::wb_timeout_count($hardware_name)
   return 0
 }
 
@@ -917,6 +1077,20 @@ proc read_pi_snapshot_invalid {} {
 }
 
 proc initialize_board {hardware_name} {
+  set ::wb_request_count($hardware_name) 0
+  set ::wb_preload_count($hardware_name) 0
+  set ::wb_commit_count($hardware_name) 0
+  set ::wb_probe_read_count($hardware_name) 0
+  set ::wb_preload_unexpected_trigger_count($hardware_name) 0
+  set ::wb_probe_3way_match_count($hardware_name) 0
+  set ::wb_stable_response_wrong_count($hardware_name) 0
+  set ::wb_address_cross_contamination_count($hardware_name) 0
+  set ::wb_timeout_count($hardware_name) 0
+  set ::wb_invalid_count($hardware_name) 0
+  set ::wb_stale_count($hardware_name) 0
+  set ::wb_unstable_transaction_count($hardware_name) 0
+  set ::wb_last_static_addr($hardware_name) ""
+  set ::wb_last_static_value($hardware_name) ""
   set ::sample_count($hardware_name) 0
   set ::valid_frame_count($hardware_name) 0
   set ::invalid_frame_count($hardware_name) 0
@@ -1622,6 +1796,40 @@ proc emit_summary {hardware_name} {
     $::double_read_pass_a_math_valid_count($hardware_name) \
     $::double_read_pass_b_math_valid_count($hardware_name) \
     $frozen_stability $double_interpretation [join $difference_fields " "]]
+  set transport_pass [expr {
+    $::wb_request_count($hardware_name) == $::wb_commit_count($hardware_name) &&
+    $::wb_request_count($hardware_name) == $::wb_preload_count($hardware_name) &&
+    $::wb_preload_unexpected_trigger_count($hardware_name) == 0 &&
+    $::wb_stable_response_wrong_count($hardware_name) == 0 &&
+    $::wb_address_cross_contamination_count($hardware_name) == 0 &&
+    $::wb_timeout_count($hardware_name) == 0 &&
+    $::wb_invalid_count($hardware_name) == 0 &&
+    $::wb_unstable_transaction_count($hardware_name) == 0 &&
+    $::wb_probe_3way_match_count($hardware_name) == $::wb_request_count($hardware_name) ? "PASS" : "FAIL"}]
+  set v4_math_pass [expr {
+    $::double_read_pass_a_math_valid_count($hardware_name) >= $double_valid &&
+    $::double_read_pass_b_math_valid_count($hardware_name) >= $double_valid}]
+  set v4_smoke_result [expr {
+    $::sample_count($hardware_name) == 100 &&
+    $double_valid >= 99 && $double_invalid <= 1 && $double_mismatch == 0 &&
+    $::snapshot_ack_timeout_count($hardware_name) == 0 &&
+    $::snapshot_ack_mismatch_count($hardware_name) == 0 &&
+    $::snapshot_epoch_generation_mismatch_count($hardware_name) == 0 &&
+    $::snapshot_epoch_changed_count($hardware_name) == 0 &&
+    $v4_math_pass && $transport_pass eq "PASS" ? "PASS" : "FAIL"}]
+  puts [format "STEP5_V4_TRANSPORT_SUMMARY board=%s WB_REQUEST_COUNT=%d PRELOAD_COUNT=%d COMMIT_COUNT=%d WB_PROBE_READ_COUNT=%d PRELOAD_UNEXPECTED_TRIGGER_COUNT=%d PROBE_3WAY_MATCH_COUNT=%d STABLE_RESPONSE_WRONG_COUNT=%d ADDRESS_CROSS_CONTAMINATION_COUNT=%d TIMEOUT_COUNT=%d INVALID_COUNT=%d STALE_A5A5_COUNT=%d UNSTABLE_TRANSACTION_COUNT=%d WB_TRANSPORT_PROTOCOL=PRELOAD_THEN_TOGGLE_COMMIT JTAG_WB_DIAGNOSTIC_PATH=%s" \
+    $hardware_name $::wb_request_count($hardware_name) $::wb_preload_count($hardware_name) \
+    $::wb_commit_count($hardware_name) $::wb_probe_read_count($hardware_name) \
+    $::wb_preload_unexpected_trigger_count($hardware_name) $::wb_probe_3way_match_count($hardware_name) \
+    $::wb_stable_response_wrong_count($hardware_name) $::wb_address_cross_contamination_count($hardware_name) \
+    $::wb_timeout_count($hardware_name) $::wb_invalid_count($hardware_name) \
+    $::wb_stale_count($hardware_name) $::wb_unstable_transaction_count($hardware_name) $transport_pass]
+  puts [format "STEP5_V4_SMOKE_RESULT board=%s SAMPLES=%d DOUBLE_READ_TRANSACTIONS_VALID=%d DOUBLE_READ_TRANSACTIONS_INVALID=%d BANK_WORD_FOR_WORD_MISMATCH_COUNT=%d PASS_A_PI_MATH_VALID=%d PASS_B_PI_MATH_VALID=%d ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d PI_SNAPSHOT_TRANSPORT=%s V4_SMOKE=%s" \
+    $hardware_name $::sample_count($hardware_name) $double_valid $double_invalid $double_mismatch \
+    $::double_read_pass_a_math_valid_count($hardware_name) $::double_read_pass_b_math_valid_count($hardware_name) \
+    $::snapshot_ack_timeout_count($hardware_name) $::snapshot_ack_mismatch_count($hardware_name) \
+    $::snapshot_epoch_generation_mismatch_count($hardware_name) $::snapshot_epoch_changed_count($hardware_name) \
+    $transport_pass $v4_smoke_result]
   set primary_sum 0
   set primary_fields {}
   foreach reason $::primary_reject_reason_order {
@@ -1642,7 +1850,7 @@ proc emit_summary {hardware_name} {
     [join $primary_fields " "]]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-FROZEN-BANK-DOUBLE-READ-STABILITY-AUDIT-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=pass_a_pass_b_same_request bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260901 read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=pass_a_pass_b_same_request bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

@@ -1,12 +1,11 @@
 # Read-only Helper PI state and rail audit for Step5.
 #
 # The firmware mirror publishes one completed Helper PI update through the
-# private WDIAGS snapshot bank at 0x158..0x1dc.  V2 uses a serialized
-# request -> frozen bank -> ACK transaction: the request sequence, bank
-# sequence, and ACK sequence must all match before a frame is accepted.  The
-# bank is not changed between requests, so the interrupt-driven Helper is
-# never paused and a slow JTAG read cannot starve the payload seqlock.  Probe
-# 43/44 provide the signed physical-position context.
+# private WDIAGS snapshot bank at 0x158..0x1dc.  V3 uses a serialized
+# request -> frozen bank -> ACK transaction.  The request generation is
+# written into the bank's own PI_TRACE_EPOCH (odd while publishing, even
+# after commit), so BANK_SEQ and the other forensic overlays never decide
+# frame validity.  Probe 43/44 provide the signed physical-position context.
 #
 # Usage:
 #   quartus_stp -t read_step5_helper_pi_state_rail_audit.tcl ?samples? ?gap_ms? ?board_filter?
@@ -138,6 +137,9 @@ array set ::snapshot_ack_first {}
 array set ::snapshot_ack_final {}
 array set ::snapshot_ack_seq_final {}
 array set ::snapshot_ack_mismatch_count {}
+array set ::snapshot_ack_timeout_count {}
+array set ::snapshot_epoch_generation_mismatch_count {}
+array set ::snapshot_epoch_changed_count {}
 array set ::snapshot_bank_commit_first {}
 array set ::snapshot_bank_commit_final {}
 array set ::snapshot_overwrite_first {}
@@ -378,20 +380,20 @@ proc request_atomic_pi_snapshot {hardware_name request_seq} {
     }
     after 1
   }
-  incr ::snapshot_ack_mismatch_count($hardware_name)
+  incr ::snapshot_ack_timeout_count($hardware_name)
   return 0
 }
 
 proc read_pi_snapshot {hardware_name request_seq} {
   # Firmware ACK is published only after the full bank has been copied and
-  # committed with the same generation.  The bank sequence and second ACK
-  # read are the transport-level stability checks required by Step5.
+  # committed with the request generation in PI_TRACE_EPOCH.  The in-band
+  # epoch and the second ACK read are the transport-level checks required by
+  # Step5; BANK_SEQ is retained only as forensic data.
   if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
     set ::snapshot_bank_seq_final($hardware_name) INVALID
     return [read_pi_snapshot_invalid]
   }
   set ack_begin [word32 [wb_read $hardware_name 0x00100B28]]
-  set bank_seq_begin [word32 [wb_read $hardware_name 0x00100B40]]
   set epoch_begin [wb_read $hardware_name 0x00100B58]
   set epoch_word [word32 $epoch_begin]
   set tag_raw [wb_read $hardware_name 0x00100B5C]
@@ -430,12 +432,29 @@ proc read_pi_snapshot {hardware_name request_seq} {
   set bank_seq_end [word32 [wb_read $hardware_name 0x00100B40]]
   set epoch_end [wb_read $hardware_name 0x00100B58]
   set ack_end [word32 [wb_read $hardware_name 0x00100B28]]
-  if {$ack_begin >= 0 && $bank_seq_begin >= 0 && $bank_seq_end >= 0 &&
-      $ack_end >= 0 && $ack_begin == $request_seq &&
-      $bank_seq_begin == $request_seq && $bank_seq_end == $request_seq &&
-      $ack_end == $request_seq &&
-      [string equal -nocase $epoch_begin $epoch_end] &&
-      $epoch_word >= 0 && !($epoch_word & 1)} {
+  set epoch_begin_word [word32 $epoch_begin]
+  set epoch_end_word [word32 $epoch_end]
+  set magic_word [word32 $magic]
+  set expected_epoch [expr {($request_seq * 2) & 0xffffffff}]
+  set ack_ok [expr {$ack_begin >= 0 && $ack_end >= 0 &&
+      $ack_begin == $request_seq && $ack_end == $request_seq}]
+  if {!$ack_ok} {
+    incr ::snapshot_ack_mismatch_count($hardware_name)
+  }
+  set epoch_changed 0
+  if {$epoch_begin_word >= 0 && $epoch_end_word >= 0 &&
+      $epoch_begin_word != $epoch_end_word} {
+    set epoch_changed 1
+    incr ::snapshot_epoch_changed_count($hardware_name)
+  }
+  set epoch_generation_ok [expr {$epoch_begin_word >= 0 &&
+      $epoch_end_word >= 0 && $epoch_begin_word == $expected_epoch &&
+      $epoch_end_word == $expected_epoch && !($epoch_begin_word & 1) &&
+      !($epoch_end_word & 1)}]
+  if {!$epoch_generation_ok} {
+    incr ::snapshot_epoch_generation_mismatch_count($hardware_name)
+  }
+  if {$ack_ok && !$epoch_changed && $epoch_generation_ok && $magic_word == 1} {
     set ::snapshot_bank_seq_final($hardware_name) $bank_seq_end
     return [list 1 $epoch_word $tag_raw $p_adder $p_setpoint $raw_error \
       $ld_error $lock_state $before_lo $before_hi $i_new_lo $i_new_hi \
@@ -445,7 +464,6 @@ proc read_pi_snapshot {hardware_name request_seq} {
       $lock_samples $ref_src $magic]
   }
   set ::snapshot_bank_seq_final($hardware_name) $bank_seq_end
-  incr ::snapshot_ack_mismatch_count($hardware_name)
   return [read_pi_snapshot_invalid]
 }
 
@@ -682,6 +700,9 @@ proc initialize_board {hardware_name} {
   set ::snapshot_ack_final($hardware_name) INVALID
   set ::snapshot_ack_seq_final($hardware_name) INVALID
   set ::snapshot_ack_mismatch_count($hardware_name) 0
+  set ::snapshot_ack_timeout_count($hardware_name) 0
+  set ::snapshot_epoch_generation_mismatch_count($hardware_name) 0
+  set ::snapshot_epoch_changed_count($hardware_name) 0
   set ::snapshot_bank_commit_first($hardware_name) INVALID
   set ::snapshot_bank_commit_final($hardware_name) INVALID
   set ::snapshot_overwrite_first($hardware_name) INVALID
@@ -1044,11 +1065,14 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     $position_target $position_applied $normal_req $normal_completed $normal_finc $normal_fdec $dco_step $forced_completed \
     $bootstrap_completed_counter $bootstrap_done $spll_init_count $clear_dacs_count $spll_delock $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked $helper_locked $helper_count \
     $entry_generation $cpu_reset $wr_reset $si_drop]
-  puts [format "STEP5_ATOMIC_SNAPSHOT_SAMPLE board=%s sample=%d REQUEST_SEQ=%s LAST_REQ_SEQ=%s BANK_SEQ=%s SNAPSHOT_ACK_SEQ=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s ACK_MISMATCH=%d" \
+  puts [format "STEP5_ATOMIC_SNAPSHOT_SAMPLE board=%s sample=%d REQUEST_SEQ=%s LAST_REQ_SEQ=%s BANK_SEQ=%s SNAPSHOT_ACK_SEQ=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d" \
     $hardware_name $sample $::snapshot_request_seq_final($hardware_name) $snapshot_last_req_seq \
     $::snapshot_bank_seq_final($hardware_name) $snapshot_ack_seq $snapshot_req_count \
     $snapshot_bank_commit_count $snapshot_ack_count $snapshot_overwrite_count \
-    $::snapshot_ack_mismatch_count($hardware_name)]
+    $::snapshot_ack_timeout_count($hardware_name) \
+    $::snapshot_ack_mismatch_count($hardware_name) \
+    $::snapshot_epoch_generation_mismatch_count($hardware_name) \
+    $::snapshot_epoch_changed_count($hardware_name)]
   flush stdout
 }
 
@@ -1103,18 +1127,6 @@ proc emit_summary {hardware_name} {
   set snapshot_ack_delta [counter_delta $::snapshot_ack_first($hardware_name) $::snapshot_ack_final($hardware_name) 32]
   set snapshot_bank_commit_delta [counter_delta $::snapshot_bank_commit_first($hardware_name) $::snapshot_bank_commit_final($hardware_name) 32]
   set snapshot_overwrite_delta [counter_delta $::snapshot_overwrite_first($hardware_name) $::snapshot_overwrite_final($hardware_name) 32]
-  set snapshot_transport_v2 [expr {
-    $snapshot_req_delta ne "INVALID" && $snapshot_ack_delta ne "INVALID" &&
-    $snapshot_bank_commit_delta ne "INVALID" && $snapshot_overwrite_delta ne "INVALID" &&
-    $snapshot_req_delta == $::sample_count($hardware_name) &&
-    $snapshot_bank_commit_delta == $::sample_count($hardware_name) &&
-    $snapshot_ack_delta == $::sample_count($hardware_name) &&
-    $snapshot_overwrite_delta == 0 &&
-    $::snapshot_ack_mismatch_count($hardware_name) == 0 &&
-    $::snapshot_request_seq_final($hardware_name) == $::sample_count($hardware_name) &&
-    $::snapshot_last_req_seq_final($hardware_name) == $::sample_count($hardware_name) &&
-    $::snapshot_bank_seq_final($hardware_name) == $::sample_count($hardware_name) &&
-    $::snapshot_ack_seq_final($hardware_name) == $::sample_count($hardware_name) ? "PASS" : "FAIL"}]
   set transaction_accounting [expr {$normal_req_delta ne "INVALID" && $normal_completed_delta ne "INVALID" &&
     $normal_req_delta == $normal_completed_delta ? "PASS" : "CHECK"}]
   set position_accounting [expr {$::physical_position_mismatch_count($hardware_name) == 0 &&
@@ -1125,6 +1137,18 @@ proc emit_summary {hardware_name} {
   set reset_stable [expr {$gen_delta ne "INVALID" && $cpu_delta ne "INVALID" &&
     $wr_delta ne "INVALID" && $si_delta ne "INVALID" &&
     $gen_delta == 0 && $cpu_delta == 0 && $wr_delta == 0 && $si_delta == 0 ? "PASS" : "CHECK"}]
+  set snapshot_transport_v3 [expr {
+    $valid * 100 >= $::sample_count($hardware_name) * 99 &&
+    $::invalid_frame_count($hardware_name) * 100 <= $::sample_count($hardware_name) &&
+    $pi_count * 100 >= $::sample_count($hardware_name) * 99 &&
+    $::snapshot_ack_timeout_count($hardware_name) == 0 &&
+    $::snapshot_ack_mismatch_count($hardware_name) == 0 &&
+    $::snapshot_epoch_generation_mismatch_count($hardware_name) == 0 &&
+    $::snapshot_epoch_changed_count($hardware_name) == 0 &&
+    $measurement_coherence eq "PASS" &&
+    $position_accounting eq "PASS" &&
+    $transaction_accounting eq "PASS" &&
+    $reset_stable eq "PASS" ? "PASS" : "FAIL"}]
   if {$error_count == 0} {
     set dynamics_candidate INSUFFICIENT_DATA
   } elseif {$helper_error_fraction < 100.0 &&
@@ -1192,16 +1216,18 @@ proc emit_summary {hardware_name} {
     $::pi_i_new_final($hardware_name) $::pi_after_final($hardware_name) $::pi_unclamped_final($hardware_name) \
     $::pi_clamped_final($hardware_name) $::pi_side_final($hardware_name) $::pi_raw_error_final($hardware_name) \
     $::pi_ld_error_final($hardware_name) $::pi_prop_final($hardware_name) $::pi_preround_final($hardware_name)]
-  puts [format "STEP5_ATOMIC_SNAPSHOT_TRANSPORT_V2 board=%s SAMPLES=%d SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s SNAPSHOT_REQ_DELTA=%s SNAPSHOT_BANK_COMMIT_DELTA=%s SNAPSHOT_ACK_DELTA=%s SNAPSHOT_OVERWRITE_DELTA=%s LAST_REQ_SEQ=%s LAST_BANK_SEQ=%s LAST_ACK_SEQ=%s ACK_MISMATCH=%d ATOMIC_SNAPSHOT_TRANSPORT_V2=%s" \
-    $hardware_name $::sample_count($hardware_name) $::snapshot_req_final($hardware_name) $::snapshot_bank_commit_final($hardware_name) \
+  puts [format "STEP5_ATOMIC_SNAPSHOT_TRANSPORT_V3 board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d PI_TRACE_PRESENT=%d SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s SNAPSHOT_REQ_DELTA=%s SNAPSHOT_BANK_COMMIT_DELTA=%s SNAPSHOT_ACK_DELTA=%s SNAPSHOT_OVERWRITE_DELTA=%s LAST_REQ_SEQ=%s LAST_BANK_SEQ=%s LAST_ACK_SEQ=%s ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d ATOMIC_SNAPSHOT_TRANSPORT_V3=%s" \
+    $hardware_name $::sample_count($hardware_name) $valid $::invalid_frame_count($hardware_name) $pi_count \
+    $::snapshot_req_final($hardware_name) $::snapshot_bank_commit_final($hardware_name) \
     $::snapshot_ack_final($hardware_name) $::snapshot_overwrite_final($hardware_name) \
     $snapshot_req_delta $snapshot_bank_commit_delta $snapshot_ack_delta $snapshot_overwrite_delta \
     $::snapshot_last_req_seq_final($hardware_name) $::snapshot_bank_seq_final($hardware_name) \
-    $::snapshot_ack_seq_final($hardware_name) $::snapshot_ack_mismatch_count($hardware_name) \
-    $snapshot_transport_v2]
+    $::snapshot_ack_seq_final($hardware_name) $::snapshot_ack_timeout_count($hardware_name) \
+    $::snapshot_ack_mismatch_count($hardware_name) $::snapshot_epoch_generation_mismatch_count($hardware_name) \
+    $::snapshot_epoch_changed_count($hardware_name) $snapshot_transport_v3]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-ATOMIC-SNAPSHOT-TRANSACTION-V2-SMOKE-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_frozen_bank_ack_v2 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-ATOMIC-SNAPSHOT-TRANSACTION-V3-INBAND-EPOCH-SMOKE-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3 bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

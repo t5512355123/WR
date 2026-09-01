@@ -1061,16 +1061,25 @@ void wdiags_write_wr_spll_helper_pi_trace(
 									uint32_t update_count,
 									int32_t freq_error,
 									int32_t lock_threshold,
-									int32_t lock_samples,
-									int32_t ref_src)
+																		int32_t lock_samples,
+																		int32_t ref_src,
+																		uint32_t snapshot_generation)
 {
+	uint32_t publication_epoch = trace_epoch;
+
 	/* The PI trace owns the 0x158..0x1dc private overlay for this audit.
 	 * Keep the re-init attribution at 0x1e0..0x1fc independent. */
 	if (trace_epoch == 0xffffffffu || (trace_epoch & 1u)) {
 		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, 0xffffffffu);
 		return;
 	}
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch | 1u);
+	/* V3 carries the request generation in the frozen PI bank itself.  The
+	 * odd/even publication protocol remains the transport seqlock; the source
+	 * measurement epoch is not used as the frame identity. */
+	if (snapshot_generation != 0)
+		publication_epoch = snapshot_generation << 1;
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH,
+			publication_epoch | 1u);
 	wdiag_publish_barrier();
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TAG_RAW, (uint32_t)tag_raw);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_P_ADDER, (uint32_t)p_adder);
@@ -1115,7 +1124,7 @@ void wdiags_write_wr_spll_helper_pi_trace(
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_MAGIC,
 				WRC_DIAGS_WDIAG_HELPER_PI_TRACE_VERSION);
 	wdiag_publish_barrier();
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, trace_epoch);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_TRACE_EPOCH, publication_epoch);
 }
 
 void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq)

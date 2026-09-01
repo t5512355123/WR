@@ -16,11 +16,13 @@
  * read/write bank.  These private WDIAGS words publish the completed
  * request/acknowledgement state; they are read-only from the WB observer.
  *
- * V2 transport overlay:
+ * V2/V3 transport overlay:
  *   0x134/0x138 replace the mapping self-test words after the first
  *   snapshot request, and 0x13c/0x140 replace the runtime current-tics and
  *   DAC-timeout words for the duration of the transaction audit.  The
- *   regular runtime context words at 0x144..0x150 remain available. */
+ *   regular runtime context words at 0x144..0x150 remain available.  V3
+ *   validates the generation in-band through PI_TRACE_EPOCH and does not
+ *   depend on BANK_SEQ for frame validity. */
 #define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_ACK_SEQ 0x128UL
 #define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ   WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_ACK_SEQ
 #define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT 0x12cUL

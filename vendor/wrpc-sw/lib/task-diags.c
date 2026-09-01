@@ -405,7 +405,8 @@ int wrc_wr_diags(void)
 				pi_trace_freq_error,
 				pi_trace_lock_threshold,
 				pi_trace_lock_samples,
-				pi_trace_ref_src);
+				pi_trace_ref_src,
+				pi_snapshot_request_seq);
 				wdiags_write_wr_spll_helper_pi_snapshot_ack(
 					pi_snapshot_request_seq);
 			}

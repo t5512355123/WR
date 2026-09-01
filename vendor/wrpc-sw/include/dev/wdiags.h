@@ -232,7 +232,8 @@ void wdiags_write_wr_spll_helper_pi_trace(
                                                    int32_t freq_error,
                                                    int32_t lock_threshold,
                                                    int32_t lock_samples,
-                                                   int32_t ref_src);
+                                                   int32_t ref_src,
+                                                   uint32_t snapshot_generation);
 void wdiags_write_aux_clock_details( int clk_id, uint32_t mode, uint32_t phase, int enabled, int ready );
 int wdiags_init(void);
 void wdiags_write_bitslide(int bitslide);

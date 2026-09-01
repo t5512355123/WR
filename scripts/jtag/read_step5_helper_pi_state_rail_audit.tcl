@@ -8,7 +8,7 @@
 # frame validity.  Probe 43/44 provide the signed physical-position context.
 #
 # Usage:
-#   quartus_stp -t read_step5_helper_pi_state_rail_audit.tcl ?samples? ?gap_ms? ?board_filter?
+#   quartus_stp -t read_step5_helper_pi_state_rail_audit.tcl ?samples? ?gap_ms? ?board_filter? ?double_read?
 
 package require ::quartus::insystem_source_probe
 
@@ -17,12 +17,15 @@ set gap_ms 100
 set board_filter ""
 set poll_attempts 100
 set snapshot_poll_attempts 1000
+set double_read_enabled 1
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
-if {$samples <= 0 || $gap_ms < 0} {
-  error "samples must be > 0 and gap_ms must be >= 0"
+if {[llength $argv] >= 4} { set double_read_enabled [expr {int([lindex $argv 3])}] }
+if {$samples <= 0 || $gap_ms < 0 || ($double_read_enabled != 0 && $double_read_enabled != 1)} {
+  error "samples must be > 0, gap_ms must be >= 0, and double_read must be 0 or 1"
 }
+set ::double_read_enabled $double_read_enabled
 
 set PI_KP -150
 set PI_KI -1
@@ -116,6 +119,12 @@ array set ::main_phase_locked_first {}
 array set ::main_phase_locked_final {}
 array set ::main_locked_first {}
 array set ::main_locked_final {}
+array set ::helper_locked_ever {}
+array set ::main_enabled_ever {}
+array set ::main_freq_locked_ever {}
+array set ::main_phase_locked_ever {}
+array set ::main_locked_ever {}
+array set ::pstat_locked_ever {}
 array set ::pstat_locked_first {}
 array set ::pstat_locked_final {}
 array set ::tag_valid_first {}
@@ -144,6 +153,8 @@ array set ::pi_y_max_final {}
 array set ::reset_first {}
 array set ::reset_final {}
 array set ::elapsed_final {}
+array set ::rxerr_first {}
+array set ::rxerr_final {}
 array set ::snapshot_next_seq {}
 array set ::snapshot_req_first {}
 array set ::snapshot_req_final {}
@@ -796,6 +807,25 @@ proc read_pi_snapshot {hardware_name request_seq} {
   # Wishbone/bank read instability from source/checker semantics.
   set ::snapshot_last_primary_reason OTHER
   set ::snapshot_last_failed_field NONE
+  if {!$::double_read_enabled} {
+    if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
+      set ::snapshot_bank_seq_final($hardware_name) INVALID
+      set ::double_read_pass_a_snapshot($hardware_name) [read_pi_snapshot_invalid]
+      set ::double_read_pass_b_snapshot($hardware_name) [read_pi_snapshot_invalid]
+      incr ::double_read_transaction_invalid_count($hardware_name)
+      return [read_pi_snapshot_invalid]
+    }
+    set single_snapshot [read_pi_snapshot_bank $hardware_name $request_seq SINGLE]
+    set ::double_read_pass_a_snapshot($hardware_name) $single_snapshot
+    set ::double_read_pass_b_snapshot($hardware_name) $single_snapshot
+    if {[lindex $single_snapshot 0]} {
+      incr ::double_read_transaction_valid_count($hardware_name)
+      incr ::double_read_pass_a_transport_valid_count($hardware_name)
+    } else {
+      incr ::double_read_transaction_invalid_count($hardware_name)
+    }
+    return $single_snapshot
+  }
   if {![request_atomic_pi_snapshot $hardware_name $request_seq]} {
     set ::snapshot_bank_seq_final($hardware_name) INVALID
     set ::double_read_pass_a_snapshot($hardware_name) [read_pi_snapshot_invalid]
@@ -1163,6 +1193,12 @@ proc initialize_board {hardware_name} {
   set ::main_locked_final($hardware_name) INVALID
   set ::pstat_locked_first($hardware_name) INVALID
   set ::pstat_locked_final($hardware_name) INVALID
+  set ::helper_locked_ever($hardware_name) 0
+  set ::main_enabled_ever($hardware_name) 0
+  set ::main_freq_locked_ever($hardware_name) 0
+  set ::main_phase_locked_ever($hardware_name) 0
+  set ::main_locked_ever($hardware_name) 0
+  set ::pstat_locked_ever($hardware_name) 0
   set ::tag_valid_first($hardware_name) INVALID
   set ::tag_valid_final($hardware_name) INVALID
   set ::normal_completed_first($hardware_name) INVALID
@@ -1189,6 +1225,8 @@ proc initialize_board {hardware_name} {
   set ::reset_first($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::reset_final($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::elapsed_final($hardware_name) 0
+  set ::rxerr_first($hardware_name) INVALID
+  set ::rxerr_final($hardware_name) INVALID
   set ::snapshot_req_first($hardware_name) INVALID
   set ::snapshot_req_final($hardware_name) INVALID
   set ::snapshot_ack_first($hardware_name) INVALID
@@ -1348,6 +1386,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set main_freq_locked [probe_field32 $main_state 2 1]
   set main_phase_locked [probe_field32 $main_state 3 1]
   set pstat_locked [probe_field32 $pstat 1 1]
+  set rxerr_count [word32 [wb_read $hardware_name 0x00100A60]]
 
   set position_context_ok 1
   set position_context_field NONE
@@ -1380,6 +1419,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::main_phase_locked_first($hardware_name) $main_phase_locked
     set ::main_locked_first($hardware_name) $main_locked
     set ::pstat_locked_first($hardware_name) $pstat_locked
+    set ::rxerr_first($hardware_name) $rxerr_count
     set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
     set ::snapshot_req_first($hardware_name) $snapshot_req_count
     set ::snapshot_ack_first($hardware_name) $snapshot_ack_count
@@ -1403,6 +1443,13 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::main_phase_locked_final($hardware_name) $main_phase_locked
   set ::main_locked_final($hardware_name) $main_locked
   set ::pstat_locked_final($hardware_name) $pstat_locked
+  set ::rxerr_final($hardware_name) $rxerr_count
+  if {$helper_locked ne "INVALID" && $helper_locked == 1} { set ::helper_locked_ever($hardware_name) 1 }
+  if {$main_enabled ne "INVALID" && $main_enabled == 1} { set ::main_enabled_ever($hardware_name) 1 }
+  if {$main_freq_locked ne "INVALID" && $main_freq_locked == 1} { set ::main_freq_locked_ever($hardware_name) 1 }
+  if {$main_phase_locked ne "INVALID" && $main_phase_locked == 1} { set ::main_phase_locked_ever($hardware_name) 1 }
+  if {$main_locked ne "INVALID" && $main_locked == 1} { set ::main_locked_ever($hardware_name) 1 }
+  if {$pstat_locked ne "INVALID" && $pstat_locked == 1} { set ::pstat_locked_ever($hardware_name) 1 }
   set ::snapshot_req_final($hardware_name) $snapshot_req_count
   set ::snapshot_ack_final($hardware_name) $snapshot_ack_count
   set ::snapshot_ack_seq_final($hardware_name) $snapshot_ack_seq
@@ -1593,13 +1640,13 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::previous_freq_error($hardware_name) $freq_error
   }
 
-  puts [format "STEP5_PI_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d PI_TRACE_PRESENT=%d PI_SNAPSHOT_REJECTS=%d PI_EPOCH=%s TAG_RAW=%s P_ADDER=%s P_SETPOINT=%s RAW_ERROR=%s LD_ERROR=%s PI_INTEGRATOR_BEFORE=%s PI_I_NEW=%s PI_INTEGRATOR_AFTER=%s PI_PROP_TERM=%s PI_Y_PREROUND=%s PI_UNCLAMPED_OUTPUT=%s PI_Y_MIN=%s PI_Y_MAX=%s PI_CLAMPED_OUTPUT=%s PI_CLAMP_SIDE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s FREQ_ERROR=%s TARGET_CODE=%s APPLIED_CODE=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s NORMAL_FINC=%s NORMAL_FDEC=%s DCO_STEP=%s FORCED_COMPLETED=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s SPLL_INIT_COUNT=%s CLEAR_DACS_COUNT=%s SPLL_DELOCK_COUNT=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s PSTAT_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
+  puts [format "STEP5_PI_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d PI_TRACE_PRESENT=%d PI_SNAPSHOT_REJECTS=%d PI_EPOCH=%s TAG_RAW=%s P_ADDER=%s P_SETPOINT=%s RAW_ERROR=%s LD_ERROR=%s PI_INTEGRATOR_BEFORE=%s PI_I_NEW=%s PI_INTEGRATOR_AFTER=%s PI_PROP_TERM=%s PI_Y_PREROUND=%s PI_UNCLAMPED_OUTPUT=%s PI_Y_MIN=%s PI_Y_MAX=%s PI_CLAMPED_OUTPUT=%s PI_CLAMP_SIDE=%s HELPER_ERROR=%s HELPER_OUTPUT=%s FREQ_ERROR=%s TARGET_CODE=%s APPLIED_CODE=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s NORMAL_FINC=%s NORMAL_FDEC=%s DCO_STEP=%s FORCED_COMPLETED=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s SPLL_INIT_COUNT=%s CLEAR_DACS_COUNT=%s SPLL_DELOCK_COUNT=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s PSTAT_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RXERR_COUNT=%s" \
     $hardware_name $sample $elapsed_ms $valid $pi_present $checked_rejects $pi_epoch \
     $pi_tag_raw $pi_p_adder $pi_p_setpoint $pi_raw_error $pi_ld_error $pi_before $pi_i_new $pi_after $pi_prop $pi_preround \
     $pi_unclamped $pi_y_min $pi_y_max $pi_clamped $pi_side $helper_error $helper_output $freq_error \
     $position_target $position_applied $normal_req $normal_completed $normal_finc $normal_fdec $dco_step $forced_completed \
     $bootstrap_completed_counter $bootstrap_done $spll_init_count $clear_dacs_count $spll_delock $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked $helper_locked $helper_count \
-    $entry_generation $cpu_reset $wr_reset $si_drop]
+    $entry_generation $cpu_reset $wr_reset $si_drop $rxerr_count]
   puts [format "STEP5_ATOMIC_SNAPSHOT_SAMPLE board=%s sample=%d REQUEST_SEQ=%s LAST_REQ_SEQ=%s BANK_SEQ=%s SNAPSHOT_ACK_SEQ=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d" \
     $hardware_name $sample $::snapshot_request_seq_final($hardware_name) $snapshot_last_req_seq \
     $::snapshot_bank_seq_final($hardware_name) $snapshot_ack_seq $snapshot_req_count \
@@ -1654,6 +1701,8 @@ proc emit_summary {hardware_name} {
   }
   set spll_init_delta [counter_delta $::spll_init_first($hardware_name) $::spll_init_final($hardware_name) 32]
   set clear_dacs_delta [counter_delta $::clear_dacs_first($hardware_name) $::clear_dacs_final($hardware_name) 32]
+  set spll_delock_delta [counter_delta $::spll_delock_first($hardware_name) $::spll_delock_final($hardware_name) 8]
+  set rxerr_delta [counter_delta $::rxerr_first($hardware_name) $::rxerr_final($hardware_name) 32]
   set normal_req_delta [counter_delta $::normal_req_first($hardware_name) $::normal_req_final($hardware_name) 16]
   set normal_completed_delta [counter_delta $::normal_completed_first($hardware_name) $::normal_completed_final($hardware_name) 16]
   set dco_step_delta [counter_delta $::dco_step_first($hardware_name) $::dco_step_final($hardware_name) 16]
@@ -1752,6 +1801,17 @@ proc emit_summary {hardware_name} {
     $::pi_i_new_final($hardware_name) $::pi_after_final($hardware_name) $::pi_unclamped_final($hardware_name) \
     $::pi_clamped_final($hardware_name) $::pi_side_final($hardware_name) $::pi_raw_error_final($hardware_name) \
     $::pi_ld_error_final($hardware_name) $::pi_prop_final($hardware_name) $::pi_preround_final($hardware_name)]
+  puts [format "STEP5_LONG_DYNAMICS_STATE board=%s WINDOW_SECONDS=%.3f VALID_SAMPLES=%d INVALID_SAMPLES=%d HELPER_LOCKED_EVER=%d HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_MAX=%d HELPER_LOCK_COUNT_FINAL=%s MAIN_ENABLED_EVER=%d MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_EVER=%d MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_EVER=%d MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_EVER=%d MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_EVER=%d PSTAT_LOCKED_FINAL=%s SPLL_INIT_DELTA=%s SPLL_DELOCK_COUNT_DELTA=%s RXERR_DELTA=%s KI_REDUCTION_DIRECTION_EFFECTIVE=%s STEADY_LOW_RAIL_SATURATION=%s" \
+    $hardware_name $window_seconds $valid $invalid $::helper_locked_ever($hardware_name) \
+    $::helper_locked_final($hardware_name) $::helper_lock_max($hardware_name) $::helper_count_final($hardware_name) \
+    $::main_enabled_ever($hardware_name) $::main_enabled_final($hardware_name) \
+    $::main_freq_locked_ever($hardware_name) $::main_freq_locked_final($hardware_name) \
+    $::main_phase_locked_ever($hardware_name) $::main_phase_locked_final($hardware_name) \
+    $::main_locked_ever($hardware_name) $::main_locked_final($hardware_name) \
+    $::pstat_locked_ever($hardware_name) $::pstat_locked_final($hardware_name) \
+    $spll_init_delta $spll_delock_delta $rxerr_delta \
+    [expr {$error_count > 0 && $::helper_lock_max($hardware_name) > 0 && $no_rail_fraction > 0.011 ? "YES" : ($error_count > 0 && $::low_rail_count($hardware_name) == $pi_count && $::helper_lock_max($hardware_name) == 0 ? "NO" : "INCONCLUSIVE")}] \
+    [expr {$pi_count > 0 && $::low_rail_count($hardware_name) == $pi_count && $::helper_lock_max($hardware_name) == 0 ? "CONFIRMED" : "NO"}]]
   puts [format "STEP5_ATOMIC_SNAPSHOT_TRANSPORT_V3 board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d PI_TRACE_PRESENT=%d SNAPSHOT_REQ_COUNT=%s SNAPSHOT_BANK_COMMIT_COUNT=%s SNAPSHOT_ACK_COUNT=%s SNAPSHOT_OVERWRITE_COUNT=%s SNAPSHOT_REQ_DELTA=%s SNAPSHOT_BANK_COMMIT_DELTA=%s SNAPSHOT_ACK_DELTA=%s SNAPSHOT_OVERWRITE_DELTA=%s LAST_REQ_SEQ=%s LAST_BANK_SEQ=%s LAST_ACK_SEQ=%s ACK_TIMEOUT=%d ACK_MISMATCH=%d EPOCH_GENERATION_MISMATCH=%d EPOCH_CHANGED_DURING_READ=%d ATOMIC_SNAPSHOT_TRANSPORT_V3=%s" \
     $hardware_name $::sample_count($hardware_name) $valid $::invalid_frame_count($hardware_name) $pi_count \
     $::snapshot_req_final($hardware_name) $::snapshot_bank_commit_final($hardware_name) \
@@ -1796,7 +1856,8 @@ proc emit_summary {hardware_name} {
     $::double_read_pass_a_math_valid_count($hardware_name) \
     $::double_read_pass_b_math_valid_count($hardware_name) \
     $frozen_stability $double_interpretation [join $difference_fields " "]]
-  set transport_pass [expr {
+  if {$::double_read_enabled} {
+    set transport_pass [expr {
     $::wb_request_count($hardware_name) == $::wb_commit_count($hardware_name) &&
     $::wb_request_count($hardware_name) == $::wb_preload_count($hardware_name) &&
     $::wb_preload_unexpected_trigger_count($hardware_name) == 0 &&
@@ -1831,6 +1892,7 @@ proc emit_summary {hardware_name} {
     $::snapshot_ack_timeout_count($hardware_name) $::snapshot_ack_mismatch_count($hardware_name) \
     $::snapshot_epoch_generation_mismatch_count($hardware_name) $::snapshot_epoch_changed_count($hardware_name) \
     $transport_pass $v4_smoke_result]
+  }
   set primary_sum 0
   set primary_fields {}
   foreach reason $::primary_reject_reason_order {
@@ -1851,7 +1913,7 @@ proc emit_summary {hardware_name} {
     [join $primary_fields " "]]
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260901 read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=pass_a_pass_b_same_request bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260901 read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=%d bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $::double_read_enabled]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

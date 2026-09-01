@@ -60,7 +60,6 @@ set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_RX_p
 set_instance_assignment -name IO_STANDARD "HSSI Differential I/O" -to QSFPA_TX_p[1]
 set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_RX_p[1]
 set_instance_assignment -name XCVR_IO_PIN_TERMINATION 100_OHMS -to QSFPA_TX_p[1]
-set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[0]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[1]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[2]
 set_instance_assignment -name XCVR_A10_TX_PRE_EMP_SWITCHING_CTRL_1ST_POST_TAP 18 -to QSFPA_TX_p[3]

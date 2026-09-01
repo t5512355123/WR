@@ -1287,6 +1287,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 proc emit_summary {hardware_name} {
   global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
   set valid $::valid_frame_count($hardware_name)
+  set invalid $::invalid_frame_count($hardware_name)
   set pi_count $::pi_present_count($hardware_name)
   set rail_fraction [expr {$pi_count > 0 ? 100.0 * $::low_rail_count($hardware_name) / double($pi_count) : 0.0}]
   set high_fraction [expr {$pi_count > 0 ? 100.0 * $::high_rail_count($hardware_name) / double($pi_count) : 0.0}]

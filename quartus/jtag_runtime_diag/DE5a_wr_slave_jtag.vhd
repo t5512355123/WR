@@ -1756,12 +1756,12 @@ begin
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
       -- Step5 guarded actuator-headroom perturbation: use the branch5-approved
-      -- operating-point extension: move the bootstrap from 6208 to 6240 while
+      -- operating-point midpoint: move the bootstrap from 6240 to 6224 while
       -- retaining the 128 code-per-physical-step mapping.
       -- All other Step5 control parameters remain unchanged.
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 6240,
+      STEP5_BOOTSTRAP_STEPS => 6224,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 128,
       JTAG_HPLL_BURST_SIZE => 32
     )

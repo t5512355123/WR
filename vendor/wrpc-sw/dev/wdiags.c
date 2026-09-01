@@ -75,6 +75,9 @@ static uint32_t wdiags_helper_pi_snapshot_ack_seq;
 static uint32_t wdiags_helper_pi_snapshot_last_request_seq;
 static uint32_t wdiags_helper_pi_snapshot_req_count;
 static uint32_t wdiags_helper_pi_snapshot_ack_count;
+static uint32_t wdiags_helper_pi_snapshot_bank_commit_count;
+static uint32_t wdiags_helper_pi_snapshot_overwrite_count;
+static int wdiags_helper_pi_snapshot_v2_active;
 
 static int wdiag_write( uint32_t reg, uint32_t value );
 static void wdiags_write_boot_startup(void);
@@ -330,12 +333,25 @@ int wdiags_helper_pi_snapshot_request_pending(uint32_t *request_seq)
 		return 0;
 
 	/* Count each newly observed request once, even if the 100 ms diagnostics
-	 * task sees it more than once before the payload is published. */
+	 * task sees it more than once before the payload is published.  If the
+	 * requester advances the sequence before the previous one was ACKed, the
+	 * previous frozen-bank transaction was overwritten; retain that fact
+	 * explicitly instead of silently treating the latest request as a clean
+	 * one-to-one transaction. */
 	if (request != wdiags_helper_pi_snapshot_last_request_seq) {
+		if (wdiags_helper_pi_snapshot_last_request_seq != 0 &&
+		    wdiags_helper_pi_snapshot_ack_seq !=
+		    wdiags_helper_pi_snapshot_last_request_seq)
+			wdiags_helper_pi_snapshot_overwrite_count++;
 		wdiags_helper_pi_snapshot_last_request_seq = request;
+		wdiags_helper_pi_snapshot_v2_active = 1;
 		wdiags_helper_pi_snapshot_req_count++;
 		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT,
 				wdiags_helper_pi_snapshot_req_count);
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_REQ_SEQ,
+				request);
+		wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_OVERWRITE_COUNT,
+				wdiags_helper_pi_snapshot_overwrite_count);
 	}
 	return 1;
 }
@@ -899,6 +915,10 @@ void wdiags_write_mapping_self_test(uint32_t counter)
 	/* These values validate firmware write -> DPRAM -> JTAG read mapping.
 	 * They never feed back into WR control or the SoftPLL. */
 	/* 0x12c and 0x130 are part of the coherent Helper PI snapshot. */
+	/* V2 owns the 0x134/0x138 overlay after the first request.  Keep the
+	 * generation counters stable while the observer reads them. */
+	if (wdiags_helper_pi_snapshot_v2_active)
+		return;
 	wdiags_mapping_counter_shadow = counter;
 	wdiag_write(WRC_DIAGS_WDIAG_MAPPING_COUNTER,
 			(counter & 0xffffu) |
@@ -918,8 +938,12 @@ void wdiags_write_wr_spll_runtime_debug(uint32_t init_count,
 						uint32_t last_clear_dacs_tics)
 {
 	/* Read-only runtime context shadows. They never feed back into SoftPLL. */
-	wdiag_write(0x13c, current_tics);
-	wdiag_write(0x140, dac_timeout);
+	/* V2 owns 0x13c/0x140 as LAST_REQ_SEQ/BANK_SEQ.  The initialization and
+	 * clear-DAC counters below remain available to the Step5 live guard. */
+	if (!wdiags_helper_pi_snapshot_v2_active) {
+		wdiag_write(0x13c, current_tics);
+		wdiag_write(0x140, dac_timeout);
+	}
 	wdiag_write(0x144, init_count);
 	wdiag_write(0x148, clear_dacs_count);
 	wdiag_write(0x14c, last_init_tics);
@@ -1096,18 +1120,25 @@ void wdiags_write_wr_spll_helper_pi_trace(
 
 void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq)
 {
-	if (request_seq == 0 || request_seq == wdiags_helper_pi_snapshot_ack_seq)
+	if (request_seq == 0 || request_seq == wdiags_helper_pi_snapshot_ack_seq ||
+	    request_seq != wdiags_helper_pi_snapshot_last_request_seq)
 		return;
 
 	/* The PI payload is already complete and its even epoch has been
-	 * published before these counters and the final ACK sequence are written.
-	 * The WB observer therefore never treats a partially copied payload as a
-	 * valid snapshot. */
+	 * published before the bank sequence is committed.  ACK_SEQ is written
+	 * last, so the WB observer can prove that one request, one frozen bank,
+	 * and one acknowledgement all carry the same generation. */
+	wdiags_helper_pi_snapshot_bank_commit_count++;
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_COMMIT_COUNT,
+			wdiags_helper_pi_snapshot_bank_commit_count);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_SEQ, request_seq);
+	wdiag_publish_barrier();
 	wdiags_helper_pi_snapshot_ack_count++;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT,
 			wdiags_helper_pi_snapshot_ack_count);
 	wdiag_publish_barrier();
-	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, request_seq);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_ACK_SEQ,
+			request_seq);
 	wdiags_helper_pi_snapshot_ack_seq = request_seq;
 }
 
@@ -1141,9 +1172,16 @@ int wdiags_init(void)
 	wdiags_helper_pi_snapshot_last_request_seq = 0;
 	wdiags_helper_pi_snapshot_req_count = 0;
 	wdiags_helper_pi_snapshot_ack_count = 0;
+	wdiags_helper_pi_snapshot_bank_commit_count = 0;
+	wdiags_helper_pi_snapshot_overwrite_count = 0;
+	wdiags_helper_pi_snapshot_v2_active = 0;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_COMMIT_COUNT, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_OVERWRITE_COUNT, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_REQ_SEQ, 0);
+	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_SEQ, 0);
 
 	wdiag_write( WRC_DIAGS_VER, WDIAGS_VERSION );
 	wdiags_write_mode_master_stage(

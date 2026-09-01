@@ -14,10 +14,21 @@
 
 /* The atomic PI snapshot request is carried by the SYSCON User-Diag
  * read/write bank.  These private WDIAGS words publish the completed
- * request/acknowledgement state; they are read-only from the WB observer. */
-#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ   0x128UL
+ * request/acknowledgement state; they are read-only from the WB observer.
+ *
+ * V2 transport overlay:
+ *   0x134/0x138 replace the mapping self-test words after the first
+ *   snapshot request, and 0x13c/0x140 replace the runtime current-tics and
+ *   DAC-timeout words for the duration of the transaction audit.  The
+ *   regular runtime context words at 0x144..0x150 remain available. */
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_ACK_SEQ 0x128UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ   WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_ACK_SEQ
 #define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT 0x12cUL
 #define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT 0x130UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_COMMIT_COUNT 0x134UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_OVERWRITE_COUNT 0x138UL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_LAST_REQ_SEQ 0x13cUL
+#define WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_BANK_SEQ 0x140UL
 
 /* WRPC Diag: servo status */
 #define WRC_DIAGS_WDIAG_SSTAT 0x8UL

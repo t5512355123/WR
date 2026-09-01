@@ -1756,13 +1756,13 @@ begin
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
       -- Step5 guarded actuator-headroom perturbation: use the branch5-approved
-      -- operating-point refinement: move the bootstrap from 6216 to 6212 while
-      -- retaining the 128 code-per-physical-step mapping.
+      -- actuator-gain refinement: return to bootstrap 6208 while moving from
+      -- 128 to 256 code-per-physical-step mapping.
       -- All other Step5 control parameters remain unchanged.
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 6212,
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 128,
+      STEP5_BOOTSTRAP_STEPS => 6208,
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 256,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

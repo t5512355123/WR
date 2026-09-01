@@ -1,0 +1,187 @@
+# EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-INVALID-FRAME-REJECT-ATTRIBUTION-100SAMPLES-20260901
+
+## 判定
+
+本實驗的唯一目的，是將 V3 atomic snapshot transport 的 invalid frame 以唯一的 `PRIMARY_REJECT_REASON` 歸因，並確認是否存在未分類失敗。
+
+```text
+REJECT_ATTRIBUTION_EXPERIMENT = PASS
+REJECT_ATTRIBUTION_COVERAGE = 49/49 (100.0%)
+UNCLASSIFIED_INVALID_FRAMES = 0
+SUM_PRIMARY_REJECT_COUNTS = 49
+V3_ATOMIC_SNAPSHOT_TRANSPORT_V3 = FAIL
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+KI_REDUCTION_DIRECTION_EFFECTIVE = NOT_ADJUDICATED
+EXPERIMENT_VALID_FOR_LONG_STEP5_OBSERVATION = NO
+```
+
+因此，本輪證明了 attribution observer 完整工作，但沒有證明 Step5 lock；依分支5的要求不執行 1800 秒長測，也不 merge。
+
+## 基線與範圍
+
+```text
+branch = exp/step5-softpll-lock
+functional_source_commit = 493b54b757cb0473e1c0e070f6db3ee7ad9852fa
+observer_commit = 779b4f6
+board = DE5 [1-11.2]
+role = SLAVE
+lane = 2
+bootstrap = 6176
+code_step = 64
+kp = -150
+ki = -1
+shift = 12
+bias = 5
+y_min = 5
+y_max = 65531
+lock_samples = 10000
+threshold = 200
+```
+
+本輪只修改 `scripts/jtag/read_step5_helper_pi_state_rail_audit.tcl` 的診斷與 reject attribution；沒有修改 firmware transport、epoch protocol、PI control、lane、bootstrap、kp/ki 或其他 functional code，也沒有重新 build/program FPGA。
+
+## Clean preflight
+
+在 attribution run 前先執行既有 runtime preflight，確認板卡與 image provenance 可用：
+
+- Master `DE5 [1-11.1]`：Step1、Step2、Step4A pass；role `MASTER` / PTP `MASTER`；RXERR delta 0；reset deltas 0。
+- Slave `DE5 [1-11.2]`：Step1、Step2、Step3、Step4B pass；role `SLAVE` / PTP `SLAVE`；RXERR delta 0；reset deltas 0。
+- Slave Step5 仍為 `NEVER_LOCKED`，第一個 inactive boundary 為 `HELPER_LOCK`，`PSTAT_LOCKED=0`。
+
+## 執行
+
+```text
+/mnt/ds1515/opt/intelFPGA_pro/21.3/quartus/bin/quartus_stp -t scripts/jtag/read_step5_helper_pi_state_rail_audit.tcl 100 100 "DE5 [1-11.2]"
+```
+
+觀測窗為 100 samples / 9.900 seconds；Quartus Tcl script successful，0 errors，0 warnings。
+
+## V3 transport 統計
+
+```text
+SAMPLES = 100
+VALID_FRAMES = 51
+INVALID_FRAMES = 49
+PI_TRACE_PRESENT = 51
+SNAPSHOT_REQ_COUNT = 288
+SNAPSHOT_BANK_COMMIT_COUNT = 288
+SNAPSHOT_ACK_COUNT = 288
+SNAPSHOT_OVERWRITE_COUNT = 0
+SNAPSHOT_REQ_DELTA = 95
+SNAPSHOT_BANK_COMMIT_DELTA = 95
+SNAPSHOT_ACK_DELTA = 95
+SNAPSHOT_OVERWRITE_DELTA = 0
+LAST_REQ_SEQ = 100
+LAST_BANK_SEQ = 100
+LAST_ACK_SEQ = 100
+ACK_TIMEOUT = 4
+ACK_MISMATCH = 5
+EPOCH_GENERATION_MISMATCH = 4
+EPOCH_CHANGED_DURING_READ = 4
+ATOMIC_SNAPSHOT_TRANSPORT_V3 = FAIL
+```
+
+## 唯一 reject attribution
+
+每一筆 invalid frame 只被歸入一個 primary bucket：
+
+```text
+REQUEST_DATA_WRITE_FAIL = 0
+REQUEST_TRIGGER_WRITE_FAIL = 0
+ACK_TIMEOUT = 4
+ACK_BEGIN_MISMATCH = 0
+EPOCH_BEGIN_INVALID = 0
+EPOCH_GENERATION_MISMATCH = 4
+PAYLOAD_READ_INVALID = 0
+EPOCH_CHANGED_DURING_READ = 0
+ACK_END_MISMATCH = 5
+MAGIC_MISMATCH = 1
+PI_MATH_HEADER_FAIL = 0
+PI_MATH_CONSTANT_FAIL = 16
+PI_MATH_RAW_ERROR_FAIL = 6
+PI_MATH_I_NEW_FAIL = 3
+PI_MATH_INTEGRATOR_FAIL = 4
+PI_MATH_PROP_FAIL = 1
+PI_MATH_PREROUND_FAIL = 1
+PI_MATH_OUTPUT_FAIL = 1
+PI_MATH_CLAMP_FAIL = 3
+POSITION_CONTEXT_FAIL = 0
+OTHER = 0
+```
+
+```text
+SUM_PRIMARY_REJECT_COUNTS = 49
+INVALID_FRAMES = 49
+UNCLASSIFIED_INVALID_FRAMES = 0
+REJECT_ATTRIBUTION_COVERAGE = 100.0%
+```
+
+## Helper / PI 結果
+
+```text
+HELPER_ERROR_SAMPLES = 51
+HELPER_ERROR_MEAN = 150000.0
+HELPER_ERROR_RMS = 150000.0
+HELPER_ERROR_MAX_ABS = 150000
+FRACTION_ABS_ERROR_LE_200 = 0.0
+RAW_ERROR_SAMPLES = 51
+RAW_ERROR_POSITIVE_FRACTION = 100.0%
+LOW_RAIL_SAMPLES = 51
+LOW_RAIL_FRACTION = 100.000%
+HIGH_RAIL_SAMPLES = 0
+NO_RAIL_FRACTION = 0.000%
+HELPER_LOCK_COUNT_MAX = 0
+HELPER_LOCK_COUNT_FINAL = 0
+ERROR_BAND_EXIT_EVENTS = 0
+DYNAMICS_CANDIDATE = STEADY_BIAS_OR_ACTUATOR_RANGE_LIMIT_CANDIDATE
+LOW_RAIL_SATURATION = CONFIRMED
+ACTUATOR_RANGE_LIMIT_OR_REQUIRED_NEGATIVE_AUTHORITY = CONFIRMED
+CAUSALITY_CASE = A
+FREQ_ERROR_SAMPLES = 51
+FREQ_ERROR_MEAN = 226.784313725
+FREQ_ERROR_RMS = 356.6880033
+FREQ_ERROR_MAX_ABS = 537
+FREQ_ZERO_CROSSINGS = 0
+RAIL_TO_RAIL_CYCLE_COMPLETE = 0
+```
+
+所有 valid frame 的 helper output 都在 low rail `5`，Helper error 為 `+150000`，且沒有累積任何 lock count。這是目前 Step5 不能成立的直接 runtime 證據。
+
+## 穩定性與 accounting
+
+```text
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = PASS
+TRANSACTION_ACCOUNTING = PASS
+RESET_STABLE = PASS
+SPLL_INIT_COUNT_FIRST = 1
+SPLL_INIT_COUNT_FINAL = 1
+SPLL_INIT_DELTA = 0
+CLEAR_DACS_COUNT_FIRST = 1
+CLEAR_DACS_COUNT_FINAL = 1
+CLEAR_DACS_DELTA = 0
+HELPER_EPOCH_RESET_COUNT = 0
+NORMAL_REQ_DELTA = 0
+NORMAL_COMPLETED_DELTA = 0
+DCO_STEP_DELTA = 0
+FORCED_COMPLETED_DELTA = 0
+BOOTSTRAP_COMPLETED_FINAL = 6176
+BOOTSTRAP_COMPLETED_DELTA = 0
+MAIN_ENABLED_FINAL = 0
+MAIN_FREQ_LOCKED_FINAL = 0
+MAIN_PHASE_LOCKED_FINAL = 0
+MAIN_LOCKED_FINAL = 0
+PSTAT_LOCKED_FINAL = 0
+HELPER_LOCKED_FINAL = 0
+SPLL_DELOCK_COUNT_DELTA = 0
+RESET_BOOT_GENERATION_DELTA = 0
+RESET_CPU_DELTA = 0
+RESET_WR_CORE_DELTA = 0
+RESET_SI_CONFIG_DELTA = 0
+```
+
+## 後續建議
+
+這輪已排除「invalid frame 沒有被 observer 歸因」這個診斷盲點，但 V3 transport 仍有 49% invalid frame，且有效樣本全部落在 low rail、Helper lock count 為 0。下一步應由分支5根據這份完整 attribution 決定要優先修正量測 transport / snapshot read path，或另行設計能直接驗證控制器負 authority / actuator range 的實驗；在此之前不應把 Step5 標成 PASS。
+

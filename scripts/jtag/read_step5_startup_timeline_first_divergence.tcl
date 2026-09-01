@@ -29,6 +29,7 @@ array set ::prev {}
 array set ::first {}
 array set ::sample_count {}
 array set ::sample_error {}
+set ::persistent_probe 0
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -279,9 +280,11 @@ proc collect_targets {} {
 
 proc read_board_sample {role hardware_name device_name sample elapsed} {
   if {[catch {
-    start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
-    set ::wb_toggle($hardware_name) 0
-    wb_sync_toggle $hardware_name
+    if {!$::persistent_probe} {
+      start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
+      set ::wb_toggle($hardware_name) 0
+      wb_sync_toggle $hardware_name
+    }
 
     set status [probe_read 0]
     set entry_probe [probe_read 26]
@@ -315,14 +318,14 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     set dmtd_ref_accept [wb_read $hardware_name 0x0010022C]
     set dmtd_fb_accept [wb_read $hardware_name 0x00100230]
   } error_message]} {
-    catch {end_insystem_source_probe}
+    if {!$::persistent_probe} { catch {end_insystem_source_probe} }
     incr ::sample_error($role)
     puts [format "STARTUP_TIMELINE_SAMPLE_ERROR trial=%s role=%s board=%s sample=%03d elapsed_ms=%d message=%s" \
       $::trial_id $role $hardware_name $sample $elapsed $error_message]
     flush stdout
     return
   }
-  catch {end_insystem_source_probe}
+  if {!$::persistent_probe} { catch {end_insystem_source_probe} }
   incr ::sample_count($role)
 
   set si_config_done [bit32 $status 0]
@@ -469,21 +472,55 @@ puts [format "STARTUP_TIMELINE_CONFIG trial=%s board_filter=%s duration_ms=%d ea
   $::trial_id $::board_filter $::duration_ms $::early_window_ms $::early_gap_ms $::late_gap_ms $::targets]
 flush stdout
 
-while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
-  incr ::sample_seq
-  set elapsed [expr {[clock milliseconds] - $::start_ms}]
-  foreach target $::targets {
-    read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
-  }
-  set now_elapsed [expr {[clock milliseconds] - $::start_ms}]
-  if {$now_elapsed < $::duration_ms} {
-    if {$now_elapsed < $::early_window_ms} {
-      set target_elapsed [expr {$now_elapsed + $::early_gap_ms}]
-    } else {
-      set target_elapsed [expr {$now_elapsed + $::late_gap_ms}]
+if {[llength $::targets] == 1} {
+  # In the normal two-process invocation each process owns one cable.  Keep
+  # that read-only probe session open so the requested 1 s / 2 s cadence is
+  # not dominated by repeated SignalTap probe connection setup.
+  set target [lindex $::targets 0]
+  if {[catch {
+    start_insystem_source_probe -hardware_name [lindex $target 1] -device_name [lindex $target 2]
+    set ::wb_toggle([lindex $target 1]) 0
+    wb_sync_toggle [lindex $target 1]
+    set ::persistent_probe 1
+    while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
+      incr ::sample_seq
+      set elapsed [expr {[clock milliseconds] - $::start_ms}]
+      read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
+      set now_elapsed [expr {[clock milliseconds] - $::start_ms}]
+      if {$now_elapsed < $::duration_ms} {
+        if {$now_elapsed < $::early_window_ms} {
+          set target_elapsed [expr {$now_elapsed + $::early_gap_ms}]
+        } else {
+          set target_elapsed [expr {$now_elapsed + $::late_gap_ms}]
+        }
+        set sleep_ms [expr {$target_elapsed - ([clock milliseconds] - $::start_ms)}]
+        if {$sleep_ms > 0} { after $sleep_ms }
+      }
     }
-    set sleep_ms [expr {$target_elapsed - ([clock milliseconds] - $::start_ms)}]
-    if {$sleep_ms > 0} { after $sleep_ms }
+  } error_message]} {
+    incr ::sample_error([lindex $target 0])
+    puts [format "STARTUP_TIMELINE_SESSION_ERROR trial=%s role=%s board=%s message=%s" \
+      $::trial_id [lindex $target 0] [lindex $target 1] $error_message]
+  }
+  catch {end_insystem_source_probe}
+  set ::persistent_probe 0
+} else {
+  while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
+    incr ::sample_seq
+    set elapsed [expr {[clock milliseconds] - $::start_ms}]
+    foreach target $::targets {
+      read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
+    }
+    set now_elapsed [expr {[clock milliseconds] - $::start_ms}]
+    if {$now_elapsed < $::duration_ms} {
+      if {$now_elapsed < $::early_window_ms} {
+        set target_elapsed [expr {$now_elapsed + $::early_gap_ms}]
+      } else {
+        set target_elapsed [expr {$now_elapsed + $::late_gap_ms}]
+      }
+      set sleep_ms [expr {$target_elapsed - ([clock milliseconds] - $::start_ms)}]
+      if {$sleep_ms > 0} { after $sleep_ms }
+    }
   }
 }
 

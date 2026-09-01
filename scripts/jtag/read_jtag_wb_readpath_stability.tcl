@@ -170,7 +170,15 @@ proc audited_read {label addr iteration prev_label_name prev_value_name} {
 }
 
 proc checked_static_read {label addr expected iteration prev_label_name prev_value_name} {
-  set value [audited_read $label $addr $iteration $prev_label_name $prev_value_name]
+  upvar 1 $prev_label_name previous_label
+  upvar 1 $prev_value_name previous_value
+  # audited_read() updates caller-local state through upvar.  Keep a local
+  # alias here because this validation wrapper is one call frame deeper.
+  set local_previous_label $previous_label
+  set local_previous_value $previous_value
+  set value [audited_read $label $addr $iteration local_previous_label local_previous_value]
+  set previous_label $local_previous_label
+  set previous_value $local_previous_value
   if {![value_usable $value]} { return 0 }
   if {[word32 $value] != $expected} {
     if {$label eq "STATIC_A"} { incr ::static_signature_mismatch }

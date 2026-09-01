@@ -5,6 +5,7 @@
 #   - instance 1 的 mailbox 只送出 Wishbone read，不送出 write。
 #   - counter 以同一 JTAG session 的 before/after delta 判斷 activity。
 #   - TIMEOUT 永遠保留為無效證據，不會被轉成 0，也不會直接判定硬體失敗。
+#   - Wishbone request 使用 preload -> toggle commit，避免 bundled CDC race。
 #
 # 使用：
 #   quartus_stp -t read_wb_runtime.tcl
@@ -30,6 +31,23 @@ set ::board_count 0
 set ::raw_mode 0
 set ::max_read_attempts 5
 set ::observation_gap_ms 5000
+set ::wb_transport_protocol PRELOAD_THEN_TOGGLE_COMMIT
+set ::wb_request_count 0
+set ::wb_preload_count 0
+set ::wb_commit_count 0
+set ::wb_probe_read_count 0
+set ::wb_preload_unexpected_trigger_count 0
+set ::wb_probe_3way_match_count 0
+set ::wb_stable_response_wrong_count 0
+set ::wb_address_cross_contamination_count 0
+set ::wb_timeout_count 0
+set ::wb_invalid_count 0
+set ::wb_stale_count 0
+set ::wb_unstable_transaction_count 0
+set ::wb_dmtd_ref_decrease_count 0
+set ::wb_dmtd_fb_decrease_count 0
+set ::wb_last_static_addr ""
+set ::wb_last_static_value ""
 if {[info exists argv] && [lsearch -exact $argv "--raw"] >= 0} {
   set ::raw_mode 1
 }
@@ -150,6 +168,27 @@ proc register_value_valid {addr value} {
 
 proc probe_low32 {value} {
   return [word32 $value]
+}
+
+proc normalize_probe64 {value} {
+  if {![is_hex $value]} { return $value }
+  set text $value
+  if {[string length $text] > 16} {
+    set text [string range $text end-15 end]
+  }
+  return [string repeat 0 [expr {16 - [string length $text]}]]$text
+}
+
+proc probe_equal64 {left right} {
+  if {![is_hex $left] || ![is_hex $right]} { return 0 }
+  return [expr {[normalize_probe64 $left] eq [normalize_probe64 $right]}]
+}
+
+proc completion_probe_valid {value expected_toggle} {
+  if {![is_hex $value] || [stale_jtag_word $value]} { return 0 }
+  set done_toggle [bit64_high $value 3]
+  set active [bit64_high $value 4]
+  return [expr {$done_toggle == $expected_toggle && $active == 0}]
 }
 
 proc probe_high32 {value} {
@@ -544,25 +583,119 @@ proc mac_from_registers {mach macl} {
     [expr {($lo >> 8) & 0xff}] [expr {$lo & 0xff}]]
 }
 
+proc wb_probe_read {} {
+  incr ::wb_probe_read_count
+  set value [safe_probe_read 1]
+  if {$value eq "TIMEOUT"} {
+    incr ::wb_timeout_count
+    return $value
+  }
+  if {$value eq "INVALID"} {
+    incr ::wb_invalid_count
+    return $value
+  }
+  set value [normalize_probe64 $value]
+  if {[stale_jtag_word $value]} { incr ::wb_stale_count }
+  return $value
+}
+
+proc static_address_key {addr} {
+  return [format "0x%08X" [expr {$addr & 0xffffffff}]]
+}
+
+proc note_stable_wb_result {addr value} {
+  set key [static_address_key $addr]
+  set word [probe_low32 $value]
+  if {$key eq "0x00100124" && $word != 0x02000200} {
+    incr ::wb_stable_response_wrong_count
+  }
+  if {$key eq "0x00100128" &&
+      $word != 0x22334401 && $word != 0x22334402} {
+    incr ::wb_stable_response_wrong_count
+  }
+
+  # Detect the previous static register being returned for the next static
+  # request.  This is deliberately limited to the two immutable probes so a
+  # changing DMTD counter is never misclassified as address contamination.
+  if {($key eq "0x00100124" || $key eq "0x00100128") &&
+      $::wb_last_static_addr ne "" && $key ne $::wb_last_static_addr &&
+      [probe_low32 $value] == [probe_low32 $::wb_last_static_value]} {
+    incr ::wb_address_cross_contamination_count
+  }
+  if {$key eq "0x00100124" || $key eq "0x00100128"} {
+    set ::wb_last_static_addr $key
+    set ::wb_last_static_value $value
+  }
+}
+
 proc wb_read {addr} {
-  set ::wb_toggle [expr {$::wb_toggle ^ 1}]
-  set cmd [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  # Phase 1: preload the complete multi-bit request while keeping the
+  # currently completed toggle unchanged.  No transaction is expected here.
+  set preload_toggle $::wb_toggle
+  set preload_cmd [expr {$preload_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  incr ::wb_preload_count
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $preload_cmd] -value_in_hex
+  }]} {
+    incr ::wb_timeout_count
+    return "TIMEOUT"
+  }
+  after 2
+  set preload_probe [wb_probe_read]
+  if {[is_hex $preload_probe] && ![stale_jtag_word $preload_probe] &&
+      ![completion_probe_valid $preload_probe $preload_toggle]} {
+    incr ::wb_preload_unexpected_trigger_count
+  }
+
+  # Phase 2: commit the identical request by changing only the toggle.
+  set ::wb_toggle [expr {($preload_toggle ^ 1) & 1}]
+  set expected_toggle $::wb_toggle
+  set cmd [expr {$expected_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  incr ::wb_request_count
+  incr ::wb_commit_count
   if {[catch {
     write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
   }]} {
+    incr ::wb_timeout_count
     return "TIMEOUT"
   }
+
   after 5
+  set first_completion ""
   for {set n 0} {$n < 100} {incr n} {
-    set value [safe_probe_read 1]
-    set word [probe_low32 $value]
-    set done_toggle [bit64_high $value 3]
-    set active [bit64_high $value 4]
-    if {$word >= 0 && $done_toggle == $::wb_toggle && $active == 0} {
-      return [format %08X $word]
+    set value [wb_probe_read]
+    if {[completion_probe_valid $value $expected_toggle]} {
+      set first_completion $value
+      break
     }
     after 1
   }
+  if {$first_completion eq ""} {
+    incr ::wb_timeout_count
+    return "TIMEOUT"
+  }
+
+  # Require the complete 64-bit probe to remain coherent across three
+  # samples.  This rejects the prior done-toggle/new-data visibility race.
+  for {set attempt 1} {$attempt <= 10} {incr attempt} {
+    set p1 [wb_probe_read]
+    after 1
+    set p2 [wb_probe_read]
+    after 1
+    set p3 [wb_probe_read]
+    if {[completion_probe_valid $p1 $expected_toggle] &&
+        [completion_probe_valid $p2 $expected_toggle] &&
+        [completion_probe_valid $p3 $expected_toggle] &&
+        [probe_equal64 $p1 $p2] && [probe_equal64 $p2 $p3]} {
+      incr ::wb_probe_3way_match_count
+      set result [format %08X [probe_low32 $p3]]
+      note_stable_wb_result $addr $p3
+      return $result
+    }
+    after 1
+  }
+  incr ::wb_unstable_transaction_count
+  incr ::wb_timeout_count
   return "TIMEOUT"
 }
 
@@ -1139,6 +1272,8 @@ proc analyze_board {board} {
     set fb_b [get_snap $board $before dmtd_fb]
     set fb_a [get_snap $board $after dmtd_fb]
     set fb_d [delta32 $fb_b $fb_a]
+    if {$ref_d eq "DECREASED"} { incr ::wb_dmtd_ref_decrease_count }
+    if {$fb_d eq "DECREASED"} { incr ::wb_dmtd_fb_decrease_count }
     set ref_status [delta_status $ref_d]
     set fb_status [delta_status $fb_d]
     print_delta $ref_status "DMTD reference accepted event" DMTD_REF_ACCEPT_EVENT \
@@ -1312,6 +1447,8 @@ proc analyze_board {board} {
       set fb_b [get_snap $board $before dmtd_fb]
       set fb_a [get_snap $board $after dmtd_fb]
       set fb_d [delta32 $fb_b $fb_a]
+      if {$ref_d eq "DECREASED"} { incr ::wb_dmtd_ref_decrease_count }
+      if {$fb_d eq "DECREASED"} { incr ::wb_dmtd_fb_decrease_count }
       print_delta [delta_status $ref_d] "DMTD reference accepted event" DMTD_REF_ACCEPT_EVENT \
         $ref_b $ref_a $ref_d "source-backed dmtd_event_sys REF counter" "Δ>=0"
       print_delta [delta_status $fb_d] "DMTD feedback accepted event" DMTD_FB_ACCEPT_EVENT \
@@ -1577,7 +1714,9 @@ foreach hardware_name [get_hardware_names] {
   incr ::board_count
   set ::board_name($board) $hardware_name
   set ::first_anomaly($board) ""
-    catch { end_insystem_source_probe }
+  set ::wb_last_static_addr ""
+  set ::wb_last_static_value ""
+  catch { end_insystem_source_probe }
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
@@ -1596,6 +1735,39 @@ foreach hardware_name [get_hardware_names] {
   }
   catch { end_insystem_source_probe }
 }
+
+puts ""
+puts "============================================================"
+puts "JTAG/WB transport health summary"
+puts "============================================================"
+puts [format "WB_TRANSPORT_PROTOCOL = %s" $::wb_transport_protocol]
+puts [format "WB_REQUEST_COUNT = %d" $::wb_request_count]
+puts [format "PRELOAD_COUNT = %d" $::wb_preload_count]
+puts [format "COMMIT_COUNT = %d" $::wb_commit_count]
+puts [format "WB_PROBE_READ_COUNT = %d" $::wb_probe_read_count]
+puts [format "PRELOAD_UNEXPECTED_TRIGGER_COUNT = %d" $::wb_preload_unexpected_trigger_count]
+puts [format "PROBE_3WAY_MATCH_COUNT = %d" $::wb_probe_3way_match_count]
+puts [format "STABLE_RESPONSE_WRONG_COUNT = %d" $::wb_stable_response_wrong_count]
+puts [format "ADDRESS_CROSS_CONTAMINATION_COUNT = %d" $::wb_address_cross_contamination_count]
+puts [format "TIMEOUT_COUNT = %d" $::wb_timeout_count]
+puts [format "INVALID_COUNT = %d" $::wb_invalid_count]
+puts [format "STALE_A5A5_COUNT = %d" $::wb_stale_count]
+puts [format "UNSTABLE_TRANSACTION_COUNT = %d" $::wb_unstable_transaction_count]
+puts [format "DMTD_REF_DECREASE_COUNT = %d" $::wb_dmtd_ref_decrease_count]
+puts [format "DMTD_FB_DECREASE_COUNT = %d" $::wb_dmtd_fb_decrease_count]
+if {$::wb_preload_unexpected_trigger_count == 0 &&
+    $::wb_stable_response_wrong_count == 0 &&
+    $::wb_address_cross_contamination_count == 0 &&
+    $::wb_timeout_count == 0 && $::wb_invalid_count == 0 &&
+    $::wb_stale_count == 0 && $::wb_dmtd_ref_decrease_count == 0 &&
+    $::wb_dmtd_fb_decrease_count == 0} {
+  puts "PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = PASS"
+  puts "JTAG_WB_DIAGNOSTIC_PATH = TRUSTED"
+} else {
+  puts "PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = FAIL"
+  puts "JTAG_WB_DIAGNOSTIC_PATH = NOT_TRUSTED"
+}
+puts "============================================================"
 
 if {$::step4_master_name ne "" || [array size ::step4b_result] > 0} {
   puts ""

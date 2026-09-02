@@ -1,0 +1,32 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Assembler
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep  2 17:38:31 2026
+Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+Warning (125092): Tcl Script File ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.qip not found
+    Info (125063): set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.qip
+Warning (125092): Tcl Script File ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.qip not found
+    Info (125063): set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.qip
+Warning (125092): Tcl Script File ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/wr_arria10_e3p1_rst_ctl.qip not found
+    Info (125063): set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/wr_arria10_e3p1_rst_ctl.qip
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Warning (12914): The file, /home/b10504072/04_WR/artifacts/exp-step5-frozen-fit-20260902/canonical-7585a06-before-mif-rollback/generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/wr_arria10_e3p1_det_phy.sopcinfo, is not embedded into sof file as expected.  Some tools, such as System Console, may not function fully.
+Info: Quartus Prime Assembler was successful. 0 errors, 5 warnings
+    Info: Peak virtual memory: 6962 megabytes
+    Info: Processing ended: Wed Sep  2 17:38:57 2026
+    Info: Elapsed time: 00:00:26
+    Info: Total CPU time (on all processors): 00:00:26

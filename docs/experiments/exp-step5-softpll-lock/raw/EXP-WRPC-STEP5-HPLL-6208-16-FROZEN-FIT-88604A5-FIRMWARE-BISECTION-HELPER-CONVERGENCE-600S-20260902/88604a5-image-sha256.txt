@@ -1,0 +1,4 @@
+63f55795f9d8a8bdef1ea266a026c6ed89f72e9e72ff6b95f28c2d05daa63cf9  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/build/firmware/master/wrc.mif
+ce485d0b0073367dab8195eeea7afeab794540dd721c2fa2e6b4458712b007a5  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/build/firmware/slave/wrc.mif
+865004af63048ba0625e266274f9aeb44615ef668d5bfdae080b2f0e25690906  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+a73b9b78385f82bc6a5e69b4ebe7a76372cbe21360597f25d6d4481c2c6db79a  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

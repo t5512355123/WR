@@ -39,6 +39,7 @@ if {$baseline_seconds <= 0 || $burst_size <= 0 || $burst_size > 65535 ||
 
 array set ::wb_toggle {}
 array set ::snap {}
+set ::wb_debug_count 0
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -133,6 +134,18 @@ proc wb_read {hardware_name addr} {
       set raw INVALID
     }
     set word [word64 $raw]
+    if {$addr == 0x00100B00 && $::wb_debug_count < 8} {
+      set debug_done INVALID
+      set debug_active INVALID
+      if {$word >= 0} {
+        set debug_done [field64 $word 35 1]
+        set debug_active [field64 $word 36 1]
+      }
+      puts [format "BIDIR_WB_DEBUG raw=%s word=%s done=%s active=%s expected=%s" \
+        $raw $word $debug_done $debug_active $expected_toggle]
+      incr ::wb_debug_count
+      flush stdout
+    }
     if {$word >= 0} {
       set done_toggle [field64 $word 35 1]
       set active [field64 $word 36 1]

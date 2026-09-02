@@ -1,0 +1,32 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Wed Sep  2 12:58:18 2026
+    Info: System process ID: 3323578
+Info: Command: quartus_stp -t scripts/jtag/read_step5_bidirectional_actuator_step_response.tcl 5 128 5 10 100 100 2000 "DE5 [1-11.2]"
+Info: Quartus(args): 5 128 5 10 100 100 2000 {DE5 [1-11.2]}
+BIDIR_CONFIG experiment=EXP-WRPC-STEP5-HPLL-SI5340-BIDIRECTIONAL-ACTUATOR-STEP-RESPONSE-IDENTIFICATION-LANE2-20260902 baseline_seconds=5 burst_size=128 settle_updates=5 window_updates=10 sample_gap_ms=100 completion_poll_ms=100 normal_hpll_tracker=0 bootstrap=0 direction_encoding=0:FDEC,1:FINC read_only_measurement=1
+=== BIDIR_BOARD DE5 [1-11.2] ===
+BIDIR_DIRECTION source=38 value=0 meaning=FDEC
+BIDIR_ERROR board=DE5 [1-11.2] message=missing close-bracket error_info=missing close-bracket |     while executing | "puts [" |     (procedure "read_snapshot" line 56) |     invoked from within | "read_snapshot $hardware_name BASELINE_BEFORE"
+BIDIR_ACTUATOR_STEP_RESPONSE_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step5_bidirectional_actuator_step_response.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Wed Sep  2 12:58:23 2026
+    Info: Elapsed time: 00:00:05
+    Info: System process ID: 3323578

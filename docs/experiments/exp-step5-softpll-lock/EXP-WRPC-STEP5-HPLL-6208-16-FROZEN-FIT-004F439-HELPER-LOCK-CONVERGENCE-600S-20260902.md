@@ -86,8 +86,59 @@ STEP4B_COMPLETE           = YES
 STEP4B_REVALIDATED        = YES FOR 004F439 IMAGE
 STEP5_COMPLETE            = NO
 MERGE_APPROVED            = NO
-RUN_RESULT                = PENDING
+RUN_RESULT                = COMPLETED_NEGATIVE
 ```
+
+## 600-second Helper convergence result
+
+The observer completed normally on Slave `DE5 [1-11.2]`:
+
+```text
+SAMPLES                       = 6000
+VALID_FRAMES                  = 6000
+INVALID_FRAMES                = 0
+WINDOW_SECONDS                = 599.901
+HELPER_LOCK_COUNT_MAX         = 2
+HELPER_LOCK_COUNT_FINAL       = 2
+HELPER_LOCKED_SEEN            = 0
+HELPER_LOCKED_FINAL           = 0
+FIRST_HELPER_LOCK_SAMPLE      = NONE
+HELPER_ERROR_MEAN             = 150000.0
+HELPER_ERROR_RMS              = 150000.0
+HELPER_ERROR_MAX_ABS          = 150000
+HELPER_ERROR_FRACTION_LE_200  = 0.0
+HELPER_OUTPUT_RAIL5_FRACTION  = 100.0
+MAIN_ENABLED_FINAL            = 0
+MAIN_FREQ_LOCKED_FINAL        = 0
+MAIN_PHASE_LOCKED_FINAL       = 0
+MAIN_LOCKED_FINAL             = 0
+PSTAT_LOCKED_FINAL            = 0
+SPLL_DELOCK_COUNT_DELTA       = 0
+NORMAL_TRANSACTION_ACCOUNTING = PASS
+RESET_BOOT_GENERATION_DELTA   = 0
+RESET_CPU_DELTA               = 0
+RESET_WR_CORE_DELTA            = 0
+RESET_SI_CONFIG_DELTA         = 0
+```
+
+The run therefore closed the Helper-lock question for this exact image and
+control condition: the Helper lock gate was not reached. The first inactive
+Step5 boundary remains `HELPER_LOCK`; Main and PSTAT results are not
+interpretable as downstream failures because `MAIN_ENABLED` never became 1.
+
+## Final judgement
+
+```text
+STEP4B_COMPLETE           = YES
+STEP4B_REVALIDATED        = YES FOR 004F439 IMAGE
+STEP5_COMPLETE            = NO
+STEP5_RESULT              = NEVER_LOCKED
+STEP5_FIRST_INACTIVE      = HELPER_LOCK
+MERGE_APPROVED            = NO
+```
+
+This is not merge evidence. The next experiment remains subject to the
+branch5 review of this completed raw result.
 
 ## Raw evidence
 

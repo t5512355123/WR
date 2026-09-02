@@ -49,6 +49,7 @@ architecture rtl of DE5a_wr_master_jtag is
     generic (
       ENABLE_SAME_CODE_TEST : integer := 0;
       ENABLE_JTAG_HPLL_BURST : integer := 0;
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION : integer := 0;
       ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
       ENABLE_STEP5_BOOTSTRAP : integer := 0;
       STEP5_BOOTSTRAP_STEPS : integer := 6336;
@@ -94,6 +95,7 @@ architecture rtl of DE5a_wr_master_jtag is
       oDCO_STEP5_BOOTSTRAP_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POSITION_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POSITION_ACCOUNTING_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_ACTUATOR_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
   end component;
@@ -1482,6 +1484,7 @@ begin
       oDCO_STEP5_BOOTSTRAP_DEBUG => open,
       oDCO_STEP5_POSITION_DEBUG => open,
       oDCO_STEP5_POSITION_ACCOUNTING_DEBUG => open,
+      oDCO_STEP5_ACTUATOR_DEBUG => open,
       oDCO_STEP5_POLARITY_ACTIVE => open,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,

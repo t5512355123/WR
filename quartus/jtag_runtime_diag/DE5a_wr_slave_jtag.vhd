@@ -49,6 +49,7 @@ architecture rtl of DE5a_wr_slave_jtag is
     generic (
       ENABLE_SAME_CODE_TEST : integer := 0;
       ENABLE_JTAG_HPLL_BURST : integer := 0;
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION : integer := 0;
       ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
       ENABLE_STEP5_BOOTSTRAP : integer := 0;
       STEP5_BOOTSTRAP_STEPS : integer := 6336;
@@ -94,6 +95,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       oDCO_STEP5_BOOTSTRAP_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POSITION_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POSITION_ACCOUNTING_DEBUG : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_ACTUATOR_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_POLARITY_ACTIVE : out std_logic
     );
   end component;
@@ -241,6 +243,7 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_step5_bootstrap_debug_probe : std_logic_vector(63 downto 0);
   signal dco_step5_position_debug_probe : std_logic_vector(63 downto 0);
   signal dco_step5_position_accounting_debug_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_actuator_debug_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_source : std_logic_vector(0 downto 0);
   signal step5_burst_size_source : std_logic_vector(15 downto 0);
@@ -1318,6 +1321,23 @@ begin
       source_ena => '1'
     );
 
+  -- Explicit FINC/FDEC completion accounting for the plant-identification
+  -- image. This new probe leaves all legacy Step5 probe layouts unchanged.
+  u_step5_actuator_debug_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP5_ACTUATOR_DEBUG_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 49,
+      source_width            => 1
+    )
+    port map (
+      probe      => dco_step5_actuator_debug_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1755,15 +1775,15 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 guarded actuator-headroom perturbation: use the branch5-approved
-      -- proportional-gain refinement at bootstrap 6208 with the 128
-      -- code-per-physical-step mapping.
-      -- All other Step5 control parameters remain unchanged.
-      ENABLE_NORMAL_HPLL_TRACKER => 1,
-      ENABLE_STEP5_BOOTSTRAP => 1,
+      -- Step5 plant-identification image: pause normal closed-loop
+      -- correction and bootstrap while JTAG commands explicit FINC/FDEC
+      -- bursts.  All WR/SoftPLL inputs remain connected as before.
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      ENABLE_STEP5_BOOTSTRAP => 0,
       STEP5_BOOTSTRAP_STEPS => 6208,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 128,
-      JTAG_HPLL_BURST_SIZE => 32
+      JTAG_HPLL_BURST_SIZE => 128
     )
     port map (
       iCLK                   => CLK_50_B2J,
@@ -1795,6 +1815,7 @@ begin
       oDCO_STEP5_BOOTSTRAP_DEBUG => dco_step5_bootstrap_debug_probe,
       oDCO_STEP5_POSITION_DEBUG => dco_step5_position_debug_probe,
       oDCO_STEP5_POSITION_ACCOUNTING_DEBUG => dco_step5_position_accounting_debug_probe,
+      oDCO_STEP5_ACTUATOR_DEBUG => dco_step5_actuator_debug_probe,
       oDCO_STEP5_POLARITY_ACTIVE => step5_polarity_active,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,

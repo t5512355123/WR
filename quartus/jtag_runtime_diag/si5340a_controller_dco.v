@@ -5,6 +5,7 @@
 module si5340a_controller_dco #(
 parameter integer ENABLE_SAME_CODE_TEST = 0,
 parameter integer ENABLE_JTAG_HPLL_BURST = 0,
+parameter integer ENABLE_STEP5_ACTUATOR_IDENTIFICATION = 0,
 parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
 parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
 parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
@@ -49,6 +50,7 @@ output    [63:0]        oDCO_STEP5_TRACKER_DEBUG,
 output    [63:0]        oDCO_STEP5_BOOTSTRAP_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_ACCOUNTING_DEBUG,
+output    [63:0]        oDCO_STEP5_ACTUATOR_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -110,6 +112,8 @@ reg        force_burst_reverse;
 reg [7:0]  burst_trigger_count;
 reg [15:0] forced_hpll_pending_count;
 reg [15:0] forced_hpll_completed_count;
+reg [15:0] forced_finc_completed_count;
+reg [15:0] forced_fdec_completed_count;
 reg [7:0]  rt_state_enter_count;
 reg [7:0]  runtime_start_count;
 reg [7:0]  bus_done_count;
@@ -123,6 +127,7 @@ reg [63:0] dco_step5_tracker_debug;
 reg [63:0] dco_step5_bootstrap_debug;
 reg [63:0] dco_step5_position_debug;
 reg [63:0] dco_step5_position_accounting_debug;
+reg [63:0] dco_step5_actuator_debug;
 reg [15:0] bootstrap_remaining;
 reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
@@ -183,6 +188,7 @@ assign oDCO_STEP5_TRACKER_DEBUG = dco_step5_tracker_debug;
 assign oDCO_STEP5_BOOTSTRAP_DEBUG = dco_step5_bootstrap_debug;
 assign oDCO_STEP5_POSITION_DEBUG = dco_step5_position_debug;
 assign oDCO_STEP5_POSITION_ACCOUNTING_DEBUG = dco_step5_position_accounting_debug;
+assign oDCO_STEP5_ACTUATOR_DEBUG = dco_step5_actuator_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -320,6 +326,22 @@ always @* begin
   dco_step5_position_accounting_debug[63:48] = position_audit_epoch;
 end
 
+// Explicit actuator-identification accounting. These counters include only
+// completed JTAG-forced transactions, not bootstrap or normal tracker
+// transactions. The direction encoding is the runtime FINC/FDEC encoding:
+// FINC=1 and FDEC=0. Keeping this in a separate probe preserves the legacy
+// burst and signed-position probe layouts.
+always @* begin
+  dco_step5_actuator_debug = 64'd0;
+  dco_step5_actuator_debug[15:0]  = forced_finc_completed_count;
+  dco_step5_actuator_debug[31:16] = forced_fdec_completed_count;
+  dco_step5_actuator_debug[47:32] = forced_hpll_completed_count;
+  dco_step5_actuator_debug[48]    = force_burst_reverse;
+  dco_step5_actuator_debug[49]    = force_hpll_reverse_sync;
+  dco_step5_actuator_debug[50]    = force_hpll_seen;
+  dco_step5_actuator_debug[63:51] = force_burst_remaining[12:0];
+end
+
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
   .iRST_n(iRST_n),
@@ -430,6 +452,8 @@ always @(posedge iCLK or negedge iRST_n) begin
     burst_trigger_count <= 8'd0;
     forced_hpll_pending_count <= 16'd0;
     forced_hpll_completed_count <= 16'd0;
+    forced_finc_completed_count <= 16'd0;
+    forced_fdec_completed_count <= 16'd0;
     bootstrap_remaining <= 16'd0;
     bootstrap_completed_count <= 16'd0;
     bootstrap_started <= 1'b0;
@@ -473,6 +497,15 @@ always @(posedge iCLK or negedge iRST_n) begin
           forced_pending_count <= forced_pending_count + 1'b1;
         end
       end
+    end
+
+    // Permit a second direction command after the first burst has fully
+    // returned to idle.  The low level is required so an in-flight pulse
+    // cannot accidentally retrigger or change the current burst.
+    if (!force_hpll_sync && force_hpll_seen &&
+        (rt_state == 3'd0) && !hpll_pending &&
+        (force_burst_remaining == 16'd0)) begin
+      force_hpll_seen <= 1'b0;
     end
 
     if (iDPLL_LOAD) begin
@@ -525,7 +558,10 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b0;
-          rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
+          if (hpll_pending_forced && ENABLE_STEP5_ACTUATOR_IDENTIFICATION)
+            rt_dir <= hpll_pending_forced_reverse;
+          else
+            rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
           hpll_pending <= 1'b0;
           current_request_forced <= hpll_pending_forced;
           current_request_bootstrap <= hpll_pending_bootstrap;
@@ -627,6 +663,10 @@ always @(posedge iCLK or negedge iRST_n) begin
           position_audit_epoch <= position_audit_epoch + 1'b1;
           if (current_request_forced) begin
             forced_hpll_completed_count <= forced_hpll_completed_count + 1'b1;
+            if (rt_dir)
+              forced_finc_completed_count <= forced_finc_completed_count + 1'b1;
+            else
+              forced_fdec_completed_count <= forced_fdec_completed_count + 1'b1;
             if (current_request_bootstrap) begin
               bootstrap_completed_count <= bootstrap_completed_count + 1'b1;
               // remaining reaches zero when the final bootstrap transaction

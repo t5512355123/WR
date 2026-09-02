@@ -314,6 +314,7 @@ proc read_snapshot {hardware_name tag} {
     [snap_get $hardware_name $tag cpu_reset] \
     [snap_get $hardware_name $tag wr_reset] \
     [snap_get $hardware_name $tag si_drop]
+  ]
   flush stdout
 }
 

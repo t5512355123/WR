@@ -27,6 +27,9 @@ if {$samples <= 0 || $gap_ms < 0} {
 array set ::wb_toggle {}
 array set ::sample_count {}
 array set ::trace_valid_count {}
+array set ::trace_unique_count {}
+array set ::trace_dedup_skipped {}
+array set ::last_counted_trace_key {}
 array set ::frame_valid_count {}
 array set ::invalid_count {}
 array set ::measurement_failures {}
@@ -48,6 +51,7 @@ array set ::main_freq_lock_count_max_seen {}
 array set ::main_freq_lock_count_final {}
 array set ::main_freq_lock_count_max_final {}
 array set ::main_enabled_final {}
+array set ::main_enabled_count {}
 array set ::main_freq_locked_final {}
 array set ::main_phase_locked_final {}
 array set ::main_locked_final {}
@@ -276,6 +280,9 @@ proc read_helper_pair {hardware_name} {
 proc initialize_board {hardware_name} {
   set ::sample_count($hardware_name) 0
   set ::trace_valid_count($hardware_name) 0
+  set ::trace_unique_count($hardware_name) 0
+  set ::trace_dedup_skipped($hardware_name) 0
+  set ::last_counted_trace_key($hardware_name) ""
   set ::frame_valid_count($hardware_name) 0
   set ::invalid_count($hardware_name) 0
   set ::measurement_failures($hardware_name) 0
@@ -297,6 +304,7 @@ proc initialize_board {hardware_name} {
   set ::main_freq_lock_count_final($hardware_name) INVALID
   set ::main_freq_lock_count_max_final($hardware_name) INVALID
   set ::main_enabled_final($hardware_name) INVALID
+  set ::main_enabled_count($hardware_name) 0
   set ::main_freq_locked_final($hardware_name) INVALID
   set ::main_phase_locked_final($hardware_name) INVALID
   set ::main_locked_final($hardware_name) INVALID
@@ -376,6 +384,21 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   if {$frame_ok} { incr ::frame_valid_count($hardware_name) }
   if {$trace_ok} { incr ::trace_valid_count($hardware_name) } else { incr ::invalid_count($hardware_name) }
 
+  set trace_unique 0
+  if {$trace_ok} {
+    # The firmware publishes a coherent seqlock frame with the same epoch and
+    # update_count until the next publication. Count each published frame once
+    # so a slower diagnostic publication is not mistaken for controller samples.
+    set trace_key [format "%s|%s" $epoch $update_count]
+    if {$trace_key eq $::last_counted_trace_key($hardware_name)} {
+      incr ::trace_dedup_skipped($hardware_name)
+    } else {
+      set ::last_counted_trace_key($hardware_name) $trace_key
+      incr ::trace_unique_count($hardware_name)
+      set trace_unique 1
+    }
+  }
+
   foreach {helper_state helper_limits} [read_helper_pair $hardware_name] break
   set helper_locked [field32 $helper_state 0 1]
   set helper_lock_count [field32 $helper_state 16 16]
@@ -406,24 +429,27 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 
   if {$trace_ok} {
     set derived_error [expr {$dout - $dref}]
-    if {$freq_error != $derived_error} { incr ::measurement_failures($hardware_name) }
-    if {$prelock_error != [expr {-20 * $freq_error}]} { incr ::prelock_mismatch_count($hardware_name) }
-    update_freq_stats $hardware_name $freq_error
-    if {$lock_count > $::main_freq_lock_count_max_seen($hardware_name)} {
-      set ::main_freq_lock_count_max_seen($hardware_name) $lock_count
-    }
-    incr ::pi_count($hardware_name)
-    if {$clamp_side == -1} {
-      incr ::pi_low_rail_count($hardware_name)
-    } elseif {$clamp_side == 1} {
-      incr ::pi_high_rail_count($hardware_name)
-    } elseif {$clamp_side == 0} {
-      incr ::pi_no_rail_count($hardware_name)
-    }
     set main_enabled [expr {($state >> 0) & 1}]
     set main_freq_locked [expr {($state >> 1) & 1}]
     set main_phase_locked [expr {($state >> 2) & 1}]
     set main_locked [expr {($state >> 3) & 1}]
+    if {$trace_unique} {
+      if {$freq_error != $derived_error} { incr ::measurement_failures($hardware_name) }
+      if {$prelock_error != [expr {-20 * $freq_error}]} { incr ::prelock_mismatch_count($hardware_name) }
+      update_freq_stats $hardware_name $freq_error
+      if {$lock_count > $::main_freq_lock_count_max_seen($hardware_name)} {
+        set ::main_freq_lock_count_max_seen($hardware_name) $lock_count
+      }
+      incr ::pi_count($hardware_name)
+      if {$clamp_side == -1} {
+        incr ::pi_low_rail_count($hardware_name)
+      } elseif {$clamp_side == 1} {
+        incr ::pi_high_rail_count($hardware_name)
+      } elseif {$clamp_side == 0} {
+        incr ::pi_no_rail_count($hardware_name)
+      }
+      if {$main_enabled} { incr ::main_enabled_count($hardware_name) }
+    }
     if {$main_freq_locked} { set ::main_freq_locked_ever($hardware_name) 1 }
     if {$main_phase_locked} { set ::main_phase_locked_ever($hardware_name) 1 }
     if {$main_locked} { set ::main_locked_ever($hardware_name) 1 }
@@ -473,8 +499,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::pstat_locked_final($hardware_name) $pstat_locked
   }
 
-  puts [format "STEP5_MAIN_FREQ_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_EPOCH_BEFORE_RAW=%s MAIN_TRACE_EPOCH_AFTER_RAW=%s MAIN_TRACE_MAGIC_RAW=%s MAIN_TRACE_MAGIC=%s MAIN_DREF_DT=%s MAIN_DOUT_DT=%s MAIN_FREQ_ERROR=%s MAIN_PRELOCK_ERROR=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_FREQ_LOCK_COUNT_MAX=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s MAIN_PI_UPDATE_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_STATE=%s MAIN_PI_Y_MIN=%s MAIN_PI_Y_MAX=%s MAIN_PI_ANTI_WINDUP=%s MAIN_PI_X=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
-    $hardware_name $sample $elapsed_ms $frame_ok $trace_ok $::main_trace_epoch_before_raw($hardware_name) $::main_trace_epoch_after_raw($hardware_name) $::main_trace_magic_raw($hardware_name) $magic $dref $dout $freq_error $prelock_error $pi_unclamped $pi_output $clamp_side $lock_count $lock_count_max $kp $ki $shift $bias $update_count $threshold $lock_samples $state $y_min $y_max $anti_windup $pi_x $main_enabled $main_freq_locked $main_phase_locked $main_locked $helper_locked $helper_lock_count $helper_threshold $helper_lock_samples $pstat_locked $spll_delock $entry_generation $cpu_reset $wr_reset $si_drop]
+  puts [format "STEP5_MAIN_FREQ_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_UNIQUE=%d TRACE_DEDUP_SKIPPED=%d MAIN_TRACE_EPOCH_BEFORE_RAW=%s MAIN_TRACE_EPOCH_AFTER_RAW=%s MAIN_TRACE_MAGIC_RAW=%s MAIN_TRACE_MAGIC=%s MAIN_DREF_DT=%s MAIN_DOUT_DT=%s MAIN_FREQ_ERROR=%s MAIN_PRELOCK_ERROR=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_FREQ_LOCK_COUNT_MAX=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s MAIN_PI_UPDATE_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_STATE=%s MAIN_PI_Y_MIN=%s MAIN_PI_Y_MAX=%s MAIN_PI_ANTI_WINDUP=%s MAIN_PI_X=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
+    $hardware_name $sample $elapsed_ms $frame_ok $trace_ok $trace_unique $::trace_dedup_skipped($hardware_name) $::main_trace_epoch_before_raw($hardware_name) $::main_trace_epoch_after_raw($hardware_name) $::main_trace_magic_raw($hardware_name) $magic $dref $dout $freq_error $prelock_error $pi_unclamped $pi_output $clamp_side $lock_count $lock_count_max $kp $ki $shift $bias $update_count $threshold $lock_samples $state $y_min $y_max $anti_windup $pi_x $main_enabled $main_freq_locked $main_phase_locked $main_locked $helper_locked $helper_lock_count $helper_threshold $helper_lock_samples $pstat_locked $spll_delock $entry_generation $cpu_reset $wr_reset $si_drop]
   if {!$trace_ok} {
     puts [format "STEP5_MAIN_FREQ_PAYLOAD_DEBUG board=%s sample=%d VALUES=%s" \
       $hardware_name $sample $::main_trace_payload_debug($hardware_name)]
@@ -502,6 +528,10 @@ proc emit_summary {hardware_name} {
     set pi_high_fraction [expr {double($::pi_high_rail_count($hardware_name)) / $den}]
     set pi_no_rail_fraction [expr {double($::pi_no_rail_count($hardware_name)) / $den}]
   }
+  set main_enabled_fraction INVALID
+  if {$::trace_unique_count($hardware_name) > 0} {
+    set main_enabled_fraction [expr {double($::main_enabled_count($hardware_name)) / double($::trace_unique_count($hardware_name))}]
+  }
   foreach {gen0 cpu0 wr0 si0} $::reset_first($hardware_name) break
   foreach {gen1 cpu1 wr1 si1} $::reset_final($hardware_name) break
   set reset_result [expr {$gen0 ne "INVALID" && $gen1 ne "INVALID" &&
@@ -513,8 +543,8 @@ proc emit_summary {hardware_name} {
     $::measurement_failures($hardware_name) == 0 &&
     $::prelock_mismatch_count($hardware_name) == 0 &&
     $::main_trace_magic_final($hardware_name) == 1 ? "PASS" : "FAIL"}]
-  puts [format "STEP5_MAIN_FREQ_PRELOCK_SUMMARY board=%s SAMPLES=%d ELAPSED_MS=%d TRACE_VALID=%d FRAME_VALID=%d INVALID=%d FREQ_ERROR_SAMPLES=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_MAX_ABS=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_FINAL=%s FRACTION_ABS_FREQ_ERROR_LE_50=%s PRELOCK_ERROR_MISMATCHES=%d MEASUREMENT_FAILS=%d PI_SAMPLES=%d PI_LOW_RAIL_FRACTION=%s PI_HIGH_RAIL_FRACTION=%s PI_NO_RAIL_FRACTION=%s MAIN_FREQ_LOCK_COUNT_MAX_SEEN=%s MAIN_FREQ_LOCK_COUNT_FINAL=%s MAIN_FREQ_LOCK_COUNT_MAX_FINAL=%s MAIN_FREQ_LOCKED_EVER=%d MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_EVER=%d MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_EVER=%d MAIN_LOCKED_FINAL=%s MAIN_ENABLED_FINAL=%s HELPER_LOCKED_EVER=%d HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s PSTAT_LOCKED_EVER=%d PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_FIRST=%s SPLL_DELOCK_MAX=%s SPLL_DELOCK_FINAL=%s RESET_STABLE=%s BOOT_GENERATION_FIRST=%s BOOT_GENERATION_FINAL=%s MAIN_DREF_DT_FINAL=%s MAIN_DOUT_DT_FINAL=%s MAIN_FREQ_ERROR_FINAL=%s MAIN_PRELOCK_ERROR_FINAL=%s MAIN_PI_UNCLAMPED_FINAL=%s MAIN_PI_OUTPUT_FINAL=%s MAIN_PI_CLAMP_SIDE_FINAL=%s MAIN_PI_KP_FINAL=%s MAIN_PI_KI_FINAL=%s MAIN_PI_SHIFT_FINAL=%s MAIN_PI_BIAS_FINAL=%s MAIN_PI_UPDATE_COUNT_FINAL=%s MAIN_FREQ_THRESHOLD_FINAL=%s MAIN_FREQ_LOCK_SAMPLES_FINAL=%s MAIN_PI_Y_MIN_FINAL=%s MAIN_PI_Y_MAX_FINAL=%s MAIN_PI_ANTI_WINDUP_FINAL=%s MAIN_PI_X_FINAL=%s TELEMETRY_RESULT=%s STEP5_COMPLETE=NO MERGE_APPROVED=NO" \
-    $hardware_name $::sample_count($hardware_name) $::elapsed_final($hardware_name) $::trace_valid_count($hardware_name) $::frame_valid_count($hardware_name) $::invalid_count($hardware_name) $::freq_count($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) $freq_max_abs $::freq_first($hardware_name) $::freq_last($hardware_name) $freq_band_fraction $::prelock_mismatch_count($hardware_name) $::measurement_failures($hardware_name) $::pi_count($hardware_name) $pi_low_fraction $pi_high_fraction $pi_no_rail_fraction $::main_freq_lock_count_max_seen($hardware_name) $::main_freq_lock_count_final($hardware_name) $::main_freq_lock_count_max_final($hardware_name) $::main_freq_locked_ever($hardware_name) $::main_freq_locked_final($hardware_name) $::main_phase_locked_ever($hardware_name) $::main_phase_locked_final($hardware_name) $::main_locked_ever($hardware_name) $::main_locked_final($hardware_name) $::main_enabled_final($hardware_name) $::helper_locked_ever($hardware_name) $::helper_locked_final($hardware_name) $::helper_lock_count_max($hardware_name) $::helper_lock_count_final($hardware_name) $::pstat_locked_ever($hardware_name) $::pstat_locked_final($hardware_name) $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $reset_result $::entry_generation_first($hardware_name) $::entry_generation_final($hardware_name) $::main_trace_last_dref($hardware_name) $::main_trace_last_dout($hardware_name) $::main_trace_last_error($hardware_name) $::main_trace_last_prelock($hardware_name) $::main_trace_last_unclamped($hardware_name) $::main_trace_last_output($hardware_name) $::main_trace_last_clamp_side($hardware_name) $::main_trace_last_kp($hardware_name) $::main_trace_last_ki($hardware_name) $::main_trace_last_shift($hardware_name) $::main_trace_last_bias($hardware_name) $::main_trace_update_count_final($hardware_name) $::main_trace_last_threshold($hardware_name) $::main_trace_last_lock_samples($hardware_name) $::main_trace_last_ymin($hardware_name) $::main_trace_last_ymax($hardware_name) $::main_trace_last_anti_windup($hardware_name) $::main_trace_last_x($hardware_name) $telemetry_result]
+  puts [format "STEP5_MAIN_FREQ_PRELOCK_SUMMARY board=%s SAMPLES=%d ELAPSED_MS=%d TRACE_VALID=%d TRACE_UNIQUE=%d TRACE_DEDUP_SKIPPED=%d FRAME_VALID=%d INVALID=%d FREQ_ERROR_SAMPLES=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_MAX_ABS=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_FINAL=%s FRACTION_ABS_FREQ_ERROR_LE_50=%s PRELOCK_ERROR_MISMATCHES=%d MEASUREMENT_FAILS=%d PI_SAMPLES=%d PI_LOW_RAIL_FRACTION=%s PI_HIGH_RAIL_FRACTION=%s PI_NO_RAIL_FRACTION=%s MAIN_ENABLED_FRACTION=%s MAIN_FREQ_LOCK_COUNT_MAX_SEEN=%s MAIN_FREQ_LOCK_COUNT_FINAL=%s MAIN_FREQ_LOCK_COUNT_MAX_FINAL=%s MAIN_FREQ_LOCKED_EVER=%d MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_EVER=%d MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_EVER=%d MAIN_LOCKED_FINAL=%s MAIN_ENABLED_FINAL=%s HELPER_LOCKED_EVER=%d HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s PSTAT_LOCKED_EVER=%d PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_FIRST=%s SPLL_DELOCK_MAX=%s SPLL_DELOCK_FINAL=%s RESET_STABLE=%s BOOT_GENERATION_FIRST=%s BOOT_GENERATION_FINAL=%s MAIN_DREF_DT_FINAL=%s MAIN_DOUT_DT_FINAL=%s MAIN_FREQ_ERROR_FINAL=%s MAIN_PRELOCK_ERROR_FINAL=%s MAIN_PI_UNCLAMPED_FINAL=%s MAIN_PI_OUTPUT_FINAL=%s MAIN_PI_CLAMP_SIDE_FINAL=%s MAIN_PI_KP_FINAL=%s MAIN_PI_KI_FINAL=%s MAIN_PI_SHIFT_FINAL=%s MAIN_PI_BIAS_FINAL=%s MAIN_PI_UPDATE_COUNT_FINAL=%s MAIN_FREQ_THRESHOLD_FINAL=%s MAIN_FREQ_LOCK_SAMPLES_FINAL=%s MAIN_PI_Y_MIN_FINAL=%s MAIN_PI_Y_MAX_FINAL=%s MAIN_PI_ANTI_WINDUP_FINAL=%s MAIN_PI_X_FINAL=%s TELEMETRY_RESULT=%s STEP5_COMPLETE=NO MERGE_APPROVED=NO" \
+    $hardware_name $::sample_count($hardware_name) $::elapsed_final($hardware_name) $::trace_valid_count($hardware_name) $::trace_unique_count($hardware_name) $::trace_dedup_skipped($hardware_name) $::frame_valid_count($hardware_name) $::invalid_count($hardware_name) $::freq_count($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) $freq_max_abs $::freq_first($hardware_name) $::freq_last($hardware_name) $freq_band_fraction $::prelock_mismatch_count($hardware_name) $::measurement_failures($hardware_name) $::pi_count($hardware_name) $pi_low_fraction $pi_high_fraction $pi_no_rail_fraction $main_enabled_fraction $::main_freq_lock_count_max_seen($hardware_name) $::main_freq_lock_count_final($hardware_name) $::main_freq_lock_count_max_final($hardware_name) $::main_freq_locked_ever($hardware_name) $::main_freq_locked_final($hardware_name) $::main_phase_locked_ever($hardware_name) $::main_phase_locked_final($hardware_name) $::main_locked_ever($hardware_name) $::main_locked_final($hardware_name) $::main_enabled_final($hardware_name) $::helper_locked_ever($hardware_name) $::helper_locked_final($hardware_name) $::helper_lock_count_max($hardware_name) $::helper_lock_count_final($hardware_name) $::pstat_locked_ever($hardware_name) $::pstat_locked_final($hardware_name) $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $reset_result $::entry_generation_first($hardware_name) $::entry_generation_final($hardware_name) $::main_trace_last_dref($hardware_name) $::main_trace_last_dout($hardware_name) $::main_trace_last_error($hardware_name) $::main_trace_last_prelock($hardware_name) $::main_trace_last_unclamped($hardware_name) $::main_trace_last_output($hardware_name) $::main_trace_last_clamp_side($hardware_name) $::main_trace_last_kp($hardware_name) $::main_trace_last_ki($hardware_name) $::main_trace_last_shift($hardware_name) $::main_trace_last_bias($hardware_name) $::main_trace_update_count_final($hardware_name) $::main_trace_last_threshold($hardware_name) $::main_trace_last_lock_samples($hardware_name) $::main_trace_last_ymin($hardware_name) $::main_trace_last_ymax($hardware_name) $::main_trace_last_anti_windup($hardware_name) $::main_trace_last_x($hardware_name) $telemetry_result]
   flush stdout
 }
 

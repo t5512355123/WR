@@ -78,6 +78,7 @@ static uint32_t wdiags_helper_pi_snapshot_ack_count;
 static uint32_t wdiags_helper_pi_snapshot_bank_commit_count;
 static uint32_t wdiags_helper_pi_snapshot_overwrite_count;
 static uint32_t wdiags_main_frequency_trace_epoch;
+static int wdiags_main_frequency_trace_active;
 /* Once a snapshot request is observed, the overlapping 0x158..0x1dc
  * private window belongs exclusively to the PI frozen bank.  Legacy
  * diagnostic state is still updated in host RAM, but must not be mirrored
@@ -244,8 +245,9 @@ static void wdiags_publish_persistent_record(void)
 {
 	/* The persistent/lock-wait mirror overlaps the PI frozen bank.  Keep the
 	 * legacy state live in host RAM for post-run forensics, but never publish
-	 * it after the first PI snapshot request has claimed the window. */
-	if (wdiags_helper_pi_snapshot_v2_active)
+	 * it after either the PI snapshot or Main trace has claimed the window. */
+	if (wdiags_helper_pi_snapshot_v2_active ||
+	    wdiags_main_frequency_trace_active)
 		return;
 
 	/* Dedicated read-only WDIAGS mirror so passive JTAG reads do not need
@@ -432,7 +434,8 @@ void wdiags_write_mode_master_stage(uint32_t stage)
 	/* Direct sticky write: it must remain visible if the CPU wedges before
 	 * the periodic diagnostics task can publish another shadow. */
 	/* This word is also PI_TRACE_EPOCH once the snapshot audit is active. */
-	if (!wdiags_helper_pi_snapshot_v2_active)
+	if (!wdiags_helper_pi_snapshot_v2_active &&
+	    !wdiags_main_frequency_trace_active)
 		wdiag_write(WRC_DIAGS_WDIAG_MODE_MASTER_STAGE, stage);
 	wdiags_persistent_mode_master_stage(stage);
 }
@@ -448,7 +451,8 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
 	/* The direct words overlap PI_TRACE_EPOCH through PI_LD_ERROR after the
 	 * snapshot request claims the bank.  Preserve the RAM-side state below,
 	 * but do not tear the PI payload with a legacy mirror write. */
-	if (!wdiags_helper_pi_snapshot_v2_active) {
+	if (!wdiags_helper_pi_snapshot_v2_active &&
+	    !wdiags_main_frequency_trace_active) {
 		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE, substage);
 		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION, iteration_count);
 		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_START_TICS, start_tics);
@@ -1198,6 +1202,11 @@ void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
 	if (wdiags_helper_pi_snapshot_v2_active)
 		return;
 
+	/* Main owns the overlapping legacy window after its first coherent
+	 * publication.  Subsequent persistent/lock-wait breadcrumbs remain in
+	 * host RAM but cannot overwrite the Main epoch or payload. */
+	wdiags_main_frequency_trace_active = 1;
+
 	epoch = ++wdiags_main_frequency_trace_epoch;
 	if (!(epoch & 1u))
 		epoch = ++wdiags_main_frequency_trace_epoch;
@@ -1281,6 +1290,7 @@ int wdiags_init(void)
 	wdiags_helper_pi_snapshot_bank_commit_count = 0;
 	wdiags_helper_pi_snapshot_overwrite_count = 0;
 	wdiags_main_frequency_trace_epoch = 0;
+	wdiags_main_frequency_trace_active = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);

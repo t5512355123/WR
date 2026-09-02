@@ -24,12 +24,18 @@
 /* Keep the existing read-only WDIAGS shadow current at the cadence used by
  * the long-lock convergence observer. This changes observability only. */
 #define WRC_DIAG_REFRESH_PERIOD (TICS_PER_SECOND / 10)
+/* The Main pre-lock overlay is a 22-word seqlock frame.  A JTAG reader needs
+ * longer than one normal diagnostics tick to fetch the whole payload, so
+ * publish it at a slower read-only cadence; the SoftPLL/controller cadence is
+ * unchanged. */
+#define WRC_MAIN_FREQ_TRACE_PUBLISH_PERIOD 20
 
 int wrc_wr_diags(void)
 {
 	static uint32_t last_update_tick;
 	static uint32_t mapping_self_test_counter;
 	static uint32_t main_freq_lock_count_max;
+	static uint32_t main_freq_trace_publish_divider;
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
 	uint64_t sec;
@@ -237,7 +243,16 @@ int wrc_wr_diags(void)
 				 (int)main_freq_lock_count_max)
 				main_freq_lock_count_max =
 					(uint32_t)softpll.mpll.freq_ld.lock_cnt;
-			wdiags_write_wr_spll_main_frequency_debug(
+			if (!softpll.mpll.enabled) {
+				main_freq_trace_publish_divider = 0;
+			} else if (main_freq_trace_publish_divider == 0 ||
+				   ++main_freq_trace_publish_divider >=
+					WRC_MAIN_FREQ_TRACE_PUBLISH_PERIOD) {
+				main_freq_trace_publish_divider = 1;
+			}
+			if (!softpll.mpll.enabled ||
+				main_freq_trace_publish_divider == 1) {
+				wdiags_write_wr_spll_main_frequency_debug(
 				softpll.mpll.dref_dt,
 				softpll.mpll.dout_dt,
 				softpll.mpll.dout_dt - softpll.mpll.dref_dt,
@@ -263,6 +278,7 @@ int wrc_wr_diags(void)
 				softpll.mpll.pi.y_max,
 				softpll.mpll.pi.anti_windup,
 				softpll.mpll.pi.trace_x);
+			}
 			wdiags_write_wr_spll_activity_debug(
 				softpll.ref_count,
 				softpll.tag_count,

@@ -221,44 +221,33 @@ proc response_magnitude {value} {
   return [expr {abs($value)}]
 }
 
-# Return: coherent epoch tag expected freq preclamp helper_error update_count
-# helper_output dmtd_ref_accept dmtd_fb_accept dmtd_ref_raw dmtd_fb_raw rxerr
-# pstat helper_state.
+# Return: per-address mailbox readings.  The WDIAGS fields are read one by one;
+# the epoch is retained as a diagnostic value, but this experiment does not
+# claim an atomic multi-register snapshot.
 proc read_coherent_measurement {hardware_name} {
-  for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set epoch0_raw [wb_read $hardware_name 0x00100B00]
-    set epoch0 [word32 $epoch0_raw]
-    if {$epoch0 < 0 || ($epoch0 & 1)} { continue }
-
-    set tag_raw [wb_read $hardware_name 0x00100B04]
-    set expected_raw [wb_read $hardware_name 0x00100B08]
-    set freq_raw [wb_read $hardware_name 0x00100B0C]
-    set preclamp_raw [wb_read $hardware_name 0x00100B10]
-    set helper_error_raw [wb_read $hardware_name 0x00100B14]
-    set update_raw [wb_read $hardware_name 0x00100B18]
-    set helper_output_raw [wb_read $hardware_name 0x00100B1C]
-    set ref_accept_raw [wb_read $hardware_name 0x00100B20]
-    set fb_accept_raw [wb_read $hardware_name 0x00100B24]
-    set dmtd_ref_raw [wb_read $hardware_name 0x00100298]
-    set dmtd_fb_raw [wb_read $hardware_name 0x0010029C]
-    set rxerr_raw [wb_read $hardware_name 0x00100A60]
-    set pstat_raw [wb_read $hardware_name 0x00100A0C]
-    set helper_state_raw [wb_read $hardware_name 0x00100ABC]
-
-    set epoch1_raw [wb_read $hardware_name 0x00100B00]
-    set epoch1 [word32 $epoch1_raw]
-    if {$epoch0 == $epoch1 && $epoch1 >= 0 && !($epoch1 & 1)} {
-      return [list 1 $epoch1 [signed32 $tag_raw] \
-        [signed32 $expected_raw] [signed32 $freq_raw] \
-        [signed32 $preclamp_raw] [signed32 $helper_error_raw] \
-        [word32 $update_raw] [signed32 $helper_output_raw] \
-        [word32 $ref_accept_raw] [word32 $fb_accept_raw] \
-        [word32 $dmtd_ref_raw] [word32 $dmtd_fb_raw] \
-        [word32 $rxerr_raw] [word32 $pstat_raw] [word32 $helper_state_raw]]
-    }
-  }
-  return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  set epoch_raw [wb_read $hardware_name 0x00100B00]
+  set epoch [word32 $epoch_raw]
+  set tag_raw [wb_read $hardware_name 0x00100B04]
+  set expected_raw [wb_read $hardware_name 0x00100B08]
+  set freq_raw [wb_read $hardware_name 0x00100B0C]
+  set preclamp_raw [wb_read $hardware_name 0x00100B10]
+  set helper_error_raw [wb_read $hardware_name 0x00100B14]
+  set update_raw [wb_read $hardware_name 0x00100B18]
+  set helper_output_raw [wb_read $hardware_name 0x00100B1C]
+  set ref_accept_raw [wb_read $hardware_name 0x00100B20]
+  set fb_accept_raw [wb_read $hardware_name 0x00100B24]
+  set dmtd_ref_raw [wb_read $hardware_name 0x00100298]
+  set dmtd_fb_raw [wb_read $hardware_name 0x0010029C]
+  set rxerr_raw [wb_read $hardware_name 0x00100A60]
+  set pstat_raw [wb_read $hardware_name 0x00100A0C]
+  set helper_state_raw [wb_read $hardware_name 0x00100ABC]
+  return [list 1 $epoch [signed32 $tag_raw] \
+    [signed32 $expected_raw] [signed32 $freq_raw] \
+    [signed32 $preclamp_raw] [signed32 $helper_error_raw] \
+    [word32 $update_raw] [signed32 $helper_output_raw] \
+    [word32 $ref_accept_raw] [word32 $fb_accept_raw] \
+    [word32 $dmtd_ref_raw] [word32 $dmtd_fb_raw] \
+    [word32 $rxerr_raw] [word32 $pstat_raw] [word32 $helper_state_raw]]
 }
 
 proc read_snapshot {hardware_name tag} {

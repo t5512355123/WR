@@ -9,15 +9,17 @@
 package require ::quartus::insystem_source_probe
 
 set board_filter {DE5 [1-11.2]}
-set gate_timeout_s 120
+set gate_timeout_s 1200
 set phase_samples 20
 set phase_gap_ms 500
+set gate_consecutive 10
 if {[llength $argv] >= 1} { set board_filter [lindex $argv 0] }
 if {[llength $argv] >= 2} { set gate_timeout_s [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set phase_samples [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set phase_gap_ms [expr {int([lindex $argv 3])}] }
-if {$gate_timeout_s <= 0 || $phase_samples <= 0 || $phase_gap_ms < 0} {
-  error "gate_timeout_s and phase_samples must be > 0; phase_gap_ms must be >= 0"
+if {$gate_timeout_s <= 0 || $phase_samples <= 0 || $phase_gap_ms < 0 ||
+    $gate_consecutive <= 0} {
+  error "gate_timeout_s, phase_samples, and gate_consecutive must be > 0; phase_gap_ms must be >= 0"
 }
 
 array set ::wb_toggle {}
@@ -225,8 +227,8 @@ proc run_phase {hardware_name phase code samples gap_ms} {
     [expr {[clock milliseconds] - $start_ms}]]
 }
 
-puts [format "DAC_ID_CONFIG board_filter=%s gate_timeout_s=%d phase_samples=%d phase_gap_ms=%d experiment=EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-MAIN-DAC-DIRECTION-AUTHORITY-IDENTIFICATION-20260902 existing_image=88604a5+7585a06 frozen_fit=1 no_reprogram=1" \
-  $board_filter $gate_timeout_s $phase_samples $phase_gap_ms]
+puts [format "DAC_ID_CONFIG board_filter=%s gate_timeout_s=%d gate_consecutive=%d gate_gap_ms=250 phase_samples=%d phase_gap_ms=%d experiment=EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-MAIN-DAC-EVENT-TRIGGERED-DIRECTION-AUTHORITY-IDENTIFICATION-1200S-GATE-20260902 existing_image=88604a5+7585a06 frozen_fit=1 no_reprogram=1" \
+  $board_filter $gate_timeout_s $gate_consecutive $phase_samples $phase_gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }
@@ -242,20 +244,27 @@ foreach hardware_name [get_hardware_names] {
 
     set gate_start [clock seconds]
     set gate_ok 0
+    set gate_streak 0
     set gate_last [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
     while {[expr {[clock seconds] - $gate_start}] < $gate_timeout_s} {
       set gate_last [gate_status $hardware_name]
       foreach {trace_ok helper_locked main_enabled y_min y_max freq_error pi_output epoch update_count} $gate_last break
+      if {$trace_ok && $helper_locked == 1 && $main_enabled == 1 &&
+          $y_min ne "INVALID" && $y_max ne "INVALID"} {
+        incr gate_streak
+      } else {
+        set gate_streak 0
+      }
       puts [format "DAC_ID_GATE elapsed_s=%d TRACE_VALID=%s HELPER_LOCKED=%s MAIN_ENABLED=%s FREQ_ERROR=%s PI_OUTPUT=%s EPOCH=%s UPDATE_COUNT=%s" \
         [expr {[clock seconds] - $gate_start}] $trace_ok $helper_locked $main_enabled \
         $freq_error $pi_output $epoch $update_count]
+      puts [format "DAC_ID_GATE_STREAK current=%d required=%d" $gate_streak $gate_consecutive]
       flush stdout
-      if {$trace_ok && $helper_locked == 1 && $main_enabled == 1 &&
-          $y_min ne "INVALID" && $y_max ne "INVALID"} {
+      if {$gate_streak >= $gate_consecutive} {
         set gate_ok 1
         break
       }
-      after 500
+      after 250
     }
     if {!$gate_ok} {
       error "DAC_ID_GATE_TIMEOUT helper_locked/main_enabled gate not reached"

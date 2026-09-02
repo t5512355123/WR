@@ -1,0 +1,2 @@
+54dac7f8559c085243b26477a2d5a35a3501497fabb8643d927f5357bcf4d58a  /home/b10504072/04_WR/artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/build/firmware/master/wrc.mif
+8caeab7790f6ccd32df4e81a2d3cd0da22ff5b1939ba7ed6cfefdc2d4a8cf3d6  /home/b10504072/04_WR/artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/build/firmware/slave/wrc.mif

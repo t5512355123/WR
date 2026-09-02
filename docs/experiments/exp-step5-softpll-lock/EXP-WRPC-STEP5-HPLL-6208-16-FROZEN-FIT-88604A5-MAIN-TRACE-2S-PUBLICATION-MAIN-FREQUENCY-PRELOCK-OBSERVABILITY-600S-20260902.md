@@ -73,13 +73,118 @@ normal transaction accounting = PASS
 
 ## Results
 
-Pending hardware execution.
+### Frozen-fit build and programming
+
+The exact `88604a5` source was used in a detached worktree and only the
+`7585a06` `vendor/wrpc-sw/lib/task-diags.c` publication-cadence patch was
+applied. Master and Slave MIFs were built successfully. The existing fitted
+project was copied to a separate staging tree and processed with MIF update
+plus assembler only.
+
+```text
+SOURCE_COMMIT = 88604a5ca174fd3b36b0a8eb435ec1773dd061a3
+PATCH_COMMIT  = 7585a0619373c84a58431920a0985587c1b30cad
+FIT_STA_BEFORE_AFTER = IDENTICAL
+
+MASTER_MIF_SHA256 = 54dac7f8559c085243b26477a2d5a35a3501497fabb8643d927f5357bcf4d58a
+SLAVE_MIF_SHA256  = 8caeab7790f6ccd32df4e81a2d3cd0da22ff5b1939ba7ed6cfefdc2d4a8cf3d6
+MASTER_SOF_SHA256 = 23bfdc100fa2b61aff3096754ebd99d61c1e1c1728be99cd5515204415c7dd0d
+SLAVE_SOF_SHA256  = 04c7cb7ecca19be16eb9de022891a9c0143b2c6b62ce364d80db4e56508217fc
+```
+
+Slave `DE5 [1-11.2]` and Master `DE5 [1-11.1]` programming both completed
+successfully with zero errors and zero warnings.
+
+### Three settled preflight results
+
+All three valid post-program captures passed the upstream gate:
+
+```text
+                         preflight-1  preflight-2  preflight-3
+Master Step1/2/4A             PASS         PASS         PASS
+Slave Step1/2/3/4B           PASS         PASS         PASS
+STEP4B_ALLOWED                YES          YES          YES
+STEP4B_RESULT                 PASS         PASS         PASS
+STEP4B_FIRST_INACTIVE         ACTIVE       ACTIVE       ACTIVE
+JTAG_WB_DIAGNOSTIC_PATH       TRUSTED      TRUSTED      TRUSTED
+PRELOAD_PROTOCOL_REVALIDATION PASS         PASS         PASS
+RXERR delta                   0            0            0
+CPU/WR-core reset delta       0            0            0
+```
+
+The first attempted preflight was a path-invocation error because the reader
+was called from the home directory; it produced no hardware result and was
+not counted. The three captures above were rerun from the repository after
+programming and are the valid preflight set.
+
+### 600-second Main-frequency prelock result
+
+The read-only observer completed the full 6000-sample window on Slave
+`DE5 [1-11.2]`:
+
+```text
+SAMPLES                       = 6000
+ELAPSED                       = 1090.287 s
+TRACE_VALID                   = 6000
+TRACE_UNIQUE                  = 575
+TRACE_DEDUP_SKIPPED           = 5425
+FRAME_VALID                   = 5729
+INVALID                       = 0
+
+MAIN_ENABLED_FRACTION         = 1.0
+MAIN_FREQ_ERROR_MEAN          = -1036.72869565
+MAIN_FREQ_ERROR_RMS           = 1067.25506914
+MAIN_FREQ_ERROR_MIN/MAX       = -1270 / -725
+MAIN_FREQ_ERROR_MAX_ABS       = 1270
+FRACTION_ABS_FREQ_ERROR_LE_50 = 0.0
+
+MAIN_FREQ_LOCK_COUNT_MAX      = 0
+MAIN_FREQ_LOCKED_EVER         = 0
+MAIN_PHASE_LOCKED_EVER        = 0
+MAIN_LOCKED_EVER              = 0
+PSTAT_LOCKED_EVER              = 0
+
+MAIN_PI_LOW_RAIL_FRACTION     = 1.0
+MAIN_PI_HIGH_RAIL_FRACTION    = 0.0
+MAIN_PI_NO_RAIL_FRACTION      = 0.0
+
+HELPER_LOCK_COUNT_MAX         = 10000
+HELPER_LOCKED_EVER            = 1
+HELPER_LOCKED_FRACTION        = 0.459
+HELPER_LOCKED_FINAL            = 0
+
+SPLL_DELOCK_COUNT_DELTA       = 0
+RXERR_DELTA                   = 0  (post-observer health snapshot)
+RESET_STABLE                  = PASS
+BOOT_GENERATION_FIRST/FINAL   = 1 / 1
+TELEMETRY_RESULT              = PASS
+```
+
+The Main trace is internally consistent (`PRELOCK_ERROR_MISMATCHES=0` and
+`MEASUREMENT_FAILS=0`), but its deduplicated frequency error never enters the
+required +/-50 band and its PI output remains on the low rail. Thus the first
+inactive Step5 boundary is Main frequency lock. Helper lock was reached
+intermittently, but was not stable at the end of the window.
+
+The post-observer read-only health snapshot retained `STEP4B_ALLOWED=YES`,
+`STEP4B_RESULT=PASS`, trusted JTAG/WB transport, zero RXERR delta, and zero
+CPU/WR-core reset deltas.
 
 ## Formal handoff
 
 ```text
-STEP4B_COMPLETE = YES
-STEP4B_REVALIDATED = YES
-STEP5_COMPLETE = NO
-MERGE_APPROVED = NO
+STEP4B_COMPLETE           = YES
+STEP4B_REVALIDATED        = YES FOR 88604A5 + 7585A06 IMAGE
+HELPER_LOCK_GATE_CROSSED  = YES
+HELPER_LOCK_STABLE        = NO
+STEP5_FIRST_INACTIVE      = MAIN_FREQUENCY_LOCK
+STEP5_COMPLETE             = NO
+MERGE_APPROVED             = NO
 ```
+
+## Raw evidence
+
+All build, MIF-only assembly, programming, preflight, Main observer, derived
+fraction, and post-observer health logs are stored under:
+
+`docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-88604A5-MAIN-TRACE-2S-PUBLICATION-MAIN-FREQUENCY-PRELOCK-OBSERVABILITY-600S-20260902/`

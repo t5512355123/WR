@@ -77,6 +77,7 @@ static uint32_t wdiags_helper_pi_snapshot_req_count;
 static uint32_t wdiags_helper_pi_snapshot_ack_count;
 static uint32_t wdiags_helper_pi_snapshot_bank_commit_count;
 static uint32_t wdiags_helper_pi_snapshot_overwrite_count;
+static uint32_t wdiags_main_frequency_trace_epoch;
 /* Once a snapshot request is observed, the overlapping 0x158..0x1dc
  * private window belongs exclusively to the PI frozen bank.  Legacy
  * diagnostic state is still updated in host RAM, but must not be mirrored
@@ -1168,6 +1169,85 @@ void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq)
 	wdiags_helper_pi_snapshot_ack_seq = request_seq;
 }
 
+void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
+                                               int32_t dout_dt,
+                                               int32_t freq_error,
+                                               int32_t prelock_error,
+                                               int32_t pi_unclamped,
+                                               int32_t pi_output,
+                                               int32_t clamp_side,
+                                               uint32_t freq_lock_count,
+                                               uint32_t freq_lock_count_max,
+                                               int32_t pi_kp,
+                                               int32_t pi_ki,
+                                               int32_t pi_shift,
+                                               int32_t pi_bias,
+                                               uint32_t update_count,
+                                               uint32_t freq_threshold,
+                                               uint32_t freq_lock_samples,
+                                               uint32_t state,
+                                               int32_t pi_y_min,
+                                               int32_t pi_y_max,
+                                               int32_t pi_anti_windup,
+                                               int32_t pi_x)
+{
+	uint32_t epoch;
+
+	/* The Helper PI request claims the same private window.  Do not tear a
+	 * frozen Helper frame if a different observer has armed that protocol. */
+	if (wdiags_helper_pi_snapshot_v2_active)
+		return;
+
+	epoch = ++wdiags_main_frequency_trace_epoch;
+	if (!(epoch & 1u))
+		epoch = ++wdiags_main_frequency_trace_epoch;
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_EPOCH, epoch);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_DREF_DT,
+			(uint32_t)dref_dt);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_DOUT_DT,
+			(uint32_t)dout_dt);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_ERROR,
+			(uint32_t)freq_error);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PRELOCK_ERROR,
+			(uint32_t)prelock_error);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_UNCLAMPED,
+			(uint32_t)pi_unclamped);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_OUTPUT,
+			(uint32_t)pi_output);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_CLAMP_SIDE,
+			(uint32_t)clamp_side);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_LOCK_COUNT,
+			freq_lock_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_LOCK_COUNT_MAX,
+			freq_lock_count_max);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_KP, (uint32_t)pi_kp);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_KI, (uint32_t)pi_ki);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_SHIFT,
+			(uint32_t)pi_shift);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_BIAS,
+			(uint32_t)pi_bias);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_UPDATE_COUNT,
+			update_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_THRESHOLD,
+			freq_threshold);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_LOCK_SAMPLES,
+			freq_lock_samples);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_STATE, state);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_Y_MIN,
+			(uint32_t)pi_y_min);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_Y_MAX,
+			(uint32_t)pi_y_max);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_ANTI_WINDUP,
+			(uint32_t)pi_anti_windup);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_PI_X, (uint32_t)pi_x);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_MAGIC,
+			WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_VERSION);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_FREQ_TRACE_EPOCH,
+			++wdiags_main_frequency_trace_epoch);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;
@@ -1200,6 +1280,7 @@ int wdiags_init(void)
 	wdiags_helper_pi_snapshot_ack_count = 0;
 	wdiags_helper_pi_snapshot_bank_commit_count = 0;
 	wdiags_helper_pi_snapshot_overwrite_count = 0;
+	wdiags_main_frequency_trace_epoch = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);

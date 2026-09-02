@@ -21,6 +21,30 @@ int wdiag_get_snapshot(void);
 /* Diagnostic-only atomic Helper PI snapshot transport. */
 int wdiags_helper_pi_snapshot_request_pending(uint32_t *request_seq);
 void wdiags_write_wr_spll_helper_pi_snapshot_ack(uint32_t request_seq);
+/* Read-only Main frequency/pre-lock PI observation.  The overlay is
+ * mutually exclusive with the Helper PI frozen bank and never feeds back
+ * into SoftPLL control. */
+void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
+                                               int32_t dout_dt,
+                                               int32_t freq_error,
+                                               int32_t prelock_error,
+                                               int32_t pi_unclamped,
+                                               int32_t pi_output,
+                                               int32_t clamp_side,
+                                               uint32_t freq_lock_count,
+                                               uint32_t freq_lock_count_max,
+                                               int32_t pi_kp,
+                                               int32_t pi_ki,
+                                               int32_t pi_shift,
+                                               int32_t pi_bias,
+                                               uint32_t update_count,
+                                               uint32_t freq_threshold,
+                                               uint32_t freq_lock_samples,
+                                               uint32_t state,
+                                               int32_t pi_y_min,
+                                               int32_t pi_y_max,
+                                               int32_t pi_anti_windup,
+                                               int32_t pi_x);
 void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 			      uint64_t dms, int32_t asym, int32_t cko,
 			      int32_t setp, int32_t ucnt, uint32_t restart_cnt, uint64_t up_timestamp );

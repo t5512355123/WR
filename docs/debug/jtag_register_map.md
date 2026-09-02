@@ -502,6 +502,43 @@ bits 27..31  = 保留
 | `0x00100B24` | `HELPER_P_SETPOINT`：下一個預期 tag |
 | `0x00100B28` | `HELPER_REF_SRC`：helper reference source |
 
+#### Main frequency / pre-lock PI overlay（`0x00100B58..0x00100BAC`）
+
+目前 firmware 另提供一組唯讀 Main 頻率觀測 overlay，用來定位 Step 5 的第一個
+inactive boundary。它直接鏡像 `spll_main.c` 的 Main state：
+`MAIN_FREQ_ERROR = MAIN_DOUT_DT - MAIN_DREF_DT`，而
+`MAIN_PRELOCK_ERROR = -20 * MAIN_FREQ_ERROR`；PI 欄位則是 `pi_update()` 的
+unclamped output、clamped output、clamp side、input 與實際 gain/limit 參數。
+這些欄位只由 diagnostics task 發布，完全不回饋 Main PI、DCO、lock detector
+或任何 WR control path。
+
+| 位址 | 欄位 | 語意 |
+|---:|---|---|
+| `0x00100B58` | `MAIN_FREQ_TRACE_EPOCH` | seqlock：奇數表示發布中，偶數表示可一致讀取 |
+| `0x00100B5C` | `MAIN_DREF_DT` | Main reference period delta |
+| `0x00100B60` | `MAIN_DOUT_DT` | Main output/tag period delta |
+| `0x00100B64` | `MAIN_FREQ_ERROR` | signed `dout_dt - dref_dt` |
+| `0x00100B68` | `MAIN_PRELOCK_ERROR` | signed `-20 * MAIN_FREQ_ERROR` |
+| `0x00100B6C` | `MAIN_PI_UNCLAMPED` | PI clamp 前輸出 |
+| `0x00100B70` | `MAIN_PI_OUTPUT` | PI clamp 後實際輸出 |
+| `0x00100B74` | `MAIN_PI_CLAMP_SIDE` | `-1` low rail、`0` no rail、`1` high rail |
+| `0x00100B78` | `MAIN_FREQ_LOCK_COUNT` | Main frequency lock detector current count |
+| `0x00100B7C` | `MAIN_FREQ_LOCK_COUNT_MAX` | 本次 Main enable 期間觀察到的最大 count |
+| `0x00100B80..0x00100B8C` | `MAIN_PI_KP/KI/SHIFT/BIAS` | Main PI 實際參數 |
+| `0x00100B90` | `MAIN_PI_UPDATE_COUNT` | Main update/sample counter |
+| `0x00100B94..0x00100B98` | `MAIN_FREQ_THRESHOLD/LOCK_SAMPLES` | Main frequency lock detector 參數 |
+| `0x00100B9C` | `MAIN_STATE` | bit 0 enabled、bit 1 frequency locked、bit 2 phase locked、bit 3 Main locked |
+| `0x00100BA0..0x00100BAC` | `MAIN_PI_Y_MIN/Y_MAX/ANTI_WINDUP/X` | PI limits、anti-windup 與最新輸入 |
+| `0x00100BDC` | `MAIN_FREQ_TRACE_MAGIC` | overlay version/magic；目前為 `1` |
+
+`MAIN_FREQ_TRACE_EPOCH` 必須採 `epoch_before -> payload -> epoch_after` 方式讀取，
+只接受兩次 epoch 相同、為偶數且 magic 正確的 frame。這組 `0x158..0x1dc`
+private-window 位址與 Helper PI frozen snapshot bank 有意重疊：一旦 Helper PI
+snapshot request 已啟動，Helper bank 擁有該窗口，Main overlay 不再覆寫它；因此
+同一次實驗不可同時把這個窗口解碼成兩種格式，也不可在 Main pre-lock observer
+中請求 Helper PI snapshot。若要讀 Helper frozen bank，必須使用其 own epoch/magic
+與 snapshot acknowledgement protocol。
+
 `0x00100AA0` 的 packing 由 `task-diags.c` 定義：bits 7:0 是 `softpll.seq_state`、bits 15:8 是 `softpll.ext.align_state`、bits 23:16 是 `softpll.mode`、bits 31:24 是 `softpll.delock_count`。現行 source 的 sequencer 合法值為：
 
 | 值 | Sequencer symbol |

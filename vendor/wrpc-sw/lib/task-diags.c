@@ -29,6 +29,7 @@ int wrc_wr_diags(void)
 {
 	static uint32_t last_update_tick;
 	static uint32_t mapping_self_test_counter;
+	static uint32_t main_freq_lock_count_max;
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
 	uint64_t sec;
@@ -230,6 +231,38 @@ int wrc_wr_diags(void)
 					(((uint32_t)softpll.mpll.freq_ld.lock_samples & 0xffffu) << 16),
 				((uint32_t)softpll.mpll.phase_ld.threshold & 0xffffu) |
 					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
+			if (!softpll.mpll.enabled)
+				main_freq_lock_count_max = 0;
+			else if (softpll.mpll.freq_ld.lock_cnt >
+				 (int)main_freq_lock_count_max)
+				main_freq_lock_count_max =
+					(uint32_t)softpll.mpll.freq_ld.lock_cnt;
+			wdiags_write_wr_spll_main_frequency_debug(
+				softpll.mpll.dref_dt,
+				softpll.mpll.dout_dt,
+				softpll.mpll.dout_dt - softpll.mpll.dref_dt,
+				-softpll.mpll.freq_prelock_gain_boost *
+					(softpll.mpll.dout_dt - softpll.mpll.dref_dt),
+				softpll.mpll.pi.trace_y_unclamped,
+				softpll.mpll.pi.trace_y_clamped,
+				softpll.mpll.pi.trace_clamp_side,
+				(uint32_t)softpll.mpll.freq_ld.lock_cnt,
+				main_freq_lock_count_max,
+				softpll.mpll.pi.kp,
+				softpll.mpll.pi.ki,
+				softpll.mpll.pi.shift,
+				softpll.mpll.pi.bias,
+				(uint32_t)softpll.mpll.sample_n,
+				(uint32_t)softpll.mpll.freq_ld.threshold,
+				(uint32_t)softpll.mpll.freq_ld.lock_samples,
+				((uint32_t)(softpll.mpll.enabled ? 1u : 0u)) |
+					((uint32_t)(softpll.mpll.freq_ld.locked ? 1u : 0u) << 1) |
+					((uint32_t)(softpll.mpll.phase_ld.locked ? 1u : 0u) << 2) |
+					((uint32_t)(softpll.mpll.locked ? 1u : 0u) << 3),
+				softpll.mpll.pi.y_min,
+				softpll.mpll.pi.y_max,
+				softpll.mpll.pi.anti_windup,
+				softpll.mpll.pi.trace_x);
 			wdiags_write_wr_spll_activity_debug(
 				softpll.ref_count,
 				softpll.tag_count,

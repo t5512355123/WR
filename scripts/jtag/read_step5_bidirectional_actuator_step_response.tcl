@@ -65,6 +65,9 @@ proc word64 {value} {
     set text [string range $text end-15 end]
   }
   scan $text %x word
+  if {$word < 0} {
+    set word [expr {$word + 0x10000000000000000}]
+  }
   return $word
 }
 

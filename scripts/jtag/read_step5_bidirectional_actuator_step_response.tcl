@@ -41,7 +41,7 @@ array set ::wb_toggle {}
 array set ::snap {}
 
 proc is_hex {value} {
-  return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
+  return [regexp {^[0-9A-Fa-f]+$} $value]
 }
 
 proc numeric {value} {
@@ -50,16 +50,21 @@ proc numeric {value} {
 
 proc word32 {value} {
   if {![is_hex $value]} { return -1 }
-  scan $value %x word
+  set text $value
+  if {[string length $text] > 8} {
+    set text [string range $text end-7 end]
+  }
+  scan $text %x word
   return [expr {$word & 0xffffffff}]
 }
 
 proc word64 {value} {
   if {![is_hex $value]} { return -1 }
-  scan $value %x word
-  if {$word < 0} {
-    set word [expr {$word + 0x10000000000000000}]
+  set text $value
+  if {[string length $text] > 16} {
+    set text [string range $text end-15 end]
   }
+  scan $text %x word
   return $word
 }
 

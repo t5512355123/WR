@@ -15,7 +15,7 @@
 
 - Git branch：`exp/step5-softpll-lock`
 - FPGA image source commit：`21b3491` (`exp: add bidirectional SI5340 actuator identification`)
-- 最終診斷腳本 HEAD：`7857165` (`fix: allow sequential actuator diagnostics`)
+- 最終診斷腳本 HEAD：`74b5bcf` (`exp: add timed actuator step-response samples`)
 - Programming order：Master ready 後再 program Slave
 - Master SOF SHA-256：`a8a075545d1bf735b7d8d2cdabfd85565fe7808cf398b23660852dd6cdb30c72`
 - Slave SOF SHA-256：`79c8cca15550db0002559759eea548027556650c45c41e9853c69c913e1eefa2`
@@ -106,6 +106,56 @@ MERGE = NOT APPROVED
 ```
 
 下一步交由分支 5 判斷是否接受此結果，以及指定下一個 Step5 實驗。
+
+## 1024-step hold identification（2026-09-02）
+
+分支 5 要求將唯一控制變數由 `burst_size=128` 提高至 `1024`，其餘條件與同一組 FPGA image 維持不變。沒有修改 FPGA functional logic；本輪只使用診斷腳本 `74b5bcf`，並加入固定時間點的 `0.1/0.5/1/2/5 s` 觀測。
+
+執行前 preflight 仍為：
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+RXERR_DELTA = 0
+RESET_DELTAS = 0
+PSTAT_LOCKED = 0
+```
+
+主要量測結果如下。`settled Δ` 是相對於各 phase `before` 的最後一個 5 秒樣本差值：
+
+| Phase | 完成步數 | `FREQ_ERROR` before | after | 瞬時 Δ | 5 秒樣本 | settled Δ | 觀測時間 |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| FINC | 1024/1024 | -1505 | -1247 | +258 | -1240 | +7 | 5.131 s |
+| FDEC | 1024/1024 | -1240 | -1486 | -246 | -1499 | -13 | 5.132 s |
+
+固定時間樣本（實際相對時間，單位 ms）為：
+
+```text
+FINC:  230:-1244  630:-1259  1131:-1243  2130:-1255  5131:-1240
+FDEC:  229:-1482  631:-1500  1131:-1496  2133:-1495  5132:-1499
+```
+
+其餘證據：
+
+- FINC completion：1024 steps，約 1046 ms；FDEC completion：1024 steps，約 1047 ms。
+- `DMTD_REF_DELTA / DMTD_FB_DELTA`：FINC `4911 / 4724`；FDEC `4921 / 4726`。
+- `HELPER_ERROR` 維持 `150000`，`helper_state=0x00010000`；`PSTAT_LOCKED=0`，所以沒有閉迴路 lock 證據。
+- `RXERR_DELTA=0`、`BOOT_GENERATION_DELTA=0`、`CPU_RESET_DELTA=0`、`WR_CORE_RESET_DELTA=0`、`SI_CONFIG_DROP_DELTA=0`。
+- `NORMAL_REQUEST_DELTA=0`、`NORMAL_COMPLETED_DELTA=0`，符合本輪關閉 normal tracker 的 identification 設定。
+
+1024-step 的 `+258/-246` 瞬時方向相反，且在 5 秒觀測窗仍保留相對於 phase baseline 的 `+7/-13` signed residual；因此 actuator 的雙向方向與可觀測 plant authority 已比 128-step 結果更明確，`DIRECTION_RESPONSE=OPPOSITE`、`ACTUATOR_ACCOUNTING=PASS`。這仍只是 plant identification，不等同於 Step5 closed-loop lock。
+
+本輪正式判定維持：
+
+```text
+STEP4B = PASS
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
 
 ## 原始紀錄
 

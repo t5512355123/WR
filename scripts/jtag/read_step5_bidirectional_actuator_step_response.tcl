@@ -39,7 +39,6 @@ if {$baseline_seconds <= 0 || $burst_size <= 0 || $burst_size > 65535 ||
 
 array set ::wb_toggle {}
 array set ::snap {}
-set ::wb_debug_count 0
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -134,18 +133,6 @@ proc wb_read {hardware_name addr} {
       set raw INVALID
     }
     set word [word64 $raw]
-    if {$addr == 0x00100B00 && $::wb_debug_count < 8} {
-      set debug_done INVALID
-      set debug_active INVALID
-      if {$word >= 0} {
-        set debug_done [field64 $word 35 1]
-        set debug_active [field64 $word 36 1]
-      }
-      puts [format "BIDIR_WB_DEBUG raw=%s word=%s done=%s active=%s expected=%s" \
-        $raw $word $debug_done $debug_active $expected_toggle]
-      incr ::wb_debug_count
-      flush stdout
-    }
     if {$word >= 0} {
       set done_toggle [field64 $word 35 1]
       set active [field64 $word 36 1]
@@ -354,6 +341,12 @@ proc wait_for_completion {hardware_name before_tag direction burst_size \
     puts [format "BIDIR_COMPLETION_POLL board=%s direction=%s poll=%d FINC_OR_FDEC_COMPLETED=%s DELTA=%s FORCED_COMPLETED=%s REMAINING=%s" \
       $hardware_name [expr {$direction ? "FINC" : "FDEC"}] $poll \
       $current $delta $forced_total $remaining]
+    set poll_freq [signed32 [wb_read $hardware_name 0x00100B0C]]
+    set poll_ref [word32 [wb_read $hardware_name 0x00100298]]
+    set poll_fb [word32 [wb_read $hardware_name 0x0010029C]]
+    puts [format "BIDIR_COMPLETION_RESPONSE board=%s direction=%s poll=%d FREQ_ERROR=%s DMTD_REF_RAW=%s DMTD_FB_RAW=%s" \
+      $hardware_name [expr {$direction ? "FINC" : "FDEC"}] $poll \
+      $poll_freq $poll_ref $poll_fb]
     flush stdout
     if {[numeric $delta] && $delta >= $burst_size} {
       return [list 1 $delta [expr {[clock milliseconds] - $trigger_ms}] $poll]
@@ -362,8 +355,36 @@ proc wait_for_completion {hardware_name before_tag direction burst_size \
   return [list 0 $delta [expr {[clock milliseconds] - $trigger_ms}] $max_polls]
 }
 
-# Take fixed-gap samples until the helper-update counter has advanced by the
-# requested settle and window amounts from the post-completion snapshot.
+# Take fixed-time samples after the completed burst.  The requested times are
+# relative to the immediately preceding post-completion snapshot.
+proc collect_timed_window {hardware_name phase start_ms} {
+  set first_tag ""
+  set last_tag ""
+  set sample_count 0
+  foreach target_ms {100 500 1000 2000 5000} {
+    set elapsed [expr {[clock milliseconds] - $start_ms}]
+    set wait_ms [expr {$target_ms - $elapsed}]
+    if {$wait_ms > 0} { after $wait_ms }
+    incr sample_count
+    set tag [format "%s_T%04d" $phase $target_ms]
+    read_snapshot $hardware_name $tag
+    set actual_ms [expr {[clock milliseconds] - $start_ms}]
+    puts [format "BIDIR_TIME_SAMPLE board=%s phase=%s tag=%s TARGET_MS=%d ACTUAL_MS=%d FREQ_ERROR=%s DMTD_REF_RAW=%s DMTD_FB_RAW=%s HELPER_ERROR=%s UPDATE_COUNT=%s RXERR=%s" \
+      $hardware_name $phase $tag $target_ms $actual_ms \
+      [snap_get $hardware_name $tag freq_error] \
+      [snap_get $hardware_name $tag dmtd_ref_raw] \
+      [snap_get $hardware_name $tag dmtd_fb_raw] \
+      [snap_get $hardware_name $tag helper_error] \
+      [snap_get $hardware_name $tag update_count] \
+      [snap_get $hardware_name $tag rxerr]]
+    if {$first_tag eq ""} { set first_tag $tag }
+    set last_tag $tag
+    flush stdout
+  }
+  return [list $first_tag $last_tag $actual_ms $sample_count]
+}
+
+# Legacy update-count window retained for older callers and comparison logs.
 proc collect_settled_window {hardware_name phase base_tag settle_updates \
                               window_updates gap_ms trigger_ms} {
   set base_update [snap_get $hardware_name $base_tag update_count]
@@ -405,7 +426,7 @@ proc emit_phase_result {hardware_name phase before_tag after_tag first_tag \
     [snap_get $hardware_name $before_tag freq_error] \
     [snap_get $hardware_name $after_tag freq_error]]
   set freq_settled [value_delta \
-    [snap_get $hardware_name $first_tag freq_error] \
+    [snap_get $hardware_name $after_tag freq_error] \
     [snap_get $hardware_name $last_tag freq_error]]
   set helper_immediate [value_delta \
     [snap_get $hardware_name $before_tag helper_error] \
@@ -441,10 +462,10 @@ proc emit_final_summary {hardware_name burst_size finc_before finc_after \
     [snap_get $hardware_name $fdec_before fdec_completed] \
     [snap_get $hardware_name $fdec_after fdec_completed] 16]
   set finc_freq [value_delta \
-    [snap_get $hardware_name $finc_first freq_error] \
+    [snap_get $hardware_name $finc_after freq_error] \
     [snap_get $hardware_name $finc_last freq_error]]
   set fdec_freq [value_delta \
-    [snap_get $hardware_name $fdec_first freq_error] \
+    [snap_get $hardware_name $fdec_after freq_error] \
     [snap_get $hardware_name $fdec_last freq_error]]
   set normal_req [counter_delta \
     [snap_get $hardware_name BASELINE_BEFORE normal_requested] \
@@ -527,8 +548,8 @@ foreach hardware_name [get_hardware_names] {
         $burst_size $completion_poll_ms $max_completion_polls $finc_trigger_ms]
       foreach {finc_ok finc_completed finc_completion_ms finc_polls} $finc_wait break
       read_snapshot $hardware_name FINC_AFTER
-      set finc_window [collect_settled_window $hardware_name FINC FINC_AFTER \
-        $settle_updates $window_updates $sample_gap_ms $finc_trigger_ms]
+      set finc_window_start_ms [clock milliseconds]
+      set finc_window [collect_timed_window $hardware_name FINC $finc_window_start_ms]
       foreach {finc_first finc_last finc_settle_ms finc_samples} $finc_window break
       emit_phase_result $hardware_name FINC FINC_BEFORE FINC_AFTER \
         $finc_first $finc_last $finc_settle_ms
@@ -542,8 +563,8 @@ foreach hardware_name [get_hardware_names] {
         $burst_size $completion_poll_ms $max_completion_polls $fdec_trigger_ms]
       foreach {fdec_ok fdec_completed fdec_completion_ms fdec_polls} $fdec_wait break
       read_snapshot $hardware_name FDEC_AFTER
-      set fdec_window [collect_settled_window $hardware_name FDEC FDEC_AFTER \
-        $settle_updates $window_updates $sample_gap_ms $fdec_trigger_ms]
+      set fdec_window_start_ms [clock milliseconds]
+      set fdec_window [collect_timed_window $hardware_name FDEC $fdec_window_start_ms]
       foreach {fdec_first fdec_last fdec_settle_ms fdec_samples} $fdec_window break
       emit_phase_result $hardware_name FDEC FDEC_BEFORE FDEC_AFTER \
         $fdec_first $fdec_last $fdec_settle_ms

@@ -1,0 +1,202 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep  2 14:59:20 2026
+Info: Command: quartus_stp -t scripts/jtag/read_wb_runtime.tcl
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:01/02:00:22:33:44:01
+[pass] WDIAGS_MODE              結果: 2 MASTER/2 MASTER
+[pass] WDIAGS_PTP               結果: 6 MASTER (raw=01014106)/6 MASTER
+[pass] WDIAGS_PTP_RX            結果: Δ=11/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=27/Δ>0
+[pass] WDIAGS_TX                結果: Δ=34/Δ>0
+[pass] WDIAGS_RX                結果: Δ=17/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 pass
+
+## [Step 3] WR Parent / Signaling
+Step 3 NA
+
+## [Step 4A] Master SoftPLL Event Chain
+[pass] DMTD_REF_ACCEPT_EVENT    結果: Δ=25212/Δ>=0
+[pass] DMTD_FB_ACCEPT_EVENT     結果: Δ=24122/Δ>=0
+[pass] DMTD_ACCEPT              結果: Δ=49334/Δ>0
+[pass] SPLL_TAG_VALID_COUNT     結果: Δ=24125/Δ>0
+[pass] SPLL_TRR_WRITE_COUNT     結果: Δ=24125/Δ>0
+[pass] WRPC_SPLL_TRR_POP_COUNT  結果: Δ=24000/Δ>0
+[pass] WDIAGS_IRQ_COUNT         結果: Δ=24000/Δ>0
+[pass] WDIAGS_HELPER_UPDATE_COUNT 結果: Δ=24000/Δ>0
+[pass] BOOT_GENERATION          結果: Δ=0/Δ=0
+[pass] CPU_RESET_COUNT          結果: Δ=0/Δ=0
+[pass] WR_CORE_RESET_COUNT      結果: Δ=0/Δ=0
+[pass] SI_CONFIG_DROP_COUNT     結果: Δ=0/Δ=0
+STEP4A_MASTER_EVENT_CHAIN = PASS
+Step 4 pass
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+Step 5 NA (Step5 closed-loop gate is for Slave)
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           NA
+Step 4 Step4A Master Event Chain pass
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:02/02:00:22:33:44:02
+[pass] WDIAGS_MODE              結果: 3 SLAVE/3 SLAVE
+[info] WDIAGS_PTP               結果: 8 UNCALIBRATED (raw=00004108)/NA
+[pass] WDIAGS_PTP_RX            結果: Δ=25/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=11/Δ>0
+[pass] WDIAGS_TX                結果: Δ=18/Δ>0
+[pass] WDIAGS_RX                結果: Δ=31/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 NA
+
+## [Step 3] WR Parent / Signaling
+[pass] WDIAGS_FOREIGN_META      結果: 1/1
+[pass] WDIAGS_FOREIGN_META      結果: 0/0
+[info] WDIAGS_FOREIGN_META      結果: detection=0 config=3/NA
+[pass] parentIsWRnode           結果: 1/1
+[info] parentWrModeOn           結果: 0/NA
+[pass] parentCalibrated         結果: 1/1
+[pass] WR_RX_SIGNAL_DEBUG       結果: LOCK count=1/LOCK 0x1001,count>0
+[pass] WR_TX_SIGNAL_DEBUG       結果: SLAVE_PRESENT count=1/SLAVE_PRESENT 0x1000,count>0
+[pass] WDIAGS_TEMP              結果: WRS_S_LOCK next=WRS_S_LOCK/WRS_S_LOCK=2
+[pass] LOCK_ENABLE              結果: 4/> 0
+Step 3 pass
+
+## [Step 4B] Slave SoftPLL Startup
+[info] STEP4B_UPSTREAM_GATE     結果: BLOCKED/NA
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+Step 4B BLOCKED (upstream prerequisite)
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         NA
+Step 3 WR Handshake           pass
+Step 4 Step4B Slave SoftPLL Startup blocked
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+
+============================================================
+JTAG/WB transport health summary
+============================================================
+WB_TRANSPORT_PROTOCOL = PRELOAD_THEN_TOGGLE_COMMIT
+WB_REQUEST_COUNT = 353
+PRELOAD_COUNT = 353
+COMMIT_COUNT = 353
+WB_PROBE_READ_COUNT = 1765
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 353
+STABLE_RESPONSE_WRONG_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+TIMEOUT_COUNT = 0
+INVALID_COUNT = 0
+STALE_A5A5_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = PASS
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+============================================================
+
+============================================================
+STEP4A_RESULT = PASS
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+============================================================
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 776 megabytes
+    Info: Processing ended: Wed Sep  2 14:59:35 2026
+    Info: Elapsed time: 00:00:15
+    Info: Total CPU time (on all processors): 00:00:00

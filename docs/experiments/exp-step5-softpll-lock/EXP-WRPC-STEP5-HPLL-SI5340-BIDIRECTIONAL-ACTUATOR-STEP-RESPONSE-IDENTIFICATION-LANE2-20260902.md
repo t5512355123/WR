@@ -125,12 +125,12 @@ RESET_DELTAS = 0
 PSTAT_LOCKED = 0
 ```
 
-主要量測結果如下。`settled Δ` 是相對於各 phase `before` 的最後一個 5 秒樣本差值：
+主要量測結果如下。`after→settled Δ` 是 immediate `after` 到最後一個 5 秒樣本的差值；`before→5 秒 Δ` 才是 phase baseline 到最後樣本的持續 authority：
 
-| Phase | 完成步數 | `FREQ_ERROR` before | after | 瞬時 Δ | 5 秒樣本 | settled Δ | 觀測時間 |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| FINC | 1024/1024 | -1505 | -1247 | +258 | -1240 | +7 | 5.131 s |
-| FDEC | 1024/1024 | -1240 | -1486 | -246 | -1499 | -13 | 5.132 s |
+| Phase | 完成步數 | `FREQ_ERROR` before | after | 瞬時 Δ | 5 秒樣本 | after→settled Δ | before→5 秒 Δ | 觀測時間 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| FINC | 1024/1024 | -1505 | -1247 | +258 | -1240 | +7 | +265 | 5.131 s |
+| FDEC | 1024/1024 | -1240 | -1486 | -246 | -1499 | -13 | -259 | 5.132 s |
 
 固定時間樣本（實際相對時間，單位 ms）為：
 
@@ -147,7 +147,7 @@ FDEC:  229:-1482  631:-1500  1131:-1496  2133:-1495  5132:-1499
 - `RXERR_DELTA=0`、`BOOT_GENERATION_DELTA=0`、`CPU_RESET_DELTA=0`、`WR_CORE_RESET_DELTA=0`、`SI_CONFIG_DROP_DELTA=0`。
 - `NORMAL_REQUEST_DELTA=0`、`NORMAL_COMPLETED_DELTA=0`，符合本輪關閉 normal tracker 的 identification 設定。
 
-1024-step 的 `+258/-246` 瞬時方向相反，且在 5 秒觀測窗仍保留相對於 phase baseline 的 `+7/-13` signed residual；因此 actuator 的雙向方向與可觀測 plant authority 已比 128-step 結果更明確，`DIRECTION_RESPONSE=OPPOSITE`、`ACTUATOR_ACCOUNTING=PASS`。這仍只是 plant identification，不等同於 Step5 closed-loop lock。
+1024-step 的 `+258/-246` 瞬時方向相反；以正確的 phase baseline 到 5 秒樣本計算，持續 authority 為 `+265/-259`，約 `0.256 FREQ_ERROR / physical step`，而 `+7/-13` 只是 immediate `after` 到 settled 的差值。因此 actuator 的雙向方向與持續 plant authority 已建立，`DIRECTION_RESPONSE=OPPOSITE`、`ACTUATOR_ACCOUNTING=PASS`。這仍只是 plant identification，不等同於 Step5 closed-loop lock。
 
 本輪正式判定維持：
 

@@ -1775,15 +1775,15 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 plant-identification image: pause normal closed-loop
-      -- correction and bootstrap while JTAG commands explicit FINC/FDEC
-      -- bursts.  All WR/SoftPLL inputs remain connected as before.
-      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
-      ENABLE_STEP5_BOOTSTRAP => 0,
+      -- Step5 trusted closed-loop image: retain the branch5-approved
+      -- bootstrap and controller settings, changing only the mapping from
+      -- virtual WR code to physical SI5340 steps (128 -> 64).
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 0,
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
+      ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 6208,
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 128,
-      JTAG_HPLL_BURST_SIZE => 128
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
+      JTAG_HPLL_BURST_SIZE => 32
     )
     port map (
       iCLK                   => CLK_50_B2J,

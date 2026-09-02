@@ -549,7 +549,8 @@ foreach hardware_name [get_hardware_names] {
       flush stdout
     }
   } error_message]} {
-    puts [format "BIDIR_ERROR board=%s message=%s" $hardware_name $error_message]
+    puts [format "BIDIR_ERROR board=%s message=%s error_info=%s" \
+      $hardware_name $error_message [string map {\n " | "} $::errorInfo]]
     flush stdout
   }
   catch { end_insystem_source_probe }

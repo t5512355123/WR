@@ -68,6 +68,9 @@ array set ::reset_final {}
 array set ::entry_generation_first {}
 array set ::entry_generation_final {}
 array set ::main_trace_magic_final {}
+array set ::main_trace_epoch_before_raw {}
+array set ::main_trace_epoch_after_raw {}
+array set ::main_trace_magic_raw {}
 array set ::main_trace_update_count_final {}
 array set ::main_trace_last_dref {}
 array set ::main_trace_last_dout {}
@@ -203,7 +206,9 @@ proc read_main_trace {hardware_name} {
   # CPU addresses are BASE_WDIAGS_PRIV + offsets 0x158..0x1ac and 0x1dc.
   # The epoch is odd while task-diags publishes and even after completion.
   for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set epoch_before [word32 [wb_read $hardware_name 0x00100B58]]
+    set epoch_before_raw [wb_read $hardware_name 0x00100B58]
+    set ::main_trace_epoch_before_raw($hardware_name) $epoch_before_raw
+    set epoch_before [word32 $epoch_before_raw]
     if {$epoch_before < 0 || ($epoch_before & 1)} { after 1; continue }
     set dref [signed32 [wb_read $hardware_name 0x00100B5C]]
     set dout [signed32 [wb_read $hardware_name 0x00100B60]]
@@ -226,8 +231,12 @@ proc read_main_trace {hardware_name} {
     set y_max [signed32 [wb_read $hardware_name 0x00100BA4]]
     set anti_windup [signed32 [wb_read $hardware_name 0x00100BA8]]
     set pi_x [signed32 [wb_read $hardware_name 0x00100BAC]]
-    set magic [word32 [wb_read $hardware_name 0x00100BDC]]
-    set epoch_after [word32 [wb_read $hardware_name 0x00100B58]]
+    set magic_raw [wb_read $hardware_name 0x00100BDC]
+    set ::main_trace_magic_raw($hardware_name) $magic_raw
+    set magic [word32 $magic_raw]
+    set epoch_after_raw [wb_read $hardware_name 0x00100B58]
+    set ::main_trace_epoch_after_raw($hardware_name) $epoch_after_raw
+    set epoch_after [word32 $epoch_after_raw]
     if {$epoch_before == $epoch_after && $epoch_after >= 0 &&
         !($epoch_after & 1) && $magic == 1 &&
         $dref ne "INVALID" && $dout ne "INVALID" &&
@@ -302,6 +311,9 @@ proc initialize_board {hardware_name} {
   set ::entry_generation_first($hardware_name) INVALID
   set ::entry_generation_final($hardware_name) INVALID
   set ::main_trace_magic_final($hardware_name) INVALID
+  set ::main_trace_epoch_before_raw($hardware_name) INVALID
+  set ::main_trace_epoch_after_raw($hardware_name) INVALID
+  set ::main_trace_magic_raw($hardware_name) INVALID
   set ::main_trace_update_count_final($hardware_name) INVALID
   set ::main_trace_last_dref($hardware_name) INVALID
   set ::main_trace_last_dout($hardware_name) INVALID
@@ -454,8 +466,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::pstat_locked_final($hardware_name) $pstat_locked
   }
 
-  puts [format "STEP5_MAIN_FREQ_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_MAGIC=%s MAIN_DREF_DT=%s MAIN_DOUT_DT=%s MAIN_FREQ_ERROR=%s MAIN_PRELOCK_ERROR=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_FREQ_LOCK_COUNT_MAX=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s MAIN_PI_UPDATE_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_STATE=%s MAIN_PI_Y_MIN=%s MAIN_PI_Y_MAX=%s MAIN_PI_ANTI_WINDUP=%s MAIN_PI_X=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
-    $hardware_name $sample $elapsed_ms $frame_ok $trace_ok $magic $dref $dout $freq_error $prelock_error $pi_unclamped $pi_output $clamp_side $lock_count $lock_count_max $kp $ki $shift $bias $update_count $threshold $lock_samples $state $y_min $y_max $anti_windup $pi_x $main_enabled $main_freq_locked $main_phase_locked $main_locked $helper_locked $helper_lock_count $helper_threshold $helper_lock_samples $pstat_locked $spll_delock $entry_generation $cpu_reset $wr_reset $si_drop]
+  puts [format "STEP5_MAIN_FREQ_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_EPOCH_BEFORE_RAW=%s MAIN_TRACE_EPOCH_AFTER_RAW=%s MAIN_TRACE_MAGIC_RAW=%s MAIN_TRACE_MAGIC=%s MAIN_DREF_DT=%s MAIN_DOUT_DT=%s MAIN_FREQ_ERROR=%s MAIN_PRELOCK_ERROR=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_FREQ_LOCK_COUNT_MAX=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s MAIN_PI_UPDATE_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_STATE=%s MAIN_PI_Y_MIN=%s MAIN_PI_Y_MAX=%s MAIN_PI_ANTI_WINDUP=%s MAIN_PI_X=%s MAIN_ENABLED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s MAIN_LOCKED=%s HELPER_LOCKED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s" \
+    $hardware_name $sample $elapsed_ms $frame_ok $trace_ok $::main_trace_epoch_before_raw($hardware_name) $::main_trace_epoch_after_raw($hardware_name) $::main_trace_magic_raw($hardware_name) $magic $dref $dout $freq_error $prelock_error $pi_unclamped $pi_output $clamp_side $lock_count $lock_count_max $kp $ki $shift $bias $update_count $threshold $lock_samples $state $y_min $y_max $anti_windup $pi_x $main_enabled $main_freq_locked $main_phase_locked $main_locked $helper_locked $helper_lock_count $helper_threshold $helper_lock_samples $pstat_locked $spll_delock $entry_generation $cpu_reset $wr_reset $si_drop]
   flush stdout
 }
 

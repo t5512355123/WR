@@ -8,7 +8,7 @@
 
 package require ::quartus::insystem_source_probe
 
-set board_filter "DE5 [1-11.2]"
+set board_filter {DE5 [1-11.2]}
 set gate_timeout_s 120
 set phase_samples 20
 set phase_gap_ms 500

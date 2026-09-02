@@ -2,8 +2,9 @@
 #
 # This experiment uses the already-programmed image.  It waits for the
 # settled Step4B/Helper/Main gate, freezes only Main VCO control through the
-# normal shell command, applies one low-rail DAC code and one +1024-code DAC
-# step, and measures the coherent Main frequency trace in both phases.
+# normal shell command, applies one low-rail DAC code and one selected DAC
+# endpoint (the default is a +1024-code step), and measures the coherent Main
+# frequency trace in both phases.
 # The final command releases the VCO freeze so the board is not left frozen.
 
 package require ::quartus::insystem_source_probe
@@ -13,13 +14,22 @@ set gate_timeout_s 1200
 set phase_samples 20
 set phase_gap_ms 500
 set gate_consecutive 10
+set dac_b_mode step1024
 if {[llength $argv] >= 1} { set board_filter [lindex $argv 0] }
 if {[llength $argv] >= 2} { set gate_timeout_s [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set phase_samples [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set phase_gap_ms [expr {int([lindex $argv 3])}] }
+if {[llength $argv] >= 5} { set dac_b_mode [lindex $argv 4] }
 if {$gate_timeout_s <= 0 || $phase_samples <= 0 || $phase_gap_ms < 0 ||
-    $gate_consecutive <= 0} {
-  error "gate_timeout_s, phase_samples, and gate_consecutive must be > 0; phase_gap_ms must be >= 0"
+    $gate_consecutive <= 0 || ($dac_b_mode ne "step1024" &&
+    $dac_b_mode ne "fullrange")} {
+  error "invalid DAC identification arguments; dac_b_mode must be step1024 or fullrange"
+}
+
+if {$dac_b_mode eq "fullrange"} {
+  set experiment_name EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-MAIN-DAC-FULL-RANGE-AUTHORITY-IDENTIFICATION-20260902
+} else {
+  set experiment_name EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-MAIN-DAC-EVENT-TRIGGERED-DIRECTION-AUTHORITY-IDENTIFICATION-1200S-GATE-20260902
 }
 
 array set ::wb_toggle {}
@@ -227,8 +237,9 @@ proc run_phase {hardware_name phase code samples gap_ms} {
     [expr {[clock milliseconds] - $start_ms}]]
 }
 
-puts [format "DAC_ID_CONFIG board_filter=%s gate_timeout_s=%d gate_consecutive=%d gate_gap_ms=250 phase_samples=%d phase_gap_ms=%d experiment=EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-MAIN-DAC-EVENT-TRIGGERED-DIRECTION-AUTHORITY-IDENTIFICATION-1200S-GATE-20260902 existing_image=88604a5+7585a06 frozen_fit=1 no_reprogram=1" \
-  $board_filter $gate_timeout_s $gate_consecutive $phase_samples $phase_gap_ms]
+puts [format "DAC_ID_CONFIG board_filter=%s gate_timeout_s=%d gate_consecutive=%d gate_gap_ms=250 phase_samples=%d phase_gap_ms=%d dac_b_mode=%s experiment=%s existing_image=88604a5+7585a06 frozen_fit=1 no_reprogram=1" \
+  $board_filter $gate_timeout_s $gate_consecutive $phase_samples $phase_gap_ms \
+  $dac_b_mode $experiment_name]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }
@@ -271,6 +282,7 @@ foreach hardware_name [get_hardware_names] {
     }
     set dac_a $y_min
     set dac_b [expr {$dac_a + 1024}]
+    if {$dac_b_mode eq "fullrange"} { set dac_b $y_max }
     if {$dac_a < 0 || $dac_b > $y_max} {
       error "DAC_ID_CODE_RANGE_INVALID y_min=$y_min y_max=$y_max dac_a=$dac_a dac_b=$dac_b"
     }

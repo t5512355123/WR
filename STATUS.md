@@ -1,5 +1,18 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新冷開機順序驗證（2026-09-05，branch `exp/step5-softpll-lock`）
+
+使用相同 frozen-fit SOF，實體斷電重開後改為 **Master → Slave** 燒錄。
+雙板燒錄成功，但五次唯讀 preflight 都未恢復 Step1：雙板 TX-ready=0、
+core link=0，Slave RX-ready 有波動，PTP_RX delta=0。診斷通道可信。
+
+`STEP4B_COMPLETE=YES` 僅代表歷史里程碑；本輪
+`STEP4B_REVALIDATED=NO`、`STEP4B_RESULT=BLOCKED_BY_STEP1`。
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。本輪未執行 Helper 600 秒測試，
+未修改 PI 參數、未 rebuild、未 merge。下方舊紀錄保留作歷史比較。
+
+[完整報告與 raw evidence](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-COLD-BOOT-PROGRAM-ORDER-MASTER-THEN-SLAVE-UPSTREAM-RECOVERY-20260904.md)
+
 ## 最新 Step4B Slave SoftPLL Startup 實驗線（2026-08-29，branch `exp/step4b-slave-softpll-startup`）
 
 本輪從 exact `main@5578d3ce06461cc9c598e6bf97b890bf440a70b8` 建立 Step4B

@@ -15,10 +15,12 @@ package require ::quartus::insystem_source_probe
 set samples 18000
 set gap_ms 100
 set board_filter ""
+set experiment_name "EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6208-PLUS-64-TRACKER-LONG-LOCK-1800S"
 set poll_attempts 100
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
+if {[llength $argv] >= 4} { set experiment_name [lindex $argv 3] }
 if {$samples <= 0 || $gap_ms < 0} {
   error "samples must be > 0 and gap_ms must be >= 0"
 }
@@ -442,7 +444,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_LOCK_CONVERGENCE_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-6208-PLUS-64-TRACKER-LONG-LOCK-1800S read_only=1 helper_state=0x00100ABC helper_error=0x00100AD8 helper_output=0x00100ADC cadence_ms=100" $samples $gap_ms $board_filter]
+puts [format "STEP5_LOCK_CONVERGENCE_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 helper_state=0x00100ABC helper_error=0x00100AD8 helper_output=0x00100ADC cadence_ms=100" $samples $gap_ms $board_filter $experiment_name]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

@@ -37,7 +37,7 @@ image_source = 88604a5 + 7585a06 (previously validated frozen-fit image)
 QSFPA data path = lane 2
 bootstrap = 6208
 code_per_physical_step = 16
-kp = -150
+Slave helper kp = -300
 ki = -1
 helper_threshold = 200
 helper_lock_samples = 10000
@@ -65,6 +65,12 @@ both = Configuration succeeded; 0 errors, 0 warnings
 
 No firmware, RTL, PI parameter, PHY, PTP role, or observer-control change was
 made for this hardware-state experiment.
+
+Provenance correction (2026-09-05): the initial report incorrectly listed
+`kp=-150`. Source `88604a5:vendor/wrpc-sw/softpll/spll_helper.c` sets
+`kp=-300, ki=-1` for `CONFIG_WR_NODE`, consistent with the original
+88604a5 + 7585a06 frozen-fit image report and the SOF hashes above. This is a
+documentation correction; neither image was rebuilt or changed.
 
 ## Preflight gate
 

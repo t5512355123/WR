@@ -1,0 +1,22 @@
+Questa Intel Starter FPGA Edition-64 vlog 2021.2 Compiler 2021.04 Apr 14 2021
+Start time: 13:59:58 on Sep 07,2026
+vlog -sv /home/b10504072/04_WR/scripts/experiment/tb_dco_page_contract.sv /home/b10504072/04_WR/quartus/jtag_runtime_diag/si5340a_controller_dco.v /home/b10504072/04_WR/quartus/jtag_runtime_diag/i2c_bus_controller_dco.v /home/b10504072/04_WR/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v /home/b10504072/04_WR/rtl/clock/si5340_controller/initial_config.v /home/b10504072/04_WR/rtl/clock/si5340_controller/clock_divider.v /home/b10504072/04_WR/rtl/clock/si5340_controller/edge_detector.v /home/b10504072/04_WR/rtl/clock/si5340_controller/si5340a_clk_frq_sel_gen.v /home/b10504072/04_WR/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v 
+-- Compiling module tb_dco_page_contract
+-- Compiling module si5340a_controller_dco
+-- Compiling module i2c_bus_controller_dco
+-- Compiling module si5340a_i2c_reg_controller_dco
+-- Compiling module initial_config
+-- Compiling module clock_divider
+-- Compiling module edge_detector
+-- Compiling module si5340a_clk_frq_sel_gen
+-- Compiling module si5340a_freq_prameter_selector
+
+Top level modules:
+	tb_dco_page_contract
+	si5340a_clk_frq_sel_gen
+End time: 13:59:59 on Sep 07,2026, Elapsed time: 0:00:01
+Errors: 0, Warnings: 0
+Unable to checkout a license. Make sure your license file environment variable (e.g., LM_LICENSE_FILE)
+is set correctly and then run 'lmutil lmdiag' to diagnose the problem.
+Unable to checkout a license.  Vsim is closing.
+** Error: Invalid license environment. Application closing.

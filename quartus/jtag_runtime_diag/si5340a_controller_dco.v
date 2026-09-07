@@ -76,6 +76,9 @@ reg [2:0]  rt_state;
 reg        rt_dir;
 reg        rt_select_dpll;
 reg        rt_seen_busy;
+// States 5/6 are reused for page restore, then the final command. Keeping
+// the public three-bit state width avoids truncating existing JTAG probes.
+reg        rt_final_write;
 reg        dpll_pending;
 reg        hpll_pending;
 reg        dpll_dir;
@@ -140,20 +143,21 @@ wire       force_hpll_rise = force_hpll_sync & ~force_hpll_sync_prev;
 wire [15:0] force_hpll_burst_size =
   (iFORCE_HPLL_BURST_SIZE != 16'd0) ?
     iFORCE_HPLL_BURST_SIZE : JTAG_HPLL_BURST_SIZE[15:0];
-// Keep the corrected-SOF three-write runtime sequence as the A/B baseline.
-// This experiment changes only the request handshake below.
+// Four writes: PAGE=3, N_FSTEP_MSK, PAGE=0, FINC/FDEC. The mask is
+// at 0x0339, NOT 0x0039. Page restore must complete before the command.
 wire [7:0] runtime_byte_addr =
   (rt_state == 3'd1 || rt_state == 3'd2) ? 8'h01 :
-  (rt_state == 3'd3 || rt_state == 3'd4) ? 8'h39 : 8'h1D;
+  (rt_state == 3'd3 || rt_state == 3'd4) ? 8'h39 :
+  (rt_final_write ? 8'h1D : 8'h01);
 // Register 0x0339 uses zero to enable a divider and one to mask it.
 // DPLL drives N0; HPLL/DMTD drives N1.  Keep the other N dividers masked.
 wire [7:0] runtime_byte_data =
-  (rt_state == 3'd1 || rt_state == 3'd2) ? 8'h00 :
+  (rt_state == 3'd1 || rt_state == 3'd2) ? 8'h03 :
   (rt_state == 3'd3 || rt_state == 3'd4) ?
     (rt_select_dpll ? 8'h0E : 8'h0D) :
   // SI5340 FINC is bit 0 and FDEC is bit 1.  A larger WR DAC code is
   // treated as a request for FINC; this direction is verified on hardware.
-  (rt_dir ? 8'h01 : 8'h02);
+  (rt_final_write ? (rt_dir ? 8'h01 : 8'h02) : 8'h00);
 wire       runtime_start = ((rt_state == 3'd1 || rt_state == 3'd3 ||
                               rt_state == 3'd5) &&
                             !bus_state && static_controller_ready);
@@ -295,6 +299,8 @@ always @* begin
   dco_step5_bootstrap_debug[33] = bootstrap_done;
   dco_step5_bootstrap_debug[34] = hpll_pending_bootstrap;
   dco_step5_bootstrap_debug[35] = current_request_bootstrap;
+  // Additive diagnostic: disambiguates the two visits to states 5/6.
+  dco_step5_bootstrap_debug[36] = rt_final_write;
 end
 
 // Step5 signed physical-position audit evidence.  These counters record
@@ -408,14 +414,15 @@ i2c_bus_controller_dco u_i2c_bus(
   .oCONFIG_DONE(bus_done)
 );
 
-// Serialize each WR DAC update as three I2C writes:
-// select page 0, select the N0/N1 divider mask, then issue FINC/FDEC.
+// Serialize each step as four I2C writes; only the final command completion
+// advances position/step counters. Request admission is unchanged.
 always @(posedge iCLK or negedge iRST_n) begin
   if (!iRST_n) begin
     rt_state         <= 3'd0;
     rt_dir           <= 1'b0;
     rt_select_dpll   <= 1'b0;
     rt_seen_busy     <= 1'b0;
+    rt_final_write   <= 1'b0;
     dpll_pending     <= 1'b0;
     hpll_pending     <= 1'b0;
     dpll_dir         <= 1'b0;
@@ -547,6 +554,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     case (rt_state)
       3'd0: begin
         rt_seen_busy <= 1'b0;
+        rt_final_write <= 1'b0;
         if (static_controller_ready && dpll_pending) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
@@ -598,7 +606,7 @@ always @(posedge iCLK or negedge iRST_n) begin
                      static_controller_ready &&
                      (force_burst_remaining != 16'd0)) begin
           // Queue only one forced request at a time.  The next request is
-          // admitted after the current three-write runtime sequence returns
+          // admitted after the current four-write runtime sequence returns
           // to idle, so the thirty-two-step burst is controller-serialized.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
@@ -657,6 +665,12 @@ always @(posedge iCLK or negedge iRST_n) begin
         if (bus_state)
           rt_seen_busy <= 1'b1;
         else if (rt_seen_busy) begin
+          if (!rt_final_write) begin
+            // Page 0 is now selected. Reuse the handshake pair for FINC/FDEC.
+            rt_final_write <= 1'b1;
+            rt_state <= 3'd5;
+            rt_seen_busy <= 1'b0;
+          end else begin
           rt_state <= 3'd0;
           rt_seen_busy <= 1'b0;
           dco_step_count <= dco_step_count + 1'b1;
@@ -694,6 +708,7 @@ always @(posedge iCLK or negedge iRST_n) begin
               normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
+          end
           end
         end
       end

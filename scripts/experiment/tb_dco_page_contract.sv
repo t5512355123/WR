@@ -2,7 +2,7 @@
 // Pin-level runtime contract test. Static startup is bypassed explicitly;
 // the production serializer and I2C bit engine are NOT mocked.
 module tb_dco_page_contract;
-  reg clk=0, rst=0, dl=0, hl=0, trigger=0;
+  reg clk=0, rst=1, dl=0, hl=0, trigger=0;
   reg [15:0] dd=0, hd=5;
   always #5 clk=~clk;
   wire scl;
@@ -58,7 +58,7 @@ module tb_dco_page_contract;
     force dut.static_start_pulse=0;
     force dut.static_controller_ready=1;
     force dut.i2c_system_clk=clk;
-    #100; rst=1;
+    #20; rst=0; #100; rst=1;
     load_main(16'd100);
     load_main(16'd10000);
     wait(completed==1); #1000;
@@ -79,5 +79,5 @@ module tb_dco_page_contract;
     $display("PAGE_CONTRACT_TEST=PASS expected_fixed=%0d writes=%0d wrong_page=%0d",expect_fixed,writes,wrong_mask);
     $finish;
   end
-  initial begin #2000000; $fatal(1,"Runtime timeout"); end
+  initial begin #2000000; $display("rt=%h bus=%h bit=%h start=%h",dut.rt_state,dut.u_i2c_bus.i2c_state,dut.u_i2c_bus.i2c_bit_cnt,dut.bus_start); $fatal(1,"Runtime timeout"); end
 endmodule

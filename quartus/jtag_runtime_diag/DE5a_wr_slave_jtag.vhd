@@ -1822,9 +1822,9 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- Re-test the measured 3072 reverse/FINC frequency operating point with
-      -- the firmware Helper phase guard before fine tracking.
-      STEP5_BOOTSTRAP_STEPS => 3072,
+      -- Interpolate the same-guard 1664/3072 frequency results to the
+      -- calculated zero-crossing operating point near 3356 steps.
+      STEP5_BOOTSTRAP_STEPS => 3360,
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,

@@ -52,6 +52,7 @@ output    [63:0]        oDCO_STEP5_BOOTSTRAP_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_ACCOUNTING_DEBUG,
 output    [63:0]        oDCO_STEP5_ACTUATOR_DEBUG,
+output    [63:0]        oDCO_STEP5_I2C_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -63,6 +64,7 @@ wire [7:0] static_read_data;
 wire       static_read_data_rdy;
 wire       bus_state;
 wire       bus_done;
+wire       i2c_ack_error;
 wire       static_controller_ready;
 wire       static_start_pulse;
 wire [7:0] static_i2c_reg_state;
@@ -132,6 +134,14 @@ reg [63:0] dco_step5_bootstrap_debug;
 reg [63:0] dco_step5_position_debug;
 reg [63:0] dco_step5_position_accounting_debug;
 reg [63:0] dco_step5_actuator_debug;
+reg [63:0] dco_step5_i2c_debug;
+reg [7:0]  last_runtime_addr;
+reg [7:0]  last_runtime_data;
+reg [2:0]  last_runtime_state;
+reg        last_runtime_final_write;
+reg        last_runtime_select_dpll;
+reg        last_runtime_dir;
+reg [3:0]  runtime_phase_seen;
 reg [15:0] bootstrap_remaining;
 reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
@@ -194,6 +204,7 @@ assign oDCO_STEP5_BOOTSTRAP_DEBUG = dco_step5_bootstrap_debug;
 assign oDCO_STEP5_POSITION_DEBUG = dco_step5_position_debug;
 assign oDCO_STEP5_POSITION_ACCOUNTING_DEBUG = dco_step5_position_accounting_debug;
 assign oDCO_STEP5_ACTUATOR_DEBUG = dco_step5_actuator_debug;
+assign oDCO_STEP5_I2C_DEBUG = dco_step5_i2c_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -349,6 +360,38 @@ always @* begin
   dco_step5_actuator_debug[63:51] = force_burst_remaining[12:0];
 end
 
+// Read-only runtime transaction provenance.  The I2C controller exposes a
+// sticky ACK error, while the fields below retain the most recent runtime
+// command and a four-bit mask showing which members of the expected sequence
+// were admitted since reset:
+//   bit 0 = PAGE 3, bit 1 = N_FSTEP_MSK, bit 2 = PAGE 0,
+//   bit 3 = FINC/FDEC.
+// This does not change admission, serialization, or completion semantics.
+// [7:0] last address, [15:8] last data, [18:16] state,
+// bit 19 final write, bit 20 DPLL select, bit 21 direction,
+// [25:22] phase mask, bit 26 sticky I2C ACK error, bit 27 dco_error,
+// [35:28] runtime starts, [43:36] bus completions,
+// [59:44] total completed physical transactions,
+// bit 60 bus busy, bit 61 static ready, bit 62 runtime enabled.
+always @* begin
+  dco_step5_i2c_debug = 64'd0;
+  dco_step5_i2c_debug[7:0]   = last_runtime_addr;
+  dco_step5_i2c_debug[15:8]  = last_runtime_data;
+  dco_step5_i2c_debug[18:16] = last_runtime_state;
+  dco_step5_i2c_debug[19]    = last_runtime_final_write;
+  dco_step5_i2c_debug[20]    = last_runtime_select_dpll;
+  dco_step5_i2c_debug[21]    = last_runtime_dir;
+  dco_step5_i2c_debug[25:22] = runtime_phase_seen;
+  dco_step5_i2c_debug[26]    = i2c_ack_error;
+  dco_step5_i2c_debug[27]    = dco_error;
+  dco_step5_i2c_debug[35:28] = runtime_start_count;
+  dco_step5_i2c_debug[43:36] = bus_done_count;
+  dco_step5_i2c_debug[59:44] = dco_step_count;
+  dco_step5_i2c_debug[60]    = bus_state;
+  dco_step5_i2c_debug[61]    = static_controller_ready;
+  dco_step5_i2c_debug[62]    = runtime_bus_enable;
+end
+
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
   .iRST_n(iRST_n),
@@ -412,7 +455,8 @@ i2c_bus_controller_dco u_i2c_bus(
   .wr_data(bus_byte_data),
   .wr_cmd(bus_wr_cmd),
   .oSYSTEM_STATE(bus_state),
-  .oCONFIG_DONE(bus_done)
+  .oCONFIG_DONE(bus_done),
+  .oACK_ERROR(i2c_ack_error)
 );
 
 // Serialize each step as four I2C writes; only the final command completion
@@ -472,6 +516,13 @@ always @(posedge iCLK or negedge iRST_n) begin
     bus_done_count <= 8'd0;
     runtime_start_prev <= 1'b0;
     bus_done_prev <= 1'b0;
+    last_runtime_addr <= 8'd0;
+    last_runtime_data <= 8'd0;
+    last_runtime_state <= 3'd0;
+    last_runtime_final_write <= 1'b0;
+    last_runtime_select_dpll <= 1'b0;
+    last_runtime_dir <= 1'b0;
+    runtime_phase_seen <= 4'd0;
   end else begin
     force_hpll_meta <= iFORCE_HPLL_ONE_STEP;
     force_hpll_sync <= force_hpll_meta;
@@ -485,6 +536,23 @@ always @(posedge iCLK or negedge iRST_n) begin
       runtime_start_count <= runtime_start_count + 1'b1;
     if (bus_done && !bus_done_prev)
       bus_done_count <= bus_done_count + 1'b1;
+
+    if (runtime_start) begin
+      last_runtime_addr <= runtime_byte_addr;
+      last_runtime_data <= runtime_byte_data;
+      last_runtime_state <= rt_state;
+      last_runtime_final_write <= rt_final_write;
+      last_runtime_select_dpll <= rt_select_dpll;
+      last_runtime_dir <= rt_dir;
+      if (rt_state == 3'd1)
+        runtime_phase_seen[0] <= 1'b1;
+      else if (rt_state == 3'd3)
+        runtime_phase_seen[1] <= 1'b1;
+      else if (rt_state == 3'd5 && !rt_final_write)
+        runtime_phase_seen[2] <= 1'b1;
+      else if (rt_state == 3'd5 && rt_final_write)
+        runtime_phase_seen[3] <= 1'b1;
+    end
 
     if (force_hpll_rise && !force_hpll_seen) begin
       force_hpll_seen <= 1'b1;

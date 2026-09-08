@@ -1814,10 +1814,9 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 closed-loop contract experiment: include every completed
-      -- HPLL FINC/FDEC transaction in a signed absolute applied-position
-      -- accumulator, then let the normal tracker operate from that real
-      -- position after the coarse bootstrap.
+      -- Step5 coarse-to-fine polarity experiment: the coarse bootstrap is
+      -- the physical origin, and the normal tracker uses the page/mask-
+      -- validated target-to-FDEC polarity for the fine loop.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,

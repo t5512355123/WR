@@ -534,7 +534,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     incr ::position_count($hardware_name)
     if {$applied ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
         $forced_finc ne "INVALID" && $forced_fdec ne "INVALID"} {
-      set expected_applied [expr {5 + $::hpll_step_code * (($finc - $fdec) + ($forced_finc - $forced_fdec))}]
+      set expected_applied [expr {5 + $::hpll_step_code * ($fdec - $finc)}]
       if {$applied != $expected_applied} { incr ::position_failures($hardware_name) }
     }
     if {$normal_done ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
@@ -604,7 +604,7 @@ proc emit_summary {hardware_name} {
   set cpu_delta [counter_delta $cpu0 $cpu1 8]
   set wr_delta [counter_delta $wr0 $wr1 8]
   set si_delta [counter_delta $si0 $si1 8]
-  set expected_applied [expr {$finc1 eq "INVALID" || $fdec1 eq "INVALID" || $ffinc1 eq "INVALID" || $ffdec1 eq "INVALID" ? "INVALID" : (5 + $::hpll_step_code * (($finc1 - $fdec1) + ($ffinc1 - $ffdec1)))}]
+  set expected_applied [expr {$finc1 eq "INVALID" || $fdec1 eq "INVALID" ? "INVALID" : (5 + $::hpll_step_code * ($fdec1 - $finc1))}]
   set freq_mean INVALID
   set freq_rms INVALID
   if {$::freq_count($hardware_name) > 0} {
@@ -663,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-WIDE-APPLIED-POSITION-CONTRACT-FDEC4096-20260908 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 bootstrap_steps=4096 code_per_physical_step=16 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-COARSE-TO-FINE-FDEC-POLARITY-ORIGIN-4096-20260908 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 bootstrap_steps=4096 code_per_physical_step=16 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

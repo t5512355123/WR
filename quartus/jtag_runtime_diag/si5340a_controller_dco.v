@@ -92,10 +92,10 @@ reg        hpll_prev_valid;
 reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
 reg [15:0] hpll_target_code;
-// The helper target is a 16-bit WR code, but the physical SI5340 position
-// is not bounded to that unsigned interval during coarse acquisition.  Keep
-// the controller's applied position as a signed wide accumulator so a
-// bootstrap followed by normal tracking cannot silently wrap at 0xffff.
+// The helper target is a 16-bit WR code. Keep the fine-loop applied position
+// as a signed wide accumulator so normal tracking cannot silently wrap at
+// 0xffff. The coarse bootstrap establishes the physical origin and is not
+// re-counted as fine-loop position; otherwise fine tracking can undo it.
 reg signed [31:0] hpll_target_position;
 reg signed [31:0] hpll_applied_position;
 reg        hpll_tracker_initialized;
@@ -328,10 +328,10 @@ always @* begin
   dco_step5_bootstrap_debug[52:37] = hpll_applied_position[31:16];
 end
 
-// Step5 signed physical-position audit evidence.  The counters retain the
-// legacy normal FINC/FDEC layout, while the applied field is now the low
-// half of the signed absolute accumulator.  The bootstrap/forced direction
-// counters are read from the actuator probe and included by the host audit.
+// Step5 fine-loop position audit evidence. The counters retain the legacy
+// normal FINC/FDEC layout, while the applied field is the low half of the
+// signed fine-loop accumulator. Bootstrap/forced moves are intentionally
+// excluded from this fine-loop coordinate; the host checks normal tracking.
 // [15:0] target, [31:16] low 16 bits of signed applied position,
 // [47:32] normal FINC completed, [63:48] normal FDEC completed.
 always @* begin
@@ -737,7 +737,11 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b0;
           hpll_pending_forced_reverse <= 1'b0;
-          hpll_dir <= (hpll_target_position > hpll_applied_position);
+          // The page/mask-corrected actuator A/B showed FDEC is the
+          // direction that improves a negative Helper error. Therefore a
+          // larger helper target maps to FDEC (rt_dir=0), while a smaller
+          // target maps to FINC (rt_dir=1).
+          hpll_dir <= (hpll_target_position < hpll_applied_position);
         end
       end
       3'd1: begin
@@ -791,16 +795,10 @@ always @(posedge iCLK or negedge iRST_n) begin
               forced_finc_completed_count <= forced_finc_completed_count + 1'b1;
             else
               forced_fdec_completed_count <= forced_fdec_completed_count + 1'b1;
-            // Forced/bootstrap HPLL transactions are real physical moves.
-            // Include them in the same absolute applied-position contract
-            // used by the normal tracker; otherwise the next closed-loop
-            // decision starts from a fictitious position of five.
-            if (!rt_select_dpll && hpll_tracker_initialized) begin
-              if (rt_dir)
-                hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
-              else
-                hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
-            end
+            // Bootstrap/forced moves establish or perturb the physical
+            // origin, but remain outside the fine-loop code coordinate. This
+            // prevents the fine tracker from immediately cancelling the
+            // coarse operating-point move.
             if (current_request_bootstrap) begin
               bootstrap_completed_count <= bootstrap_completed_count + 1'b1;
               // remaining reaches zero when the final bootstrap transaction
@@ -821,10 +819,14 @@ always @(posedge iCLK or negedge iRST_n) begin
             // sub-step request, so no partial credit or target snap is
             // allowed here.
             if (rt_dir) begin
-              hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
+              // Under the validated mapping, FINC moves the fine-loop code
+              // downward.
+              hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
               normal_finc_completed_count <= normal_finc_completed_count + 1'b1;
             end else begin
-              hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
+              // Under the validated mapping, FDEC moves the fine-loop code
+              // upward.
+              hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
               normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;

@@ -92,7 +92,12 @@ reg        hpll_prev_valid;
 reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
 reg [15:0] hpll_target_code;
-reg [15:0] hpll_applied_code;
+// The helper target is a 16-bit WR code, but the physical SI5340 position
+// is not bounded to that unsigned interval during coarse acquisition.  Keep
+// the controller's applied position as a signed wide accumulator so a
+// bootstrap followed by normal tracking cannot silently wrap at 0xffff.
+reg signed [31:0] hpll_target_position;
+reg signed [31:0] hpll_applied_position;
 reg        hpll_tracker_initialized;
 reg [15:0] normal_hpll_request_count;
 reg [15:0] normal_hpll_completed_count;
@@ -150,6 +155,8 @@ reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
 reg        bootstrap_done;
 reg [15:0] position_audit_epoch;
+
+localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -296,7 +303,7 @@ end
 always @* begin
   dco_step5_tracker_debug = 64'd0;
   dco_step5_tracker_debug[15:0]  = hpll_target_code;
-  dco_step5_tracker_debug[31:16] = hpll_applied_code;
+  dco_step5_tracker_debug[31:16] = hpll_applied_position[15:0];
   dco_step5_tracker_debug[47:32] = normal_hpll_request_count;
   dco_step5_tracker_debug[63:48] = normal_hpll_completed_count;
 end
@@ -306,7 +313,8 @@ end
 // zero-point offset before any normal quantized tracker transaction is
 // admitted.
 // [15:0] remaining bootstrap steps, [31:16] completed bootstrap steps,
-// bit 32 started, bit 33 done, bit 34 pending, bit 35 current transaction.
+// bit 32 started, bit 33 done, bit 34 pending, bit 35 current transaction,
+// bit 36 final-write phase, [52:37] signed applied-position upper bits.
 always @* begin
   dco_step5_bootstrap_debug = 64'd0;
   dco_step5_bootstrap_debug[15:0]  = bootstrap_remaining;
@@ -317,19 +325,19 @@ always @* begin
   dco_step5_bootstrap_debug[35] = current_request_bootstrap;
   // Additive diagnostic: disambiguates the two visits to states 5/6.
   dco_step5_bootstrap_debug[36] = rt_final_write;
+  dco_step5_bootstrap_debug[52:37] = hpll_applied_position[31:16];
 end
 
-// Step5 signed physical-position audit evidence.  These counters record
-// only completed normal HPLL FINC/FDEC transactions; bootstrap and forced
-// calibration requests are intentionally excluded.  The host-side audit
-// reconstructs the signed normal net as FINC-FDEC and checks it against the
-// virtual applied code: applied = 5 + 64 * (FINC-FDEC).
-// [15:0] target, [31:16] virtual applied, [47:32] normal FINC completed,
-// [63:48] normal FDEC completed.
+// Step5 signed physical-position audit evidence.  The counters retain the
+// legacy normal FINC/FDEC layout, while the applied field is now the low
+// half of the signed absolute accumulator.  The bootstrap/forced direction
+// counters are read from the actuator probe and included by the host audit.
+// [15:0] target, [31:16] low 16 bits of signed applied position,
+// [47:32] normal FINC completed, [63:48] normal FDEC completed.
 always @* begin
   dco_step5_position_debug = 64'd0;
   dco_step5_position_debug[15:0]  = hpll_target_code;
-  dco_step5_position_debug[31:16] = hpll_applied_code;
+  dco_step5_position_debug[31:16] = hpll_applied_position[15:0];
   dco_step5_position_debug[47:32] = normal_finc_completed_count;
   dco_step5_position_debug[63:48] = normal_fdec_completed_count;
 end
@@ -490,7 +498,8 @@ always @(posedge iCLK or negedge iRST_n) begin
     dpll_prev_data   <= 16'd0;
     hpll_prev_data   <= 16'd0;
     hpll_target_code <= 16'd0;
-    hpll_applied_code <= 16'd0;
+    hpll_target_position <= 32'sd0;
+    hpll_applied_position <= 32'sd0;
     hpll_tracker_initialized <= 1'b0;
     normal_hpll_request_count <= 16'd0;
     normal_hpll_completed_count <= 16'd0;
@@ -623,6 +632,7 @@ always @(posedge iCLK or negedge iRST_n) begin
       // Keep the newest absolute target.  The idle-state tracker below
       // serializes one FINC/FDEC request at a time until applied==target.
       hpll_target_code <= iHPLL_DATA;
+      hpll_target_position <= {16'd0, iHPLL_DATA};
       // Preserve the proven A-polarity direction for forced calibration even
       // when the normal absolute-target tracker is disabled in the
       // calibration image.
@@ -631,7 +641,7 @@ always @(posedge iCLK or negedge iRST_n) begin
       if (!hpll_tracker_initialized) begin
         // WR node helper_start() uses pi.y_min, which is 5 for the DE5a
         // generic 16-bit DAC configuration.
-        hpll_applied_code <= 16'd5;
+        hpll_applied_position <= 32'sd5;
         hpll_tracker_initialized <= 1'b1;
       end
       if (ENABLE_SAME_CODE_TEST && hpll_prev_valid &&
@@ -716,10 +726,10 @@ always @(posedge iCLK or negedge iRST_n) begin
         end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                      static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
-                     (((hpll_target_code > hpll_applied_code) &&
-                       ((hpll_target_code - hpll_applied_code) >= HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0])) ||
-                      ((hpll_applied_code > hpll_target_code) &&
-                       ((hpll_applied_code - hpll_target_code) >= HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0])))) begin
+                     (((hpll_target_position > hpll_applied_position) &&
+                       ((hpll_target_position - hpll_applied_position) >= HPLL_STEP_CODE)) ||
+                      ((hpll_applied_position > hpll_target_position) &&
+                       ((hpll_applied_position - hpll_target_position) >= HPLL_STEP_CODE)))) begin
           // Normal HPLL closed-loop path: admit only one outstanding
           // transaction, but only when the residual spans a complete
           // physical DCO step.  A sub-step residual is retained until a
@@ -727,7 +737,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b0;
           hpll_pending_forced_reverse <= 1'b0;
-          hpll_dir <= (hpll_target_code > hpll_applied_code);
+          hpll_dir <= (hpll_target_position > hpll_applied_position);
         end
       end
       3'd1: begin
@@ -781,6 +791,16 @@ always @(posedge iCLK or negedge iRST_n) begin
               forced_finc_completed_count <= forced_finc_completed_count + 1'b1;
             else
               forced_fdec_completed_count <= forced_fdec_completed_count + 1'b1;
+            // Forced/bootstrap HPLL transactions are real physical moves.
+            // Include them in the same absolute applied-position contract
+            // used by the normal tracker; otherwise the next closed-loop
+            // decision starts from a fictitious position of five.
+            if (!rt_select_dpll && hpll_tracker_initialized) begin
+              if (rt_dir)
+                hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
+              else
+                hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
+            end
             if (current_request_bootstrap) begin
               bootstrap_completed_count <= bootstrap_completed_count + 1'b1;
               // remaining reaches zero when the final bootstrap transaction
@@ -801,10 +821,10 @@ always @(posedge iCLK or negedge iRST_n) begin
             // sub-step request, so no partial credit or target snap is
             // allowed here.
             if (rt_dir) begin
-              hpll_applied_code <= hpll_applied_code + HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
+              hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
               normal_finc_completed_count <= normal_finc_completed_count + 1'b1;
             end else begin
-              hpll_applied_code <= hpll_applied_code - HPLL_TRACKER_CODE_PER_PHYSICAL_STEP[15:0];
+              hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
               normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;

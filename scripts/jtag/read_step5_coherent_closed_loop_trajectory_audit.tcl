@@ -16,6 +16,8 @@ set samples 1800
 set gap_ms 100
 set board_filter ""
 set poll_attempts 100
+# Must match the Slave generic used by the image under test.
+set hpll_step_code 16
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -247,31 +249,43 @@ proc read_coherent_measurement {hardware_name} {
 }
 
 proc read_stable_position {} {
-  # Probe 43 contains target/applied/FINC/FDEC. Probe 44 contains completed
-  # counters and a completion epoch. Only an unchanged pair is accepted.
+  # Probe 43 contains target/applied/normal-FINC/normal-FDEC. Probe 44
+  # contains completed counters and a completion epoch. Probe 49 supplies
+  # forced-FINC/FDEC counts. Probe 42 carries the upper half of the signed
+  # applied-position accumulator. Only an unchanged epoch pair is accepted.
   for {set attempt 0} {$attempt < 10} {incr attempt} {
     set accounting_before [probe_read 44]
     set position [probe_read 43]
+    set bootstrap_word [probe_read 42]
+    set actuator_word [probe_read 49]
     set accounting_after [probe_read 44]
     set epoch_before [word64 $accounting_before]
     set epoch_after [word64 $accounting_after]
     if {$epoch_before >= 0 && $epoch_after >= 0 && [word64 $position] >= 0 &&
+        [word64 $bootstrap_word] >= 0 && [word64 $actuator_word] >= 0 &&
         [string equal -nocase $accounting_before $accounting_after]} {
       set position_word [word64 $position]
       set accounting_word $epoch_after
+      set bootstrap_payload [word64 $bootstrap_word]
+      set actuator_payload [word64 $actuator_word]
       set target [expr {($position_word >> 0) & 0xffff}]
-      set applied [expr {($position_word >> 16) & 0xffff}]
+      set applied_low [expr {($position_word >> 16) & 0xffff}]
+      set applied_high [expr {($bootstrap_payload >> 37) & 0xffff}]
+      set applied_bits [expr {(($applied_high << 16) | $applied_low) & 0xffffffff}]
+      set applied [signed32 [format %08X $applied_bits]]
       set finc [expr {($position_word >> 32) & 0xffff}]
       set fdec [expr {($position_word >> 48) & 0xffff}]
       set normal_done [expr {($accounting_word >> 0) & 0xffff}]
       set dco_step [expr {($accounting_word >> 16) & 0xffff}]
       set bootstrap_completed [expr {($accounting_word >> 32) & 0xffff}]
       set epoch [expr {($accounting_word >> 48) & 0xffff}]
-      return [list 1 $epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed]
+      set forced_finc [expr {($actuator_payload >> 0) & 0xffff}]
+      set forced_fdec [expr {($actuator_payload >> 16) & 0xffff}]
+      return [list 1 $epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed $forced_finc $forced_fdec]
     }
     after 1
   }
-  return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
 }
 
 proc read_helper_pair {hardware_name} {
@@ -361,8 +375,8 @@ proc initialize_board {hardware_name} {
   set ::bootstrap_done_final($hardware_name) INVALID
   set ::post_bootstrap_baseline_set($hardware_name) 0
   set ::post_bootstrap_baseline_sample($hardware_name) NONE
-  set ::position_first($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
-  set ::position_final($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  set ::position_first($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  set ::position_final($hardware_name) [list INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
   set ::reset_first($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::reset_final($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::elapsed_final($hardware_name) 0
@@ -394,7 +408,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set measurement [read_coherent_measurement $hardware_name]
   foreach {measurement_ok epoch tag_delta expected_delta freq_error preclamp helper_error update_count helper_output ref_accept fb_accept} $measurement break
   set position [read_stable_position]
-  foreach {position_ok position_epoch target applied finc fdec normal_done dco_step bootstrap_completed} $position break
+  foreach {position_ok position_epoch target applied finc fdec normal_done dco_step bootstrap_completed forced_finc forced_fdec} $position break
   set tracker_word [word64 [probe_read 39]]
   set burst_word [word64 [probe_read 37]]
   set burst_wide_word [word64 [probe_read 41]]
@@ -437,7 +451,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::burst_first($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
     set ::bootstrap_first($hardware_name) $bootstrap_completed
     set ::bootstrap_done_final($hardware_name) $bootstrap_done
-    set ::position_first($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed]
+    set ::position_first($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed $forced_finc $forced_fdec]
     set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
     set ::spll_delock_first($hardware_name) $spll_delock
   }
@@ -447,7 +461,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::burst_final($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
   set ::bootstrap_final($hardware_name) $bootstrap_completed
   set ::bootstrap_done_final($hardware_name) $bootstrap_done
-  set ::position_final($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed]
+  set ::position_final($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed $forced_finc $forced_fdec]
   set ::reset_final($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
   set ::spll_delock_final($hardware_name) $spll_delock
   if {$spll_delock ne "INVALID" && $spll_delock > $::spll_delock_max($hardware_name)} { set ::spll_delock_max($hardware_name) $spll_delock }
@@ -462,7 +476,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::tracker_first($hardware_name) [list $target_probe $applied_probe $normal_req $normal_done]
     set ::burst_first($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
     set ::bootstrap_first($hardware_name) $bootstrap_completed
-    set ::position_first($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed]
+    set ::position_first($hardware_name) [list $position_ok $position_epoch $target $applied $finc $fdec $normal_done $dco_step $bootstrap_completed $forced_finc $forced_fdec]
     set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
     set ::spll_delock_first($hardware_name) $spll_delock
   }
@@ -517,8 +531,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 
   if {$position_ok} {
     incr ::position_count($hardware_name)
-    if {$applied ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID"} {
-      set expected_applied [expr {(5 + 64 * ($finc - $fdec)) & 0xffff}]
+    if {$applied ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
+        $forced_finc ne "INVALID" && $forced_fdec ne "INVALID"} {
+      set expected_applied [expr {5 + $::hpll_step_code * (($finc - $fdec) + ($forced_finc - $forced_fdec))}]
       if {$applied != $expected_applied} { incr ::position_failures($hardware_name) }
     }
     if {$normal_done ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
@@ -573,8 +588,8 @@ proc emit_summary {hardware_name} {
   foreach {target1 applied1 req1 done1} $::tracker_final($hardware_name) break
   foreach {trigger0 pending0 forced0 step0} $::burst_first($hardware_name) break
   foreach {trigger1 pending1 forced1 step1} $::burst_final($hardware_name) break
-  foreach {posok0 posepoch0 ptarget0 papplied0 finc0 fdec0 pnormal0 pdco0 pboot0} $::position_first($hardware_name) break
-  foreach {posok1 posepoch1 ptarget1 papplied1 finc1 fdec1 pnormal1 pdco1 pboot1} $::position_final($hardware_name) break
+  foreach {posok0 posepoch0 ptarget0 papplied0 finc0 fdec0 pnormal0 pdco0 pboot0 ffinc0 ffdec0} $::position_first($hardware_name) break
+  foreach {posok1 posepoch1 ptarget1 papplied1 finc1 fdec1 pnormal1 pdco1 pboot1 ffinc1 ffdec1} $::position_final($hardware_name) break
   foreach {gen0 cpu0 wr0 si0} $::reset_first($hardware_name) break
   foreach {gen1 cpu1 wr1 si1} $::reset_final($hardware_name) break
   set req_delta [counter_delta $req0 $req1 16]
@@ -588,7 +603,7 @@ proc emit_summary {hardware_name} {
   set cpu_delta [counter_delta $cpu0 $cpu1 8]
   set wr_delta [counter_delta $wr0 $wr1 8]
   set si_delta [counter_delta $si0 $si1 8]
-  set expected_applied [expr {$finc1 eq "INVALID" || $fdec1 eq "INVALID" ? "INVALID" : ((5 + 64 * ($finc1 - $fdec1)) & 0xffff)}]
+  set expected_applied [expr {$finc1 eq "INVALID" || $fdec1 eq "INVALID" || $ffinc1 eq "INVALID" || $ffdec1 eq "INVALID" ? "INVALID" : (5 + $::hpll_step_code * (($finc1 - $fdec1) + ($ffinc1 - $ffdec1)))}]
   set freq_mean INVALID
   set freq_rms INVALID
   if {$::freq_count($hardware_name) > 0} {

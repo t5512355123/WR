@@ -1814,14 +1814,12 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 trusted closed-loop image: retain the branch5-approved
-      -- bootstrap and controller settings, changing only the mapping from
-      -- virtual WR code to physical SI5340 steps (32 -> 16).
+      -- Step5 closed-loop contract experiment: include every completed
+      -- HPLL FINC/FDEC transaction in a signed absolute applied-position
+      -- accumulator, then let the normal tracker operate from that real
+      -- position after the coarse bootstrap.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      -- Static coarse operating-point bracket: apply one fixed reverse
-      -- bootstrap position while the normal tracker stays disabled.  This
-      -- isolates the physical position response from closed-loop motion.
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 4096,
       STEP5_BOOTSTRAP_REVERSE => 0,

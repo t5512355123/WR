@@ -1,0 +1,2 @@
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+Master Quartus build passed: /home/b10504072/04_WR/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof (timing_closed=NO)

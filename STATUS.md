@@ -1,5 +1,20 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 isolated no-bootstrap 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+在已修正 DCO page/mask 的 source `40cb3eac` 上，將 Slave 的
+`STEP5_BOOTSTRAP_STEPS` 設為 `0`，完成兩板編譯與燒錄。可信 preflight 2 的
+Step1～4B 全部 PASS；120 秒 Helper 觀測中正常 tracker 完成 `4,938/4,938`
+次 DCO transaction，但 `HELPER_ERROR` 平均約 `-142321.9`、最大絕對值
+`150000`，output 接近上限，最後仍未 lock。
+
+`STEP5_COMPLETE=NO`、`STEP5_FIRST_INACTIVE_BOUNDARY=HELPER_LOCK`、
+`MERGE_APPROVED=NO`。這輪確認「交易有工作」不等於「actuator 已到可達工作點」；
+下一輪應做受控 coarse operating-point sweep 與 absolute applied-position/
+ACK/direction telemetry，再進行細掃或 PI。
+
+[完整 isolated no-bootstrap 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-ISOLATED-NO-BOOTSTRAP-20260908/REPORT.md)
+
 ## 最新 isolated reverse-bootstrap 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 在 page/mask 已修正的 source `74643971` 上，Slave 只反轉 forced/bootstrap

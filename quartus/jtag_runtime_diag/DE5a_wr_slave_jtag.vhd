@@ -53,6 +53,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
       ENABLE_STEP5_BOOTSTRAP : integer := 0;
       STEP5_BOOTSTRAP_STEPS : integer := 6336;
+      STEP5_BOOTSTRAP_REVERSE : integer := 0;
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 34;
       JTAG_HPLL_BURST_SIZE : integer := 32
     );
@@ -1778,10 +1779,11 @@ begin
       -- Step5 trusted closed-loop image: retain the branch5-approved
       -- bootstrap and controller settings, changing only the mapping from
       -- virtual WR code to physical SI5340 steps (32 -> 16).
-      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 0,
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 6208,
+      STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

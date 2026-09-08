@@ -9,6 +9,7 @@ parameter integer ENABLE_STEP5_ACTUATOR_IDENTIFICATION = 0,
 parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
 parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
 parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
+parameter integer STEP5_BOOTSTRAP_REVERSE = 0,
 parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
 parameter integer JTAG_HPLL_BURST_SIZE = 32
 )(
@@ -500,7 +501,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end else begin
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
-          hpll_pending_forced_reverse <= 1'b0;
+          hpll_pending_forced_reverse <= STEP5_BOOTSTRAP_REVERSE;
           forced_pending_count <= forced_pending_count + 1'b1;
         end
       end
@@ -588,7 +589,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           bootstrap_remaining <= STEP5_BOOTSTRAP_STEPS - 1;
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
-          hpll_pending_forced_reverse <= 1'b0;
+          hpll_pending_forced_reverse <= STEP5_BOOTSTRAP_REVERSE;
           hpll_pending_bootstrap <= 1'b1;
         end else if (ENABLE_STEP5_BOOTSTRAP && bootstrap_started &&
                      !bootstrap_done && static_controller_ready &&

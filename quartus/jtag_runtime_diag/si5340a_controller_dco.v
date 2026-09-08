@@ -770,11 +770,11 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b0;
           hpll_pending_forced_reverse <= 1'b0;
-          // The page/mask-corrected actuator A/B showed FDEC is the
-          // direction that improves a negative Helper error. Therefore a
-          // larger helper target maps to FDEC (rt_dir=0), while a smaller
-          // target maps to FINC (rt_dir=1).
-          hpll_dir <= (hpll_target_position < hpll_applied_position);
+          // The isolated plant test measured FINC as the direction that
+          // increases FREQ_ERROR and FDEC as the direction that decreases it.
+          // Therefore a larger Helper target maps to FINC (rt_dir=1), while
+          // a smaller target maps to FDEC (rt_dir=0).
+          hpll_dir <= (hpll_target_position > hpll_applied_position);
         end
       end
       3'd1: begin
@@ -861,14 +861,12 @@ always @(posedge iCLK or negedge iRST_n) begin
             // sub-step request, so no partial credit or target snap is
             // allowed here.
             if (rt_dir) begin
-              // Under the validated mapping, FINC moves the fine-loop code
-              // downward.
-              hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
+              // FINC increases the physical/WR HPLL code coordinate.
+              hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
               normal_finc_completed_count <= normal_finc_completed_count + 1'b1;
             end else begin
-              // Under the validated mapping, FDEC moves the fine-loop code
-              // upward.
-              hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;
+              // FDEC decreases the physical/WR HPLL code coordinate.
+              hpll_applied_position <= hpll_applied_position - HPLL_STEP_CODE;
               normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;

@@ -1,0 +1,2 @@
+8e31a25909928225a813c9c81f016457100de6ea4927eafe5a9e14ecd535ce8f  /tmp/wr-step5-ki0/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+08407a38ee598d9efc69479ba96d510f4bf4e4c5ee442788aa0305a230e05992  /tmp/wr-step5-ki0/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

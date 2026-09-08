@@ -60,6 +60,8 @@ array set ::burst_first {}
 array set ::burst_final {}
 array set ::bootstrap_first {}
 array set ::bootstrap_final {}
+array set ::actuator_first {}
+array set ::actuator_final {}
 array set ::reset_first {}
 array set ::reset_final {}
 array set ::elapsed_first {}
@@ -257,6 +259,8 @@ proc initialize_board {hardware_name} {
   set ::burst_final($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::bootstrap_first($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::bootstrap_final($hardware_name) [list INVALID INVALID INVALID INVALID]
+  set ::actuator_first($hardware_name) [list INVALID INVALID INVALID]
+  set ::actuator_final($hardware_name) [list INVALID INVALID INVALID]
   set ::reset_first($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::reset_final($hardware_name) [list INVALID INVALID INVALID INVALID]
   set ::elapsed_first($hardware_name) 0
@@ -270,6 +274,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set tracker_raw [probe_read 39]
   set burst_raw [probe_read 37]
   set bootstrap_raw [probe_read 42]
+  set actuator_raw [probe_read 49]
   set entry_probe [probe_read 26]
   set reset_probe [probe_read 27]
   foreach {helper_state helper_limits} [read_helper_pair $hardware_name] break
@@ -285,6 +290,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set tracker_word [word64 $tracker_raw]
   set burst_word [word64 $burst_raw]
   set bootstrap_word [word64 $bootstrap_raw]
+  set actuator_word [word64 $actuator_raw]
   set target [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 0) & 0xffff)}]
   set applied [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 16) & 0xffff)}]
   set normal_req [expr {($tracker_word < 0) ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
@@ -295,6 +301,9 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set dco_step [expr {($burst_word < 0) ? "INVALID" : (($burst_word >> 48) & 0xffff)}]
   set bootstrap_completed [expr {($bootstrap_word < 0) ? "INVALID" : (($bootstrap_word >> 16) & 0xffff)}]
   set bootstrap_done [expr {($bootstrap_word < 0) ? "INVALID" : (($bootstrap_word >> 33) & 1)}]
+  set forced_finc [expr {($actuator_word < 0) ? "INVALID" : (($actuator_word >> 0) & 0xffff)}]
+  set forced_fdec [expr {($actuator_word < 0) ? "INVALID" : (($actuator_word >> 16) & 0xffff)}]
+  set forced_completed [expr {($actuator_word < 0) ? "INVALID" : (($actuator_word >> 32) & 0xffff)}]
   set helper_locked [field32 $helper_state 0 1]
   set helper_changed [field32 $helper_state 1 1]
   set helper_lock_count [field32 $helper_state 16 16]
@@ -321,6 +330,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set ::tracker_first($hardware_name) [list $target $applied $normal_req $normal_done]
     set ::burst_first($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
     set ::bootstrap_first($hardware_name) [list $bootstrap_completed $bootstrap_done]
+    set ::actuator_first($hardware_name) [list $forced_finc $forced_fdec $forced_completed]
     set ::reset_first($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
     set ::spll_delock_first($hardware_name) $spll_delock
     set ::current_tics_first($hardware_name) $current_tics_value
@@ -331,6 +341,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::tracker_final($hardware_name) [list $target $applied $normal_req $normal_done]
   set ::burst_final($hardware_name) [list $forced_trigger $forced_pending $forced_done $dco_step]
   set ::bootstrap_final($hardware_name) [list $bootstrap_completed $bootstrap_done]
+  set ::actuator_final($hardware_name) [list $forced_finc $forced_fdec $forced_completed]
   set ::reset_final($hardware_name) [list $entry_generation $cpu_reset $wr_reset $si_drop]
   set ::current_tics_final($hardware_name) $current_tics_value
   set ::helper_state_final($hardware_name) $helper_state
@@ -384,13 +395,13 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     incr ::invalid_frame_count($hardware_name)
   }
 
-  puts [format "STEP5_LOCK_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d CTRL_BEGIN=%s CTRL_END=%s HELPER_STATE=%s HELPER_LIMITS=%s HELPER_LOCKED=%s HELPER_LOCK_CHANGED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%s HELPER_OUTPUT=%s HELPER_OUTPUT_SIGNED=%s MAIN_ENABLED=%s MAIN_LOCKED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s WR_LOCK_UNLOCKED=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s DCO_STEP=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s CURRENT_TICS=%s" \
+  puts [format "STEP5_LOCK_SAMPLE board=%s sample=%d elapsed_ms=%d FRAME_VALID=%d CTRL_BEGIN=%s CTRL_END=%s HELPER_STATE=%s HELPER_LIMITS=%s HELPER_LOCKED=%s HELPER_LOCK_CHANGED=%s HELPER_LOCK_COUNT=%s HELPER_THRESHOLD=%s HELPER_LOCK_SAMPLES=%s HELPER_ERROR=%s HELPER_ERROR_SIGNED=%s HELPER_OUTPUT=%s HELPER_OUTPUT_SIGNED=%s MAIN_ENABLED=%s MAIN_LOCKED=%s MAIN_FREQ_LOCKED=%s MAIN_PHASE_LOCKED=%s PSTAT_LOCKED=%s SPLL_DELOCK_COUNT=%s WR_LOCK_UNLOCKED=%s NORMAL_REQ=%s NORMAL_COMPLETED=%s DCO_STEP=%s BOOTSTRAP_COMPLETED=%s BOOTSTRAP_DONE=%s FORCED_FINC=%s FORCED_FDEC=%s FORCED_COMPLETED=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s CURRENT_TICS=%s" \
     $hardware_name $sample $elapsed_ms $valid [display_value $ctrl_begin] [display_value $ctrl_end] \
     [display_value $helper_state] [display_value $helper_limits] $helper_locked $helper_changed $helper_lock_count $helper_threshold $helper_lock_samples \
     [display_value $helper_error] $helper_error_signed [display_value $helper_output] $helper_output_signed \
     $main_enabled $main_locked $main_freq_locked $main_phase_locked $pstat_locked $spll_delock \
     [display_value $wr_lock_unlocked] $normal_req $normal_done $dco_step $bootstrap_completed $bootstrap_done \
-    $entry_generation $cpu_reset $wr_reset $si_drop [display_value $current_tics]]
+    $forced_finc $forced_fdec $forced_completed $entry_generation $cpu_reset $wr_reset $si_drop [display_value $current_tics]]
   flush stdout
 }
 
@@ -401,12 +412,17 @@ proc emit_summary {hardware_name} {
   foreach {trigger1 pending1 forced1 step1} $::burst_final($hardware_name) break
   foreach {boot0 doneboot0} $::bootstrap_first($hardware_name) break
   foreach {boot1 doneboot1} $::bootstrap_final($hardware_name) break
+  foreach {finc0 fdec0 forced_done0} $::actuator_first($hardware_name) break
+  foreach {finc1 fdec1 forced_done1} $::actuator_final($hardware_name) break
   foreach {gen0 cpu0 wr0 si0} $::reset_first($hardware_name) break
   foreach {gen1 cpu1 wr1 si1} $::reset_final($hardware_name) break
   set normal_req_delta [counter_delta $req0 $req1 16]
   set normal_done_delta [counter_delta $done0 $done1 16]
   set forced_delta [counter_delta $forced0 $forced1 8]
   set dco_delta [counter_delta $step0 $step1 16]
+  set forced_finc_delta [counter_delta $finc0 $finc1 16]
+  set forced_fdec_delta [counter_delta $fdec0 $fdec1 16]
+  set forced_completed_16_delta [counter_delta $forced_done0 $forced_done1 16]
   set gen_delta [expr {($gen0 ne "INVALID" && $gen1 ne "INVALID") ? ($gen1 - $gen0) : "INVALID"}]
   set cpu_delta [expr {($cpu0 ne "INVALID" && $cpu1 ne "INVALID") ? ($cpu1 - $cpu0) : "INVALID"}]
   set wr_delta [expr {($wr0 ne "INVALID" && $wr1 ne "INVALID") ? ($wr1 - $wr0) : "INVALID"}]
@@ -432,14 +448,14 @@ proc emit_summary {hardware_name} {
     set rail_fraction INVALID
     set saturation_fraction INVALID
   }
-  puts [format "STEP5_LOCK_CONVERGENCE_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s LOCK_CHANGED_EVENTS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s HELPER_ERROR_FRACTION_ABS_LE_THRESHOLD=%s HELPER_OUTPUT_RAIL5_SAMPLES=%d HELPER_OUTPUT_RAIL5_FRACTION=%s HELPER_ERROR_PLUS150000_SAMPLES=%d HELPER_ERROR_PLUS150000_FRACTION=%s MAIN_ENABLED_FINAL=%s MAIN_LOCKED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s CURRENT_TICS_DELTA=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_ACTIVITY_DELTA=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s NORMAL_TRANSACTION_ACCOUNTING=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
+  puts [format "STEP5_LOCK_CONVERGENCE_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f HELPER_LOCK_COUNT_MAX=%s HELPER_LOCK_COUNT_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s LOCK_CHANGED_EVENTS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s HELPER_ERROR_FRACTION_ABS_LE_THRESHOLD=%s HELPER_OUTPUT_RAIL5_SAMPLES=%d HELPER_OUTPUT_RAIL5_FRACTION=%s HELPER_ERROR_PLUS150000_SAMPLES=%d HELPER_ERROR_PLUS150000_FRACTION=%s MAIN_ENABLED_FINAL=%s MAIN_LOCKED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s CURRENT_TICS_DELTA=%s NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_ACTIVITY_DELTA=%s FORCED_FINC_DELTA=%s FORCED_FDEC_DELTA=%s FORCED_COMPLETED_16_DELTA=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s NORMAL_TRANSACTION_ACCOUNTING=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s" \
     $hardware_name $::sample_count($hardware_name) $::valid_frame_count($hardware_name) $::invalid_frame_count($hardware_name) $window_seconds \
     $::helper_lock_max($hardware_name) $::helper_lock_final($hardware_name) $::helper_locked_seen($hardware_name) $::helper_locked_final($hardware_name) \
     $::helper_first_locked_sample($hardware_name) $::helper_lock_changed_events($hardware_name) $error_count $error_mean $error_rms \
     $::helper_error_max_abs($hardware_name) $error_fraction $::helper_output_rail_samples($hardware_name) $rail_fraction $::helper_error_saturation_samples($hardware_name) $saturation_fraction $::main_enabled_final($hardware_name) $::main_locked_final($hardware_name) \
     $::main_freq_locked_final($hardware_name) $::main_phase_locked_final($hardware_name) $::pstat_locked_final($hardware_name) \
     $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $tics_delta \
-    $normal_req_delta $normal_done_delta $dco_delta $forced_delta [counter_delta $boot0 $boot1 16] $bootstrap_pass \
+    $normal_req_delta $normal_done_delta $dco_delta $forced_delta $forced_finc_delta $forced_fdec_delta $forced_completed_16_delta [counter_delta $boot0 $boot1 16] $bootstrap_pass \
     $transaction_accounting $gen_delta $cpu_delta $wr_delta $si_delta]
   flush stdout
 }

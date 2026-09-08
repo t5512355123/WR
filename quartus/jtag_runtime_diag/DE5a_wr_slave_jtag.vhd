@@ -1780,7 +1780,10 @@ begin
       -- bootstrap and controller settings, changing only the mapping from
       -- virtual WR code to physical SI5340 steps (32 -> 16).
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 1,
+      -- Isolate the 1024-step reverse bootstrap operating point before
+      -- re-enabling the absolute-target tracker.  The preceding run showed
+      -- that tracker activity can sweep past the useful bracket.
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 1024,
       STEP5_BOOTSTRAP_REVERSE => 1,

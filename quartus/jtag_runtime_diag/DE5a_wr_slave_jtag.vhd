@@ -1815,11 +1815,11 @@ begin
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
       -- Step5 coarse bracket midpoint: hold the normal tracker off and
-      -- measure the midpoint between the 4096 and 8192 FDEC endpoints.
+      -- measure the midpoint between the 4096 and 6144 FDEC points.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
       ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 6144,
+      STEP5_BOOTSTRAP_STEPS => 5120,
       STEP5_BOOTSTRAP_REVERSE => 0,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

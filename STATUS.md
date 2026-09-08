@@ -1,5 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新完整 I2C sequence 觀測（2026-09-08，branch `exp/step5-softpll-lock`）
+
+Source `26d4054` 新增 probe 51，逐一保存四筆 runtime I2C payload。觀測到：
+
+```text
+0x01=0x03 → 0x39=0x0D → 0x01=0x00 → 0x1D=0x01
+```
+
+代表 PAGE3、HPLL/N1 mask、PAGE0 restore、FINC 的 FPGA-side sequence 正確，
+`I2C_ACK_ERROR=0`，bootstrap 128 完成。settled recovery preflight 的
+Step1～4B PASS；但 120 秒 observer 只有 194/1200 valid frames，Helper 未
+lock，error valid samples 為 `-150000`，Step5 仍是 `NEVER_LOCKED`，邊界為
+`HELPER_LOCK`。這輪排除了 FPGA-side sequence admission/ACK failure，尚未
+等同 silicon readback 或物理隔離證明。
+
+下一輪保留 telemetry、關閉 normal tracker，先用 `STEP5_BOOTSTRAP_STEPS=0`
+取得靜態 operating-point baseline，再做單一變因 coarse bracket；
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 I2C sequence 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-I2C-SEQUENCE-128-FINC-20260908/REPORT.md)
+
 ## 最新 I2C provenance 觀測（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source commit `1d88738` 新增獨立 JTAG probe 50，保存 DCO runtime 最後

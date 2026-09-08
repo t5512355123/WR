@@ -1,5 +1,18 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 DCO page/mask 隔離實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+以 source commit `a2abe910e82b510d7178f37d4b5d1673d4a7c784` 修正 runtime DCO
+交易為 page 3 mask → page 0 FINC/FDEC。pin-level page-aware model 通過，兩份
+SOF 也在 pain 完成編譯與燒錄。五次 preflight 的 Step1～4B 都 PASS，但 Helper
+在 120 秒觀測中全程 `error=+150000`、`output=5`、`lock_count=0`，因此 Step5
+仍未通過，第一個 inactive boundary 是 `HELPER_LOCK`。
+
+本輪未修改 Main PI 或 lock detector，也未 merge。page 隔離後原本 bootstrap=6208
+不應直接沿用；下一輪應先做 Helper N1 的受控 actuator/operating-point 辨識。
+
+[完整 page/mask 隔離報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-DCO-PAGE-ISOLATION-20260907/REPORT.md)
+
 ## 最新冷開機順序驗證（2026-09-05，branch `exp/step5-softpll-lock`）
 
 使用相同 frozen-fit SOF，實體斷電重開後改為 **Master → Slave** 燒錄。

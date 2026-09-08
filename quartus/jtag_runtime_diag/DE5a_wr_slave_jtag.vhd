@@ -1822,10 +1822,9 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- Interpolate the measured 1024/3072 phase bracket.  The 1664-step
-      -- reverse/FINC point is intended to start with both frequency and
-      -- accumulated phase near the lock basin before fine tracking.
-      STEP5_BOOTSTRAP_STEPS => 1664,
+      -- Re-test the measured 3072 reverse/FINC frequency operating point with
+      -- the firmware Helper phase guard before fine tracking.
+      STEP5_BOOTSTRAP_STEPS => 3072,
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,

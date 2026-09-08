@@ -1,5 +1,35 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse opposite-polarity 4096 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪完成 polarity A/B：固定 `STEP5_BOOTSTRAP_STEPS=4096`、normal HPLL tracker
+關閉，只將 `STEP5_BOOTSTRAP_REVERSE` 改為 `0`。兩板 full build/program 成功，
+settled preflight 3/4 的 Step1～4B 全部 PASS。
+
+120 秒 observer（1200/1200 valid）結果：
+
+```text
+HELPER_LOCKED_SEEN = 0
+HELPER_ERROR_MEAN = -145750.0
+HELPER_OUTPUT_FINAL = 65531
+FORCED_FINC = 0
+FORCED_FDEC = 4096
+FORCED_COMPLETED = 4096
+I2C_PHASE_SEEN = 15
+I2C_ACK_ERROR = 0
+NORMAL_REQ_DELTA = 0
+DCO_STEP_DELTA = 0
+RESET_BOOT/CPU/WR/SI = 0/0/0/0
+```
+
+opposite polarity 的 4096 筆交易確實完成，結果比 reverse 4096 稍微離開負向
+rail，但仍沒有 Helper lock；Step5 仍為 `NEVER_LOCKED`，第一個 inactive
+boundary 是 `HELPER_LOCK`。因此下一步應停止單純增加 bootstrap，修正或驗證
+absolute/applied position contract，再重新啟用受控閉迴路。`STEP5_COMPLETE=NO`、
+`MERGE_APPROVED=NO`。
+
+[完整 static coarse opposite-polarity 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-FORWARD-4096-20260908/REPORT.md)
+
 ## 最新 Step5 static coarse reverse 4096 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪只把 Slave 固定 reverse bootstrap 設為 `4096` steps，normal HPLL tracker

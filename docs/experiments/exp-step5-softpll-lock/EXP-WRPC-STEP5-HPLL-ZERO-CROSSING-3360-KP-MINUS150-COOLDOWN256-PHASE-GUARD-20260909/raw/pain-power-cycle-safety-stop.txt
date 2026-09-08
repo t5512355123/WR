@@ -1,0 +1,11 @@
+2026-09-09 Asia/Taipei
+
+The authorized Pain power-cycle workflow was attempted after preflight showed
+that both boards had core_tm_link_up=0 and core_link_ok=0.
+
+Edge taskbar icon confidence: 0.9972325261 (accepted)
+Pain "開啟" control confidence: 0.4244053359
+Required confidence threshold: 0.820
+
+Safety result: STOPPED before any power-control click. No guessed coordinate,
+retry, or alternate device control was used.

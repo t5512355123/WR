@@ -1,0 +1,2 @@
+faf6ce63687f48d09ac0ec4facefdc3d0ed48f0ccc8737780db3fd738202d481  /tmp/wr-step5-phaseguard/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+5c0d7f44dd9a63674c64a96b268642c3de9c8d7b54aced95dd2b09fb9228cefe  /tmp/wr-step5-phaseguard/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

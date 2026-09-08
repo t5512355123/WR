@@ -1,0 +1,2 @@
+011c853dd20705d2050f1772db8a4cbd285a9b497b62d5f240b40d6f5d271cae  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-WIDE-APPLIED-POSITION-CONTRACT-FDEC4096-RERUN-20260908/source/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+1d5572a2ee93547994b14f62d855baca60f8295b767a8ba31ed0f4ee23e8cff8  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-WIDE-APPLIED-POSITION-CONTRACT-FDEC4096-RERUN-20260908/source/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

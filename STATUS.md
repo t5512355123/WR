@@ -1,5 +1,39 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 absolute applied-position contract 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪以 source `bc658f1` 將 HPLL applied position 改為 32-bit signed
+accumulator，並把 bootstrap/forced transaction 納入位置 accounting；normal
+tracker 開啟，bootstrap 使用 4096 個 FDEC。simulation、兩板 build/program 與
+settled Step1～4B preflight 全部 PASS。
+
+1200-sample coherent observer 的實際窗口為 138.738 秒，1107/1200 frame 有效：
+
+```text
+BOOTSTRAP_COMPLETED = 4096
+FORCED_FDEC = 4096
+NORMAL_FINC = 8191
+TARGET_FINAL = 65531
+APPLIED_FINAL = 65525
+EXPECTED_APPLIED_ABSOLUTE = 65525
+POSITION_ACCOUNTING = PASS
+HELPER_ERROR_MEAN = -150000.0
+HELPER_OUTPUT_FINAL = 65531
+HELPER_LOCKED_SEEN = 0
+HELPER_LOCK_COUNT_MAX = 4608
+MAIN_ENABLED_FINAL = 0
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+```
+
+這證明 tracker 確實完成了 bootstrap 後的 8191 個 FINC，沒有在 16-bit 邊界
+折返；但 Helper 仍全程負向飽和，Step5 仍為 `NEVER_LOCKED`，第一個 inactive
+boundary 是 `HELPER_LOCK`。因此下一輪應驗證 normal target-to-FINC/FDEC 的
+polarity 與 Helper actuator 的已辨識方向，或把 bootstrap 明確建模成獨立
+physical origin；不能再只延長等待。`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 absolute applied-position 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-WIDE-APPLIED-POSITION-CONTRACT-FDEC4096-RERUN-20260908/REPORT.md)
+
 ## 最新 Step5 static coarse opposite-polarity 4096 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪完成 polarity A/B：固定 `STEP5_BOOTSTRAP_STEPS=4096`、normal HPLL tracker

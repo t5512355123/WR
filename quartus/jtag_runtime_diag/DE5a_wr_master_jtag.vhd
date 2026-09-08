@@ -50,6 +50,7 @@ architecture rtl of DE5a_wr_master_jtag is
       ENABLE_SAME_CODE_TEST : integer := 0;
       ENABLE_JTAG_HPLL_BURST : integer := 0;
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION : integer := 0;
+      ENABLE_STEP5_HPLL_PLANT_TEST : integer := 0;
       ENABLE_NORMAL_HPLL_TRACKER : integer := 1;
       ENABLE_STEP5_BOOTSTRAP : integer := 0;
       STEP5_BOOTSTRAP_STEPS : integer := 6336;

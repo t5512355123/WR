@@ -6,6 +6,10 @@ module si5340a_controller_dco #(
 parameter integer ENABLE_SAME_CODE_TEST = 0,
 parameter integer ENABLE_JTAG_HPLL_BURST = 0,
 parameter integer ENABLE_STEP5_ACTUATOR_IDENTIFICATION = 0,
+// A4 calibration mode: complete the coarse bootstrap, then hold the normal
+// Helper-to-HPLL tracker so externally triggered FINC/FDEC steps can identify
+// the physical plant without a competing closed-loop request stream.
+parameter integer ENABLE_STEP5_HPLL_PLANT_TEST = 0,
 parameter integer ENABLE_NORMAL_HPLL_TRACKER = 1,
 parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
 parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
@@ -752,6 +756,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           force_burst_remaining <= force_burst_remaining - 1'b1;
           forced_hpll_pending_count <= forced_hpll_pending_count + 1'b1;
         end else if (ENABLE_NORMAL_HPLL_TRACKER &&
+                     !ENABLE_STEP5_HPLL_PLANT_TEST &&
                      static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
                      (((hpll_target_position > hpll_applied_position) &&

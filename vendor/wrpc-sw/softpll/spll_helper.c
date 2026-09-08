@@ -82,10 +82,10 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
-	/* Step5 integral-action A/B: remove the quantized integral term after
-	 * kp=-150 still showed sustained phase-loop hunting. */
-	s->pi.kp = -150;
-	s->pi.ki = 0;
+	/* Step5 damping A/B: restore the necessary integral term and reduce
+	 * proportional action after kp=-150, ki=-1 still hunted. */
+	s->pi.kp = -75;
+	s->pi.ki = -1;
 #else
 	s->pi.kp = 150;
 	s->pi.ki = 2;

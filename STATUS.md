@@ -1,5 +1,31 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 isolated static reverse 1024 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪在 source `fc5e8aa` 將 Slave normal HPLL tracker 關閉，只保留 persistent
+reverse `1024`-step bootstrap，以固定 operating point 做 Step5 隔離觀測。
+初次燒錄後 preflight 1–5 因啟動狀態暫時失去 upstream；對同一組 SOF 重新以
+Master → 等待 → Slave 順序燒錄並等待 60 秒後，preflight 6 恢復：Master
+PTP `MASTER`、Slave PTP `SLAVE`、RX/TX delta 增加，Step1～4B 全部 PASS。
+
+正式 120 秒觀測中 `BOOTSTRAP_COMPLETED=1024`、`DCO_STEP_DELTA=0`、
+`NORMAL_TRANSACTION_ACCOUNTING=PASS`，但 Helper error 平均
+`-146736.401674`、RMS `148359.227051`、最大絕對值 `150000`，最後 output
+code `65531`；`HELPER_LOCK_COUNT_MAX=31 < 200`、`HELPER_LOCKED_SEEN=0`。
+這證明 static reverse 1024 position 落在負向飽和端，Step5 仍未通過。
+
+本輪 firmware rebuild script 因 pain 上 root-owned cache 回傳失敗；因 firmware
+tree 與前輪相同，full Quartus compile 使用同一 MIF 並成功，該限制已記錄，未
+把 firmware rebuild 誤報成成功。Slave timing worst setup slack 為 `-2.335 ns`，
+仍未 closed。
+
+`STEP5_COMPLETE=NO`、`STEP5_FIRST_INACTIVE_BOUNDARY=HELPER_LOCK`、
+`MERGE_APPROVED=NO`。下一輪只將相同步數改為 opposite polarity：
+`STEP5_BOOTSTRAP_REVERSE=0`、`STEP5_BOOTSTRAP_STEPS=1024`，維持 normal tracker
+關閉，先做 Helper operating-point A/B，不改 PI 或 lock detector。
+
+[完整 static reverse 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-ISOLATED-STATIC-REVERSE-1024-20260908/REPORT.md)
+
 ## 最新 isolated persistent-reverse 1024-step 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 在 source `b4af1b6` 修正 bootstrap 後續 request 持續使用 reverse polarity，並

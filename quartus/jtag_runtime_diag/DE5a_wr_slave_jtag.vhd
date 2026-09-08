@@ -55,6 +55,7 @@ architecture rtl of DE5a_wr_slave_jtag is
       STEP5_BOOTSTRAP_STEPS : integer := 6336;
       STEP5_BOOTSTRAP_REVERSE : integer := 0;
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 34;
+      DPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 16;
       JTAG_HPLL_BURST_SIZE : integer := 32
     );
     port (
@@ -1822,6 +1823,7 @@ begin
       STEP5_BOOTSTRAP_STEPS => 5632,
       STEP5_BOOTSTRAP_REVERSE => 0,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
+      DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

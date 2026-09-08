@@ -11,6 +11,7 @@ parameter integer ENABLE_STEP5_BOOTSTRAP = 0,
 parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
 parameter integer STEP5_BOOTSTRAP_REVERSE = 0,
 parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
+parameter integer DPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 16,
 parameter integer JTAG_HPLL_BURST_SIZE = 32
 )(
 input                   iCLK,
@@ -91,6 +92,9 @@ reg        dpll_prev_valid;
 reg        hpll_prev_valid;
 reg [15:0] dpll_prev_data;
 reg [15:0] hpll_prev_data;
+reg [31:0] dpll_target_position;
+reg [31:0] dpll_applied_position;
+reg        dpll_tracker_initialized;
 reg [15:0] hpll_target_code;
 // The helper target is a 16-bit WR code. Keep the fine-loop applied position
 // as a signed wide accumulator so normal tracking cannot silently wrap at
@@ -157,6 +161,8 @@ reg        bootstrap_done;
 reg [15:0] position_audit_epoch;
 
 localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
+localparam [31:0] DPLL_STEP_CODE = DPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
+localparam [31:0] DPLL_START_POSITION = 32'd32768;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -497,6 +503,9 @@ always @(posedge iCLK or negedge iRST_n) begin
     hpll_prev_valid  <= 1'b0;
     dpll_prev_data   <= 16'd0;
     hpll_prev_data   <= 16'd0;
+    dpll_target_position <= 32'd0;
+    dpll_applied_position <= DPLL_START_POSITION;
+    dpll_tracker_initialized <= 1'b0;
     hpll_target_code <= 16'd0;
     hpll_target_position <= 32'sd0;
     hpll_applied_position <= 32'sd0;
@@ -621,9 +630,21 @@ always @(posedge iCLK or negedge iRST_n) begin
     end
 
     if (iDPLL_LOAD) begin
-      if (dpll_prev_valid && (iDPLL_DATA != dpll_prev_data)) begin
+      // Main DAC values are absolute unsigned values in the same 16-bit
+      // domain used by spll_main.c. The SI5340 starts at midscale, so keep
+      // an independent virtual applied position and continue servicing a
+      // residual even when the CPU repeats the same target value.
+      dpll_target_position <= {16'd0, iDPLL_DATA};
+      if (!dpll_tracker_initialized) begin
+        dpll_applied_position <= DPLL_START_POSITION;
+        dpll_tracker_initialized <= 1'b1;
+      end
+      if (dpll_tracker_initialized &&
+          ((({16'd0, iDPLL_DATA} > dpll_applied_position) &&
+            (({16'd0, iDPLL_DATA} - dpll_applied_position) >= DPLL_STEP_CODE)) ||
+           ((dpll_applied_position > {16'd0, iDPLL_DATA}) &&
+            ((dpll_applied_position - {16'd0, iDPLL_DATA}) >= DPLL_STEP_CODE)))) begin
         dpll_pending <= 1'b1;
-        dpll_dir <= (iDPLL_DATA > dpll_prev_data);
       end
       dpll_prev_data <= iDPLL_DATA;
       dpll_prev_valid <= 1'b1;
@@ -632,16 +653,14 @@ always @(posedge iCLK or negedge iRST_n) begin
       // Keep the newest absolute target.  The idle-state tracker below
       // serializes one FINC/FDEC request at a time until applied==target.
       hpll_target_code <= iHPLL_DATA;
-      // iHPLL_DATA is a signed 16-bit WR DAC code.  Sign-extend it before
-      // comparing it with the signed virtual position; zero-extension turns
-      // 0xFFFB (-5) into the false absolute target 65531.
-      hpll_target_position <= $signed({{16{iHPLL_DATA[15]}}, iHPLL_DATA});
+      // HPLL DAC values are absolute unsigned PI outputs in the WR 16-bit
+      // range [5, 65531], not signed error values.
+      hpll_target_position <= {16'd0, iHPLL_DATA};
       // Preserve the proven A-polarity direction for forced calibration even
       // when the normal absolute-target tracker is disabled in the
       // calibration image.
       if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data))
-        hpll_dir <= ($signed({{16{iHPLL_DATA[15]}}, iHPLL_DATA}) >
-                     $signed({{16{hpll_prev_data[15]}}, hpll_prev_data}));
+        hpll_dir <= (iHPLL_DATA > hpll_prev_data);
       if (!hpll_tracker_initialized) begin
         // WR node helper_start() uses pi.y_min, which is 5 for the DE5a
         // generic 16-bit DAC configuration.
@@ -665,11 +684,16 @@ always @(posedge iCLK or negedge iRST_n) begin
       3'd0: begin
         rt_seen_busy <= 1'b0;
         rt_final_write <= 1'b0;
-        if (static_controller_ready && dpll_pending) begin
+        if (static_controller_ready && dpll_tracker_initialized &&
+            (((dpll_target_position > dpll_applied_position) &&
+              ((dpll_target_position - dpll_applied_position) >= DPLL_STEP_CODE)) ||
+             ((dpll_applied_position > dpll_target_position) &&
+              ((dpll_applied_position - dpll_target_position) >= DPLL_STEP_CODE)))) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b1;
-          rt_dir <= dpll_dir;
+          // FINC moves the physical code downward; FDEC moves it upward.
+          rt_dir <= (dpll_target_position < dpll_applied_position);
           dpll_pending <= 1'b0;
           current_request_forced <= 1'b0;
         end else if (static_controller_ready && hpll_pending) begin
@@ -813,6 +837,15 @@ always @(posedge iCLK or negedge iRST_n) begin
               current_request_bootstrap <= 1'b0;
             end
             current_request_forced <= 1'b0;
+          end else if (rt_select_dpll && dpll_tracker_initialized) begin
+            // Main uses the same unsigned WR DAC coordinate as the PI output,
+            // but has its own origin and physical-step accounting. Only a
+            // completed four-write transaction advances applied position.
+            if (rt_dir)
+              dpll_applied_position <= dpll_applied_position - DPLL_STEP_CODE;
+            else
+              dpll_applied_position <= dpll_applied_position + DPLL_STEP_CODE;
+            dpll_pending <= 1'b0;
           end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                        !rt_select_dpll && hpll_tracker_initialized) begin
             // One physical FINC/FDEC maps to exactly one configured number

@@ -1,5 +1,33 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse bracket FDEC8192 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `e7ec45b` 關閉 normal HPLL tracker，只施加 8192 筆 FDEC bootstrap，
+直接量測固定 coarse operating point。simulation、Master/Slave full build/program
+與 settled Step1～4B preflight 全部 PASS。
+
+1200-sample coherent observer 的實際窗口約 157.988 秒：
+
+```text
+BOOTSTRAP_COMPLETED = 8192
+FORCED_FDEC = 8192
+NORMAL_REQ_DELTA_OBSERVED = 0
+HELPER_ERROR_MEAN = 135976.627713
+LOW_RAIL_FRACTION = 0.952420701169
+HIGH_RAIL_FRACTION = 0.0467445742905
+HELPER_LOCKED_SEEN = 0
+HELPER_LOCK_COUNT_MAX = 42
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+```
+
+8192-step FDEC 已把固定工作點推到正向 rail；配合先前 4096-step FDEC 的負向
+rail 結果，已建立可用的 4096～8192 coarse bracket。Step5 仍為 `NOT_COMPLETE`，
+第一個 inactive boundary 是 `HELPER_LOCK`；下一輪測 6144-step 中點並持續二分
+縮小工作點範圍。`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 FDEC8192 coarse bracket 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC8192-20260908/REPORT.md)
+
 ## 最新 Step5 coarse-to-fine polarity/origin 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `a0f232a` 保留 4096-step FDEC bootstrap，將 normal HPLL tracker 的

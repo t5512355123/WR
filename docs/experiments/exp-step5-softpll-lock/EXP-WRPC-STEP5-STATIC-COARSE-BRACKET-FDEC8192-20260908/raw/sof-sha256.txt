@@ -1,0 +1,2 @@
+81b5e04a36225012574c592fff1d798fd02f8f6854e12237f76ee4f70e2e1a44  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC8192-20260908/source/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+1d1c0e8e67a630bd4c252fdbd482d3fe90fcf47abded16c865e76c9a97b1add1  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC8192-20260908/source/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

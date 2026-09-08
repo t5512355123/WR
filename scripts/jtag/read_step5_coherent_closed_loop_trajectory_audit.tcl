@@ -18,7 +18,7 @@ set board_filter ""
 set poll_attempts 100
 # Must match the Slave generic used by the image under test.
 set hpll_step_code 16
-set bootstrap_steps 8192
+set bootstrap_steps 6144
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -663,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC8192-20260908 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=0 bootstrap_steps=8192 code_per_physical_step=16 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC6144-20260908 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=0 bootstrap_steps=6144 code_per_physical_step=16 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

@@ -1822,8 +1822,11 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 5632,
-      STEP5_BOOTSTRAP_REVERSE => 0,
+      -- The 1024-step reverse/FINC operating point previously bracketed the
+      -- Helper error around both signs; use it as the next coarse-to-fine
+      -- seed instead of the 5632-step FDEC point that stayed off-range.
+      STEP5_BOOTSTRAP_STEPS => 1024,
+      STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

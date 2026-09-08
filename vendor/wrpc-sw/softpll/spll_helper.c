@@ -11,6 +11,33 @@
 
 #include "softpll_ng.h"
 
+/*
+ * The helper phase accumulator is used as a long-running control state.  The
+ * exported diagnostic fields remain int32_t for compatibility, but keeping
+ * the arithmetic itself in 64 bits prevents a sustained frequency error from
+ * wrapping raw_err after roughly a minute of operation.
+ */
+static int64_t helper_p_adder_wide;
+static int64_t helper_p_setpoint_wide;
+static int64_t helper_tag_d0_wide;
+static int helper_wide_state_valid;
+
+static inline int32_t helper_diag_i32(int64_t value)
+{
+	if (value > 2147483647LL)
+		return 2147483647;
+	if (value < -2147483648LL)
+		return -2147483648LL;
+	return (int32_t)value;
+}
+
+static inline void helper_sync_legacy_state(struct spll_helper_state *s)
+{
+	s->p_adder = helper_diag_i32(helper_p_adder_wide);
+	s->p_setpoint = helper_diag_i32(helper_p_setpoint_wide);
+	s->tag_d0 = helper_diag_i32(helper_tag_d0_wide);
+}
+
 static inline void helper_publish_measurement(int32_t tag_delta,
 						      int32_t expected_delta,
 						      int32_t freq_error,
@@ -46,6 +73,11 @@ static inline void helper_publish_measurement(int32_t tag_delta,
 
 void helper_very_init( struct spll_helper_state *s )
 {
+	helper_p_adder_wide = 0;
+	helper_p_setpoint_wide = 0;
+	helper_tag_d0_wide = -1;
+	helper_wide_state_valid = 0;
+
 /* Phase branch PI controller */
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
@@ -73,7 +105,8 @@ void helper_init(struct spll_helper_state *s, int ref_channel)
 void helper_update(struct spll_helper_state *s, int tag,
 			 int source)
 {
-	int err, y, tag_delta, raw_err;
+	int err, y, tag_delta;
+	int64_t raw_err;
 	int expected_delta;
 
 	/* Helper pll tracks the ref clock */
@@ -86,14 +119,22 @@ void helper_update(struct spll_helper_state *s, int tag,
 	expected_delta = (1 << HPLL_N);
 	wrpc_spll_helper_update_count++;
 	wrpc_spll_helper_ref_src = s->ref_src;
+
+	if (!helper_wide_state_valid) {
+		helper_p_adder_wide = s->p_adder;
+		helper_p_setpoint_wide = s->p_setpoint;
+		helper_tag_d0_wide = s->tag_d0;
+		helper_wide_state_valid = 1;
+	}
 	
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_TAG, tag, 0);
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_REF, s->p_setpoint, 0);
 
-	if (s->tag_d0 < 0) {
+	if (helper_tag_d0_wide < 0) {
 		/* First tag. */
-		s->p_setpoint = tag;
-		s->tag_d0 = tag;
+		helper_p_setpoint_wide = tag;
+		helper_tag_d0_wide = tag;
+		helper_sync_legacy_state(s);
 		wrpc_spll_helper_expected_tag = s->p_setpoint;
 		wrpc_spll_helper_preclamp_error = 0;
 		wrpc_spll_helper_tag_delta = 0;
@@ -107,38 +148,35 @@ void helper_update(struct spll_helper_state *s, int tag,
 	}
 
 	/* Handle tag wraparound */
-	if (s->tag_d0 > tag)
-		s->p_adder += (1 << TAG_BITS);
+	if (helper_tag_d0_wide > tag)
+		helper_p_adder_wide += (1LL << TAG_BITS);
 
-	tag_delta = tag - s->tag_d0;
+	tag_delta = tag - (int)helper_tag_d0_wide;
 	if (tag_delta < 0)
 		tag_delta += (1 << TAG_BITS);
 
 	/* Compute the error */
-	raw_err = (tag + s->p_adder) - s->p_setpoint;
+	raw_err = ((int64_t)tag + helper_p_adder_wide) - helper_p_setpoint_wide;
+	helper_sync_legacy_state(s);
 	wrpc_spll_helper_expected_tag = s->p_setpoint;
-	wrpc_spll_helper_preclamp_error = raw_err;
+	wrpc_spll_helper_preclamp_error = helper_diag_i32(raw_err);
 	wrpc_spll_helper_tag_delta = tag_delta;
-	err = raw_err;
+	err = (raw_err < -HELPER_ERROR_CLAMP) ? -HELPER_ERROR_CLAMP :
+	      (raw_err > HELPER_ERROR_CLAMP) ? HELPER_ERROR_CLAMP :
+	      (int)raw_err;
 
 	/* And clamp */
-	if (HELPER_ERROR_CLAMP) {
-		if (err < -HELPER_ERROR_CLAMP)
-			err = -HELPER_ERROR_CLAMP;
-		if (err > HELPER_ERROR_CLAMP)
-			err = HELPER_ERROR_CLAMP;
-	}
-
 	/* Handle wraparound */
-	if ((tag + s->p_adder) > HELPER_TAG_WRAPAROUND
-	    && s->p_setpoint > HELPER_TAG_WRAPAROUND) {
-		s->p_adder -= HELPER_TAG_WRAPAROUND;
-		s->p_setpoint -= HELPER_TAG_WRAPAROUND;
+	if (((int64_t)tag + helper_p_adder_wide) > HELPER_TAG_WRAPAROUND
+	    && helper_p_setpoint_wide > HELPER_TAG_WRAPAROUND) {
+		helper_p_adder_wide -= HELPER_TAG_WRAPAROUND;
+		helper_p_setpoint_wide -= HELPER_TAG_WRAPAROUND;
 	}
 
 	/* The next expected tag is the current plus one cycle */
-	s->p_setpoint += (1 << HPLL_N);
-	s->tag_d0 = tag;
+	helper_p_setpoint_wide += (1 << HPLL_N);
+	helper_tag_d0_wide = tag;
+	helper_sync_legacy_state(s);
 
 	y = pi_update((spll_pi_t *)&s->pi, err);
 	SPLL->DAC_HPLL = y;
@@ -159,7 +197,7 @@ void helper_update(struct spll_helper_state *s, int tag,
 	wrpc_spll_helper_tag_d0 = s->tag_d0;
 	wrpc_spll_helper_p_setpoint = s->p_setpoint;
 	helper_publish_measurement(tag_delta, expected_delta,
-		tag_delta - expected_delta, raw_err, err,
+		tag_delta - expected_delta, helper_diag_i32(raw_err), err,
 		wrpc_spll_helper_update_count, y);
 }
 
@@ -176,6 +214,10 @@ void helper_start(struct spll_helper_state *s)
 	s->p_adder = 0;
 	s->sample_n = 0;
 	s->tag_d0 = -1;
+	helper_p_setpoint_wide = 0;
+	helper_p_adder_wide = 0;
+	helper_tag_d0_wide = -1;
+	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 
 	pi_init((spll_pi_t *)&s->pi);

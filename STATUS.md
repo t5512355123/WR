@@ -1,5 +1,33 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static no-bootstrap baseline（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪依 `Astra建議.md` 將 Slave `STEP5_BOOTSTRAP_STEPS` 設為 `0`，並關閉
+normal HPLL tracker，保留 DCO page/mask fix、probe 50/51 與既有 upstream。
+兩板 full Quartus build/program 成功；等待 startup calibration 後，可信 preflight
+5/6 的 Step1、Step2、Step3、Step4B 全部 PASS。
+
+120 秒 observer（1191/1200 valid）顯示：
+
+```text
+HELPER_LOCKED_SEEN = 0
+HELPER_ERROR_MEAN = -148660.030278
+HELPER_OUTPUT_FINAL = 65531
+NORMAL_REQ_DELTA = 0
+DCO_STEP_DELTA = 0
+BOOTSTRAP_COMPLETED_DELTA = 0
+NORMAL_TRANSACTION_ACCOUNTING = PASS
+RESET_BOOT/CPU/WR/SI = 0/0/0/0
+```
+
+因此 Step5 仍為 `NEVER_LOCKED`，第一個可靠 inactive boundary 是
+`HELPER_LOCK`；這一輪確認 raw power/program operating point 位於負向飽和端，
+但沒有證明 actuator 失效。下一輪應做保持 normal tracker 關閉的受控 coarse
+operating-point bracket，並同步記錄 absolute/applied position，再回到閉迴路；
+不要先盲調 PI 或 lock threshold。`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 static no-bootstrap baseline 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-NO-BOOTSTRAP-BASELINE-20260908/REPORT.md)
+
 ## 最新完整 I2C sequence 觀測（2026-09-08，branch `exp/step5-softpll-lock`）
 
 Source `26d4054` 新增 probe 51，逐一保存四筆 runtime I2C payload。觀測到：

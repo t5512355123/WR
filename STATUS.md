@@ -1,5 +1,30 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 fresh-power FINC polarity telemetry 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪實體斷電後把 Slave `STEP5_BOOTSTRAP_REVERSE` 設為 `1`，維持
+`STEP5_BOOTSTRAP_STEPS=1024`、normal tracker off 與既有 page/mask path。第一筆
+sticky telemetry 證明：
+
+```text
+BOOTSTRAP_COMPLETED = 1024
+FORCED_FINC = 1024
+FORCED_FDEC = 0
+FORCED_COMPLETED = 1024
+```
+
+這與前一輪 fresh FDEC 的 `0/1024` 形成乾淨 polarity A/B；但 FINC 觀測的
+Helper error 平均 `-147485.331098`、RMS `148737.351276`、最大絕對值
+`150000`，`HELPER_LOCKED_SEEN=0`，所以 Step5 仍是 `NEVER_LOCKED`。settled
+preflight 4 的 Step1～4B 全部 PASS，失敗邊界仍是 `HELPER_LOCK`。共同負向
+飽和表示不能再把問題歸因於單純 polarity 反相。
+
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。下一輪應把 bootstrap steps 降到
+受控的小範圍（優先 `128`）做 fresh operating-point 觀測；若仍無響應，再
+加入唯讀 page/mask/last-command 與 ACK/readback evidence。
+
+[完整 fresh FINC polarity 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-POLARITY-TELEMETRY-CLEAN-FINC-20260908/REPORT.md)
+
 ## 最新 fresh-power polarity telemetry 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪使用 `pain-shutdown` 完成實體斷電重開，加入唯讀 actuator-direction

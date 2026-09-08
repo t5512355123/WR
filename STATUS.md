@@ -1,5 +1,27 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse FDEC5120 實驗：upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `29525f3` 的 5120-step static coarse image 已完成 simulation、
+Master/Slave build 與 program；但燒錄後四次 preflight（含同一 SOF 重燒）都
+顯示兩張板 `core_tm_link_up=0`、`core_link_ok=0`，Slave `spll_init_count=0`，
+`STEP4B=BLOCKED_BY_STEP1`。JTAG/WB transport 仍 trusted，但 upstream link/startup
+未恢復，因此沒有執行有效的 5120 observer，不能把本輪當成 actuator 結果。
+
+```text
+STEP1_TO_STEP3 = INVALID_UPSTREAM
+STEP4B = INVALID_UPSTREAM
+STEP5_RESULT = BLOCKED_BY_UPSTREAM_STEP1
+OBSERVER_EXECUTED = NO
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
+
+目前需要實體 power-cycle 後重新確認 Step1～4B，才能繼續 coarse bracket 或
+Step5；在恢復前不應改 PI 或把此輪當成 5120 失敗。
+
+[完整 FDEC5120 upstream regression 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC5120-20260908/REPORT.md)
+
 ## 最新 Step5 static coarse bracket FDEC6144 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `ef64616` 維持 normal HPLL tracker 關閉，只施加 6144 筆 FDEC

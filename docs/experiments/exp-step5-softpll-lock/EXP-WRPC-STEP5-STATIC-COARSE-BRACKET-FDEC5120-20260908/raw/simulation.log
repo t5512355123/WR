@@ -1,0 +1,11 @@
+PIN_WRITE page=00 offset=01 data=03
+PIN_WRITE page=03 offset=39 data=0e
+PIN_WRITE page=03 offset=01 data=00
+PIN_WRITE page=00 offset=1d data=01
+MAIN_JUMP code_delta=9900 completed=1 N0=1 N1=0
+MAIN_ABSOLUTE_CONTRACT=KNOWN_FAIL constant target has no residual drain
+PIN_WRITE page=00 offset=01 data=03
+PIN_WRITE page=03 offset=39 data=0d
+PIN_WRITE page=03 offset=01 data=00
+PIN_WRITE page=00 offset=1d data=02
+PAGE_CONTRACT_TEST=PASS expected_fixed=1 writes=8 wrong_page=0

@@ -632,12 +632,16 @@ always @(posedge iCLK or negedge iRST_n) begin
       // Keep the newest absolute target.  The idle-state tracker below
       // serializes one FINC/FDEC request at a time until applied==target.
       hpll_target_code <= iHPLL_DATA;
-      hpll_target_position <= {16'd0, iHPLL_DATA};
+      // iHPLL_DATA is a signed 16-bit WR DAC code.  Sign-extend it before
+      // comparing it with the signed virtual position; zero-extension turns
+      // 0xFFFB (-5) into the false absolute target 65531.
+      hpll_target_position <= $signed({{16{iHPLL_DATA[15]}}, iHPLL_DATA});
       // Preserve the proven A-polarity direction for forced calibration even
       // when the normal absolute-target tracker is disabled in the
       // calibration image.
       if (hpll_prev_valid && (iHPLL_DATA != hpll_prev_data))
-        hpll_dir <= (iHPLL_DATA > hpll_prev_data);
+        hpll_dir <= ($signed({{16{iHPLL_DATA[15]}}, iHPLL_DATA}) >
+                     $signed({{16{hpll_prev_data[15]}}, hpll_prev_data}));
       if (!hpll_tracker_initialized) begin
         // WR node helper_start() uses pi.y_min, which is 5 for the DE5a
         // generic 16-bit DAC configuration.

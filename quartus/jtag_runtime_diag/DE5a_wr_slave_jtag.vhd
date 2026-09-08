@@ -1818,13 +1818,13 @@ begin
       -- bootstrap and controller settings, changing only the mapping from
       -- virtual WR code to physical SI5340 steps (32 -> 16).
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      -- Isolate a small FINC bootstrap operating point before
-      -- re-enabling the absolute-target tracker.  The clean 1024-step
-      -- polarity A/B left both directions at the negative Helper rail.
+      -- Establish a static no-bootstrap operating-point baseline before
+      -- re-enabling any absolute-target tracker.  The normal tracker stays
+      -- disabled so the baseline contains no hidden closed-loop motion.
       ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 128,
-      -- Small-step FINC operating-point probe.
+      STEP5_BOOTSTRAP_STEPS => 0,
+      -- No physical bootstrap in this baseline image.
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

@@ -1822,10 +1822,10 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- The 1024-step reverse/FINC point still left the Helper at its high
-      -- rail with FREQ_ERROR around -621.  Move the physical operating point
-      -- farther in the measured FINC direction before fine tracking.
-      STEP5_BOOTSTRAP_STEPS => 3072,
+      -- The 3072-step reverse/FINC point moved FREQ_ERROR to about -345 but
+      -- left phase error at the opposite rail.  Continue the measured FINC
+      -- coarse sweep to the predicted near-zero frequency point.
+      STEP5_BOOTSTRAP_STEPS => 5632,
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,

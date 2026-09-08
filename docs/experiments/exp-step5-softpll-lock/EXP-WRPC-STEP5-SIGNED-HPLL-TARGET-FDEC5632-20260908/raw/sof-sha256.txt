@@ -1,0 +1,2 @@
+ce535277d5a4f342540aec8c5c19fb617b1166837dd3f9bd47468a472d20cb14  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-SIGNED-HPLL-TARGET-FDEC5632-20260908/source/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+9ae86358037b1cab967897e31e92e05cb3c6c2c2e3166d76ed3a70219ce48779  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-SIGNED-HPLL-TARGET-FDEC5632-20260908/source/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

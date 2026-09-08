@@ -1,5 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 signed HPLL target FDEC5632 實驗：造成 upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `bc735d8` 將 `iHPLL_DATA` sign-extend 後重新建置與燒錄；兩次
+preflight 都為 `STEP4B=BLOCKED_BY_STEP1`，Slave `spll_init_count=0`、TAG/TRR/
+IRQ/helper counters 全為 0，沒有有效 Step5 observer。這不是 Step5 測量結果，
+而是 signed target 修正造成的 upstream regression。
+
+```text
+STEP1_TO_STEP3 = INVALID_UPSTREAM
+STEP4B = BLOCKED_BY_STEP1
+OBSERVER_EXECUTED = NO
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
+
+下一輪先回到已知可工作的 unsigned target 版本，釐清 `0xFFFB` 的實際語意，
+不能直接保留本次 sign-extension 修正。
+
+[完整 signed target regression 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-SIGNED-HPLL-TARGET-FDEC5632-20260908/REPORT.md)
+
 ## 最新 Step5 coarse-to-fine tracker FDEC5632 實驗：signed target 契約疑點（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `3e987e2` 在 FDEC5632 起點開啟 normal HPLL tracker。settled

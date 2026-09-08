@@ -1818,13 +1818,12 @@ begin
       -- bootstrap and controller settings, changing only the mapping from
       -- virtual WR code to physical SI5340 steps (32 -> 16).
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      -- Establish a static no-bootstrap operating-point baseline before
-      -- re-enabling any absolute-target tracker.  The normal tracker stays
-      -- disabled so the baseline contains no hidden closed-loop motion.
+      -- Static coarse operating-point bracket: apply one fixed reverse
+      -- bootstrap position while the normal tracker stays disabled.  This
+      -- isolates the physical position response from closed-loop motion.
       ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 0,
-      -- No physical bootstrap in this baseline image.
+      STEP5_BOOTSTRAP_STEPS => 4096,
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

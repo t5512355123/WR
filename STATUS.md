@@ -1,5 +1,32 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse bracket FDEC6144 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `ef64616` 維持 normal HPLL tracker 關閉，只施加 6144 筆 FDEC
+bootstrap。simulation、Master/Slave full build/program 與 settled Step1～4B
+preflight 全部 PASS。
+
+1200-sample coherent observer 的實際窗口為 135.044 秒：
+
+```text
+BOOTSTRAP_COMPLETED = 6144
+FORCED_FDEC = 6144
+NORMAL_REQ_DELTA_OBSERVED = 0
+HELPER_ERROR_MEAN = 70250.0
+LOW_RAIL_FRACTION = 0.7325
+HIGH_RAIL_FRACTION = 0.265833333333
+HELPER_LOCKED_SEEN = 0
+HELPER_LOCK_COUNT_MAX = 3
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+```
+
+6144-step 仍未 lock，但相較 4096/8192 更接近零，提供了 coarse bracket 的
+新資訊；下一輪測 5120-step，持續局部二分縮小工作點。`STEP5_COMPLETE=NO`、
+`MERGE_APPROVED=NO`。
+
+[完整 FDEC6144 coarse bracket 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC6144-20260908/REPORT.md)
+
 ## 最新 Step5 static coarse bracket FDEC8192 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `e7ec45b` 關閉 normal HPLL tracker，只施加 8192 筆 FDEC bootstrap，

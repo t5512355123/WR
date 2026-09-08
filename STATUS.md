@@ -1,5 +1,25 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 fresh-power 128-step FINC 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪把 Slave `STEP5_BOOTSTRAP_STEPS` 從 `1024` 降至 `128`，維持 FINC、normal
+tracker off 與既有 telemetry；fresh power-cycle、compile、program 與 settled
+preflight 4 完成。第一筆 sticky evidence 為：
+
+```text
+BOOTSTRAP_COMPLETED = 128
+FORCED_FINC = 128
+FORCED_FDEC = 0
+FORCED_COMPLETED = 128
+```
+
+但 120 秒內 Helper 全程 `-150000`，`HELPER_LOCKED_SEEN=0`，Step5 仍為
+`NEVER_LOCKED`，失敗邊界是 `HELPER_LOCK`。這排除了「1024 steps 太大」的
+主要假設；現在應停止盲掃步數/PI，改驗證 page/mask、ACK 與實際 command
+provenance。
+
+完整報告：[EXP-WRPC-STEP5-STATIC-BOOTSTRAP-128-FINC-20260908](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-BOOTSTRAP-128-FINC-20260908/REPORT.md)
+
 ## 最新 fresh-power FINC polarity telemetry 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪實體斷電後把 Slave `STEP5_BOOTSTRAP_REVERSE` 設為 `1`，維持

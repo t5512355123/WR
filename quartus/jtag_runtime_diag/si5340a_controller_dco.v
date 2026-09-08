@@ -165,6 +165,12 @@ reg        bootstrap_done;
 reg [15:0] position_audit_epoch;
 
 localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
+// Admit the nearest physical step once the residual is at least half a
+// step. This removes the rail dead zone where an absolute target can be
+// 54 codes away from the applied position while the actuator granularity is
+// 64 codes.
+localparam signed [31:0] HPLL_HALF_STEP_CODE =
+  (HPLL_STEP_CODE > 1) ? (HPLL_STEP_CODE >>> 1) : 1;
 localparam [31:0] DPLL_STEP_CODE = DPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 localparam [31:0] DPLL_START_POSITION = 32'd32768;
 
@@ -760,13 +766,15 @@ always @(posedge iCLK or negedge iRST_n) begin
                      static_controller_ready &&
                      hpll_tracker_initialized && hpll_prev_valid &&
                      (((hpll_target_position > hpll_applied_position) &&
-                       ((hpll_target_position - hpll_applied_position) >= HPLL_STEP_CODE)) ||
+                       ((hpll_target_position - hpll_applied_position) >= HPLL_HALF_STEP_CODE)) ||
                       ((hpll_applied_position > hpll_target_position) &&
-                       ((hpll_applied_position - hpll_target_position) >= HPLL_STEP_CODE)))) begin
+                       ((hpll_applied_position - hpll_target_position) >= HPLL_HALF_STEP_CODE)))) begin
           // Normal HPLL closed-loop path: admit only one outstanding
-          // transaction, but only when the residual spans a complete
-          // physical DCO step.  A sub-step residual is retained until a
-          // later target update moves it across the quantization boundary.
+          // transaction. Round the absolute target to the nearest physical
+          // DCO step: a residual below half a step is retained, while a
+          // residual at or above half a step executes one full step. The
+          // applied position may therefore overshoot the target by less than
+          // half a step, which is the correct quantized actuator contract.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b0;
           hpll_pending_forced_reverse <= 1'b0;
@@ -855,11 +863,11 @@ always @(posedge iCLK or negedge iRST_n) begin
                        !rt_select_dpll && hpll_tracker_initialized) begin
             // One physical FINC/FDEC maps to exactly one configured number
             // of virtual WR DAC
-            // codes.  Keep the virtual position quantized: a completed
+            // codes. Keep the virtual position quantized: a completed
             // physical transaction always advances it by exactly one full
-            // physical-step code.  The admission guard above prevents a
-            // sub-step request, so no partial credit or target snap is
-            // allowed here.
+            // physical-step code. The half-step admission guard above
+            // selects the nearest reachable position; no partial credit or
+            // target snap is allowed here.
             if (rt_dir) begin
               // FINC increases the physical/WR HPLL code coordinate.
               hpll_applied_position <= hpll_applied_position + HPLL_STEP_CODE;

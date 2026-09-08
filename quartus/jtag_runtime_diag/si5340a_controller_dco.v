@@ -600,7 +600,11 @@ always @(posedge iCLK or negedge iRST_n) begin
           // tracker admission.
           hpll_pending <= 1'b1;
           hpll_pending_forced <= 1'b1;
-          hpll_pending_forced_reverse <= 1'b0;
+          // Preserve the selected bootstrap polarity for every queued
+          // transaction, not just the first one.  Clearing this here made a
+          // nominal reverse bootstrap execute one reverse step followed by
+          // forward steps, invalidating the operating-point experiment.
+          hpll_pending_forced_reverse <= STEP5_BOOTSTRAP_REVERSE;
           hpll_pending_bootstrap <= 1'b1;
           bootstrap_remaining <= bootstrap_remaining - 1'b1;
         end else if (ENABLE_JTAG_HPLL_BURST &&

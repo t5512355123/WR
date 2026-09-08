@@ -1816,11 +1816,10 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 A4 plant identification: start from the best static coarse
-      -- point, then use only externally triggered HPLL steps to measure
-      -- physical authority before enabling closed-loop tracking.
+      -- Step5 closed-loop validation: use the measured plant direction and
+      -- let the normal HPLL tracker close the residual after bootstrap.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      ENABLE_STEP5_HPLL_PLANT_TEST => 1,
+      ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 5632,

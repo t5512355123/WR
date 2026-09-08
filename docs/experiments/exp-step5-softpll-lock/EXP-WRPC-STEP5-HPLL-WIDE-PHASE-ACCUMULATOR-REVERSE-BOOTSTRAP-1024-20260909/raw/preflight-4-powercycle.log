@@ -1,0 +1,53 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Wed Sep  9 02:01:55 2026
+    Info: System process ID: 1976
+Info: Command: quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+Info: Quartus(args): --raw
+[info] JTAG_EXCEPTION 結果: ERROR: No In-System Sources and Probes instance was found.
+/NA
+[info] JTAG_EXCEPTION 結果: ERROR: No In-System Sources and Probes instance was found.
+/NA
+
+============================================================
+JTAG/WB transport health summary
+============================================================
+WB_TRANSPORT_PROTOCOL = PRELOAD_THEN_TOGGLE_COMMIT
+WB_REQUEST_COUNT = 0
+PRELOAD_COUNT = 0
+COMMIT_COUNT = 0
+WB_PROBE_READ_COUNT = 0
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 0
+STABLE_RESPONSE_WRONG_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+TIMEOUT_COUNT = 0
+INVALID_COUNT = 0
+STALE_A5A5_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = PASS
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+============================================================
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Wed Sep  9 02:02:01 2026
+    Info: Elapsed time: 00:00:06
+    Info: System process ID: 1976

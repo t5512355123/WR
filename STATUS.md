@@ -1,5 +1,32 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 fresh-power polarity telemetry 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪使用 `pain-shutdown` 完成實體斷電重開，加入唯讀 actuator-direction
+telemetry，並在 Slave 維持 `1024` steps、`STEP5_BOOTSTRAP_REVERSE=0`、
+normal tracker off。cold-start preflight 1–2 仍未建立 link；同一 SOF 重新
+配置後 preflight 3 恢復，Master/Slave PTP 與 Step1～4B 全部 PASS。
+
+fresh 起點的 direction evidence 為：
+
+```text
+BOOTSTRAP_COMPLETED = 1024
+FORCED_FINC = 0
+FORCED_FDEC = 1024
+FORCED_COMPLETED = 1024
+```
+
+正式 120 秒觀測中 Helper error 平均 `-148738.960833`、RMS `149447.056075`、
+最大絕對值 `150000`，output 最終 `65531`；`HELPER_LOCK_COUNT_MAX=5531`、
+`HELPER_LOCKED_SEEN=0`，Step5 仍未通過。這輪證明數位 polarity 已確實映射到
+FDEC，但尚未證明物理 response 能將 Helper 帶入 lock。
+
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。下一輪保留 telemetry 與其他設定，
+用 fresh power-cycle 測 `STEP5_BOOTSTRAP_REVERSE=1`，確認 `FORCED_FINC=1024`
+後再判斷 operating point。
+
+[完整 fresh-power polarity 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-POLARITY-TELEMETRY-FRESH-POWER-20260908/REPORT.md)
+
 ## 最新 isolated static forward 1024 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪只將 Slave `STEP5_BOOTSTRAP_REVERSE` 從 `1` 改為 `0`，維持 `1024`

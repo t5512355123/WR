@@ -1,0 +1,2 @@
+ef80cf0b71bf168a51f21067d6ddb7c25d7ed20a70c7bf3e3f86987b6b336cf9  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-HPLL-BOOTSTRAP-5632-PLUS-64-MAIN-ABSOLUTE-TARGET-20260908/source/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+2da501f4c783605d007083a49b5909a9e1a39c31c7c504266f368c9edb458be6  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-HPLL-BOOTSTRAP-5632-PLUS-64-MAIN-ABSOLUTE-TARGET-20260908/source/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

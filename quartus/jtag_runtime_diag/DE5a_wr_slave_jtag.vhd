@@ -1786,8 +1786,8 @@ begin
       ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 1024,
-      -- Opposite-polarity A/B against the isolated reverse-1024 run.
-      STEP5_BOOTSTRAP_REVERSE => 0,
+      -- Clean-power opposite-polarity test against the fresh FDEC run.
+      STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

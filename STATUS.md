@@ -1,5 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 I2C provenance 觀測（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source commit `1d88738` 新增獨立 JTAG probe 50，保存 DCO runtime 最後
+一筆 command、四個 phase 的 admission mask 與 sticky I2C ACK error；未修改
+PI、lock detector 或 runtime admission。Master／Slave full Quartus build 與
+program 均 PASS，settled recovery preflight 3/4 的 Step1～4B 均 PASS。
+
+120 秒觀測為 `1200/1200` valid frames，但 Helper `locked` 從未出現，error
+平均 `-145890.0975`，Step5 仍為 `NEVER_LOCKED`，第一個失敗邊界是
+`HELPER_LOCK`。probe 50 顯示 `I2C_PHASE_SEEN=15`、最後命令
+`0x1D=0x01 (FINC)`、`I2C_ACK_ERROR=0`、`DCO_STEP=128`；這排除 runtime
+完全未送出或 ACK 全失敗，但尚未是每筆 transaction 的 silicon readback，
+所以不宣稱 N0/N1 物理隔離已完成。
+
+下一輪優先補四筆 phase 各自的 address/data snapshot 或受控 readback/capture，
+確認 page 3 mask 與 page 0 final command 的實際序列；若這層成立仍停在 rail，
+再實作 Main absolute target/applied contract。`STEP5_COMPLETE=NO`、
+`MERGE_APPROVED=NO`。
+
+[完整 I2C provenance 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-I2C-PROVENANCE-128-FINC-20260908/REPORT.md)
+
 ## 最新 fresh-power 128-step FINC 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪把 Slave `STEP5_BOOTSTRAP_STEPS` 從 `1024` 降至 `128`，維持 FINC、normal

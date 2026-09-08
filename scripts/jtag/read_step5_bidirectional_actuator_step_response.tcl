@@ -1,8 +1,8 @@
 # Step5 lane 2: bidirectional SI5340 actuator step-response identification.
 #
 # This is a read/drive experiment for the dedicated plant-identification
-# image.  The Slave image disables the normal HPLL tracker and bootstrap;
-# source 36 asks the FPGA controller for one bounded burst, source 38 selects
+# image.  The Slave image completes the fixed coarse bootstrap, then disables
+# the normal HPLL tracker; source 36 asks the FPGA controller for one bounded burst, source 38 selects
 # the direction (0=FDEC, 1=FINC), and source 40 selects the number of physical
 # transactions.  The FPGA serializes the burst; this script never bit-bangs
 # individual SI5340 transactions.
@@ -513,7 +513,7 @@ proc emit_final_summary {hardware_name burst_size finc_before finc_after \
   flush stdout
 }
 
-puts [format "BIDIR_CONFIG experiment=EXP-WRPC-STEP5-HPLL-SI5340-BIDIRECTIONAL-ACTUATOR-STEP-RESPONSE-IDENTIFICATION-LANE2-20260902 baseline_seconds=%d burst_size=%d settle_updates=%d window_updates=%d sample_gap_ms=%d completion_poll_ms=%d normal_hpll_tracker=0 bootstrap=0 direction_encoding=0:FDEC,1:FINC read_only_measurement=1" \
+puts [format "BIDIR_CONFIG experiment=EXP-WRPC-STEP5-HPLL-PLANT-ID-5632-20260909 baseline_seconds=%d burst_size=%d settle_updates=%d window_updates=%d sample_gap_ms=%d completion_poll_ms=%d normal_hpll_tracker=0 bootstrap=5632 plant_test=1 direction_encoding=0:FDEC,1:FINC read_only_measurement=1" \
   $baseline_seconds $burst_size $settle_updates $window_updates \
   $sample_gap_ms $completion_poll_ms]
 

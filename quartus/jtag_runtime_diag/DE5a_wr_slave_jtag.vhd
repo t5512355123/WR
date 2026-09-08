@@ -1814,13 +1814,12 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 coarse-to-fine polarity experiment: the coarse bootstrap is
-      -- the physical origin, and the normal tracker uses the page/mask-
-      -- validated target-to-FDEC polarity for the fine loop.
+      -- Step5 coarse bracket: hold the normal tracker off and measure the
+      -- next known FDEC operating point after the 4096-step baseline.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 1,
+      ENABLE_NORMAL_HPLL_TRACKER => 0,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 4096,
+      STEP5_BOOTSTRAP_STEPS => 8192,
       STEP5_BOOTSTRAP_REVERSE => 0,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

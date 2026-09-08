@@ -1,5 +1,39 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 coarse-to-fine polarity/origin 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `a0f232a` 保留 4096-step FDEC bootstrap，將 normal HPLL tracker 的
+target-to-actuator mapping 反向，並把 bootstrap 排除在 fine-loop applied coordinate
+之外。simulation、Master/Slave full build/program 與 settled Step1～4B preflight
+全部 PASS。
+
+1200-sample coherent observer 的實際窗口為 146.237 秒：
+
+```text
+NORMAL_REQ_DELTA_OBSERVED = 4095
+NORMAL_COMPLETED_DELTA = 4095
+FINC_DELTA = 4095
+FDEC_DELTA = 0
+TARGET_FIRST/APPLIED_FIRST = 65531/65525
+TARGET_FINAL/APPLIED_FINAL = 5/5
+POSITION_ACCOUNTING = PASS
+HELPER_ERROR_MEAN = 98707.2560467
+HELPER_ERROR_FINAL = 150000
+LOW_RAIL_FRACTION = 0.827356130108
+HIGH_RAIL_FRACTION = 0.170975813178
+HELPER_LOCKED_SEEN = 0
+HELPER_LOCK_COUNT_MAX = 15
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+```
+
+這證明 fine tracker 確實運作，但 target 在 16-bit 邊界附近由 `65531` 變為 `5`，
+且 Helper 仍主要飽和在 rail；Step5 仍為 `NOT_COMPLETE`，第一個 inactive boundary
+是 `HELPER_LOCK`。下一輪先做受控 target/applied contract 實驗，區分 target wrap
+與實際 actuator 方向/範圍問題；`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 coarse-to-fine polarity/origin 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-COARSE-TO-FINE-FDEC-POLARITY-ORIGIN-4096-20260908/REPORT.md)
+
 ## 最新 Step5 absolute applied-position contract 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪以 source `bc658f1` 將 HPLL applied position 改為 32-bit signed

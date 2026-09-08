@@ -1,5 +1,31 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 coarse-to-fine tracker FDEC5632 實驗：signed target 契約疑點（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `3e987e2` 在 FDEC5632 起點開啟 normal HPLL tracker。settled
+Step1～4B、coherent observer、position accounting 與 reset stability 都 PASS，
+但 tracker 實際形成 `FINC=4095`、`FDEC=4095` 的對稱來回，applied position 淨值
+回到 5；Helper 全窗 `+150000` 且低 rail 100%。
+
+```text
+NORMAL_REQ_COUNTER = 8190
+NORMAL_COMPLETED_COUNTER = 8190
+FINC_COMPLETED_COUNTER = 4095
+FDEC_COMPLETED_COUNTER = 4095
+HELPER_ERROR_MEAN = 150000.0
+HELPER_LOCKED_SEEN = 0
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
+
+raw HPLL 值曾為 `0xFFFB`；目前 tracker 零擴展後把它當作 65531，可能造成錯誤的
+`65531 ↔ 5` 追蹤。下一輪應修正 `hpll_target_position` 的 signed sign-extension，
+保持 FDEC5632 與其餘控制參數不變。
+
+[完整 tracker FDEC5632 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-COARSE-TO-FINE-TRACKER-FDEC5632-20260908/REPORT.md)
+
 ## 最新 Step5 static coarse bracket FDEC5600 實驗：仍未 lock（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `9128f2d` 將固定 FDEC bootstrap 設為 5600。兩次 preflight 均確認

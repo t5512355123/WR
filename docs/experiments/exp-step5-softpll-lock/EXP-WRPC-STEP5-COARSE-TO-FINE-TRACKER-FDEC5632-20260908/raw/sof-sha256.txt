@@ -1,0 +1,2 @@
+ae03d9daeaca1a9420a21b5b3ab99e18b97ead7408039523b6f547e96d6cdcad  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-COARSE-TO-FINE-TRACKER-FDEC5632-20260908/source/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+2c3e3dbc402f3cef6f57828a47189492e213f66b2f3888495554dacbc261764b  /home/b10504072/04_WR/artifacts/EXP-WRPC-STEP5-COARSE-TO-FINE-TRACKER-FDEC5632-20260908/source/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

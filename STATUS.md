@@ -1,5 +1,35 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse reverse 4096 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪只把 Slave 固定 reverse bootstrap 設為 `4096` steps，normal HPLL tracker
+維持關閉；兩板 full build/program 成功，settled preflight 3/4 的 Step1～4B
+全部 PASS。
+
+120 秒 observer（1189/1200 valid）結果：
+
+```text
+HELPER_LOCKED_SEEN = 0
+HELPER_ERROR_MEAN = -150000.0
+HELPER_OUTPUT_FINAL = 65531
+FORCED_FINC = 4096
+FORCED_FDEC = 0
+FORCED_COMPLETED = 4096
+I2C_PHASE_SEEN = 15
+I2C_ACK_ERROR = 0
+NORMAL_REQ_DELTA = 0
+DCO_STEP_DELTA = 0
+RESET_BOOT/CPU/WR/SI = 0/0/0/0
+```
+
+4096 reverse 已完成且 ACK 正常，但仍在負向 rail；相較 0-step baseline 沒有
+進入可鎖區，因此 Step5 仍為 `NEVER_LOCKED`，第一個 inactive boundary 是
+`HELPER_LOCK`。下一輪以同樣 4096 steps 測 opposite polarity，確認是否能離開
+負向 rail；若仍飽和，停止增加步數，改做 absolute/applied position 或 silicon
+readback contract。`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 static coarse reverse 4096 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-REVERSE-4096-20260908/REPORT.md)
+
 ## 最新 Step5 static no-bootstrap baseline（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪依 `Astra建議.md` 將 Slave `STEP5_BOOTSTRAP_STEPS` 設為 `0`，並關閉

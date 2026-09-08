@@ -1,0 +1,2 @@
+WRPC master MIF: /tmp/wr-step5-kp75/build/firmware/master/wrc.mif
+Master Quartus build passed: /tmp/wr-step5-kp75/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)

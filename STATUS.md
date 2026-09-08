@@ -1,5 +1,21 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 isolated persistent-reverse 1024-step 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+在 source `b4af1b6` 修正 bootstrap 後續 request 持續使用 reverse polarity，並
+以 Slave `1024` steps 完成真正一致方向的 reverse bootstrap。settled preflight
+2–3 的 Step1～4B 全部 PASS；120 秒內 Helper error 穿越
+`+150000 → +80524 → +10422 → -68029 → -150000`，證明 actuator bracket
+可被掃到，但 normal tracker 同時完成 `22,525` 次交易，最後輸出回到 rail，
+Helper lock 仍為 0。
+
+`STEP5_COMPLETE=NO`、`STEP5_FIRST_INACTIVE_BOUNDARY=HELPER_LOCK`、
+`MERGE_APPROVED=NO`。下一輪應暫停 normal tracker，只觀測 1024-step static
+operating point；必要時以 `0/512/1024/1536` 做受控 coarse bracket，再修正
+absolute applied-position/target 語意或重啟細步閉迴路。
+
+[完整 persistent-reverse 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-ISOLATED-REVERSE-PERSISTENT-1024-20260908/REPORT.md)
+
 ## 最新 isolated no-bootstrap 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 在已修正 DCO page/mask 的 source `40cb3eac` 上，將 Slave 的

@@ -1,5 +1,26 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 isolated static forward 1024 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪只將 Slave `STEP5_BOOTSTRAP_REVERSE` 從 `1` 改為 `0`，維持 `1024`
+steps 與 normal tracker 關閉。full Quartus compile、雙板燒錄與 settled
+preflight 成功；Master PTP `MASTER`、Slave PTP `SLAVE`，Step1～4B 全部 PASS。
+
+120 秒固定位置觀測中 `BOOTSTRAP_COMPLETED=1024`、`DCO_STEP_DELTA=0`、
+`NORMAL_TRANSACTION_ACCOUNTING=PASS`，但 `HELPER_ERROR_MEAN=-147852.898333`、
+RMS `149080.837894`、最大絕對值 `150000`，output 最終為 `65531`；
+`HELPER_LOCKED_SEEN=0`，所以 Step5 仍未通過，第一個 inactive boundary 是
+`HELPER_LOCK`。
+
+注意：本輪是在前一輪 reverse 1024 後未實體斷電就重燒，不能作為乾淨的
+polarity 物理 A/B。下一輪先增加 actuator FINC/FDEC 完成方向的唯讀 telemetry，
+再在實體斷電後 fresh-program，避免把 SI5340 外部狀態誤認為 source polarity
+效果。
+
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。
+
+[完整 static forward 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-ISOLATED-STATIC-FORWARD-1024-20260908/REPORT.md)
+
 ## 最新 isolated static reverse 1024 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪在 source `fc5e8aa` 將 Slave normal HPLL tracker 關閉，只保留 persistent

@@ -1822,10 +1822,10 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- The 1024-step reverse/FINC operating point previously bracketed the
-      -- Helper error around both signs; use it as the next coarse-to-fine
-      -- seed instead of the 5632-step FDEC point that stayed off-range.
-      STEP5_BOOTSTRAP_STEPS => 1024,
+      -- The 1024-step reverse/FINC point still left the Helper at its high
+      -- rail with FREQ_ERROR around -621.  Move the physical operating point
+      -- farther in the measured FINC direction before fine tracking.
+      STEP5_BOOTSTRAP_STEPS => 3072,
       STEP5_BOOTSTRAP_REVERSE => 1,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,

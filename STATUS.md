@@ -1,5 +1,32 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 Step5 static coarse bracket FDEC5632 實驗：仍未 lock（2026-09-08，branch `exp/step5-softpll-lock`）
+
+本輪 source `b523261` 將固定 FDEC bootstrap 設為 5632。第一次 preflight
+仍在上游恢復期，但第二次 settled preflight 已確認 Step1～4B PASS；因此
+1200-sample observer 結果有效。5632 沒有重現 5120 的固定鏈路失效，且比
+6144 更接近 Helper 零誤差，但仍長時間位於兩側 rail。
+
+```text
+BOOTSTRAP_COMPLETED = 5632
+NORMAL_REQ_DELTA_OBSERVED = 0
+HELPER_ERROR_MEAN = 19250.0
+HELPER_ERROR_RMS = 150000.0
+LOW_RAIL_FRACTION = 0.5625
+HIGH_RAIL_FRACTION = 0.435833333333
+HELPER_LOCKED_SEEN = 0
+PSTAT_LOCKED_FINAL = 0
+RESET_STABLE = PASS
+STEP5_COMPLETE = NO
+MERGE_APPROVED = NO
+```
+
+這使 5632 成為目前較佳的 coarse operating point；下一輪應在約 5440～5504
+做更細的固定工作點測量，維持 normal tracker 關閉，並以 settled Step1～4B
+為 observer 門檻。
+
+[完整 FDEC5632 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC5632-20260908/REPORT.md)
+
 ## 最新 FDEC5120 power-cycle revalidation：upstream regression reproduced（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪在 Pain 實體 power-cycle 後重新建置並燒錄 5120 image；simulation、

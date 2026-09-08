@@ -1,0 +1,145 @@
+# EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC5632-20260908
+
+## 結論
+
+本輪完成 FDEC5632 的固定 coarse operating-point 實驗。第一次 preflight
+仍在上游恢復期，但第二次 settled preflight 已恢復並確認 Step1～4B；因此
+本輪 observer 結果有效。5632 比 6144 更接近 Helper 零誤差，但輸出仍長時間
+落在兩側 rail，未進入 lock band，Step5 仍未完成。
+
+```text
+STEP1_TO_STEP3 = PASS (settled preflight 2)
+STEP4B = PASS
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = PASS
+RESET_STABLE = PASS
+STEP5 = NOT_PASS
+STEP5_RESULT = NOT_COMPLETE
+STEP5_FIRST_INACTIVE_BOUNDARY = HELPER_LOCK
+MERGE_APPROVED = NO
+```
+
+## 版本與唯一變因
+
+```text
+branch = exp/step5-softpll-lock
+source_commit = b5232619ba45835a87a854676bb32ce5069c51ca
+bootstrap_steps = 5632
+bootstrap_direction = FDEC (STEP5_BOOTSTRAP_REVERSE=0)
+code_per_physical_step = 16
+normal_hpll_tracker = 0
+```
+
+相對上一輪只將固定 FDEC bootstrap 設為 5632；沒有修改 PI、lock threshold、
+DMTD、PTP、PHY 或 reset policy。模擬中的 DCO page/mask contract 也通過。
+
+## Build、program 與 preflight
+
+```text
+SIMULATION_RC = 0
+FIRMWARE_MASTER_RC = 0
+FIRMWARE_SLAVE_RC = 0
+COMPILE_MASTER_RC = 0
+COMPILE_SLAVE_RC = 0
+PROGRAM_MASTER_RC = 0
+PROGRAM_SLAVE_RC = 0
+```
+
+兩個 SOF 都是本輪由同一 source commit 產出；Quartus timing 仍為既有
+`TIMING_CLOSED=NO` caveat。
+
+```text
+MASTER_SOF_SHA256 = 453db8c8ea104f5d256fdc4ef35186c65c64df583ac237fdb17f044913e8d1ae
+SLAVE_SOF_SHA256 = 2d2e566246c5f7d0a27101ee19418bc636a70db89394e2f5040c76f33e922349
+```
+
+第一次 preflight 的結果是：
+
+```text
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP5_RESULT = UPSTREAM_NOT_READY
+```
+
+等待後的第二次 settled preflight 是：
+
+```text
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+```
+
+## 120-second coherent observer
+
+observer 輸出 1200 個 coherent snapshots，最後 sample 的實際 elapsed window 為
+134.610 秒；沒有 accounting、coherence 或 reset 穩定性失敗。
+
+```text
+SAMPLES = 1200
+COHERENT_MEASUREMENT_SNAPSHOTS = 1200
+REJECTED_EPOCH_SNAPSHOTS = 0
+REJECTED_ACCOUNTING_CANDIDATES = 0
+MEASUREMENT_ACCOUNTING_FAILS = 0
+POSITION_SNAPSHOTS = 1200
+POSITION_INVARIANT_FAILS = 0
+TRANSACTION_INVARIANT_FAILS = 0
+DCO_INVARIANT_FAILS = 0
+BOOTSTRAP_COMPLETED_FINAL = 5632
+BOOTSTRAP_DONE_FINAL = 1
+FORCED_COMPLETED_FINAL = 5632
+NORMAL_REQ_DELTA_OBSERVED = 0
+NORMAL_COMPLETED_DELTA = 0
+FINC_DELTA = 0
+FDEC_DELTA = 0
+DCO_STEP_DELTA = 0
+TARGET_FINAL = 5
+APPLIED_FINAL = 5
+EXPECTED_APPLIED_ABSOLUTE = 5
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = PASS
+RESET_STABLE = PASS
+RESET_BOOT_GENERATION_DELTA = 0
+RESET_CPU_DELTA = 0
+RESET_WR_CORE_DELTA = 0
+RESET_SI_CONFIG_DELTA = 0
+```
+
+## Helper 與 lock 結果
+
+```text
+FREQ_ERROR_MEAN = -2394.91083333
+FREQ_ERROR_RMS = 2394.92132839
+HELPER_ERROR_MEAN = 19250.0
+HELPER_ERROR_RMS = 150000.0
+HELPER_ERROR_MAX_ABS = 150000
+FRACTION_ABS_ERROR_LE_200 = 0.0
+LOW_RAIL_FRACTION = 0.5625
+HIGH_RAIL_FRACTION = 0.435833333333
+NO_RAIL_FRACTION = 0.00166666666667
+LOCK_COUNT_MAX = 0
+LOCK_COUNT_FINAL = 0
+HELPER_LOCKED_SEEN = 0
+HELPER_LOCKED_FINAL = 0
+MAIN_ENABLED_FINAL = 0
+MAIN_FREQ_LOCKED_FINAL = 0
+MAIN_PHASE_LOCKED_FINAL = 0
+MAIN_LOCKED_FINAL = 0
+PSTAT_LOCKED_FINAL = 0
+FULL_CHAIN_MAX_SECONDS = 0.000
+STEP5_CHAIN_RESULT = NOT_COMPLETE
+```
+
+5632 的平均 Helper error 已由 6144 的 `70250` 降至 `19250`，說明 coarse
+工作點方向正確；但 `RMS=150000` 且幾乎所有樣本在 rail，表示目前仍是
+steady bias / actuator range limit，而非已鎖定的閉迴路狀態。下一輪應在保持
+normal tracker 關閉與 Step1～4B preflight 門檻不變的前提下，測試約 5440～5504
+的更細工作點；不應宣稱 Step5 pass，也不應 merge。
+
+## 原始證據
+
+所有原始輸出、preflight、observer、SOF 雜湊及完整 archive 位於本資料夾的
+`raw/` 目錄。

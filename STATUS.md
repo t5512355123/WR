@@ -1,5 +1,18 @@
 # DE5a White Rabbit 目前狀態
 
+## 最新 isolated reverse-bootstrap 實驗（2026-09-08，branch `exp/step5-softpll-lock`）
+
+在 page/mask 已修正的 source `74643971` 上，Slave 只反轉 forced/bootstrap
+polarity，仍使用 6208 steps。兩板編譯與燒錄成功；可信 preflight 2–5 的
+Step1～4B 全部 PASS，但 120 秒觀測仍停在 `HELPER_LOCK`：error 平均約
+`+82793.9`、最大絕對值 `150000`、output 77.6% 時間在 rail，最後未 lock。
+反轉 polarity 確實改變 error 方向，卻沒有得到 Step5。
+
+`STEP5_COMPLETE=NO`、`MERGE_APPROVED=NO`。下一輪應測試 isolated baseline 的
+`bootstrap=0` 或受控 coarse sweep，先找可達 operating point，再回到 PI。
+
+[完整 isolated reverse-bootstrap 報告](docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-ISOLATED-REVERSE-BOOTSTRAP-20260908/REPORT.md)
+
 ## 最新 DCO page/mask 隔離實驗（2026-09-08，branch `exp/step5-softpll-lock`）
 
 以 source commit `a2abe910e82b510d7178f37d4b5d1673d4a7c784` 修正 runtime DCO

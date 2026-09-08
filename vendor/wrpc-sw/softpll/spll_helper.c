@@ -82,9 +82,9 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
-	/* Step5 damping A/B: restore the necessary integral term and reduce
-	 * proportional action after kp=-150, ki=-1 still hunted. */
-	s->pi.kp = -75;
+	/* Step5 actuator-granularity A/B: restore the best fine-loop gain pair
+	 * before testing a smaller physical HPLL transaction step. */
+	s->pi.kp = -150;
 	s->pi.ki = -1;
 #else
 	s->pi.kp = 150;

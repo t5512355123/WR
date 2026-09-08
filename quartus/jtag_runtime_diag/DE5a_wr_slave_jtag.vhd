@@ -1826,7 +1826,7 @@ begin
       -- calculated zero-crossing operating point near 3356 steps.
       STEP5_BOOTSTRAP_STEPS => 3360,
       STEP5_BOOTSTRAP_REVERSE => 1,
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 32,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

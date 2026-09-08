@@ -229,6 +229,27 @@ void helper_start(struct spll_helper_state *s)
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_EVENT, SPLL_DBG_EVT_START, 1);
 }
 
+void helper_reseed(struct spll_helper_state *s)
+{
+	/* The Slave may spend its startup interval moving the HPLL coarse
+	 * actuator.  Any Helper phase history collected during that motion is
+	 * not a valid fine-lock initial condition, so restart from the first
+	 * accepted tag after the coarse operation has settled. */
+	s->p_setpoint = 0;
+	s->p_adder = 0;
+	s->sample_n = 0;
+	s->tag_d0 = -1;
+	helper_p_setpoint_wide = 0;
+	helper_p_adder_wide = 0;
+	helper_tag_d0_wide = -1;
+	helper_wide_state_valid = 1;
+	s->last_lock_duration_ms = -1;
+
+	pi_init((spll_pi_t *)&s->pi);
+	ld_init((spll_lock_det_t *)&s->ld);
+	s->lock_start_ms = timer_get_tics();
+}
+
 void helper_switch_reference(struct spll_helper_state *s, int new_ref)
 {
 #if 0

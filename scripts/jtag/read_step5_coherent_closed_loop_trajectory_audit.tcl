@@ -1,7 +1,7 @@
 # White Rabbit Step5 coherent closed-loop trajectory audit.
 #
-# This observer is paired with the single Step5 functional change:
-# ENABLE_NORMAL_HPLL_TRACKER = 1 on the Slave.  DMTD/helper fields are read
+# This observer is paired with the Slave-only Step5 Helper phase guard.
+# DMTD/helper fields are read
 # from the coherent WDIAGS seqlock payload.  TARGET/APPLIED/FINC/FDEC and the
 # completed-transaction counters are independently bracketed by the existing
 # completion epoch probes 43/44.  Lock/status fields are read from the same
@@ -663,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP-1664-REVERSE-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 bootstrap_steps=1664 code_per_physical_step=64 kp=-300 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HELPER-PHASE-GUARD-60S-1664-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=1664 code_per_physical_step=64 kp=-300 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

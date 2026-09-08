@@ -42,6 +42,8 @@ void helper_init(struct spll_helper_state *s, int ref_channel);
 void helper_update(struct spll_helper_state *s, int tag, int source);
 
 void helper_start(struct spll_helper_state *s);
+/* Discard the phase history and establish a fresh first-tag baseline. */
+void helper_reseed(struct spll_helper_state *s);
 void helper_switch_reference(struct spll_helper_state *s, int new_ref);
 
 #endif // __SPLL_HELPER_H

@@ -47,6 +47,13 @@ static const char * const seq_states[] =
 };
 #define SEQ_STATES_NR  ARRAY_SIZE(seq_states)
 
+/* Allow the Slave's coarse HPLL bootstrap to finish before Helper phase
+ * history is admitted into the fine lock detector.  This is deliberately
+ * scoped to Slave mode; Master keeps the legacy immediate Helper startup. */
+#define STEP5_HELPER_PHASE_GUARD_TICS (60 * TICS_PER_SECOND)
+static int helper_phase_guard_active;
+static uint32_t helper_phase_guard_until;
+
 volatile struct softpll_state softpll;
 volatile uint32_t wrpc_spll_state_visit_mask;
 volatile uint32_t wrpc_spll_state_transition_count;
@@ -231,6 +238,13 @@ static inline void sequencing_fsm(struct softpll_state *s, int tag_value, int ta
 		case SEQ_START_HELPER:
 		{
 			helper_start(&s->helper);
+			if (s->mode == SPLL_MODE_SLAVE) {
+				helper_phase_guard_active = 1;
+				helper_phase_guard_until = timer_get_tics()
+					+ STEP5_HELPER_PHASE_GUARD_TICS;
+			} else {
+				helper_phase_guard_active = 0;
+			}
 
 			s->seq_state = SEQ_WAIT_HELPER;
 			break;
@@ -298,6 +312,13 @@ static inline void sequencing_fsm(struct softpll_state *s, int tag_value, int ta
 
 static inline void update_loops(struct softpll_state *s, int tag_value, int tag_source)
 {
+	if (s->mode == SPLL_MODE_SLAVE && helper_phase_guard_active) {
+		if (time_before(timer_get_tics(), helper_phase_guard_until))
+			return;
+
+		helper_phase_guard_active = 0;
+		helper_reseed(&s->helper);
+	}
 
 	helper_update(&s->helper, tag_value, tag_source);
 
@@ -358,6 +379,8 @@ void spll_very_init(void)
 	wrpc_spll_state_visit_mask = 0;
 	wrpc_spll_state_transition_count = 0;
 	wrpc_spll_last_state = SEQ_DISABLED;
+	helper_phase_guard_active = 0;
+	helper_phase_guard_until = 0;
 	wrpc_spll_trr_pop_count = 0;
 	wrpc_spll_helper_measurement_epoch = 0;
 	wrpc_spll_helper_measurement_tag_delta = 0;
@@ -401,6 +424,8 @@ void spll_init(int mode, int slave_ref_channel, int flags)
 
 	wrpc_spll_init_count++;
 	wrpc_spll_last_init_tics = timer_get_tics();
+	helper_phase_guard_active = 0;
+	helper_phase_guard_until = 0;
 
 	disable_irq();
 

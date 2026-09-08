@@ -57,7 +57,8 @@ architecture rtl of DE5a_wr_slave_jtag is
       STEP5_BOOTSTRAP_REVERSE : integer := 0;
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 34;
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 16;
-      JTAG_HPLL_BURST_SIZE : integer := 32
+      JTAG_HPLL_BURST_SIZE : integer := 32;
+      STEP5_NORMAL_HPLL_COOLDOWN_LOADS : integer := 0
     );
     port (
       iCLK                  : in    std_logic;
@@ -1826,7 +1827,8 @@ begin
       -- calculated zero-crossing operating point near 3356 steps.
       STEP5_BOOTSTRAP_STEPS => 3360,
       STEP5_BOOTSTRAP_REVERSE => 1,
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 32,
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
+      STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 256,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

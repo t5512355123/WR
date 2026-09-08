@@ -17,7 +17,7 @@ set gap_ms 100
 set board_filter ""
 set poll_attempts 100
 # Must match the Slave generic used by the image under test.
-set hpll_step_code 32
+set hpll_step_code 64
 set bootstrap_steps 3360
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
@@ -663,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-STEP32-PHASE-GUARD-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=32 kp=-150 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-COOLDOWN256-PHASE-GUARD-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=64 normal_hpll_cooldown_loads=256 kp=-150 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

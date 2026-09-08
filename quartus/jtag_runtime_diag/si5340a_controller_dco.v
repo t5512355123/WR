@@ -16,7 +16,11 @@ parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
 parameter integer STEP5_BOOTSTRAP_REVERSE = 0,
 parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
 parameter integer DPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 16,
-parameter integer JTAG_HPLL_BURST_SIZE = 32
+parameter integer JTAG_HPLL_BURST_SIZE = 32,
+// After a completed normal HPLL transaction, require this many accepted
+// Helper target loads before admitting another transaction. This models the
+// measured actuator settling interval without changing lock thresholds.
+parameter integer STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 0
 )(
 input                   iCLK,
 input                   iRST_n,
@@ -111,6 +115,7 @@ reg [15:0] normal_hpll_request_count;
 reg [15:0] normal_hpll_completed_count;
 reg [15:0] normal_finc_completed_count;
 reg [15:0] normal_fdec_completed_count;
+reg [15:0] normal_hpll_cooldown_loads;
 reg [15:0] dco_step_count;
 reg        dco_error;
 reg        same_code_test_fired;
@@ -524,6 +529,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     normal_hpll_completed_count <= 16'd0;
     normal_finc_completed_count <= 16'd0;
     normal_fdec_completed_count <= 16'd0;
+    normal_hpll_cooldown_loads <= 16'd0;
     dco_step_count   <= 16'd0;
     dco_error        <= 1'b0;
     same_code_test_fired <= 1'b0;
@@ -660,6 +666,8 @@ always @(posedge iCLK or negedge iRST_n) begin
       dpll_prev_valid <= 1'b1;
     end
     if (iHPLL_LOAD) begin
+      if (normal_hpll_cooldown_loads != 16'd0)
+        normal_hpll_cooldown_loads <= normal_hpll_cooldown_loads - 1'b1;
       // Keep the newest absolute target.  The idle-state tracker below
       // serializes one FINC/FDEC request at a time until applied==target.
       hpll_target_code <= iHPLL_DATA;
@@ -764,6 +772,7 @@ always @(posedge iCLK or negedge iRST_n) begin
         end else if (ENABLE_NORMAL_HPLL_TRACKER &&
                      !ENABLE_STEP5_HPLL_PLANT_TEST &&
                      static_controller_ready &&
+                     (normal_hpll_cooldown_loads == 16'd0) &&
                      hpll_tracker_initialized && hpll_prev_valid &&
                      (((hpll_target_position > hpll_applied_position) &&
                        ((hpll_target_position - hpll_applied_position) >= HPLL_HALF_STEP_CODE)) ||
@@ -878,6 +887,7 @@ always @(posedge iCLK or negedge iRST_n) begin
               normal_fdec_completed_count <= normal_fdec_completed_count + 1'b1;
             end
             normal_hpll_completed_count <= normal_hpll_completed_count + 1'b1;
+            normal_hpll_cooldown_loads <= STEP5_NORMAL_HPLL_COOLDOWN_LOADS;
           end
           end
         end

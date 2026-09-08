@@ -56,7 +56,8 @@ architecture rtl of DE5a_wr_master_jtag is
       STEP5_BOOTSTRAP_STEPS : integer := 6336;
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 34;
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 16;
-      JTAG_HPLL_BURST_SIZE : integer := 32
+      JTAG_HPLL_BURST_SIZE : integer := 32;
+      STEP5_NORMAL_HPLL_COOLDOWN_LOADS : integer := 0
     );
     port (
       iCLK                  : in    std_logic;

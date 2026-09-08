@@ -18,6 +18,7 @@ set board_filter ""
 set poll_attempts 100
 # Must match the Slave generic used by the image under test.
 set hpll_step_code 16
+set bootstrap_steps 4096
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -466,11 +467,11 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set ::spll_delock_final($hardware_name) $spll_delock
   if {$spll_delock ne "INVALID" && $spll_delock > $::spll_delock_max($hardware_name)} { set ::spll_delock_max($hardware_name) $spll_delock }
 
-  # Establish all post-bootstrap deltas at the first complete 6208-step
+  # Establish all post-bootstrap deltas at the first complete bootstrap-step
   # boundary.  A fresh-program observer can begin while bootstrap is still in
   # flight, so sample 1 is not a valid actuator baseline.
   if {!$::post_bootstrap_baseline_set($hardware_name) && $bootstrap_done == 1 &&
-      $bootstrap_completed == 6208 && $position_ok} {
+      $bootstrap_completed == $::bootstrap_steps && $position_ok} {
     set ::post_bootstrap_baseline_set($hardware_name) 1
     set ::post_bootstrap_baseline_sample($hardware_name) $sample
     set ::tracker_first($hardware_name) [list $target_probe $applied_probe $normal_req $normal_done]
@@ -662,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6208-64-GUARDED-COHERENT-HELPER-DYNAMICS-AUDIT read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 bootstrap_steps=6208 code_per_physical_step=64 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=43,44 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-WIDE-APPLIED-POSITION-CONTRACT-FDEC4096-20260908 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 bootstrap_steps=4096 code_per_physical_step=16 kp=-150 ki=-2 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

@@ -1814,12 +1814,12 @@ begin
     generic map (
       ENABLE_SAME_CODE_TEST => 0,
       ENABLE_JTAG_HPLL_BURST => 1,
-      -- Step5 coarse bracket: hold the normal tracker off and measure the
-      -- point between the 5120 link-failure boundary and 6144.
+      -- Step5 coarse-to-fine validation: start from the best static coarse
+      -- point and allow the normal HPLL tracker to close the residual error.
       ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
-      ENABLE_NORMAL_HPLL_TRACKER => 0,
+      ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      STEP5_BOOTSTRAP_STEPS => 5600,
+      STEP5_BOOTSTRAP_STEPS => 5632,
       STEP5_BOOTSTRAP_REVERSE => 0,
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

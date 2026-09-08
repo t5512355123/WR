@@ -53,6 +53,7 @@ output    [63:0]        oDCO_STEP5_POSITION_DEBUG,
 output    [63:0]        oDCO_STEP5_POSITION_ACCOUNTING_DEBUG,
 output    [63:0]        oDCO_STEP5_ACTUATOR_DEBUG,
 output    [63:0]        oDCO_STEP5_I2C_DEBUG,
+output    [63:0]        oDCO_STEP5_I2C_SEQUENCE_DEBUG,
 output                  oDCO_STEP5_POLARITY_ACTIVE
 );
 
@@ -135,6 +136,7 @@ reg [63:0] dco_step5_position_debug;
 reg [63:0] dco_step5_position_accounting_debug;
 reg [63:0] dco_step5_actuator_debug;
 reg [63:0] dco_step5_i2c_debug;
+reg [63:0] dco_step5_i2c_sequence_debug;
 reg [7:0]  last_runtime_addr;
 reg [7:0]  last_runtime_data;
 reg [2:0]  last_runtime_state;
@@ -142,6 +144,7 @@ reg        last_runtime_final_write;
 reg        last_runtime_select_dpll;
 reg        last_runtime_dir;
 reg [3:0]  runtime_phase_seen;
+reg [63:0] runtime_sequence_debug;
 reg [15:0] bootstrap_remaining;
 reg [15:0] bootstrap_completed_count;
 reg        bootstrap_started;
@@ -205,6 +208,7 @@ assign oDCO_STEP5_POSITION_DEBUG = dco_step5_position_debug;
 assign oDCO_STEP5_POSITION_ACCOUNTING_DEBUG = dco_step5_position_accounting_debug;
 assign oDCO_STEP5_ACTUATOR_DEBUG = dco_step5_actuator_debug;
 assign oDCO_STEP5_I2C_DEBUG = dco_step5_i2c_debug;
+assign oDCO_STEP5_I2C_SEQUENCE_DEBUG = dco_step5_i2c_sequence_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
@@ -392,6 +396,15 @@ always @* begin
   dco_step5_i2c_debug[62]    = runtime_bus_enable;
 end
 
+// Sticky FPGA-side payload capture for all four runtime writes. Each phase
+// occupies one 16-bit lane as {data[7:0], address[7:0]}:
+//   lane 0 = PAGE 3, lane 1 = N_FSTEP_MSK, lane 2 = PAGE 0,
+//   lane 3 = FINC/FDEC. This records the exact address/data presented to the
+// bus controller, not a claim of silicon readback.
+always @* begin
+  dco_step5_i2c_sequence_debug = runtime_sequence_debug;
+end
+
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
   .iCLK(iCLK),
   .iRST_n(iRST_n),
@@ -523,6 +536,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     last_runtime_select_dpll <= 1'b0;
     last_runtime_dir <= 1'b0;
     runtime_phase_seen <= 4'd0;
+    runtime_sequence_debug <= 64'd0;
   end else begin
     force_hpll_meta <= iFORCE_HPLL_ONE_STEP;
     force_hpll_sync <= force_hpll_meta;
@@ -552,6 +566,19 @@ always @(posedge iCLK or negedge iRST_n) begin
         runtime_phase_seen[2] <= 1'b1;
       else if (rt_state == 3'd5 && rt_final_write)
         runtime_phase_seen[3] <= 1'b1;
+      if (rt_state == 3'd1) begin
+        runtime_sequence_debug[7:0] <= runtime_byte_addr;
+        runtime_sequence_debug[15:8] <= runtime_byte_data;
+      end else if (rt_state == 3'd3) begin
+        runtime_sequence_debug[23:16] <= runtime_byte_addr;
+        runtime_sequence_debug[31:24] <= runtime_byte_data;
+      end else if (rt_state == 3'd5 && !rt_final_write) begin
+        runtime_sequence_debug[39:32] <= runtime_byte_addr;
+        runtime_sequence_debug[47:40] <= runtime_byte_data;
+      end else if (rt_state == 3'd5 && rt_final_write) begin
+        runtime_sequence_debug[55:48] <= runtime_byte_addr;
+        runtime_sequence_debug[63:56] <= runtime_byte_data;
+      end
     end
 
     if (force_hpll_rise && !force_hpll_seen) begin

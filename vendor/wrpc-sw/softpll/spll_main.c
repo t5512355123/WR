@@ -44,8 +44,12 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 		s->pi.ki = 30;			// / 2;
 	}
 #elif defined(CONFIG_WR_NODE)
-	s->pi.kp = -1100;		// / 2;
-	s->pi.ki = -30;			// / 2;
+	/* Main-frequency polarity A/B: the previous negative pair drove the
+	 * observed positive frequency error to the high rail without reducing it.
+	 * Keep the pre-lock error definition unchanged and test the opposite
+	 * actuator polarity on the WR node. */
+	s->pi.kp = 1100;		// / 2;
+	s->pi.ki = 30;			// / 2;
 #else
 #error "Please set CONFIG for wr switch or wr node"
 #endif
@@ -478,4 +482,3 @@ int mpll_shifter_busy(struct spll_main_state *s)
 {
 	return s->phase_shift_target != s->phase_shift_current;
 }
-

@@ -297,7 +297,7 @@ proc read_helper_pair {hardware_name} {
     set lock_samples [field32 $limits 16 16]
     set lock_count [field32 $state 16 16]
     set locked [field32 $state 0 1]
-    if {$threshold eq "200" && $lock_samples eq "10000" &&
+    if {$threshold eq "1200" && $lock_samples eq "10000" &&
         $lock_count ne "INVALID" && $lock_count <= $lock_samples &&
         ($locked == 0 || ($locked == 1 && $lock_count == $lock_samples))} {
       return [list $state $limits]

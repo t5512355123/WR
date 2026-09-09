@@ -33,8 +33,9 @@ set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
 set PI_Y_MAX 65531
-set CODE_PER_PHYSICAL_STEP 32
+set CODE_PER_PHYSICAL_STEP 64
 set PI_LOCK_THRESHOLD 1200
+set PI_LOCK_SAMPLES 1000
 
 array set ::wb_toggle {}
 array set ::wb_request_count {}
@@ -901,7 +902,7 @@ proc read_pi_snapshot {hardware_name request_seq} {
 }
 
 proc pi_snapshot_math_valid {snapshot} {
-  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX PI_LOCK_THRESHOLD
+  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX PI_LOCK_THRESHOLD PI_LOCK_SAMPLES
   set ::pi_math_last_reason UNKNOWN
   foreach {pi_valid pi_epoch tag_raw p_adder p_setpoint raw_error_raw ld_error_raw \
            lock_state_raw before_lo before_hi i_new_lo i_new_hi after_lo after_hi \
@@ -946,7 +947,7 @@ proc pi_snapshot_math_valid {snapshot} {
 
   if {$kp != $PI_KP || $ki != $PI_KI || $shift != $PI_SHIFT ||
       $bias != $PI_BIAS || $y_min != $PI_Y_MIN || $y_max != $PI_Y_MAX ||
-      $anti_windup != 1 || $lock_threshold != $PI_LOCK_THRESHOLD || $lock_samples != 10000} {
+      $anti_windup != 1 || $lock_threshold != $PI_LOCK_THRESHOLD || $lock_samples != $PI_LOCK_SAMPLES} {
     set_pi_math_failure PI_MATH_CONSTANT_FAIL PI_CONSTANTS \
       [format "kp=%s ki=%s shift=%s bias=%s ymin=%s ymax=%s anti=%s threshold=%s samples=%s" \
         $kp $ki $shift $bias $y_min $y_max $anti_windup $lock_threshold $lock_samples]
@@ -1930,13 +1931,13 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-HELPER-PI-CODESTEP32-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-LOCKSAMPLES1000-CODESTEP64-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-HELPER-PI-CODESTEP32-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-LOCKSAMPLES1000-CODESTEP64-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3360 code_per_physical_step=%d kp=-150 ki=-1 threshold=1200 lock_samples=10000 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3360 code_per_physical_step=%d kp=-150 ki=-1 threshold=1200 lock_samples=%d normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP $::PI_LOCK_SAMPLES]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

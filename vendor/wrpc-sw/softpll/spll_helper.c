@@ -32,6 +32,12 @@ static uint32_t helper_pi_decimation_count;
  * quantization/noise floor on the coherent baseline is larger than 200, so
  * test the same acceptance band without changing the PI gains. */
 #define STEP5_HELPER_LOCK_THRESHOLD 1200
+/* The 64-code physical actuator and the measured phase-noise floor can
+ * remain inside the 1200-tic band for useful acquisition intervals, but the
+ * original 10000 accepted-tag requirement is longer than those intervals.
+ * Keep the threshold unchanged and use a separately auditable 1000-sample
+ * dwell for this Step5 A/B. */
+#define STEP5_HELPER_LOCK_SAMPLES 1000
 
 static inline int32_t helper_diag_i32(int64_t value)
 {
@@ -107,7 +113,7 @@ void helper_very_init( struct spll_helper_state *s )
 
 	/* Phase branch lock detection */
 	s->ld.threshold = STEP5_HELPER_LOCK_THRESHOLD;
-	s->ld.lock_samples = 10000;
+	s->ld.lock_samples = STEP5_HELPER_LOCK_SAMPLES;
 	s->ld.delock_samples = 100;
 }
 

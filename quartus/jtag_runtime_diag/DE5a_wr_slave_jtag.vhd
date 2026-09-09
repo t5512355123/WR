@@ -1827,9 +1827,10 @@ begin
       -- calculated zero-crossing operating point near 3356 steps.
       STEP5_BOOTSTRAP_STEPS => 3360,
       STEP5_BOOTSTRAP_REVERSE => 1,
-      -- Reduce each normal DCO transaction to half the previous code step so
-      -- the Helper phase loop sees less quantization disturbance.
-      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 32,
+      -- Keep the virtual position account aligned with the measured physical
+      -- SI5340 FINC/FDEC step; the 32-code experiment was not physically
+      -- realizable and produced an accounting/runaway failure.
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 0,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32

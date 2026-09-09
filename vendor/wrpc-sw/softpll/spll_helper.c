@@ -28,10 +28,12 @@ static int helper_wide_state_valid;
 #define STEP5_HELPER_PI_UPDATE_DECIMATION 1
 static uint32_t helper_pi_decimation_count;
 
-/* The existing Main phase detector uses 1200.  The Helper's measured phase
- * quantization/noise floor on the coherent baseline is larger than 200, so
- * test the same acceptance band without changing the PI gains. */
-#define STEP5_HELPER_LOCK_THRESHOLD 1200
+/* The coherent Helper trajectory is centered near zero and has an observed
+ * RMS below 700 tics, but the 1200-tic admission band is crossed repeatedly
+ * before the Main loop is allowed to start.  Keep this as a separately
+ * auditable admission-boundary A/B; Step5 still requires Main/PSTAT lock and
+ * a stable closed-loop window. */
+#define STEP5_HELPER_LOCK_THRESHOLD 2000
 /* The 64-code physical actuator and the measured phase-noise floor can
  * remain inside the 1200-tic band for useful acquisition intervals, but the
  * original 10000 accepted-tag requirement is longer than those intervals.

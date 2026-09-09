@@ -22,13 +22,16 @@ static int64_t helper_p_setpoint_wide;
 static int64_t helper_tag_d0_wide;
 static int helper_wide_state_valid;
 
-/* The Helper interrupt stream is much faster than the SI5340 FINC/FDEC
- * actuator.  Updating the PI target on every tag lets the absolute-target
- * tracker chase a command that the physical actuator has not completed yet.
- * Hold the last target for one measured actuator-scale interval while still
- * evaluating the lock detector on every accepted tag. */
-#define STEP5_HELPER_PI_UPDATE_DECIMATION 64
+/* Keep the best previously measured acquisition dynamics for the lock
+ * threshold A/B.  The PI target is updated on every accepted tag; the
+ * observer showed that the 64-tag hold made coarse acquisition too slow. */
+#define STEP5_HELPER_PI_UPDATE_DECIMATION 1
 static uint32_t helper_pi_decimation_count;
+
+/* The existing Main phase detector uses 1200.  The Helper's measured phase
+ * quantization/noise floor on the coherent baseline is larger than 200, so
+ * test the same acceptance band without changing the PI gains. */
+#define STEP5_HELPER_LOCK_THRESHOLD 1200
 
 static inline int32_t helper_diag_i32(int64_t value)
 {
@@ -103,7 +106,7 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.anti_windup = 1;
 
 	/* Phase branch lock detection */
-	s->ld.threshold = 200;
+	s->ld.threshold = STEP5_HELPER_LOCK_THRESHOLD;
 	s->ld.lock_samples = 10000;
 	s->ld.delock_samples = 100;
 }

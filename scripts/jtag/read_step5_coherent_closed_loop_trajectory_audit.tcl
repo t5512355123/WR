@@ -290,6 +290,11 @@ proc read_stable_position {} {
 }
 
 proc read_helper_pair {hardware_name} {
+  # These limits must match the current Step5 image.  The old 1200/10000
+  # contract belonged to an earlier helper experiment and made every valid
+  # helper state appear INVALID after the runtime threshold was changed.
+  set expected_threshold 2000
+  set expected_lock_samples 1000
   for {set attempt 0} {$attempt < 4} {incr attempt} {
     set state [wb_read $hardware_name 0x00100ABC]
     set limits [wb_read $hardware_name 0x00100AC0]
@@ -297,7 +302,7 @@ proc read_helper_pair {hardware_name} {
     set lock_samples [field32 $limits 16 16]
     set lock_count [field32 $state 16 16]
     set locked [field32 $state 0 1]
-    if {$threshold eq "1200" && $lock_samples eq "10000" &&
+    if {$threshold eq "$expected_threshold" && $lock_samples eq "$expected_lock_samples" &&
         $lock_count ne "INVALID" && $lock_count <= $lock_samples &&
         ($locked == 0 || ($locked == 1 && $lock_count == $lock_samples))} {
       return [list $state $limits]
@@ -539,8 +544,25 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     }
     if {$normal_done ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
         (($finc + $fdec) & 0xffff) != $normal_done} { incr ::transaction_failures($hardware_name) }
-    if {$dco_step ne "INVALID" && $bootstrap_completed ne "INVALID" && $normal_done ne "INVALID" &&
-        (($bootstrap_completed + $normal_done) & 0xffff) != $dco_step} { incr ::dco_failures($hardware_name) }
+    # dco_step is a total completion counter shared by the Main DPLL and
+    # Helper HPLL runtime paths.  It therefore cannot equal the HPLL-only
+    # normal+bootstrap counters.  Check the valid aggregate lower bound
+    # instead: total completed runtime transactions must not trail the
+    # HPLL-only completions observed in the same post-bootstrap baseline.
+    if {$dco_step ne "INVALID" && $normal_done ne "INVALID" &&
+        $bootstrap_completed ne "INVALID" &&
+        [lindex $::burst_first($hardware_name) 2] ne "INVALID" &&
+        [lindex $::burst_final($hardware_name) 2] ne "INVALID"} {
+      set dco_delta [counter_delta [lindex $::position_first($hardware_name) 7] $dco_step 16]
+      set normal_delta [counter_delta [lindex $::position_first($hardware_name) 6] $normal_done 16]
+      set bootstrap_delta [counter_delta [lindex $::position_first($hardware_name) 8] $bootstrap_completed 16]
+      set forced_delta [counter_delta [lindex $::burst_first($hardware_name) 2] [lindex $::burst_final($hardware_name) 2] 16]
+      if {$dco_delta eq "INVALID" || $normal_delta eq "INVALID" ||
+          $bootstrap_delta eq "INVALID" || $forced_delta eq "INVALID" ||
+          $dco_delta < ($normal_delta + $bootstrap_delta + $forced_delta)} {
+        incr ::dco_failures($hardware_name)
+      }
+    }
   }
 
   if {$valid && $helper_lock_count ne "INVALID"} {
@@ -658,12 +680,12 @@ proc emit_summary {hardware_name} {
     $::main_phase_locked_final($hardware_name) == 1 && $::main_locked_final($hardware_name) == 1 &&
     $::pstat_locked_final($hardware_name) == 1 && $reset_result eq "PASS" &&
     $measurement_accounting eq "PASS" && $position_accounting eq "PASS" ? "CANDIDATE" : "NOT_COMPLETE"}]
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_SUMMARY board=%s SAMPLES=%d POST_BOOTSTRAP_BASELINE_SAMPLE=%s POST_BOOTSTRAP_BASELINE_SET=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d REJECTED_EPOCH_SNAPSHOTS=%d REJECTED_ACCOUNTING_CANDIDATES=%d MEASUREMENT_ACCOUNTING_FAILS=%d POSITION_SNAPSHOTS=%d POSITION_INVARIANT_FAILS=%d TRANSACTION_INVARIANT_FAILS=%d DCO_INVARIANT_FAILS=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_LAST=%s HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s FRACTION_ABS_ERROR_LE_200=%s HELPER_OUTPUT_SAMPLES=%d LOW_RAIL_FRACTION=%s HIGH_RAIL_FRACTION=%s NO_RAIL_FRACTION=%s LOCK_COUNT_MAX=%s LOCK_COUNT_FINAL=%s LOCK_COUNT_RISE_EVENTS=%d LOCK_COUNT_FALL_EVENTS=%d ERROR_BAND_EXIT_EVENTS=%d ACTUATOR_HUNT_OBSERVED=%s HELPER_DYNAMICS=%s PI_TRACE_AVAILABLE=NO TARGET_FINAL=%s APPLIED_FINAL=%s EXPECTED_APPLIED_ABSOLUTE=%s NORMAL_REQ_DELTA_OBSERVED=%s NORMAL_COMPLETED_DELTA=%s FINC_DELTA=%s FDEC_DELTA=%s DCO_STEP_DELTA=%s BOOTSTRAP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_DONE_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s FULL_CHAIN_MAX_SECONDS=%.3f FULL_CHAIN_300S=%s STEP5_CHAIN_RESULT=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s RESET_STABLE=%s LAST_EPOCH=%s LAST_HELPER_UPDATE_COUNT=%s LAST_DMTD_REF_ACCEPT_COUNT=%s LAST_DMTD_FB_ACCEPT_COUNT=%s PRECLAMP_FIRST=%s PRECLAMP_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s" \
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_SUMMARY board=%s SAMPLES=%d POST_BOOTSTRAP_BASELINE_SAMPLE=%s POST_BOOTSTRAP_BASELINE_SET=%d COHERENT_MEASUREMENT_SNAPSHOTS=%d REJECTED_EPOCH_SNAPSHOTS=%d REJECTED_ACCOUNTING_CANDIDATES=%d MEASUREMENT_ACCOUNTING_FAILS=%d POSITION_SNAPSHOTS=%d POSITION_INVARIANT_FAILS=%d TRANSACTION_INVARIANT_FAILS=%d DCO_TOTAL_LOWER_BOUND_FAILS=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MIN=%s FREQ_ERROR_MAX=%s FREQ_ERROR_FIRST=%s FREQ_ERROR_LAST=%s HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s FRACTION_ABS_ERROR_LE_200=%s HELPER_OUTPUT_SAMPLES=%d LOW_RAIL_FRACTION=%s HIGH_RAIL_FRACTION=%s NO_RAIL_FRACTION=%s LOCK_COUNT_MAX=%s LOCK_COUNT_FINAL=%s LOCK_COUNT_RISE_EVENTS=%d LOCK_COUNT_FALL_EVENTS=%d ERROR_BAND_EXIT_EVENTS=%d ACTUATOR_HUNT_OBSERVED=%s HELPER_DYNAMICS=%s PI_TRACE_AVAILABLE=NO TARGET_FINAL=%s APPLIED_FINAL=%s EXPECTED_APPLIED_ABSOLUTE=%s NORMAL_REQ_DELTA_OBSERVED=%s NORMAL_COMPLETED_DELTA=%s FINC_DELTA=%s FDEC_DELTA=%s DCO_STEP_DELTA=%s BOOTSTRAP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_DONE_FINAL=%s HELPER_LOCKED_SEEN=%d HELPER_LOCKED_FINAL=%s FIRST_HELPER_LOCK_SAMPLE=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s FULL_CHAIN_MAX_SECONDS=%.3f FULL_CHAIN_300S=%s STEP5_CHAIN_RESULT=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_MAX=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s RESET_STABLE=%s LAST_EPOCH=%s LAST_HELPER_UPDATE_COUNT=%s LAST_DMTD_REF_ACCEPT_COUNT=%s LAST_DMTD_FB_ACCEPT_COUNT=%s PRECLAMP_FIRST=%s PRECLAMP_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s" \
     $hardware_name $::sample_count($hardware_name) $::post_bootstrap_baseline_sample($hardware_name) $::post_bootstrap_baseline_set($hardware_name) $::coherent_count($hardware_name) $::rejected_count($hardware_name) $::accounting_reject_count($hardware_name) $::measurement_failures($hardware_name) $::position_count($hardware_name) $::position_failures($hardware_name) $::transaction_failures($hardware_name) $::dco_failures($hardware_name) $freq_mean $freq_rms $::freq_min($hardware_name) $::freq_max($hardware_name) $::freq_first($hardware_name) $::freq_last($hardware_name) $helper_error_mean $helper_error_rms $::helper_error_max_abs($hardware_name) $helper_error_band_fraction $::helper_output_count($hardware_name) $low_rail_fraction $high_rail_fraction $no_rail_fraction $::helper_lock_max($hardware_name) $::helper_lock_final($hardware_name) $::lock_rise_events($hardware_name) $::lock_fall_events($hardware_name) $::error_band_exit_events($hardware_name) $actuator_hunt_observed $helper_dynamics $ptarget1 $papplied1 $expected_applied $req_delta $done_delta $finc_delta $fdec_delta $dco_delta $bootstrap_delta $forced_delta $pboot1 $::bootstrap_done_final($hardware_name) $::helper_locked_seen($hardware_name) $::helper_locked_final($hardware_name) $::helper_first_locked_sample($hardware_name) $::main_enabled_final($hardware_name) $::main_freq_locked_final($hardware_name) $::main_phase_locked_final($hardware_name) $::main_locked_final($hardware_name) $::pstat_locked_final($hardware_name) [expr {$full_span_ms / 1000.0}] $full_chain_300s $step5_candidate $::spll_delock_first($hardware_name) $::spll_delock_max($hardware_name) $::spll_delock_final($hardware_name) $gen_delta $cpu_delta $wr_delta $si_delta $measurement_accounting $position_accounting $reset_result $::last_epoch($hardware_name) $::last_update_count($hardware_name) $::last_ref_accept_count($hardware_name) $::last_fb_accept_count($hardware_name) $::preclamp_first($hardware_name) $::preclamp_final($hardware_name) $::helper_error_final($hardware_name) $::helper_output_final($hardware_name)]
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-MAIN-PI-PLUS150-PLUS1-HELPER-THRESHOLD2000-3360-CODESTEP64-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-MAIN-PI-PLUS150-PLUS1-HELPER-THRESHOLD2000-3360-CODESTEP64-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=total-main-plus-helper-lower-bound-only pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

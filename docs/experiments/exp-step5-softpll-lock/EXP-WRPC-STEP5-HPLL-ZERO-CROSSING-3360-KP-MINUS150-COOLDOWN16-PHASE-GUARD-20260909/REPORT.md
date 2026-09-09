@@ -1,0 +1,163 @@
+# EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-COOLDOWN16-PHASE-GUARD-20260909
+
+## 判定
+
+本輪只把 normal HPLL cooldown 從 64 loads 改為 16 loads，保留實體
+`HPLL_TRACKER_CODE_PER_PHYSICAL_STEP=64` 與其他 Step5 設定不變。編譯、
+燒錄、upstream recovery 與完整 3600-sample observer 均成功；但更新速率
+過快造成 actuator hunting、position accounting 失敗與 DCO invariant failures。
+Helper 曾短暫 lock 且 Main 曾啟用，但最終整條 lock chain 仍未成立，因此
+Step5 尚未完成，不能 merge。
+
+```text
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = FAIL
+RESET_STABLE = PASS
+ACTUATOR_HUNT_OBSERVED = YES
+HELPER_LOCKED_SEEN = 1
+HELPER_LOCKED_FINAL = 0
+MAIN_ENABLED_FINAL = 1
+MAIN_FREQ_LOCKED_FINAL = 0
+MAIN_PHASE_LOCKED_FINAL = 0
+MAIN_LOCKED_FINAL = 0
+PSTAT_LOCKED_FINAL = 0
+STEP5_CHAIN_RESULT = NOT_COMPLETE
+MERGE_APPROVED = NO
+```
+
+## Source / experiment variable
+
+```text
+Source commit = 1e58463c832534eeace5e926ab9ae67aaa498079
+Helper kp = -150
+Helper ki = -1
+Slave HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 64
+Slave STEP5_BOOTSTRAP_STEPS = 3360
+Slave STEP5_BOOTSTRAP_REVERSE = 1
+Slave STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 16
+Helper phase guard = 60 seconds
+```
+
+唯一 functional 變因是 `STEP5_NORMAL_HPLL_COOLDOWN_LOADS: 64 -> 16`；lock
+threshold `200` 與 lock sample count `10000` 沒有修改。
+
+## Build / program
+
+Pain 從上述 commit 的乾淨 worktree 完整編譯 Master/Slave，兩者成功；依
+Master→45 秒→Slave 順序直接 JTAG programming，兩者均為
+`Configuration succeeded`、`0 errors, 0 warnings`。
+
+```text
+MASTER_COMPILE_RESULT = PASS
+SLAVE_COMPILE_RESULT = PASS
+MASTER_PROGRAM_RESULT = PASS
+SLAVE_PROGRAM_RESULT = PASS
+MASTER_SOF_SHA256 = 6531db75781fae46f8506feb1acb2a862adb18bfa9b5d8876819d13b7b8a934e
+SLAVE_SOF_SHA256 = 46508a5b99e13fa696a33f838e59531510688ae76fd7628a1761e2117f0fcc96
+TIMING_CLOSED = NO
+```
+
+## Upstream preflight
+
+第一次配置後的 preflight 仍可能遇到已知 recovery 狀態；再以 Master→45
+秒→Slave 重新配置後，`preflight-recovery.log` 確認有效窗口：
+
+```text
+Master core_tm_link_up = 1
+Master core_link_ok = 1
+Master WDIAGS_PTP = 6 MASTER
+STEP4A_MASTER_EVENT_CHAIN = PASS
+
+Slave core_tm_link_up = 1
+Slave core_link_ok = 1
+Slave WDIAGS_PTP = 9 SLAVE
+parentIsWRnode = 1
+STEP4B_ALLOWED = YES
+STEP4B_RESULT = PASS
+STEP4B_FIRST_INACTIVE_BOUNDARY = ACTIVE
+```
+
+因此下方 observer 是有效 Step5 窗口，不是 upstream-blocked 假測。
+
+## 3600-sample coherent Step5 observation
+
+```text
+SAMPLES = 3600
+COHERENT_MEASUREMENT_SNAPSHOTS = 3600
+REJECTED_EPOCH_SNAPSHOTS = 0
+REJECTED_ACCOUNTING_CANDIDATES = 292
+MEASUREMENT_ACCOUNTING_FAILS = 0
+POSITION_SNAPSHOTS = 3598
+POSITION_INVARIANT_FAILS = 0
+TRANSACTION_INVARIANT_FAILS = 0
+DCO_INVARIANT_FAILS = 1502
+MEASUREMENT_COHERENCE = PASS
+POSITION_ACCOUNTING = FAIL
+RESET_STABLE = PASS
+
+FREQ_ERROR_MEAN = 9.05583333333
+FREQ_ERROR_RMS = 386.354575559
+FREQ_ERROR_MIN = -40
+FREQ_ERROR_MAX = 16384
+HELPER_ERROR_MEAN = -1443.12222222
+HELPER_ERROR_RMS = 13689.2171187
+HELPER_ERROR_MAX_ABS = 150000
+FRACTION_ABS_ERROR_LE_200 = 0.244166666667
+LOW_RAIL_FRACTION = 0.0
+HIGH_RAIL_FRACTION = 0.015
+NO_RAIL_FRACTION = 0.985
+
+ACTUATOR_HUNT_OBSERVED = YES
+HELPER_DYNAMICS = UNDERDAMPED_OR_OVERAGGRESSIVE
+LOCK_COUNT_MAX = 10000
+LOCK_COUNT_FINAL = 100
+LOCK_COUNT_RISE_EVENTS = 1024
+LOCK_COUNT_FALL_EVENTS = 996
+ERROR_BAND_EXIT_EVENTS = 444
+HELPER_LOCKED_SEEN = 1
+HELPER_LOCKED_FINAL = 0
+FIRST_HELPER_LOCK_SAMPLE = 2097
+
+TARGET_FINAL = 63724
+APPLIED_FINAL = 63749
+EXPECTED_APPLIED_ABSOLUTE = 63749
+NORMAL_REQ_DELTA_OBSERVED = 5058
+NORMAL_COMPLETED_DELTA = 5058
+FINC_DELTA = 2515
+FDEC_DELTA = 2543
+DCO_STEP_DELTA = 7105
+BOOTSTRAP_COMPLETED_FINAL = 3360
+BOOTSTRAP_DONE_FINAL = 1
+
+MAIN_ENABLED_FINAL = 1
+MAIN_FREQ_LOCKED_FINAL = 0
+MAIN_PHASE_LOCKED_FINAL = 0
+MAIN_LOCKED_FINAL = 0
+PSTAT_LOCKED_FINAL = 0
+FULL_CHAIN_300S = 0
+STEP5_CHAIN_RESULT = NOT_COMPLETE
+```
+
+cooldown16 相較 cooldown64 提高了 transaction 速率，但造成離散 actuator
+重新 hunting；`POSITION_ACCOUNTING=FAIL`、`DCO_INVARIANT_FAILS=1502`，且
+frequency error 也出現 `16384` outlier。雖然在 sample 2097 曾短暫達到
+Helper lock count 10000 並啟用 Main，最後 Helper lock、Main frequency/phase
+lock 與 PSTAT lock 全部為 0，不能把短暫事件當成 Step5 pass。
+
+## 下一步
+
+cooldown16 與 cooldown64 已將更新速率兩側夾出：16 過快而 hunting，64
+穩定但 phase rail；下一輪測試中間點 `32 loads`，保留所有其他變因。若
+cooldown32 仍無法同時維持 position accounting 與 Helper final lock，應停止
+cooldown 掃描，改做 phase setpoint/actuator authority 的獨立辨識，不調低
+lock threshold，也不以短暫 Main enabled 宣稱 Step5。
+
+## Raw evidence
+
+本輪 Pain 原始檔案位於 `raw/`。原始封存檔 SHA-256：
+
+```text
+46e58fc4924b53f40c5959871cba26b9cd9379aa565ad99f682eec3e52971efe
+```

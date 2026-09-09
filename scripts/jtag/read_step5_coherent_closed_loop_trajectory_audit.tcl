@@ -663,7 +663,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-COOLDOWN64-PHASE-GUARD-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=64 normal_hpll_cooldown_loads=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-COOLDOWN16-PHASE-GUARD-20260909 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3360 code_per_physical_step=64 normal_hpll_cooldown_loads=16 kp=-150 ki=-1 threshold=200 lock_samples=10000 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

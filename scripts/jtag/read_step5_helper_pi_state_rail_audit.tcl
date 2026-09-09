@@ -27,13 +27,14 @@ if {$samples <= 0 || $gap_ms < 0 || ($double_read_enabled != 0 && $double_read_e
 }
 set ::double_read_enabled $double_read_enabled
 
-set PI_KP -301
+set PI_KP -150
 set PI_KI -1
 set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
 set PI_Y_MAX 65531
-set CODE_PER_PHYSICAL_STEP 128
+set CODE_PER_PHYSICAL_STEP 64
+set PI_LOCK_THRESHOLD 1200
 
 array set ::wb_toggle {}
 array set ::wb_request_count {}
@@ -900,7 +901,7 @@ proc read_pi_snapshot {hardware_name request_seq} {
 }
 
 proc pi_snapshot_math_valid {snapshot} {
-  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
+  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX PI_LOCK_THRESHOLD
   set ::pi_math_last_reason UNKNOWN
   foreach {pi_valid pi_epoch tag_raw p_adder p_setpoint raw_error_raw ld_error_raw \
            lock_state_raw before_lo before_hi i_new_lo i_new_hi after_lo after_hi \
@@ -945,7 +946,7 @@ proc pi_snapshot_math_valid {snapshot} {
 
   if {$kp != $PI_KP || $ki != $PI_KI || $shift != $PI_SHIFT ||
       $bias != $PI_BIAS || $y_min != $PI_Y_MIN || $y_max != $PI_Y_MAX ||
-      $anti_windup != 1 || $lock_threshold != 200 || $lock_samples != 10000} {
+      $anti_windup != 1 || $lock_threshold != $PI_LOCK_THRESHOLD || $lock_samples != 10000} {
     set_pi_math_failure PI_MATH_CONSTANT_FAIL PI_CONSTANTS \
       [format "kp=%s ki=%s shift=%s bias=%s ymin=%s ymax=%s anti=%s threshold=%s samples=%s" \
         $kp $ki $shift $bias $y_min $y_max $anti_windup $lock_threshold $lock_samples]
@@ -1289,7 +1290,7 @@ proc initialize_board {hardware_name} {
 }
 
 proc emit_sample {hardware_name sample elapsed_ms} {
-  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
+  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX PI_LOCK_THRESHOLD
   foreach {position_raw accounting_raw} [read_stable_position_pair] break
   set position_word [word64 $position_raw]
   set accounting_word [word64 $accounting_raw]
@@ -1528,7 +1529,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     if {$abs_helper_error > $::helper_error_max_abs($hardware_name)} {
       set ::helper_error_max_abs($hardware_name) $abs_helper_error
     }
-    set helper_error_in_band [expr {$abs_helper_error <= 200}]
+    set helper_error_in_band [expr {$abs_helper_error <= $PI_LOCK_THRESHOLD}]
     if {$helper_error_in_band} {
       incr ::helper_error_in_band_count($hardware_name)
     }
@@ -1674,7 +1675,7 @@ proc emit_sample {hardware_name sample elapsed_ms} {
 }
 
 proc emit_summary {hardware_name} {
-  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX
+  global PI_KP PI_KI PI_SHIFT PI_BIAS PI_Y_MIN PI_Y_MAX PI_LOCK_THRESHOLD
   set valid $::valid_frame_count($hardware_name)
   set invalid $::invalid_frame_count($hardware_name)
   set pi_count $::pi_present_count($hardware_name)
@@ -1786,7 +1787,7 @@ proc emit_summary {hardware_name} {
     set actuator_range_limit NOT_CONFIRMED
   }
   set window_seconds [expr {$::elapsed_final($hardware_name) / 1000.0}]
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f PI_TRACE_PRESENT=%d PI_TRACE_FRACTION=%.3f PI_SNAPSHOT_REJECTS=%d PI_ACCOUNTING_FAILS=%d PI_OUTPUT_MISMATCH_FAILS=%d ANTI_WINDUP_VIOLATIONS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s FRACTION_ABS_ERROR_LE_200=%s RAW_ERROR_SAMPLES=%d RAW_ERROR_MEAN=%s RAW_ERROR_MIN=%s RAW_ERROR_MAX=%s RAW_ERROR_POSITIVE_FRACTION=%s UNCLAMPED_BELOW_MIN_SAMPLES=%d LOW_RAIL_SAMPLES=%d LOW_RAIL_FRACTION=%.3f HIGH_RAIL_SAMPLES=%d HIGH_RAIL_FRACTION=%.3f NO_RAIL_FRACTION=%.3f LOCK_COUNT_MAX=%d LOCK_COUNT_FINAL=%s LOCK_COUNT_RISE_EVENTS=%d LOCK_COUNT_FALL_EVENTS=%d ERROR_BAND_EXIT_EVENTS=%d DYNAMICS_CANDIDATE=%s LOW_RAIL_SATURATION=%s ACTUATOR_RANGE_LIMIT_OR_REQUIRED_NEGATIVE_AUTHORITY=%s CAUSALITY_CASE=%s FREQ_ERROR_SAMPLES=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MAX_ABS=%d FREQ_ZERO_CROSSINGS=%d RAIL_TO_RAIL_CYCLE_COMPLETE=%d POSITION_CONTEXT_FAILS=%d MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s TRANSACTION_ACCOUNTING=%s SPLL_INIT_COUNT_FIRST=%s SPLL_INIT_COUNT_FINAL=%s POST_INITIAL_SPLL_INIT_DELTA=%s CLEAR_DACS_COUNT_FIRST=%s CLEAR_DACS_COUNT_FINAL=%s CLEAR_DACS_DELTA=%s HELPER_EPOCH_RESET_COUNT=%d NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s RESET_STABLE=%s KP=%d KI=%d SHIFT=%d BIAS=%d Y_MIN=%d Y_MAX=%d TAG_VALID_FIRST=%s TAG_VALID_FINAL=%s NORMAL_COMPLETED_FIRST=%s NORMAL_COMPLETED_FINAL=%s TARGET_FINAL=%s APPLIED_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s PI_EPOCH_FINAL=%s PI_INTEGRATOR_BEFORE_FINAL=%s PI_I_NEW_FINAL=%s PI_INTEGRATOR_AFTER_FINAL=%s PI_UNCLAMPED_FINAL=%s PI_CLAMPED_FINAL=%s PI_CLAMP_SIDE_FINAL=%s RAW_ERROR_FINAL=%s LD_ERROR_FINAL=%s PI_PROP_TERM_FINAL=%s PI_Y_PREROUND_FINAL=%s" \
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_SUMMARY board=%s SAMPLES=%d VALID_FRAMES=%d INVALID_FRAMES=%d WINDOW_SECONDS=%.3f PI_TRACE_PRESENT=%d PI_TRACE_FRACTION=%.3f PI_SNAPSHOT_REJECTS=%d PI_ACCOUNTING_FAILS=%d PI_OUTPUT_MISMATCH_FAILS=%d ANTI_WINDUP_VIOLATIONS=%d HELPER_ERROR_SAMPLES=%d HELPER_ERROR_MEAN=%s HELPER_ERROR_RMS=%s HELPER_ERROR_MAX_ABS=%s FRACTION_ABS_ERROR_LE_1200=%s RAW_ERROR_SAMPLES=%d RAW_ERROR_MEAN=%s RAW_ERROR_MIN=%s RAW_ERROR_MAX=%s RAW_ERROR_POSITIVE_FRACTION=%s UNCLAMPED_BELOW_MIN_SAMPLES=%d LOW_RAIL_SAMPLES=%d LOW_RAIL_FRACTION=%.3f HIGH_RAIL_SAMPLES=%d HIGH_RAIL_FRACTION=%.3f NO_RAIL_FRACTION=%.3f LOCK_COUNT_MAX=%d LOCK_COUNT_FINAL=%s LOCK_COUNT_RISE_EVENTS=%d LOCK_COUNT_FALL_EVENTS=%d ERROR_BAND_EXIT_EVENTS=%d DYNAMICS_CANDIDATE=%s LOW_RAIL_SATURATION=%s ACTUATOR_RANGE_LIMIT_OR_REQUIRED_NEGATIVE_AUTHORITY=%s CAUSALITY_CASE=%s FREQ_ERROR_SAMPLES=%d FREQ_ERROR_MEAN=%s FREQ_ERROR_RMS=%s FREQ_ERROR_MAX_ABS=%d FREQ_ZERO_CROSSINGS=%d RAIL_TO_RAIL_CYCLE_COMPLETE=%d POSITION_CONTEXT_FAILS=%d MEASUREMENT_COHERENCE=%s POSITION_ACCOUNTING=%s TRANSACTION_ACCOUNTING=%s SPLL_INIT_COUNT_FIRST=%s SPLL_INIT_COUNT_FINAL=%s POST_INITIAL_SPLL_INIT_DELTA=%s CLEAR_DACS_COUNT_FIRST=%s CLEAR_DACS_COUNT_FINAL=%s CLEAR_DACS_DELTA=%s HELPER_EPOCH_RESET_COUNT=%d NORMAL_REQ_DELTA=%s NORMAL_COMPLETED_DELTA=%s DCO_STEP_DELTA=%s FORCED_COMPLETED_DELTA=%s BOOTSTRAP_COMPLETED_FINAL=%s BOOTSTRAP_COMPLETED_DELTA=%s BOOTSTRAP_DONE_FINAL=%s MAIN_ENABLED_FINAL=%s MAIN_FREQ_LOCKED_FINAL=%s MAIN_PHASE_LOCKED_FINAL=%s MAIN_LOCKED_FINAL=%s PSTAT_LOCKED_FINAL=%s HELPER_LOCKED_FINAL=%s HELPER_LOCK_COUNT_FINAL=%s SPLL_DELOCK_COUNT_FIRST=%s SPLL_DELOCK_COUNT_FINAL=%s RESET_BOOT_GENERATION_DELTA=%s RESET_CPU_DELTA=%s RESET_WR_CORE_DELTA=%s RESET_SI_CONFIG_DELTA=%s RESET_STABLE=%s KP=%d KI=%d SHIFT=%d BIAS=%d Y_MIN=%d Y_MAX=%d LOCK_THRESHOLD=%d TAG_VALID_FIRST=%s TAG_VALID_FINAL=%s NORMAL_COMPLETED_FIRST=%s NORMAL_COMPLETED_FINAL=%s TARGET_FINAL=%s APPLIED_FINAL=%s HELPER_ERROR_FINAL=%s HELPER_OUTPUT_FINAL=%s PI_EPOCH_FINAL=%s PI_INTEGRATOR_BEFORE_FINAL=%s PI_I_NEW_FINAL=%s PI_INTEGRATOR_AFTER_FINAL=%s PI_UNCLAMPED_FINAL=%s PI_CLAMPED_FINAL=%s PI_CLAMP_SIDE_FINAL=%s RAW_ERROR_FINAL=%s PI_LD_ERROR_FINAL=%s PI_PROP_TERM_FINAL=%s PI_Y_PREROUND_FINAL=%s" \
     $hardware_name $::sample_count($hardware_name) $valid $::invalid_frame_count($hardware_name) $window_seconds \
     $::pi_present_count($hardware_name) $pi_fraction $::pi_snapshot_reject_count($hardware_name) \
     $::pi_accounting_fail_count($hardware_name) $::pi_output_mismatch_count($hardware_name) \
@@ -1809,7 +1810,7 @@ proc emit_summary {hardware_name} {
     $::main_phase_locked_final($hardware_name) $::main_locked_final($hardware_name) $::pstat_locked_final($hardware_name) \
     $::helper_locked_final($hardware_name) $::helper_count_final($hardware_name) $::spll_delock_first($hardware_name) \
     $::spll_delock_final($hardware_name) $gen_delta $cpu_delta $wr_delta $si_delta $reset_stable \
-    $PI_KP $PI_KI $PI_SHIFT $PI_BIAS $PI_Y_MIN $PI_Y_MAX $::tag_valid_first($hardware_name) \
+    $PI_KP $PI_KI $PI_SHIFT $PI_BIAS $PI_Y_MIN $PI_Y_MAX $PI_LOCK_THRESHOLD $::tag_valid_first($hardware_name) \
     $::tag_valid_final($hardware_name) $::normal_completed_first($hardware_name) $::normal_completed_final($hardware_name) \
     $::position_target_final($hardware_name) $::position_applied_final($hardware_name) $::helper_error_final($hardware_name) \
     $::helper_output_final($hardware_name) $::pi_epoch_final($hardware_name) $::pi_before_final($hardware_name) \
@@ -1929,13 +1930,13 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS301-KI-MINUS1-LANE2-V4-EXCLUSIVE-PI-BANK-OWNERSHIP-DOUBLE-READ-SMOKE-100SAMPLES-20260902
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-STARTUP-OPERATING-POINT-AUDIT-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-HPLL-6208-128-KP-MINUS301-KI-MINUS1-LANE2-TRUSTED-PROPORTIONAL-GAIN-BRACKET-REFINEMENT-600S-20260902
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-STARTUP-OPERATING-POINT-AUDIT-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=6208 code_per_physical_step=%d kp=-301 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3360 code_per_physical_step=%d kp=-150 ki=-1 threshold=1200 lock_samples=10000 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

@@ -1,0 +1,2 @@
+b75acd72caea79061b3c1d9d8cfd9410ff21304992ea95169953d64e7cc6650f  /tmp/wr-step5-helper-threshold1200-observerfix/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+d0f12212db0e3713af72ba0e33d1a8d368c043086c7e16c5b85a6d98acba8d6f  /tmp/wr-step5-helper-threshold1200-observerfix/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

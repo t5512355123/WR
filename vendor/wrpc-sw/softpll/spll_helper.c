@@ -22,6 +22,14 @@ static int64_t helper_p_setpoint_wide;
 static int64_t helper_tag_d0_wide;
 static int helper_wide_state_valid;
 
+/* The Helper interrupt stream is much faster than the SI5340 FINC/FDEC
+ * actuator.  Updating the PI target on every tag lets the absolute-target
+ * tracker chase a command that the physical actuator has not completed yet.
+ * Hold the last target for one measured actuator-scale interval while still
+ * evaluating the lock detector on every accepted tag. */
+#define STEP5_HELPER_PI_UPDATE_DECIMATION 64
+static uint32_t helper_pi_decimation_count;
+
 static inline int32_t helper_diag_i32(int64_t value)
 {
 	if (value > 2147483647LL)
@@ -77,6 +85,7 @@ void helper_very_init( struct spll_helper_state *s )
 	helper_p_setpoint_wide = 0;
 	helper_tag_d0_wide = -1;
 	helper_wide_state_valid = 0;
+	helper_pi_decimation_count = 0;
 
 /* Phase branch PI controller */
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
@@ -180,8 +189,15 @@ void helper_update(struct spll_helper_state *s, int tag,
 	helper_tag_d0_wide = tag;
 	helper_sync_legacy_state(s);
 
-	y = pi_update((spll_pi_t *)&s->pi, err);
-	SPLL->DAC_HPLL = y;
+	if (++helper_pi_decimation_count >= STEP5_HELPER_PI_UPDATE_DECIMATION) {
+		helper_pi_decimation_count = 0;
+		y = pi_update((spll_pi_t *)&s->pi, err);
+		SPLL->DAC_HPLL = y;
+	} else {
+		/* Do not write the MMIO register on held samples: a repeated store
+		 * would look like a fresh target load to the SI5340 tracker. */
+		y = s->pi.y;
+	}
 
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_TIME_MS, timer_get_tics(), 0);
 	//spll_debug(SPLL_DBG_SRC_HELPER, SPLL_DBG_SIGNAL_SAMPLE_ID, s->sample_n++, 0);
@@ -219,6 +235,7 @@ void helper_start(struct spll_helper_state *s)
 	helper_p_setpoint_wide = 0;
 	helper_p_adder_wide = 0;
 	helper_tag_d0_wide = -1;
+	helper_pi_decimation_count = 0;
 	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 
@@ -244,6 +261,7 @@ void helper_reseed(struct spll_helper_state *s)
 	helper_p_setpoint_wide = 0;
 	helper_p_adder_wide = 0;
 	helper_tag_d0_wide = -1;
+	helper_pi_decimation_count = 0;
 	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 

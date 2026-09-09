@@ -548,7 +548,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-puts [format "STEP5_MAIN_FREQ_PRELOCK_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-6208-16-KP-MINUS300-KI-MINUS1-LANE2-MAIN-FREQUENCY-PRELOCK-OBSERVABILITY-600S-20260902 read_only_observer=1 bootstrap_steps=6208 code_per_physical_step=16 kp=-300 ki=-1 shift=12 bias=5 helper_threshold=200 helper_lock_samples=10000 normal_tracker=1 main_prelock_gain_boost=20 freq_lock_threshold=50 freq_lock_samples=50 overlay_epoch=0x00100B58 overlay=0x00100B5C..0x00100BAC overlay_magic=0x00100BDC cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+puts [format "STEP5_MAIN_FREQ_PRELOCK_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-MAIN-FREQ-PRELOCK-3360-CODESTEP64-KP-MINUS150-HELPERTHRESHOLD2000-20260909 read_only_observer=1 bootstrap_steps=3360 code_per_physical_step=64 helper_kp=-150 helper_ki=-1 helper_threshold=2000 helper_lock_samples=1000 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 main_kp=-1100 main_ki=-30 main_shift=12 main_bias=5 main_prelock_gain_boost=20 freq_lock_threshold=50 freq_lock_samples=50 overlay_epoch=0x00100B58 overlay=0x00100B5C..0x00100BAC overlay_magic=0x00100BDC cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {![selected_board $hardware_name]} { continue }

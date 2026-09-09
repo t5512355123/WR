@@ -33,7 +33,7 @@ set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
 set PI_Y_MAX 65531
-set CODE_PER_PHYSICAL_STEP 64
+set CODE_PER_PHYSICAL_STEP 32
 set PI_LOCK_THRESHOLD 1200
 
 array set ::wb_toggle {}
@@ -1930,10 +1930,10 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-HELPER-PI-STARTUP-OPERATING-POINT-AUDIT-3360-KP-MINUS150-THRESHOLD1200-20260909
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-CODESTEP32-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-HELPER-PI-STARTUP-OPERATING-POINT-AUDIT-3360-KP-MINUS150-THRESHOLD1200-20260909
+    set experiment_name EXP-WRPC-STEP5-HELPER-PI-CODESTEP32-COOLDOWN0-3360-KP-MINUS150-THRESHOLD1200-20260909
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
   puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3360 code_per_physical_step=%d kp=-150 ki=-1 threshold=1200 lock_samples=10000 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP]

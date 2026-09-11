@@ -36,6 +36,11 @@ array set ::position_count {}
 array set ::position_failures {}
 array set ::transaction_failures {}
 array set ::dco_failures {}
+array set ::position_interval_prev_valid {}
+array set ::position_interval_prev_dco {}
+array set ::position_interval_prev_normal {}
+array set ::position_interval_prev_bootstrap {}
+array set ::position_interval_prev_forced {}
 array set ::freq_count {}
 array set ::freq_sum {}
 array set ::freq_sumsq {}
@@ -322,6 +327,11 @@ proc initialize_board {hardware_name} {
   set ::position_failures($hardware_name) 0
   set ::transaction_failures($hardware_name) 0
   set ::dco_failures($hardware_name) 0
+  set ::position_interval_prev_valid($hardware_name) 0
+  set ::position_interval_prev_dco($hardware_name) INVALID
+  set ::position_interval_prev_normal($hardware_name) INVALID
+  set ::position_interval_prev_bootstrap($hardware_name) INVALID
+  set ::position_interval_prev_forced($hardware_name) INVALID
   set ::freq_count($hardware_name) 0
   set ::freq_sum($hardware_name) 0.0
   set ::freq_sumsq($hardware_name) 0.0
@@ -544,24 +554,33 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     }
     if {$normal_done ne "INVALID" && $finc ne "INVALID" && $fdec ne "INVALID" &&
         (($finc + $fdec) & 0xffff) != $normal_done} { incr ::transaction_failures($hardware_name) }
-    # dco_step is a total completion counter shared by the Main DPLL and
-    # Helper HPLL runtime paths.  It therefore cannot equal the HPLL-only
-    # normal+bootstrap counters.  Check the valid aggregate lower bound
-    # instead: total completed runtime transactions must not trail the
-    # HPLL-only completions observed in the same post-bootstrap baseline.
-    if {$dco_step ne "INVALID" && $normal_done ne "INVALID" &&
-        $bootstrap_completed ne "INVALID" &&
-        [lindex $::burst_first($hardware_name) 2] ne "INVALID" &&
-        [lindex $::burst_final($hardware_name) 2] ne "INVALID"} {
-      set dco_delta [counter_delta [lindex $::position_first($hardware_name) 7] $dco_step 16]
-      set normal_delta [counter_delta [lindex $::position_first($hardware_name) 6] $normal_done 16]
-      set bootstrap_delta [counter_delta [lindex $::position_first($hardware_name) 8] $bootstrap_completed 16]
-      set forced_delta [counter_delta [lindex $::burst_first($hardware_name) 2] [lindex $::burst_final($hardware_name) 2] 16]
-      if {$dco_delta eq "INVALID" || $normal_delta eq "INVALID" ||
-          $bootstrap_delta eq "INVALID" || $forced_delta eq "INVALID" ||
-          $dco_delta < ($normal_delta + $bootstrap_delta + $forced_delta)} {
-        incr ::dco_failures($hardware_name)
+    # dco_step is a 16-bit total completion counter shared by the Main DPLL
+    # and Helper HPLL runtime paths.  Comparing it to a long-run baseline is
+    # invalid once that counter wraps (the 3372 run wrapped after about 87 s).
+    # Compare adjacent coherent position snapshots instead.  The inter-sample
+    # interval is short enough that a single modulo-16-bit delta is unambiguous,
+    # while still checking that total completions never trail HPLL-only work.
+    if {$::post_bootstrap_baseline_set($hardware_name) &&
+        $dco_step ne "INVALID" && $normal_done ne "INVALID" &&
+        $bootstrap_completed ne "INVALID" && $forced_finc ne "INVALID" &&
+        $forced_fdec ne "INVALID"} {
+      set forced_total [expr {($forced_finc + $forced_fdec) & 0xffff}]
+      if {$::position_interval_prev_valid($hardware_name)} {
+        set dco_interval [counter_delta $::position_interval_prev_dco($hardware_name) $dco_step 16]
+        set normal_interval [counter_delta $::position_interval_prev_normal($hardware_name) $normal_done 16]
+        set bootstrap_interval [counter_delta $::position_interval_prev_bootstrap($hardware_name) $bootstrap_completed 16]
+        set forced_interval [counter_delta $::position_interval_prev_forced($hardware_name) $forced_total 16]
+        if {$dco_interval eq "INVALID" || $normal_interval eq "INVALID" ||
+            $bootstrap_interval eq "INVALID" || $forced_interval eq "INVALID" ||
+            $dco_interval < ($normal_interval + $bootstrap_interval + $forced_interval)} {
+          incr ::dco_failures($hardware_name)
+        }
       }
+      set ::position_interval_prev_valid($hardware_name) 1
+      set ::position_interval_prev_dco($hardware_name) $dco_step
+      set ::position_interval_prev_normal($hardware_name) $normal_done
+      set ::position_interval_prev_bootstrap($hardware_name) $bootstrap_completed
+      set ::position_interval_prev_forced($hardware_name) $forced_total
     }
   }
 
@@ -685,7 +704,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-MAIN-PI-PLUS150-PLUS1-HELPER-THRESHOLD2000-3372-CODESTEP64-20260911 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3372 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=total-main-plus-helper-lower-bound-only pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-MAIN-FREQ-DELOCK-FLOOR10-HELPER-THRESHOLD2000-3372-CODESTEP64-20260911 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3372 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 main_frequency_delock_floor=10 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=adjacent-snapshot-lower-bound modulo16 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

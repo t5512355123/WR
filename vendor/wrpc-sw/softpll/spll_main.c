@@ -15,6 +15,10 @@
 #define MPLL_DISCARD_EARLY_TAGS 10
 #define MPLL_TAG_WRAPAROUND 100000000
 #define MPLL_FREQ_PRELOCK_GAIN_BOOST 20
+/* ld_update() uses this as the lock-counter floor at which a persistent
+ * out-of-band error releases the frequency lock.  It must be below
+ * lock_samples; a value above it makes a claimed frequency lock sticky. */
+#define MPLL_FREQ_DELOCK_FLOOR 10
 
 #undef WITH_SEQUENCING
 
@@ -57,7 +61,7 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	/* Freqency branch lock detection */
 	s->freq_ld.threshold = 50;
 	s->freq_ld.lock_samples = 50;
-	s->freq_ld.delock_samples = 20000;
+	s->freq_ld.delock_samples = MPLL_FREQ_DELOCK_FLOOR;
 
 	s->freq_prelock_gain_boost = MPLL_FREQ_PRELOCK_GAIN_BOOST;
 

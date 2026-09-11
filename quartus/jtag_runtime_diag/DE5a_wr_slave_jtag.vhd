@@ -1823,9 +1823,12 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- Interpolate the same-guard 1664/3072 frequency results to the
-      -- calculated zero-crossing operating point near 3356 steps.
-      STEP5_BOOTSTRAP_STEPS => 3360,
+      -- The 3360-step run reached the upper fine-loop rail while retaining
+      -- a measured negative frequency bias (mean FREQ_ERROR ~= -2.4).
+      -- The isolated plant response is about +0.216 FREQ_ERROR per FINC
+      -- physical step, so add twelve FINC steps as a bounded operating-point
+      -- correction. This is a single calculated A/B, not a PI sweep.
+      STEP5_BOOTSTRAP_STEPS => 3372,
       STEP5_BOOTSTRAP_REVERSE => 1,
       -- Keep the virtual position account aligned with the measured physical
       -- SI5340 FINC/FDEC step; the 32-code experiment was not physically

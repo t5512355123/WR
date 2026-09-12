@@ -1,0 +1,2 @@
+Master programming: successful, 0 errors, 0 warnings
+Slave programming: successful, 0 errors, 0 warnings

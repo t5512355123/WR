@@ -102,8 +102,10 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
-	/* Step5 characterized baseline at the 3388-step operating point. */
-	s->pi.kp = -150;
+	/* Step5 fine-loop refinement: slightly increase proportional authority
+	 * from the trusted -150 baseline to test whether it suppresses the
+	 * observed residual hunting without changing the lock contract. */
+	s->pi.kp = -175;
 	s->pi.ki = -1;
 #else
 	s->pi.kp = 150;

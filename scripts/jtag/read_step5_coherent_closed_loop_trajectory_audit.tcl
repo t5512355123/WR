@@ -704,7 +704,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-HELPER-RESEED-BIAS63252-20260912 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3388 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 reseed_bias=63252 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 main_frequency_delock_floor=10 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=adjacent-snapshot-lower-bound modulo16 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-BASELINE-REPRO-20260912 read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=60 bootstrap_steps=3388 code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 kp=-150 ki=-1 threshold=2000 lock_samples=1000 main_kp=150 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 main_frequency_delock_floor=10 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=adjacent-snapshot-lower-bound modulo16 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

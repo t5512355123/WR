@@ -1836,7 +1836,7 @@ begin
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       -- Allow a short settling interval between normal HPLL transactions;
       -- keep the 64-code physical-step account and all PI gains unchanged.
-      STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 16,
+      STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 8,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

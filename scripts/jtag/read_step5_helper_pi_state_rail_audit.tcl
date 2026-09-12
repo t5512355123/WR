@@ -1931,13 +1931,13 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-MAIN-KP300-HELPER-KP-MINUS150-COOLDOWN16-PI-TRACE-20260912
+    set experiment_name EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-MAIN-KP300-HELPER-KP-MINUS150-COOLDOWN8-PI-TRACE-20260912
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-MAIN-KP300-HELPER-KP-MINUS150-COOLDOWN16-PI-TRACE-20260912
+    set experiment_name EXP-WRPC-STEP5-HPLL-BOOTSTRAP3388-MAIN-KP300-HELPER-KP-MINUS150-COOLDOWN8-PI-TRACE-20260912
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3388 code_per_physical_step=%d kp=-150 ki=-1 threshold=%d lock_samples=%d normal_hpll_cooldown_loads=16 helper_pi_update_decimation=1 fresh_reset_required=1 pi_trace=enabled" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP $::PI_LOCK_THRESHOLD $::PI_LOCK_SAMPLES]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3388 code_per_physical_step=%d kp=-150 ki=-1 threshold=%d lock_samples=%d normal_hpll_cooldown_loads=8 helper_pi_update_decimation=1 fresh_reset_required=1 pi_trace=enabled" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP $::PI_LOCK_THRESHOLD $::PI_LOCK_SAMPLES]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

@@ -2,7 +2,7 @@
 
 ## 結論
 
-本輪只修正 coherent observer 的 bootstrap accounting 常數，重新驗證真正的 Kp=-150、cooldown=0 baseline。修正後 position accounting 已通過，且系統確實可進入完整 lock；但仍未達成 Step5 PASS。
+本輪只修正 coherent observer 的 bootstrap accounting 常數；後續 source audit 確認本輪 fitted Slave image 的實際 cooldown 是 `8`，不是資料夾名稱與早期報告所寫的 `0`。修正後 position accounting 已通過，且系統確實可進入完整 lock；但仍未達成 Step5 PASS。
 
     STEP1_REGRESSION = PASS
     STEP2_REGRESSION = PASS
@@ -32,7 +32,7 @@ coherent observer 原本錯誤使用：
 
     bootstrap_steps = 3388
 
-這是 measurement-only 修正，不改變 FPGA 控制器、PI gain、DCO page/mask、Main absolute target、lock threshold 或 Step5 判定語意。
+這是 measurement-only 修正，不改變 FPGA 控制器、PI gain、DCO page/mask、Main absolute target、lock threshold 或 Step5 判定語意。資料夾名稱中的 cooldown=0 是歷史 provenance 標籤，並非本輪 fitted image 的實際設定。
 
 硬體設定維持：
 
@@ -43,7 +43,7 @@ coherent observer 原本錯誤使用：
     bootstrap = 3388
     reverse = 1
     code_per_physical_step = 64
-    STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 0
+    STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 8 (actual top-level override)
     helper threshold = 2000
     helper lock samples = 1000
 

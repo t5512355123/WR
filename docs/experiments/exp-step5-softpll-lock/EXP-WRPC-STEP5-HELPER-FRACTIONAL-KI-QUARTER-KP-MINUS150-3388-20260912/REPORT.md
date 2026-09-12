@@ -17,7 +17,7 @@
 - Main Kp/Ki：`+300 / +1`
 - bootstrap completed：`3388`
 - physical DCO step：`64`
-- normal HPLL cooldown loads：`0`
+- normal HPLL cooldown loads：`8`（本輪 source top-level 實際覆寫值；observer metadata 的 `cooldown0` 為錯誤標籤）
 - Helper PI update decimation：`1`
 - Helper threshold / lock samples：`2000 / 1000`
 
@@ -78,7 +78,7 @@
 
 ## 結論與下一步
 
-這個方向被實體實驗否定：減慢積分作用沒有改善穩定性，反而造成 Helper 平均偏差與 RMS 大幅增加，並使 Main phase lock 無法建立。相較可信的 Kp `-150`、Ki `-1`、integral 每次更新的基準（Helper RMS 約 `1026`、full chain 約 `113.791 s`），本輪 Helper RMS 為 `10551.5917`、full chain 為 `0 s`，因此淘汰 fractional-Ki=quarter。
+這個方向被實體實驗否定：減慢積分作用沒有改善穩定性，反而造成 Helper 平均偏差與 RMS 大幅增加，並使 Main phase lock 無法建立。相較可信的 Kp `-150`、Ki `-1`、實際 cooldown `8`、integral 每次更新的基準（Helper RMS 約 `1026`、full chain 約 `113.791 s`），本輪 Helper RMS 為 `10551.5917`、full chain 為 `0 s`，因此淘汰 fractional-Ki=quarter。後續 source audit 發現本輪 observer config 的 cooldown `0` 文字與 fitted top-level map 不一致；本報告已按實際 bitstream provenance 更正為 cooldown `8`。
 
 下一輪應恢復有效 Ki `-1` 與 Kp `-150`，不要再沿著單純降低積分增益的方向；優先測量並修正「Helper lock 狀態已成立但 Main phase/PSTAT 仍反覆掉鎖」的實際觸發條件，維持所有嚴格 Step 5 gates。
 
@@ -87,4 +87,3 @@
 - Raw archive：`step5-fractional-ki-raw.tar.gz`
 - Raw archive SHA-256：`504e716fe5b237c92f25632110897cfeb0e87a41f525a8ef1f87c51a3f5cdc6d`
 - 內容：Pain build logs、build metadata、programming logs、preflight log、3600-sample coherent observer log
-

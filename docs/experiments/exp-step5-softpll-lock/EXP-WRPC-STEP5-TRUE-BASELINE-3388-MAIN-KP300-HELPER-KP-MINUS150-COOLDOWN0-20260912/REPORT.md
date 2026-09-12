@@ -2,7 +2,7 @@
 
 ## 結論
 
-本輪是 provenance 修正後真正可比較的 Kp=-150、cooldown=0 baseline。系統確實進入閉迴路並在觀測期間多次達到全鎖狀態，但未達成 Step5 PASS。
+本輪是 provenance 修正後的 Kp=-150 baseline，但後續 source audit 確認 fitted Slave image 的實際 cooldown 是 `8`，不是資料夾名稱與早期報告所寫的 `0`。系統確實進入閉迴路並在觀測期間多次達到全鎖狀態，但未達成 Step5 PASS。
 
     STEP1_REGRESSION = PASS
     STEP2_REGRESSION = PASS
@@ -29,7 +29,7 @@
     bootstrap = 3388
     reverse = 1
     code_per_physical_step = 64
-    STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 0
+    STEP5_NORMAL_HPLL_COOLDOWN_LOADS = 8 (actual top-level override)
     helper threshold = 2000
     helper lock samples = 1000
 

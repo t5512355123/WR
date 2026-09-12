@@ -53,6 +53,14 @@
 
 Observer metadata 也同步改成相同設定。此 correction 不改變 Step5 判定門檻，也不把任何短暫 lock 視為 PASS。
 
+## 後續 cooldown provenance 更正
+
+在本輪後續 source audit 中發現，Slave top-level generic map 在 `75736ce`、`17f20ad` 與 `9392aeb` 仍保留：
+
+    STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 8
+
+因此上述三個 Kp=-150 baseline 報告雖然將 cooldown 標為 0，實際 fitted image 都是 cooldown=8。這也表示本 correction 當時宣稱「cooldown=0 baseline」是不正確的；該錯誤不影響 Kp=-125 與 Kp=-150 的 source provenance 判讀，但會影響 cooldown 比較。下一個 revalidation commit 會同時把 top-level map、firmware/observer metadata 明確固定為 cooldown=0。
+
 ## 判定
 
 在可信 baseline 重新完成 cold/recovery preflight 與 3600-snapshot coherent observer 之前：

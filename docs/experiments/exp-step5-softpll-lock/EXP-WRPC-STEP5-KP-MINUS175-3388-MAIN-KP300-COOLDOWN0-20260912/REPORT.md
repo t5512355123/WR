@@ -16,7 +16,7 @@
 - Main Ki：`+1`
 - bootstrap completed：`3388`
 - physical DCO step：`64`
-- normal HPLL cooldown loads：`0`
+- normal HPLL cooldown loads：`8`（本輪 source top-level 實際覆寫值；資料夾與早期 observer label 的 `cooldown0` 為錯誤標籤）
 - Helper PI update decimation：`1`
 - Helper lock threshold：`2000`
 - Helper lock samples：`1000`
@@ -79,7 +79,7 @@ Step 1–4B transport/runtime gate 皆通過；Step 5 的最後判定如下：
 
 ## 結論與下一步
 
-Kp `-175` 沒有改善穩定性。相較可信的 Kp `-150`、cooldown `0`、bootstrap `3388` 基準，本輪 Helper RMS 由約 `1026` 上升到 `1746`，完整 chain 由約 `113.791 s` 降至 `18.006 s`，因此淘汰 Kp `-175`。
+Kp `-175` 沒有改善穩定性。相較可信的 Kp `-150`、實際 cooldown `8`、bootstrap `3388` 基準，本輪 Helper RMS 由約 `1026` 上升到 `1746`，完整 chain 由約 `113.791 s` 降至 `18.006 s`，因此淘汰 Kp `-175`。後續 source audit 發現本輪 observer config 的 cooldown `0` 文字與 fitted top-level map 不一致；本報告已按實際 bitstream provenance 更正為 cooldown `8`。
 
 下一輪只測試 Helper integral 的作用速度：恢復 Kp `-150`，保留 Ki base `-1`，但每 4 次 Helper PI update 才套用一次積分項，使有效 Ki 約為 `-0.25`；比例項仍每次 update 生效。不得放寬任何 Step 5 判定門檻。
 
@@ -88,4 +88,3 @@ Kp `-175` 沒有改善穩定性。相較可信的 Kp `-150`、cooldown `0`、boo
 - Raw archive：`step5-kp175-raw.tar.gz`
 - Raw archive SHA-256：`fe50d49b07b523d324cb10f4b470a237a0142e22f20d490bc190d2ff0f4d5185`
 - 內容：Pain build logs、build metadata、programming summary、preflight log、3600-sample coherent observer log
-

@@ -28,7 +28,7 @@ static int helper_wide_state_valid;
  * auditable against the quantized 64-code physical actuator. */
 #define STEP5_HELPER_PI_UPDATE_DECIMATION 1
 static uint32_t helper_pi_decimation_count;
-#define STEP5_HELPER_PI_INTEGRAL_DECIMATION 4
+#define STEP5_HELPER_PI_INTEGRAL_DECIMATION 1
 static uint32_t helper_pi_integral_decimation_count;
 
 /* The coherent Helper trajectory is centered near zero and has an observed
@@ -125,10 +125,8 @@ void helper_very_init( struct spll_helper_state *s )
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
-	/* Step5 fine-loop A/B: restore the trusted proportional gain and apply
-	 * the integral term once every four PI updates.  Kp remains active on every
-	 * accepted tag, so the effective Helper Ki is approximately -0.25 while
-	 * retaining the source-level Ki=-1 contract for the PI trace. */
+	/* Step5 baseline revalidation: restore the trusted proportional gain and
+	 * apply the full integral term on every accepted Helper update. */
 	s->pi.kp = -150;
 	s->pi.ki = -1;
 #else

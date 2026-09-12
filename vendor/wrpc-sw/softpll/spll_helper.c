@@ -23,10 +23,13 @@ static int64_t helper_tag_d0_wide;
 static int helper_wide_state_valid;
 
 /* Keep the best previously measured acquisition dynamics for the lock
- * threshold A/B.  The PI target is updated on every accepted tag; the
- * observer showed that the 64-tag hold made coarse acquisition too slow. */
+ * threshold A/B.  The proportional target is updated on every accepted tag;
+ * the integral term is intentionally decimated to make its effective gain
+ * auditable against the quantized 64-code physical actuator. */
 #define STEP5_HELPER_PI_UPDATE_DECIMATION 1
 static uint32_t helper_pi_decimation_count;
+#define STEP5_HELPER_PI_INTEGRAL_DECIMATION 4
+static uint32_t helper_pi_integral_decimation_count;
 
 /* The coherent Helper trajectory is centered near zero and has an observed
  * RMS below 700 tics, but the 1200-tic admission band is crossed repeatedly
@@ -55,6 +58,25 @@ static inline void helper_sync_legacy_state(struct spll_helper_state *s)
 	s->p_adder = helper_diag_i32(helper_p_adder_wide);
 	s->p_setpoint = helper_diag_i32(helper_p_setpoint_wide);
 	s->tag_d0 = helper_diag_i32(helper_tag_d0_wide);
+}
+
+static inline int helper_pi_update(struct spll_helper_state *s, int err)
+{
+	int helper_ki = s->pi.ki;
+	int y;
+
+	if (++helper_pi_integral_decimation_count <
+	    STEP5_HELPER_PI_INTEGRAL_DECIMATION) {
+		/* Keep Kp active, but hold the integrator between every fourth
+		 * accepted Helper update. */
+		s->pi.ki = 0;
+	} else {
+		helper_pi_integral_decimation_count = 0;
+	}
+
+	y = pi_update((spll_pi_t *)&s->pi, err);
+	s->pi.ki = helper_ki;
+	return y;
 }
 
 static inline void helper_publish_measurement(int32_t tag_delta,
@@ -97,15 +119,17 @@ void helper_very_init( struct spll_helper_state *s )
 	helper_tag_d0_wide = -1;
 	helper_wide_state_valid = 0;
 	helper_pi_decimation_count = 0;
+	helper_pi_integral_decimation_count = 0;
 
 /* Phase branch PI controller */
 	s->pi.y_min = (5 << BOARD_SPLL_DIV_BITS);
 	s->pi.y_max = (1 << BOARD_SPLL_DAC_BITS) - (5 << BOARD_SPLL_DIV_BITS);
 #if defined(CONFIG_WR_NODE)
-	/* Step5 fine-loop refinement: slightly increase proportional authority
-	 * from the trusted -150 baseline to test whether it suppresses the
-	 * observed residual hunting without changing the lock contract. */
-	s->pi.kp = -175;
+	/* Step5 fine-loop A/B: restore the trusted proportional gain and apply
+	 * the integral term once every four PI updates.  Kp remains active on every
+	 * accepted tag, so the effective Helper Ki is approximately -0.25 while
+	 * retaining the source-level Ki=-1 contract for the PI trace. */
+	s->pi.kp = -150;
 	s->pi.ki = -1;
 #else
 	s->pi.kp = 150;
@@ -203,7 +227,7 @@ void helper_update(struct spll_helper_state *s, int tag,
 
 	if (++helper_pi_decimation_count >= STEP5_HELPER_PI_UPDATE_DECIMATION) {
 		helper_pi_decimation_count = 0;
-		y = pi_update((spll_pi_t *)&s->pi, err);
+		y = helper_pi_update(s, err);
 		SPLL->DAC_HPLL = y;
 	} else {
 		/* Do not write the MMIO register on held samples: a repeated store
@@ -248,6 +272,7 @@ void helper_start(struct spll_helper_state *s)
 	helper_p_adder_wide = 0;
 	helper_tag_d0_wide = -1;
 	helper_pi_decimation_count = 0;
+	helper_pi_integral_decimation_count = 0;
 	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 
@@ -274,6 +299,7 @@ void helper_reseed(struct spll_helper_state *s)
 	helper_p_adder_wide = 0;
 	helper_tag_d0_wide = -1;
 	helper_pi_decimation_count = 0;
+	helper_pi_integral_decimation_count = 0;
 	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 

@@ -1,0 +1,106 @@
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+Start time: 23:42:53 on Sep 12,2026
+vlog -sv /tmp/wr-step5-cold-powercycle-20260912/scripts/experiment/tb_dco_liveness.sv /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/i2c_bus_controller_dco.v /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/initial_config.v /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/clock_divider.v /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/edge_detector.v /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_clk_frq_sel_gen.v /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v 
+-- Compiling module tb_dco_liveness
+-- Compiling module si5340a_controller_dco
+-- Compiling module i2c_bus_controller_dco
+-- Compiling module si5340a_i2c_reg_controller_dco
+-- Compiling module initial_config
+-- Compiling module clock_divider
+-- Compiling module edge_detector
+-- Compiling module si5340a_clk_frq_sel_gen
+-- Compiling module si5340a_freq_prameter_selector
+
+Top level modules:
+	tb_dco_liveness
+	si5340a_clk_frq_sel_gen
+End time: 23:42:53 on Sep 12,2026, Elapsed time: 0:00:00
+Errors: 0, Warnings: 0
+Reading pref.tcl
+
+# 10.5b
+
+# vsim -c -voptargs="+acc" work.tb_dco_liveness -do "onbreak {quit -code 1}; onerror {quit -code 1}; run -all; quit -code 0" 
+# Start time: 23:42:54 on Sep 12,2026
+# Loading sv_std.std
+# Loading work.tb_dco_liveness
+# Loading work.si5340a_controller_dco
+# Loading work.si5340a_i2c_reg_controller_dco
+# Loading work.si5340a_freq_prameter_selector
+# Loading work.edge_detector
+# Loading work.initial_config
+# Loading work.clock_divider
+# Loading work.i2c_bus_controller_dco
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_static_reg_controller/f1 File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_static_reg_controller/f2 File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_static_reg_controller/f3 File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_static_reg_controller/f4 File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_static_reg_controller/u1 File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(468): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_start_edge File: /tmp/wr-step5-cold-powercycle-20260912/rtl/clock/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(468): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(468): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Too few port connections. Expected 43, found 17.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_dco_liveness/dut/u_i2c_bus File: /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/i2c_bus_controller_dco.v
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'read_data_tmp'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_clk_cnt'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_state'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_bit_cnt'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'shift_out'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'slave_addr1_shift_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'slave_addr2_shift_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'word_addr1_shift_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'data_shift_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'system_clk'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_clk_src'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'falling_edge'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'rising_edge'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'process_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'start_data_control'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'stop_data_control'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'start_clk_control'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'stop_clk_control'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_master_out'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_slave_out'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_read_done'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'read_length'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'test_start'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'test_cnt'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'wr_data_en'.
+# ** Warning: (vsim-3722) /tmp/wr-step5-cold-powercycle-20260912/quartus/jtag_runtime_diag/si5340a_controller_dco.v(484): [TFMPC] - Missing connection for port 'i2c_stop_ctrl_cnt'.
+# onbreak {quit -code 1}
+#  Warning: onbreak command for use within macro
+#  onerror {quit -code 1}
+#  Warning: onerror command for use within macro
+#  run -all
+# ** Warning: (vsim-3116) Problem reading symbols from linux-gate.so.1 : can not open ELF file.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libpthread.so.0 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/librt.so.1 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libdl.so.2 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libm.so.6 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libc.so.6 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/ld-linux.so.2 : module was loaded at an absolute address.
+# L1_CASE=MAIN_JUMP MAIN_COMPLETED=4 HELPER_COMPLETED=0 TRANSACTIONS=4 WRONG_PAGE=0 SEQUENCE_ERRORS=0 ACK_ERROR=0 DCO_STEPS=4
+# L1_CASE=HELPER_JUMP MAIN_COMPLETED=0 HELPER_COMPLETED=4 TRANSACTIONS=4 WRONG_PAGE=0 SEQUENCE_ERRORS=0 ACK_ERROR=0 DCO_STEPS=4
+# L1_CASE=MAIN_HELPER_CONTENTION MAIN_COMPLETED=208 HELPER_COMPLETED=0 TRANSACTIONS=208 WRONG_PAGE=0 SEQUENCE_ERRORS=0 ACK_ERROR=0 DCO_STEPS=208
+# L1_CONTENTION MAIN_BEFORE_FIRST_HELPER=-1 FIRST_HELPER_TIME_NS=-1
+# SOURCE_LIVENESS_RISK_REPRODUCED=YES
+# L1_CASE=NACK_COMPLETION NACKS=1 HELPER_COMPLETED=1 ACK_ERROR=1 DCO_ERROR=0
+# TRANSACTION_COMPLETION_DEFECT_REPRODUCED=YES
+# L1_DCO_LIVENESS_SUMMARY MAIN_COMMANDS=212 HELPER_COMMANDS=5 TRANSACTIONS=217 WRONG_PAGE=0 SEQUENCE_ERRORS=0 FAIL_COUNT=0
+# L1_TEST_RESULT=PASS
+# ** Note: $finish    : /tmp/wr-step5-cold-powercycle-20260912/scripts/experiment/tb_dco_liveness.sv(309)
+#    Time: 2500900 ns  Iteration: 0  Instance: /tb_dco_liveness
+# End time: 23:42:55 on Sep 12,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 48

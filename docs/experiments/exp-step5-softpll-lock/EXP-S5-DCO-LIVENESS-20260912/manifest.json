@@ -1,0 +1,47 @@
+{
+  "format": "step5-l1-manifest-v1",
+  "experiment_id": "EXP-S5-DCO-LIVENESS-20260912",
+  "date": "2026-09-12",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "ddec72141edc93b28f77c402cab8859f48c09f1e",
+  "pain_checkout": "ddec72141edc93b28f77c402cab8859f48c09f1e",
+  "scope": "L1_OFFLINE_SOURCE_LEVEL_DCO_LIVENESS",
+  "hardware_programmed": false,
+  "hardware_step5_assessed": false,
+  "simulator": "ModelSim Intel FPGA Edition 10.5b (2016.10)",
+  "testbench": {
+    "path": "scripts/experiment/tb_dco_liveness.sv",
+    "sha256": "BA697BB63525FC80C543F3044339BD8E6E645D6026890564730AF30B1E5869CD",
+    "runner": "scripts/experiment/run_dco_liveness.sh",
+    "runner_sha256": "4EF72A3BD8DC9F70F22BAD60F1DEAF9A7AE1DC0A2CF48949D5136DE848425458"
+  },
+  "production_sources": {
+    "quartus/jtag_runtime_diag/si5340a_controller_dco.v": "32503FFAE5ACCA493B8E92873AC48BF4762DE617A42BE4E5C89902E1C8110961",
+    "quartus/jtag_runtime_diag/i2c_bus_controller_dco.v": "D04CAC3F4EB9785D3552CF9F78AE85765A604FA730C78FC89CBE7EB11B9BF3CC",
+    "quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v": "04D4FEB68E498A10A76F0E3E2DF08926D158483AD932BDA5169103C24A17C2C0"
+  },
+  "cases": {
+    "main_jump": {"main_completed": 4, "helper_completed": 0, "transactions": 4, "wrong_page": 0, "sequence_errors": 0},
+    "helper_jump": {"main_completed": 0, "helper_completed": 4, "transactions": 4, "wrong_page": 0, "sequence_errors": 0},
+    "main_helper_contention": {"main_completed": 208, "helper_completed": 0, "transactions": 208, "main_before_first_helper": -1, "first_helper_time_ns": -1, "source_liveness_risk_reproduced": true},
+    "nack_completion": {"nacks": 1, "helper_completed": 1, "ack_error": 1, "dco_error": 0, "transaction_completion_defect_reproduced": true}
+  },
+  "summary": {
+    "main_commands": 212,
+    "helper_commands": 5,
+    "transactions": 217,
+    "wrong_page": 0,
+    "sequence_errors": 0,
+    "fail_count": 0,
+    "l1_test_result": "PASS",
+    "step5_result": "NOT_COMPLETE"
+  },
+  "limitations": [
+    "source-level simulation only",
+    "no FPGA compile/program in this L1 cycle",
+    "ModelSim runtime emitted 48 legacy optional-port/symbol warnings",
+    "contention evidence identifies risk but does not prove the hardware root cause"
+  ]
+}
+

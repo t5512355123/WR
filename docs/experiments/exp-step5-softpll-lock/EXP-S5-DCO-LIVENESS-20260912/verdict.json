@@ -1,0 +1,17 @@
+{
+  "format": "step5-verdict-v2",
+  "experiment_id": "EXP-S5-DCO-LIVENESS-20260912",
+  "classification": "VALID_L1_EVIDENCE_STEP5_NOT_ASSESSED",
+  "l1_test_result": "PASS",
+  "step5_result": "NOT_COMPLETE",
+  "hardware_result": "NOT_ASSESSED",
+  "source_liveness_risk_reproduced": true,
+  "transaction_completion_defect_reproduced": true,
+  "page_mask_sequence": "PASS",
+  "compile_errors": 0,
+  "runtime_errors": 0,
+  "merge_allowed": false,
+  "merge_reason": "Step5 hardware lock evidence is absent; no merge approval exists.",
+  "next_gate": "L2_LOW_PERTURBATION_HARDWARE_FIRST_LOSS_TELEMETRY"
+}
+

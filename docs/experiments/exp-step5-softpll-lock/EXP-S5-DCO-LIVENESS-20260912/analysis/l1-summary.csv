@@ -1,0 +1,6 @@
+case,main_input,helper_input,main_completed,helper_completed,transactions,wrong_page,sequence_errors,extra_result
+MAIN_JUMP,32768->32832,,4,0,4,0,0,drained
+HELPER_JUMP,,5->261,0,4,4,0,0,drained
+MAIN_HELPER_CONTENTION,32768->65535,5->261,208,0,208,0,0,SOURCE_LIVENESS_RISK_REPRODUCED
+NACK_COMPLETION,,5->69,,1,,0,0,TRANSACTION_COMPLETION_DEFECT_REPRODUCED
+

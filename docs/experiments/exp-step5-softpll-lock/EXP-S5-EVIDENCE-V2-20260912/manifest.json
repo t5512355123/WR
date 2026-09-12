@@ -1,0 +1,137 @@
+{
+  "format": "step5-manifest-v2",
+  "generated_at_utc": "2026-09-12T15:16:39.076929+00:00",
+  "analysis_scope": "L0_OFFLINE_EVIDENCE_ONLY",
+  "workspace_head": "fb9d963f9fcea3f61a434fa51f92ec29d4b4c5bf",
+  "source_commit": "4fa3f3b2ffbe5f09907d0df4529b985de7e75c5f",
+  "branch": "exp/step5-softpll-lock",
+  "dirty_diff_sha256": "e52c5f39d0583994a2f840ff18bc66716f46b48beb58198d51e23615b5d56a68",
+  "dirty_tracked_files": [
+    "ocs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-HPLL-ZERO-CROSSING-3360-KP-MINUS150-STEP32-PHASE-GUARD-20260909/REPORT.md"
+  ],
+  "submodule_status": [],
+  "build_target": "jtag-runtime",
+  "roles": {
+    "master": {
+      "cable": "DE5 [1-11.1]",
+      "lane": "QSFPA lane 2",
+      "source_role": "reference"
+    },
+    "slave": {
+      "cable": "DE5 [1-11.2]",
+      "lane": "QSFPA lane 2",
+      "source_role": "under_test"
+    }
+  },
+  "source_files": {
+    "vendor/wrpc-sw/softpll/spll_helper.c": "8ef48bc2a2a2223ac973bcceaf82745a3a694f6dc880e46c8329d4014d737695",
+    "vendor/wrpc-sw/softpll/spll_main.c": "0c863ba9aa3e39d616d2fb631a7d83916f1104c6b0864ac81ad91a369085973e",
+    "vendor/wrpc-sw/softpll/spll_common.c": "1d0366a74bf53f0b2da090539d30fd270ccfcdd47acab2b1f8459f11a6e8a49e",
+    "vendor/wrpc-sw/softpll/softpll_ng.c": "b5d071d6da2d3bd8af45c109d48ea2dd29c92b12ccb29a5df41c5eb558ce999d",
+    "vendor/wrpc-sw/lib/task-diags.c": "013565d5c8b243a8eb9446ffffe984486735ce852453bd315a06a5ef5b9a4fde",
+    "vendor/wrpc-sw/dev/wdiags.c": "d38d730ac69e965c8fa2984ef38e5ad33f6509f30b581abf1a8bdf9d4b6b3c14",
+    "quartus/jtag_runtime_diag/si5340a_controller_dco.v": "32503ffae5acca493b8e92873ac48bf4762de617a42be4e5c89902e1c8110961",
+    "quartus/jtag_runtime_diag/i2c_bus_controller_dco.v": "d04cac3f4eb9785d3552cf9f78ae85765a604fa730c78fc89cbe7eb11b9bf3cc",
+    "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd": "301e923e3612c51322aee39fa65dc7bba02bda677e956d064de7a86f05746a67",
+    "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd": "424c2cd2df0a77bd360e652a4f5b45603b547958fa8726ee2daf9ba64518aa1b",
+    "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl": "793cf97e460f51194bda9396f0aa198707154e5359c922aba03055c93a2050aa"
+  },
+  "firmware_policy": {
+    "helper": {
+      "path": "vendor/wrpc-sw/softpll/spll_helper.c",
+      "sha256": "8ef48bc2a2a2223ac973bcceaf82745a3a694f6dc880e46c8329d4014d737695",
+      "node_kp": -150,
+      "node_ki": -1,
+      "integral_decimation": 1,
+      "update_decimation": 1,
+      "helper_threshold": 2000,
+      "helper_lock_samples": 1000
+    },
+    "main": {
+      "path": "vendor/wrpc-sw/softpll/spll_main.c",
+      "sha256": "0c863ba9aa3e39d616d2fb631a7d83916f1104c6b0864ac81ad91a369085973e",
+      "node_kp": 300,
+      "node_ki": 1,
+      "integral_decimation": null,
+      "update_decimation": null,
+      "helper_threshold": null,
+      "helper_lock_samples": null,
+      "main_kp": 300,
+      "main_ki": 1,
+      "main_frequency_threshold": 50,
+      "main_frequency_lock_samples": 50,
+      "main_frequency_delock_floor": 10,
+      "main_phase_threshold": 1200,
+      "main_phase_lock_samples": 1000,
+      "main_phase_delock_floor": 100
+    },
+    "slave_top_level": {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+      "role": "slave",
+      "sha256": "424c2cd2df0a77bd360e652a4f5b45603b547958fa8726ee2daf9ba64518aa1b",
+      "values": {
+        "ENABLE_STEP5_ACTUATOR_IDENTIFICATION": 1,
+        "ENABLE_STEP5_HPLL_PLANT_TEST": 0,
+        "ENABLE_NORMAL_HPLL_TRACKER": 1,
+        "ENABLE_STEP5_BOOTSTRAP": 1,
+        "STEP5_BOOTSTRAP_STEPS": 3388,
+        "STEP5_BOOTSTRAP_REVERSE": 1,
+        "HPLL_TRACKER_CODE_PER_PHYSICAL_STEP": 64,
+        "DPLL_TRACKER_CODE_PER_PHYSICAL_STEP": 16,
+        "JTAG_HPLL_BURST_SIZE": 32,
+        "STEP5_NORMAL_HPLL_COOLDOWN_LOADS": 0
+      }
+    },
+    "master_top_level": {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd",
+      "role": "master",
+      "sha256": "301e923e3612c51322aee39fa65dc7bba02bda677e956d064de7a86f05746a67",
+      "values": {
+        "ENABLE_STEP5_ACTUATOR_IDENTIFICATION": null,
+        "ENABLE_STEP5_HPLL_PLANT_TEST": null,
+        "ENABLE_NORMAL_HPLL_TRACKER": 1,
+        "ENABLE_STEP5_BOOTSTRAP": 0,
+        "STEP5_BOOTSTRAP_STEPS": null,
+        "STEP5_BOOTSTRAP_REVERSE": null,
+        "HPLL_TRACKER_CODE_PER_PHYSICAL_STEP": null,
+        "DPLL_TRACKER_CODE_PER_PHYSICAL_STEP": null,
+        "JTAG_HPLL_BURST_SIZE": 32,
+        "STEP5_NORMAL_HPLL_COOLDOWN_LOADS": null
+      }
+    }
+  },
+  "observer": {
+    "path": "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
+    "sha256": "793cf97e460f51194bda9396f0aa198707154e5359c922aba03055c93a2050aa"
+  },
+  "artifacts": {
+    "status": "not_built_in_L0",
+    "master_sof": {
+      "path": "quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof",
+      "sha256_if_present": null
+    },
+    "slave_sof": {
+      "path": "quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof",
+      "sha256_if_present": null
+    }
+  },
+  "quartus": {
+    "version": null,
+    "fitted_database_identity": null
+  },
+  "timing": {
+    "timing_closed": null,
+    "master_wns_ns": null,
+    "slave_wns_ns": null
+  },
+  "verdict_policy": {
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "band_200_is_quality_statistic_only": true,
+    "strict_step5_pass": false
+  },
+  "comparison": {
+    "provenance_ok": true,
+    "mismatches": []
+  }
+}

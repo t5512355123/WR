@@ -257,12 +257,12 @@ module tb_dco_liveness;
     contention_start_time = $time;
     load_main(16'd32768);
     load_helper(16'd5);
-    load_main(16'd35968); // 200 DPLL steps keeps Main residual pending
+    load_main(16'd65535); // 2047 16-code DPLL steps keeps Main residual pending
     load_helper(16'd261);
     fork : main_feeder
       begin
         repeat (160) begin
-          load_main(16'd35968);
+          load_main(16'd65535);
           repeat (3) @(posedge clk);
         end
       end

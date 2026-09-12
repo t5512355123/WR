@@ -1,0 +1,2 @@
+Master programming: see program-master-20260912.log
+Slave programming: see program-slave-20260912.log

@@ -34,9 +34,9 @@
 /* Special case for eRTM14 and wr2rf.
  * Where it can take more than 15sec to sync PLL */
 #if CONFIG_TARGET_ERTM14 || CONFIG_TARGET_WR2RF_VME
-#define WR_S_LOCK_TIMEOUT_MS		30000
+#define WR_S_LOCK_TIMEOUT_MS		60000
 #else
-#define WR_S_LOCK_TIMEOUT_MS		15000
+#define WR_S_LOCK_TIMEOUT_MS		60000
 #endif
 
 

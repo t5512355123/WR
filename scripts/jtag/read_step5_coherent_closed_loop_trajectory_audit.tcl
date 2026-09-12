@@ -18,7 +18,8 @@ set board_filter ""
 set poll_attempts 100
 # Must match the Slave generic used by the image under test.
 set hpll_step_code 64
-set bootstrap_steps 3372
+# Must match the 3388-step operating point used by the current Step5 image.
+set bootstrap_steps 3388
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }

@@ -1823,12 +1823,12 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- The 3360-step run reached the upper fine-loop rail while retaining
-      -- a measured negative frequency bias (mean FREQ_ERROR ~= -2.4).
-      -- The isolated plant response is about +0.216 FREQ_ERROR per FINC
-      -- physical step, so add twelve FINC steps as a bounded operating-point
-      -- correction. This is a single calculated A/B, not a PI sweep.
-      STEP5_BOOTSTRAP_STEPS => 3372,
+      -- The 3372-step run reached the upper fine-loop rail with a measured
+      -- FREQ_ERROR mean of -3.531.  The isolated plant response is about
+      -- +0.216 FREQ_ERROR per FINC physical step, so add sixteen FINC steps
+      -- (3372 + round(3.531/0.216)) as a bounded operating-point correction.
+      -- This is a single calculated A/B, not a PI sweep.
+      STEP5_BOOTSTRAP_STEPS => 3388,
       STEP5_BOOTSTRAP_REVERSE => 1,
       -- Keep the virtual position account aligned with the measured physical
       -- SI5340 FINC/FDEC step; the 32-code experiment was not physically

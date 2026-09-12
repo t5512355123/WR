@@ -40,6 +40,7 @@ static uint32_t helper_pi_decimation_count;
  * Keep the threshold unchanged and use a separately auditable 1000-sample
  * dwell for this Step5 A/B. */
 #define STEP5_HELPER_LOCK_SAMPLES 1000
+#define STEP5_HELPER_RESEED_BIAS 63252
 
 static inline int32_t helper_diag_i32(int64_t value)
 {
@@ -250,6 +251,12 @@ void helper_start(struct spll_helper_state *s)
 	helper_wide_state_valid = 1;
 	s->last_lock_duration_ms = -1;
 
+#if defined(CONFIG_WR_NODE)
+	/* The coarse bootstrap has already established the physical operating
+	 * point. Restart the fine loop near the measured 3388-step target
+	 * instead of re-seeding at the DAC rail. */
+	s->pi.bias = STEP5_HELPER_RESEED_BIAS;
+#endif
 	pi_init((spll_pi_t *)&s->pi);
 	ld_init((spll_lock_det_t *)&s->ld);
 

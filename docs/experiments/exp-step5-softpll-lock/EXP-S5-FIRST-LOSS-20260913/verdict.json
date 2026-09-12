@@ -1,0 +1,22 @@
+{
+  "format": "step5-verdict-v2",
+  "experiment_id": "EXP-S5-FIRST-LOSS-20260913",
+  "classification": "INVALID_OR_UPSTREAM_BLOCKED",
+  "step4a_result": "PASS",
+  "slave_step1_result": "PASS",
+  "slave_step2_result": "INVALID",
+  "slave_step3_result": "PASS",
+  "step4b_result": "BLOCKED_BY_STEP2",
+  "step5_result": "UPSTREAM_NOT_READY",
+  "hardware_step5_assessed": false,
+  "first_inactive_boundary": "UPSTREAM_STEP4B",
+  "ptp_state": "UNCALIBRATED",
+  "ptp_raw": "00004108",
+  "jtag_wb_diagnostic_path": "TRUSTED",
+  "compile_errors": 0,
+  "program_errors": 0,
+  "observer_started": false,
+  "merge_allowed": false,
+  "merge_reason": "Step2 calibration gate is invalid; Step4B and Step5 are not assessed, and no merge approval exists.",
+  "next_gate": "STEP2_CALIBRATION_PUBLICATION_OR_READER_DIAGNOSTIC"
+}

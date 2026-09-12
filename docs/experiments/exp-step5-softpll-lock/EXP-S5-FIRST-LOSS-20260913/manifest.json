@@ -1,0 +1,64 @@
+{
+  "format": "step5-l2-manifest-v1",
+  "experiment_id": "EXP-S5-FIRST-LOSS-20260913",
+  "date": "2026-09-13",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "0b7fa9c1dbf4bda6b63ad072028b493935552558",
+  "pain_checkout": "0b7fa9c1dbf4bda6b63ad072028b493935552558",
+  "scope": "L2_LOW_PERTURBATION_HARDWARE_FIRST_LOSS_TELEMETRY_PREFLIGHT",
+  "hardware_programmed": true,
+  "observer_started": false,
+  "cold_power_cycle_before_run": true,
+  "functional_change": false,
+  "diagnostic_change": true,
+  "boards": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "images": {
+    "master": {
+      "project": "DE5a_wr_master_jtag",
+      "sof_sha256": "8b30f40bf54fbf7936d5d4d86642db5b4a16208983eb00944a9132a1124d1497",
+      "mif_sha256": "1fa5e5a9103466841a5928115550672b20b8434049c0643b22f79dd73437f912",
+      "timing_closed": false,
+      "worst_setup_slack_ns": -0.058
+    },
+    "slave": {
+      "project": "DE5a_wr_slave_jtag",
+      "sof_sha256": "8574db90d3200ab5fe4f0869075c1f8772bb977a79846c01c37be1f5d5ed2038",
+      "mif_sha256": "72037f8f1deb23f37241c843069b121449111a4f698352dbe21d6b4230570e00",
+      "timing_closed": false,
+      "worst_setup_slack_ns": 0.015
+    }
+  },
+  "preflight": {
+    "master_step4a": "PASS",
+    "slave_step1": "PASS",
+    "slave_step2": "INVALID",
+    "slave_ptp_raw": "00004108",
+    "slave_ptp_state": "UNCALIBRATED",
+    "slave_step3": "PASS",
+    "step4b_allowed": false,
+    "step4b_result": "BLOCKED_BY_STEP2",
+    "step5_result": "UPSTREAM_NOT_READY",
+    "first_inactive_boundary": "UPSTREAM_STEP4B",
+    "failure_classification": "JTAG/DASHBOARD_MEASUREMENT_FAILURE"
+  },
+  "jtag_wb_transport": {
+    "protocol": "PRELOAD_THEN_TOGGLE_COMMIT",
+    "request_count": 353,
+    "probe_read_count": 1765,
+    "probe_3way_match_count": 353,
+    "wrong_count": 0,
+    "address_cross_contamination_count": 0,
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "stale_a5a5_count": 0,
+    "unstable_transaction_count": 0,
+    "trusted": true
+  },
+  "classification": "INVALID_OR_UPSTREAM_BLOCKED",
+  "step5_result": "NOT_ASSESSED",
+  "merge_allowed": false
+}

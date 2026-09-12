@@ -63,7 +63,17 @@ output    [63:0]        oDCO_STEP5_POSITION_ACCOUNTING_DEBUG,
 output    [63:0]        oDCO_STEP5_ACTUATOR_DEBUG,
 output    [63:0]        oDCO_STEP5_I2C_DEBUG,
 output    [63:0]        oDCO_STEP5_I2C_SEQUENCE_DEBUG,
-output                  oDCO_STEP5_POLARITY_ACTIVE
+output                  oDCO_STEP5_POLARITY_ACTIVE,
+output    [63:0]        oDCO_STEP5_LIVENESS_STATUS,
+output    [63:0]        oDCO_STEP5_LIVENESS_PENDING,
+output    [63:0]        oDCO_STEP5_LIVENESS_START,
+output    [63:0]        oDCO_STEP5_LIVENESS_COMPLETED,
+output    [63:0]        oDCO_STEP5_LIVENESS_FAILED,
+output    [63:0]        oDCO_STEP5_LIVENESS_WAIT,
+output    [63:0]        oDCO_STEP5_LIVENESS_CURRENT_WAIT,
+output    [63:0]        oDCO_STEP5_LIVENESS_LATENCY,
+output    [63:0]        oDCO_STEP5_LIVENESS_FAILURE,
+output    [63:0]        oDCO_STEP5_LIVENESS_FIRST_LOSS
 );
 
 wire [6:0] static_slave_addr;
@@ -155,6 +165,16 @@ reg [63:0] dco_step5_position_accounting_debug;
 reg [63:0] dco_step5_actuator_debug;
 reg [63:0] dco_step5_i2c_debug;
 reg [63:0] dco_step5_i2c_sequence_debug;
+reg [63:0] dco_step5_liveness_status;
+reg [63:0] dco_step5_liveness_pending;
+reg [63:0] dco_step5_liveness_start;
+reg [63:0] dco_step5_liveness_completed;
+reg [63:0] dco_step5_liveness_failed;
+reg [63:0] dco_step5_liveness_wait;
+reg [63:0] dco_step5_liveness_current_wait;
+reg [63:0] dco_step5_liveness_latency;
+reg [63:0] dco_step5_liveness_failure;
+reg [63:0] dco_step5_liveness_first_loss;
 reg [7:0]  last_runtime_addr;
 reg [7:0]  last_runtime_data;
 reg [2:0]  last_runtime_state;
@@ -169,6 +189,44 @@ reg        bootstrap_started;
 reg        bootstrap_done;
 reg [15:0] position_audit_epoch;
 
+// L2 diagnostic-only liveness telemetry. These fields are all sticky or
+// free-running observations in the iCLK domain; they do not gate admission,
+// serialization, completion, or any reset path.
+reg [31:0] liveness_time;
+reg [31:0] liveness_dpll_pending_count;
+reg [31:0] liveness_hpll_pending_count;
+reg [31:0] liveness_dpll_service_count;
+reg [31:0] liveness_hpll_service_count;
+reg [31:0] liveness_dpll_success_count;
+reg [31:0] liveness_hpll_success_count;
+reg [31:0] liveness_dpll_failure_count;
+reg [31:0] liveness_hpll_failure_count;
+reg [31:0] liveness_dpll_max_wait;
+reg [31:0] liveness_hpll_max_wait;
+reg [31:0] liveness_dpll_max_latency;
+reg [31:0] liveness_hpll_max_latency;
+reg [31:0] liveness_ack_error_events;
+reg [31:0] liveness_timeout_events;
+reg [31:0] liveness_first_loss_time;
+reg [1:0]  liveness_first_loss_owner;
+reg [7:0]  liveness_first_loss_reason;
+reg        liveness_first_loss_valid;
+reg [7:0]  liveness_last_failure_reason;
+reg [31:0] liveness_epoch;
+reg [31:0] liveness_dpll_pending_time;
+reg [31:0] liveness_hpll_pending_time;
+reg [15:0] liveness_step_prev;
+reg        liveness_dpll_pending_prev;
+reg        liveness_hpll_pending_prev;
+reg        liveness_ack_error_prev;
+reg        liveness_dco_error_prev;
+reg        liveness_tx_active;
+reg        liveness_tx_owner_dpll;
+reg        liveness_tx_ack_at_start;
+reg        liveness_tx_failure_seen;
+reg        liveness_tx_timeout_reported;
+reg [31:0] liveness_tx_start_time;
+
 localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 // Admit the nearest physical step once the residual is at least half a
 // step. This removes the rail dead zone where an absolute target can be
@@ -178,6 +236,7 @@ localparam signed [31:0] HPLL_HALF_STEP_CODE =
   (HPLL_STEP_CODE > 1) ? (HPLL_STEP_CODE >>> 1) : 1;
 localparam [31:0] DPLL_STEP_CODE = DPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 localparam [31:0] DPLL_START_POSITION = 32'd32768;
+localparam [31:0] DCO_DIAG_TIMEOUT_CYCLES = 32'd5000000;
 
 wire [6:0] runtime_slave_addr = 7'b1110111;
 wire       runtime_bus_enable = (rt_state != 3'd0);
@@ -238,6 +297,16 @@ assign oDCO_STEP5_ACTUATOR_DEBUG = dco_step5_actuator_debug;
 assign oDCO_STEP5_I2C_DEBUG = dco_step5_i2c_debug;
 assign oDCO_STEP5_I2C_SEQUENCE_DEBUG = dco_step5_i2c_sequence_debug;
 assign oDCO_STEP5_POLARITY_ACTIVE = force_burst_reverse;
+assign oDCO_STEP5_LIVENESS_STATUS = dco_step5_liveness_status;
+assign oDCO_STEP5_LIVENESS_PENDING = dco_step5_liveness_pending;
+assign oDCO_STEP5_LIVENESS_START = dco_step5_liveness_start;
+assign oDCO_STEP5_LIVENESS_COMPLETED = dco_step5_liveness_completed;
+assign oDCO_STEP5_LIVENESS_FAILED = dco_step5_liveness_failed;
+assign oDCO_STEP5_LIVENESS_WAIT = dco_step5_liveness_wait;
+assign oDCO_STEP5_LIVENESS_CURRENT_WAIT = dco_step5_liveness_current_wait;
+assign oDCO_STEP5_LIVENESS_LATENCY = dco_step5_liveness_latency;
+assign oDCO_STEP5_LIVENESS_FAILURE = dco_step5_liveness_failure;
+assign oDCO_STEP5_LIVENESS_FIRST_LOSS = dco_step5_liveness_first_loss;
 
 // Read-only clean-9f DCO observability.  This exposes the existing
 // controller state without changing the request or I2C state machine.
@@ -432,6 +501,74 @@ end
 // bus controller, not a claim of silicon readback.
 always @* begin
   dco_step5_i2c_sequence_debug = runtime_sequence_debug;
+end
+
+// L2 read-only liveness payloads. The two 32-bit halves always use Main
+// first and Helper second, except where the comments explicitly identify a
+// first-loss owner/reason field.
+always @* begin
+  dco_step5_liveness_status = 64'd0;
+  dco_step5_liveness_status[0] = dpll_pending;
+  dco_step5_liveness_status[1] = hpll_pending;
+  dco_step5_liveness_status[2] = liveness_tx_active;
+  dco_step5_liveness_status[3] = liveness_tx_owner_dpll;
+  dco_step5_liveness_status[4] = i2c_ack_error;
+  dco_step5_liveness_status[5] = liveness_tx_timeout_reported;
+  dco_step5_liveness_status[6] = liveness_first_loss_valid;
+  dco_step5_liveness_status[7] = dco_error;
+  dco_step5_liveness_status[15:8] = liveness_last_failure_reason;
+  dco_step5_liveness_status[18:16] = rt_state;
+  dco_step5_liveness_status[19] = bus_state;
+  dco_step5_liveness_status[20] = static_controller_ready;
+  dco_step5_liveness_status[21] = runtime_start;
+  dco_step5_liveness_status[31:22] = liveness_epoch[9:0];
+  dco_step5_liveness_status[63:32] = liveness_time;
+
+  dco_step5_liveness_pending = 64'd0;
+  dco_step5_liveness_pending[31:0] = liveness_dpll_pending_count;
+  dco_step5_liveness_pending[63:32] = liveness_hpll_pending_count;
+
+  dco_step5_liveness_start = 64'd0;
+  dco_step5_liveness_start[31:0] = liveness_dpll_service_count;
+  dco_step5_liveness_start[63:32] = liveness_hpll_service_count;
+
+  dco_step5_liveness_completed = 64'd0;
+  dco_step5_liveness_completed[31:0] = liveness_dpll_success_count;
+  dco_step5_liveness_completed[63:32] = liveness_hpll_success_count;
+
+  dco_step5_liveness_failed = 64'd0;
+  dco_step5_liveness_failed[31:0] = liveness_dpll_failure_count;
+  dco_step5_liveness_failed[63:32] = liveness_hpll_failure_count;
+
+  dco_step5_liveness_wait = 64'd0;
+  dco_step5_liveness_wait[31:0] = liveness_dpll_max_wait;
+  dco_step5_liveness_wait[63:32] = liveness_hpll_max_wait;
+
+  dco_step5_liveness_current_wait = 64'd0;
+  if (dpll_pending)
+    dco_step5_liveness_current_wait[31:0] =
+      liveness_time - liveness_dpll_pending_time;
+  if (hpll_pending)
+    dco_step5_liveness_current_wait[63:32] =
+      liveness_time - liveness_hpll_pending_time;
+
+  dco_step5_liveness_latency = 64'd0;
+  dco_step5_liveness_latency[31:0] = liveness_dpll_max_latency;
+  dco_step5_liveness_latency[63:32] = liveness_hpll_max_latency;
+
+  // [31:0] ACK-error event count, [63:32] timeout event count.
+  dco_step5_liveness_failure = 64'd0;
+  dco_step5_liveness_failure[31:0] = liveness_ack_error_events;
+  dco_step5_liveness_failure[63:32] = liveness_timeout_events;
+
+  // [31:0] first-loss timestamp, [33:32] owner (0 Helper, 1 Main,
+  // 2 unknown), [41:34] reason bitmask (1 ACK, 2 timeout, 4 DCO error,
+  // 8 sticky ACK already high at transaction start).
+  dco_step5_liveness_first_loss = 64'd0;
+  dco_step5_liveness_first_loss[31:0] = liveness_first_loss_time;
+  dco_step5_liveness_first_loss[33:32] = liveness_first_loss_owner;
+  dco_step5_liveness_first_loss[41:34] = liveness_first_loss_reason;
+  dco_step5_liveness_first_loss[63:42] = liveness_epoch[21:0];
 end
 
 si5340a_i2c_reg_controller_dco u_static_reg_controller(
@@ -894,6 +1031,166 @@ always @(posedge iCLK or negedge iRST_n) begin
       end
       default: rt_state <= 3'd0;
     endcase
+  end
+end
+
+// L2 diagnostic recorder. It observes the existing pending bits, runtime
+// owner, sticky ACK status, and completed-step counter. No value written here
+// is consumed by the functional controller, so this recorder cannot alter
+// arbitration or the completion path being measured.
+always @(posedge iCLK or negedge iRST_n) begin
+  if (!iRST_n) begin
+    liveness_time <= 32'd0;
+    liveness_dpll_pending_count <= 32'd0;
+    liveness_hpll_pending_count <= 32'd0;
+    liveness_dpll_service_count <= 32'd0;
+    liveness_hpll_service_count <= 32'd0;
+    liveness_dpll_success_count <= 32'd0;
+    liveness_hpll_success_count <= 32'd0;
+    liveness_dpll_failure_count <= 32'd0;
+    liveness_hpll_failure_count <= 32'd0;
+    liveness_dpll_max_wait <= 32'd0;
+    liveness_hpll_max_wait <= 32'd0;
+    liveness_dpll_max_latency <= 32'd0;
+    liveness_hpll_max_latency <= 32'd0;
+    liveness_ack_error_events <= 32'd0;
+    liveness_timeout_events <= 32'd0;
+    liveness_first_loss_time <= 32'd0;
+    liveness_first_loss_owner <= 2'd2;
+    liveness_first_loss_reason <= 8'd0;
+    liveness_first_loss_valid <= 1'b0;
+    liveness_last_failure_reason <= 8'd0;
+    liveness_epoch <= 32'd0;
+    liveness_dpll_pending_time <= 32'd0;
+    liveness_hpll_pending_time <= 32'd0;
+    liveness_step_prev <= 16'd0;
+    liveness_dpll_pending_prev <= 1'b0;
+    liveness_hpll_pending_prev <= 1'b0;
+    liveness_ack_error_prev <= 1'b0;
+    liveness_dco_error_prev <= 1'b0;
+    liveness_tx_active <= 1'b0;
+    liveness_tx_owner_dpll <= 1'b0;
+    liveness_tx_ack_at_start <= 1'b0;
+    liveness_tx_failure_seen <= 1'b0;
+    liveness_tx_timeout_reported <= 1'b0;
+    liveness_tx_start_time <= 32'd0;
+  end else begin
+    liveness_time <= liveness_time + 1'b1;
+
+    // A pending transition is one coalesced absolute-target request. Repeated
+    // loads while the bit is already high do not create an unbounded FIFO.
+    if (dpll_pending && !liveness_dpll_pending_prev) begin
+      liveness_dpll_pending_count <= liveness_dpll_pending_count + 1'b1;
+      liveness_dpll_pending_time <= liveness_time;
+    end
+    if (hpll_pending && !liveness_hpll_pending_prev) begin
+      liveness_hpll_pending_count <= liveness_hpll_pending_count + 1'b1;
+      liveness_hpll_pending_time <= liveness_time;
+    end
+
+    // rt_state 1 is the first write of a complete four-write logical
+    // transaction. Later visits to states 3 and 5 are phases of the same
+    // transaction and are intentionally not counted as new service starts.
+    if (runtime_start && (rt_state == 3'd1)) begin
+      liveness_tx_active <= 1'b1;
+      liveness_tx_owner_dpll <= rt_select_dpll;
+      liveness_tx_ack_at_start <= i2c_ack_error;
+      liveness_tx_failure_seen <= 1'b0;
+      liveness_tx_timeout_reported <= 1'b0;
+      liveness_tx_start_time <= liveness_time;
+      if (rt_select_dpll) begin
+        liveness_dpll_service_count <= liveness_dpll_service_count + 1'b1;
+        if ((liveness_time - liveness_dpll_pending_time) > liveness_dpll_max_wait)
+          liveness_dpll_max_wait <= liveness_time - liveness_dpll_pending_time;
+      end else begin
+        liveness_hpll_service_count <= liveness_hpll_service_count + 1'b1;
+        if ((liveness_time - liveness_hpll_pending_time) > liveness_hpll_max_wait)
+          liveness_hpll_max_wait <= liveness_time - liveness_hpll_pending_time;
+      end
+    end
+
+    // The I2C block exposes a sticky ACK error. Record its first rising edge
+    // and associate it with the in-flight logical owner when possible.
+    if (i2c_ack_error && !liveness_ack_error_prev) begin
+      liveness_ack_error_events <= liveness_ack_error_events + 1'b1;
+      if (liveness_tx_active && !liveness_tx_ack_at_start)
+        liveness_tx_failure_seen <= 1'b1;
+      if (!liveness_first_loss_valid) begin
+        liveness_first_loss_valid <= 1'b1;
+        liveness_first_loss_time <= liveness_time;
+        liveness_first_loss_owner <= liveness_tx_active ?
+          (liveness_tx_owner_dpll ? 2'd1 : 2'd0) : 2'd2;
+        liveness_first_loss_reason <= 8'h01;
+      end
+    end
+
+    if (dco_error && !liveness_dco_error_prev) begin
+      if (!liveness_first_loss_valid) begin
+        liveness_first_loss_valid <= 1'b1;
+        liveness_first_loss_time <= liveness_time;
+        liveness_first_loss_owner <= liveness_tx_active ?
+          (liveness_tx_owner_dpll ? 2'd1 : 2'd0) : 2'd2;
+        liveness_first_loss_reason <= 8'h04;
+      end
+    end
+
+    // There is no functional timeout in the legacy I2C engine. This
+    // diagnostic timeout is deliberately long (100 ms at 50 MHz) and only
+    // records a stalled logical transaction; it never aborts or retries it.
+    if (liveness_tx_active && !liveness_tx_timeout_reported &&
+        ((liveness_time - liveness_tx_start_time) >= DCO_DIAG_TIMEOUT_CYCLES)) begin
+      liveness_timeout_events <= liveness_timeout_events + 1'b1;
+      liveness_tx_timeout_reported <= 1'b1;
+      liveness_tx_failure_seen <= 1'b1;
+      if (!liveness_first_loss_valid) begin
+        liveness_first_loss_valid <= 1'b1;
+        liveness_first_loss_time <= liveness_time;
+        liveness_first_loss_owner <= liveness_tx_owner_dpll ? 2'd1 : 2'd0;
+        liveness_first_loss_reason <= 8'h02;
+      end
+    end
+
+    // dco_step_count advances only at the final write of a logical runtime
+    // transaction. Compare it against the delayed copy so the recorder sees
+    // the same completed-step boundary without touching that counter.
+    if (dco_step_count != liveness_step_prev) begin
+      if (liveness_tx_active) begin
+        if (liveness_tx_failure_seen || liveness_tx_ack_at_start ||
+            liveness_tx_timeout_reported) begin
+          if (liveness_tx_owner_dpll)
+            liveness_dpll_failure_count <= liveness_dpll_failure_count + 1'b1;
+          else
+            liveness_hpll_failure_count <= liveness_hpll_failure_count + 1'b1;
+          liveness_last_failure_reason <=
+            (liveness_tx_timeout_reported ? 8'h02 : 8'h00) |
+            ((liveness_tx_failure_seen || liveness_tx_ack_at_start) ? 8'h01 : 8'h00) |
+            (liveness_tx_ack_at_start ? 8'h08 : 8'h00);
+        end else begin
+          if (liveness_tx_owner_dpll)
+            liveness_dpll_success_count <= liveness_dpll_success_count + 1'b1;
+          else
+            liveness_hpll_success_count <= liveness_hpll_success_count + 1'b1;
+          liveness_last_failure_reason <= 8'd0;
+        end
+        if (liveness_tx_owner_dpll) begin
+          if ((liveness_time - liveness_tx_start_time) > liveness_dpll_max_latency)
+            liveness_dpll_max_latency <= liveness_time - liveness_tx_start_time;
+        end else begin
+          if ((liveness_time - liveness_tx_start_time) > liveness_hpll_max_latency)
+            liveness_hpll_max_latency <= liveness_time - liveness_tx_start_time;
+        end
+        liveness_tx_active <= 1'b0;
+        liveness_tx_failure_seen <= 1'b0;
+        liveness_tx_timeout_reported <= 1'b0;
+        liveness_epoch <= liveness_epoch + 1'b1;
+      end
+      liveness_step_prev <= dco_step_count;
+    end
+
+    liveness_dpll_pending_prev <= dpll_pending;
+    liveness_hpll_pending_prev <= hpll_pending;
+    liveness_ack_error_prev <= i2c_ack_error;
+    liveness_dco_error_prev <= dco_error;
   end
 end
 

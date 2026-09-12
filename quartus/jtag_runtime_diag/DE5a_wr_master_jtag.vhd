@@ -101,7 +101,17 @@ architecture rtl of DE5a_wr_master_jtag is
       oDCO_STEP5_ACTUATOR_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_I2C_DEBUG : out std_logic_vector(63 downto 0);
       oDCO_STEP5_I2C_SEQUENCE_DEBUG : out std_logic_vector(63 downto 0);
-      oDCO_STEP5_POLARITY_ACTIVE : out std_logic
+      oDCO_STEP5_POLARITY_ACTIVE : out std_logic;
+      oDCO_STEP5_LIVENESS_STATUS : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_PENDING : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_START : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_COMPLETED : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_FAILED : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_WAIT : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_CURRENT_WAIT : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_LATENCY : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_FAILURE : out std_logic_vector(63 downto 0);
+      oDCO_STEP5_LIVENESS_FIRST_LOSS : out std_logic_vector(63 downto 0)
     );
   end component;
 
@@ -1493,6 +1503,16 @@ begin
       oDCO_STEP5_I2C_DEBUG => open,
       oDCO_STEP5_I2C_SEQUENCE_DEBUG => open,
       oDCO_STEP5_POLARITY_ACTIVE => open,
+      oDCO_STEP5_LIVENESS_STATUS => open,
+      oDCO_STEP5_LIVENESS_PENDING => open,
+      oDCO_STEP5_LIVENESS_START => open,
+      oDCO_STEP5_LIVENESS_COMPLETED => open,
+      oDCO_STEP5_LIVENESS_FAILED => open,
+      oDCO_STEP5_LIVENESS_WAIT => open,
+      oDCO_STEP5_LIVENESS_CURRENT_WAIT => open,
+      oDCO_STEP5_LIVENESS_LATENCY => open,
+      oDCO_STEP5_LIVENESS_FAILURE => open,
+      oDCO_STEP5_LIVENESS_FIRST_LOSS => open,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

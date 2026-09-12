@@ -7,7 +7,7 @@
 #   30..120 s every 2 s
 #
 # Usage:
-#   quartus_stp -t read_step5_startup_timeline_first_divergence.tcl ?trial_id?
+#   quartus_stp -t read_step5_startup_timeline_first_divergence.tcl ?trial_id? ?board_filter? ?duration_ms? ?early_gap_ms? ?late_gap_ms?
 #
 # The caller must program Master, wait for Master readiness, program Slave,
 # and invoke this script immediately after Slave programming completes.
@@ -22,6 +22,9 @@ set ::duration_ms 120000
 set ::early_window_ms 30000
 set ::early_gap_ms 1000
 set ::late_gap_ms 2000
+if {[llength $argv] >= 3} { set ::duration_ms [lindex $argv 2] }
+if {[llength $argv] >= 4} { set ::early_gap_ms [lindex $argv 3] }
+if {[llength $argv] >= 5} { set ::late_gap_ms [lindex $argv 4] }
 set ::start_ms [clock milliseconds]
 set ::sample_seq 0
 array set ::wb_toggle {}
@@ -151,6 +154,35 @@ proc ptp_state_name {state} {
     7 { return PASSIVE }
     8 { return UNCALIBRATED }
     9 { return SLAVE }
+  }
+  return UNKNOWN
+}
+
+proc pd_state_name {state} {
+  switch -- $state {
+    0 { return NONE }
+    1 { return WAIT_MSG }
+    2 { return PDETECTION }
+    3 { return PDETECTED }
+    4 { return FAILURE }
+  }
+  return UNKNOWN
+}
+
+proc ext_state_name {state} {
+  switch -- $state {
+    0 { return DISABLE }
+    1 { return ACTIVE }
+    2 { return PTP }
+  }
+  return UNKNOWN
+}
+
+proc protocol_extension_name {extension} {
+  switch -- $extension {
+    0 { return NONE }
+    1 { return WR }
+    2 { return L1S }
   }
   return UNKNOWN
 }
@@ -345,6 +377,9 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
 
   set mode [field32 $ptp_meta 24 8]
   set ptp_state [field32 $ptp_meta 0 8]
+  set pd_state [field32 $ptp_meta 8 8]
+  set ext_state [field32 $ptp_meta 16 8]
+  set protocol_extension [field32 $ptp_meta 24 8]
   set ptp_state_raw [field32 $ptp 0 8]
   set foreign_count [field32 $foreign_meta 0 8]
   set foreign_best [field32 $foreign_meta 8 8]
@@ -377,6 +412,9 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
       [list core_tm_link_up $core_tm_link_up] \
       [list core_link_ok $core_link_ok] \
       [list ptp_state $ptp_state] \
+      [list pd_state $pd_state] \
+      [list ext_state $ext_state] \
+      [list protocol_extension $protocol_extension] \
       [list parent_is_wrnode $parent_is_wrnode] \
       [list parent_mode_on $parent_mode_on] \
       [list parent_calibrated $parent_calibrated] \
@@ -389,6 +427,9 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   }
   note_first $role first_core_tm_link_up [expr {$core_tm_link_up == 1}] $elapsed
   note_first $role first_core_link_ok [expr {$core_link_ok == 1}] $elapsed
+  note_first $role first_ptp_slave [expr {$ptp_state == 9}] $elapsed
+  note_first $role first_pdstate_pdetected [expr {$pd_state == 3}] $elapsed
+  note_first $role first_extstate_active [expr {$ext_state == 1}] $elapsed
   note_first $role first_parent_wr_calibrated [expr {$parent_is_wrnode == 1 && $parent_calibrated == 1}] $elapsed
   note_first $role first_lock_enable [expr {[word32 $lock_enable] > 0}] $elapsed
   note_first $role first_spll_init [expr {[word32 $spll_init] > 0}] $elapsed
@@ -411,9 +452,9 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     note_first $role first_step4b_event_chain 1 $elapsed
   }
 
-  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_REJECT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_INIT_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
+  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) PPSI_PROTO_EXT=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_REJECT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_INIT_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
     $::trial_id $role $hardware_name $sample $elapsed $si_config_done $wr_ready $wr_rx_ready $wr_tx_ready $wr_rx_locked_to_data $wr_rx_enc_err $wr_tx_enc_err $core_tm_link_up $core_link_ok \
-    $mode [mode_name $mode] $ptp_state [ptp_state_name $ptp_state] $ptp_state_raw [display32 $ptp_rx] [display32 $ptp_tx] [display32 $rxerr] \
+    $mode [mode_name $mode] $ptp_state [ptp_state_name $ptp_state] $pd_state [pd_state_name $pd_state] $ext_state [ext_state_name $ext_state] $protocol_extension [protocol_extension_name $protocol_extension] $ptp_state_raw [display32 $ptp_rx] [display32 $ptp_tx] [display32 $rxerr] \
     [expr {$boot_generation < 0 ? "INVALID" : [format %08X $boot_generation]}] \
     [expr {$cpu_reset_count < 0 ? "INVALID" : $cpu_reset_count}] [expr {$wr_core_reset_count < 0 ? "INVALID" : $wr_core_reset_count}] [expr {$si_config_reset_count < 0 ? "INVALID" : $si_config_reset_count}] $cpu_reset_n \
     [display32 $foreign_meta] [num_or_invalid $foreign_count] [num_or_invalid $foreign_best] [num_or_invalid $foreign_detection] [num_or_invalid $foreign_wr_config] $parent_is_wrnode $parent_mode_on $parent_calibrated \
@@ -451,10 +492,10 @@ proc print_board_summary {role} {
   if {$::sample_count($role) == 0} { set boundary OBSERVER_ERROR }
   set unclassified 0
   if {$boundary eq "OBSERVER_ERROR"} { set unclassified 1 }
-  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d" \
+  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PTP_SLAVE_MS=%s FIRST_PDSTATE_PDETECTED_MS=%s FIRST_EXTSTATE_ACTIVE_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d" \
     $::trial_id $role $::sample_count($role) $::sample_error($role) \
     [first_value $role first_core_tm_link_up] [first_value $role first_core_link_ok] [first_value $role ptp_rx_activity] [first_value $role ptp_tx_activity] $first_dmtd \
-    [first_value $role first_parent_wr_calibrated] [first_value $role first_lock_enable] [first_value $role first_spll_init] $first_tag $first_write $first_pop $first_irq $first_helper \
+    [first_value $role first_ptp_slave] [first_value $role first_pdstate_pdetected] [first_value $role first_extstate_active] [first_value $role first_parent_wr_calibrated] [first_value $role first_lock_enable] [first_value $role first_spll_init] $first_tag $first_write $first_pop $first_irq $first_helper \
     [first_value $role first_pstat_locked] $boundary $unclassified]
   flush stdout
 }

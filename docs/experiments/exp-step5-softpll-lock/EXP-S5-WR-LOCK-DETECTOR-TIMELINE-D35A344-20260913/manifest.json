@@ -1,0 +1,75 @@
+{
+  "format": "step5-lock-detector-manifest-v1",
+  "experiment_id": "EXP-S5-WR-LOCK-DETECTOR-TIMELINE-D35A344-20260913",
+  "date": "2026-09-13",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "d35a344216059b9c57f76a6ade966494f218dded",
+  "pain_checkout": "d35a344216059b9c57f76a6ade966494f218dded",
+  "scope": "VALID_LOCK_DETECTOR_DIAGNOSTIC_WR_EXTENSION_FAILURE",
+  "hardware_programmed": true,
+  "observer_started": true,
+  "observer_duration_ms": 120000,
+  "observer_samples": 66,
+  "observer_sample_errors": 0,
+  "functional_change": false,
+  "diagnostic_change": true,
+  "cold_power_cycle_before_window": true,
+  "cold_power_cycle_repeated_for_corrected_rerun": false,
+  "boards": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "images": {
+    "master": {
+      "project": "DE5a_wr_master_jtag",
+      "sof_sha256": "24a75a7775d2d4cb59ceb4e18906e6979f3c77d6b7e0fa0a16b10577a82e5e3c",
+      "mif_sha256": "1fa5e5a9103466841a5928115550672b20b8434049c0643b22f79dd73437f912",
+      "timing_closed": false,
+      "worst_setup_slack_ns": -0.058
+    },
+    "slave": {
+      "project": "DE5a_wr_slave_jtag",
+      "sof_sha256": "fb83d10e7ea5f8b248f0618f5c638932fb54300a4c3b82459af6c687976afb30",
+      "mif_sha256": "72037f8f1deb23f37241c843069b121449111a4f698352dbe21d6b4230570e00",
+      "timing_closed": false,
+      "worst_setup_slack_ns": 0.015
+    }
+  },
+  "timeline": {
+    "first_live_ms": 478,
+    "first_helper_locked_ms": 43635,
+    "first_ptp_slave_ms": 48031,
+    "first_pdstate_failure_ms": 48031,
+    "first_extstate_ptp_ms": 48031,
+    "first_main_enabled_ms": 63419,
+    "first_main_phase_locked_ms": 72212,
+    "first_main_freq_locked_ms": null,
+    "first_main_locked_ms": null,
+    "first_spll_ready_ms": null,
+    "first_pstat_locked_ms": null,
+    "first_inactive_boundary": "WR_EXTENSION_FAILURE",
+    "wr_failure_raw": "02020001",
+    "wr_failure_decoded": {
+      "last_fail_role": "WR_SLAVE",
+      "last_fail_state": "WRS_S_LOCK",
+      "failure_count": 1
+    },
+    "reset_delta": {
+      "boot_generation": 0,
+      "cpu_reset_count": 0,
+      "wr_core_reset_count": 0,
+      "si_config_reset_count": 0
+    }
+  },
+  "results": {
+    "slave_step1": "PASS",
+    "slave_wr_extension": "FAILURE",
+    "step4b_result": "BLOCKED_BY_WR_EXTENSION_FAILURE",
+    "step5_result": "NOT_COMPLETE",
+    "pstat_locked": false,
+    "merge_allowed": false
+  },
+  "classification": "VALID_LOCK_DETECTOR_DIAGNOSTIC",
+  "next_gate": "WR_S_LOCK_TIMEOUT_RACE_EXPERIMENT"
+}

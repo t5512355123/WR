@@ -1,0 +1,21 @@
+{
+  "experiment": "EXP-S5-WR-S-LOCK-TIMEOUT60-TIMELINE-9E5B53E-20260913",
+  "classification": "VALID_PARTIAL_STEP5_LOCK_BUT_WR_EXTENSION_UPSTREAM_FAILURE",
+  "step4_softpll_startup": "PARTIAL_ONLY_NOT_PASS",
+  "step4b_wr_extension": "BLOCKED_BY_WR_EXTENSION_FAILURE",
+  "step5_closed_loop_lock": "NOT_COMPLETE",
+  "merge_to_main": false,
+  "evidence": {
+    "wr_extension_failure_ms": 50239,
+    "failure_state": "WRS_S_LOCK",
+    "failure_count_at_first_failure": 1,
+    "first_internal_ready_ms": 287740,
+    "first_internal_ready_state": "SEQ_READY",
+    "first_internal_pstat_locked_ms": 287740,
+    "first_lock_drop_ms": 289939,
+    "lock_recovery_ms": 292137,
+    "wr_extension_state_at_internal_lock": "PPSI_EXTSTATE=PTP",
+    "ptp_pdstate_at_internal_lock": "PPSI_PDSTATE=FAILURE"
+  },
+  "reason": "SoftPLL internal lock was eventually observed, but WR extension had already failed and the lock indication was not continuously stable. This does not satisfy a valid Step5 closed-loop lock criterion."
+}

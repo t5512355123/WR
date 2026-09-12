@@ -1,0 +1,55 @@
+{
+  "experiment": "EXP-S5-WR-S-LOCK-TIMEOUT60-TIMELINE-9E5B53E-20260913",
+  "date": "2026-09-13",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "9e5b53ee5ac9fc29c2111188c6e9893c0930980e",
+  "host": "pain",
+  "boards": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "objective": "Evaluate whether WR_S_LOCK_TIMEOUT_MS=60000 allows valid WR Slave handshake and Step5 closed-loop lock.",
+  "change_scope": "Only vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-constants.h timeout constants changed.",
+  "build": {
+    "master": "success",
+    "slave": "success",
+    "timing_closed_master": false,
+    "timing_closed_slave": false
+  },
+  "programming": {
+    "master": "success",
+    "slave": "success",
+    "errors": 0,
+    "warnings": 0
+  },
+  "observation": {
+    "duration_ms": 300000,
+    "observer_status": 0,
+    "sample_errors": 0,
+    "first_wr_failure_ms": 50239,
+    "first_spll_ready_ms": 287740,
+    "first_pstat_locked_ms": 287740,
+    "first_lock_drop_ms": 289939,
+    "lock_recovery_ms": 292137
+  },
+  "verdict": {
+    "step4": "partial_only_not_pass",
+    "step4b": "blocked_by_wr_extension_failure",
+    "step5": "not_complete",
+    "merge_to_main": false
+  },
+  "raw_files": [
+    "raw/build-master-9e5b53e.log",
+    "raw/build-slave-9e5b53e.log",
+    "raw/program-master-9e5b53e.log",
+    "raw/program-slave-9e5b53e.log",
+    "raw/observer-9e5b53e.log",
+    "raw/step5-wr-timeout60-build-slave-9e5b53e.log",
+    "raw/step5-wr-timeout60-observer-9e5b53e.log",
+    "raw/step5-wr-timeout60-program-master-9e5b53e.log",
+    "raw/step5-wr-timeout60-program-slave-9e5b53e.log",
+    "raw/build_info_jtag_master.txt",
+    "raw/build_info_jtag_slave.txt"
+  ]
+}
+

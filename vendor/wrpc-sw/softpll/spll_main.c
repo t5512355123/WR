@@ -49,9 +49,10 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	}
 #elif defined(CONFIG_WR_NODE)
 	/* Main-frequency polarity is established as positive by the A/B run.
-	 * Keep that sign, but use a conservative operating point so the
-	 * near-zero error does not drive the PI into a two-sided limit cycle. */
-	s->pi.kp = 150;
+	 * Keep that sign, but use a bounded increase in proportional authority
+	 * so the measured multi-thousand-tic phase residual can be corrected
+	 * without returning to the previously unstable high-gain pair. */
+	s->pi.kp = 300;
 	s->pi.ki = 1;
 #else
 #error "Please set CONFIG for wr switch or wr node"

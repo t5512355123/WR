@@ -1834,7 +1834,9 @@ begin
       -- SI5340 FINC/FDEC step; the 32-code experiment was not physically
       -- realizable and produced an accounting/runaway failure.
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
-      STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 0,
+      -- Allow a short settling interval between normal HPLL transactions;
+      -- keep the 64-code physical-step account and all PI gains unchanged.
+      STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 64,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
       JTAG_HPLL_BURST_SIZE => 32
     )

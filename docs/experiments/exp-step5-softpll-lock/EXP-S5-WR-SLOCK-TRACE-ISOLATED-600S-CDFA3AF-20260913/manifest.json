@@ -1,0 +1,24 @@
+{
+  "experiment": "EXP-S5-WR-SLOCK-TRACE-ISOLATED-600S-CDFA3AF-20260913",
+  "source_commit": "cdfa3af9a383cd5d2130106765bedbdee21090f0",
+  "board": "DE5 [1-11.2]",
+  "role": "SLAVE",
+  "observer": {
+    "smoke_duration_ms": 60000,
+    "full_duration_ms": 600000,
+    "full_elapsed_ms": 600349,
+    "samples": 278,
+    "sample_errors": 0
+  },
+  "artifacts": [
+    "REPORT.md",
+    "verdict.json",
+    "build-info-master.txt",
+    "build-info-slave.txt",
+    "build-jtag-master.log",
+    "build-jtag-slave.log",
+    "checksums.sha256",
+    "raw/observer-smoke.log",
+    "raw/observer-600s.log"
+  ]
+}

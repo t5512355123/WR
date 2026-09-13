@@ -1,0 +1,13 @@
+{
+  "experiment": "EXP-S5-WR-SLOCK-TRACE-ISOLATED-600S-CDFA3AF-20260913",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "cdfa3af9a383cd5d2130106765bedbdee21090f0",
+  "observer_exit": 0,
+  "samples": 278,
+  "sample_errors": 0,
+  "slock_trace_transport": "PASS",
+  "wr_extension": "FAIL_WR_S_LOCK_TIMEOUT",
+  "softpll_final_snapshot": "LOCKED_BUT_NOT_STABLE_PROVEN",
+  "step5": "NOT_COMPLETE",
+  "reason": "WR extension entered sticky WRS_S_LOCK timeout and degraded to PTP before the 600-second observer session; the observer also has a confirmed SPLL_MAIN_STATE bit mapping error requiring correction and offline recomputation."
+}

@@ -12,13 +12,13 @@
 # operation is performed by this reader.
 #
 # WDIAGS firmware shell-ready words (private read-only map):
-#   0x1e0 FIRMWARE_MAIN_LOOP_REACHED
-#   0x1e4 SHELL_POLL_LOOP_REACHED
-#   0x1e8 BOOT_INIT_SEQUENCE_DONE
-#   0x1ec FIRMWARE_SHELL_READY
-#   0x1f0 FIRMWARE_MAIN_LOOP_GENERATION
-#   0x1f4 SHELL_POLL_GENERATION
-#   0x1f8 BOOT_INIT_GENERATION
+#   0x090 FIRMWARE_MAIN_LOOP_REACHED
+#   0x094 SHELL_POLL_LOOP_REACHED
+#   0x098 BOOT_INIT_SEQUENCE_DONE
+#   0x09c FIRMWARE_SHELL_READY
+#   0x0a0 FIRMWARE_MAIN_LOOP_GENERATION
+#   0x0a4 SHELL_POLL_GENERATION
+#   0x0a8 BOOT_INIT_GENERATION
 #
 # Usage:
 #   quartus_stp -t read_fixed_image_shell_ready_gated_runtime_retest.tcl
@@ -207,13 +207,13 @@ proc read_one {hardware_name sample elapsed_ms} {
   set lock_wait_raw [wb_read $hardware_name 0x00100B78]
   set spll_stage_raw [wb_read $hardware_name 0x00100B90]
   set command_stage_raw [wb_read $hardware_name 0x00100BA0]
-  set firmware_main_raw [wb_read $hardware_name 0x00100BE0]
-  set shell_poll_raw [wb_read $hardware_name 0x00100BE4]
-  set boot_done_raw [wb_read $hardware_name 0x00100BE8]
-  set shell_ready_raw [wb_read $hardware_name 0x00100BEC]
-  set firmware_main_gen_raw [wb_read $hardware_name 0x00100BF0]
-  set shell_poll_gen_raw [wb_read $hardware_name 0x00100BF4]
-  set boot_gen_raw [wb_read $hardware_name 0x00100BF8]
+  set firmware_main_raw [wb_read $hardware_name 0x00100A90]
+  set shell_poll_raw [wb_read $hardware_name 0x00100A94]
+  set boot_done_raw [wb_read $hardware_name 0x00100A98]
+  set shell_ready_raw [wb_read $hardware_name 0x00100A9C]
+  set firmware_main_gen_raw [wb_read $hardware_name 0x00100AA0]
+  set shell_poll_gen_raw [wb_read $hardware_name 0x00100AA4]
+  set boot_gen_raw [wb_read $hardware_name 0x00100AA8]
 
   set entry_word [word64 $entry_raw]
   set reset_word [word64 $reset_raw]

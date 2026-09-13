@@ -179,13 +179,13 @@ proc read_ready {hardware_name} {
   set r(boot_generation) -1
   if {$entry >= 0} { set r(boot_generation) [expr {($entry >> 32) & 0xffffffff}] }
 
-  set r(firmware_main) [word32 [wb_read $hardware_name 0x00100BE0]]
-  set r(shell_poll) [word32 [wb_read $hardware_name 0x00100BE4]]
-  set r(boot_done) [word32 [wb_read $hardware_name 0x00100BE8]]
-  set r(shell_ready) [word32 [wb_read $hardware_name 0x00100BEC]]
-  set r(firmware_main_generation) [word32 [wb_read $hardware_name 0x00100BF0]]
-  set r(shell_poll_generation) [word32 [wb_read $hardware_name 0x00100BF4]]
-  set r(boot_init_generation) [word32 [wb_read $hardware_name 0x00100BF8]]
+  set r(firmware_main) [word32 [wb_read $hardware_name 0x00100A90]]
+  set r(shell_poll) [word32 [wb_read $hardware_name 0x00100A94]]
+  set r(boot_done) [word32 [wb_read $hardware_name 0x00100A98]]
+  set r(shell_ready) [word32 [wb_read $hardware_name 0x00100A9C]]
+  set r(firmware_main_generation) [word32 [wb_read $hardware_name 0x00100AA0]]
+  set r(shell_poll_generation) [word32 [wb_read $hardware_name 0x00100AA4]]
+  set r(boot_init_generation) [word32 [wb_read $hardware_name 0x00100AA8]]
 
   set c0 [word64 [probe_read 28]]
   set c1 [word64 [probe_read 29]]

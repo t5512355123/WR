@@ -137,15 +137,17 @@
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_WR_STATE     0x1f8UL
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_SEQ          0x1fcUL
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC_VALUE  0x5752534cUL
-/* Read-only firmware shell-ready gate. These words are diagnostic shadows
- * only; they do not feed back into the WR control path. */
-#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED 0x1e0UL
-#define WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED 0x1e4UL
-#define WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE 0x1e8UL
-#define WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY 0x1ecUL
-#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x1f0UL
-#define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x1f4UL
-#define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x1f8UL
+/* Read-only firmware shell-ready gate. Keep this bank separate from the
+ * 0x1e0..0x1fc private overlays used by S_LOCK, re-init attribution, and
+ * shell microtrace diagnostics. These words are diagnostic shadows only;
+ * they do not feed back into the WR control path. */
+#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED 0x090UL
+#define WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED 0x094UL
+#define WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE 0x098UL
+#define WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY 0x09cUL
+#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x0a0UL
+#define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x0a4UL
+#define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x0a8UL
 /* Read-only coherent Helper-update measurement snapshot.  It is published
  * from a RAM snapshot captured by helper_update(), so every payload word
  * belongs to one accepted Helper invocation.  0x118 remains the existing

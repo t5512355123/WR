@@ -5,7 +5,9 @@
 # writes are the normal JTAG VUART stimulus bytes on the Master; all other
 # accesses are readback mailbox transactions.
 #
-# The 0x1e0..0x1f8 gate words are overlaid after the trace is armed:
+# The 0x1e0..0x1f8 words remain reserved for the microtrace overlay after
+# the trace is armed. The shell-ready gate is kept in the separate
+# 0x090..0x0a8 bank:
 #   0x1e0..0x1ec MICRO_BUFFER_WORD0..3
 #   0x1f0 MICRO_META0: length[7:0], pos[15:8], line_ready[16],
 #       shell_state[31:24]
@@ -212,13 +214,13 @@ proc read_one {hardware_name sample elapsed_ms} {
   set post_armed [field_bit $corr7_word 33]
   set cpu_reset [field_bit $corr5_word 27]
 
-  set firmware_main [word_field [word32 [wb_read $hardware_name 0x00100BE0]] 0]
-  set shell_poll [word_field [word32 [wb_read $hardware_name 0x00100BE4]] 0]
-  set boot_done [word_field [word32 [wb_read $hardware_name 0x00100BE8]] 0]
-  set shell_ready [word_field [word32 [wb_read $hardware_name 0x00100BEC]] 0]
-  set firmware_main_gen [word_field [word32 [wb_read $hardware_name 0x00100BF0]] 0]
-  set shell_poll_gen [word_field [word32 [wb_read $hardware_name 0x00100BF4]] 0]
-  set boot_init_gen [word_field [word32 [wb_read $hardware_name 0x00100BF8]] 0]
+  set firmware_main [word_field [word32 [wb_read $hardware_name 0x00100A90]] 0]
+  set shell_poll [word_field [word32 [wb_read $hardware_name 0x00100A94]] 0]
+  set boot_done [word_field [word32 [wb_read $hardware_name 0x00100A98]] 0]
+  set shell_ready [word_field [word32 [wb_read $hardware_name 0x00100A9C]] 0]
+  set firmware_main_gen [word_field [word32 [wb_read $hardware_name 0x00100AA0]] 0]
+  set shell_poll_gen [word_field [word32 [wb_read $hardware_name 0x00100AA4]] 0]
+  set boot_init_gen [word_field [word32 [wb_read $hardware_name 0x00100AA8]] 0]
 
   set micro_stage_word [word32 [wb_read $hardware_name 0x00100BFC]]
   set micro_b0 [word32 [wb_read $hardware_name 0x00100BE0]]

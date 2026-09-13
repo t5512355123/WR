@@ -1,0 +1,24 @@
+Offline recomputation of EXP-S5-WR-SLOCK-TRACE-ISOLATED-600S-CDFA3AF-20260913
+Source: vendor/wrpc-sw/lib/task-diags.c
+Packing: bit0=enabled, bit1=main_locked, bit2=freq_locked, bit3=phase_locked
+
+Corrected low-nibble transitions from raw SPLL_MAIN_STATE:
+567ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+106750ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+108993ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+144914ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+147158ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+153894ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+156139ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+230218ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+232462ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+275099ms raw=0x00000001 enabled=1 main_locked=0 freq_locked=0 phase_locked=0
+281840ms raw=0x06403105 enabled=1 main_locked=0 freq_locked=1 phase_locked=0
+373881ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+456922ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+459165ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+560180ms raw=0x03E807D0 enabled=0 main_locked=0 freq_locked=0 phase_locked=0
+562424ms raw=0x3E80320F enabled=1 main_locked=1 freq_locked=1 phase_locked=1
+
+The first full-session sample already carried a latched failure from the
+preceding smoke/session gap; it is not a fresh-start timestamp.

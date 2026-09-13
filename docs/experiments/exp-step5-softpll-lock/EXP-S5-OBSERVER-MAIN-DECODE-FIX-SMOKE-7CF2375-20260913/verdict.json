@@ -1,0 +1,12 @@
+{
+  "experiment": "EXP-S5-OBSERVER-MAIN-DECODE-FIX-SMOKE-7CF2375-20260913",
+  "source_commit": "7cf2375189b5e0b525687516074a598ccac92add",
+  "observer_exit": 0,
+  "samples": 38,
+  "sample_errors": 0,
+  "main_lock_decode_fix": "APPLIED",
+  "wr_core_link": "NOT_ESTABLISHED",
+  "step5": "NOT_COMPLETE",
+  "full_observation": "NOT_RUN",
+  "reason": "Smoke observer transport passed, but the hardware startup gate never reached WR core link or any SoftPLL activity."
+}

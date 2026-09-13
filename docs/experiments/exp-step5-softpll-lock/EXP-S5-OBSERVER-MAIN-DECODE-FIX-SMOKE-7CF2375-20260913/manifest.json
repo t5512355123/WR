@@ -1,0 +1,29 @@
+{
+  "experiment": "EXP-S5-OBSERVER-MAIN-DECODE-FIX-SMOKE-7CF2375-20260913",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "7cf2375189b5e0b525687516074a598ccac92add",
+  "board": "DE5 [1-11.2]",
+  "role": "SLAVE",
+  "observer": {
+    "duration_ms": 60000,
+    "elapsed_ms": 61896,
+    "samples": 38,
+    "sample_errors": 0,
+    "full_observation_run": false
+  },
+  "artifacts": [
+    "REPORT.md",
+    "verdict.json",
+    "checksums.sha256",
+    "raw/observer-smoke.log",
+    "raw/recomputed-cdfa3af-main-lock.txt",
+    "raw/build_info_jtag_master.txt",
+    "raw/build_info_jtag_slave.txt",
+    "raw/build-master-7cf2375.log",
+    "raw/build-slave-7cf2375.log",
+    "raw/build-jtag-master-7cf2375.log",
+    "raw/build-jtag-slave-7cf2375.log",
+    "raw/program-master-7cf2375.log",
+    "raw/program-slave-7cf2375.log"
+  ]
+}

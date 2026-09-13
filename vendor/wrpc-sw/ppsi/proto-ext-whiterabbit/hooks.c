@@ -264,7 +264,7 @@ static void wr_state_change(struct pp_instance *ppi)
 				// This force the transition from UNCALIBRATED to SLAVE at startup if
 				// no parent is detected.
 				if ( !(wrp->parentWrConfig==WR_MASTER || wrp->parentWrConfig==WR_M_AND_S) ) {
-					wr_handshake_fail(ppi);
+					wr_handshake_fail_reason(ppi, WR_FAIL_REASON_NO_WR_PARENT);
 				}
 			}
 			break;

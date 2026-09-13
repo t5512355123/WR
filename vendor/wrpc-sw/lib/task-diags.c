@@ -204,8 +204,13 @@ int wrc_wr_diags(void)
 				wrpc_wr_rx_signal_reject_count,
 				wrpc_wr_last_rx_signal_reject_reason);
 			wdiags_write_wr_lock_debug(
+				/* Low byte/result and bit 8 keep their established meanings.
+				 * Bits 9..15 attribute the last WR handshake failure; bits
+				 * 16..31 retain its timer low word for read-only forensics. */
 				(uint32_t)wrpc_wr_lock_last_result |
-					((uint32_t)(spll_check_lock(0) ? 1u : 0u) << 8),
+					((uint32_t)(spll_check_lock(0) ? 1u : 0u) << 8) |
+					(((uint32_t)wrpc_wr_last_fail_reason & 0x7fu) << 9) |
+					(((uint32_t)wrpc_wr_last_fail_tics & 0xffffu) << 16),
 				wrpc_wr_lock_poll_count,
 				wrpc_wr_lock_unlocked_count,
 				wrpc_wr_lock_calibration_fail_count,

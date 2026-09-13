@@ -6,6 +6,7 @@
  */
 #include <ppsi/ppsi.h>
 #include "../arch-wrpc/wrpc.h"
+#include "dev/syscon.h"
 
 void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
@@ -26,13 +27,15 @@ void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 }
 
 /* The handshake failed: go master or slave in normal PTP mode */
-void wr_handshake_fail(struct pp_instance *ppi)
+void wr_handshake_fail_reason(struct pp_instance *ppi, uint8_t reason)
 {
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
 
 	wrpc_wr_handshake_fail_count++;
 	wrpc_wr_last_fail_state = (uint8_t)wrp->state;
 	wrpc_wr_last_fail_role = (uint8_t)wrp->wrMode;
+	wrpc_wr_last_fail_reason = reason;
+	wrpc_wr_last_fail_tics = timer_get_tics();
 
 	pp_diag(ppi, ext, 1, "Handshake failure: now non-wr %s\n",
 		wrp->wrMode == WR_MASTER ? "master" : "slave");
@@ -40,6 +43,11 @@ void wr_handshake_fail(struct pp_instance *ppi)
 	wr_reset_process(ppi,WR_ROLE_NONE);
 	wr_servo_reset(ppi);
 	pdstate_disable_extension(ppi);
+}
+
+void wr_handshake_fail(struct pp_instance *ppi)
+{
+	wr_handshake_fail_reason(ppi, WR_FAIL_REASON_UNKNOWN);
 }
 
 

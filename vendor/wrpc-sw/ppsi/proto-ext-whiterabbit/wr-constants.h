@@ -50,6 +50,18 @@
 
 #define WR_STATE_RETRY			3	/* if WR handhsake fails */
 
+/* Read-only attribution codes for wr_handshake_fail().  They are carried in
+ * unused high bits of the WDIAGS WR_LOCK_RESULT shadow and never alter the
+ * WR state machine. */
+#define WR_FAIL_REASON_UNKNOWN			0
+#define WR_FAIL_REASON_WR_PRESENT_TIMEOUT	1
+#define WR_FAIL_REASON_WR_M_LOCK_TIMEOUT	2
+#define WR_FAIL_REASON_WR_S_LOCK_TIMEOUT	3
+#define WR_FAIL_REASON_WR_LOCKED_TIMEOUT	4
+#define WR_FAIL_REASON_WR_CALIBRATED_TIMEOUT	5
+#define WR_FAIL_REASON_WR_RESP_CALIB_REQ_TIMEOUT 6
+#define WR_FAIL_REASON_NO_WR_PARENT		7
+
 /* White Rabbit package Size */
 #define WR_ANNOUNCE_TLV_LENGTH		0x0A
 

@@ -106,6 +106,7 @@ int wr_run_state_machine(struct pp_instance *ppi, void *buf, int len);
 /* Common functions, used by various states and hooks */
 void wr_handshake_init(struct pp_instance *ppi, int mode);
 void wr_handshake_fail(struct pp_instance *ppi); /* goto non-wr */
+void wr_handshake_fail_reason(struct pp_instance *ppi, uint8_t reason);
 int wr_handshake_retry(struct pp_instance *ppi); /* 1 == retry; 0 == failed */
 int wr_execute_slave(struct pp_instance *ppi);
 int wr_ready_for_slave(struct pp_instance *ppi);

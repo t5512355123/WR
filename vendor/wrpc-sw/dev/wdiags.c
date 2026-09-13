@@ -490,7 +490,7 @@ void wdiags_write_wr_s_lock_debug(uint32_t stage,
     wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_POLL_RET,
             (uint32_t)poll_result);
     wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_WR_STATE, wr_state);
-    wdiags_publish_barrier();
+    wdiag_publish_barrier();
     wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_SEQ,
             ++wdiags_wr_s_lock_trace_seq);
 }

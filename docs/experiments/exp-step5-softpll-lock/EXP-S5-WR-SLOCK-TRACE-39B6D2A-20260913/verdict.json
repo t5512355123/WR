@@ -1,0 +1,12 @@
+{
+  "step5": "NOT_COMPLETE",
+  "wr_extension": "FAILED_BEFORE_SOFTPLL_READY",
+  "first_wr_failure_ms": 208752,
+  "wr_failure_reason": "WR_S_LOCK_TIMEOUT",
+  "softpll_ready_ms": 575023,
+  "main_frequency_phase_locked_ms": 575023,
+  "pstat_locked_ms": 575023,
+  "authoritative": true,
+  "slock_boundary_trace_authoritative": false,
+  "reason": "WR extension was already in PPSI FAILURE/PTP and WRS_IDLE before later SoftPLL lock fields became 1; the added SLOCK trace used wrong CPU MMIO addresses and overlapped other diagnostic overlays."
+}

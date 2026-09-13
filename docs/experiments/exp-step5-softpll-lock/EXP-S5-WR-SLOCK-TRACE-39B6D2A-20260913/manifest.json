@@ -1,0 +1,34 @@
+{
+  "experiment": "EXP-S5-WR-SLOCK-TRACE-39B6D2A-20260913",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "39b6d2a8017cfb40f2fd060856fdf16a05697a79",
+  "board": "DE5 [1-11.2]",
+  "role": "SLAVE",
+  "observer": {
+    "script": "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl",
+    "duration_ms": 600000,
+    "early_gap_ms": 1000,
+    "late_gap_ms": 2000,
+    "exit_code": 0,
+    "samples": 280,
+    "sample_errors": 0
+  },
+  "build": {
+    "master_mif_sha256": "d991cc412c759e8da29d4181cf442e7135ffb0b04e77483ea43ab975b8361b06",
+    "slave_mif_sha256": "32363acb1271fd339f72121b3f5ed627efa556f0649e40a87b55c00f3d526556",
+    "master_sof_sha256": "afb57863f98166cfcb43f69a5b330f62e7b513a906905043f6f90311c7fea8f9",
+    "slave_sof_sha256": "08474ee89313e340a1bd3d2cb56e0c44612aa59306aec49857a9ff7ae292b1eb",
+    "timing_closed": false
+  },
+  "programming": {
+    "master": "PASS",
+    "slave": "PASS",
+    "errors": 0,
+    "warnings": 0
+  },
+  "result": "STEP5_NOT_COMPLETE",
+  "diagnostic_validity": {
+    "wr_s_lock_result": "VALID",
+    "slock_trace_fields": "INVALID_WRONG_CPU_ADDRESS_AND_OVERLAY_ALIAS"
+  }
+}

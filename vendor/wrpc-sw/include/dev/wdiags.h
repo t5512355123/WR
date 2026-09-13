@@ -78,6 +78,14 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
                                    uint32_t start_tics,
                                    uint32_t current_tics,
                                    int32_t last_lock_result);
+/* Read-only WRS_S_LOCK timeout audit. It overlays the legacy lock-wait
+ * words and never feeds back into the WR or SoftPLL control paths. */
+void wdiags_write_wr_s_lock_debug(uint32_t stage,
+                                  uint32_t retry,
+                                  uint32_t entry_tics,
+                                  uint32_t remaining_ms,
+                                  int32_t poll_result,
+                                  uint32_t wr_state);
 /* Persistent read-only markers around spll_check_lock(0). */
 #define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_NOT_ENTERED 0
 #define WRC_DIAGS_PERSISTENT_SPLL_CHECK_LOCK_BEFORE_CALL 1

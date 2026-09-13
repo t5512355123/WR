@@ -7,6 +7,9 @@
  */
 
 #include <ppsi/ppsi.h>
+#include <dev/syscon.h>
+#include "../arch-wrpc/wrpc.h"
+#include <dev/wdiags.h>
 
 #define WR_TMO_NAME "WR_SLOCK"
 #define WR_TMO_MS WR_S_LOCK_TIMEOUT_MS
@@ -19,6 +22,11 @@ int wr_s_lock(struct pp_instance *ppi, void *buf, int len, int new_state)
 	if (new_state) {
 		wrp->wrStateRetry = WR_STATE_RETRY;
 		pp_timeout_set_rename(ppi, PP_TO_WR_EXT_0, WR_TMO_MS*(WR_STATE_RETRY+1));
+		wrpc_wr_s_lock_entry_tics = timer_get_tics();
+		wdiags_write_wr_s_lock_debug(1, wrp->wrStateRetry,
+			wrpc_wr_s_lock_entry_tics,
+			(uint32_t)pp_next_delay_1(ppi, PP_TO_WR_EXT_0),
+			WRH_SPLL_UNLOCKED, wrp->state);
 		enable = 1;
 	} else {
 
@@ -30,15 +38,25 @@ int wr_s_lock(struct pp_instance *ppi, void *buf, int len, int new_state)
 
 		{ /* Check remaining time */
 			int rms=pp_next_delay_1(ppi, PP_TO_WR_EXT_0);
+			wdiags_write_wr_s_lock_debug(2, wrp->wrStateRetry,
+				wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
+				poll_ret, wrp->state);
 			if ( rms<=(wrp->wrStateRetry*WR_TMO_MS)) {
 				WRH_OPER()->locking_disable(ppi);
 				if ( rms==0 ) {
 					pp_diag(ppi, time, 1, "timeout expired: %s\n", WR_TMO_NAME);
+					wdiags_write_wr_s_lock_debug(4, wrp->wrStateRetry,
+						wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
+						poll_ret, wrp->state);
 					wr_handshake_fail_reason(ppi, WR_FAIL_REASON_WR_S_LOCK_TIMEOUT);
 					return 0; /* non-wr already */
 				}
-				if (wr_handshake_retry(ppi))
+				if (wr_handshake_retry(ppi)) {
+					wdiags_write_wr_s_lock_debug(3, wrp->wrStateRetry,
+						wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
+						poll_ret, wrp->state);
 					enable = 1;
+				}
 			}
 		}
 	}

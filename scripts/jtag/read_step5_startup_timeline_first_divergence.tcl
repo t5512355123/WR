@@ -256,6 +256,16 @@ proc wr_fail_reason_name {reason} {
   return UNKNOWN
 }
 
+proc slock_stage_name {stage} {
+  switch -- $stage {
+    1 { return ENTRY }
+    2 { return POLL }
+    3 { return RETRY }
+    4 { return FAILURE }
+  }
+  return UNKNOWN
+}
+
 proc num_or_invalid {value} {
   set n [word32 $value]
   if {$n < 0} { return INVALID }
@@ -363,6 +373,12 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     set helper_update [wb_read $hardware_name 0x00100B18]
     set dmtd_ref_accept [wb_read $hardware_name 0x0010022C]
     set dmtd_fb_accept [wb_read $hardware_name 0x00100230]
+    set slock_stage [wb_read $hardware_name 0x00100158]
+    set slock_retry [wb_read $hardware_name 0x0010015C]
+    set slock_entry_tics [wb_read $hardware_name 0x00100160]
+    set slock_remaining_ms [wb_read $hardware_name 0x00100164]
+    set slock_poll_ret [wb_read $hardware_name 0x00100168]
+    set slock_wr_state [wb_read $hardware_name 0x0010016C]
   } error_message]} {
     if {!$::persistent_probe} { catch {end_insystem_source_probe} }
     incr ::sample_error($role)
@@ -509,14 +525,14 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     note_first $role first_step4b_event_chain 1 $elapsed
   }
 
-  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
+  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) SLOCK_TRACE_STAGE=%s(%s) SLOCK_TRACE_RETRY=%s SLOCK_TRACE_ENTRY_TICS=%s SLOCK_TRACE_REMAINING_MS=%s SLOCK_TRACE_POLL_RET=%s SLOCK_TRACE_WR_STATE=%s WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
     $::trial_id $role $hardware_name $sample $elapsed $si_config_done $wr_ready $wr_rx_ready $wr_tx_ready $wr_rx_locked_to_data $wr_rx_enc_err $wr_tx_enc_err $core_tm_link_up $core_link_ok \
     $mode [mode_name $mode] $ptp_state [ptp_state_name $ptp_state] $pd_state [pd_state_name $pd_state] $ext_state [ext_state_name $ext_state] $wrc_mode_meta [mode_name $wrc_mode_meta] $ptp_state_raw [display32 $ptp_rx] [display32 $ptp_tx] [display32 $rxerr] \
     [expr {$boot_generation < 0 ? "INVALID" : [format %08X $boot_generation]}] \
     [expr {$cpu_reset_count < 0 ? "INVALID" : $cpu_reset_count}] [expr {$wr_core_reset_count < 0 ? "INVALID" : $wr_core_reset_count}] [expr {$si_config_reset_count < 0 ? "INVALID" : $si_config_reset_count}] $cpu_reset_n \
     [display32 $foreign_meta] [num_or_invalid $foreign_count] [num_or_invalid $foreign_best] [num_or_invalid $foreign_detection] [num_or_invalid $foreign_wr_config] $parent_is_wrnode $parent_mode_on $parent_calibrated \
     [display32 $wr_rx_signal] $rx_signal_id [signal_name $rx_signal_id] $rx_signal_count [display32 $wr_tx_signal] $tx_signal_id [signal_name $tx_signal_id] $tx_signal_count \
-    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] [display32 $wr_failure] [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
+    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] [display32 $wr_failure] [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $slock_stage] [slock_stage_name [word32 $slock_stage]] [display32 $slock_retry] [display32 $slock_entry_tics] [display32 $slock_remaining_ms] [display32 $slock_poll_ret] [display32 $slock_wr_state] [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
     $spll_mode [spll_mode_name $spll_mode] $spll_seq_state [spll_state_name $spll_seq_state] $spll_align_state [display32 $helper_state] $helper_locked $helper_lock_changed $helper_lock_count [display32 $helper_limits] $helper_threshold $helper_lock_samples [display32 $main_state] $main_enabled $main_freq_locked $main_phase_locked $main_locked $main_freq_lock_count $main_phase_lock_count [display32 $main_limits] $main_freq_threshold $main_freq_lock_samples [display32 $main_phase_limits] $main_phase_threshold $main_phase_lock_samples $spll_delock_count [display32 $rcer] [display32 $ocer] \
     [display32 $dmtd_ref_accept] [display32 $dmtd_fb_accept] [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] [display32 $irq] [display32 $helper_update] [display32 $pstat] $pstat_locked]
   flush stdout

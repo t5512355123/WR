@@ -463,6 +463,28 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
 	wdiags_persistent_lock_wait_substage(substage);
 }
 
+void wdiags_write_wr_s_lock_debug(uint32_t stage,
+                                  uint32_t retry,
+                                  uint32_t entry_tics,
+                                  uint32_t remaining_ms,
+                                  int32_t poll_result,
+                                  uint32_t wr_state)
+{
+	/* WRS_S_LOCK runs on the slave path, where the legacy lock-wait overlay is
+	 * otherwise idle. Keep this shadow passive and stop writing it if another
+	 * diagnostic overlay claims the same private window. */
+	if (!wdiags_helper_pi_snapshot_v2_active &&
+	    !wdiags_main_frequency_trace_active) {
+		wdiag_write(WRC_DIAGS_WDIAG_MODE_MASTER_STAGE, stage);
+		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE, retry);
+		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION, entry_tics);
+		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_START_TICS, remaining_ms);
+		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_CURRENT_TICS,
+				(uint32_t)poll_result);
+		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT, wr_state);
+	}
+}
+
 void wdiags_write_spll_check_lock_debug(uint32_t stage,
 						uint32_t channel,
 						uint32_t state_value)

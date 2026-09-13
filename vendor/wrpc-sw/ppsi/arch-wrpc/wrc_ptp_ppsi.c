@@ -111,6 +111,7 @@ volatile uint32_t wrpc_wr_lock_unlocked_count;
 volatile uint32_t wrpc_wr_lock_calibration_fail_count;
 volatile uint32_t wrpc_wr_lock_enable_count;
 volatile uint8_t wrpc_wr_lock_last_result;
+volatile uint32_t wrpc_wr_s_lock_entry_tics;
 
 struct wrpc_arch_data_t wrpc_arch_data = {
 	.timingMode = WRH_TM_DISABLED,
@@ -358,6 +359,7 @@ int wrc_ptp_start(void)
 	wrpc_wr_lock_calibration_fail_count = 0;
 	wrpc_wr_lock_enable_count = 0;
 	wrpc_wr_lock_last_result = 0;
+	wrpc_wr_s_lock_entry_tics = 0;
 
 	/* sfp match was done before so read calibration data */
 

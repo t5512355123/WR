@@ -151,5 +151,6 @@ extern volatile uint32_t wrpc_wr_lock_unlocked_count;
 extern volatile uint32_t wrpc_wr_lock_calibration_fail_count;
 extern volatile uint32_t wrpc_wr_lock_enable_count;
 extern volatile uint8_t wrpc_wr_lock_last_result;
+extern volatile uint32_t wrpc_wr_s_lock_entry_tics;
 
 #endif /* __WRPC_H */

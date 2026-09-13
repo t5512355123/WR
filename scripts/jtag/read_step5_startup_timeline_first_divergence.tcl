@@ -445,10 +445,12 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   set helper_lock_count [field32 $helper_state 16 16]
   set helper_threshold [field32 $helper_limits 0 16]
   set helper_lock_samples [field32 $helper_limits 16 16]
+  # task-diags.c packing: enabled=bit0, Main locked=bit1,
+  # frequency locked=bit2, phase locked=bit3.
   set main_enabled [bit32 $main_state 0]
-  set main_freq_locked [bit32 $main_state 1]
-  set main_phase_locked [bit32 $main_state 2]
-  set main_locked [bit32 $main_state 3]
+  set main_locked [bit32 $main_state 1]
+  set main_freq_locked [bit32 $main_state 2]
+  set main_phase_locked [bit32 $main_state 3]
   set main_freq_lock_count [field32 $main_state 8 12]
   set main_phase_lock_count [field32 $main_state 20 12]
   set main_freq_threshold [field32 $main_limits 0 16]

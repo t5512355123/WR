@@ -110,10 +110,9 @@ static void wdiags_write_shell_microtrace_mirror(void)
 	if (wdiags_reinit_attribution_active)
 		return;
 
-	/* The private WDIAGS SDB window ends at 0x1ff.  While the shell-ready
-	 * gate is idle, 0x1e0..0x1f8 hold the gate words.  Once the newline arms
-	 * the trace, the gate is no longer used for stimulus decisions, so reuse
-	 * those seven words for the buffer and metadata snapshot. */
+	/* The private WDIAGS SDB window ends at 0x1ff.  The shell-ready gate now
+	 * owns the separate 0x090..0x0a8 bank, so the 0x1e0..0x1f8 words remain
+	 * available for the buffer and metadata snapshot. */
 	meta0 = (debug_precrt_persistent_command_micro_length & 0xffU) |
 		((debug_precrt_persistent_command_micro_pos & 0xffU) << 8) |
 		((debug_precrt_persistent_command_micro_line_ready & 0x1U) << 16) |
@@ -628,11 +627,10 @@ void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
 		shell_poll_generation == current_generation &&
 		boot_init_generation == current_generation;
 
-	/* The shell microtrace reuses these seven private words after the
-	 * newline arms the trace.  Do not let a later shell-ready refresh
-	 * overwrite the committed microtrace snapshot. */
-	if (debug_precrt_persistent_command_micro_stage != 0 ||
-	    wdiags_reinit_attribution_active)
+	/* The shell microtrace reuses the tail words after the newline arms the
+	 * trace.  Do not let a later shell-ready refresh overwrite that snapshot;
+	 * the re-init attribution overlay is now disjoint from the gate bank. */
+	if (debug_precrt_persistent_command_micro_stage != 0)
 		return;
 
 	/* Dedicated read-only WDIAGS words. They are snapshots of firmware

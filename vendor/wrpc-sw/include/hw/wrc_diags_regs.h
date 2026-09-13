@@ -244,10 +244,10 @@
 #define WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNTS     0x1f0UL
 #define WRC_DIAGS_WDIAG_SPLL_INIT_REASON_COUNT      16
 
-/* Read-only interactive VUART newline-to-dispatch microtrace.  The gate
- * mirror occupies 0x1e0..0x1f8 while idle; after the trace is armed, those
- * same words carry the buffer and packed metadata so the 0x200-byte private
- * WDIAGS SDB window remains unchanged. */
+/* Read-only interactive VUART newline-to-dispatch microtrace.  The shell-
+ * ready gate is in the separate 0x090..0x0a8 bank; the 0x1e0..0x1f8 words
+ * carry the buffer and packed metadata so the 0x200-byte private WDIAGS SDB
+ * window remains unchanged. */
 #define WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_STAGE 0x1fcUL
 #define WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD0 0x1e0UL
 #define WRC_DIAGS_WDIAG_PERSISTENT_CMD_MICRO_BUFFER_WORD1 0x1e4UL

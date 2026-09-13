@@ -78,8 +78,10 @@ void wdiags_write_lock_wait_debug(uint32_t substage,
                                    uint32_t start_tics,
                                    uint32_t current_tics,
                                    int32_t last_lock_result);
-/* Read-only WRS_S_LOCK timeout audit. It overlays the legacy lock-wait
- * words and never feeds back into the WR or SoftPLL control paths. */
+/* Read-only WRS_S_LOCK timeout audit. It uses an isolated tail bank during
+ * the bounded audit, so Main/Helper diagnostic overlays cannot overwrite it.
+ * The normal re-init and shell-microtrace overlays are suppressed while the
+ * S_LOCK record is active. */
 void wdiags_write_wr_s_lock_debug(uint32_t stage,
                                   uint32_t retry,
                                   uint32_t entry_tics,

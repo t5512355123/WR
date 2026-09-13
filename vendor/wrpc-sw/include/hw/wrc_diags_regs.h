@@ -125,6 +125,18 @@
 #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_BOOT_GENERATION 0x1d4UL
 #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_MODE_MASTER_STAGE 0x1d8UL
 #define WRC_DIAGS_WDIAG_PERSISTENT_FAULT_LAST_SPLL_CHECK_LOCK_STAGE 0x1dcUL
+/* Isolated Step5 WRS_S_LOCK trace. The 0x1e0..0x1fc tail is reserved for
+ * this bounded diagnostic experiment while the trace is active; the normal
+ * re-init and shell-microtrace overlays are suppressed for that lifetime. */
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC         0x1e0UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_STAGE        0x1e4UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_RETRY        0x1e8UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_ENTRY_TICS   0x1ecUL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_REMAINING_MS 0x1f0UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_POLL_RET     0x1f4UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_WR_STATE     0x1f8UL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_SEQ          0x1fcUL
+#define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC_VALUE  0x5752534cUL
 /* Read-only firmware shell-ready gate. These words are diagnostic shadows
  * only; they do not feed back into the WR control path. */
 #define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED 0x1e0UL

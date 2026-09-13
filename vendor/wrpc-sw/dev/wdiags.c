@@ -79,6 +79,8 @@ static uint32_t wdiags_helper_pi_snapshot_bank_commit_count;
 static uint32_t wdiags_helper_pi_snapshot_overwrite_count;
 static uint32_t wdiags_main_frequency_trace_epoch;
 static int wdiags_main_frequency_trace_active;
+static int wdiags_wr_s_lock_trace_active;
+static uint32_t wdiags_wr_s_lock_trace_seq;
 /* Once a snapshot request is observed, the overlapping 0x158..0x1dc
  * private window belongs exclusively to the PI frozen bank.  Legacy
  * diagnostic state is still updated in host RAM, but must not be mirrored
@@ -470,19 +472,27 @@ void wdiags_write_wr_s_lock_debug(uint32_t stage,
                                   int32_t poll_result,
                                   uint32_t wr_state)
 {
-	/* WRS_S_LOCK runs on the slave path, where the legacy lock-wait overlay is
-	 * otherwise idle. Keep this shadow passive and stop writing it if another
-	 * diagnostic overlay claims the same private window. */
-	if (!wdiags_helper_pi_snapshot_v2_active &&
-	    !wdiags_main_frequency_trace_active) {
-		wdiag_write(WRC_DIAGS_WDIAG_MODE_MASTER_STAGE, stage);
-		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_SUBSTAGE, retry);
-		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_ITERATION, entry_tics);
-		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_START_TICS, remaining_ms);
-		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_CURRENT_TICS,
-				(uint32_t)poll_result);
-		wdiag_write(WRC_DIAGS_WDIAG_LOCK_WAIT_LAST_LOCK_RESULT, wr_state);
-	}
+    /* WRS_S_LOCK is a bounded diagnostic audit. Claim the otherwise
+     * conflicting tail bank on first entry and publish the sequence number
+     * last as a commit marker. */
+    if (stage != 0)
+        wdiags_wr_s_lock_trace_active = 1;
+    if (!wdiags_wr_s_lock_trace_active)
+        return;
+
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC,
+            WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC_VALUE);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_STAGE, stage);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_RETRY, retry);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_ENTRY_TICS, entry_tics);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_REMAINING_MS,
+            remaining_ms);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_POLL_RET,
+            (uint32_t)poll_result);
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_WR_STATE, wr_state);
+    wdiags_publish_barrier();
+    wdiag_write(WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_SEQ,
+            ++wdiags_wr_s_lock_trace_seq);
 }
 
 void wdiags_write_spll_check_lock_debug(uint32_t stage,
@@ -1005,6 +1015,10 @@ void wdiags_write_wr_spll_reinit_debug(uint32_t last_reason,
 	uint32_t j;
 	uint32_t packed;
 
+	/* The isolated S_LOCK audit owns the tail bank for its lifetime. */
+	if (wdiags_wr_s_lock_trace_active)
+		return;
+
 	/* Claim the 0x1e0..0x1fc overlay for this read-only audit. */
 	wdiags_reinit_attribution_active = 1;
 
@@ -1313,6 +1327,8 @@ int wdiags_init(void)
 	wdiags_helper_pi_snapshot_overwrite_count = 0;
 	wdiags_main_frequency_trace_epoch = 0;
 	wdiags_main_frequency_trace_active = 0;
+	wdiags_wr_s_lock_trace_active = 0;
+	wdiags_wr_s_lock_trace_seq = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);

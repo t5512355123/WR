@@ -269,13 +269,10 @@ proc read_one {hardware_name sample elapsed_ms} {
     [display32_from_word [word64 $spll_stage_raw] 0] \
     [display32_from_word [word64 $command_stage_raw] 0] \
     [display32_from_word $entry_word 32] [display32_from_word $cpu_word 0] \
-    [display32_from_word [word64 $firmware_main_raw] 0] \
-    [display32_from_word [word64 $shell_poll_raw] 0] \
-    [display32_from_word [word64 $boot_done_raw] 0] \
-    [display32_from_word [word64 $shell_ready_raw] 0] \
-    [display32_from_word [word64 $firmware_main_gen_raw] 0] \
-    [display32_from_word [word64 $shell_poll_gen_raw] 0] \
-    [display32_from_word [word64 $boot_gen_raw] 0] \
+    [format %08X $firmware_main] [format %08X $shell_poll] \
+    [format %08X $boot_done] [format %08X $shell_ready] \
+    [format %08X $shell_generation] [format %08X $shell_generation] \
+    [format %08X $shell_generation] \
     $generation_match $marker_ready $gate $runtime_idle \
     [display64 $reset_raw] [display64 $sync_raw] [display64 $entry_raw]]
   flush stdout

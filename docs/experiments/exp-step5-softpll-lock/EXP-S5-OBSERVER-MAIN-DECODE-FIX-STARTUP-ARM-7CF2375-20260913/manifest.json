@@ -1,0 +1,16 @@
+{
+  "experiment": "EXP-S5-OBSERVER-MAIN-DECODE-FIX-STARTUP-ARM-7CF2375-20260913",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "7cf2375189b5e0b525687516074a598ccac92add",
+  "boards": ["DE5 [1-11.1]", "DE5 [1-11.2]"],
+  "reader": "scripts/jtag/read_fixed_image_shell_ready_gated_runtime_retest.tcl",
+  "requested_ready_timeout_ms": 30000,
+  "requested_stable_ms": 1500,
+  "manual_abort": true,
+  "artifacts": [
+    "REPORT.md",
+    "verdict.json",
+    "checksums.sha256",
+    "raw/startup-arm.log"
+  ]
+}

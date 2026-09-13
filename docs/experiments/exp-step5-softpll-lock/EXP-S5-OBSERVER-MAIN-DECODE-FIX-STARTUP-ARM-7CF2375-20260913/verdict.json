@@ -1,0 +1,10 @@
+{
+  "experiment": "EXP-S5-OBSERVER-MAIN-DECODE-FIX-STARTUP-ARM-7CF2375-20260913",
+  "source_commit": "7cf2375189b5e0b525687516074a598ccac92add",
+  "reader": "read_fixed_image_shell_ready_gated_runtime_retest.tcl",
+  "master_mode_master_injected": false,
+  "generation_match": false,
+  "step5": "NOT_COMPLETE",
+  "result": "STARTUP_GATE_BLOCKED",
+  "reason": "Master generation gate stayed false, so mode master was not sent; the Slave capture was manually stopped after the gate remained false."
+}

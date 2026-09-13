@@ -11,14 +11,12 @@
 # The Slave is a no-stimulus control capture. No CPU hold/release or reset
 # operation is performed by this reader.
 #
-# WDIAGS firmware shell-ready words (private read-only map):
-#   0x090 FIRMWARE_MAIN_LOOP_REACHED
-#   0x094 SHELL_POLL_LOOP_REACHED
-#   0x098 BOOT_INIT_SEQUENCE_DONE
-#   0x09c FIRMWARE_SHELL_READY
-#   0x0a0 FIRMWARE_MAIN_LOOP_GENERATION
-#   0x0a4 SHELL_POLL_GENERATION
-#   0x0a8 BOOT_INIT_GENERATION
+# WDIAGS firmware shell-ready gate: ASTAT (0x14) high reserved bits:
+#   bit 21 FIRMWARE_MAIN_LOOP_REACHED
+#   bit 22 SHELL_POLL_LOOP_REACHED
+#   bit 23 BOOT_INIT_SEQUENCE_DONE
+#   bit 24 FIRMWARE_SHELL_READY
+#   bits 25..31 current boot generation (7 bits)
 #
 # Usage:
 #   quartus_stp -t read_fixed_image_shell_ready_gated_runtime_retest.tcl
@@ -207,13 +205,7 @@ proc read_one {hardware_name sample elapsed_ms} {
   set lock_wait_raw [wb_read $hardware_name 0x00100B78]
   set spll_stage_raw [wb_read $hardware_name 0x00100B90]
   set command_stage_raw [wb_read $hardware_name 0x00100BA0]
-  set firmware_main_raw [wb_read $hardware_name 0x00100A90]
-  set shell_poll_raw [wb_read $hardware_name 0x00100A94]
-  set boot_done_raw [wb_read $hardware_name 0x00100A98]
-  set shell_ready_raw [wb_read $hardware_name 0x00100A9C]
-  set firmware_main_gen_raw [wb_read $hardware_name 0x00100AA0]
-  set shell_poll_gen_raw [wb_read $hardware_name 0x00100AA4]
-  set boot_gen_raw [wb_read $hardware_name 0x00100AA8]
+  set shell_ready_astat_raw [wb_read $hardware_name 0x00100A14]
 
   set entry_word [word64 $entry_raw]
   set reset_word [word64 $reset_raw]
@@ -222,13 +214,15 @@ proc read_one {hardware_name sample elapsed_ms} {
   set ::post_armed_live($hardware_name) $corr7_post_armed
 
   set boot_generation [numeric32_from_word $entry_word 32]
-  set firmware_main [numeric32_from_word [word64 $firmware_main_raw] 0]
-  set shell_poll [numeric32_from_word [word64 $shell_poll_raw] 0]
-  set boot_done [numeric32_from_word [word64 $boot_done_raw] 0]
-  set shell_ready [numeric32_from_word [word64 $shell_ready_raw] 0]
-  set firmware_main_gen [numeric32_from_word [word64 $firmware_main_gen_raw] 0]
-  set shell_poll_gen [numeric32_from_word [word64 $shell_poll_gen_raw] 0]
-  set boot_gen [numeric32_from_word [word64 $boot_gen_raw] 0]
+  set shell_ready_astat_word [word64 $shell_ready_astat_raw]
+  set firmware_main [expr {$shell_ready_astat_word eq "INVALID" ? -1 : ($shell_ready_astat_word >> 21) & 1}]
+  set shell_poll [expr {$shell_ready_astat_word eq "INVALID" ? -1 : ($shell_ready_astat_word >> 22) & 1}]
+  set boot_done [expr {$shell_ready_astat_word eq "INVALID" ? -1 : ($shell_ready_astat_word >> 23) & 1}]
+  set shell_ready [expr {$shell_ready_astat_word eq "INVALID" ? -1 : ($shell_ready_astat_word >> 24) & 1}]
+  set shell_generation [expr {$shell_ready_astat_word eq "INVALID" ? -1 : ($shell_ready_astat_word >> 25) & 0x7f}]
+  set firmware_main_gen $shell_generation
+  set shell_poll_gen $shell_generation
+  set boot_gen $shell_generation
   set cpu_pc [numeric32_from_word $cpu_word 0]
   set cpu_reset [field_bit $corr5_word 27]
   set command_stage [numeric32_from_word [word64 $command_stage_raw] 0]
@@ -236,10 +230,8 @@ proc read_one {hardware_name sample elapsed_ms} {
   set lock_wait [numeric32_from_word [word64 $lock_wait_raw] 0]
   set spll_stage [numeric32_from_word [word64 $spll_stage_raw] 0]
 
-  set generation_match [expr {$boot_generation >= 0 &&
-    $firmware_main_gen == $boot_generation &&
-    $shell_poll_gen == $boot_generation &&
-    $boot_gen == $boot_generation}]
+  set generation_match [expr {$boot_generation >= 0 && $shell_generation >= 0 &&
+    $shell_generation == ($boot_generation & 0x7f)}]
   set marker_ready [expr {$firmware_main == 1 && $shell_poll == 1 &&
     $boot_done == 1 && $shell_ready == 1}]
   set gate [expr {$corr7_post_armed eq "1" && $marker_ready &&

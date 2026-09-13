@@ -6,8 +6,9 @@
 # accesses are readback mailbox transactions.
 #
 # The 0x1e0..0x1f8 words remain reserved for the microtrace overlay after
-# the trace is armed. The shell-ready gate is kept in the separate
-# 0x090..0x0a8 bank:
+# the trace is armed. The shell-ready gate is carried in ASTAT bits 21..31:
+#   bit 21..24 = main-loop, shell-poll, boot-init, combined-ready
+#   bit 25..31 = current boot generation (7 bits)
 #   0x1e0..0x1ec MICRO_BUFFER_WORD0..3
 #   0x1f0 MICRO_META0: length[7:0], pos[15:8], line_ready[16],
 #       shell_state[31:24]
@@ -214,13 +215,22 @@ proc read_one {hardware_name sample elapsed_ms} {
   set post_armed [field_bit $corr7_word 33]
   set cpu_reset [field_bit $corr5_word 27]
 
-  set firmware_main [word_field [word32 [wb_read $hardware_name 0x00100A90]] 0]
-  set shell_poll [word_field [word32 [wb_read $hardware_name 0x00100A94]] 0]
-  set boot_done [word_field [word32 [wb_read $hardware_name 0x00100A98]] 0]
-  set shell_ready [word_field [word32 [wb_read $hardware_name 0x00100A9C]] 0]
-  set firmware_main_gen [word_field [word32 [wb_read $hardware_name 0x00100AA0]] 0]
-  set shell_poll_gen [word_field [word32 [wb_read $hardware_name 0x00100AA4]] 0]
-  set boot_init_gen [word_field [word32 [wb_read $hardware_name 0x00100AA8]] 0]
+  set shell_ready_astat [word32 [wb_read $hardware_name 0x00100A14]]
+  if {$shell_ready_astat < 0} {
+    set firmware_main -1
+    set shell_poll -1
+    set boot_done -1
+    set shell_ready -1
+    set firmware_main_gen -1
+  } else {
+    set firmware_main [expr {($shell_ready_astat >> 21) & 1}]
+    set shell_poll [expr {($shell_ready_astat >> 22) & 1}]
+    set boot_done [expr {($shell_ready_astat >> 23) & 1}]
+    set shell_ready [expr {($shell_ready_astat >> 24) & 1}]
+    set firmware_main_gen [expr {($shell_ready_astat >> 25) & 0x7f}]
+  }
+  set shell_poll_gen $firmware_main_gen
+  set boot_init_gen $firmware_main_gen
 
   set micro_stage_word [word32 [wb_read $hardware_name 0x00100BFC]]
   set micro_b0 [word32 [wb_read $hardware_name 0x00100BE0]]
@@ -250,10 +260,8 @@ proc read_one {hardware_name sample elapsed_ms} {
     set micro_buffer 00000000000000000000000000000000
   }
 
-  set generation_match [expr {$boot_generation >= 0 &&
-    $firmware_main_gen == $boot_generation &&
-    $shell_poll_gen == $boot_generation &&
-    $boot_init_gen == $boot_generation}]
+  set generation_match [expr {$boot_generation >= 0 && $firmware_main_gen >= 0 &&
+    $firmware_main_gen == ($boot_generation & 0x7f)}]
   set marker_ready [expr {$firmware_main == 1 && $shell_poll == 1 &&
     $boot_done == 1 && $shell_ready == 1}]
   set gate [expr {$post_armed eq "1" && $marker_ready &&

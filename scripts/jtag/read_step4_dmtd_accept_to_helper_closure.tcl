@@ -179,13 +179,14 @@ proc read_ready {hardware_name} {
   set r(boot_generation) -1
   if {$entry >= 0} { set r(boot_generation) [expr {($entry >> 32) & 0xffffffff}] }
 
-  set r(firmware_main) [word32 [wb_read $hardware_name 0x00100A90]]
-  set r(shell_poll) [word32 [wb_read $hardware_name 0x00100A94]]
-  set r(boot_done) [word32 [wb_read $hardware_name 0x00100A98]]
-  set r(shell_ready) [word32 [wb_read $hardware_name 0x00100A9C]]
-  set r(firmware_main_generation) [word32 [wb_read $hardware_name 0x00100AA0]]
-  set r(shell_poll_generation) [word32 [wb_read $hardware_name 0x00100AA4]]
-  set r(boot_init_generation) [word32 [wb_read $hardware_name 0x00100AA8]]
+  set astat [word32 [wb_read $hardware_name 0x00100A14]]
+  set r(firmware_main) [expr {$astat < 0 ? -1 : ($astat >> 21) & 1}]
+  set r(shell_poll) [expr {$astat < 0 ? -1 : ($astat >> 22) & 1}]
+  set r(boot_done) [expr {$astat < 0 ? -1 : ($astat >> 23) & 1}]
+  set r(shell_ready) [expr {$astat < 0 ? -1 : ($astat >> 24) & 1}]
+  set r(firmware_main_generation) [expr {$astat < 0 ? -1 : ($astat >> 25) & 0x7f}]
+  set r(shell_poll_generation) $r(firmware_main_generation)
+  set r(boot_init_generation) $r(firmware_main_generation)
 
   set c0 [word64 [probe_read 28]]
   set c1 [word64 [probe_read 29]]
@@ -197,9 +198,8 @@ proc read_ready {hardware_name} {
   set marker_ready [expr {$r(firmware_main) == 1 && $r(shell_poll) == 1 &&
     $r(boot_done) == 1 && $r(shell_ready) == 1}]
   set generation_match [expr {$r(boot_generation) >= 0 &&
-    $r(firmware_main_generation) == $r(boot_generation) &&
-    $r(shell_poll_generation) == $r(boot_generation) &&
-    $r(boot_init_generation) == $r(boot_generation)}]
+    $r(firmware_main_generation) >= 0 &&
+    $r(firmware_main_generation) == ($r(boot_generation) & 0x7f)}]
   set r(generation_match) $generation_match
   set r(marker_ready) $marker_ready
   set r(gate) [expr {$r(post_armed) == 1 && $marker_ready &&

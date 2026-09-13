@@ -67,6 +67,7 @@ static uint16_t wdiags_vlan_pfilter_progress_shadow;
 static uint32_t wdiags_mapping_counter_shadow;
 static uint32_t wdiags_port_state_shadow;
 static uint32_t wdiags_aux_state_shadow;
+static uint32_t wdiags_shell_ready_shadow;
 static uint32_t wdiags_boot_startup_p_offset_shadow[WRC_DIAGS_BOOT_STARTUP_STAGE_COUNT];
 static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
@@ -110,9 +111,9 @@ static void wdiags_write_shell_microtrace_mirror(void)
 	if (wdiags_reinit_attribution_active)
 		return;
 
-	/* The private WDIAGS SDB window ends at 0x1ff.  The shell-ready gate now
-	 * owns the separate 0x090..0x0a8 bank, so the 0x1e0..0x1f8 words remain
-	 * available for the buffer and metadata snapshot. */
+	/* The private WDIAGS SDB window ends at 0x1ff.  The shell-ready gate is
+	 * carried in ASTAT, so the 0x1e0..0x1f8 words remain available for the
+	 * buffer and metadata snapshot. */
 	meta0 = (debug_precrt_persistent_command_micro_length & 0xffU) |
 		((debug_precrt_persistent_command_micro_pos & 0xffU) << 8) |
 		((debug_precrt_persistent_command_micro_line_ready & 0x1U) << 16) |
@@ -628,26 +629,22 @@ void wdiags_write_firmware_shell_ready_debug(uint32_t main_loop_reached,
 		boot_init_generation == current_generation;
 
 	/* The shell microtrace reuses the tail words after the newline arms the
-	 * trace.  Do not let a later shell-ready refresh overwrite that snapshot;
-	 * the re-init attribution overlay is now disjoint from the gate bank. */
+	 * trace.  Do not let a later shell-ready refresh overwrite that snapshot. */
 	if (debug_precrt_persistent_command_micro_stage != 0)
 		return;
 
-	/* Dedicated read-only WDIAGS words. They are snapshots of firmware
-	 * breadcrumbs and never participate in WR/CPU control decisions. */
-	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED,
-			main_loop_reached);
-	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED,
-			shell_poll_reached);
-	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE,
-			boot_init_done);
-	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY, ready);
-	wdiag_write(WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION,
-			main_loop_generation);
-	wdiag_write(WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION,
-			shell_poll_generation);
-	wdiag_write(WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION,
-			boot_init_generation);
+	/* ASTAT has eleven reserved high bits after the existing startup trace:
+	 * four one-bit breadcrumbs plus a 7-bit current-generation tag.  Keep the
+	 * full source values in CPU memory; this compact mirror is only the gate
+	 * evidence consumed by passive JTAG readers. */
+	wdiags_shell_ready_shadow =
+		(main_loop_reached ? WRC_DIAGS_ASTAT_FIRMWARE_MAIN_LOOP_REACHED : 0) |
+		(shell_poll_reached ? WRC_DIAGS_ASTAT_SHELL_POLL_LOOP_REACHED : 0) |
+		(boot_init_done ? WRC_DIAGS_ASTAT_BOOT_INIT_SEQUENCE_DONE : 0) |
+		(ready ? WRC_DIAGS_ASTAT_FIRMWARE_SHELL_READY : 0) |
+		((current_generation << WRC_DIAGS_ASTAT_SHELL_READY_GENERATION_SHIFT) &
+		 WRC_DIAGS_ASTAT_SHELL_READY_GENERATION_MASK);
+	wdiags_write_boot_startup();
 }
 
 static void wdiags_write_boot_startup(void)
@@ -689,6 +686,7 @@ static void wdiags_write_boot_startup(void)
 			WRC_DIAGS_BOOT_STARTUP_VALID_MASK_MASK) <<
 			WRC_DIAGS_BOOT_STARTUP_VALID_MASK_SHIFT;
 		value |= WRC_DIAGS_BOOT_STARTUP_TRACE_VALID;
+		value |= wdiags_shell_ready_shadow;
 	}
 
 	wdiag_write(WRC_DIAGS_WDIAG_ASTAT, value);
@@ -697,6 +695,8 @@ static void wdiags_write_boot_startup(void)
 void wdiags_boot_startup_reset(void)
 {
 	uint32_t i;
+
+	wdiags_shell_ready_shadow = 0;
 
 	for (i = 0; i < WRC_DIAGS_BOOT_STARTUP_STAGE_COUNT; i++)
 		wdiags_boot_startup_p_offset_shadow[i] =

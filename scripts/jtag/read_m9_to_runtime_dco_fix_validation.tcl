@@ -199,13 +199,14 @@ proc read_one {hardware_name sample elapsed_ms} {
   set cpu_raw [probe_read 2]
   set entry_raw [probe_read 26]
 
-  set firmware_main [field32 [word64 [wb_read $hardware_name 0x00100A90]]]
-  set shell_poll [field32 [word64 [wb_read $hardware_name 0x00100A94]]]
-  set boot_done [field32 [word64 [wb_read $hardware_name 0x00100A98]]]
-  set shell_ready [field32 [word64 [wb_read $hardware_name 0x00100A9C]]]
-  set firmware_main_gen [field32 [word64 [wb_read $hardware_name 0x00100AA0]]]
-  set shell_poll_gen [field32 [word64 [wb_read $hardware_name 0x00100AA4]]]
-  set boot_init_gen [field32 [word64 [wb_read $hardware_name 0x00100AA8]]]
+  set shell_ready_astat [word64 [wb_read $hardware_name 0x00100A14]]
+  set firmware_main [expr {$shell_ready_astat < 0 ? -1 : ($shell_ready_astat >> 21) & 1}]
+  set shell_poll [expr {$shell_ready_astat < 0 ? -1 : ($shell_ready_astat >> 22) & 1}]
+  set boot_done [expr {$shell_ready_astat < 0 ? -1 : ($shell_ready_astat >> 23) & 1}]
+  set shell_ready [expr {$shell_ready_astat < 0 ? -1 : ($shell_ready_astat >> 24) & 1}]
+  set firmware_main_gen [expr {$shell_ready_astat < 0 ? -1 : ($shell_ready_astat >> 25) & 0x7f}]
+  set shell_poll_gen $firmware_main_gen
+  set boot_init_gen $firmware_main_gen
   set micro_stage_word [word64 [wb_read $hardware_name 0x00100BFC]]
   set command_stage_word [word64 [wb_read $hardware_name 0x00100BA0]]
   set mode_stage_word [word64 [wb_read $hardware_name 0x00100B74]]
@@ -220,12 +221,10 @@ proc read_one {hardware_name sample elapsed_ms} {
   set corr5_post [field_bit $corr5_word 27]
   set post_armed [field_bit $corr7_word 33]
   set generation [expr {$entry_word < 0 ? -1 : ($entry_word >> 32) & 0xffffffff}]
-  set generation_match [expr {$generation >= 0 && $firmware_main_gen ne "INVALID" &&
-    $firmware_main_gen eq [format %08X $generation] &&
-    $shell_poll_gen eq [format %08X $generation] &&
-    $boot_init_gen eq [format %08X $generation]}]
-  set marker_ready [expr {$firmware_main eq "00000001" && $shell_poll eq "00000001" &&
-    $boot_done eq "00000001" && $shell_ready eq "00000001"}]
+  set generation_match [expr {$generation >= 0 && $firmware_main_gen >= 0 &&
+    $firmware_main_gen == ($generation & 0x7f)}]
+  set marker_ready [expr {$firmware_main == 1 && $shell_poll == 1 &&
+    $boot_done == 1 && $shell_ready == 1}]
   set gate [expr {$post_armed eq "1" && $marker_ready && $generation_match &&
     $corr5_post eq "0"}]
   set runtime_idle [expr {$corr0_word == 0 && $corr1_word == 0 &&

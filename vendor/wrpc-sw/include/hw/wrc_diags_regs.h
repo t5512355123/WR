@@ -137,17 +137,18 @@
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_WR_STATE     0x1f8UL
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_SEQ          0x1fcUL
 #define WRC_DIAGS_WDIAG_WR_S_LOCK_TRACE_MAGIC_VALUE  0x5752534cUL
-/* Read-only firmware shell-ready gate. Keep this bank separate from the
- * 0x1e0..0x1fc private overlays used by S_LOCK, re-init attribution, and
- * shell microtrace diagnostics. These words are diagnostic shadows only;
- * they do not feed back into the WR control path. */
-#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_REACHED 0x090UL
-#define WRC_DIAGS_WDIAG_SHELL_POLL_LOOP_REACHED 0x094UL
-#define WRC_DIAGS_WDIAG_BOOT_INIT_SEQUENCE_DONE 0x098UL
-#define WRC_DIAGS_WDIAG_FIRMWARE_SHELL_READY 0x09cUL
-#define WRC_DIAGS_WDIAG_FIRMWARE_MAIN_LOOP_GENERATION 0x0a0UL
-#define WRC_DIAGS_WDIAG_SHELL_POLL_GENERATION 0x0a4UL
-#define WRC_DIAGS_WDIAG_BOOT_INIT_GENERATION 0x0a8UL
+/* Read-only firmware shell-ready gate carried in the reserved high bits of
+ * ASTAT (0x14).  The private 0x090..0x154 words are already owned by the WR
+ * lock, SoftPLL, Helper, and runtime shadows; reusing them would corrupt
+ * existing diagnostics.  These ASTAT bits are diagnostic-only and do not
+ * feed back into the WR control path.  Generation is deliberately 7 bits so
+ * it fits in the remaining ASTAT space; a cold FPGA power-cycle resets it. */
+#define WRC_DIAGS_ASTAT_FIRMWARE_MAIN_LOOP_REACHED (1UL << 21)
+#define WRC_DIAGS_ASTAT_SHELL_POLL_LOOP_REACHED    (1UL << 22)
+#define WRC_DIAGS_ASTAT_BOOT_INIT_SEQUENCE_DONE    (1UL << 23)
+#define WRC_DIAGS_ASTAT_FIRMWARE_SHELL_READY      (1UL << 24)
+#define WRC_DIAGS_ASTAT_SHELL_READY_GENERATION_SHIFT 25
+#define WRC_DIAGS_ASTAT_SHELL_READY_GENERATION_MASK  (0x7fUL << 25)
 /* Read-only coherent Helper-update measurement snapshot.  It is published
  * from a RAM snapshot captured by helper_update(), so every payload word
  * belongs to one accepted Helper invocation.  0x118 remains the existing

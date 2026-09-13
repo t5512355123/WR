@@ -1,0 +1,65 @@
+{
+  "experiment": "EXP-S5-WR-FAILURE-REASON-AUDIT-61B9AA8-VALID-MIF-20260913",
+  "date": "2026-09-13",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "61b9aa8c2a374ec5f400b0a143b12b2ba0bbec25",
+  "host": "pain",
+  "boards": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "objective": "Attribute the WR handshake failure without changing control behavior.",
+  "change_scope": "Read-only sticky failure-reason telemetry in existing WDIAGS WR_LOCK_RESULT high bits.",
+  "build": {
+    "firmware_master": "success",
+    "firmware_slave": "success",
+    "quartus_master": "success",
+    "quartus_slave": "success",
+    "master_mif_sha256": "327af856fd846f8fdafa3bf836a25cfdb358e9d40ffded8682a3d4e07d7a8229",
+    "slave_mif_sha256": "75104c32c2b724263f4c12dc10504ee458e6cc450cd1ef1e1bf3661d034607a1",
+    "master_sof_sha256": "1177fcbcfd2777e923d98074a346dfe77f2de2dc60322a147ca161faab2190ac",
+    "slave_sof_sha256": "33d86ba277ce2998f0f6408a182518a519bef7bae8bb383621148ac67caaba61",
+    "timing_closed_master": false,
+    "timing_closed_slave": false
+  },
+  "programming": {
+    "master": "success",
+    "slave": "success",
+    "errors": 0,
+    "warnings": 0
+  },
+  "observation": {
+    "duration_ms": 600000,
+    "elapsed_ms": 602000,
+    "observer_status": 0,
+    "samples": 285,
+    "sample_errors": 0,
+    "first_core_link_ms": 463,
+    "first_wr_failure_ms": 193187,
+    "failure_state": "WRS_S_LOCK",
+    "failure_reason_code": 3,
+    "failure_reason": "WR_S_LOCK_TIMEOUT",
+    "first_helper_locked_ms": 25661,
+    "first_main_enabled_ms": 280599,
+    "first_main_frequency_locked_ms": null,
+    "first_main_phase_locked_ms": null,
+    "first_main_locked_ms": null,
+    "final_pstat_locked": 0
+  },
+  "verdict": {
+    "step4": "partial_only_not_pass",
+    "step4b": "blocked_by_wr_s_lock_timeout",
+    "step5": "not_complete",
+    "merge_to_main": false
+  },
+  "raw_files": [
+    "raw/observer-61b9aa8-valid-mif.log",
+    "raw/build_jtag_master.log",
+    "raw/build_jtag_slave.log",
+    "raw/build_info_jtag_master.txt",
+    "raw/build_info_jtag_slave.txt",
+    "raw/program-master-summary.log",
+    "raw/program-slave-summary.log",
+    "raw/checksums.sha256"
+  ]
+}

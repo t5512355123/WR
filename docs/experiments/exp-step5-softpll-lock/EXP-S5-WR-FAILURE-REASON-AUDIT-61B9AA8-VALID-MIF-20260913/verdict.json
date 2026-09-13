@@ -1,0 +1,26 @@
+{
+  "experiment": "EXP-S5-WR-FAILURE-REASON-AUDIT-61B9AA8-VALID-MIF-20260913",
+  "classification": "VALID_WR_S_LOCK_TIMEOUT_NO_STEP5",
+  "step1_phy_link": "pass_at_startup_only",
+  "step2_endpoint_ptp": "partial",
+  "step3_wr_handshake": "fail_wr_s_lock_timeout",
+  "step4_softpll_startup": "partial_only_not_pass",
+  "step5_closed_loop_lock": "not_complete",
+  "step6_global_time": "na",
+  "merge_to_main": false,
+  "evidence": {
+    "first_core_link_ms": 463,
+    "first_wr_failure_ms": 193187,
+    "failure_state": "WRS_S_LOCK",
+    "failure_reason_code": 3,
+    "failure_reason": "WR_S_LOCK_TIMEOUT",
+    "helper_locked_ms": 25661,
+    "main_enabled_ms": 280599,
+    "main_frequency_locked_ms": null,
+    "main_phase_locked_ms": null,
+    "main_locked_ms": null,
+    "final_pstat_locked": 0,
+    "observer_sample_errors": 0
+  },
+  "reason": "The correctly rebuilt image reached link, helper lock, and Main enable, but the WR extension failed at the WRS_S_LOCK timeout path before Main frequency/phase/overall lock. The 600-second run did not meet a valid Step5 closed-loop lock criterion."
+}

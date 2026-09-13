@@ -1,0 +1,9 @@
+PROGRAM_SLAVE_VALID_START=2026-09-13T12:32:09+08:00
+COMMAND=./scripts/program/program_jtag_slave.sh
+CABLE=DE5 [1-11.2]
+SOF=DE5a_wr_slave_jtag.sof
+PROGRAMMER_RESULT=successful
+CONFIGURATION=1 device(s) configured
+ERRORS=0
+WARNINGS=0
+PROGRAM_SLAVE_VALID_EXIT=0

@@ -1,0 +1,22 @@
+{
+  "experiment": "EXP-S5-WR-EXTENSION-DISABLE-FIRST-CAUSE-FA1DB23-20260914",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "fa1db238f3e8ba6d75bd99dff85f5f818deaf48a",
+  "build": "PASS",
+  "program": "PASS",
+  "observer_sample_errors": {
+    "MASTER": 0,
+    "SLAVE": 0
+  },
+  "first_cause_trace": "PARTIAL_PASS",
+  "master_first_disable": {
+    "cause": "HANDSHAKE_FAILURE",
+    "wr_failure_reason": "WR_M_LOCK_TIMEOUT",
+    "elapsed_ms": 44969
+  },
+  "slave_first_disable": "NOT_OBSERVED",
+  "step5": "NOT_COMPLETE",
+  "step5_pass": false,
+  "timing_closed": false,
+  "next_action": "Directly publish first-disable timer/state context, then repeat the bounded first-cause timeline without changing control parameters."
+}

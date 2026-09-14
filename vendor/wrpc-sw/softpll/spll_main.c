@@ -14,7 +14,7 @@
 
 #define MPLL_DISCARD_EARLY_TAGS 10
 #define MPLL_TAG_WRAPAROUND 100000000
-#define MPLL_FREQ_PRELOCK_GAIN_BOOST 20
+#define MPLL_FREQ_PRELOCK_GAIN_BOOST 4
 /* ld_update() uses this as the lock-counter floor at which a persistent
  * out-of-band error releases the frequency lock.  It must be below
  * lock_samples; a value above it makes a claimed frequency lock sticky. */
@@ -49,11 +49,11 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	}
 #elif defined(CONFIG_WR_NODE)
 	/* Main-frequency polarity is established as positive by the A/B run.
-	 * Keep that sign, but use a bounded increase in proportional authority
-	 * so the measured multi-thousand-tic phase residual can be corrected
-	 * without returning to the previously unstable high-gain pair. */
-	s->pi.kp = 300;
-	s->pi.ki = 1;
+	 * F4a raises the Main loop authority and lowers the pre-lock boost so
+	 * frequency acquisition remains bounded while the phase residual is
+	 * corrected with the measured node actuator. */
+	s->pi.kp = 1300;
+	s->pi.ki = 3;
 #else
 #error "Please set CONFIG for wr switch or wr node"
 #endif

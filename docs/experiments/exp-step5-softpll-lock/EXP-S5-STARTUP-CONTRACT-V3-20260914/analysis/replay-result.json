@@ -1,0 +1,33 @@
+{
+  "fixture_count": 6,
+  "passed": 6,
+  "failed": 0,
+  "injection_calls": 0,
+  "legacy_fixture": {
+    "bank_schema": "SPLL_REINIT_OR_OVERLAY_CANDIDATE",
+    "readiness": "UNKNOWN"
+  },
+  "verified_fixture": {
+    "readiness": "READY",
+    "control_eligible": 1,
+    "audit_injection_calls": 0
+  },
+  "generation_mismatch_fixture": {
+    "readiness": "NOT_READY",
+    "reason": "GENERATION_MISMATCH"
+  },
+  "owner_unproven_fixture": {
+    "readiness": "UNKNOWN",
+    "reason": "BANK_SCHEMA_UNPROVEN"
+  },
+  "slock_overlay_fixture": {
+    "bank_schema": "SLOCK_TRACE",
+    "readiness": "UNKNOWN"
+  },
+  "runtime_history_fixture": {
+    "readiness": "READY",
+    "reason": "NO_POST_ARM_RUNTIME_HISTORY",
+    "control_eligible": 0
+  },
+  "result": "PASS"
+}

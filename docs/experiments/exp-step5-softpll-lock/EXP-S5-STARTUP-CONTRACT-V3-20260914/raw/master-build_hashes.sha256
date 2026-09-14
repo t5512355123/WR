@@ -1,0 +1,5 @@
+d8078a7cd0c284cb2848e74ebee87f0b37242c1f624733ab5b38aa0367c164a4  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/master/wrc.elf
+180a83d10bca75076e5fea3d1584c0b1ecee8d65d3134e0be587d8cbcb606257  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/master/wrc.bin
+83ab55e9f041997d0624214c31711b28e281f5ad1f64b22220d6c05a8c4f1d3d  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/master/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /tmp/wr-step5-cold-powercycle-20260913/firmware/configs/de5a_master_defconfig
+c8c8fbaf4c1a7b99c4cad7491a9134e4e0d698ac068b894d5a0ee2d18c06f692  /tmp/wr-step5-cold-powercycle-20260913/firmware/configs/de5a_master_identity.h

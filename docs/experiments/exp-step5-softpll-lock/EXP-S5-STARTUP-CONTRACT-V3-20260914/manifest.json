@@ -1,0 +1,46 @@
+{
+  "experiment": "EXP-S5-STARTUP-CONTRACT-V3-20260914",
+  "source_commit": "2ac1219a8aea791c5f87dc67f951fb5a1d58d1ab",
+  "branch": "exp/step5-softpll-lock",
+  "change_scope": "observer-only",
+  "changed_files": [
+    "scripts/jtag/read_fixed_image_shell_ready_gated_runtime_retest.tcl"
+  ],
+  "observer_sha256": "60e85cbbd840d032ff6acc4bd140146760f547794231fbe109cc2d6057e4eeb3",
+  "boards": [
+    {"role": "Master", "cable": "DE5 [1-11.1]", "project": "DE5a_wr_master_jtag"},
+    {"role": "Slave", "cable": "DE5 [1-11.2]", "project": "DE5a_wr_slave_jtag"}
+  ],
+  "build": {
+    "firmware_master": "PASS",
+    "firmware_slave": "PASS",
+    "quartus_master": "PASS",
+    "quartus_slave": "PASS",
+    "timing_closed_master": "NO",
+    "timing_closed_slave": "NO"
+  },
+  "programming": {"master": "PASS", "slave": "PASS"},
+  "observer_mode": "--audit-only",
+  "control_write_count": 0,
+  "preflight": {
+    "transport": "TRUSTED",
+    "probe_3way_match_count": 353,
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "step2_uniform": false
+  },
+  "readiness": {
+    "master": {
+      "status": "UNKNOWN",
+      "reason": "BANK_SCHEMA_UNPROVEN",
+      "bank_schema": "SPLL_REINIT_OR_OVERLAY_CANDIDATE"
+    },
+    "slave": {
+      "status": "UNKNOWN",
+      "reason": "BANK_SCHEMA_UNPROVEN",
+      "bank_schema": "SLOCK_TRACE"
+    }
+  },
+  "step5_result": "NOT_COMPLETE",
+  "raw_checksum_file": "raw/checksums.sha256"
+}

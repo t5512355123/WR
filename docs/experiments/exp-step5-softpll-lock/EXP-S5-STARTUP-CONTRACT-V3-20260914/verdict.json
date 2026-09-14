@@ -1,0 +1,15 @@
+{
+  "experiment": "EXP-S5-STARTUP-CONTRACT-V3-20260914",
+  "n1_observer_contract": "PASS",
+  "selftest": "PASS",
+  "hardware_audit": "PASS_BOUNDED_READ_ONLY",
+  "master_readiness": "UNKNOWN",
+  "slave_readiness": "UNKNOWN",
+  "control_writes": 0,
+  "step4b": "NOT_CLOSED_THIS_WINDOW",
+  "step5": "NOT_COMPLETE",
+  "step5_pass": false,
+  "first_inactive_boundary": "READINESS_SCHEMA_UNPROVEN",
+  "next_experiment": "N2-VERIFIED-RAM-STARTUP-TO-WR-DEADLINE-TIMELINE",
+  "stop_reason": "N1_COMPLETE_STOP_BEFORE_FUNCTIONAL_CONTROL_CHANGE"
+}

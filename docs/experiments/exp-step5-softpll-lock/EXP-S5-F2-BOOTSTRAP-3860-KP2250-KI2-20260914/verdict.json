@@ -1,0 +1,29 @@
+{
+  "format": "step5-experiment-verdict-v1",
+  "experiment": "EXP-S5-F2-BOOTSTRAP-3860-KP2250-KI2-20260914",
+  "source_commit": "30ce7adc6951b9be3d990081fc9de75ac3864d7f",
+  "step4b": "PASS",
+  "step5_pass": false,
+  "step5_result": "NOT_COMPLETE",
+  "f2_3860": "REJECTED",
+  "first_inactive_boundary": "HELPER_LOCK",
+  "evidence_quality": {
+    "measurement_coherence": "PASS",
+    "position_accounting": "FAIL",
+    "reset_stable": "PASS",
+    "helper_locked_seen": 0,
+    "helper_error_rms": 150000,
+    "helper_output": 5,
+    "low_rail_fraction": 1.0,
+    "full_chain_max_seconds": 0
+  },
+  "next_work_package": {
+    "name": "F2 empirical reverse bracket midpoint",
+    "only_change": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd STEP5_BOOTSTRAP_STEPS",
+    "old_steps": 3860,
+    "new_steps": 3216,
+    "bracket_low_rail": 3072,
+    "bracket_high_side": 3360
+  },
+  "merge_approved": false
+}

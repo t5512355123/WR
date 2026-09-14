@@ -1,0 +1,3 @@
+experiment=EXP-S5-F2-BOOTSTRAP-3860-KP2250-KI2-20260914
+source_commit=30ce7adc6951b9be3d990081fc9de75ac3864d7f
+started_at=2026-09-14T23:40:37+08:00

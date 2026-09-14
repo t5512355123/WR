@@ -1,0 +1,54 @@
+{
+  "experiment": "EXP-S5-F2-BOOTSTRAP-3860-KP2250-KI2-20260914",
+  "date": "2026-09-14",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "30ce7adc6951b9be3d990081fc9de75ac3864d7f",
+  "change_scope": [
+    "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd"
+  ],
+  "functional_change": {
+    "bootstrap_steps": 3860,
+    "previous_bootstrap_steps": 3388,
+    "helper_kp": -2250,
+    "helper_ki": -2
+  },
+  "hardware": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "master_build": "PASS",
+    "slave_build": "PASS",
+    "master_program": "PASS_DIRECT_QUARTUS",
+    "slave_program": "PASS_DIRECT_QUARTUS"
+  },
+  "preflight": {
+    "first_capture": "TRANSIENT_UPSTREAM_UNCALIBRATED",
+    "second_capture_step1": "PASS",
+    "second_capture_step2": "PASS",
+    "second_capture_step3": "PASS",
+    "step4b": "PASS",
+    "helper_locked": 0,
+    "first_inactive_boundary": "HELPER_LOCK"
+  },
+  "observation": {
+    "observer": "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
+    "samples": 120,
+    "gap_ms": 100,
+    "coherent_measurement_samples": 120,
+    "position_valid_samples": 120,
+    "helper_error_mean": 150000,
+    "helper_error_rms": 150000,
+    "helper_error_max_abs": 150000,
+    "helper_output": 5,
+    "low_rail_fraction": 1.0,
+    "normal_request_delta": 0,
+    "full_chain_max_seconds": 0,
+    "generation_changes": 0,
+    "reset_stable": true
+  },
+  "verdict": {
+    "f2_3860": "REJECTED",
+    "step5": "NOT_COMPLETE",
+    "next_work_package": "F2 empirical reverse bracket midpoint 3216"
+  },
+  "raw_archive": "artifacts/EXP-S5-F2-BOOTSTRAP-3860-KP2250-KI2-20260914-raw-transfer.tgz"
+}

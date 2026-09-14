@@ -857,6 +857,9 @@ void wdiags_write_wr_extension_disable_debug(uint32_t cause,
                                              uint32_t ext_state,
                                              uint32_t tics)
 {
+	uint32_t sstat;
+	uint32_t failure;
+
 	/* First event wins.  The record is intentionally sticky for this firmware
 	 * lifetime so a later retry or ordinary PTP operation cannot overwrite the
 	 * causal boundary. */
@@ -873,6 +876,22 @@ void wdiags_write_wr_extension_disable_debug(uint32_t cause,
 		 WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_PDSTATE_SHIFT) |
 		((ext_state & 0xfu) <<
 		 WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_EXTSTATE_SHIFT);
+
+	/* Publish immediately: Master does not execute the periodic servo-state
+	 * writer, so waiting for that path would lose the first event's context. */
+	sstat = wdiag_read(WRC_DIAGS_WDIAG_SSTAT);
+	sstat &= ~(WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_TICS_MASK |
+		   WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_PDSTATE_MASK |
+		   WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_EXTSTATE_MASK);
+	wdiag_write(WRC_DIAGS_WDIAG_SSTAT,
+		    sstat | wdiags_wr_disable_debug_shadow);
+	failure = wdiag_read(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT);
+	failure &= ~0x0000ff00u;
+	failure |= (wdiags_wr_disable_cause_shadow & 0x7u) << 8;
+	failure |= 1u << 11;
+	failure |= (wdiags_wr_disable_ptp_state_shadow & 0xfu) << 12;
+	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
+	wdiag_publish_barrier();
 }
 
 void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)

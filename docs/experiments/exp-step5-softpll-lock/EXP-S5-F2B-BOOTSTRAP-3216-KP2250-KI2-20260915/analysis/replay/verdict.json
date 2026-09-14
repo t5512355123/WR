@@ -1,0 +1,84 @@
+{
+  "format": "step5-evidence-v2",
+  "step5_pass": false,
+  "results": [
+    {
+      "source": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F2B-BOOTSTRAP-3216-KP2250-KI2-20260915\\raw\\observer-smoke-120.log",
+      "sample_count": 120,
+      "measurement_valid_samples": 120,
+      "frame_valid_samples": 113,
+      "coherent_measurement_samples": 120,
+      "position_valid_samples": 120,
+      "helper_error_mean": -150000.0,
+      "helper_error_rms": 150000.0,
+      "helper_error_min": -150000.0,
+      "helper_error_max": -150000.0,
+      "helper_error_max_abs": 150000.0,
+      "fraction_abs_error_le_200": 0.0,
+      "fraction_outside_actual_helper_threshold": 1.0,
+      "actual_helper_threshold": 2000,
+      "locked_bit_transitions": 0,
+      "lock_count_increases": 0,
+      "lock_count_decreases": 0,
+      "duplicate_epochs": 0,
+      "generation_changes": 0,
+      "full_chain_segments": [],
+      "max_continuous_full_chain_ms": 0,
+      "full_chain_freshness_unknown": true,
+      "stale_full_chain_samples": 0,
+      "strict_step5_pass": false,
+      "counter_accounting": {
+        "LOCK_COUNT": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        },
+        "HELPER_LOCK_COUNT": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "NORMAL_REQ": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "NORMAL_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "DCO_STEP": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "BOOTSTRAP_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "FORCED_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "FINC_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "FDEC_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "COUNTER8": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "experiment": "EXP-S5-F2B-BOOTSTRAP-3216-KP2250-KI2-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "92707653712eb9435e56fdd1f07a000fbace6ffa",
+  "functional_change": {
+    "file": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+    "parameter": "STEP5_BOOTSTRAP_STEPS",
+    "previous": 3860,
+    "candidate": 3216,
+    "reverse": 1
+  },
+  "held_constant": {
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "helper_phase_guard_seconds": 60,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "wr_timeout_seconds": 60
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "image_sha256": "raw/image-sha256.txt"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "master": "PASS",
+    "slave": "PASS",
+    "method": "direct_quartus_programmer"
+  },
+  "preflight": {
+    "first": "SLAVE_STEP2_UNCALIBRATED",
+    "settled_retry": "STEP1_STEP2_STEP3_STEP4B_PASS",
+    "step4b_allowed": true
+  },
+  "observer": {
+    "samples": 120,
+    "gap_ms": 100,
+    "board": "DE5 [1-11.2]",
+    "coherent_samples": 120,
+    "helper_output_final": 65531,
+    "high_rail_fraction": 1.0,
+    "helper_error_rms": 150000.0,
+    "helper_locked_seen": 0,
+    "normal_req_delta": 0,
+    "main_enabled_final": 0,
+    "main_phase_locked_final": 0,
+    "pstat_locked_final": 0,
+    "full_chain_max_seconds": 0.0,
+    "reset_stable": true,
+    "position_accounting": "FAIL_STALE_BOOTSTRAP_METADATA"
+  },
+  "verdict": {
+    "step5": "NOT_COMPLETE",
+    "candidate": false,
+    "merge_approved": false,
+    "next": "F3A_GUARD_8S_ON_BOOTSTRAP_3388"
+  },
+  "raw_checksums": "raw/checksums.sha256",
+  "analysis": "analysis/replay/verdict.json"
+}

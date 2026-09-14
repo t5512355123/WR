@@ -1,0 +1,18 @@
+{
+  "experiment": "EXP-S5-N2-STARTUP-WR-DEADLINE-PLL-20260914",
+  "observer_contract": "PASS_READ_ONLY_BOUNDED",
+  "n2_boundary_localization": "PASS",
+  "hardware_window": "INVALID_OR_UPSTREAM_BLOCKED",
+  "master_first_inactive_boundary": "WR_EXTENSION_FAILURE",
+  "slave_first_inactive_boundary": "WR_EXTENSION_FAILURE",
+  "master_first_wr_failure": "WR_M_LOCK_TIMEOUT",
+  "slave_first_wr_failure": "WR_LOCKED_TIMEOUT",
+  "slave_brief_tracking": true,
+  "master_dco_telemetry": "UNAVAILABLE_TIMEOUT",
+  "slave_dco_first_loss": "NOT_OBSERVED",
+  "step4b": "NOT_CLOSED_THIS_WINDOW",
+  "step5": "NOT_COMPLETE",
+  "step5_pass": false,
+  "next_experiment": "N2-MEASUREMENT-CLOSURE-VALID-WR-WINDOW",
+  "stop_reason": "N2_BOUNDARY_LOCATED_BUT_SLAVE_STEP2_INVALID_AND_DCO_CAUSALITY_INCOMPLETE"
+}

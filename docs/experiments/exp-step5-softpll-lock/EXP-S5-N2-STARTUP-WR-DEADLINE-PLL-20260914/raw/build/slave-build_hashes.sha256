@@ -1,0 +1,5 @@
+20308316d0f788a3046fc2628016fe6d8804a8b19522adbbdcd5214caec20d60  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/slave/wrc.elf
+9ed30496fe6c60a50ba4ac2f4d96e2ef089636a0b2dcea7edead15ffa504a14a  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/slave/wrc.bin
+da14ab4c4f415774563dec347ae9d9e7e37e8322a2500173c7e1f58339627d17  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/slave/wrc.mif
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /tmp/wr-step5-cold-powercycle-20260913/firmware/configs/de5a_slave_defconfig
+33ded2dc62811525a395d12a5a396dda1553339119eba2f37c86cf8cf4639d55  /tmp/wr-step5-cold-powercycle-20260913/firmware/configs/de5a_slave_identity.h

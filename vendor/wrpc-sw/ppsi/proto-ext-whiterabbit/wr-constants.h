@@ -29,7 +29,7 @@
 
 #define WR_PRESENT_TIMEOUT_MS	     1000
 
-#define WR_M_LOCK_TIMEOUT_MS		15000
+#define WR_M_LOCK_TIMEOUT_MS		60000
 
 /* Special case for eRTM14 and wr2rf.
  * Where it can take more than 15sec to sync PLL */

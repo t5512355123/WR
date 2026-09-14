@@ -1,0 +1,86 @@
+{
+  "experiment": "EXP-S5-F3A-GUARD8S-BOOTSTRAP3388-KP2250-KI2-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "026309d4c9e601421bdaca72cf912db44db2e7bd",
+  "functional_change": {
+    "file": "vendor/wrpc-sw/softpll/softpll_ng.c",
+    "parameter": "STEP5_HELPER_PHASE_GUARD_TICS",
+    "previous_seconds": 60,
+    "candidate_seconds": 8
+  },
+  "operating_point_restored": {
+    "file": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+    "parameter": "STEP5_BOOTSTRAP_STEPS",
+    "from_bracket_candidate": 3216,
+    "known_good_baseline": 3388,
+    "reverse": 1
+  },
+  "held_constant": {
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "wr_timeout_seconds": 60
+  },
+  "observer_provenance_fix": {
+    "file": "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
+    "runtime_args": {
+      "bootstrap_steps": 3388,
+      "helper_kp": -2250,
+      "helper_ki": -2,
+      "guard_seconds": 8,
+      "experiment_name": "EXP-S5-F3A-GUARD8S-BOOTSTRAP3388-KP2250-KI2-20260915"
+    },
+    "functional_control_changed": false
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "image_sha256": "raw/image-sha256.txt"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "master": "PASS",
+    "slave": "PASS",
+    "method": "direct_quartus_programmer"
+  },
+  "preflight": {
+    "first": "SLAVE_STEP2_UNCALIBRATED",
+    "settled_retry": "STEP1_STEP2_STEP3_STEP4B_PASS",
+    "step4b_allowed": true
+  },
+  "observer": {
+    "smoke_samples": 120,
+    "long_samples": 6000,
+    "gap_ms": 100,
+    "board": "DE5 [1-11.2]",
+    "long_coherent_samples": 6000,
+    "long_helper_error_rms": 890.568037453,
+    "long_helper_locked_seen": 5293,
+    "long_low_rail_fraction": 0.0,
+    "long_high_rail_fraction": 0.0,
+    "long_main_frequency_locked_final": 1,
+    "long_main_phase_locked_final": 0,
+    "long_pstat_locked_final": 0,
+    "long_full_chain_max_seconds": 0.0,
+    "long_position_accounting": "PASS",
+    "long_reset_stable": true
+  },
+  "verdict": {
+    "step5": "NOT_COMPLETE",
+    "candidate": false,
+    "merge_approved": false,
+    "next": "F4A_MAIN_PI_KP1300_KI3_PRELOCK_BOOST4"
+  },
+  "raw_checksums": "raw/checksums.sha256",
+  "analysis": [
+    "analysis/replay-smoke/verdict.json",
+    "analysis/replay-long/verdict.json"
+  ]
+}

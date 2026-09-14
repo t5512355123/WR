@@ -1,0 +1,84 @@
+{
+  "format": "step5-evidence-v2",
+  "step5_pass": false,
+  "results": [
+    {
+      "source": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F3A-GUARD8S-BOOTSTRAP3388-KP2250-KI2-20260915\\raw\\observer-long-6000.log",
+      "sample_count": 6000,
+      "measurement_valid_samples": 6000,
+      "frame_valid_samples": 5916,
+      "coherent_measurement_samples": 6000,
+      "position_valid_samples": 4677,
+      "helper_error_mean": 12.562333333333333,
+      "helper_error_rms": 890.56803745325,
+      "helper_error_min": -5441.0,
+      "helper_error_max": 4257.0,
+      "helper_error_max_abs": 5441.0,
+      "fraction_abs_error_le_200": 0.40066666666666667,
+      "fraction_outside_actual_helper_threshold": 0.045,
+      "actual_helper_threshold": 2000,
+      "locked_bit_transitions": 485,
+      "lock_count_increases": 450,
+      "lock_count_decreases": 25,
+      "duplicate_epochs": 0,
+      "generation_changes": 0,
+      "full_chain_segments": [],
+      "max_continuous_full_chain_ms": 0,
+      "full_chain_freshness_unknown": true,
+      "stale_full_chain_samples": 0,
+      "strict_step5_pass": false,
+      "counter_accounting": {
+        "LOCK_COUNT": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        },
+        "HELPER_LOCK_COUNT": {
+          "delta_sum": 142805,
+          "delta_samples": 5608,
+          "ambiguous": 38
+        },
+        "NORMAL_REQ": {
+          "delta_sum": 23724,
+          "delta_samples": 5981,
+          "ambiguous": 18
+        },
+        "NORMAL_COMPLETED": {
+          "delta_sum": 16651,
+          "delta_samples": 3677,
+          "ambiguous": 12
+        },
+        "DCO_STEP": {
+          "delta_sum": 361411,
+          "delta_samples": 3677,
+          "ambiguous": 12
+        },
+        "BOOTSTRAP_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 3677,
+          "ambiguous": 0
+        },
+        "FORCED_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 5981,
+          "ambiguous": 0
+        },
+        "FINC_COMPLETED": {
+          "delta_sum": 8210,
+          "delta_samples": 3677,
+          "ambiguous": 9
+        },
+        "FDEC_COMPLETED": {
+          "delta_sum": 8441,
+          "delta_samples": 3677,
+          "ambiguous": 10
+        },
+        "COUNTER8": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        }
+      }
+    }
+  ]
+}

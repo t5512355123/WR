@@ -1,0 +1,28 @@
+{
+  "format": "step5-experiment-verdict-v1",
+  "experiment": "EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914",
+  "source_commit": "e532eddbbc6fae67c9575614819ee07356762ba6",
+  "step4b": "PASS",
+  "step5_pass": false,
+  "step5_result": "NOT_COMPLETE",
+  "f1a2": "REJECTED",
+  "first_inactive_boundary": "MAIN_PHASE_LOCK",
+  "evidence_quality": {
+    "measurement_coherence": "PASS",
+    "position_accounting": "PASS",
+    "reset_stable": "PASS",
+    "long_samples": 6000,
+    "full_chain_max_seconds": 0,
+    "helper_error_rms": 923.0162744956,
+    "helper_error_max_abs": 5483,
+    "helper_lock_fall_events": 191,
+    "error_band_exit_events": 758
+  },
+  "next_work_package": {
+    "name": "F2",
+    "only_change": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd STEP5_BOOTSTRAP_STEPS",
+    "old_steps": 3388,
+    "new_steps": 3860
+  },
+  "merge_approved": false
+}

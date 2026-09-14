@@ -1,0 +1,531 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Mon Sep 14 23:18:13 2026
+    Info: System process ID: 977269
+Info: Command: quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+Info: Quartus(args): --raw
+RAW mailbox completion toggle wb_sync_toggle=0
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:01/02:00:22:33:44:01
+[pass] WDIAGS_MODE              結果: 2 MASTER/2 MASTER
+[pass] WDIAGS_PTP               結果: 6 MASTER (raw=01014106)/6 MASTER
+[pass] WDIAGS_PTP_RX            結果: Δ=10/Δ>0
+RAW WDIAGS_PTP_RX            before=0x000001BB after=0x000001C5 delta=10
+[pass] WDIAGS_PTP_TX            結果: Δ=26/Δ>0
+RAW WDIAGS_PTP_TX            before=0x000003DA after=0x000003F4 delta=26
+[pass] WDIAGS_TX                結果: Δ=32/Δ>0
+RAW WDIAGS_TX                before=0x00000505 after=0x00000525 delta=32
+[pass] WDIAGS_RX                結果: Δ=16/Δ>0
+RAW WDIAGS_RX                before=0x000002A4 after=0x000002B4 delta=16
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+RAW WDIAGS_RXERR             before=0x00000000 after=0x00000000 delta=0
+Step 2 pass
+
+## [Step 3] WR Parent / Signaling
+Step 3 NA
+
+## [Step 4A] Master SoftPLL Event Chain
+[pass] DMTD_REF_ACCEPT_EVENT    結果: Δ=23511/Δ>=0
+RAW DMTD_REF_ACCEPT_EVENT    before=0x0083A343 after=0x0083FF1A delta=23511
+[pass] DMTD_FB_ACCEPT_EVENT     結果: Δ=23578/Δ>=0
+RAW DMTD_FB_ACCEPT_EVENT     before=0x004E3F8C after=0x004E9BA6 delta=23578
+[pass] DMTD_ACCEPT              結果: Δ=47089/Δ>0
+[pass] SPLL_TAG_VALID_COUNT     結果: Δ=23583/Δ>0
+RAW SPLL_TAG_VALID_COUNT     before=0x000FE3B6 after=0x00103FD5 delta=23583
+[pass] SPLL_TRR_WRITE_COUNT     結果: Δ=23584/Δ>0
+RAW SPLL_TRR_WRITE_COUNT     before=0x000FE3E3 after=0x00104003 delta=23584
+[pass] WRPC_SPLL_TRR_POP_COUNT  結果: Δ=23627/Δ>0
+RAW WRPC_SPLL_TRR_POP_COUNT  before=0x000FE2C7 after=0x00103F12 delta=23627
+[pass] WDIAGS_IRQ_COUNT         結果: Δ=23627/Δ>0
+RAW WDIAGS_IRQ_COUNT         before=0x000FE2C7 after=0x00103F12 delta=23627
+[pass] WDIAGS_HELPER_UPDATE_COUNT 結果: Δ=23239/Δ>0
+RAW WDIAGS_HELPER_UPDATE_COUNT before=0x000FE44B after=0x00103F12 delta=23239
+[pass] BOOT_GENERATION          結果: Δ=0/Δ=0
+RAW BOOT_GENERATION          before=0x00000001 after=0x00000001 delta=0
+[pass] CPU_RESET_COUNT          結果: Δ=0/Δ=0
+RAW CPU_RESET_COUNT          before=0x00000001 after=0x00000001 delta=0
+[pass] WR_CORE_RESET_COUNT      結果: Δ=0/Δ=0
+RAW WR_CORE_RESET_COUNT      before=0x00000001 after=0x00000001 delta=0
+[pass] SI_CONFIG_DROP_COUNT     結果: Δ=0/Δ=0
+RAW SI_CONFIG_DROP_COUNT     before=0x00000001 after=0x00000001 delta=0
+STEP4A_MASTER_EVENT_CHAIN = PASS
+Step 4 pass
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+Step 5 NA (Step5 closed-loop gate is for Slave)
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           NA
+Step 4 Step4A Master Event Chain pass
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = PASS
+STEP3_REGRESSION = PASS
+STEP4A_RESULT = PASS
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+FAILURE_CLASSIFICATION = NO_FAILURE_EVIDENCE
+============================================================
+
+================ RAW_SNAPSHOT ================
+RAW_SNAPSHOT board=DE5 [1-11.1] label=before
+  status           = 301E6E6132BC82FF
+  cpu              = 0000007C00001228
+  marker           = 000000010000B004
+  store            = 000FD5730001EB58
+  store_count      = 0000000007E813D6
+  exception        = 8000000B00001220
+  clock            = 002FC1D365BB858F
+  boot_generation  = 00000001
+  cpu_reset_count  = 00000001
+  wr_core_reset_count = 00000001
+  si_config_drop_count = 00000001
+  pps_cr           = 01312D06
+  pps_escr         = 0000010C
+  ep_mach          = 02000200
+  ep_macl          = 22334401
+  ep_dsr           = 42000000
+  ptp              = 01014106
+  ptp_rx           = 000001BB
+  ptp_tx           = 000003DA
+  ptp_meta         = 02010306
+  tx               = 00000505
+  rx               = 000002A4
+  rxerr            = 00000000
+  ptp_types        = 01010101
+  foreign_meta     = 0000FF00
+  filter_meta      = 00000000
+  parse_meta       = 0001010C
+  wr_rx_signal     = 10000001
+  wr_tx_signal     = 10010003
+  wr_failure       = 00000000
+  wr_state         = A0219864
+  wr_reject        = 00000000
+  pstat            = 00000001
+  sstat            = 00000000
+  sec_h            = 00000000
+  sec_l            = 0000010C
+  ns               = 0ED6F648
+  lock_enable      = 00000000
+  lock_result      = 00000000
+  lock_polls       = 00000000
+  lock_unlocked    = 00000000
+  lock_calibration_fail = 00000000
+  spll_state       = 00020004
+  spll_ocer        = C40E5801
+  spll_rcer        = 00000000
+  spll_occr        = 11000143
+  spll_trr_csr     = 000EDE3A
+  spll_dac_hpll    = D294354B
+  spll_dac_main    = 00000007
+  spll_helper_state = 00060100
+  spll_helper_limits = 03E807D0
+  spll_main_state  = 00000000
+  spll_main_limits = 00320032
+  spll_main_phase_limits = 03E804B0
+  spll_state_visit_mask = 00000618
+  spll_state_transitions = 00000003
+  spll_last_state  = 00000004
+  spll_init_count  = 00000001
+  dmtd_ref         = 0083A343
+  dmtd_fb          = 004E3F8C
+  dmtd_ref_high_qual_abort = 00387C4F
+  dmtd_fb_high_qual_abort = 000B4974
+  tag_valid        = 000FE3B6
+  trr_write        = 000FE3E3
+  irq              = 000FE2C7
+  helper_update    = 000FE44B
+  spll_helper_error = FFFDB610
+  spll_helper_output = 0000FFFB
+  eic_isr          = FFFF0000
+  current_tics     = 00041EFA
+RAW_SNAPSHOT board=DE5 [1-11.1] label=after
+  status           = 401ED941225882FF
+  cpu              = 0000007C0000122C
+  marker           = 000000010000B004
+  store            = 001031280001EB58
+  store_count      = 000000000816BB03
+  exception        = 8000000B00001224
+  clock            = 002AEB4E8E7FAF0A
+  boot_generation  = 00000001
+  cpu_reset_count  = 00000001
+  wr_core_reset_count = 00000001
+  si_config_drop_count = 00000001
+  pps_cr           = 01312D06
+  pps_escr         = 0000010C
+  ep_mach          = 02000200
+  ep_macl          = 22334401
+  ep_dsr           = 42000000
+  ptp              = 01014106
+  ptp_rx           = 000001C5
+  ptp_tx           = 000003F4
+  ptp_meta         = 02010306
+  tx               = 00000525
+  rx               = 000002B4
+  rxerr            = 00000000
+  ptp_types        = 01010101
+  foreign_meta     = 0000FF00
+  filter_meta      = 00000000
+  parse_meta       = 0001011E
+  wr_rx_signal     = 10000001
+  wr_tx_signal     = 10010003
+  wr_failure       = 00000000
+  wr_state         = A0219864
+  wr_reject        = 00000000
+  pstat            = 00000001
+  sstat            = 00000000
+  sec_h            = 00000000
+  sec_l            = 00000112
+  ns               = 14D4EA60
+  lock_enable      = 00000000
+  lock_result      = 00000000
+  lock_polls       = 00000000
+  lock_unlocked    = 00000000
+  lock_calibration_fail = 00000000
+  spll_state       = 00020004
+  spll_ocer        = 19BDB401
+  spll_rcer        = 00000000
+  spll_occr        = 9900012D
+  spll_trr_csr     = 00123A8A
+  spll_dac_hpll    = FF49C342
+  spll_dac_main    = 00000008
+  spll_helper_state = 00060100
+  spll_helper_limits = 03E807D0
+  spll_main_state  = 00000000
+  spll_main_limits = 00320032
+  spll_main_phase_limits = 03E804B0
+  spll_state_visit_mask = 00000618
+  spll_state_transitions = 00000003
+  spll_last_state  = 00000004
+  spll_init_count  = 00000001
+  dmtd_ref         = 0083FF1A
+  dmtd_fb          = 004E9BA6
+  dmtd_ref_high_qual_abort = 00396BEC
+  dmtd_fb_high_qual_abort = 000B8AAA
+  tag_valid        = 00103FD5
+  trr_write        = 00104003
+  irq              = 00103F12
+  helper_update    = 00103F12
+  spll_helper_error = FFFDB610
+  spll_helper_output = 0000FFFB
+  eic_isr          = FFFF0000
+  current_tics     = 000436CE
+RAW mailbox completion toggle wb_sync_toggle=0
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:02/02:00:22:33:44:02
+[pass] WDIAGS_MODE              結果: 3 SLAVE/3 SLAVE
+[info] WDIAGS_PTP               結果: 8 UNCALIBRATED (raw=00004108)/NA
+[pass] WDIAGS_PTP_RX            結果: Δ=27/Δ>0
+RAW WDIAGS_PTP_RX            before=0x000002E5 after=0x00000300 delta=27
+[pass] WDIAGS_PTP_TX            結果: Δ=12/Δ>0
+RAW WDIAGS_PTP_TX            before=0x0000013F after=0x0000014B delta=12
+[pass] WDIAGS_TX                結果: Δ=19/Δ>0
+RAW WDIAGS_TX                before=0x00000215 after=0x00000228 delta=19
+[pass] WDIAGS_RX                結果: Δ=33/Δ>0
+RAW WDIAGS_RX                before=0x00000394 after=0x000003B5 delta=33
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+RAW WDIAGS_RXERR             before=0x00000000 after=0x00000000 delta=0
+Step 2 NA
+
+## [Step 3] WR Parent / Signaling
+[pass] WDIAGS_FOREIGN_META      結果: 1/1
+[pass] WDIAGS_FOREIGN_META      結果: 0/0
+[info] WDIAGS_FOREIGN_META      結果: detection=0 config=3/NA
+[pass] parentIsWRnode           結果: 1/1
+[info] parentWrModeOn           結果: 0/NA
+[pass] parentCalibrated         結果: 1/1
+[pass] WR_RX_SIGNAL_DEBUG       結果: LOCK count=1/LOCK 0x1001,count>0
+[pass] WR_TX_SIGNAL_DEBUG       結果: SLAVE_PRESENT count=1/SLAVE_PRESENT 0x1000,count>0
+[pass] WDIAGS_TEMP              結果: WRS_S_LOCK next=WRS_S_LOCK/WRS_S_LOCK=2
+[pass] LOCK_ENABLE              結果: 3/> 0
+Step 3 pass
+
+## [Step 4B] Slave SoftPLL Startup
+[info] STEP4B_UPSTREAM_GATE     結果: BLOCKED/NA
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+Step 4B BLOCKED (upstream prerequisite)
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         NA
+Step 3 WR Handshake           pass
+Step 4 Step4B Slave SoftPLL Startup blocked
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = INVALID
+STEP3_REGRESSION = PASS
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+FAILURE_CLASSIFICATION = JTAG/DASHBOARD_MEASUREMENT_FAILURE
+============================================================
+
+================ RAW_SNAPSHOT ================
+RAW_SNAPSHOT board=DE5 [1-11.2] label=before
+  status           = C210EB6137BC82EF
+  cpu              = 0000007C00001220
+  marker           = 000000010000B004
+  store            = FFFFFFB60001EBA8
+  store_count      = 00000000069155C9
+  exception        = 8000000B00001224
+  clock            = 00289F208D8AA1D6
+  boot_generation  = 00000001
+  cpu_reset_count  = 00000001
+  wr_core_reset_count = 00000001
+  si_config_drop_count = 00000001
+  pps_cr           = 01312D06
+  pps_escr         = 00000000
+  ep_mach          = 02000200
+  ep_macl          = 22334402
+  ep_dsr           = 42000000
+  ptp              = 00004108
+  ptp_rx           = 000002E5
+  ptp_tx           = 0000013F
+  ptp_meta         = 03010308
+  tx               = 00000215
+  rx               = 00000394
+  rxerr            = 00000000
+  ptp_types        = 03A754A7
+  foreign_meta     = 03000001
+  filter_meta      = 00000000
+  parse_meta       = 05015458
+  wr_rx_signal     = 10010001
+  wr_tx_signal     = 10000001
+  wr_failure       = 00000000
+  wr_state         = A041135C
+  wr_reject        = 00000000
+  pstat            = 00000001
+  sstat            = 00000101
+  sec_h            = 00000000
+  sec_l            = 000000AD
+  ns               = 3203D8E8
+  lock_enable      = 00000003
+  lock_result      = 00000001
+  lock_polls       = 0000F66B
+  lock_unlocked    = 0000F692
+  lock_calibration_fail = 00000000
+  spll_state       = 00030006
+  spll_ocer        = 10153401
+  spll_rcer        = 00000001
+  spll_occr        = BF0001AA
+  spll_trr_csr     = 0012FEB8
+  spll_dac_hpll    = 123242DD
+  spll_dac_main    = 00000005
+  spll_helper_state = 01880000
+  spll_helper_limits = 03E807D0
+  spll_main_state  = 07D02305
+  spll_main_limits = 00320032
+  spll_main_phase_limits = 03E804B0
+  spll_state_visit_mask = 00000678
+  spll_state_transitions = 00000005
+  spll_last_state  = 00000006
+  spll_init_count  = 00000001
+  dmtd_ref         = 02BACA5E
+  dmtd_fb          = 02806083
+  dmtd_ref_high_qual_abort = 0066DDEF
+  dmtd_fb_high_qual_abort = 00520D51
+  tag_valid        = 001307CA
+  trr_write        = 00130823
+  irq              = 00128551
+  helper_update    = 00060502
+  spll_helper_error = FFFFFCF7
+  spll_helper_output = 0000E6E7
+  eic_isr          = FFFF0000
+  current_tics     = 0002AE33
+RAW_SNAPSHOT board=DE5 [1-11.2] label=after
+  status           = 9F105641275082EF
+  cpu              = 0000007C00001230
+  marker           = 000000010000B004
+  store            = 0013184F0001EB58
+  store_count      = 0000000006DE07D2
+  exception        = 8000000B00001224
+  clock            = 002DDABFC874DD75
+  boot_generation  = 00000001
+  cpu_reset_count  = 00000001
+  wr_core_reset_count = 00000001
+  si_config_drop_count = 00000001
+  pps_cr           = 01312D06
+  pps_escr         = 00000000
+  ep_mach          = 02000200
+  ep_macl          = 22334402
+  ep_dsr           = 42000000
+  ptp              = 00004108
+  ptp_rx           = 00000300
+  ptp_tx           = 0000014B
+  ptp_meta         = 03010308
+  tx               = 00000228
+  rx               = 000003B5
+  rxerr            = 00000000
+  ptp_types        = 03AD57AD
+  foreign_meta     = 03000001
+  filter_meta      = 00000000
+  parse_meta       = 05015772
+  wr_rx_signal     = 10010001
+  wr_tx_signal     = 10000001
+  wr_failure       = 00000000
+  wr_state         = A041135C
+  wr_reject        = 00000000
+  pstat            = 00000001
+  sstat            = 00000101
+  sec_h            = 00000000
+  sec_l            = 000000B3
+  ns               = 320B7A60
+  lock_enable      = 00000003
+  lock_result      = 00000001
+  lock_polls       = 0000FFA0
+  lock_unlocked    = 0000FFA0
+  lock_calibration_fail = 00000000
+  spll_state       = 00030006
+  spll_ocer        = 2D45AB01
+  spll_rcer        = 00000001
+  spll_occr        = 0700019C
+  spll_trr_csr     = 0012B43A
+  spll_dac_hpll    = 3FA4651D
+  spll_dac_main    = 00000005
+  spll_helper_state = 03E80001
+  spll_helper_limits = 03E807D0
+  spll_main_state  = 08602F05
+  spll_main_limits = 00320032
+  spll_main_phase_limits = 03E804B0
+  spll_state_visit_mask = 00000678
+  spll_state_transitions = 00000005
+  spll_last_state  = 00000006
+  spll_init_count  = 00000001
+  dmtd_ref         = 02BB2521
+  dmtd_fb          = 0280BB04
+  dmtd_ref_high_qual_abort = 006AB297
+  dmtd_fb_high_qual_abort = 00551BAB
+  tag_valid        = 0013BD11
+  trr_write        = 0013BD6A
+  irq              = 0013343B
+  helper_update    = 00065FE8
+  spll_helper_error = 00000049
+  spll_helper_output = 0000E5DD
+  eic_isr          = FFFF0000
+  current_tics     = 0002C608
+
+============================================================
+JTAG/WB transport health summary
+============================================================
+WB_TRANSPORT_PROTOCOL = PRELOAD_THEN_TOGGLE_COMMIT
+WB_REQUEST_COUNT = 353
+PRELOAD_COUNT = 353
+COMMIT_COUNT = 353
+WB_PROBE_READ_COUNT = 1765
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 353
+STABLE_RESPONSE_WRONG_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+TIMEOUT_COUNT = 0
+INVALID_COUNT = 0
+STALE_A5A5_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = PASS
+JTAG_WB_DIAGNOSTIC_PATH = TRUSTED
+============================================================
+
+============================================================
+STEP4A_RESULT = PASS
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+============================================================
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Mon Sep 14 23:18:32 2026
+    Info: Elapsed time: 00:00:19
+    Info: System process ID: 977269

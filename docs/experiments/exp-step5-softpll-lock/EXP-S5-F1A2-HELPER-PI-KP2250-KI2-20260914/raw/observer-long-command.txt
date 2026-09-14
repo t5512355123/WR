@@ -1,0 +1,2 @@
+command=quartus_stp -t scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl 6000 100 "DE5 [1-11.2]"
+started_at=2026-09-14T23:21:57+08:00

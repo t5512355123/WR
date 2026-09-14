@@ -1,0 +1,3 @@
+experiment=EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914
+source_commit=e532eddbbc6fae67c9575614819ee07356762ba6
+started_at=2026-09-14T23:02:46+08:00

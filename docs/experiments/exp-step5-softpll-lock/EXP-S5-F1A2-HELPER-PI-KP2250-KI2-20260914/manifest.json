@@ -1,0 +1,57 @@
+{
+  "experiment": "EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914",
+  "date": "2026-09-14",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "e532eddbbc6fae67c9575614819ee07356762ba6",
+  "change_scope": [
+    "vendor/wrpc-sw/softpll/spll_helper.c"
+  ],
+  "functional_change": {
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "previous_candidate_kp": -4500,
+    "previous_candidate_ki": -8
+  },
+  "preserved_parameters": {
+    "bootstrap_steps": 3388,
+    "physical_step_code": 64,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "helper_phase_guard_seconds": 60,
+    "wr_timeout_ms": 60000
+  },
+  "hardware": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "master_build": "PASS",
+    "slave_build": "PASS",
+    "master_program": "PASS",
+    "slave_program": "PASS"
+  },
+  "observation": {
+    "observer": "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
+    "long_samples": 6000,
+    "gap_ms": 100,
+    "coherent_measurement_samples": 6000,
+    "position_valid_samples": 5184,
+    "span_seconds": 849.144,
+    "helper_error_rms": 923.0162744956,
+    "helper_error_max_abs": 5483,
+    "helper_output_mean": 60574.122,
+    "helper_output_min": 56993,
+    "helper_output_max": 64712,
+    "fft_peak_hz": 0.671,
+    "helper_lock_fall_events": 191,
+    "error_band_exit_events": 758,
+    "full_chain_max_seconds": 0,
+    "generation_changes": 0,
+    "reset_stable": true
+  },
+  "verdict": {
+    "step4b": "PASS",
+    "f1a2": "REJECTED",
+    "step5": "NOT_COMPLETE",
+    "next_work_package": "F2 bootstrap centering"
+  },
+  "raw_archive": "artifacts/EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914-raw-transfer.tgz"
+}

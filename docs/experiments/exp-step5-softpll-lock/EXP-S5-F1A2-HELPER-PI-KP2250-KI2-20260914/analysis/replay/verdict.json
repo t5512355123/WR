@@ -1,0 +1,162 @@
+{
+  "format": "step5-evidence-v2",
+  "step5_pass": false,
+  "results": [
+    {
+      "source": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914\\raw\\observer-smoke-120.log",
+      "sample_count": 120,
+      "measurement_valid_samples": 120,
+      "frame_valid_samples": 115,
+      "coherent_measurement_samples": 120,
+      "position_valid_samples": 110,
+      "helper_error_mean": -71.68333333333334,
+      "helper_error_rms": 900.5371637713423,
+      "helper_error_min": -2436.0,
+      "helper_error_max": 2455.0,
+      "helper_error_max_abs": 2455.0,
+      "fraction_abs_error_le_200": 0.4,
+      "fraction_outside_actual_helper_threshold": 0.058333333333333334,
+      "actual_helper_threshold": 2000,
+      "locked_bit_transitions": 12,
+      "lock_count_increases": 12,
+      "lock_count_decreases": 2,
+      "duplicate_epochs": 0,
+      "generation_changes": 0,
+      "full_chain_segments": [],
+      "max_continuous_full_chain_ms": 0,
+      "full_chain_freshness_unknown": true,
+      "stale_full_chain_samples": 0,
+      "strict_step5_pass": false,
+      "counter_accounting": {
+        "LOCK_COUNT": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        },
+        "HELPER_LOCK_COUNT": {
+          "delta_sum": 3905,
+          "delta_samples": 109,
+          "ambiguous": 2
+        },
+        "NORMAL_REQ": {
+          "delta_sum": 549,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "NORMAL_COMPLETED": {
+          "delta_sum": 514,
+          "delta_samples": 99,
+          "ambiguous": 0
+        },
+        "DCO_STEP": {
+          "delta_sum": 9482,
+          "delta_samples": 99,
+          "ambiguous": 0
+        },
+        "BOOTSTRAP_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 99,
+          "ambiguous": 0
+        },
+        "FORCED_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 119,
+          "ambiguous": 0
+        },
+        "FINC_COMPLETED": {
+          "delta_sum": 259,
+          "delta_samples": 99,
+          "ambiguous": 0
+        },
+        "FDEC_COMPLETED": {
+          "delta_sum": 255,
+          "delta_samples": 99,
+          "ambiguous": 0
+        },
+        "COUNTER8": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        }
+      }
+    },
+    {
+      "source": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F1A2-HELPER-PI-KP2250-KI2-20260914\\raw\\observer-long-6000.log",
+      "sample_count": 6000,
+      "measurement_valid_samples": 6000,
+      "frame_valid_samples": 5903,
+      "coherent_measurement_samples": 6000,
+      "position_valid_samples": 5184,
+      "helper_error_mean": -5.253166666666667,
+      "helper_error_rms": 923.0162749558283,
+      "helper_error_min": -5021.0,
+      "helper_error_max": 5483.0,
+      "helper_error_max_abs": 5483.0,
+      "fraction_abs_error_le_200": 0.361,
+      "fraction_outside_actual_helper_threshold": 0.04816666666666667,
+      "actual_helper_threshold": 2000,
+      "locked_bit_transitions": 513,
+      "lock_count_increases": 468,
+      "lock_count_decreases": 30,
+      "duplicate_epochs": 0,
+      "generation_changes": 0,
+      "full_chain_segments": [],
+      "max_continuous_full_chain_ms": 0,
+      "full_chain_freshness_unknown": true,
+      "stale_full_chain_samples": 0,
+      "strict_step5_pass": false,
+      "counter_accounting": {
+        "LOCK_COUNT": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        },
+        "HELPER_LOCK_COUNT": {
+          "delta_sum": 147745,
+          "delta_samples": 5589,
+          "ambiguous": 46
+        },
+        "NORMAL_REQ": {
+          "delta_sum": 24932,
+          "delta_samples": 5977,
+          "ambiguous": 22
+        },
+        "NORMAL_COMPLETED": {
+          "delta_sum": 20191,
+          "delta_samples": 4495,
+          "ambiguous": 16
+        },
+        "DCO_STEP": {
+          "delta_sum": 463022,
+          "delta_samples": 4495,
+          "ambiguous": 16
+        },
+        "BOOTSTRAP_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 4495,
+          "ambiguous": 0
+        },
+        "FORCED_COMPLETED": {
+          "delta_sum": 0,
+          "delta_samples": 5977,
+          "ambiguous": 0
+        },
+        "FINC_COMPLETED": {
+          "delta_sum": 10132,
+          "delta_samples": 4495,
+          "ambiguous": 16
+        },
+        "FDEC_COMPLETED": {
+          "delta_sum": 10059,
+          "delta_samples": 4495,
+          "ambiguous": 11
+        },
+        "COUNTER8": {
+          "delta_sum": 0,
+          "delta_samples": 0,
+          "ambiguous": 0
+        }
+      }
+    }
+  ]
+}

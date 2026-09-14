@@ -1,0 +1,8 @@
+{
+  "experiment": "EXP-S5-HPLL-DEMAND-MAIN-PROGRESS-CORRELATION-20260914",
+  "diagnostic_result": "INCONCLUSIVE",
+  "step5_result": "NOT_COMPLETE",
+  "merge_approved": false,
+  "reason": "Main remained disabled with update_count 0; Helper residual and L2 demand/service changes were not available in one fully valid position/accounting window, and the capture stopped after three consecutive invalid position groups.",
+  "next_action": "STOP_AFTER_REPORT"
+}

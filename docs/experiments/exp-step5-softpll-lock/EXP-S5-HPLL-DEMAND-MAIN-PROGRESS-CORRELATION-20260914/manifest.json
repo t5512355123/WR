@@ -1,0 +1,24 @@
+{
+  "experiment": "EXP-S5-HPLL-DEMAND-MAIN-PROGRESS-CORRELATION-20260914",
+  "source_commit": "eb3d1a515b8076f9f8d518180b92131d990fd70a",
+  "branch": "exp/step5-softpll-lock",
+  "target_board": "DE5 [1-11.2]",
+  "observer": "scripts/jtag/read_step5_main_frequency_prelock_observability.tcl",
+  "read_only_observer": true,
+  "production_c_or_rtl_modified": false,
+  "helper_pi_snapshot_triggered": false,
+  "second_reader_opened": false,
+  "smoke_samples": 5,
+  "max_duration_ms": 240000,
+  "formal_capture_samples": 85,
+  "correlation_samples": 82,
+  "stop_reason": "PERSISTENT_GROUP_INVALID_OR_BANK_CONFLICT",
+  "diagnostic_result": "INCONCLUSIVE",
+  "step5_complete": false,
+  "merge_approved": false,
+  "sof_sha256": {
+    "master": "4e68250bc0e30c1637d3536e1db0f8987209d2e3c4506c833cdd31a40512db01",
+    "slave": "2ece5c7964b7c513bd32bcdd14755a375c9932cfd33739d3849b33c0022d921c"
+  },
+  "raw_transfer_sha256": "e00be1a1078612885ec1420ca2089517ee5a2f6963480f315be8e50476a9bde0"
+}

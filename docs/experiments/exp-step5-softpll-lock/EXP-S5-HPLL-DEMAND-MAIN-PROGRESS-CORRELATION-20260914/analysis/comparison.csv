@@ -1,0 +1,3 @@
+window,group_valid,main_trace_update_first,main_trace_update_final,main_sample_n_advanced,helper_measurement_residual,helper_position_residual,helper_pending,helper_l2_completed_first,helper_l2_completed_final,interpretation
+credible_samples_1_82,82,0,0,0,82,0,0,3388,3388,"Main never progressed; no valid normal-demand transition"
+tail_samples_83_85,0,0,0,0,NA,NA,NA,3388,4162,"Position/accounting group invalid; do not use for causal correlation"

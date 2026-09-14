@@ -1,0 +1,28 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Mon Sep 14 20:04:00 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 1 0 __NO_SUCH_BOARD__
+Info: Quartus(args): 1 0 __NO_SUCH_BOARD__
+STEP5_HPLL_DEMAND_MAIN_PROGRESS_CONFIG samples_max=1 gap_ms=0 board_filter=__NO_SUCH_BOARD__ experiment=EXP-S5-HPLL-DEMAND-MAIN-PROGRESS-CORRELATION-20260914 read_only_observer=1 smoke_samples=5 max_duration_ms=240000 helper_measurement_window=0x00100B00..0x00100B24 main_trace_window=0x00100B58..0x00100BAC main_trace_magic=0x00100BDC position_probes=42,43,44,49 l2_probes=52..61 no_helper_pi_snapshot=1 no_second_reader=1 firmware_s_lock_alignment=auxiliary wr_master_lock_timeout_ms=60000 wr_state_retry=3 helper_phase_guard_seconds=60 cadence_ms=0
+STEP5_MAIN_FREQ_PRELOCK_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step5_main_frequency_prelock_observability.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Mon Sep 14 20:04:01 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

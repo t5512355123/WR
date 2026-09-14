@@ -1,0 +1,27 @@
+{
+  "format": "step5-experiment-verdict-v1",
+  "experiment": "EXP-S5-F1-HELPER-PI-RETUNE-KP4500-KI8-20260914",
+  "source_commit": "f93c61a11d13687a800ea182e1d335576c51d42a",
+  "step4b": "PASS",
+  "step5_pass": false,
+  "step5_result": "NOT_COMPLETE",
+  "f1_candidate_a": "REJECTED",
+  "first_inactive_boundary": "MAIN_PHASE_LOCK",
+  "evidence_quality": {
+    "measurement_coherence": "PASS",
+    "position_accounting": "PASS",
+    "reset_stable": "PASS",
+    "full_chain_max_seconds": 0,
+    "helper_error_rms": 1307.4962109569062,
+    "helper_error_max_abs": 5609,
+    "helper_lock_fall_events": 8,
+    "error_band_exit_events": 19
+  },
+  "next_work_package": {
+    "name": "F1-A2",
+    "only_change": "vendor/wrpc-sw/softpll/spll_helper.c CONFIG_WR_NODE helper_very_init PI",
+    "helper_kp": -2250,
+    "helper_ki": -2
+  },
+  "merge_approved": false
+}

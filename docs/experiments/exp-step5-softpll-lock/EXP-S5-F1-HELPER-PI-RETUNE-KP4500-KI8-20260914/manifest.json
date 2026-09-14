@@ -1,0 +1,53 @@
+{
+  "experiment": "EXP-S5-F1-HELPER-PI-RETUNE-KP4500-KI8-20260914",
+  "date": "2026-09-14",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "f93c61a11d13687a800ea182e1d335576c51d42a",
+  "change_scope": [
+    "vendor/wrpc-sw/softpll/spll_helper.c"
+  ],
+  "functional_change": {
+    "helper_kp": -4500,
+    "helper_ki": -8,
+    "baseline_helper_kp": -150,
+    "baseline_helper_ki": -1
+  },
+  "preserved_parameters": {
+    "bootstrap_steps": 3388,
+    "physical_step_code": 64,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "helper_phase_guard_seconds": 60,
+    "wr_timeout_ms": 60000
+  },
+  "hardware": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "master_build": "PASS",
+    "slave_build": "PASS",
+    "master_program": "PASS",
+    "slave_program": "PASS"
+  },
+  "observation": {
+    "observer": "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
+    "samples": 120,
+    "gap_ms": 100,
+    "measurement_coherent_samples": 120,
+    "position_valid_samples": 104,
+    "helper_error_rms": 1307.4962109569062,
+    "helper_error_max_abs": 5609,
+    "helper_output_mean": 58809.042,
+    "helper_output_min": 49739,
+    "helper_output_max": 65530,
+    "fft_peak_hz": 0.877,
+    "full_chain_max_seconds": 0,
+    "reset_stable": true
+  },
+  "verdict": {
+    "step4b": "PASS",
+    "f1_candidate_a": "REJECTED",
+    "step5": "NOT_COMPLETE",
+    "next_work_package": "F1-A2"
+  },
+  "raw_archive": "artifacts/EXP-S5-F1-HELPER-PI-RETUNE-KP4500-KI8-20260914-raw-transfer.tgz"
+}

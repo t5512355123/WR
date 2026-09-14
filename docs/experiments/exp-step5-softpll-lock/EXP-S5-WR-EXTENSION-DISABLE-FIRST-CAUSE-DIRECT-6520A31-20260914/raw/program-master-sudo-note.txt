@@ -1,0 +1,4 @@
+INITIAL_ATTEMPT=sudo_noninteractive_failed_before_programming
+INITIAL_ERROR=sudo: a password is required
+RETRY=authorized_sudo_retry_succeeded
+PROGRAM_RESULT=SUCCESS

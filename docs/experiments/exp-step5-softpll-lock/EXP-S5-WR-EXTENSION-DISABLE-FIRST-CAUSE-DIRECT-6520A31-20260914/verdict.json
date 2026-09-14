@@ -1,0 +1,36 @@
+{
+  "experiment": "EXP-S5-WR-EXTENSION-DISABLE-FIRST-CAUSE-DIRECT-6520A31-20260914",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "6520a31efbf904f8a3364773e7dd9a759eccf545",
+  "build": "PASS",
+  "program": "PASS",
+  "observer_sample_errors": {
+    "MASTER": 0,
+    "SLAVE": 0
+  },
+  "transport": {
+    "wb_request_count": 353,
+    "probe_three_way_match_count": 353,
+    "stable_response_wrong_count": 0,
+    "address_cross_contamination_count": 0,
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "status": "TRUSTED"
+  },
+  "direct_first_disable_publication": "PASS",
+  "master_first_disable": {
+    "cause": "HANDSHAKE_FAILURE",
+    "wr_failure_reason": "WR_M_LOCK_TIMEOUT",
+    "elapsed_ms": 50675,
+    "ptp_state": 6,
+    "pd_state": 3,
+    "ext_state": 1,
+    "tics_low16": 40606
+  },
+  "slave_first_disable": "NOT_OBSERVED",
+  "step4b": "PASS",
+  "step5": "NEVER_LOCKED",
+  "step5_pass": false,
+  "timing_closed": false,
+  "next_action": "Ask Astra to diagnose the Slave MAIN_PHASE_LOCK boundary using this complete first-cause evidence; do not change timeout or PI blindly."
+}

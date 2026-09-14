@@ -1,0 +1,18 @@
+{
+  "experiment": "EXP-S5-SLOCK-POLL-CALIB-CAUSE-AUDIT-20260914",
+  "observer_contract": "PASS_READ_ONLY_BOUNDED",
+  "s_lock_cause_telemetry": "PASS",
+  "pll_lock_before_wr_timeout": "OBSERVED",
+  "calib_t24p_failure": "OBSERVED",
+  "successful_s_lock_poll": "INFERRED_FROM_NEXT_STATE_NOT_DIRECTLY_TRACED",
+  "master_wr_progression": "MASTER_TIMEOUT_BEFORE_SLAVE_LOCK",
+  "slave_internal_tracking": "34_SAMPLES_BEFORE_WR_LOCKED_TIMEOUT",
+  "slave_step3_gate": "INVALID_LAST_TX_SIGNAL_SEMANTICS",
+  "l2_counter_contract": "PASS_LOGICAL_START_EQUALS_COMPLETION",
+  "hardware_window": "INVALID_OR_WR_EXTENSION_BLOCKED",
+  "step4b": "NOT_CLOSED_THIS_WINDOW",
+  "step5": "NOT_COMPLETE",
+  "step5_pass": false,
+  "next_experiment": "S5-SLOCK-SUCCESS-PATH-AND-MASTER-CALIBRATE-AUDIT",
+  "stop_reason": "MASTER_WR_M_LOCK_TIMEOUT_AND_SLAVE_WR_LOCKED_TIMEOUT_AFTER_INTERNAL_TRACKING"
+}

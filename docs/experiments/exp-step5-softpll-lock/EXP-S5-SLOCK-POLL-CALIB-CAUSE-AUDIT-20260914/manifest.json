@@ -1,0 +1,83 @@
+{
+  "experiment": "EXP-S5-SLOCK-POLL-CALIB-CAUSE-AUDIT-20260914",
+  "source_commit": "88596aa8a0419f2ce1667f3a8202043124c34585",
+  "branch": "exp/step5-softpll-lock",
+  "change_scope": "diagnostic-only",
+  "changed_files": [
+    "vendor/wrpc-sw/ppsi/arch-wrpc/wrpc.h",
+    "vendor/wrpc-sw/ppsi/arch-wrpc/wrc_ptp_ppsi.c",
+    "vendor/wrpc-sw/ppsi/arch-wrpc/wrpc-spll.c",
+    "vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/state-wr-s-lock.c",
+    "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl"
+  ],
+  "boards": [
+    {"role": "Master", "cable": "DE5 [1-11.1]", "project": "DE5a_wr_master_jtag"},
+    {"role": "Slave", "cable": "DE5 [1-11.2]", "project": "DE5a_wr_slave_jtag"}
+  ],
+  "build": {
+    "firmware_master": "PASS",
+    "firmware_slave": "PASS",
+    "quartus_master": "PASS",
+    "quartus_slave": "PASS",
+    "timing_closed_master": "NO",
+    "timing_closed_slave": "NO",
+    "master_sof_sha256": "d66e4d14f143fa9585061607206d4dbda167da7a37c1fb8167c4de5eb4a5f9af",
+    "slave_sof_sha256": "5f25cb4dfc8bfbcd4f7715f4516883da26e65236ef01536adc4cf1fbe0a4df2c"
+  },
+  "programming": {"master": "PASS", "slave": "PASS"},
+  "preflight": {
+    "transport": "TRUSTED",
+    "wb_request_count": 352,
+    "probe_3way_match_count": 352,
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "address_cross_contamination_count": 0,
+    "master_step2": "PASS",
+    "slave_step2": "PASS",
+    "slave_step3": "INVALID",
+    "step4b_allowed": "NO",
+    "step4b_result": "BLOCKED_BY_STEP3"
+  },
+  "observer": {
+    "read_only": true,
+    "deadline_ms": 240000,
+    "actual_elapsed_ms": 241504,
+    "samples": {"Master": 85, "Slave": 85},
+    "sample_errors": {"Master": 0, "Slave": 0},
+    "frame_invalid_samples": {"Master": 7, "Slave": 3},
+    "boot_generation_changes": {"Master": 0, "Slave": 0}
+  },
+  "timeline": {
+    "master_first_wr_failure_ms": 57834,
+    "master_first_wr_failure": "WR_M_LOCK_TIMEOUT",
+    "slave_first_tracking_ms": 136886,
+    "slave_tracking_samples": 34,
+    "slave_first_wr_failure_ms": 142864,
+    "slave_first_wr_failure": "WR_LOCKED_TIMEOUT",
+    "slave_first_wr_disable_cause": "HANDSHAKE_FAILURE",
+    "first_inactive_boundary": "WR_EXTENSION_FAILURE"
+  },
+  "s_lock_cause": {
+    "unlocked_detail": "0x00000001",
+    "locked_but_calib_failed_detail": "0x00000B01",
+    "locked_but_calib_failed_observed": true,
+    "calibration_fail_count_final_hex": "0x224",
+    "successful_poll_path": "INFERRED_FROM_NEXT_STATE_NOT_DIRECTLY_TRACED"
+  },
+  "l2": {
+    "slave_main_start_final": 26648,
+    "slave_main_completed_final": 26648,
+    "slave_helper_start_final": 10303,
+    "slave_helper_completed_final": 10303,
+    "slave_main_failed_final": 0,
+    "slave_helper_failed_final": 0,
+    "slave_ack_events_final": 0,
+    "slave_timeout_events_final": 0,
+    "slave_first_loss_valid": 0,
+    "counter_contract": "CLOSED_START_EQUALS_COMPLETED"
+  },
+  "step5_result": "NOT_COMPLETE",
+  "step5_pass": false,
+  "raw_transfer_sha256": "e4b87e44f39fe60ae0e90fee89c01298d37548ee7a39545a37184c56b6f5f229",
+  "raw_checksum_file": "raw/source-file-sha256.txt"
+}

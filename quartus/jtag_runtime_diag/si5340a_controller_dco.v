@@ -220,6 +220,7 @@ reg        liveness_dpll_pending_prev;
 reg        liveness_hpll_pending_prev;
 reg        liveness_ack_error_prev;
 reg        liveness_dco_error_prev;
+reg        liveness_runtime_start_prev;
 reg        liveness_tx_active;
 reg        liveness_tx_owner_dpll;
 reg        liveness_tx_ack_at_start;
@@ -1068,6 +1069,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     liveness_hpll_pending_prev <= 1'b0;
     liveness_ack_error_prev <= 1'b0;
     liveness_dco_error_prev <= 1'b0;
+    liveness_runtime_start_prev <= 1'b0;
     liveness_tx_active <= 1'b0;
     liveness_tx_owner_dpll <= 1'b0;
     liveness_tx_ack_at_start <= 1'b0;
@@ -1091,7 +1093,8 @@ always @(posedge iCLK or negedge iRST_n) begin
     // rt_state 1 is the first write of a complete four-write logical
     // transaction. Later visits to states 3 and 5 are phases of the same
     // transaction and are intentionally not counted as new service starts.
-    if (runtime_start && (rt_state == 3'd1)) begin
+    if (runtime_start && !liveness_runtime_start_prev &&
+        (rt_state == 3'd1)) begin
       liveness_tx_active <= 1'b1;
       liveness_tx_owner_dpll <= rt_select_dpll;
       liveness_tx_ack_at_start <= i2c_ack_error;
@@ -1191,6 +1194,7 @@ always @(posedge iCLK or negedge iRST_n) begin
     liveness_hpll_pending_prev <= hpll_pending;
     liveness_ack_error_prev <= i2c_ack_error;
     liveness_dco_error_prev <= dco_error;
+    liveness_runtime_start_prev <= runtime_start;
   end
 end
 

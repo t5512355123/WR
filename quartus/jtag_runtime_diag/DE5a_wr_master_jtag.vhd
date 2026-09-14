@@ -385,6 +385,19 @@ architecture rtl of DE5a_wr_master_jtag is
   signal dco_runtime_start      : std_logic;
   signal dco_runtime_bus_enable : std_logic;
   signal dco_system_start       : std_logic;
+  -- Diagnostic-only L2 DCO liveness payloads.  These are intentionally
+  -- exposed on the Master as well as the Slave so TIMEOUT is not mistaken
+  -- for a producer-side zero in the shared observer.
+  signal dco_step5_liveness_status_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_pending_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_start_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_completed_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_failed_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_wait_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_current_wait_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_latency_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_failure_probe : std_logic_vector(63 downto 0);
+  signal dco_step5_liveness_first_loss_probe : std_logic_vector(63 downto 0);
 
   signal si_corr_probe0         : std_logic_vector(63 downto 0);
   signal si_corr_probe1         : std_logic_vector(63 downto 0);
@@ -1027,6 +1040,69 @@ begin
       source_ena => '1'
     );
 
+  -- L2 low-perturbation first-loss probes.  The probe indices mirror the
+  -- Slave image and are otherwise unused in this Master top level.
+  u_step5_liveness_status_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_STATUS_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 52,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_status_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_pending_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_PENDING_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 53,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_pending_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_start_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_START_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 54,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_start_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_completed_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_COMPLETED_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 55,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_completed_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_failed_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_FAILED_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 56,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_failed_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_wait_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_WAIT_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 57,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_wait_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_current_wait_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_CURRENT_WAIT_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 58,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_current_wait_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_latency_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_LATENCY_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 59,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_latency_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_failure_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_FAILURE_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 60,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_failure_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+  u_step5_liveness_first_loss_probe : altsource_probe
+    generic map (instance_id => "WR_STEP5_LIVENESS_FIRST_LOSS_MASTER", probe_width => 64,
+                 sld_auto_instance_index => "NO", sld_instance_index => 61,
+                 source_width => 1)
+    port map (probe => dco_step5_liveness_first_loss_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
   -- CPU 執行觀測：[31:0] PC、bit 32 reset、bit 33 fault、bit 34
   -- instruction-valid。此 probe 只讀取，不參與 WR 時序。
   cpu_debug_probe(31 downto 0) <= cpu_pc;
@@ -1503,16 +1579,16 @@ begin
       oDCO_STEP5_I2C_DEBUG => open,
       oDCO_STEP5_I2C_SEQUENCE_DEBUG => open,
       oDCO_STEP5_POLARITY_ACTIVE => open,
-      oDCO_STEP5_LIVENESS_STATUS => open,
-      oDCO_STEP5_LIVENESS_PENDING => open,
-      oDCO_STEP5_LIVENESS_START => open,
-      oDCO_STEP5_LIVENESS_COMPLETED => open,
-      oDCO_STEP5_LIVENESS_FAILED => open,
-      oDCO_STEP5_LIVENESS_WAIT => open,
-      oDCO_STEP5_LIVENESS_CURRENT_WAIT => open,
-      oDCO_STEP5_LIVENESS_LATENCY => open,
-      oDCO_STEP5_LIVENESS_FAILURE => open,
-      oDCO_STEP5_LIVENESS_FIRST_LOSS => open,
+      oDCO_STEP5_LIVENESS_STATUS => dco_step5_liveness_status_probe,
+      oDCO_STEP5_LIVENESS_PENDING => dco_step5_liveness_pending_probe,
+      oDCO_STEP5_LIVENESS_START => dco_step5_liveness_start_probe,
+      oDCO_STEP5_LIVENESS_COMPLETED => dco_step5_liveness_completed_probe,
+      oDCO_STEP5_LIVENESS_FAILED => dco_step5_liveness_failed_probe,
+      oDCO_STEP5_LIVENESS_WAIT => dco_step5_liveness_wait_probe,
+      oDCO_STEP5_LIVENESS_CURRENT_WAIT => dco_step5_liveness_current_wait_probe,
+      oDCO_STEP5_LIVENESS_LATENCY => dco_step5_liveness_latency_probe,
+      oDCO_STEP5_LIVENESS_FAILURE => dco_step5_liveness_failure_probe,
+      oDCO_STEP5_LIVENESS_FIRST_LOSS => dco_step5_liveness_first_loss_probe,
       oDEBUG_STATIC_STATE    => dco_static_state,
       oDEBUG_STATIC_CONFIG_DONE_PULSE => dco_static_done_pulse,
       oDEBUG_STATIC_ACCESS_START => dco_static_access_start,

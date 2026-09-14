@@ -1911,7 +1911,7 @@ begin
       -- +0.216 FREQ_ERROR per FINC physical step, so add sixteen FINC steps
       -- (3372 + round(3.531/0.216)) as a bounded operating-point correction.
       -- This is a single calculated A/B, not a PI sweep.
-      STEP5_BOOTSTRAP_STEPS => 3388,
+      STEP5_BOOTSTRAP_STEPS => 3860,
       STEP5_BOOTSTRAP_REVERSE => 1,
       -- Keep the virtual position account aligned with the measured physical
       -- SI5340 FINC/FDEC step; the 32-code experiment was not physically

@@ -1,0 +1,78 @@
+{
+  "experiment": "EXP-S5-F4A-CONTROL-RESTORE-MAIN-PI-UPSTREAM-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "ca2a1d45bae191c32bf5629acc887e7b435e8c46",
+  "functional_change": {
+    "file": "vendor/wrpc-sw/softpll/spll_main.c",
+    "type": "control_restore",
+    "main_kp": 300,
+    "main_ki": 1,
+    "prelock_boost": 20
+  },
+  "held_constant": {
+    "bootstrap_steps": 3388,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_phase_guard_seconds": 8,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "wr_timeout_seconds": 60
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "master_sof_sha256": "f44f428bd71784b34dfb7c11ce0854d7748098925bd24f787e8df32f9d8cc2db",
+    "slave_sof_sha256": "8d7b46f1686a8ae4fec6f3b5e3cdebdc8bfaf2e3f43b6c8347e235c5fdb354dc",
+    "image_sha256_file": "raw/image-sha256.txt"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "order": "master_then_slave",
+    "master": "PASS",
+    "slave": "PASS",
+    "method": "direct_quartus_programmer"
+  },
+  "preflight": {
+    "first": "SLAVE_STEP2_UNCALIBRATED",
+    "settled_retry": "STEP1_STEP2_STEP3_STEP4B_PASS",
+    "step4b_allowed": true,
+    "step4b_result": "PASS",
+    "jtag_wb_path": "TRUSTED"
+  },
+  "observer": {
+    "smoke_samples": 120,
+    "long_samples": 6000,
+    "gap_ms": 100,
+    "board": "DE5 [1-11.2]",
+    "long_coherent_samples": 6000,
+    "long_position_snapshots": 4639,
+    "long_helper_error_rms": 929.197444303,
+    "long_helper_locked_seen": 5308,
+    "long_low_rail_fraction": 0.0,
+    "long_high_rail_fraction": 0.0,
+    "long_main_frequency_locked_final": 1,
+    "long_main_phase_locked_final": 0,
+    "long_pstat_locked_final": 0,
+    "long_full_chain_max_seconds": 0.0,
+    "long_position_accounting": "PASS",
+    "long_reset_stable": true
+  },
+  "verdict": {
+    "step5": "NOT_COMPLETE",
+    "candidate": false,
+    "merge_approved": false,
+    "f4a_upstream_regression": "STRONGLY_SUPPORTED_BY_CONTROL",
+    "next": "EXP-S5-F4B-SLAVE-ONLY-MAIN-PI-ISOLATION-20260915"
+  },
+  "analysis": [
+    "analysis/replay-smoke/verdict.json",
+    "analysis/replay-long/verdict.json"
+  ],
+  "raw_checksums": "raw/checksums.sha256"
+}

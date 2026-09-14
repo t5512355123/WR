@@ -1,0 +1,3 @@
+COMMIT=ca2a1d45bae191c32bf5629acc887e7b435e8c46
+BRANCH=HEAD -> exp/step5-softpll-lock, origin/exp/step5-softpll-lock
+SUBJECT=exp: restore F4a control Main PI

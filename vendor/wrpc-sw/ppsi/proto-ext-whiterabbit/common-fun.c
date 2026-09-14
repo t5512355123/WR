@@ -7,6 +7,7 @@
 #include <ppsi/ppsi.h>
 #include "../arch-wrpc/wrpc.h"
 #include "dev/syscon.h"
+#include <dev/wdiags.h>
 
 void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
@@ -39,6 +40,9 @@ void wr_handshake_fail_reason(struct pp_instance *ppi, uint8_t reason)
 
 	pp_diag(ppi, ext, 1, "Handshake failure: now non-wr %s\n",
 		wrp->wrMode == WR_MASTER ? "master" : "slave");
+	wdiags_write_wr_extension_disable_debug(
+		WDIAGS_WR_DISABLE_CAUSE_HANDSHAKE_FAILURE,
+		ppi->state, ppi->pdstate, ppi->extState, timer_get_tics());
 	wrp->next_state=WRS_IDLE;
 	wr_reset_process(ppi,WR_ROLE_NONE);
 	wr_servo_reset(ppi);

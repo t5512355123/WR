@@ -256,6 +256,15 @@ proc wr_fail_reason_name {reason} {
   return UNKNOWN
 }
 
+proc wr_disable_cause_name {cause} {
+  switch -- $cause {
+    0 { return OTHER_CALLER }
+    1 { return PROTOCOL_DETECTION_TIMEOUT }
+    2 { return HANDSHAKE_FAILURE }
+  }
+  return UNKNOWN
+}
+
 proc slock_stage_name {stage} {
   switch -- $stage {
     1 { return ENTRY }
@@ -340,6 +349,7 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     set reset_probe [probe_read 27]
 
     set ptp [wb_read $hardware_name 0x00100A10]
+    set sstat [wb_read $hardware_name 0x00100A08]
     set ptp_rx [wb_read $hardware_name 0x00100A54]
     set ptp_tx [wb_read $hardware_name 0x00100A58]
     set rxerr [wb_read $hardware_name 0x00100A60]
@@ -440,6 +450,15 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   # WR_LOCK_RESULT: reason[15:9], last-failure timer low word[31:16].
   set wr_failure_reason [field32 $lock_result 9 7]
   set wr_failure_tics_low [field32 $lock_result 16 16]
+  # First WR-extension disable record: cause/PTP state are carried in the
+  # unused middle byte of WR_FAILURE_DEBUG; SSTAT carries the timer and the
+  # pre-disable pd/ext states.  The valid bit makes cause=OTHER unambiguous.
+  set wr_disable_cause [field32 $wr_failure 8 3]
+  set wr_disable_valid [bit32 $wr_failure 11]
+  set wr_disable_ptp_state [field32 $wr_failure 12 4]
+  set wr_disable_tics_low [field32 $sstat 16 16]
+  set wr_disable_pd_state [field32 $sstat 1 4]
+  set wr_disable_ext_state [field32 $sstat 12 4]
   set helper_locked [bit32 $helper_state 0]
   set helper_lock_changed [bit32 $helper_state 1]
   set helper_lock_count [field32 $helper_state 16 16]
@@ -447,6 +466,8 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   set helper_lock_samples [field32 $helper_limits 16 16]
   # task-diags.c packing: enabled=bit0, Main locked=bit1,
   # frequency locked=bit2, phase locked=bit3.
+  # Keep the named fields aligned with the firmware packing; the previous
+  # reader shifted bits 1..3 and could report phase/Main lock incorrectly.
   set main_enabled [bit32 $main_state 0]
   set main_locked [bit32 $main_state 1]
   set main_freq_locked [bit32 $main_state 2]
@@ -513,6 +534,15 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     set ::first_failure_reason($role) $wr_failure_reason
     set ::first_failure_tics_low($role) $wr_failure_tics_low
   }
+  if {$wr_disable_valid == 1 &&
+      ![info exists ::first($role,wr_disable_cause)]} {
+    set ::first($role,wr_disable_cause) $wr_disable_cause
+    set ::first($role,wr_disable_cause_ms) $elapsed
+    set ::first($role,wr_disable_tics_low) $wr_disable_tics_low
+    set ::first($role,wr_disable_ptp_state) $wr_disable_ptp_state
+    set ::first($role,wr_disable_pd_state) $wr_disable_pd_state
+    set ::first($role,wr_disable_ext_state) $wr_disable_ext_state
+  }
   note_counter_activity $role ptp_rx_activity $ptp_rx $elapsed
   note_counter_activity $role ptp_tx_activity $ptp_tx $elapsed
   note_counter_activity $role dmtd_ref_accept $dmtd_ref_accept $elapsed
@@ -531,14 +561,14 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     note_first $role first_step4b_event_chain 1 $elapsed
   }
 
-  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) SLOCK_TRACE_MAGIC=%s SLOCK_TRACE_STAGE=%s(%s) SLOCK_TRACE_RETRY=%s SLOCK_TRACE_ENTRY_TICS=%s SLOCK_TRACE_REMAINING_MS=%s SLOCK_TRACE_POLL_RET=%s SLOCK_TRACE_WR_STATE=%s SLOCK_TRACE_SEQ=%s WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
+  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_DISABLE=valid=%s,cause=%s,ptp=%s,pd=%s,ext=%s,tics_low16=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) SLOCK_TRACE_MAGIC=%s SLOCK_TRACE_STAGE=%s(%s) SLOCK_TRACE_RETRY=%s SLOCK_TRACE_ENTRY_TICS=%s SLOCK_TRACE_REMAINING_MS=%s SLOCK_TRACE_POLL_RET=%s SLOCK_TRACE_WR_STATE=%s SLOCK_TRACE_SEQ=%s WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s" \
     $::trial_id $role $hardware_name $sample $elapsed $si_config_done $wr_ready $wr_rx_ready $wr_tx_ready $wr_rx_locked_to_data $wr_rx_enc_err $wr_tx_enc_err $core_tm_link_up $core_link_ok \
     $mode [mode_name $mode] $ptp_state [ptp_state_name $ptp_state] $pd_state [pd_state_name $pd_state] $ext_state [ext_state_name $ext_state] $wrc_mode_meta [mode_name $wrc_mode_meta] $ptp_state_raw [display32 $ptp_rx] [display32 $ptp_tx] [display32 $rxerr] \
     [expr {$boot_generation < 0 ? "INVALID" : [format %08X $boot_generation]}] \
     [expr {$cpu_reset_count < 0 ? "INVALID" : $cpu_reset_count}] [expr {$wr_core_reset_count < 0 ? "INVALID" : $wr_core_reset_count}] [expr {$si_config_reset_count < 0 ? "INVALID" : $si_config_reset_count}] $cpu_reset_n \
     [display32 $foreign_meta] [num_or_invalid $foreign_count] [num_or_invalid $foreign_best] [num_or_invalid $foreign_detection] [num_or_invalid $foreign_wr_config] $parent_is_wrnode $parent_mode_on $parent_calibrated \
     [display32 $wr_rx_signal] $rx_signal_id [signal_name $rx_signal_id] $rx_signal_count [display32 $wr_tx_signal] $tx_signal_id [signal_name $tx_signal_id] $tx_signal_count \
-    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] [display32 $wr_failure] [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $slock_magic] [display32 $slock_stage] [slock_stage_name [word32 $slock_stage]] [display32 $slock_retry] [display32 $slock_entry_tics] [display32 $slock_remaining_ms] [display32 $slock_poll_ret] [display32 $slock_wr_state] [display32 $slock_seq] [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
+    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] [display32 $wr_failure] $wr_disable_valid $wr_disable_cause $wr_disable_ptp_state $wr_disable_pd_state $wr_disable_ext_state $wr_disable_tics_low [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $slock_magic] [display32 $slock_stage] [slock_stage_name [word32 $slock_stage]] [display32 $slock_retry] [display32 $slock_entry_tics] [display32 $slock_remaining_ms] [display32 $slock_poll_ret] [display32 $slock_wr_state] [display32 $slock_seq] [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
     $spll_mode [spll_mode_name $spll_mode] $spll_seq_state [spll_state_name $spll_seq_state] $spll_align_state [display32 $helper_state] $helper_locked $helper_lock_changed $helper_lock_count [display32 $helper_limits] $helper_threshold $helper_lock_samples [display32 $main_state] $main_enabled $main_freq_locked $main_phase_locked $main_locked $main_freq_lock_count $main_phase_lock_count [display32 $main_limits] $main_freq_threshold $main_freq_lock_samples [display32 $main_phase_limits] $main_phase_threshold $main_phase_lock_samples $spll_delock_count [display32 $rcer] [display32 $ocer] \
     [display32 $dmtd_ref_accept] [display32 $dmtd_fb_accept] [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] [display32 $irq] [display32 $helper_update] [display32 $pstat] $pstat_locked]
   flush stdout
@@ -556,6 +586,20 @@ proc print_board_summary {role} {
   if {[info exists ::first_failure_reason($role)]} {
     set first_failure_reason $::first_failure_reason($role)
     set first_failure_tics_low $::first_failure_tics_low($role)
+  }
+  set first_disable_cause NEVER
+  set first_disable_ms NEVER
+  set first_disable_tics_low NEVER
+  set first_disable_ptp_state NEVER
+  set first_disable_pd_state NEVER
+  set first_disable_ext_state NEVER
+  if {[info exists ::first($role,wr_disable_cause)]} {
+    set first_disable_cause $::first($role,wr_disable_cause)
+    set first_disable_ms $::first($role,wr_disable_cause_ms)
+    set first_disable_tics_low $::first($role,wr_disable_tics_low)
+    set first_disable_ptp_state $::first($role,wr_disable_ptp_state)
+    set first_disable_pd_state $::first($role,wr_disable_pd_state)
+    set first_disable_ext_state $::first($role,wr_disable_ext_state)
   }
   set boundary WR_CORE_LINK
   if {[first_value $role first_core_tm_link_up] ne "NEVER" && [first_value $role first_core_link_ok] ne "NEVER"} {
@@ -581,11 +625,11 @@ proc print_board_summary {role} {
   if {$::sample_count($role) == 0} { set boundary OBSERVER_ERROR }
   set unclassified 0
   if {$boundary eq "OBSERVER_ERROR"} { set unclassified 1 }
-  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PTP_SLAVE_MS=%s FIRST_PDSTATE_PDETECTED_MS=%s FIRST_PDSTATE_FAILURE_MS=%s FIRST_EXTSTATE_ACTIVE_MS=%s FIRST_EXTSTATE_PTP_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_HELPER_LOCKED_MS=%s FIRST_SPLL_READY_MS=%s FIRST_MAIN_ENABLED_MS=%s FIRST_MAIN_FREQ_LOCKED_MS=%s FIRST_MAIN_PHASE_LOCKED_MS=%s FIRST_MAIN_LOCKED_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_WR_FAILURE_REASON=%s(%s) FIRST_WR_FAILURE_TICS_LOW16=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d" \
+  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PTP_SLAVE_MS=%s FIRST_PDSTATE_PDETECTED_MS=%s FIRST_PDSTATE_FAILURE_MS=%s FIRST_EXTSTATE_ACTIVE_MS=%s FIRST_EXTSTATE_PTP_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_HELPER_LOCKED_MS=%s FIRST_SPLL_READY_MS=%s FIRST_MAIN_ENABLED_MS=%s FIRST_MAIN_FREQ_LOCKED_MS=%s FIRST_MAIN_PHASE_LOCKED_MS=%s FIRST_MAIN_LOCKED_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_WR_FAILURE_REASON=%s(%s) FIRST_WR_FAILURE_TICS_LOW16=%s FIRST_WR_DISABLE_MS=%s FIRST_WR_DISABLE_CAUSE=%s(%s) FIRST_WR_DISABLE_PTP_STATE=%s FIRST_WR_DISABLE_PDSTATE=%s FIRST_WR_DISABLE_EXTSTATE=%s FIRST_WR_DISABLE_TICS_LOW16=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d" \
     $::trial_id $role $::sample_count($role) $::sample_error($role) \
     [first_value $role first_core_tm_link_up] [first_value $role first_core_link_ok] [first_value $role ptp_rx_activity] [first_value $role ptp_tx_activity] $first_dmtd \
     [first_value $role first_ptp_slave] [first_value $role first_pdstate_pdetected] [first_value $role first_pdstate_failure] [first_value $role first_extstate_active] [first_value $role first_extstate_ptp] [first_value $role first_parent_wr_calibrated] [first_value $role first_lock_enable] [first_value $role first_helper_locked] [first_value $role first_spll_ready] [first_value $role first_main_enabled] [first_value $role first_main_freq_locked] [first_value $role first_main_phase_locked] [first_value $role first_main_locked] [first_value $role first_spll_init] $first_tag $first_write $first_pop $first_irq $first_helper \
-    [first_value $role first_pstat_locked] $first_failure_reason [wr_fail_reason_name $first_failure_reason] $first_failure_tics_low $boundary $unclassified]
+    [first_value $role first_pstat_locked] $first_failure_reason [wr_fail_reason_name $first_failure_reason] $first_failure_tics_low $first_disable_ms $first_disable_cause [wr_disable_cause_name $first_disable_cause] $first_disable_ptp_state $first_disable_pd_state $first_disable_ext_state $first_disable_tics_low $boundary $unclassified]
   flush stdout
 }
 

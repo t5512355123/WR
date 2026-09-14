@@ -68,6 +68,10 @@ static uint32_t wdiags_mapping_counter_shadow;
 static uint32_t wdiags_port_state_shadow;
 static uint32_t wdiags_aux_state_shadow;
 static uint32_t wdiags_shell_ready_shadow;
+static uint32_t wdiags_wr_disable_debug_shadow;
+static uint32_t wdiags_wr_disable_cause_shadow;
+static uint32_t wdiags_wr_disable_ptp_state_shadow;
+static int wdiags_wr_disable_debug_valid;
 static uint32_t wdiags_boot_startup_p_offset_shadow[WRC_DIAGS_BOOT_STARTUP_STAGE_COUNT];
 static uint32_t wdiags_boot_startup_valid_shadow;
 static int wdiags_boot_startup_active;
@@ -378,6 +382,9 @@ void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 	uint32_t sstat   = wr_mode ? WRC_DIAGS_WDIAG_SSTAT_WR_MODE:0;
 	sstat  |= servostate << WRC_DIAGS_WDIAG_SSTAT_SERVOSTATE_SHIFT;
 
+	/* Preserve the first-disable forensic record across the periodic servo
+	 * status refresh.  All of its bits are outside the standard SSTAT fields. */
+	sstat |= wdiags_wr_disable_debug_shadow;
 	wdiag_write( WRC_DIAGS_WDIAG_SSTAT, sstat );
 	wdiag_write( WRC_DIAGS_WDIAG_MU_MSB  , 0xFFFFFFFF & (mu>>32) );
 	wdiag_write( WRC_DIAGS_WDIAG_MU_LSB  , 0xFFFFFFFF &  mu );
@@ -844,12 +851,39 @@ void wdiags_write_wr_state_debug(uint32_t state)
 	wdiag_write( WRC_DIAGS_WDIAG_TEMP, state );
 }
 
+void wdiags_write_wr_extension_disable_debug(uint32_t cause,
+                                             uint32_t ptp_state,
+                                             uint32_t pd_state,
+                                             uint32_t ext_state,
+                                             uint32_t tics)
+{
+	/* First event wins.  The record is intentionally sticky for this firmware
+	 * lifetime so a later retry or ordinary PTP operation cannot overwrite the
+	 * causal boundary. */
+	if (wdiags_wr_disable_debug_valid)
+		return;
+
+	wdiags_wr_disable_debug_valid = 1;
+	wdiags_wr_disable_cause_shadow = cause & 0x7u;
+	wdiags_wr_disable_ptp_state_shadow = ptp_state & 0xfu;
+	wdiags_wr_disable_debug_shadow =
+		((tics & 0xffffu) <<
+		 WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_TICS_SHIFT) |
+		((pd_state & 0xfu) <<
+		 WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_PDSTATE_SHIFT) |
+		((ext_state & 0xfu) <<
+		 WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_EXTSTATE_SHIFT);
+}
+
 void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure)
 {
 	/* These registers are not written by the DE5a diagnostic task's
 	 * normal servo path. Keep the raw message IDs and low counter words. */
 	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_MSB, rx);
 	wdiag_write(WRC_DIAGS_WDIAG_SERVO_UPTIME_LSB, tx);
+	failure |= (wdiags_wr_disable_cause_shadow & 0x7u) << 8;
+	failure |= (wdiags_wr_disable_debug_valid ? 1u : 0u) << 11;
+	failure |= (wdiags_wr_disable_ptp_state_shadow & 0xfu) << 12;
 	wdiag_write(WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT, failure);
 }
 
@@ -1328,6 +1362,10 @@ int wdiags_init(void)
 	wdiags_wr_s_lock_trace_active = 0;
 	wdiags_wr_s_lock_trace_seq = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;
+	wdiags_wr_disable_debug_shadow = 0;
+	wdiags_wr_disable_cause_shadow = 0;
+	wdiags_wr_disable_ptp_state_shadow = 0;
+	wdiags_wr_disable_debug_valid = 0;
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_SEQ, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_REQ_COUNT, 0);
 	wdiag_write(WRC_DIAGS_WDIAG_HELPER_PI_SNAPSHOT_ACK_COUNT, 0);

@@ -171,6 +171,15 @@ void wdiags_write_temp(uint32_t temp);
 /* Read-only WR extension state shadow for DE5a bring-up diagnostics. */
 void wdiags_write_wr_state_debug(uint32_t state);
 void wdiags_write_wr_signaling_debug(uint32_t rx, uint32_t tx, uint32_t failure);
+/* Read-only sticky record of the first WR extension disable in this boot. */
+#define WDIAGS_WR_DISABLE_CAUSE_OTHER             0
+#define WDIAGS_WR_DISABLE_CAUSE_PROTOCOL_TIMEOUT  1
+#define WDIAGS_WR_DISABLE_CAUSE_HANDSHAKE_FAILURE 2
+void wdiags_write_wr_extension_disable_debug(uint32_t cause,
+                                             uint32_t ptp_state,
+                                             uint32_t pd_state,
+                                             uint32_t ext_state,
+                                             uint32_t tics);
 void wdiags_write_wr_signaling_reject_debug(uint32_t reject_count,
                                             uint8_t reject_reason);
 void wdiags_write_wr_lock_debug(uint32_t result, uint32_t polls,

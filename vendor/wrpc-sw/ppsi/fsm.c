@@ -5,6 +5,8 @@
  * Released to the public domain
  */
 #include <ppsi/ppsi.h>
+#include <dev/syscon.h>
+#include <dev/wdiags.h>
 
 /* 診斷版：只統計封包被丟棄的原因，不改變原本的 return 條件。 */
 volatile uint32_t wrpc_ptp_frame_parse_error_count;
@@ -336,6 +338,9 @@ int pp_state_machine(struct pp_instance *ppi, void *buf, int len)
 	     && (ppi->pdstate==PP_PDSTATE_PDETECTION
 		 || ppi->pdstate==PP_PDSTATE_PDETECTED)
 	     && pp_timeout(ppi, PP_TO_PROT_STATE) ) {
+		wdiags_write_wr_extension_disable_debug(
+			WDIAGS_WR_DISABLE_CAUSE_PROTOCOL_TIMEOUT,
+			ppi->state, ppi->pdstate, ppi->extState, timer_get_tics());
 		pdstate_disable_extension(ppi);
 	}
 
@@ -371,6 +376,13 @@ int pp_state_machine(struct pp_instance *ppi, void *buf, int len)
 /* link state functions to manage the extension (Enable/disable) */
 void pdstate_disable_extension(struct pp_instance * ppi)
 {
+	/* Catch direct callers that do not provide a more specific pre-call
+	 * attribution.  The sticky writer is idempotent, so protocol-timeout and
+	 * handshake-failure callers retain their specific cause. */
+	if (ppi->extState == PP_EXSTATE_ACTIVE)
+		wdiags_write_wr_extension_disable_debug(
+			WDIAGS_WR_DISABLE_CAUSE_OTHER,
+			ppi->state, ppi->pdstate, ppi->extState, timer_get_tics());
 	ppi->pdstate=PP_PDSTATE_FAILURE;
 	if ( ppi->extState==PP_EXSTATE_ACTIVE) {
 		if ( ppi->ptp_support )

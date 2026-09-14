@@ -37,6 +37,15 @@
 #define WRC_DIAGS_WDIAG_SSTAT_WR_MODE 0x1UL
 #define WRC_DIAGS_WDIAG_SSTAT_SERVOSTATE_MASK 0xf00UL
 #define WRC_DIAGS_WDIAG_SSTAT_SERVOSTATE_SHIFT 8
+/* Read-only first WR-extension-disable context.  The low standard SSTAT
+ * fields remain unchanged; these free bits carry the first event's timer
+ * low word plus the PPSI states captured before the disable. */
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_TICS_MASK 0xffff0000UL
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_TICS_SHIFT 16
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_PDSTATE_MASK 0x0000001eUL
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_PDSTATE_SHIFT 1
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_EXTSTATE_MASK 0x0000f000UL
+#define WRC_DIAGS_WDIAG_SSTAT_WR_DISABLE_EXTSTATE_SHIFT 12
 
 /* WRPC Diag: Port status */
 #define WRC_DIAGS_WDIAG_PSTAT 0xcUL

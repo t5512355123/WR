@@ -1,0 +1,70 @@
+{
+  "experiment": "EXP-S5-F4A-MAIN-PI-KP1300-KI3-BOOST4-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "0b0893d80380566af4ba5cbcfd4ba93e0c65fa14",
+  "functional_change": {
+    "file": "vendor/wrpc-sw/softpll/spll_main.c",
+    "main_kp_previous": 300,
+    "main_kp_candidate": 1300,
+    "main_ki_previous": 1,
+    "main_ki_candidate": 3,
+    "prelock_boost_previous": 20,
+    "prelock_boost_candidate": 4
+  },
+  "held_constant": {
+    "bootstrap_steps": 3388,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_phase_guard_seconds": 8,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "wr_timeout_seconds": 60
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "master_sof_sha256": "77715de0741ab6495e4677a484fcecd5675dbba3af9a83001d5366042ddad319",
+    "slave_sof_sha256": "0a1b8e6323f405d2cd733c5f97780cd24b1cb9b3a48d1fdbf1835c02689a78e4",
+    "image_sha256_file": "raw/image-sha256.txt"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "order": "master_then_slave",
+    "master": "PASS",
+    "slave": "PASS",
+    "method": "direct_quartus_programmer"
+  },
+  "cold_power_cycle": {
+    "user_confirmed": true,
+    "ssh_reachable_after_cycle": true,
+    "reprogrammed_after_cycle": true
+  },
+  "preflight": {
+    "first": "STEP1_FAIL_BOTH_BOARDS",
+    "retry_after_60_seconds": "STEP1_FAIL_BOTH_BOARDS",
+    "master_step4a": "PASS",
+    "slave_step4b_allowed": false,
+    "slave_step4b_result": "BLOCKED_BY_STEP1",
+    "jtag_wb_path": "TRUSTED"
+  },
+  "observer": {
+    "executed": false,
+    "reason": "no_valid_slave_step4b_window"
+  },
+  "verdict": {
+    "step5": "NOT_COMPLETE",
+    "candidate": false,
+    "merge_approved": false,
+    "next": "EXP-S5-F4A-CONTROL-RESTORE-MAIN-PI-UPSTREAM-20260915"
+  },
+  "raw": {
+    "directory": "raw",
+    "transfer_directory": "raw-transfer"
+  }
+}

@@ -49,8 +49,9 @@ static const char * const seq_states[] =
 
 /* Allow the Slave's coarse HPLL bootstrap to finish before Helper phase
  * history is admitted into the fine lock detector.  This is deliberately
- * scoped to Slave mode; Master keeps the legacy immediate Helper startup. */
-#define STEP5_HELPER_PHASE_GUARD_TICS (60 * TICS_PER_SECOND)
+ * scoped to Slave mode; Master keeps the legacy immediate Helper startup.
+ * F3a uses an 8-second guard with the known-good 3388-step operating point. */
+#define STEP5_HELPER_PHASE_GUARD_TICS (8 * TICS_PER_SECOND)
 static int helper_phase_guard_active;
 static uint32_t helper_phase_guard_until;
 

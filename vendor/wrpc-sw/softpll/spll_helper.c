@@ -127,8 +127,8 @@ void helper_very_init( struct spll_helper_state *s )
 #if defined(CONFIG_WR_NODE)
 	/* Step5 baseline revalidation: restore the trusted proportional gain and
 	 * apply the full integral term on every accepted Helper update. */
-	s->pi.kp = -150;
-	s->pi.ki = -1;
+	s->pi.kp = -4500;
+	s->pi.ki = -8;
 #else
 	s->pi.kp = 150;
 	s->pi.ki = 2;

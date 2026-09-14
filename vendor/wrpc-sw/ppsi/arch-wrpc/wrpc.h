@@ -151,6 +151,10 @@ extern volatile uint32_t wrpc_wr_lock_unlocked_count;
 extern volatile uint32_t wrpc_wr_lock_calibration_fail_count;
 extern volatile uint32_t wrpc_wr_lock_enable_count;
 extern volatile uint8_t wrpc_wr_lock_last_result;
+/* Packed read-only result of the most recent locking_poll() call:
+ * bits 7:0 return code, bit 8 spll_check_lock(), bit 9 calibration attempted,
+ * bit 10 calibration succeeded, bit 11 calibration failed, bit 12 t24p state. */
+extern volatile uint32_t wrpc_wr_lock_last_poll_detail;
 extern volatile uint32_t wrpc_wr_s_lock_entry_tics;
 
 #endif /* __WRPC_H */

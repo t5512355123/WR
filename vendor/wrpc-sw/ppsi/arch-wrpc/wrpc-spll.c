@@ -49,28 +49,41 @@ int wrpc_spll_locking_enable(struct pp_instance *ppi)
 int wrpc_spll_locking_poll(struct pp_instance *ppi)
 {
 	int locked;
+	int calibration_result;
+	uint32_t poll_detail = 0;
 	static int t24p_calibrated = 0;
 
 	wrpc_wr_lock_poll_count++;
 	locked = spll_check_lock(0); /* both slave and gm mode */
+	if (locked)
+		poll_detail |= (1u << 8);
 
 	/* Else, slave: ensure calibration is done */
 	if(!locked) {
 		t24p_calibrated = 0;
 		wrpc_wr_lock_unlocked_count++;
 		wrpc_wr_lock_last_result = 1;
+		poll_detail |= WRH_SPLL_UNLOCKED;
+		wrpc_wr_lock_last_poll_detail = poll_detail;
 		return WRH_SPLL_UNLOCKED;
 	}
 	if(!t24p_calibrated) {
 		/*run t24p calibration if needed*/
-		if (calib_t24p() < 0) {
+		poll_detail |= (1u << 9);
+		calibration_result = calib_t24p();
+		if (calibration_result < 0) {
 			wrpc_wr_lock_calibration_fail_count++;
 			wrpc_wr_lock_last_result = 2;
+			poll_detail |= (1u << 11) | WRH_SPLL_UNLOCKED;
+			wrpc_wr_lock_last_poll_detail = poll_detail;
 			return WRH_SPLL_UNLOCKED;
 		}
 		t24p_calibrated = 1;
+		poll_detail |= (1u << 10);
 	}
 
+	poll_detail |= (1u << 12);
+	wrpc_wr_lock_last_poll_detail = poll_detail;
 	wrpc_wr_lock_last_result = 0;
 	return WRH_SPLL_LOCKED;
 }

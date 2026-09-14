@@ -26,7 +26,7 @@ int wr_s_lock(struct pp_instance *ppi, void *buf, int len, int new_state)
 		wdiags_write_wr_s_lock_debug(1, wrp->wrStateRetry,
 			wrpc_wr_s_lock_entry_tics,
 			(uint32_t)pp_next_delay_1(ppi, PP_TO_WR_EXT_0),
-			WRH_SPLL_UNLOCKED, wrp->state);
+			(int32_t)wrpc_wr_lock_last_poll_detail, wrp->state);
 		enable = 1;
 	} else {
 
@@ -40,21 +40,21 @@ int wr_s_lock(struct pp_instance *ppi, void *buf, int len, int new_state)
 			int rms=pp_next_delay_1(ppi, PP_TO_WR_EXT_0);
 			wdiags_write_wr_s_lock_debug(2, wrp->wrStateRetry,
 				wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
-				poll_ret, wrp->state);
+				(int32_t)wrpc_wr_lock_last_poll_detail, wrp->state);
 			if ( rms<=(wrp->wrStateRetry*WR_TMO_MS)) {
 				WRH_OPER()->locking_disable(ppi);
 				if ( rms==0 ) {
 					pp_diag(ppi, time, 1, "timeout expired: %s\n", WR_TMO_NAME);
 					wdiags_write_wr_s_lock_debug(4, wrp->wrStateRetry,
 						wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
-						poll_ret, wrp->state);
+						(int32_t)wrpc_wr_lock_last_poll_detail, wrp->state);
 					wr_handshake_fail_reason(ppi, WR_FAIL_REASON_WR_S_LOCK_TIMEOUT);
 					return 0; /* non-wr already */
 				}
 				if (wr_handshake_retry(ppi)) {
 					wdiags_write_wr_s_lock_debug(3, wrp->wrStateRetry,
 						wrpc_wr_s_lock_entry_tics, (uint32_t)rms,
-						poll_ret, wrp->state);
+						(int32_t)wrpc_wr_lock_last_poll_detail, wrp->state);
 					enable = 1;
 				}
 			}

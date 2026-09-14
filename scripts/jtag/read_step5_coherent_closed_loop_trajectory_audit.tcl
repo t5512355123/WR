@@ -8,7 +8,7 @@
 # sample and are never used to manufacture a Step5 pass.
 #
 # Usage:
-#   quartus_stp -t read_step5_coherent_closed_loop_trajectory_audit.tcl ?samples? ?gap_ms? ?board_filter? ?bootstrap_steps? ?helper_kp? ?helper_ki? ?guard_seconds? ?experiment_name?
+#   quartus_stp -t read_step5_coherent_closed_loop_trajectory_audit.tcl ?samples? ?gap_ms? ?board_filter? ?bootstrap_steps? ?helper_kp? ?helper_ki? ?guard_seconds? ?experiment_name? ?main_kp? ?main_ki? ?main_prelock_boost?
 
 package require ::quartus::insystem_source_probe
 
@@ -26,6 +26,9 @@ set helper_kp -150
 set helper_ki -1
 set helper_guard_seconds 60
 set experiment_name "UNSPECIFIED"
+set main_kp 300
+set main_ki 1
+set main_prelock_boost 20
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
@@ -34,6 +37,9 @@ if {[llength $argv] >= 5} { set helper_kp [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set helper_ki [expr {int([lindex $argv 5])}] }
 if {[llength $argv] >= 7} { set helper_guard_seconds [expr {int([lindex $argv 6])}] }
 if {[llength $argv] >= 8} { set experiment_name [lindex $argv 7] }
+if {[llength $argv] >= 9} { set main_kp [expr {int([lindex $argv 8])}] }
+if {[llength $argv] >= 10} { set main_ki [expr {int([lindex $argv 9])}] }
+if {[llength $argv] >= 11} { set main_prelock_boost [expr {int([lindex $argv 10])}] }
 if {$samples <= 0 || $gap_ms < 0 || $bootstrap_steps <= 0 || $helper_guard_seconds < 0} {
   error "samples must be > 0, gap_ms >= 0, bootstrap_steps > 0, and guard_seconds >= 0"
 }
@@ -716,7 +722,7 @@ proc emit_summary {hardware_name} {
   flush stdout
 }
 
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=%d bootstrap_steps=%d code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 helper_pi_integral_decimation=1 effective_ki=%d kp=%d ki=%d threshold=2000 lock_samples=1000 main_kp=300 main_ki=1 main_frequency_threshold=50 main_frequency_lock_samples=50 main_frequency_delock_floor=10 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=adjacent-snapshot-lower-bound modulo16 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $experiment_name $helper_guard_seconds $bootstrap_steps $helper_ki $helper_kp $helper_ki $gap_ms]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only_observer=1 idempotent_guard=1 normal_hpll_tracker=1 plant_test=0 helper_phase_guard_seconds=%d bootstrap_steps=%d code_per_physical_step=64 normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 helper_pi_integral_decimation=1 effective_ki=%d kp=%d ki=%d threshold=2000 lock_samples=1000 main_kp=%d main_ki=%d main_prelock_boost=%d main_frequency_threshold=50 main_frequency_lock_samples=50 main_frequency_delock_floor=10 measurement_window=0x00100B00..0x00100B24 position_probes=42,43,44,49 dco_accounting=adjacent-snapshot-lower-bound modulo16 pi_trace_available=NO cadence_ms=%d" $samples $gap_ms $board_filter $experiment_name $helper_guard_seconds $bootstrap_steps $helper_ki $helper_kp $helper_ki $main_kp $main_ki $main_prelock_boost $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }

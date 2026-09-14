@@ -12,9 +12,17 @@
 #include <wrc.h>
 #include "softpll_ng.h"
 
+#if defined(CONFIG_TARGET_GENERIC_PHY_8BIT) || defined(CONFIG_TARGET_GENERIC_PHY_16BIT)
+#include "boards/generic/de5a-identity.h"
+#endif
+
 #define MPLL_DISCARD_EARLY_TAGS 10
 #define MPLL_TAG_WRAPAROUND 100000000
+#if defined(DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE) && DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE
+#define MPLL_FREQ_PRELOCK_GAIN_BOOST 4
+#else
 #define MPLL_FREQ_PRELOCK_GAIN_BOOST 20
+#endif
 /* ld_update() uses this as the lock-counter floor at which a persistent
  * out-of-band error releases the frequency lock.  It must be below
  * lock_samples; a value above it makes a claimed frequency lock sticky. */
@@ -49,10 +57,15 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	}
 #elif defined(CONFIG_WR_NODE)
 	/* Main-frequency polarity is established as positive by the A/B run.
-	 * F4a control: restore the known-good Main PI operating point while
-	 * retaining the F3a helper guard and operating point. */
+	 * F4b isolates the candidate gains to the Slave image; the Master keeps
+	 * the known-good control operating point. */
+#if defined(DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE) && DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE
+	s->pi.kp = 1300;
+	s->pi.ki = 3;
+#else
 	s->pi.kp = 300;
 	s->pi.ki = 1;
+#endif
 #else
 #error "Please set CONFIG for wr switch or wr node"
 #endif

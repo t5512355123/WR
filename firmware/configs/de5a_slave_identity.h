@@ -9,4 +9,7 @@
 #define DE5A_FALLBACK_MAC_4 0x44
 #define DE5A_FALLBACK_MAC_5 0x02
 
+/* Enable the F4b Main-PI candidate only in the Slave image. */
+#define DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE 1
+
 #endif

@@ -223,56 +223,53 @@ proc selected_board {hardware_name} {
 
 proc read_main_trace {hardware_name} {
   # CPU addresses are BASE_WDIAGS_PRIV + offsets 0x158..0x1ac and 0x1dc.
-  # The epoch is odd while task-diags publishes and even after completion.
+  # The compact core group is the causal unit used for correlation.  The
+  # previous all-fields read could never become coherent on a live image
+  # because the publisher advanced the epoch while the 23-word read was in
+  # flight. Optional fields remain visible but are not claimed to be from the
+  # same publication.
   for {set attempt 0} {$attempt < 8} {incr attempt} {
     set epoch_before_raw [wb_read $hardware_name 0x00100B58]
     set ::main_trace_epoch_before_raw($hardware_name) $epoch_before_raw
     set epoch_before [word32 $epoch_before_raw]
     if {$epoch_before < 0 || ($epoch_before & 1)} { after 1; continue }
-    set dref [signed32 [wb_read $hardware_name 0x00100B5C]]
-    set dout [signed32 [wb_read $hardware_name 0x00100B60]]
     set freq_error [signed32 [wb_read $hardware_name 0x00100B64]]
-    set prelock_error [signed32 [wb_read $hardware_name 0x00100B68]]
-    set pi_unclamped [signed32 [wb_read $hardware_name 0x00100B6C]]
     set pi_output [signed32 [wb_read $hardware_name 0x00100B70]]
     set clamp_side [signed32 [wb_read $hardware_name 0x00100B74]]
+    set update_count [word32 [wb_read $hardware_name 0x00100B90]]
+    set state [word32 [wb_read $hardware_name 0x00100B9C]]
+    set pi_x [signed32 [wb_read $hardware_name 0x00100BAC]]
+    set epoch_after_raw [wb_read $hardware_name 0x00100B58]
+    set ::main_trace_epoch_after_raw($hardware_name) $epoch_after_raw
+    set epoch_after [word32 $epoch_after_raw]
+    set dref [signed32 [wb_read $hardware_name 0x00100B5C]]
+    set dout [signed32 [wb_read $hardware_name 0x00100B60]]
+    set prelock_error [signed32 [wb_read $hardware_name 0x00100B68]]
+    set pi_unclamped [signed32 [wb_read $hardware_name 0x00100B6C]]
     set lock_count [word32 [wb_read $hardware_name 0x00100B78]]
     set lock_count_max [word32 [wb_read $hardware_name 0x00100B7C]]
     set kp [signed32 [wb_read $hardware_name 0x00100B80]]
     set ki [signed32 [wb_read $hardware_name 0x00100B84]]
     set shift [signed32 [wb_read $hardware_name 0x00100B88]]
     set bias [signed32 [wb_read $hardware_name 0x00100B8C]]
-    set update_count [word32 [wb_read $hardware_name 0x00100B90]]
     set threshold [word32 [wb_read $hardware_name 0x00100B94]]
     set lock_samples [word32 [wb_read $hardware_name 0x00100B98]]
-    set state [word32 [wb_read $hardware_name 0x00100B9C]]
     set y_min [signed32 [wb_read $hardware_name 0x00100BA0]]
     set y_max [signed32 [wb_read $hardware_name 0x00100BA4]]
     set anti_windup [signed32 [wb_read $hardware_name 0x00100BA8]]
-    set pi_x [signed32 [wb_read $hardware_name 0x00100BAC]]
     set magic_raw [wb_read $hardware_name 0x00100BDC]
     set ::main_trace_magic_raw($hardware_name) $magic_raw
     set magic [word32 $magic_raw]
-    set epoch_after_raw [wb_read $hardware_name 0x00100B58]
-    set ::main_trace_epoch_after_raw($hardware_name) $epoch_after_raw
-    set epoch_after [word32 $epoch_after_raw]
     set ::main_trace_payload_debug($hardware_name) [list \
       $dref $dout $freq_error $prelock_error $pi_unclamped $pi_output \
       $clamp_side $lock_count $lock_count_max $kp $ki $shift $bias \
       $update_count $threshold $lock_samples $state $y_min $y_max \
       $anti_windup $pi_x]
     if {$epoch_before == $epoch_after && $epoch_after >= 0 &&
-        !($epoch_after & 1) && $magic == 1 &&
-        $dref ne "INVALID" && $dout ne "INVALID" &&
-        $freq_error ne "INVALID" && $prelock_error ne "INVALID" &&
-        $pi_unclamped ne "INVALID" && $pi_output ne "INVALID" &&
-        $clamp_side ne "INVALID" && $lock_count ne "INVALID" &&
-        $lock_count_max ne "INVALID" && $kp ne "INVALID" &&
-        $ki ne "INVALID" && $shift ne "INVALID" && $bias ne "INVALID" &&
-        $update_count ne "INVALID" && $threshold ne "INVALID" &&
-        $lock_samples ne "INVALID" && $state ne "INVALID" &&
-        $y_min ne "INVALID" && $y_max ne "INVALID" &&
-        $anti_windup ne "INVALID" && $pi_x ne "INVALID"} {
+        !($epoch_after & 1) && $freq_error ne "INVALID" &&
+        $pi_output ne "INVALID" && $clamp_side ne "INVALID" &&
+        $update_count ne "INVALID" && $state ne "INVALID" &&
+        $pi_x ne "INVALID"} {
       return [list 1 $epoch_after $dref $dout $freq_error $prelock_error \
         $pi_unclamped $pi_output $clamp_side $lock_count $lock_count_max \
         $kp $ki $shift $bias $update_count $threshold $lock_samples $state \
@@ -280,9 +277,7 @@ proc read_main_trace {hardware_name} {
     }
     after 1
   }
-  return [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
-    INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  return [concat [list 0] [lrepeat 23 INVALID]]
 }
 
 proc read_helper_pair {hardware_name} {
@@ -775,16 +770,23 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   }
 
   if {$trace_ok} {
-    set derived_error [expr {$dout - $dref}]
+    set derived_error INVALID
+    if {$dref ne "INVALID" && $dout ne "INVALID"} {
+      set derived_error [expr {$dout - $dref}]
+    }
     set main_enabled [expr {($state >> 0) & 1}]
     set main_freq_locked [expr {($state >> 1) & 1}]
     set main_phase_locked [expr {($state >> 2) & 1}]
     set main_locked [expr {($state >> 3) & 1}]
     if {$trace_unique} {
-      if {$freq_error != $derived_error} { incr ::measurement_failures($hardware_name) }
-      if {$prelock_error != [expr {-20 * $freq_error}]} { incr ::prelock_mismatch_count($hardware_name) }
+      if {$dref ne "INVALID" && $dout ne "INVALID" && $freq_error != $derived_error} {
+        incr ::measurement_failures($hardware_name)
+      }
+      if {$prelock_error ne "INVALID" && $prelock_error != [expr {-20 * $freq_error}]} {
+        incr ::prelock_mismatch_count($hardware_name)
+      }
       update_freq_stats $hardware_name $freq_error
-      if {$lock_count > $::main_freq_lock_count_max_seen($hardware_name)} {
+      if {$lock_count ne "INVALID" && $lock_count > $::main_freq_lock_count_max_seen($hardware_name)} {
         set ::main_freq_lock_count_max_seen($hardware_name) $lock_count
       }
       incr ::pi_count($hardware_name)

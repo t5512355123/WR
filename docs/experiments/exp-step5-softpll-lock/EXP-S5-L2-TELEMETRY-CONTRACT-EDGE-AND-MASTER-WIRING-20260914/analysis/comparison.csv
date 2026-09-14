@@ -1,0 +1,3 @@
+role,samples,sample_errors,frame_invalid_samples,boot_generation_first,boot_generation_last,boot_generation_changes,first_tracking_ms,tracking_samples,first_wr_failure_ms,first_wr_failure_reason,first_wr_disable_ms,first_wr_disable_cause,first_inactive_boundary,l2_main_start_final,l2_helper_start_final,l2_main_completed_final,l2_helper_completed_final,l2_main_failed_final,l2_helper_failed_final,l2_ack_events,l2_timeout_events,l2_first_loss_valid,l2_telemetry
+MASTER,85,0,7,1,1,0,,0,641,WR_M_LOCK_TIMEOUT,641,HANDSHAKE_FAILURE,WR_EXTENSION_FAILURE,0,1929,0,1929,0,0,0,0,0,AVAILABLE
+SLAVE,85,0,3,1,1,0,217517,7,172652,WR_S_LOCK_TIMEOUT,172652,HANDSHAKE_FAILURE,WR_EXTENSION_FAILURE,48947,15357,48947,15357,0,0,0,0,0,AVAILABLE_ACTIVITY_NO_FIRST_LOSS

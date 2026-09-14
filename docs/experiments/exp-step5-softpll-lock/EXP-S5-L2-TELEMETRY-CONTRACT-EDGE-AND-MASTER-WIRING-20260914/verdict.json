@@ -1,0 +1,19 @@
+{
+  "experiment": "EXP-S5-L2-TELEMETRY-CONTRACT-EDGE-AND-MASTER-WIRING-20260914",
+  "observer_contract": "PASS_READ_ONLY_BOUNDED",
+  "l2_counter_contract": "PASS_LOGICAL_START_EQUALS_COMPLETION",
+  "l2_master_wiring": "AVAILABLE",
+  "l2_transaction_errors": "NOT_OBSERVED",
+  "master_tracking": "NOT_OBSERVED",
+  "slave_late_tracking": "POST_WR_FAILURE_NOT_VALID_STEP5",
+  "hardware_window": "INVALID_OR_UPSTREAM_BLOCKED",
+  "master_first_inactive_boundary": "WR_EXTENSION_FAILURE",
+  "slave_first_inactive_boundary": "WR_EXTENSION_FAILURE",
+  "master_first_wr_failure": "WR_M_LOCK_TIMEOUT",
+  "slave_first_wr_failure": "WR_S_LOCK_TIMEOUT",
+  "step4b": "NOT_CLOSED_THIS_WINDOW",
+  "step5": "NOT_COMPLETE",
+  "step5_pass": false,
+  "next_experiment": "S5-SLOCK-POLL-CALIB-CAUSE-AUDIT",
+  "stop_reason": "SLAVE_STEP2_INVALID_AND_WR_S_LOCK_FAILED_BEFORE_VALID_TRACKING"
+}

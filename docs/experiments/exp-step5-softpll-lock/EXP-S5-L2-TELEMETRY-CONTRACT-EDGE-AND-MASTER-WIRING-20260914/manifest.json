@@ -1,0 +1,75 @@
+{
+  "experiment": "EXP-S5-L2-TELEMETRY-CONTRACT-EDGE-AND-MASTER-WIRING-20260914",
+  "source_commit": "3fab754bc54f08cf4dc76112c6073778517972ca",
+  "branch": "exp/step5-softpll-lock",
+  "change_scope": "diagnostic-only",
+  "changed_files": [
+    "quartus/jtag_runtime_diag/si5340a_controller_dco.v",
+    "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd"
+  ],
+  "boards": [
+    {"role": "Master", "cable": "DE5 [1-11.1]", "project": "DE5a_wr_master_jtag"},
+    {"role": "Slave", "cable": "DE5 [1-11.2]", "project": "DE5a_wr_slave_jtag"}
+  ],
+  "build": {
+    "firmware_master": "PASS",
+    "firmware_slave": "PASS",
+    "quartus_master": "PASS",
+    "quartus_slave": "PASS",
+    "timing_closed_master": "NO",
+    "timing_closed_slave": "NO",
+    "master_elf_sha256": "c5e9511c6b49ae9141c16ef0d6c8a0bae54fef3bccc907409c9441bc9d45378b",
+    "master_mif_sha256": "439e6cdc0a8caeb00b335918cc23a11418bd41f2dba16f080909f9a410547b33",
+    "master_sof_sha256": "4d90c41999dfcbc4536aee7b77d13a3482a5b81cf720d524f40eca42da7f010b",
+    "slave_elf_sha256": "ae44c58306297875103da1fb867e708fda5cfeab5cc2d922e1903281f098061a",
+    "slave_mif_sha256": "609a26a1c7a712e2d45407da905f38756b950f1590aa027555e5ac3eaeb85b28",
+    "slave_sof_sha256": "216b1df9f32db97dbb6c48ecc2fa6e23da091f532ef2d00e689ab6c55a410890"
+  },
+  "programming": {"master": "PASS", "slave": "PASS"},
+  "preflight": {
+    "transport": "TRUSTED",
+    "wb_request_count": 353,
+    "probe_3way_match_count": 353,
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "address_cross_contamination_count": 0,
+    "master_step2": "PASS",
+    "slave_step2": "INVALID",
+    "step4b_allowed": "NO",
+    "step4b_result": "BLOCKED_BY_STEP2"
+  },
+  "observer": {
+    "read_only": true,
+    "deadline_ms": 240000,
+    "actual_elapsed_ms": 240573,
+    "samples": {"Master": 85, "Slave": 85},
+    "sample_errors": {"Master": 0, "Slave": 0},
+    "frame_invalid_samples": {"Master": 7, "Slave": 3},
+    "boot_generation_changes": {"Master": 0, "Slave": 0}
+  },
+  "l2": {
+    "master_telemetry": "AVAILABLE",
+    "slave_telemetry": "AVAILABLE",
+    "master_hpll_start_final": 1929,
+    "master_hpll_completed_final": 1929,
+    "master_main_start_final": 0,
+    "master_main_completed_final": 0,
+    "slave_main_start_final": 48947,
+    "slave_main_completed_final": 48947,
+    "slave_helper_start_final": 15357,
+    "slave_helper_completed_final": 15357,
+    "slave_main_failed_final": 0,
+    "slave_helper_failed_final": 0,
+    "slave_ack_events_final": 0,
+    "slave_timeout_events_final": 0,
+    "slave_first_loss_valid": 0,
+    "slave_main_max_wait_raw": 4114539,
+    "slave_helper_max_wait_raw": 1,
+    "slave_max_latency_raw": 61441,
+    "counter_contract": "CLOSED_START_EQUALS_COMPLETED"
+  },
+  "step5_result": "NOT_COMPLETE",
+  "step5_pass": false,
+  "raw_transfer_sha256": "c8318a51f2f72f601eab4e09abbc1560370664ec3ee15beb863a7f6dbbf974b2",
+  "raw_checksum_file": "raw/raw-checksums.sha256"
+}

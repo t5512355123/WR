@@ -115,20 +115,24 @@ N2_PHASE returned to ACQUISITION at observed sample 107823 ms
 FIRST_INACTIVE_BOUNDARY = WR_EXTENSION_FAILURE
 ```
 
-Slave probes 52–61 都能讀到，但整個窗口的 producer-side值為：
+Slave probes 52–61 都能讀到，而且不是全程為零。完整 raw 顯示：
 
 ```text
-FIRST_LOSS_VALID = 0
-MAIN_COMPLETED = 0
-HELPER_COMPLETED = 0
-MAIN_FAILED = 0
-HELPER_FAILED = 0
+FIRST_SAMPLE t=1137 ms: HELPER_COMPLETED=3388, MAIN_COMPLETED=0
+FIRST_MAIN_COMPLETED > 0: t=33724 ms, MAIN_COMPLETED=34
+FINAL_SAMPLE t=238995 ms: MAIN_COMPLETED=42328, HELPER_COMPLETED=12669
+MAX_MAIN_WAIT = 86692037       (raw liveness units; unit 尚未映射)
+MAX_HELPER_WAIT = 512          (raw liveness units; unit 尚未映射)
+MAX_MAIN_LATENCY = 60930       (raw liveness units; unit 尚未映射)
+MAX_HELPER_LATENCY = 60930     (raw liveness units; unit 尚未映射)
+MAIN/HELPER_FAILED = 0
 ACK_EVENTS = 0
 TIMEOUT_EVENTS = 0
 DCO_ERROR = 0
+FIRST_LOSS_VALID = 0
 ```
 
-所以目前不能把「Slave 約 93.066 秒出現內部完整 lock bits」歸因為 DCO arbiter starvation，也不能由此選擇 L3A/L3C。這只證明在稀疏取樣中曾出現短暫 tracking，且在 WR failure/disable 之後沒有保持到 deadline。
+這證明 Slave 端確實有 DCO service activity，且觀測期間沒有 sticky first-loss、failed、ACK、timeout 或 DCO error。但 service-start 與 completion 的數量關係，以及極大的 `MAIN_MAX_WAIT`，仍需要 transaction-local telemetry 與單位定義的 audit；不能只靠這些欄位推論 starvation 或 completion failure。因此目前不能把「Slave 約 93.066 秒出現內部完整 lock bits」歸因為 DCO arbiter starvation，也不能由此選擇 L3A/L3C。這只證明在稀疏取樣中曾出現短暫 tracking，且在 WR failure/disable 之後沒有保持到 deadline。
 
 ### Frame 與同代性
 
@@ -140,7 +144,7 @@ DCO_ERROR = 0
 
 1. Master：先在約 22.35 秒進入 `WR_M_LOCK_TIMEOUT`／`HANDSHAKE_FAILURE`，全程沒有 Main/PLL tracking。
 2. Slave：先有 DMTD/Step4B event chain，之後在約 93.066 秒觀測到一次完整 lock chain；約 96 秒 WR 記錄 `WR_LOCKED_TIMEOUT` 並 disable；約 107.823 秒觀測到 tracking chain 離開。
-3. 同一窗口沒有 boot generation change、CPU/WR reset 或可用的 DCO first-loss event；因此不能證明是 I2C starvation、NACK/timeout completion bug 或 PI polarity 導致這次失效。
+3. 同一窗口沒有 boot generation change、CPU/WR reset；Slave 有 DCO service activity，但沒有 producer-side first-loss、failed、ACK 或 timeout event。Master 的同類 payload 在 image 中不可用（probes 52–61 讀到 `TIMEOUT`），且 Slave 的 service-start/completion counter 關係尚未釐清，因此不能證明是 I2C starvation、NACK/timeout completion bug 或 PI polarity 導致這次失效。
 
 這輪的診斷價值是把兩條時間軸拆開：
 
@@ -148,7 +152,7 @@ DCO_ERROR = 0
 WR protocol deadline/fallback  !=  PLL state bits briefly becoming locked
 ```
 
-此外，Slave Step2 INVALID 使此窗口不具備有效 WR upstream closure；Master L2 telemetry timeout 使 DCO 因果仍缺一側證據。
+此外，Slave Step2 INVALID 使此窗口不具備有效 WR upstream closure；Slave L2 雖然有活動計數，但 telemetry contract 尚未閉合；Master L2 telemetry timeout 則使 DCO 因果仍缺一側證據。
 
 ## Step5 判定
 
@@ -172,7 +176,7 @@ STEP5_PASS = false
 
 1. 保持 production source 與控制參數不變。
 2. 先解決 Slave Step2 的 intermittent INVALID，並保留 Master/Slave 各自的 preflight verdict。
-3. 核對 probes 52–61 在 Master image 的實際 owner/map；若 Master 真的沒有這組 producer telemetry，報告中明確標 `UNAVAILABLE_BY_IMAGE_SCHEMA`，不要把 TIMEOUT 轉成零。
+3. 核對 probes 52–61 在 Master image 的實際 owner/map；若 Master 真的沒有這組 producer telemetry，報告中明確標 `UNAVAILABLE_BY_IMAGE_SCHEMA`，不要把 TIMEOUT 轉成零。對 Slave 則先補齊 transaction-local owner/epoch、start/completion 對應與 raw-unit 定義，避免把有效活動誤判為失敗或 starvation。
 4. 在同一個 fresh-program boot/session 重新取得一條 valid WR window；60 秒 smoke 必須是同一 capture 內檢查點，不另起未知時間軸。
 5. 只有在 first-loss/DCO telemetry 真正提供因果證據後，才依 Astra 分流選一個 L3 功能修正：公平仲裁、transaction completion、bootstrap handshake 或 bumpless transfer。
 

@@ -9,10 +9,12 @@
   "slave_first_wr_failure": "WR_LOCKED_TIMEOUT",
   "slave_brief_tracking": true,
   "master_dco_telemetry": "UNAVAILABLE_TIMEOUT",
+  "slave_dco_activity": "OBSERVED",
   "slave_dco_first_loss": "NOT_OBSERVED",
+  "slave_dco_telemetry_contract": "INCOMPLETE_COUNTER_RELATIONSHIP",
   "step4b": "NOT_CLOSED_THIS_WINDOW",
   "step5": "NOT_COMPLETE",
   "step5_pass": false,
   "next_experiment": "N2-MEASUREMENT-CLOSURE-VALID-WR-WINDOW",
-  "stop_reason": "N2_BOUNDARY_LOCATED_BUT_SLAVE_STEP2_INVALID_AND_DCO_CAUSALITY_INCOMPLETE"
+  "stop_reason": "N2_BOUNDARY_LOCATED_SLAVE_STEP2_INVALID_DCO_ACTIVITY_OBSERVED_BUT_TELEMETRY_CAUSALITY_INCOMPLETE"
 }

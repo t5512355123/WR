@@ -45,7 +45,17 @@
     "slave_first_wr_failure_ms": 96000,
     "slave_tracking_exit_observed_ms": 107823,
     "master_l2_telemetry": "TIMEOUT",
-    "slave_first_loss_valid": 0
+    "slave_first_loss_valid": 0,
+    "slave_l2_first_sample_helper_completed": 3388,
+    "slave_l2_first_main_completed_ms": 33724,
+    "slave_l2_final_main_completed": 42328,
+    "slave_l2_final_helper_completed": 12669,
+    "slave_l2_max_main_wait_raw": 86692037,
+    "slave_l2_max_helper_wait_raw": 512,
+    "slave_l2_max_latency_raw": 60930,
+    "slave_l2_transaction_error_counters": "zero",
+    "slave_l2_activity": "observed",
+    "slave_l2_counter_contract": "INCOMPLETE_SERVICE_START_VS_COMPLETION_UNRESOLVED"
   },
   "step5_result": "NOT_COMPLETE",
   "step5_pass": false,

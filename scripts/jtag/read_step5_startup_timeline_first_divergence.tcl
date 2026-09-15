@@ -11,8 +11,13 @@
 # acquisition (never fully locked) distinct from tracking (fully locked before
 # any first-loss event) without making a readiness or Step5 claim.
 #
+# F4D adds only diagnostic fields to the same read-only timeline: explicit
+# upstream/session subconditions, a generation-scoped terminal-state streak,
+# and a bounded early stop after three valid terminal frames.  It does not
+# change any gate acceptance rule or write any control register.
+#
 # Usage:
-#   quartus_stp -t read_step5_startup_timeline_first_divergence.tcl ?trial_id? ?board_filter? ?duration_ms? ?early_gap_ms? ?late_gap_ms?
+#   quartus_stp -t read_step5_startup_timeline_first_divergence.tcl ?trial_id? ?board_filter? ?duration_ms? ?early_gap_ms? ?late_gap_ms? ?hard_duration_ms?
 #
 # The caller must program Master, wait for Master readiness, program Slave,
 # and invoke this script immediately after Slave programming completes.
@@ -30,6 +35,9 @@ set ::late_gap_ms 2000
 if {[llength $argv] >= 3} { set ::duration_ms [lindex $argv 2] }
 if {[llength $argv] >= 4} { set ::early_gap_ms [lindex $argv 3] }
 if {[llength $argv] >= 5} { set ::late_gap_ms [lindex $argv 4] }
+set ::hard_duration_ms [expr {$::duration_ms + 10000}]
+if {[llength $argv] >= 6} { set ::hard_duration_ms [lindex $argv 5] }
+if {$::hard_duration_ms < $::duration_ms} { set ::hard_duration_ms $::duration_ms }
 set ::start_ms [clock milliseconds]
 set ::sample_seq 0
 array set ::wb_toggle {}
@@ -44,7 +52,18 @@ array set ::boot_generation_first {}
 array set ::boot_generation_last {}
 array set ::boot_generation_change_count {}
 array set ::tracking_sample_count {}
+array set ::f4d_terminal_streak {}
+array set ::f4d_upstream_pass_streak {}
+array set ::f4d_prev_generation {}
+array set ::f4d_prev_cpu_reset {}
+array set ::f4d_prev_wr_core_reset {}
+array set ::f4d_prev_si_config_reset {}
+array set ::f4d_terminal_history_at_start {}
+array set ::f4d_last_core_frame_valid {}
 set ::persistent_probe 0
+set ::stop_requested 0
+set ::stop_reason NONE
+set ::stop_role NONE
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]+$} $value]
@@ -160,6 +179,39 @@ proc frame_valid {ctrl_begin ctrl_end} {
   set b [word32 $ctrl_end]
   if {$a < 0 || $b < 0} { return 0 }
   return [expr {(($a & 1) != 0) && (($b & 1) != 0) && $a == $b}]
+}
+
+proc f4d_core_frame_valid {frame_ok values} {
+  if {$frame_ok != 1} { return 0 }
+  foreach value $values {
+    if {![is_hex $value]} { return 0 }
+  }
+  return 1
+}
+
+proc f4d_terminal_state {core_valid wr_state_value pd_state ext_state} {
+  if {$core_valid != 1} { return UNKNOWN }
+  if {$pd_state == 4} { return FAILURE }
+  if {$ext_state == 0} { return DISABLED }
+  if {$wr_state_value == 0} { return IDLE }
+  if {$wr_state_value >= 1 && $wr_state_value <= 8} { return ACTIVE }
+  return UNKNOWN
+}
+
+proc f4d_terminal_history_valid {wr_disable_valid wr_failure_reason} {
+  return [expr {$wr_disable_valid == 1 ||
+    ($wr_failure_reason >= 1 && $wr_failure_reason <= 7)}]
+}
+
+proc f4d_upstream_full_pass {core_valid ptp_state parent_is_wrnode parent_mode_on \
+    parent_calibrated wr_state_value pd_state ext_state wr_disable_valid wr_failure_reason} {
+  if {$core_valid != 1} { return 0 }
+  if {$ptp_state != 9 || $parent_is_wrnode != 1 || $parent_mode_on != 1 ||
+      $parent_calibrated != 1} { return 0 }
+  if {$wr_state_value < 2 || $wr_state_value > 8} { return 0 }
+  if {$pd_state == 4 || $ext_state == 0 || $wr_disable_valid == 1} { return 0 }
+  if {$wr_failure_reason >= 1 && $wr_failure_reason <= 7} { return 0 }
+  return 1
 }
 
 proc n2_phase_name {frame_ok spll_ready helper_locked main_enabled main_freq_locked main_phase_locked main_locked pstat_locked} {
@@ -502,6 +554,7 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   # WR_LOCK_RESULT: reason[15:9], last-failure timer low word[31:16].
   set wr_failure_reason [field32 $lock_result 9 7]
   set wr_failure_tics_low [field32 $lock_result 16 16]
+  set wr_failure_low16 [field32 $wr_failure 0 16]
   # First WR-extension disable record: cause/PTP state are carried in the
   # unused middle byte of WR_FAILURE_DEBUG; SSTAT carries the timer and the
   # pre-disable pd/ext states.  The valid bit makes cause=OTHER unambiguous.
@@ -533,6 +586,88 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   set pstat_locked [bit32 $pstat 1]
 
   set frame_ok [frame_valid $ctrl_begin $ctrl_end]
+  set f4d_core_frame_valid [f4d_core_frame_valid $frame_ok [list \
+    $status $entry_probe $reset_probe $ptp $sstat $ptp_rx $ptp_tx $rxerr \
+    $ptp_meta $foreign_meta $parse_meta $wr_rx_signal $wr_tx_signal \
+    $wr_failure $wr_state $wr_reject $pstat $lock_result $lock_polls \
+    $lock_enable $lock_calib_fail $lock_unlocked $spll_state $helper_state \
+    $helper_limits $main_state $main_limits $main_phase_limits $spll_init]]
+  set f4d_terminal_state [f4d_terminal_state $f4d_core_frame_valid \
+    $wr_state_value $pd_state $ext_state]
+  set f4d_terminal_history_valid [f4d_terminal_history_valid \
+    $wr_disable_valid $wr_failure_reason]
+  set f4d_upstream_full_pass [f4d_upstream_full_pass $f4d_core_frame_valid \
+    $ptp_state $parent_is_wrnode $parent_mode_on $parent_calibrated \
+    $wr_state_value $pd_state $ext_state $wr_disable_valid $wr_failure_reason]
+  set f4d_same_generation 0
+  if {[info exists ::f4d_prev_generation($role)] &&
+      $boot_generation >= 0 && $::f4d_prev_generation($role) >= 0 &&
+      $::f4d_prev_generation($role) == $boot_generation} {
+    set f4d_same_generation 1
+  }
+  set f4d_generation_changed 0
+  if {[info exists ::f4d_prev_generation($role)] &&
+      $boot_generation >= 0 && $::f4d_prev_generation($role) >= 0 &&
+      $::f4d_prev_generation($role) != $boot_generation} {
+    set f4d_generation_changed 1
+  }
+  set f4d_reset_changed 0
+  foreach reset_item [list \
+      [list cpu ::f4d_prev_cpu_reset $cpu_reset_count] \
+      [list wr_core ::f4d_prev_wr_core_reset $wr_core_reset_count] \
+      [list si_config ::f4d_prev_si_config_reset $si_config_reset_count]] {
+    set reset_name [lindex $reset_item 0]
+    set reset_array [lindex $reset_item 1]
+    set reset_value [lindex $reset_item 2]
+    if {$reset_value >= 0 && [info exists ${reset_array}($role)] &&
+        ${reset_array}($role) != $reset_value} {
+      set f4d_reset_changed 1
+    }
+    if {$reset_value >= 0} { set ${reset_array}($role) $reset_value }
+  }
+  if {$boot_generation >= 0} { set ::f4d_prev_generation($role) $boot_generation }
+  if {$f4d_generation_changed || $f4d_reset_changed} {
+    set ::f4d_terminal_streak($role) 0
+    set ::f4d_upstream_pass_streak($role) 0
+    if {!$::stop_requested} {
+      set ::stop_requested 1
+      set ::stop_reason F4D_GENERATION_OR_RESET_CHANGE
+      set ::stop_role $role
+      puts [format "STARTUP_TIMELINE_STOP trial=%s role=%s elapsed_ms=%d reason=F4D_GENERATION_OR_RESET_CHANGE generation_changed=%d reset_changed=%d" \
+        $::trial_id $role $elapsed $f4d_generation_changed $f4d_reset_changed]
+    }
+  }
+  set f4d_terminal_candidate [expr {$f4d_core_frame_valid == 1 &&
+    $f4d_terminal_state ne "ACTIVE" && $f4d_terminal_state ne "UNKNOWN" &&
+    $f4d_terminal_history_valid == 1}]
+  if {$f4d_terminal_candidate} {
+    if {$f4d_same_generation} {
+      incr ::f4d_terminal_streak($role)
+    } else {
+      set ::f4d_terminal_streak($role) 1
+    }
+  } else {
+    set ::f4d_terminal_streak($role) 0
+  }
+  if {$f4d_upstream_full_pass} {
+    if {$f4d_same_generation} {
+      incr ::f4d_upstream_pass_streak($role)
+    } else {
+      set ::f4d_upstream_pass_streak($role) 1
+    }
+  } else {
+    set ::f4d_upstream_pass_streak($role) 0
+  }
+  if {$::sample_count($role) == 1 && $f4d_terminal_history_valid == 1} {
+    set ::f4d_terminal_history_at_start($role) 1
+  }
+  if {$f4d_terminal_streak >= 3 && !$::stop_requested} {
+    set ::stop_requested 1
+    set ::stop_reason SESSION_ALREADY_TERMINATED
+    set ::stop_role $role
+    puts [format "STARTUP_TIMELINE_STOP trial=%s role=%s elapsed_ms=%d reason=SESSION_ALREADY_TERMINATED terminal_state=%s history_valid=%d streak=%d" \
+      $::trial_id $role $elapsed $f4d_terminal_state $f4d_terminal_history_valid $f4d_terminal_streak]
+  }
   set n2_phase [n2_phase_name $frame_ok [expr {$spll_seq_state == 8}] $helper_locked $main_enabled $main_freq_locked $main_phase_locked $main_locked $pstat_locked]
   if {!$frame_ok} { incr ::frame_invalid_count($role) }
   if {$n2_phase eq "TRACKING"} { incr ::tracking_sample_count($role) }
@@ -670,17 +805,17 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     note_first $role first_step4b_event_chain 1 $elapsed
   }
 
-  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_FAILURE=%s WR_DISABLE=valid=%s,cause=%s,ptp=%s,pd=%s,ext=%s,tics_low16=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) SLOCK_TRACE_MAGIC=%s SLOCK_TRACE_STAGE=%s(%s) SLOCK_TRACE_RETRY=%s SLOCK_TRACE_ENTRY_TICS=%s SLOCK_TRACE_REMAINING_MS=%s SLOCK_TRACE_POLL_RET=%s SLOCK_TRACE_POLL_RETURN=%s SLOCK_TRACE_CHECK_LOCK=%s SLOCK_TRACE_CALIB_ATTEMPT=%s SLOCK_TRACE_CALIB_SUCCESS=%s SLOCK_TRACE_CALIB_FAILURE=%s SLOCK_TRACE_T24P_CALIBRATED=%s SLOCK_TRACE_WR_STATE=%s SLOCK_TRACE_SEQ=%s WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s FRAME_VALID=%s N2_PHASE=%s CTRL_FRAME_BEGIN=%s CTRL_FRAME_END=%s DCO_HELPER_ERROR=%s DCO_HELPER_OUTPUT=%s L2_STATUS=%s L2_FIRST_LOSS_VALID=%s L2_FIRST_LOSS_TIME=%s L2_FIRST_LOSS_OWNER=%s L2_FIRST_LOSS_REASON=%s L2_MAIN_PENDING=%s L2_HELPER_PENDING=%s L2_TX_ACTIVE=%s L2_TX_OWNER_MAIN=%s L2_ACK=%s L2_TIMEOUT=%s L2_DCO_ERROR=%s L2_RT_STATE=%s L2_STATUS_TIME=%s L2_MAIN_PENDING_COUNT=%s L2_HELPER_PENDING_COUNT=%s L2_MAIN_START_COUNT=%s L2_HELPER_START_COUNT=%s L2_MAIN_COMPLETED=%s L2_HELPER_COMPLETED=%s L2_MAIN_FAILED=%s L2_HELPER_FAILED=%s L2_MAIN_MAX_WAIT=%s L2_HELPER_MAX_WAIT=%s L2_MAIN_CURRENT_WAIT=%s L2_HELPER_CURRENT_WAIT=%s L2_MAIN_MAX_LATENCY=%s L2_HELPER_MAX_LATENCY=%s L2_ACK_EVENTS=%s L2_TIMEOUT_EVENTS=%s" \
+  puts [format "STARTUP_TIMELINE_SAMPLE trial=%s role=%s board=%s sample=%03d timestamp_ms=%d si_config_done=%s wr_ready=%s wr_rx_ready=%s wr_tx_ready=%s wr_rx_locked_to_data=%s wr_rx_enc_err=%s wr_tx_enc_err=%s core_tm_link_up=%s core_link_ok=%s WRC_MODE=%s(%s) PTP_STATE=%s(%s) PPSI_PDSTATE=%s(%s) PPSI_EXTSTATE=%s(%s) WRC_MODE_META=%s(%s) PTP_RAW_STATE=%s PTP_RX_COUNT=%s PTP_TX_COUNT=%s RXERR_COUNT=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_RESET_COUNT=%s CPU_RESET_N=%s FOREIGN_META=%s foreign_count=%s foreign_best=%s foreign_detection=%s foreign_wr_config=%s parentIsWRnode=%s parentModeOn=%s parentCalibrated=%s WR_RX_SIGNAL=%s(id=%s:%s,count=%s) WR_TX_SIGNAL=%s(id=%s:%s,count=%s) WR_STATE=%s(next=%s,name=%s) WR_STATE_VALUE=%s WR_STATE_NAME=%s WR_FAILURE=%s WR_FAILURE_LOW16=%s WR_FAILURE_REASON=%s WR_FAILURE_REASON_NAME=%s WR_DISABLE=valid=%s,cause=%s,ptp=%s,pd=%s,ext=%s,tics_low16=%s WR_DISABLE_VALID=%s WR_DISABLE_CAUSE=%s WR_DISABLE_PTP_STATE=%s WR_DISABLE_PD_STATE=%s WR_DISABLE_EXT_STATE=%s WR_REJECT=%s WR_LOCK_RESULT=%s(code=%s,check_lock=%s,fail_reason=%s(%s),fail_tics_low16=%s) SLOCK_TRACE_MAGIC=%s SLOCK_TRACE_STAGE=%s(%s) SLOCK_TRACE_RETRY=%s SLOCK_TRACE_ENTRY_TICS=%s SLOCK_TRACE_REMAINING_MS=%s SLOCK_TRACE_POLL_RET=%s SLOCK_TRACE_POLL_RETURN=%s SLOCK_TRACE_CHECK_LOCK=%s SLOCK_TRACE_CALIB_ATTEMPT=%s SLOCK_TRACE_CALIB_SUCCESS=%s SLOCK_TRACE_CALIB_FAILURE=%s SLOCK_TRACE_T24P_CALIBRATED=%s SLOCK_TRACE_WR_STATE=%s SLOCK_TRACE_SEQ=%s WR_LOCK_POLL_COUNT=%s LOCK_ENABLE_COUNT=%s LOCK_CALIB_FAIL_COUNT=%s LOCK_UNLOCKED_COUNT=%s SPLL_MODE=%s(%s) SPLL_SEQ_STATE=%s(%s) SPLL_ALIGN_STATE=%s SPLL_HELPER_STATE=%s(locked=%s,changed=%s,lock_count=%s) SPLL_HELPER_LIMITS=%s(threshold=%s,samples=%s) SPLL_MAIN_STATE=%s(enabled=%s,freq_locked=%s,phase_locked=%s,locked=%s,freq_count=%s,phase_count=%s) SPLL_MAIN_LIMITS=%s(freq_threshold=%s,freq_samples=%s) SPLL_MAIN_PHASE_LIMITS=%s(phase_threshold=%s,phase_samples=%s) SPLL_DELOCK_COUNT=%s RCER=%s OCER=%s DMTD_REF_ACCEPT=%s DMTD_FB_ACCEPT=%s TAG_VALID=%s TRR_WRITE=%s TRR_POP=%s IRQ_COUNT=%s HELPER_UPDATE_COUNT=%s PSTAT=%s PSTAT_LOCKED=%s FRAME_VALID=%s CORE_FRAME_VALID=%s F4D_TERMINAL_STATE=%s F4D_TERMINAL_HISTORY_VALID=%s F4D_TERMINAL_STREAK=%s F4D_UPSTREAM_FULL_PASS=%s F4D_UPSTREAM_PASS_STREAK=%s F4D_GENERATION_CHANGED=%s F4D_RESET_CHANGED=%s F4D_STOP_REASON=%s F4D_STOP_ROLE=%s N2_PHASE=%s CTRL_FRAME_BEGIN=%s CTRL_FRAME_END=%s DCO_HELPER_ERROR=%s DCO_HELPER_OUTPUT=%s L2_STATUS=%s L2_FIRST_LOSS_VALID=%s L2_FIRST_LOSS_TIME=%s L2_FIRST_LOSS_OWNER=%s L2_FIRST_LOSS_REASON=%s L2_MAIN_PENDING=%s L2_HELPER_PENDING=%s L2_TX_ACTIVE=%s L2_TX_OWNER_MAIN=%s L2_ACK=%s L2_TIMEOUT=%s L2_DCO_ERROR=%s L2_RT_STATE=%s L2_STATUS_TIME=%s L2_MAIN_PENDING_COUNT=%s L2_HELPER_PENDING_COUNT=%s L2_MAIN_START_COUNT=%s L2_HELPER_START_COUNT=%s L2_MAIN_COMPLETED=%s L2_HELPER_COMPLETED=%s L2_MAIN_FAILED=%s L2_HELPER_FAILED=%s L2_MAIN_MAX_WAIT=%s L2_HELPER_MAX_WAIT=%s L2_MAIN_CURRENT_WAIT=%s L2_HELPER_CURRENT_WAIT=%s L2_MAIN_MAX_LATENCY=%s L2_HELPER_MAX_LATENCY=%s L2_ACK_EVENTS=%s L2_TIMEOUT_EVENTS=%s" \
     $::trial_id $role $hardware_name $sample $elapsed $si_config_done $wr_ready $wr_rx_ready $wr_tx_ready $wr_rx_locked_to_data $wr_rx_enc_err $wr_tx_enc_err $core_tm_link_up $core_link_ok \
     $mode [mode_name $mode] $ptp_state [ptp_state_name $ptp_state] $pd_state [pd_state_name $pd_state] $ext_state [ext_state_name $ext_state] $wrc_mode_meta [mode_name $wrc_mode_meta] $ptp_state_raw [display32 $ptp_rx] [display32 $ptp_tx] [display32 $rxerr] \
     [expr {$boot_generation < 0 ? "INVALID" : [format %08X $boot_generation]}] \
     [expr {$cpu_reset_count < 0 ? "INVALID" : $cpu_reset_count}] [expr {$wr_core_reset_count < 0 ? "INVALID" : $wr_core_reset_count}] [expr {$si_config_reset_count < 0 ? "INVALID" : $si_config_reset_count}] $cpu_reset_n \
     [display32 $foreign_meta] [num_or_invalid $foreign_count] [num_or_invalid $foreign_best] [num_or_invalid $foreign_detection] [num_or_invalid $foreign_wr_config] $parent_is_wrnode $parent_mode_on $parent_calibrated \
     [display32 $wr_rx_signal] $rx_signal_id [signal_name $rx_signal_id] $rx_signal_count [display32 $wr_tx_signal] $tx_signal_id [signal_name $tx_signal_id] $tx_signal_count \
-    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] [display32 $wr_failure] $wr_disable_valid $wr_disable_cause $wr_disable_ptp_state $wr_disable_pd_state $wr_disable_ext_state $wr_disable_tics_low [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $slock_magic] [display32 $slock_stage] [slock_stage_name [word32 $slock_stage]] [display32 $slock_retry] [display32 $slock_entry_tics] [display32 $slock_remaining_ms] [display32 $slock_poll_ret] $slock_poll_return $slock_check_lock $slock_calib_attempt $slock_calib_success $slock_calib_failure $slock_t24p_calibrated [display32 $slock_wr_state] [display32 $slock_seq] [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
+    [display32 $wr_state] $wr_next_state [wr_state_name $wr_state_value] $wr_state_value [wr_state_name $wr_state_value] [display32 $wr_failure] $wr_failure_low16 $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_disable_valid $wr_disable_cause $wr_disable_ptp_state $wr_disable_pd_state $wr_disable_ext_state $wr_disable_tics_low $wr_disable_valid $wr_disable_cause $wr_disable_ptp_state $wr_disable_pd_state $wr_disable_ext_state [display32 $wr_reject] [display32 $lock_result] $lock_result_code $spll_check_lock $wr_failure_reason [wr_fail_reason_name $wr_failure_reason] $wr_failure_tics_low [display32 $slock_magic] [display32 $slock_stage] [slock_stage_name [word32 $slock_stage]] [display32 $slock_retry] [display32 $slock_entry_tics] [display32 $slock_remaining_ms] [display32 $slock_poll_ret] $slock_poll_return $slock_check_lock $slock_calib_attempt $slock_calib_success $slock_calib_failure $slock_t24p_calibrated [display32 $slock_wr_state] [display32 $slock_seq] [display32 $lock_polls] [display32 $lock_enable] [display32 $lock_calib_fail] [display32 $lock_unlocked] \
     $spll_mode [spll_mode_name $spll_mode] $spll_seq_state [spll_state_name $spll_seq_state] $spll_align_state [display32 $helper_state] $helper_locked $helper_lock_changed $helper_lock_count [display32 $helper_limits] $helper_threshold $helper_lock_samples [display32 $main_state] $main_enabled $main_freq_locked $main_phase_locked $main_locked $main_freq_lock_count $main_phase_lock_count [display32 $main_limits] $main_freq_threshold $main_freq_lock_samples [display32 $main_phase_limits] $main_phase_threshold $main_phase_lock_samples $spll_delock_count [display32 $rcer] [display32 $ocer] \
     [display32 $dmtd_ref_accept] [display32 $dmtd_fb_accept] [display32 $tag_valid] [display32 $trr_write] [display32 $trr_pop] [display32 $irq] [display32 $helper_update] [display32 $pstat] $pstat_locked \
-    $frame_ok $n2_phase [display32 $ctrl_begin] [display32 $ctrl_end] [display32 $helper_error] [display32 $helper_output] [display32 $l2_status] $l2_first_loss_valid $l2_first_loss_time $l2_first_loss_owner $l2_first_loss_reason \
+    $frame_ok $f4d_core_frame_valid $f4d_terminal_state $f4d_terminal_history_valid $::f4d_terminal_streak($role) $f4d_upstream_full_pass $::f4d_upstream_pass_streak($role) $f4d_generation_changed $f4d_reset_changed $::stop_reason $::stop_role $n2_phase [display32 $ctrl_begin] [display32 $ctrl_end] [display32 $helper_error] [display32 $helper_output] [display32 $l2_status] $l2_first_loss_valid $l2_first_loss_time $l2_first_loss_owner $l2_first_loss_reason \
     $l2_main_pending $l2_helper_pending $l2_tx_active $l2_owner_main $l2_ack $l2_timeout $l2_dco_error $l2_rt_state [display32 $l2_status_time] \
     $l2_main_pending_count $l2_helper_pending_count $l2_main_start_count $l2_helper_start_count $l2_main_completed_count $l2_helper_completed_count \
     $l2_main_failed_count $l2_helper_failed_count $l2_main_max_wait $l2_helper_max_wait $l2_main_current_wait $l2_helper_current_wait \
@@ -751,13 +886,13 @@ proc print_board_summary {role} {
   if {$::sample_count($role) == 0} { set boundary OBSERVER_ERROR }
   set unclassified 0
   if {$boundary eq "OBSERVER_ERROR"} { set unclassified 1 }
-  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d N2_SESSION_DEADLINE_MS=%d N2_FIRST_TRACKING_MS=%s N2_TRACKING_SAMPLES=%d N2_LAST_PHASE=%s N2_FRAME_INVALID_SAMPLES=%d N2_BOOT_GENERATION_FIRST=%s N2_BOOT_GENERATION_LAST=%s N2_BOOT_GENERATION_CHANGES=%d N2_FIRST_L2_LOSS_MS=%s N2_L2_FIRST_LOSS_VALID=%s N2_L2_FIRST_LOSS_TIME=%s N2_L2_FIRST_LOSS_OWNER=%s N2_L2_FIRST_LOSS_REASON=%s N2_L2_FIRST_LOSS_STATUS_TIME=%s FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PTP_SLAVE_MS=%s FIRST_PDSTATE_PDETECTED_MS=%s FIRST_PDSTATE_FAILURE_MS=%s FIRST_EXTSTATE_ACTIVE_MS=%s FIRST_EXTSTATE_PTP_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_HELPER_LOCKED_MS=%s FIRST_SPLL_READY_MS=%s FIRST_MAIN_ENABLED_MS=%s FIRST_MAIN_FREQ_LOCKED_MS=%s FIRST_MAIN_PHASE_LOCKED_MS=%s FIRST_MAIN_LOCKED_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_WR_FAILURE_REASON=%s(%s) FIRST_WR_FAILURE_TICS_LOW16=%s FIRST_WR_DISABLE_MS=%s FIRST_WR_DISABLE_CAUSE=%s(%s) FIRST_WR_DISABLE_PTP_STATE=%s FIRST_WR_DISABLE_PDSTATE=%s FIRST_WR_DISABLE_EXTSTATE=%s FIRST_WR_DISABLE_TICS_LOW16=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d" \
+  puts [format "STARTUP_TIMELINE_BOARD_SUMMARY trial=%s role=%s samples=%d sample_errors=%d N2_SESSION_DEADLINE_MS=%d N2_FIRST_TRACKING_MS=%s N2_TRACKING_SAMPLES=%d N2_LAST_PHASE=%s N2_FRAME_INVALID_SAMPLES=%d N2_BOOT_GENERATION_FIRST=%s N2_BOOT_GENERATION_LAST=%s N2_BOOT_GENERATION_CHANGES=%d N2_FIRST_L2_LOSS_MS=%s N2_L2_FIRST_LOSS_VALID=%s N2_L2_FIRST_LOSS_TIME=%s N2_L2_FIRST_LOSS_OWNER=%s N2_L2_FIRST_LOSS_REASON=%s N2_L2_FIRST_LOSS_STATUS_TIME=%s FIRST_CORE_TM_LINK_UP_MS=%s FIRST_CORE_LINK_OK_MS=%s FIRST_PTP_RX_ACTIVITY_MS=%s FIRST_PTP_TX_ACTIVITY_MS=%s FIRST_DMTD_ACCEPT_MS=%s FIRST_PTP_SLAVE_MS=%s FIRST_PDSTATE_PDETECTED_MS=%s FIRST_PDSTATE_FAILURE_MS=%s FIRST_EXTSTATE_ACTIVE_MS=%s FIRST_EXTSTATE_PTP_MS=%s FIRST_PARENT_WR_CALIBRATED_MS=%s FIRST_LOCK_ENABLE_MS=%s FIRST_HELPER_LOCKED_MS=%s FIRST_SPLL_READY_MS=%s FIRST_MAIN_ENABLED_MS=%s FIRST_MAIN_FREQ_LOCKED_MS=%s FIRST_MAIN_PHASE_LOCKED_MS=%s FIRST_MAIN_LOCKED_MS=%s FIRST_SPLL_INIT_MS=%s FIRST_TAG_VALID_MS=%s FIRST_TRR_WRITE_MS=%s FIRST_TRR_POP_MS=%s FIRST_IRQ_MS=%s FIRST_HELPER_UPDATE_MS=%s FIRST_PSTAT_LOCKED_MS=%s FIRST_WR_FAILURE_REASON=%s(%s) FIRST_WR_FAILURE_TICS_LOW16=%s FIRST_WR_DISABLE_MS=%s FIRST_WR_DISABLE_CAUSE=%s(%s) FIRST_WR_DISABLE_PTP_STATE=%s FIRST_WR_DISABLE_PDSTATE=%s FIRST_WR_DISABLE_EXTSTATE=%s FIRST_WR_DISABLE_TICS_LOW16=%s FIRST_INACTIVE_BOUNDARY=%s UNCLASSIFIED=%d F4D_TERMINAL_HISTORY_AT_START=%s F4D_FINAL_TERMINAL_STREAK=%s F4D_FINAL_UPSTREAM_PASS_STREAK=%s F4D_STOP_REASON=%s F4D_STOP_ROLE=%s" \
     $::trial_id $role $::sample_count($role) $::sample_error($role) $::duration_ms $first_tracking $::tracking_sample_count($role) $::last_n2_phase($role) $::frame_invalid_count($role) \
     [expr {[info exists ::boot_generation_first($role)] ? [format %08X $::boot_generation_first($role)] : "NEVER"}] \
     [expr {[info exists ::boot_generation_last($role)] ? [format %08X $::boot_generation_last($role)] : "NEVER"}] $::boot_generation_change_count($role) $first_l2_loss [expr {$first_l2_loss eq "NEVER" ? 0 : 1}] $first_l2_loss_time $first_l2_loss_owner $first_l2_loss_reason $first_l2_loss_status_time \
     [first_value $role first_core_tm_link_up] [first_value $role first_core_link_ok] [first_value $role ptp_rx_activity] [first_value $role ptp_tx_activity] $first_dmtd \
     [first_value $role first_ptp_slave] [first_value $role first_pdstate_pdetected] [first_value $role first_pdstate_failure] [first_value $role first_extstate_active] [first_value $role first_extstate_ptp] [first_value $role first_parent_wr_calibrated] [first_value $role first_lock_enable] [first_value $role first_helper_locked] [first_value $role first_spll_ready] [first_value $role first_main_enabled] [first_value $role first_main_freq_locked] [first_value $role first_main_phase_locked] [first_value $role first_main_locked] [first_value $role first_spll_init] $first_tag $first_write $first_pop $first_irq $first_helper \
-    [first_value $role first_pstat_locked] $first_failure_reason [wr_fail_reason_name $first_failure_reason] $first_failure_tics_low $first_disable_ms $first_disable_cause [wr_disable_cause_name $first_disable_cause] $first_disable_ptp_state $first_disable_pd_state $first_disable_ext_state $first_disable_tics_low $boundary $unclassified]
+    [first_value $role first_pstat_locked] $first_failure_reason [wr_fail_reason_name $first_failure_reason] $first_failure_tics_low $first_disable_ms $first_disable_cause [wr_disable_cause_name $first_disable_cause] $first_disable_ptp_state $first_disable_pd_state $first_disable_ext_state $first_disable_tics_low $boundary $unclassified $::f4d_terminal_history_at_start($role) $::f4d_terminal_streak($role) $::f4d_upstream_pass_streak($role) $::stop_reason $::stop_role]
   flush stdout
 }
 
@@ -771,11 +906,15 @@ foreach role {MASTER SLAVE} {
   set ::frame_invalid_count($role) 0
   set ::boot_generation_change_count($role) 0
   set ::tracking_sample_count($role) 0
+  set ::f4d_terminal_streak($role) 0
+  set ::f4d_upstream_pass_streak($role) 0
+  set ::f4d_terminal_history_at_start($role) 0
+  set ::f4d_last_core_frame_valid($role) 0
   set ::last_n2_phase($role) UNKNOWN
 }
 
-puts [format "STARTUP_TIMELINE_CONFIG trial=%s board_filter=%s duration_ms=%d N2_SESSION_DEADLINE_MS=%d early_window_ms=%d early_gap_ms=%d late_gap_ms=%d targets=%s read_only=1 ctrl_frame_bracket=1 l2_probes=52..61" \
-  $::trial_id $::board_filter $::duration_ms $::duration_ms $::early_window_ms $::early_gap_ms $::late_gap_ms $::targets]
+puts [format "STARTUP_TIMELINE_CONFIG trial=%s board_filter=%s duration_ms=%d hard_duration_ms=%d N2_SESSION_DEADLINE_MS=%d early_window_ms=%d early_gap_ms=%d late_gap_ms=%d targets=%s read_only=1 ctrl_frame_bracket=1 l2_probes=52..61 f4d_gate_audit=1" \
+  $::trial_id $::board_filter $::duration_ms $::hard_duration_ms $::duration_ms $::early_window_ms $::early_gap_ms $::late_gap_ms $::targets]
 flush stdout
 
 if {[llength $::targets] == 1} {
@@ -788,7 +927,9 @@ if {[llength $::targets] == 1} {
     set ::wb_toggle([lindex $target 1]) 0
     wb_sync_toggle [lindex $target 1]
     set ::persistent_probe 1
-    while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
+    while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms &&
+           [expr {[clock milliseconds] - $::start_ms}] < $::hard_duration_ms &&
+           !$::stop_requested} {
       incr ::sample_seq
       set elapsed [expr {[clock milliseconds] - $::start_ms}]
       read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
@@ -811,11 +952,14 @@ if {[llength $::targets] == 1} {
   catch {end_insystem_source_probe}
   set ::persistent_probe 0
 } else {
-  while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms} {
+  while {[expr {[clock milliseconds] - $::start_ms}] < $::duration_ms &&
+         [expr {[clock milliseconds] - $::start_ms}] < $::hard_duration_ms &&
+         !$::stop_requested} {
     incr ::sample_seq
     set elapsed [expr {[clock milliseconds] - $::start_ms}]
     foreach target $::targets {
       read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
+      if {$::stop_requested} { break }
     }
     set now_elapsed [expr {[clock milliseconds] - $::start_ms}]
     if {$now_elapsed < $::duration_ms} {
@@ -835,5 +979,15 @@ foreach role {MASTER SLAVE} {
 }
 puts [format "STARTUP_TIMELINE_DEADLINE trial=%s deadline_ms=%d reached=%d" \
   $::trial_id $::duration_ms [expr {[clock milliseconds] - $::start_ms >= $::duration_ms}]]
-puts [format "STARTUP_TIMELINE_DONE trial=%s elapsed_ms=%d" $::trial_id [expr {[clock milliseconds] - $::start_ms}]]
+set ::end_elapsed_ms [expr {[clock milliseconds] - $::start_ms}]
+set ::end_reason DURATION_REACHED
+if {$::stop_requested} {
+  set ::end_reason $::stop_reason
+} elseif {$::end_elapsed_ms >= $::hard_duration_ms} {
+  set ::end_reason HARD_DEADLINE
+}
+puts [format "STARTUP_TIMELINE_HARD_DEADLINE trial=%s hard_duration_ms=%d reached=%d" \
+  $::trial_id $::hard_duration_ms [expr {$::end_elapsed_ms >= $::hard_duration_ms}]]
+puts [format "STARTUP_TIMELINE_DONE trial=%s elapsed_ms=%d end_reason=%s stop_role=%s" \
+  $::trial_id $::end_elapsed_ms $::end_reason $::stop_role]
 flush stdout

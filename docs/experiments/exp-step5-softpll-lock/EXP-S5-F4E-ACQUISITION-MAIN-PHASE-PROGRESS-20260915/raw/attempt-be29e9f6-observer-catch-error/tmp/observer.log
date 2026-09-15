@@ -1,0 +1,28 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Sep 15 14:59:11 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 300 500  120000 130000 acquisition
+Info: Quartus(args): 300 500 {} 120000 130000 acquisition
+STEP5_F4E_CONFIG experiment=EXP-S5-F4E-ACQUISITION-MAIN-PHASE-PROGRESS-20260915 run_role=acquisition samples_max=300 target_duration_ms=120000 hard_duration_ms=130000 slave_cadence_ms=500 master_cadence_ms=3000 read_only_observer=1 one_reader=1 reader_processes=1 no_control_write=1 no_helper_pi_snapshot=1 no_debug_fifo_drain=1 main_trace_window=0x00100B58..0x00100BAC main_trace_magic=0x00100BDC main_detector_state=0x00100AC4 position_probes=42,43,44,49 l2_probes=52..61 max_actual_ms=130000
+STEP5_F4E_SAMPLE run_role=acquisition role=SLAVE board=DE5 [1-11.2] sample=1 observer_sample_n=1 elapsed_ms=1 read_start_ms=1789455552331 read_end_ms=1789455553916 frame_valid=0 core_frame_valid=0 transport_valid=0 main_core_valid=0 main_trace_valid=0 main_sample_n=INVALID main_update_count=INVALID main_sample_n_delta=INVALID main_sample_n_delta_ambiguous=1 main_sample_n_advanced=0 acquisition_diagnostic_allowed=0 entry_class=DATA_UNRESOLVED stop_reason=NONE read_error=1789455553916
+STEP5_F4E_SAMPLE run_role=acquisition role=MASTER board=DE5 [1-11.1] sample=1 observer_sample_n=1 elapsed_ms=1589 read_start_ms=1789455553916 read_end_ms=1789455555463 frame_valid=0 core_frame_valid=0 transport_valid=0 main_core_valid=0 main_trace_valid=0 main_sample_n=INVALID main_update_count=INVALID main_sample_n_delta=INVALID main_sample_n_delta_ambiguous=1 main_sample_n_advanced=0 acquisition_diagnostic_allowed=0 entry_class=DATA_UNRESOLVED stop_reason=NONE read_error=1789455555463
+STEP5_F4E_SAMPLE run_role=acquisition role=SLAVE board=DE5 [1-11.2] sample=2 observer_sample_n=2 elapsed_ms=3136 read_start_ms=1789455555463 read_end_ms=1789455557048 frame_valid=0 core_frame_valid=0 transport_valid=0 main_core_valid=0 main_trace_valid=0 main_sample_n=INVALID main_update_count=INVALID main_sample_n_delta=INVALID main_sample_n_delta_ambiguous=1 main_sample_n_advanced=0 acquisition_diagnostic_allowed=0 entry_class=DATA_UNRESOLVED stop_reason=NONE read_error=1789455557048
+STEP5_F4E_SAMPLE run_role=acquisition role=SLAVE board=DE5 [1-11.2] sample=3 observer_sample_n=3 elapsed_ms=5222 read_start_ms=1789455557549 read_end_ms=1789455559147 frame_valid=0 core_frame_valid=0 transport_valid=0 main_core_valid=0 main_trace_valid=0 main_sample_n=INVALID main_update_count=INVALID main_sample_n_delta=INVALID main_sample_n_delta_ambiguous=1 main_sample_n_advanced=0 acquisition_diagnostic_allowed=0 entry_class=DATA_UNRESOLVED stop_reason=DATA_UNRESOLVED read_error=1789455559147
+STEP5_F4E_ROLE_SUMMARY role=MASTER board=DE5 [1-11.1] samples=1 entry_seen=0 entry_sample=NEVER entry_elapsed_ms=NEVER main_core_valid_samples=0 main_progress_samples=0 acquisition_allowed_samples=0 phase_domain_samples=0 phase_inband_samples=0 stop_reason=DATA_UNRESOLVED run_end_reason=STOP_DATA_UNRESOLVED
+STEP5_F4E_ROLE_SUMMARY role=SLAVE board=DE5 [1-11.2] samples=3 entry_seen=0 entry_sample=NEVER entry_elapsed_ms=NEVER main_core_valid_samples=0 main_progress_samples=0 acquisition_allowed_samples=0 phase_domain_samples=0 phase_inband_samples=0 stop_reason=DATA_UNRESOLVED run_end_reason=STOP_DATA_UNRESOLVED
+STEP5_F4E_DONE session_elapsed_ms=6820 target_duration_ms=120000 hard_duration_ms=130000 master_samples=1 slave_samples=3 run_end_reason=STOP_DATA_UNRESOLVED stop_reason=DATA_UNRESOLVED single_reader=PASS step5_complete=NO merge_approved=NO

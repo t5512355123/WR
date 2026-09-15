@@ -1,0 +1,108 @@
+{
+  "experiment": "EXP-S5-F4E-ACQUISITION-MAIN-PHASE-PROGRESS-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "pain_exact_head": "7851e760756a8e7021178e1358de017ae2cf2313",
+  "observer_image_checkout": "7851e760756a8e7021178e1358de017ae2cf2313",
+  "observer_logic_predecessor": "2e2c1a1d7c861aed498f2cc51f0adfb23d8e7dec",
+  "analysis_test_commit": "7851e760756a8e7021178e1358de017ae2cf2313",
+  "functional_source_baseline": "5ba40f84cc4275f9a707bd847ac9809b267f7637",
+  "functional_source_diff_from_baseline": "none under firmware/, quartus/, rtl/",
+  "targets": {
+    "master": {
+      "cable": "DE5 [1-11.1]",
+      "top_level": "DE5a_wr_master_jtag",
+      "build_workflow": "scripts/pain/pain_build_jtag_master.sh",
+      "program_workflow": "scripts/pain/pain_program_jtag_master.sh",
+      "build": "PASS",
+      "program": "PASS",
+      "timing_closed": "NO",
+      "quartus_checksum": "0x30B89B19",
+      "sof_sha256": "1E8279C09689D0D403D16A0105FFA0C37C8F9B1A0E0FFA62097E084101C0BD85"
+    },
+    "slave": {
+      "cable": "DE5 [1-11.2]",
+      "top_level": "DE5a_wr_slave_jtag",
+      "build_workflow": "scripts/pain/pain_build_jtag_slave.sh",
+      "program_workflow": "scripts/pain/pain_program_jtag_slave.sh",
+      "build": "PASS",
+      "program": "PASS",
+      "timing_closed": "NO",
+      "quartus_checksum": "0x30B84088",
+      "sof_sha256": "309F8C9A7EE526215869D77946113D38198B36C8334EA8926D0A95681B86C0C7"
+    }
+  },
+  "frozen_settings": {
+    "candidate": "0/0",
+    "main_control": "+300/+1",
+    "main_prelock_boost": 20,
+    "helper_control": "-2250/-2",
+    "wr_guard_seconds": 8,
+    "slave_bootstrap": 3388,
+    "master_bootstrap": "disabled"
+  },
+  "workflow": {
+    "observer_mode": "acquisition",
+    "observer_read_only": true,
+    "single_reader": true,
+    "control_writes_during_capture": false,
+    "helper_pi_snapshot": false,
+    "debug_fifo_drain": false,
+    "build_master": "PASS",
+    "build_slave": "PASS",
+    "program_master": "PASS",
+    "program_slave": "PASS"
+  },
+  "capture": {
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "elapsed_ms": 122014,
+    "run_end_reason": "TARGET_REACHED",
+    "stop_reason": "NONE",
+    "master_samples": 20,
+    "slave_samples": 39,
+    "sample_parse_errors": 0,
+    "start_taipei": "2026-09-15T15:57:19.651+08:00",
+    "last_read_end_taipei": "2026-09-15T15:59:21.660+08:00"
+  },
+  "strict_replay": {
+    "result": "PHASE_CONVERGENCE_NOT_REACHED",
+    "diagnostic_pass": true,
+    "step5_complete": false,
+    "step5_pass": false,
+    "merge_approved": false,
+    "slave_main_core_valid_frames": 36,
+    "slave_fresh_main_producer_samples": 35,
+    "slave_phase_observation_samples": 30,
+    "slave_phase_inband_samples": 3,
+    "slave_phase_locked_samples": 0,
+    "main_pi_x_min": -7123,
+    "main_pi_x_max": 7641,
+    "nonzero_pi_clamp_samples": 0,
+    "transport_invalid_samples": 1,
+    "transport_invalid_max_streak": 1,
+    "generation_changes": 0,
+    "reset_changes": 0,
+    "helper_measurement_valid_frames": 0,
+    "position_valid_frames": 27,
+    "l2_valid_frames": 39,
+    "service_window_count": 0
+  },
+  "artifacts": {
+    "report": "REPORT.md",
+    "valid_raw": "raw/attempt-7851e760-jtag-runtime/tmp/observer.log",
+    "valid_analysis": "analysis/replay-7851e760-jtag-runtime",
+    "previous_valid_raw": "raw/attempt-2e2c1a1d-jtag-runtime/tmp/observer.log",
+    "failed_raw": [
+      "raw/attempt-fab1acb1-observer-scope-error/tmp/observer.log",
+      "raw/attempt-be29e9f6-observer-catch-error/tmp/observer.log"
+    ]
+  },
+  "sha256": {
+    "valid_raw": "8C63AA2E579B6F4C50AF206008C72A793A1EDABA4E5F89FAF68C409FF680C1C4",
+    "previous_valid_raw": "8D52192C5A6B03DF235CBB9932A697E25A26814D0FC2E27201FC875ADD7A42B",
+    "failed_scope_raw": "8AEB5D3D9E2633DC36307623EE3BC89BB7B72D01B482EBC09E40715ED6C6E339",
+    "failed_catch_raw": "21FFE704C32849DFF82A8EBBB5D70EDAB9E7214B8A020F49132242D46850D9F5"
+  }
+}

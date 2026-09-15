@@ -1,0 +1,90 @@
+{
+  "experiment": "EXP-S5-F4B-SLAVE-ONLY-MAIN-PI-ISOLATION-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "55398347a4f290bac870e9b382fe5dcb5fbd5ff4",
+  "functional_change": {
+    "scope": "per_image_compile_time_isolation",
+    "master": {
+      "candidate_macro": 0,
+      "main_kp": 300,
+      "main_ki": 1,
+      "prelock_boost": 20
+    },
+    "slave": {
+      "candidate_macro": 1,
+      "main_kp": 1300,
+      "main_ki": 3,
+      "prelock_boost": 4
+    }
+  },
+  "held_constant": {
+    "bootstrap_steps": 3388,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_phase_guard_seconds": 8,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "wr_timeout_seconds": 60
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "master_sof_sha256": "fdc091bb89747c9e90e2b9081647365d09c31cee890bd28c06dc6aed9d1c2a5b",
+    "slave_sof_sha256": "19b9e7086fc5d0d677ed158deadc8ce100d947bf2706d5cc08b7cddf63b67288",
+    "image_sha256_file": "raw/image-sha256.txt"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "order": "master_then_slave",
+    "master": "PASS",
+    "slave": "PASS",
+    "method": "direct_quartus_programmer"
+  },
+  "preflight": {
+    "initial": "SLAVE_STEP3_ERROR",
+    "retry_after_seconds": 60,
+    "retry": "SLAVE_STEP3_ERROR",
+    "master_upstream": "PASS",
+    "slave_step1": "PASS",
+    "slave_step2": "PASS",
+    "step4b_allowed": false,
+    "step4b_result": "BLOCKED_BY_STEP3",
+    "jtag_wb_path": "TRUSTED"
+  },
+  "observer": {
+    "smoke": "NOT_RUN",
+    "long": "NOT_RUN",
+    "reason": "UPSTREAM_STEP4B_INVALID"
+  },
+  "verdict": {
+    "step5": "NOT_EVALUATED",
+    "first_inactive_boundary": "UPSTREAM_STEP4B",
+    "candidate": false,
+    "merge_approved": false,
+    "working_hypothesis": "slave_only_candidate_may_disturb_upstream_signaling",
+    "next": "EXP-S5-F4C-SLAVE-ONLY-MAIN-PI-KP1300-KI3-BOOST20-20260915"
+  },
+  "raw_evidence": [
+    "raw/build-master.log",
+    "raw/build-slave.log",
+    "raw/build-timeline.log",
+    "raw/build_info_jtag_master.txt",
+    "raw/build_info_jtag_slave.txt",
+    "raw/program-master.log",
+    "raw/program-slave.log",
+    "raw/program-timeline.log",
+    "raw/settle-timeline.log",
+    "raw/preflight-wb-runtime.log",
+    "raw/preflight-wb-runtime-retry.log",
+    "raw/preflight-timeline.log",
+    "raw/image-sha256.txt",
+    "raw/git-head.txt",
+    "raw/git-status.txt"
+  ]
+}

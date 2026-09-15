@@ -1,0 +1,68 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Tue Sep 15 12:42:39 2026
+    Info: System process ID: 166598
+Info: Command: quartus_stp -t scripts/jtag/read_step5_startup_timeline_first_divergence.tcl EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915  120000 1000 2000 130000
+Info: Quartus(args): EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915 {} 120000 1000 2000 130000
+STARTUP_TIMELINE_CONFIG trial=EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915 board_filter= duration_ms=120000 hard_duration_ms=130000 N2_SESSION_DEADLINE_MS=120000 early_window_ms=30000 early_gap_ms=1000 late_gap_ms=2000 targets={MASTER {DE5 [1-11.1]} {@1: 10AX115H(1|2|3|4|4E3)/.. (0x02E660DD)}} {SLAVE {DE5 [1-11.2]} {@1: 10AX115H(1|2|3|4|4E3)/.. (0x02E660DD)}} read_only=1 ctrl_frame_bracket=1 l2_probes=52..61 f4d_gate_audit=1
+Error (23035): Tcl error: can't read "f4d_terminal_streak": no such variable
+    while executing
+"if {$f4d_terminal_streak >= 3 && !$::stop_requested} {
+    set ::stop_requested 1
+    set ::stop_reason SESSION_ALREADY_TERMINATED
+    set ::stop_role..."
+    (procedure "read_board_sample" line 238)
+    invoked from within
+"read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed"
+    ("foreach" body line 2)
+    invoked from within
+"foreach target $::targets {
+      read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
+      if {$::stop_..."
+    invoked from within
+"if {[llength $::targets] == 1} {
+  # In the normal two-process invocation each process owns one cable.  Keep
+  # that read-only probe session open so ..."
+    (file "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl" line 924)
+------------------------------------------------
+can't read "f4d_terminal_streak": no such variable
+    while executing
+"if {$f4d_terminal_streak >= 3 && !$::stop_requested} {
+    set ::stop_requested 1
+    set ::stop_reason SESSION_ALREADY_TERMINATED
+    set ::stop_role..."
+    (procedure "read_board_sample" line 238)
+    invoked from within
+"read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed"
+    ("foreach" body line 2)
+    invoked from within
+"foreach target $::targets {
+      read_board_sample [lindex $target 0] [lindex $target 1] [lindex $target 2] $::sample_seq $elapsed
+      if {$::stop_..."
+    invoked from within
+"if {[llength $::targets] == 1} {
+  # In the normal two-process invocation each process owns one cable.  Keep
+  # that read-only probe session open so ..."
+    (file "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl" line 924)
+------------------------------------------------
+Error (23031): Evaluation of Tcl script scripts/jtag/read_step5_startup_timeline_first_divergence.tcl unsuccessful
+Error: Quartus Prime Signal Tap was unsuccessful. 2 errors, 0 warnings
+    Error: Peak virtual memory: 677 megabytes
+    Error: Processing ended: Tue Sep 15 12:42:44 2026
+    Error: Elapsed time: 00:00:05
+    Error: System process ID: 166598

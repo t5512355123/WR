@@ -1,0 +1,65 @@
+{
+  "experiment": "EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "observer_source_commit": "e5e9cfb2a42c385d0508668985c07d44b65bd87b",
+  "functional_image_build_commit": "e5e9cfb2a42c385d0508668985c07d44b65bd87b",
+  "functional_source_baseline": "5ba40f84cc4275f9a707bd847ac9809b267f7637",
+  "functional_source_diff_from_baseline": "none under firmware/, quartus/, rtl/",
+  "targets": {
+    "master": {
+      "cable": "DE5 [1-11.1]",
+      "top_level": "DE5a_wr_master_jtag",
+      "sof_checksum": "0x30B89B19"
+    },
+    "slave": {
+      "cable": "DE5 [1-11.2]",
+      "top_level": "DE5a_wr_slave_jtag",
+      "sof_checksum": "0x30B84088"
+    }
+  },
+  "workflow": {
+    "pain_exact_head": "e5e9cfb2a42c385d0508668985c07d44b65bd87b",
+    "build_master": "PASS",
+    "build_slave": "PASS",
+    "program_master": "PASS",
+    "program_slave": "PASS",
+    "timing_closed": "NO",
+    "observer_read_only": true,
+    "functional_control_modified": false
+  },
+  "valid_capture": {
+    "duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "elapsed_ms": 120199,
+    "end_reason": "DURATION_REACHED",
+    "sample_count": {"MASTER": 38, "SLAVE": 38},
+    "core_frame_valid_count": {"MASTER": 37, "SLAVE": 38},
+    "generation_changes": 0,
+    "reset_changes": 0,
+    "terminal_streak_max": {"MASTER": 0, "SLAVE": 0},
+    "upstream_pass_streak_max": {"MASTER": 0, "SLAVE": 0}
+  },
+  "verdict": {
+    "f4d_result": "ACQUISITION_WINDOW_OBSERVED",
+    "f4d_pass": true,
+    "step5_complete": false,
+    "step5_pass": false,
+    "merge_approved": false
+  },
+  "artifacts": {
+    "valid_raw": "raw/attempt-e5e9cfb2-jtag-runtime/tmp/wr-step5-f4d-timeline-jtag-e5e9cfb2.log",
+    "analysis_dir": "analysis/replay-e5e9cfb2-jtag-runtime",
+    "valid_archive": "raw-transfer/EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915-e5e9cfb2-jtag-runtime.tgz",
+    "rs422_archive": "raw-transfer/EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915-e5e9cfb2-rs422-runtime.tgz",
+    "observer_error_archive": "raw-transfer/EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915-79380a35-observer-error.tgz"
+  },
+  "sha256": {
+    "valid_archive": "bdbfc7cd4561397c9a3e9ac1fb0c5af39c7fa554fd8c4d1120a3a358ee5210f7",
+    "valid_raw": "4b68e4ff4fa2451a9456d02ee27ff84804421e66f68f9564d57d3332467775ca",
+    "rs422_archive": "0eba8b0a2ddb0a7bb630b5713804ca2a758ce7e3d9cef9601ac155939a10b037",
+    "rs422_mailbox_sanity_raw": "5755350ac9decb7c7335399e5be8bf50e837571cc5e2e03aff37995f2a4e7026",
+    "observer_error_archive": "6e961413fefa1a0c5fc33619f0041ce44533c05a0373c096ba5705393a761714"
+  }
+}

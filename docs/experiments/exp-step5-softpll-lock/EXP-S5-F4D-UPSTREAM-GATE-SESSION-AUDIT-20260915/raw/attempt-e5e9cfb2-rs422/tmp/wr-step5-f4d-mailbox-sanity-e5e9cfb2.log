@@ -1,0 +1,63 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Tue Sep 15 13:22:10 2026
+    Info: System process ID: 200878
+Info: Command: quartus_stp -t scripts/jtag/read_jtag_wb_completion_stable_double_sample.tcl 3 "DE5 [1-11.1]" preload
+Info: Quartus(args): 3 {DE5 [1-11.1]} preload
+JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_START board=DE5 [1-11.1] device=@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD) iterations=3
+STATIC_SIGNATURE addr=0x00100124 expected=0x02000200
+BOARD_ID addr=0x00100128 expected=0x22334402
+DMTD_REF addr=0x00100298 DMTD_FB addr=0x0010029C
+
+JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_SUMMARY
+ITERATIONS = 3
+TOTAL_WB_REQUESTS = 0
+TOTAL_PROBE_READS = 1
+STATIC_SIGNATURE_MISMATCH = 0
+BOARD_ID_MISMATCH = 0
+STALE_A5A5_COUNT = 0
+TIMEOUT_COUNT = 60
+INVALID_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+DMTD_REF_TRIPLE_VALID = 0
+DMTD_FB_TRIPLE_VALID = 0
+INITIAL_COMPLETION_UNSTABLE_COUNT = 0
+INITIAL_DATA_WRONG_BUT_STABILIZED_CORRECT_COUNT = 0
+STABLE_RESPONSE_WRONG_COUNT = 0
+PROBE_STABILIZATION_TIMEOUT_COUNT = 0
+PROBE_2WAY_MATCH_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 0
+STABLE_TRANSACTION_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+PRELOAD_COUNT = 60
+COMMIT_COUNT = 0
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+STATIC_SEQUENCE_VALID = 0
+ADDRESS_SEQUENCE_VALID = 0
+FIRST_ERROR = NONE
+PRELOAD_THEN_TOGGLE_COMMIT = FAIL
+REQUEST_BUNDLE_CAPTURE_RACE = NOT_CONFIRMED
+JTAG_WB_READ_PATH_WITH_PRELOAD_PROTOCOL = FAIL
+Info (23030): Evaluation of Tcl script scripts/jtag/read_jtag_wb_completion_stable_double_sample.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Tue Sep 15 13:22:10 2026
+    Info: Elapsed time: 00:00:00
+    Info: System process ID: 200878

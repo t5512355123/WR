@@ -1,0 +1,98 @@
+{
+  "format": "step5-f4d-gate-audit-v1",
+  "source": "C:\\Users\\zenbook\\我的雲端硬碟\\碩士班研究資料\\04_WR\\docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915\\raw\\attempt-9e010847\\tmp\\wr-step5-f4d-timeline-9e010847.log",
+  "config": {
+    "TRIAL": "EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915",
+    "BOARD_FILTER": "",
+    "DURATION_MS": 120000,
+    "HARD_DURATION_MS": 130000,
+    "N2_SESSION_DEADLINE_MS": 120000,
+    "EARLY_WINDOW_MS": 30000,
+    "EARLY_GAP_MS": 1000,
+    "LATE_GAP_MS": 2000,
+    "TARGETS": "{MASTER {DE5 [1-11.1]} {@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)}} {SLAVE {DE5 [1-11.2]} {@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)}}",
+    "READ_ONLY": 1,
+    "CTRL_FRAME_BRACKET": 1,
+    "L2_PROBES": "52..61",
+    "F4D_GATE_AUDIT": 1
+  },
+  "done": {
+    "TRIAL": "EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915",
+    "ELAPSED_MS": 121374,
+    "END_REASON": "DURATION_REACHED",
+    "STOP_ROLE": "NONE"
+  },
+  "sample_count": 140,
+  "sample_error_count": 0,
+  "roles": {
+    "MASTER": {
+      "sample_count": 70,
+      "core_frame_valid_count": 0,
+      "core_frame_valid_fraction": 0.0,
+      "generation_changes": 0,
+      "reset_changes": 0,
+      "terminal_streak_max": 0,
+      "terminal_hit_sample": null,
+      "terminal_hit_timestamp_ms": null,
+      "terminal_history_at_capture_start": 0,
+      "upstream_pass_streak_max": 0,
+      "upstream_hit_sample": null,
+      "upstream_hit_timestamp_ms": null,
+      "ptp_rx_accounting": {
+        "first": null,
+        "final": null,
+        "delta_sum": 0,
+        "delta_samples": 0,
+        "interrupted": 70
+      },
+      "ptp_tx_accounting": {
+        "first": null,
+        "final": null,
+        "delta_sum": 0,
+        "delta_samples": 0,
+        "interrupted": 70
+      }
+    },
+    "SLAVE": {
+      "sample_count": 70,
+      "core_frame_valid_count": 0,
+      "core_frame_valid_fraction": 0.0,
+      "generation_changes": 0,
+      "reset_changes": 0,
+      "terminal_streak_max": 0,
+      "terminal_hit_sample": null,
+      "terminal_hit_timestamp_ms": null,
+      "terminal_history_at_capture_start": 0,
+      "upstream_pass_streak_max": 0,
+      "upstream_hit_sample": null,
+      "upstream_hit_timestamp_ms": null,
+      "ptp_rx_accounting": {
+        "first": null,
+        "final": null,
+        "delta_sum": 0,
+        "delta_samples": 0,
+        "interrupted": 70
+      },
+      "ptp_tx_accounting": {
+        "first": null,
+        "final": null,
+        "delta_sum": 0,
+        "delta_samples": 0,
+        "interrupted": 70
+      }
+    }
+  },
+  "selected_role": "SLAVE",
+  "core_frame_valid_total": 0,
+  "generation_changes": 0,
+  "reset_changes": 0,
+  "terminal_found": false,
+  "terminal_reason": null,
+  "upstream_full_pass_found": false,
+  "end_reason": "DURATION_REACHED",
+  "f4d_result": "INCONCLUSIVE",
+  "f4d_pass": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "merge_approved": false
+}

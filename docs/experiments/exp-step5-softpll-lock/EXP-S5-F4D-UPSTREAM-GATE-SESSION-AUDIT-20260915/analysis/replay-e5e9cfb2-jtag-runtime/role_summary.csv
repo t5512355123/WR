@@ -1,0 +1,3 @@
+role,sample_count,core_frame_valid_count,core_frame_valid_fraction,generation_changes,reset_changes,terminal_streak_max,terminal_hit_sample,terminal_hit_timestamp_ms,terminal_history_at_capture_start,upstream_pass_streak_max,upstream_hit_sample,upstream_hit_timestamp_ms
+MASTER,38,37,0.9736842105263158,0,0,0,,,0,0,,
+SLAVE,38,38,1.0,0,0,0,,,0,0,,

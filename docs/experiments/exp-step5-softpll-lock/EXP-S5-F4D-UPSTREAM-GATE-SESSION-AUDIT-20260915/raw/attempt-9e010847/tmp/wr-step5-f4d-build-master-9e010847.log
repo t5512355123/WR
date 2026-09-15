@@ -1,0 +1,2 @@
+WRPC master MIF: /tmp/wr-step5-f4d-upstream-gate-session-audit-20260915-79380a35/build/firmware/master/wrc.mif
+Master Quartus build passed: /tmp/wr-step5-f4d-upstream-gate-session-audit-20260915-79380a35/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof (timing_closed=NO)

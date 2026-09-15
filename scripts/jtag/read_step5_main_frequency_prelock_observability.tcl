@@ -38,8 +38,8 @@ if {[llength $argv] >= 6} { set run_role [string tolower [lindex $argv 5]] }
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long acquisition f4f} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, or f4f"
+    [lsearch -exact {legacy smoke long acquisition f4f f4g} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, or f4g"
 }
 
 array set ::wb_toggle {}
@@ -206,6 +206,40 @@ array set ::f4f_last_profile_end_ms {}
 set ::f4f_global_stop_reason NONE
 set ::f4f_session_start_ms 0
 set ::f4f_session_end_ms 0
+
+# F4G compact Helper/Main service-window audit state.  F4G is intentionally
+# independent of the older F4E/F4F verdict state.  One active source-probe
+# context contains the Slave Helper, Main, detector, position, L2, and WR
+# reads; the context is closed before a Master context begins.
+array set ::f4g_role {}
+array set ::f4g_cycle_count {}
+array set ::f4g_context_count {}
+array set ::f4g_helper_core_transport_streak {}
+array set ::f4g_main_core_transport_streak {}
+array set ::f4g_wr_core_transport_streak {}
+array set ::f4g_helper_no_core_since_ms {}
+array set ::f4g_main_no_core_since_ms {}
+array set ::f4g_last_helper_usable_ms {}
+array set ::f4g_last_helper_update {}
+array set ::f4g_last_main_usable_ms {}
+array set ::f4g_last_main_update {}
+array set ::f4g_last_main_progress_ms {}
+array set ::f4g_phase_qual_streak {}
+array set ::f4g_phase_qualified_seen {}
+array set ::f4g_helper_unlock_streak {}
+array set ::f4g_helper_rail_streak {}
+array set ::f4g_freq_unlock_streak {}
+array set ::f4g_terminal_streak {}
+array set ::f4g_wr_seen_active {}
+array set ::f4g_generation_baseline {}
+array set ::f4g_cpu_reset_baseline {}
+array set ::f4g_wr_reset_baseline {}
+array set ::f4g_si_drop_baseline {}
+array set ::f4g_stop_reason {}
+array set ::f4g_run_end_reason {}
+set ::f4g_global_stop_reason NONE
+set ::f4g_session_start_ms 0
+set ::f4g_session_end_ms 0
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -761,6 +795,967 @@ proc f4f_invalid_measurement_result {profile host_start_ms host_end_ms} {
   set flags [list 1 1 0 0 0 0 0 1 TRANSPORT_ERROR,PARSE_ERROR]
   return [concat [list $profile 1 $host_start_ms $host_end_ms \
     [expr {$host_end_ms - $host_start_ms}]] $raw $parsed $flags]
+}
+
+# -------------------------------------------------------------------------
+# F4G: compact Helper/Main service-window correlation
+# -------------------------------------------------------------------------
+
+proc f4g_is_number {value} {
+  return [string is integer -strict $value]
+}
+
+proc f4g_hex32 {value} {
+  if {[f4g_is_number $value]} {
+    return [format %08X [expr {$value & 0xffffffff}]]
+  }
+  if {[is_hex $value]} { return [format %08X [word32 $value]] }
+  return $value
+}
+
+proc f4g_raw_low32 {value} {
+  set word [low32_64 $value]
+  if {$word eq "INVALID"} { return INVALID }
+  return [format %08X $word]
+}
+
+proc f4g_raw_high32 {value} {
+  set word [high32_64 $value]
+  if {$word eq "INVALID"} { return INVALID }
+  return [format %08X $word]
+}
+
+proc f4g_initialize_board {role hardware_name} {
+  set ::f4g_role($hardware_name) $role
+  set ::wb_toggle($hardware_name) 0
+  set ::f4g_cycle_count($hardware_name) 0
+  set ::f4g_context_count($hardware_name) 0
+  set ::f4g_helper_core_transport_streak($hardware_name) 0
+  set ::f4g_main_core_transport_streak($hardware_name) 0
+  set ::f4g_wr_core_transport_streak($hardware_name) 0
+  set ::f4g_helper_no_core_since_ms($hardware_name) INVALID
+  set ::f4g_main_no_core_since_ms($hardware_name) INVALID
+  set ::f4g_last_helper_usable_ms($hardware_name) INVALID
+  set ::f4g_last_main_usable_ms($hardware_name) INVALID
+  set ::f4g_last_main_update($hardware_name) INVALID
+  set ::f4g_last_main_progress_ms($hardware_name) INVALID
+  set ::f4g_phase_qual_streak($hardware_name) 0
+  set ::f4g_phase_qualified_seen($hardware_name) 0
+  set ::f4g_helper_unlock_streak($hardware_name) 0
+  set ::f4g_helper_rail_streak($hardware_name) 0
+  set ::f4g_freq_unlock_streak($hardware_name) 0
+  set ::f4g_terminal_streak($hardware_name) 0
+  set ::f4g_wr_seen_active($hardware_name) 0
+  set ::f4g_generation_baseline($hardware_name) INVALID
+  set ::f4g_cpu_reset_baseline($hardware_name) INVALID
+  set ::f4g_wr_reset_baseline($hardware_name) INVALID
+  set ::f4g_si_drop_baseline($hardware_name) INVALID
+  set ::f4g_stop_reason($hardware_name) NONE
+  set ::f4g_run_end_reason($hardware_name) NOT_REACHED
+}
+
+proc f4g_set_stop {reason} {
+  if {$::f4g_global_stop_reason ne "NONE"} { return }
+  set ::f4g_global_stop_reason $reason
+  foreach hardware_name [array names ::f4g_role] {
+    set ::f4g_stop_reason($hardware_name) $reason
+  }
+}
+
+proc f4g_update_reset_state {hardware_name entry_probe reset_probe} {
+  set boot_generation [probe_high32 $entry_probe]
+  set cpu_reset_count [probe_field32 $reset_probe 16 8]
+  set wr_core_reset_count [probe_field32 $reset_probe 24 8]
+  set si_drop_count [probe_field32 $reset_probe 40 8]
+  set valid [expr {[f4g_is_number $boot_generation] &&
+    [f4g_is_number $cpu_reset_count] &&
+    [f4g_is_number $wr_core_reset_count] &&
+    [f4g_is_number $si_drop_count] ? 1 : 0}]
+  set changed 0
+  if {$valid} {
+    if {$::f4g_generation_baseline($hardware_name) eq "INVALID"} {
+      set ::f4g_generation_baseline($hardware_name) $boot_generation
+      set ::f4g_cpu_reset_baseline($hardware_name) $cpu_reset_count
+      set ::f4g_wr_reset_baseline($hardware_name) $wr_core_reset_count
+      set ::f4g_si_drop_baseline($hardware_name) $si_drop_count
+    } elseif {$boot_generation != $::f4g_generation_baseline($hardware_name) ||
+        $cpu_reset_count != $::f4g_cpu_reset_baseline($hardware_name) ||
+        $wr_core_reset_count != $::f4g_wr_reset_baseline($hardware_name) ||
+        $si_drop_count != $::f4g_si_drop_baseline($hardware_name)} {
+      set changed 1
+      f4g_set_stop RESET_OR_GENERATION_CHANGE
+    }
+  }
+  return [list $valid $changed $boot_generation $cpu_reset_count \
+    $wr_core_reset_count $si_drop_count]
+}
+
+# Read only the source-backed Helper CORE.  This function is called while the
+# F4G context owns the one active source-probe reader.  Every failed retry is
+# emitted with its raw words; an epoch-only rejection is never classified as a
+# transport failure.
+proc f4g_helper_core_attempt {hardware_name cycle retry_n} {
+  set host_start_ms [clock milliseconds]
+  set raw_epoch_before [wb_read $hardware_name 0x00100B00]
+  set raw_helper_error [wb_read $hardware_name 0x00100B14]
+  set raw_update_count [wb_read $hardware_name 0x00100B18]
+  set raw_helper_output [wb_read $hardware_name 0x00100B1C]
+  set raw_epoch_after [wb_read $hardware_name 0x00100B00]
+  set host_end_ms [clock milliseconds]
+
+  set transport_error 0
+  set parse_error 0
+  foreach raw [list $raw_epoch_before $raw_helper_error $raw_update_count \
+      $raw_helper_output $raw_epoch_after] {
+    if {$raw eq "TIMEOUT"} { set transport_error 1 }
+    if {![is_hex $raw]} { set parse_error 1 }
+  }
+  set epoch_before [word32 $raw_epoch_before]
+  set epoch_after [word32 $raw_epoch_after]
+  set odd_or_sentinel [expr {[f4f_epoch_bad $raw_epoch_before] ||
+    [f4f_epoch_bad $raw_epoch_after] ? 1 : 0}]
+  set epoch_changed [expr {$epoch_before >= 0 && $epoch_after >= 0 &&
+    $epoch_before != $epoch_after ? 1 : 0}]
+  set helper_error [signed32 $raw_helper_error]
+  set update_count [word32 $raw_update_count]
+  set helper_output [signed32 $raw_helper_output]
+  set range_mismatch [expr {[f4g_is_number $helper_output] &&
+    ($helper_output < 5 || $helper_output > 65531) ? 1 : 0}]
+  set accepted [expr {!$transport_error && !$parse_error &&
+    !$odd_or_sentinel && !$epoch_changed && !$range_mismatch &&
+    $epoch_before >= 0 && $epoch_after >= 0 &&
+    [f4g_is_number $helper_error] && [f4g_is_number $update_count] &&
+    [f4g_is_number $helper_output] ? 1 : 0}]
+  set reason [f4f_reason_string $transport_error $parse_error \
+    $odd_or_sentinel $epoch_changed 0 $range_mismatch $accepted]
+  puts [join [list STEP5_F4G_HELPER_ATTEMPT \
+    "board=$hardware_name" "cycle=$cycle" "retry_n=$retry_n" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "RAW_EPOCH_BEFORE=$raw_epoch_before" \
+    "RAW_HELPER_ERROR=$raw_helper_error" \
+    "RAW_UPDATE_COUNT=$raw_update_count" \
+    "RAW_HELPER_OUTPUT=$raw_helper_output" \
+    "RAW_EPOCH_AFTER=$raw_epoch_after" \
+    "EPOCH_BEFORE=$epoch_before" "EPOCH_AFTER=$epoch_after" \
+    "HELPER_ERROR=$helper_error" "UPDATE_COUNT=$update_count" \
+    "HELPER_OUTPUT=$helper_output" "TRANSPORT_ERROR=$transport_error" \
+    "PARSE_ERROR=$parse_error" "ODD_OR_SENTINEL=$odd_or_sentinel" \
+    "EPOCH_CHANGED=$epoch_changed" "RANGE_MISMATCH=$range_mismatch" \
+    "ACCEPTED=$accepted" "OWNER_UNVERIFIED=1" \
+    "DYNAMIC_OWNER=NOT_AVAILABLE" "reason=$reason"] " "]
+  flush stdout
+  return [list $accepted $host_start_ms $host_end_ms $raw_epoch_before \
+    $raw_epoch_after $epoch_before $epoch_after $helper_error $update_count \
+    $helper_output $transport_error $parse_error $odd_or_sentinel \
+    $epoch_changed $reason $raw_helper_error $raw_update_count \
+    $raw_helper_output]
+}
+
+proc f4g_capture_helper_core {hardware_name cycle} {
+  set attempts 0
+  set final_result [list 0 0 0 TIMEOUT TIMEOUT -1 -1 INVALID INVALID \
+    INVALID 1 1 0 0 TRANSPORT_ERROR TIMEOUT TIMEOUT TIMEOUT]
+  set all_transport 1
+  for {set retry_n 1} {$retry_n <= 8} {incr retry_n} {
+    set attempts $retry_n
+    set final_result [f4g_helper_core_attempt $hardware_name $cycle $retry_n]
+    if {![lindex $final_result 10] && ![lindex $final_result 11]} {
+      set all_transport 0
+    }
+    if {[lindex $final_result 0]} { break }
+    after 1
+  }
+  return [list $attempts $final_result $all_transport]
+}
+
+proc f4g_capture_main_core {hardware_name cycle} {
+  set host_start_ms [clock milliseconds]
+  set trace [read_main_trace $hardware_name]
+  set host_end_ms [clock milliseconds]
+  foreach {trace_ok epoch dref dout freq_error prelock_error pi_unclamped \
+      pi_output clamp_side lock_count lock_count_max kp ki shift bias \
+      update_count threshold lock_samples state y_min y_max anti_windup \
+      pi_x magic} $trace break
+  set core_valid [expr {$trace_ok && [f4g_is_number $magic] && $magic == 1 ? 1 : 0}]
+  set fresh 0
+  set ambiguous 0
+  set delta INVALID
+  if {$core_valid && [f4g_is_number $update_count]} {
+    set progress_elapsed_ms [expr {$host_end_ms - $::f4g_session_start_ms}]
+    if {$::f4g_last_main_update($hardware_name) eq "INVALID"} {
+      set ::f4g_last_main_progress_ms($hardware_name) $progress_elapsed_ms
+    } else {
+      set delta [counter_delta $::f4g_last_main_update($hardware_name) \
+        $update_count 32]
+      if {$delta eq "INVALID" || $delta > 0x7fffffff} {
+        set delta INVALID
+        set ambiguous 1
+      } elseif {$delta > 0} {
+        set fresh 1
+        set ::f4g_last_main_progress_ms($hardware_name) $progress_elapsed_ms
+      }
+    }
+    set ::f4g_last_main_update($hardware_name) $update_count
+  }
+  puts [join [list STEP5_F4G_MAIN_CORE \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "MAIN_CORE_VALID=$core_valid" "MAIN_TRACE_VALID=$trace_ok" \
+    "MAIN_EPOCH_RAW_BEFORE=$::main_trace_epoch_before_raw($hardware_name)" \
+    "MAIN_EPOCH_RAW_AFTER=$::main_trace_epoch_after_raw($hardware_name)" \
+    "MAIN_EPOCH=$epoch" "MAIN_SAMPLE_N=$update_count" \
+    "MAIN_SAMPLE_N_DELTA=$delta" "MAIN_SAMPLE_N_ADVANCED=$fresh" \
+    "MAIN_SAMPLE_N_AMBIGUOUS=$ambiguous" \
+    "MAIN_FREQ_ERROR=$freq_error" "MAIN_PI_X=$pi_x" \
+    "MAIN_PI_OUTPUT=$pi_output" "MAIN_PI_CLAMP_SIDE=$clamp_side" \
+    "MAIN_STATE=$state" "MAIN_MAGIC=$magic" \
+    "MAIN_FREQ_ERROR_RAW=[f4g_hex32 $freq_error]" \
+    "MAIN_PI_X_RAW=[f4g_hex32 $pi_x]" \
+    "MAIN_PI_OUTPUT_RAW=[f4g_hex32 $pi_output]" \
+    "MAIN_PI_CLAMP_SIDE_RAW=[f4g_hex32 $clamp_side]" \
+    "MAIN_SAMPLE_N_RAW=[f4g_hex32 $update_count]" \
+    "MAIN_STATE_RAW=[f4g_hex32 $state]" \
+    "MAIN_TRANSPORT_FAILURE=0"] " "]
+  flush stdout
+  return [list $core_valid $fresh $ambiguous $delta $host_start_ms \
+    $host_end_ms $update_count $pi_x $pi_output $clamp_side $freq_error \
+    $state $epoch $magic $trace_ok]
+}
+
+proc f4g_emit_main_detector {hardware_name cycle} {
+  set host_start_ms [clock milliseconds]
+  set detector [read_main_detector_block $hardware_name]
+  set host_end_ms [clock milliseconds]
+  foreach {valid stable state_raw limits_raw phase_limits_raw enabled locked \
+      freq_locked phase_locked freq_lock_count phase_lock_count freq_threshold \
+      freq_lock_samples phase_threshold phase_lock_samples} $detector break
+  puts [join [list STEP5_F4G_MAIN_DETECTOR \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "MAIN_DETECTOR_VALID=$valid" "MAIN_DETECTOR_STABLE=$stable" \
+    "MAIN_STATE_RAW=$state_raw" "MAIN_LIMITS_RAW=$limits_raw" \
+    "MAIN_PHASE_LIMITS_RAW=$phase_limits_raw" "MAIN_ENABLED=$enabled" \
+    "MAIN_LOCKED=$locked" "MAIN_FREQ_LOCKED=$freq_locked" \
+    "MAIN_PHASE_LOCKED=$phase_locked" "MAIN_FREQ_LOCK_COUNT=$freq_lock_count" \
+    "MAIN_PHASE_LOCK_COUNT=$phase_lock_count" \
+    "MAIN_FREQ_THRESHOLD=$freq_threshold" \
+    "MAIN_FREQ_LOCK_SAMPLES=$freq_lock_samples" \
+    "MAIN_PHASE_THRESHOLD=$phase_threshold" \
+    "MAIN_PHASE_LOCK_SAMPLES=$phase_lock_samples"] " "]
+  flush stdout
+  return [list $valid $stable $enabled $locked $freq_locked $phase_locked \
+    $freq_lock_count $phase_lock_count $freq_threshold $freq_lock_samples \
+    $phase_threshold $phase_lock_samples]
+}
+
+proc f4g_emit_helper_state {hardware_name cycle} {
+  set host_start_ms [clock milliseconds]
+  set state [wb_read $hardware_name 0x00100ABC]
+  set limits [wb_read $hardware_name 0x00100AC0]
+  set host_end_ms [clock milliseconds]
+  set valid [expr {[is_hex $state] && [is_hex $limits] ? 1 : 0}]
+  set locked [field32 $state 0 1]
+  set lock_count [field32 $state 16 16]
+  set threshold [field32 $limits 0 16]
+  set lock_samples [field32 $limits 16 16]
+  puts [join [list STEP5_F4G_HELPER_STATE \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "HELPER_STATE_VALID=$valid" "HELPER_STATE_RAW=$state" \
+    "HELPER_LIMITS_RAW=$limits" "HELPER_LOCKED=$locked" \
+    "HELPER_LOCK_COUNT=$lock_count" "HELPER_THRESHOLD=$threshold" \
+    "HELPER_LOCK_SAMPLES=$lock_samples"] " "]
+  flush stdout
+  return [list $valid $locked $lock_count $threshold $lock_samples $state $limits]
+}
+
+proc f4g_read_l2_word {probe} {
+  set host_start_ms [clock milliseconds]
+  set raw [probe_read $probe]
+  set host_end_ms [clock milliseconds]
+  return [list $raw $host_start_ms $host_end_ms [is_hex $raw]]
+}
+
+proc f4g_emit_l2_word {hardware_name cycle probe name result} {
+  foreach {raw host_start_ms host_end_ms valid} $result break
+  puts [join [list STEP5_F4G_L2_WORD \
+    "board=$hardware_name" "cycle=$cycle" "probe=$probe" "name=$name" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "RAW=$raw" "VALID=$valid" "WIDTH_BITS=32" \
+    "PACKING=MAIN_LOW32_HELPER_HIGH32" \
+    "MULTI_PROBE_ATOMICITY=NOT_AVAILABLE"] " "]
+  if {$name eq "START" || $name eq "COMPLETED" || $name eq "FAILED"} {
+    set main_raw [f4g_raw_low32 $raw]
+    set helper_raw [f4g_raw_high32 $raw]
+    set main_value [low32_64 $raw]
+    set helper_value [high32_64 $raw]
+    puts [join [list STEP5_F4G_SERVICE_COUNTER \
+      "board=$hardware_name" "cycle=$cycle" "probe=$probe" \
+      "COUNTER_GROUP=$name" "host_start_ms=$host_start_ms" \
+      "host_end_ms=$host_end_ms" "RAW_PACKED=$raw" \
+      "MAIN_RAW=$main_raw" "HELPER_RAW=$helper_raw" \
+      "MAIN_VALUE=$main_value" "HELPER_VALUE=$helper_value" \
+      "VALID=$valid" "COUNTER_WIDTH_BITS=32" \
+      "SOURCE_SEMANTICS=VERIFIED" "READ_ATOMICITY=WORD_ONLY" \
+      "DELTA_POLICY=SAME_FIELD_TRUSTED_READS_ONLY"] " "]
+  }
+  flush stdout
+}
+
+proc f4g_emit_service_demand {hardware_name cycle status_result pending_result} {
+  foreach {status_raw status_start_ms status_end_ms status_valid} $status_result break
+  foreach {pending_raw pending_start_ms pending_end_ms pending_valid} $pending_result break
+  set main_pending [field64 $status_raw 0 1]
+  set helper_pending [field64 $status_raw 1 1]
+  set tx_active [field64 $status_raw 2 1]
+  set owner_main [field64 $status_raw 3 1]
+  set ack [field64 $status_raw 4 1]
+  set timeout [field64 $status_raw 5 1]
+  set dco_error [field64 $status_raw 7 1]
+  set reason [field64 $status_raw 8 8]
+  set rt_state [field64 $status_raw 16 3]
+  set status_time [high32_64 $status_raw]
+  set main_pending_count [low32_64 $pending_raw]
+  set helper_pending_count [high32_64 $pending_raw]
+  puts [join [list STEP5_F4G_SERVICE_DEMAND \
+    "board=$hardware_name" "cycle=$cycle" \
+    "STATUS_HOST_START_MS=$status_start_ms" \
+    "STATUS_HOST_END_MS=$status_end_ms" "STATUS_RAW=$status_raw" \
+    "STATUS_VALID=$status_valid" "PENDING_HOST_START_MS=$pending_start_ms" \
+    "PENDING_HOST_END_MS=$pending_end_ms" "PENDING_RAW=$pending_raw" \
+    "PENDING_VALID=$pending_valid" "MAIN_PENDING=$main_pending" \
+    "HELPER_PENDING=$helper_pending" "TX_ACTIVE=$tx_active" \
+    "OWNER_MAIN=$owner_main" "ACK=$ack" "TIMEOUT=$timeout" \
+    "DCO_ERROR=$dco_error" "REASON=$reason" "RT_STATE=$rt_state" \
+    "STATUS_TIME=$status_time" "MAIN_PENDING_COUNT=$main_pending_count" \
+    "HELPER_PENDING_COUNT=$helper_pending_count" \
+    "ADMISSION_ELIGIBLE=UNKNOWN" \
+    "DEMAND_RESIDUAL_PRESENT=UNKNOWN"] " "]
+  flush stdout
+}
+
+proc f4g_emit_helper_position {hardware_name cycle} {
+  set host_start_ms [clock milliseconds]
+  set observation [read_position_observability]
+  set tracker_raw [probe_read 39]
+  set host_end_ms [clock milliseconds]
+  foreach {valid accounting_before_raw accounting_after_raw position_raw \
+      bootstrap_raw actuator_raw position_epoch target applied finc fdec \
+      normal_completed dco_step bootstrap_completed bootstrap_done forced_finc \
+      forced_fdec} $observation break
+  set tracker_word [word64 $tracker_raw]
+  set normal_request [expr {$tracker_word < 0 ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
+  set residual UNKNOWN
+  if {$valid && [f4g_is_number $target] && [f4g_is_number $applied]} {
+    set residual [expr {$target != ($applied & 0xffff) ? 1 : 0}]
+  }
+  puts [join [list STEP5_F4G_HELPER_POSITION \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "POSITION_VALID=$valid" "ACCOUNTING_BEFORE_RAW=$accounting_before_raw" \
+    "ACCOUNTING_AFTER_RAW=$accounting_after_raw" "POSITION_RAW=$position_raw" \
+    "BOOTSTRAP_RAW=$bootstrap_raw" "ACTUATOR_RAW=$actuator_raw" \
+    "POSITION_EPOCH=$position_epoch" "HELPER_TARGET_CODE=$target" \
+    "HELPER_APPLIED_CODE=$applied" "HELPER_RESIDUAL_PRESENT=$residual" \
+    "HELPER_FINC=$finc" "HELPER_FDEC=$fdec" \
+    "HELPER_NORMAL_REQUEST=$normal_request" \
+    "HELPER_NORMAL_COMPLETED=$normal_completed" "DCO_STEP=$dco_step" \
+    "HELPER_BOOTSTRAP_COMPLETED=$bootstrap_completed" \
+    "HELPER_BOOTSTRAP_DONE=$bootstrap_done" "HELPER_FORCED_FINC=$forced_finc" \
+    "HELPER_FORCED_FDEC=$forced_fdec" "TRACKER_RAW=$tracker_raw"] " "]
+  flush stdout
+  return [list $valid $residual $normal_request $normal_completed \
+    $bootstrap_done $target $applied]
+}
+
+proc f4g_emit_wr_core {role hardware_name cycle prefix} {
+  set host_start_ms [clock milliseconds]
+  set status [wb_read $hardware_name 0x00100A04]
+  set sstat [wb_read $hardware_name 0x00100A08]
+  set ptp_meta [wb_read $hardware_name 0x00100A5C]
+  set wr_failure [wb_read $hardware_name 0x00100A6C]
+  set wr_state [wb_read $hardware_name 0x00100A4C]
+  set pstat [wb_read $hardware_name 0x00100A0C]
+  set lock_result [wb_read $hardware_name 0x00100A8C]
+  set spll_state [wb_read $hardware_name 0x00100AA0]
+  set entry_probe [probe_read 26]
+  set reset_probe [probe_read 27]
+  set host_end_ms [clock milliseconds]
+  set direct_values [list $status $sstat $ptp_meta $wr_failure $wr_state \
+    $pstat $lock_result $spll_state $entry_probe $reset_probe]
+  set direct_valid 1
+  set transport_failure 0
+  foreach value $direct_values {
+    if {$value eq "TIMEOUT"} { set transport_failure 1 }
+    if {![is_hex $value]} { set direct_valid 0 }
+  }
+  set role_identity_valid [f4e_identity_role_valid $role $hardware_name]
+  set reset_state [f4g_update_reset_state $hardware_name $entry_probe $reset_probe]
+  foreach {reset_valid reset_changed boot_generation cpu_reset_count \
+      wr_core_reset_count si_drop_count} $reset_state break
+  set status_valid [is_hex $status]
+  set si_config_done [field32 $status 0 1]
+  set wr_ready [field32 $status 1 1]
+  set core_tm_link_up [field32 $status 2 1]
+  set core_link_ok [field32 $status 3 1]
+  set wr_rx_ready [field32 $status 6 1]
+  set wr_tx_ready [field32 $status 7 1]
+  set cpu_reset_n [field32 $status 15 1]
+  set phy_link_usable 0
+  if {$status_valid && [f4g_is_number $si_config_done] &&
+      [f4g_is_number $wr_ready] && [f4g_is_number $core_tm_link_up] &&
+      [f4g_is_number $core_link_ok] && [f4g_is_number $wr_rx_ready] &&
+      [f4g_is_number $wr_tx_ready] && $si_config_done == 1 &&
+      $wr_ready == 1 && $core_tm_link_up == 1 && $core_link_ok == 1 &&
+      $wr_rx_ready == 1 && $wr_tx_ready == 1} {
+    set phy_link_usable 1
+  }
+  set ptp_state [field32 $ptp_meta 0 8]
+  set pd_state [field32 $ptp_meta 8 8]
+  set ext_state [field32 $ptp_meta 16 8]
+  set wrc_mode [field32 $ptp_meta 24 8]
+  set wr_state_value [field32 $wr_state 11 4]
+  set wr_next_state [field32 $wr_state 15 4]
+  set pstat_locked [field32 $pstat 1 1]
+  set spll_delock_count [field32 $spll_state 24 8]
+  set wr_disable_valid [field32 $wr_failure 11 1]
+  set wr_failure_reason [field32 $lock_result 9 7]
+  if {$direct_valid && [f4g_is_number $wr_state_value] &&
+      $wr_state_value > 0} {
+    set ::f4g_wr_seen_active($hardware_name) 1
+  }
+  set terminal 0
+  if {$direct_valid} {
+    if {$wr_disable_valid == 1} { set terminal 1 }
+    if {$wr_failure_reason >= 1 && $wr_failure_reason <= 7} { set terminal 1 }
+    if {$::f4g_wr_seen_active($hardware_name) &&
+        (($pd_state == 4) || ($ext_state == 0) || ($wr_state_value == 0))} {
+      set terminal 1
+    }
+  }
+  if {$terminal} {
+    incr ::f4g_terminal_streak($hardware_name)
+  } else {
+    set ::f4g_terminal_streak($hardware_name) 0
+  }
+  if {$::f4g_terminal_streak($hardware_name) >= 2} {
+    f4g_set_stop WR_SESSION_ENDED
+  }
+  set core_valid [expr {$direct_valid && $role_identity_valid &&
+    $reset_valid ? 1 : 0}]
+  puts [join [list $prefix \
+    "role=$role" "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "WR_CORE_VALID=$core_valid" "DIRECT_VALID=$direct_valid" \
+    "TRANSPORT_FAILURE=$transport_failure" \
+    "ROLE_IDENTITY_VALID=$role_identity_valid" \
+    "STATUS_RAW=$status" "SSTAT_RAW=$sstat" "PTP_META_RAW=$ptp_meta" \
+    "WR_FAILURE_RAW=$wr_failure" "WR_STATE_RAW=$wr_state" \
+    "PSTAT_RAW=$pstat" "LOCK_RESULT_RAW=$lock_result" \
+    "SPLL_STATE_RAW=$spll_state" "ENTRY_PROBE_RAW=$entry_probe" \
+    "RESET_PROBE_RAW=$reset_probe" "SI_CONFIG_DONE=$si_config_done" \
+    "WR_READY=$wr_ready" "CORE_TM_LINK_UP=$core_tm_link_up" \
+    "CORE_LINK_OK=$core_link_ok" "WR_RX_READY=$wr_rx_ready" \
+    "WR_TX_READY=$wr_tx_ready" "CPU_RESET_N=$cpu_reset_n" \
+    "PHY_LINK_USABLE=$phy_link_usable" "PTP_STATE=$ptp_state" \
+    "PD_STATE=$pd_state" "EXT_STATE=$ext_state" "WRC_MODE=$wrc_mode" \
+    "CURRENT_WR_STATE=$wr_state_value" "WR_NEXT_STATE=$wr_next_state" \
+    "PSTAT_LOCKED=$pstat_locked" "SPLL_DELOCK_COUNT=$spll_delock_count" \
+    "BOOT_GENERATION=$boot_generation" "CPU_RESET_COUNT=$cpu_reset_count" \
+    "WR_CORE_RESET_COUNT=$wr_core_reset_count" \
+    "SI_CONFIG_DROP_COUNT=$si_drop_count" "RESET_FIELDS_VALID=$reset_valid" \
+    "RESET_CHANGED=$reset_changed" "TERMINAL=$terminal" \
+    "TERMINAL_STREAK=$::f4g_terminal_streak($hardware_name)" \
+    "WR_FAILURE_REASON=$wr_failure_reason" "WR_DISABLE_VALID=$wr_disable_valid" \
+    "STOP_REASON=$::f4g_global_stop_reason"] " "]
+  flush stdout
+  return [list $core_valid $terminal $phy_link_usable $wr_state_value \
+    $pstat_locked $role_identity_valid $reset_valid $reset_changed \
+    $transport_failure]
+}
+
+proc f4g_update_core_health {hardware_name elapsed_ms helper_accepted \
+    helper_transport_failure main_core_valid main_transport_failure \
+    wr_core_valid wr_transport_failure} {
+  if {$helper_accepted} {
+    set ::f4g_helper_core_transport_streak($hardware_name) 0
+    set ::f4g_last_helper_usable_ms($hardware_name) $elapsed_ms
+  } elseif {$helper_transport_failure} {
+    incr ::f4g_helper_core_transport_streak($hardware_name)
+    if {$::f4g_helper_core_transport_streak($hardware_name) >= 3} {
+      f4g_set_stop DATA_UNRESOLVED
+    }
+  }
+  if {$main_core_valid} {
+    set ::f4g_main_core_transport_streak($hardware_name) 0
+    set ::f4g_last_main_usable_ms($hardware_name) $elapsed_ms
+  } elseif {$main_transport_failure} {
+    incr ::f4g_main_core_transport_streak($hardware_name)
+    if {$::f4g_main_core_transport_streak($hardware_name) >= 3} {
+      f4g_set_stop DATA_UNRESOLVED
+    }
+  }
+  if {$wr_core_valid} {
+    set ::f4g_wr_core_transport_streak($hardware_name) 0
+  } elseif {$wr_transport_failure} {
+    incr ::f4g_wr_core_transport_streak($hardware_name)
+    if {$::f4g_wr_core_transport_streak($hardware_name) >= 3} {
+      f4g_set_stop DATA_UNRESOLVED
+    }
+  }
+  if {$::f4g_helper_no_core_since_ms($hardware_name) eq "INVALID"} {
+    set ::f4g_helper_no_core_since_ms($hardware_name) $elapsed_ms
+  }
+  if {$::f4g_main_no_core_since_ms($hardware_name) eq "INVALID"} {
+    set ::f4g_main_no_core_since_ms($hardware_name) $elapsed_ms
+  }
+  if {$::f4g_last_helper_usable_ms($hardware_name) ne "INVALID" &&
+      $elapsed_ms - $::f4g_last_helper_usable_ms($hardware_name) >= 10000} {
+    f4g_set_stop DATA_UNRESOLVED
+  } elseif {$::f4g_last_helper_usable_ms($hardware_name) eq "INVALID" &&
+      $elapsed_ms - $::f4g_helper_no_core_since_ms($hardware_name) >= 10000} {
+    f4g_set_stop DATA_UNRESOLVED
+  }
+  if {$::f4g_last_main_usable_ms($hardware_name) ne "INVALID" &&
+      $elapsed_ms - $::f4g_last_main_usable_ms($hardware_name) >= 10000} {
+    f4g_set_stop DATA_UNRESOLVED
+  } elseif {$::f4g_last_main_usable_ms($hardware_name) eq "INVALID" &&
+      $elapsed_ms - $::f4g_main_no_core_since_ms($hardware_name) >= 10000} {
+    f4g_set_stop DATA_UNRESOLVED
+  }
+}
+
+proc f4g_update_phase_window {hardware_name helper_valid helper_locked \
+    helper_fresh helper_output detector_valid detector_enabled \
+    detector_freq_locked wr_valid phy_link_usable terminal elapsed_ms} {
+  set current_qualified [expr {$helper_valid && $helper_locked eq "1" &&
+    $detector_valid && $detector_enabled eq "1" &&
+    $detector_freq_locked eq "1" && $wr_valid && $phy_link_usable &&
+    !$terminal ? 1 : 0}]
+  if {$current_qualified} {
+    incr ::f4g_phase_qual_streak($hardware_name)
+  } else {
+    set ::f4g_phase_qual_streak($hardware_name) 0
+  }
+  if {$::f4g_phase_qual_streak($hardware_name) >= 2} {
+    set ::f4g_phase_qualified_seen($hardware_name) 1
+  }
+  set phase_qualified [expr {$current_qualified &&
+    $::f4g_phase_qualified_seen($hardware_name) ? 1 : 0}]
+
+  # These are post-entry regression guards.  They are deliberately not used
+  # to reject a pre-entry frame and phase=0 is not itself a rejection reason.
+  if {$::f4g_phase_qualified_seen($hardware_name)} {
+    if {$helper_valid && $helper_locked eq "0"} {
+      incr ::f4g_helper_unlock_streak($hardware_name)
+    } elseif {$helper_valid && $helper_locked eq "1"} {
+      set ::f4g_helper_unlock_streak($hardware_name) 0
+    }
+    if {$helper_valid && $helper_fresh && [f4g_is_number $helper_output] &&
+        ($helper_output <= 5 || $helper_output >= 65531)} {
+      incr ::f4g_helper_rail_streak($hardware_name)
+    } elseif {$helper_valid && $helper_fresh &&
+        [f4g_is_number $helper_output]} {
+      set ::f4g_helper_rail_streak($hardware_name) 0
+    }
+    if {$detector_valid && $detector_freq_locked eq "0"} {
+      incr ::f4g_freq_unlock_streak($hardware_name)
+    } elseif {$detector_valid && $detector_freq_locked eq "1"} {
+      set ::f4g_freq_unlock_streak($hardware_name) 0
+    }
+    if {$::f4g_helper_unlock_streak($hardware_name) >= 3 ||
+        $::f4g_helper_rail_streak($hardware_name) >= 3} {
+      f4g_set_stop HELPER_REGRESSION
+    } elseif {$::f4g_freq_unlock_streak($hardware_name) >= 3} {
+      f4g_set_stop FREQ_REGRESSION
+    }
+    if {$::f4g_last_main_progress_ms($hardware_name) ne "INVALID" &&
+        $elapsed_ms - $::f4g_last_main_progress_ms($hardware_name) >= 10000} {
+      f4g_set_stop MAIN_UPDATE_STALL
+    }
+  }
+  return [list $current_qualified $phase_qualified \
+    $::f4g_phase_qual_streak($hardware_name) \
+    $::f4g_phase_qualified_seen($hardware_name) \
+    $::f4g_helper_unlock_streak($hardware_name) \
+    $::f4g_helper_rail_streak($hardware_name) \
+    $::f4g_freq_unlock_streak($hardware_name)]
+}
+
+proc f4g_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
+  set context_host_start [clock milliseconds]
+  set probe_started 0
+  set helper_attempts 0
+  set helper_result [list 0 0 0 TIMEOUT TIMEOUT -1 -1 INVALID INVALID \
+    INVALID 1 1 0 0 TRANSPORT_ERROR TIMEOUT TIMEOUT TIMEOUT]
+  set helper_all_transport 1
+  set helper_accepted 0
+  set helper_fresh 0
+  set helper_update INVALID
+  set helper_delta INVALID
+  set helper_state_valid 0
+  set helper_locked INVALID
+  set main_core_valid 0
+  set main_fresh 0
+  set main_ambiguous 0
+  set main_delta INVALID
+  set main_update INVALID
+  set detector_valid 0
+  set detector_enabled INVALID
+  set detector_freq_locked INVALID
+  set detector_phase_locked INVALID
+  set position_valid 0
+  set helper_residual UNKNOWN
+  set normal_request INVALID
+  set normal_completed INVALID
+  set bootstrap_done INVALID
+  set wr_core_valid 0
+  set terminal 0
+  set phy_link_usable 0
+  set wr_state_value INVALID
+  set pstat_locked INVALID
+  set wr_transport_failure 1
+  set context_failed [catch {
+    start_insystem_source_probe -hardware_name $hardware_name \
+      -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+
+    # Fixed order: Helper CORE, Helper state, Main CORE, detector, position,
+    # individually timed L2 words, and finally WR core. All reads share this
+    # one active source-probe lifecycle.
+    set helper_capture [f4g_capture_helper_core $hardware_name $cycle]
+    set helper_attempts [lindex $helper_capture 0]
+    set helper_result [lindex $helper_capture 1]
+    set helper_all_transport [lindex $helper_capture 2]
+    set helper_accepted [lindex $helper_result 0]
+    set helper_fresh 0
+    set helper_update [lindex $helper_result 8]
+    if {$helper_accepted} {
+      if {$::f4g_last_helper_usable_ms($hardware_name) ne "INVALID"} {
+        set helper_delta [counter_delta $::f4g_last_helper_update($hardware_name) \
+          $helper_update 32]
+      } else {
+        set helper_delta INVALID
+      }
+      # The helper capture's update count is kept in the same compact CORE
+      # contract. Use an independent last value for freshness.
+      if {![info exists ::f4g_last_helper_update($hardware_name)] ||
+          $::f4g_last_helper_update($hardware_name) eq "INVALID"} {
+        set helper_delta INVALID
+      } else {
+        set helper_delta [counter_delta \
+          $::f4g_last_helper_update($hardware_name) $helper_update 32]
+        if {$helper_delta ne "INVALID" && $helper_delta <= 0x7fffffff &&
+            $helper_delta > 0} { set helper_fresh 1 }
+      }
+      set ::f4g_last_helper_update($hardware_name) $helper_update
+    }
+    set helper_state [f4g_emit_helper_state $hardware_name $cycle]
+    foreach {helper_state_valid helper_locked helper_lock_count \
+        helper_threshold helper_lock_samples helper_state_raw \
+        helper_limits_raw} $helper_state break
+    set main_result [f4g_capture_main_core $hardware_name $cycle]
+    foreach {main_core_valid main_fresh main_ambiguous main_delta \
+        main_host_start main_host_end main_update main_pi_x main_pi_output \
+        main_clamp_side main_freq_error main_state main_epoch main_magic \
+        main_trace_valid} $main_result break
+    set detector_result [f4g_emit_main_detector $hardware_name $cycle]
+    foreach {detector_valid detector_stable detector_enabled detector_locked \
+        detector_freq_locked detector_phase_locked detector_freq_count \
+        detector_phase_count detector_freq_threshold detector_freq_samples \
+        detector_phase_threshold detector_phase_samples} $detector_result break
+    set position_result [f4g_emit_helper_position $hardware_name $cycle]
+    foreach {position_valid helper_residual normal_request normal_completed \
+        bootstrap_done helper_target helper_applied} $position_result break
+
+    set status_result [f4g_read_l2_word 52]
+    f4g_emit_l2_word $hardware_name $cycle 52 STATUS $status_result
+    set pending_result [f4g_read_l2_word 53]
+    f4g_emit_l2_word $hardware_name $cycle 53 PENDING $pending_result
+    f4g_emit_service_demand $hardware_name $cycle $status_result $pending_result
+    foreach {l2_probe l2_name} {54 START 55 COMPLETED 56 FAILED \
+        57 MAX_WAIT 58 CURRENT_WAIT 59 LATENCY 60 FAILURE 61 FIRST_LOSS} {
+      set l2_result [f4g_read_l2_word $l2_probe]
+      f4g_emit_l2_word $hardware_name $cycle $l2_probe $l2_name $l2_result
+    }
+    set wr_result [f4g_emit_wr_core SLAVE $hardware_name $cycle \
+      STEP5_F4G_WR_CORE]
+    foreach {wr_core_valid terminal phy_link_usable wr_state_value \
+        pstat_locked role_identity_valid reset_valid reset_changed \
+        wr_transport_failure} $wr_result break
+  } context_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  set context_host_end [clock milliseconds]
+  set elapsed_final [expr {$context_host_end - $::f4g_session_start_ms}]
+  if {$context_failed} {
+    set helper_attempts 0
+    set helper_accepted 0
+    set helper_fresh 0
+    set helper_all_transport 1
+    set helper_locked INVALID
+    set helper_state_valid 0
+    set main_core_valid 0
+    set main_fresh 0
+    set main_delta INVALID
+    set detector_valid 0
+    set detector_enabled INVALID
+    set detector_freq_locked INVALID
+    set terminal 0
+    set phy_link_usable 0
+    set wr_core_valid 0
+    set wr_transport_failure 1
+    set position_valid 0
+    set helper_residual UNKNOWN
+    set normal_request INVALID
+    set normal_completed INVALID
+    set bootstrap_done INVALID
+    set context_error [string map [list " " _ "\n" | "\r" |] $context_error]
+    puts [join [list STEP5_F4G_CONTEXT_ERROR "role=SLAVE" \
+      "board=$hardware_name" "cycle=$cycle" \
+      "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+      "elapsed_ms=$elapsed_final" "error=$context_error"] " "]
+    flush stdout
+  }
+  if {$::f4g_helper_no_core_since_ms($hardware_name) eq "INVALID"} {
+    set ::f4g_helper_no_core_since_ms($hardware_name) $elapsed_final
+  }
+  if {$::f4g_main_no_core_since_ms($hardware_name) eq "INVALID"} {
+    set ::f4g_main_no_core_since_ms($hardware_name) $elapsed_final
+  }
+  f4g_update_core_health $hardware_name $elapsed_final $helper_accepted \
+    $helper_all_transport $main_core_valid 0 $wr_core_valid \
+    $wr_transport_failure
+  set phase_result [f4g_update_phase_window $hardware_name \
+    [expr {$helper_accepted && $helper_state_valid ? 1 : 0}] \
+    $helper_locked $helper_fresh [lindex $helper_result 9] \
+    $detector_valid $detector_enabled $detector_freq_locked \
+    $wr_core_valid $phy_link_usable $terminal $elapsed_final]
+  foreach {phase_current phase_qualified phase_streak phase_seen \
+      helper_unlock_streak helper_rail_streak freq_unlock_streak} \
+      $phase_result break
+  incr ::f4g_context_count($hardware_name)
+  set ::f4g_cycle_count($hardware_name) $cycle
+  puts [join [list STEP5_F4G_CYCLE \
+    "role=SLAVE" "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+    "elapsed_ms=$elapsed_final" "context_duration_ms=[expr {$context_host_end - $context_host_start}]" \
+    "helper_attempts=$helper_attempts" "HELPER_CORE_VALID=$helper_accepted" \
+    "HELPER_CORE_FRESH=$helper_fresh" "HELPER_UPDATE_COUNT=$helper_update" \
+    "HELPER_STATE_VALID=$helper_state_valid" "HELPER_LOCKED=$helper_locked" \
+    "MAIN_CORE_VALID=$main_core_valid" "MAIN_CORE_FRESH=$main_fresh" \
+    "MAIN_SAMPLE_N=$main_update" "MAIN_SAMPLE_N_DELTA=$main_delta" \
+    "MAIN_DETECTOR_VALID=$detector_valid" "MAIN_ENABLED=$detector_enabled" \
+    "MAIN_FREQ_LOCKED=$detector_freq_locked" \
+    "MAIN_PHASE_LOCKED=$detector_phase_locked" \
+    "POSITION_VALID=$position_valid" "HELPER_RESIDUAL_PRESENT=$helper_residual" \
+    "HELPER_NORMAL_REQUEST=$normal_request" \
+    "HELPER_NORMAL_COMPLETED=$normal_completed" \
+    "HELPER_BOOTSTRAP_DONE=$bootstrap_done" "WR_CORE_VALID=$wr_core_valid" \
+    "PHY_LINK_USABLE=$phy_link_usable" "CURRENT_WR_STATE=$wr_state_value" \
+    "PSTAT_LOCKED=$pstat_locked" "TERMINAL=$terminal" \
+    "PHASE_CURRENT=$phase_current" "PHASE_QUALIFIED=$phase_qualified" \
+    "PHASE_QUAL_STREAK=$phase_streak" "PHASE_QUALIFIED_SEEN=$phase_seen" \
+    "HELPER_UNLOCK_STREAK=$helper_unlock_streak" \
+    "HELPER_RAIL_STREAK=$helper_rail_streak" \
+    "FREQ_UNLOCK_STREAK=$freq_unlock_streak" \
+    "STOP_REASON=$::f4g_global_stop_reason"] " "]
+  flush stdout
+  return [list $helper_accepted $helper_fresh $main_core_valid $main_fresh \
+    $detector_valid $detector_enabled $detector_freq_locked \
+    $detector_phase_locked $wr_core_valid $phy_link_usable $terminal \
+    $phase_qualified]
+}
+
+proc f4g_emit_master_core {hardware_name device_name cycle} {
+  set context_host_start [clock milliseconds]
+  set probe_started 0
+  set context_failed [catch {
+    start_insystem_source_probe -hardware_name $hardware_name \
+      -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+    # Master is a background identity/liveness sample. Its optional position
+    # probes are deliberately omitted so they cannot invalidate WR core.
+    set wr_result [f4g_emit_wr_core MASTER $hardware_name $cycle \
+      STEP5_F4G_MASTER_CORE]
+    foreach {wr_core_valid terminal phy_link_usable wr_state_value \
+        pstat_locked role_identity_valid reset_valid reset_changed \
+        wr_transport_failure} $wr_result break
+  } context_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  set context_host_end [clock milliseconds]
+  if {$context_failed} {
+    set wr_core_valid 0
+    set terminal 0
+    set phy_link_usable 0
+    set wr_state_value INVALID
+    set pstat_locked INVALID
+    set wr_transport_failure 1
+    set context_error [string map [list " " _ "\n" | "\r" |] $context_error]
+    puts [join [list STEP5_F4G_CONTEXT_ERROR "role=MASTER" \
+      "board=$hardware_name" "cycle=$cycle" \
+      "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+      "error=$context_error"] " "]
+    flush stdout
+  }
+  if {$wr_core_valid} {
+    set ::f4g_wr_core_transport_streak($hardware_name) 0
+  } elseif {$wr_transport_failure} {
+    incr ::f4g_wr_core_transport_streak($hardware_name)
+    if {$::f4g_wr_core_transport_streak($hardware_name) >= 3} {
+      f4g_set_stop DATA_UNRESOLVED
+    }
+  }
+  incr ::f4g_context_count($hardware_name)
+  puts [join [list STEP5_F4G_MASTER_SAMPLE \
+    "role=MASTER" "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+    "duration_ms=[expr {$context_host_end - $context_host_start}]" \
+    "WR_CORE_VALID=$wr_core_valid" "PHY_LINK_USABLE=$phy_link_usable" \
+    "CURRENT_WR_STATE=$wr_state_value" "PSTAT_LOCKED=$pstat_locked" \
+    "TERMINAL=$terminal" "TRANSPORT_FAILURE=$wr_transport_failure" \
+    "STOP_REASON=$::f4g_global_stop_reason"] " "]
+  flush stdout
+}
+
+proc run_f4g_compact_progress_window {} {
+  global samples target_duration_ms hard_duration_ms gap_ms
+  set targets [f4e_collect_targets]
+  set master_target ""
+  set slave_target ""
+  foreach target $targets {
+    if {[lindex $target 0] eq "MASTER"} { set master_target $target }
+    if {[lindex $target 0] eq "SLAVE"} { set slave_target $target }
+  }
+  set effective_duration $target_duration_ms
+  if {$effective_duration <= 0} { set effective_duration 120000 }
+  set hard_duration $hard_duration_ms
+  if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
+  puts [join [list STEP5_F4G_CONFIG \
+    "experiment=EXP-S5-F4G-COMPACT-HELPER-MAIN-SERVICE-WINDOW-20260915" \
+    "run_role=f4g" "samples_max=$samples" \
+    "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
+    "cadence_hint_ms=$gap_ms" "slave_profile=CORE_ONLY" \
+    "helper_core_offsets=0x00100B00,0x00100B14,0x00100B18,0x00100B1C" \
+    "main_core_window=0x00100B58..0x00100BAC" \
+    "main_core_fields=epoch,sample_n,pi_x,pi_output,clamp_side,state,freq_error" \
+    "main_detector_window=0x00100AC4..0x00100ACC" \
+    "helper_position_probes=42,43,44,49" "l2_probes=52..61" \
+    "l2_counter_width_bits=32" "l2_multi_probe_atomicity=NOT_AVAILABLE" \
+    "counter_delta_policy=SAME_FIELD_TRUSTED_READS_ONLY" \
+    "phase_qualification=2_TRUSTED_FRAMES_HELPER_LOCKED_MAIN_FREQ_LOCKED" \
+    "main_background_cadence_ms=3000" "helper_attempts_max=8" \
+    "hard_deadline_includes_retries=1" "stop_on_owner_unresolved=1" \
+    "read_only_observer=1" "one_reader=1" "reader_processes=1" \
+    "no_control_write=1" "no_helper_pi_snapshot=1" \
+    "no_debug_fifo_drain=1" "production_control_unchanged=1" \
+    "source_contract=helper_source_contract.md" \
+    "source_contract_verified=YES" "dynamic_owner_verified=NOT_AVAILABLE" \
+    "runtime_image_verified=REQUIRED_AT_CAPTURE" \
+    "step5_complete=NO" "merge_approved=NO"] " "]
+  flush stdout
+  if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
+    puts [join [list STEP5_F4G_CONFIG_ERROR required=MASTER+SLAVE \
+      "discovered=[llength $targets]"] " "]
+    puts "STEP5_F4G_DONE run_end_reason=CONFIG_INVALID stop_reason=CONFIG_INVALID step5_complete=NO merge_approved=NO"
+    flush stdout
+    return
+  }
+  foreach target [list $master_target $slave_target] {
+    f4g_initialize_board [lindex $target 0] [lindex $target 1]
+    set ::f4g_last_helper_update([lindex $target 1]) INVALID
+  }
+  set ::f4g_global_stop_reason NONE
+  set ::f4g_session_start_ms [clock milliseconds]
+  set target_deadline [expr {$::f4g_session_start_ms + $effective_duration}]
+  set hard_deadline [expr {$::f4g_session_start_ms + $hard_duration}]
+  set next_slave_ms $::f4g_session_start_ms
+  set next_master_ms $::f4g_session_start_ms
+  set slave_cycle 0
+  set master_cycle 0
+  while {[clock milliseconds] < $hard_deadline &&
+      [clock milliseconds] < $target_deadline && $slave_cycle < $samples &&
+      $::f4g_global_stop_reason eq "NONE"} {
+    set did_work 0
+    set now [clock milliseconds]
+    if {$now >= $next_slave_ms} {
+      incr slave_cycle
+      set slave_hardware [lindex $slave_target 1]
+      set slave_device [lindex $slave_target 2]
+      f4g_emit_slave_context $slave_hardware $slave_device $slave_cycle \
+        [expr {[clock milliseconds] - $::f4g_session_start_ms}]
+      set next_slave_ms [expr {[clock milliseconds] + 500}]
+      set did_work 1
+    }
+    if {$::f4g_global_stop_reason ne "NONE"} { break }
+    set now [clock milliseconds]
+    if {$now >= $next_master_ms} {
+      incr master_cycle
+      set master_hardware [lindex $master_target 1]
+      set master_device [lindex $master_target 2]
+      f4g_emit_master_core $master_hardware $master_device $master_cycle
+      set next_master_ms [expr {[clock milliseconds] + 3000}]
+      set did_work 1
+    }
+    if {$::f4g_global_stop_reason ne "NONE"} { break }
+    if {!$did_work} {
+      set now [clock milliseconds]
+      set next_due $next_slave_ms
+      if {$next_master_ms < $next_due} { set next_due $next_master_ms }
+      set remaining [expr {$next_due - $now}]
+      if {$remaining > 100} { set remaining 100 }
+      if {$remaining > 0} { after $remaining }
+    }
+  }
+  set ::f4g_session_end_ms [clock milliseconds]
+  set session_elapsed [expr {$::f4g_session_end_ms - $::f4g_session_start_ms}]
+  if {$::f4g_global_stop_reason ne "NONE"} {
+    set end_reason STOP_$::f4g_global_stop_reason
+  } elseif {$slave_cycle >= $samples} {
+    set end_reason SAMPLE_LIMIT
+  } elseif {$session_elapsed >= $effective_duration} {
+    set end_reason TARGET_REACHED
+  } elseif {$session_elapsed >= $hard_duration} {
+    set end_reason HARD_DEADLINE
+  } else {
+    set end_reason OBSERVER_EXIT
+  }
+  foreach target [list $master_target $slave_target] {
+    set role [lindex $target 0]
+    set hardware_name [lindex $target 1]
+    set ::f4g_run_end_reason($hardware_name) $end_reason
+    puts [join [list STEP5_F4G_ROLE_SUMMARY \
+      "role=$role" "board=$hardware_name" \
+      "contexts=$::f4g_context_count($hardware_name)" \
+      "cycles=$::f4g_cycle_count($hardware_name)" \
+      "phase_qualified_seen=$::f4g_phase_qualified_seen($hardware_name)" \
+      "helper_transport_streak=$::f4g_helper_core_transport_streak($hardware_name)" \
+      "main_transport_streak=$::f4g_main_core_transport_streak($hardware_name)" \
+      "wr_transport_streak=$::f4g_wr_core_transport_streak($hardware_name)" \
+      "helper_last_usable_ms=$::f4g_last_helper_usable_ms($hardware_name)" \
+      "main_last_usable_ms=$::f4g_last_main_usable_ms($hardware_name)" \
+      "terminal_streak=$::f4g_terminal_streak($hardware_name)" \
+      "stop_reason=$::f4g_stop_reason($hardware_name)" \
+      "run_end_reason=$end_reason"] " "]
+  }
+  puts [join [list STEP5_F4G_DONE \
+    "session_elapsed_ms=$session_elapsed" \
+    "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
+    "slave_cycles=$slave_cycle" "master_samples=$master_cycle" \
+    "run_end_reason=$end_reason" \
+    "stop_reason=$::f4g_global_stop_reason" "single_reader=PASS" \
+    "step5_complete=NO" "step5_pass=NO" "merge_approved=NO"] " "]
+  flush stdout
 }
 
 proc f4f_capture_profile {hardware_name device_name profile cycle} {
@@ -2892,6 +3887,11 @@ if {$run_role eq "acquisition"} {
 
 if {$run_role eq "f4f"} {
   run_f4f_helper_contract_audit
+  exit 0
+}
+
+if {$run_role eq "f4g"} {
+  run_f4g_compact_progress_window
   exit 0
 }
 

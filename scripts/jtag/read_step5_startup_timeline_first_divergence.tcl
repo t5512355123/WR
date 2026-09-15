@@ -665,7 +665,8 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
   if {$::sample_count($role) == 1 && $f4d_terminal_history_valid == 1} {
     set ::f4d_terminal_history_at_start($role) 1
   }
-  if {$f4d_terminal_streak >= 3 && !$::stop_requested} {
+  if {[info exists ::f4d_terminal_streak($role)] &&
+      $::f4d_terminal_streak($role) >= 3 && !$::stop_requested} {
     set ::stop_requested 1
     set ::stop_reason SESSION_ALREADY_TERMINATED
     set ::stop_role $role

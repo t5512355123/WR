@@ -9,7 +9,7 @@
 #define DE5A_FALLBACK_MAC_4 0x44
 #define DE5A_FALLBACK_MAC_5 0x01
 
-/* Keep the F4b Main-PI candidate isolated from the Master image. */
+/* Fable F4b arbiter experiment: keep the Main-PI candidate disabled. */
 #define DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE 0
 
 #endif

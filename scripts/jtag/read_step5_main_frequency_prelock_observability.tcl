@@ -2036,6 +2036,7 @@ proc emit_f4e_sample {role hardware_name device_name sample elapsed_ms} {
 }
 
 proc run_f4e_acquisition {} {
+  global samples target_duration_ms hard_duration_ms gap_ms
   set targets [f4e_collect_targets]
   set master_target ""
   set slave_target ""

@@ -1,0 +1,42 @@
+{
+  "format": "step5-f4c-preflight-blocked-v1",
+  "experiment": "EXP-S5-F4C-MAIN-PHASE-SERVICE-CAUSE-AUDIT-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "5ba40f84cc4275f9a707bd847ac9809b267f7637",
+  "source_commit_verified_on_pain": true,
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "master_timing_closed": false,
+    "slave_timing_closed": false
+  },
+  "program": {
+    "master_board": "DE5 [1-11.1]",
+    "slave_board": "DE5 [1-11.2]",
+    "master": "PASS",
+    "slave": "PASS"
+  },
+  "preflight": {
+    "jtag_wb_path": "TRUSTED",
+    "initial": "STEP4B_BLOCKED_BY_STEP2",
+    "retry_after_60s": "STEP4B_BLOCKED_BY_STEP3",
+    "observer_started": false,
+    "step5": "NOT_COMPLETE"
+  },
+  "transfer_archive": {
+    "name": "EXP-S5-F4C-MAIN-PHASE-SERVICE-CAUSE-AUDIT-20260915-5ba40f84-preflight-blocked.tgz",
+    "sha256": "ca01cfe07081df8cc844fde389f46b15289004059d6a00a0158781b5edb798aa"
+  },
+  "raw_files": {
+    "wr-step5-f4c-master-build-5ba40f84.log": "b7c4ba0384fc7464cdc366fe4bb69165029c3f2642af6c69bb69368079163b93",
+    "wr-step5-f4c-slave-build-5ba40f84.log": "94fba69811b50bcb24d13ede228b83141147ec3a99900c734638bdaffcc7d586",
+    "wr-step5-f4c-master-program-5ba40f84.log": "1c02e897fa39d099f4f29f38d10a11107b6bafe726e2c56d2d8e973567fa8041",
+    "wr-step5-f4c-slave-program-5ba40f84.log": "7c5e81cd3fbb9d39ded5f641d5eaccf59cfe3fd01162b6f8ee8d928b86a24d73",
+    "wr-step5-f4c-preflight-5ba40f84.log": "17f00aad149ed6089c44a760797eb06c60dd8dab336ab2c863cd00a4e1dc50f7",
+    "wr-step5-f4c-preflight-retry-5ba40f84.log": "aafa9314325b11e8d9bf695d0ec0e30d55e441583378977256049660a92911e5"
+  },
+  "f4c_data_quality": "NOT_APPLICABLE",
+  "merge_approved": false
+}

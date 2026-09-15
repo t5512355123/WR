@@ -107,4 +107,103 @@ process 內建立並關閉 active source-probe context，且保留每個 profile
 - archive SHA-256：`1568F026C4B4882FA25A4FD27392A9545A642533FF61B98EE751FC03EC783A17`
 - replay：`analysis/replay-29535064-failed-observer/verdict.json`
 
-本輪結論：`F4F_OBSERVER_IMPLEMENTATION_ERROR`。Step5 尚未完成，禁止 merge。
+Attempt 1 結論：`F4F_OBSERVER_IMPLEMENTATION_ERROR`。Step5 尚未完成，禁止 merge。
+
+## Attempt 2 report — corrected active-probe capture
+
+修正 commit：`e550e57d11493b18ff30728e3a295b63dc87cfa4`
+修正內容：只補上 F4F profile capture 的 active source-probe lifecycle；不修改
+production C/RTL、PI、timeout、控制參數或 mailbox protocol。Pain 重新 pull、build、
+program 後才進行本次 capture。
+
+執行條件：
+
+```text
+samples=300
+profile order=FULL,CORE, FULL,CORE, ...
+profile cadence=500 ms
+target=120000 ms
+hard deadline=130000 ms
+one Tcl process / one reader
+```
+
+Deploy：
+
+- Master build：PASS，`timing_closed=NO`。
+- Slave build：PASS，`timing_closed=NO`。
+- Master program：PASS，checksum `0x30B89B19`，`Configuration succeeded`。
+- Slave program：PASS，checksum `0x30B84088`，`Configuration succeeded`。
+- Master SOF SHA-256：`75B0610CDB050F6D9BB52B2E2EC8F95A39B1F8F59FFCA8938BCB384F4B3B17B4`。
+- Slave SOF SHA-256：`DE37675426A36399002BEEA5E20BA5445B19647874B5D623E71AEB092B8DFE53`。
+
+Observer：
+
+```text
+observer_rc=0
+session_elapsed_ms=120380
+run_end_reason=TARGET_REACHED
+stop_reason=NONE
+cycles=103
+profile_summary_rows=103
+helper_attempt_lines=478
+background_samples=Master 33 / Slave 26
+reset_changed=0
+terminal=0
+```
+
+### Profile evidence
+
+| Profile | Attempts | Accepted | Epoch changed | Transport/parse error | Fresh | Stale | Ambiguous |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| FULL | 416 | 0 | 416 | 0 / 0 | NOT_APPLICABLE | NOT_APPLICABLE | NOT_APPLICABLE |
+| CORE | 62 | 51 | 11 | 0 / 0 | 50 | 0 | 0 |
+
+CORE 的第一筆 accepted host time 是 `1789464167341`，最後一筆是
+`1789464284250`，跨度 `116909 ms`；accepted update count 持續前進。FULL
+被拒絕的主要原因是 `EPOCH_CHANGED`（416/416）；其中 81 次同時觀察到
+`ARITHMETIC_MISMATCH`，但因 epoch 已變動，不能把這些混合視窗當成 source
+arithmetic failure。沒有 transport 或 parse error，也沒有 odd/sentinel 或
+output range error。
+
+CORE 僅量測 epoch、Helper error、update count、Helper output；FULL-only 欄位在
+CORE raw 中均為 `NOT_MEASURED`。離線檢查結果：
+
+```text
+payload_isolation_pass=true
+alternating_profiles_pass=true
+max_attempts_per_cycle=8
+attempt_shape_errors=0
+```
+
+低頻 background 只作背景，不參與 profile acceptance：Slave 26 筆均為完整有效
+背景；Master 的 33 筆有 position probe 的部分 timeout，但 reset/generation 未變，
+且沒有影響 Core profile 的 coherent/fresh 判定。
+
+## Final F4F verdict
+
+```text
+F4F_RESULT=COMPACT_HELPER_CORE_OBSERVABLE
+F4F_DIAGNOSTIC_PASS=true
+STEP5_COMPLETE=false
+STEP5_PASS=false
+MERGE_APPROVED=false
+```
+
+這個 verdict 的精確意義是：在同一個 active-probe、同一個 read-only observer
+中，CORE 短讀取可以長時間取得一致且 fresh 的 Helper producer data，而 11-word
+FULL read span 在 live publisher 下全部遇到 epoch change。這支持「FULL 讀取跨度／
+publisher competition 是目前觀測契約的邊界」；它不證明 FULL contract 已通過，
+也不證明 PI、arbiter 或 production controller 是根因。
+
+因此本輪不調參、不修改 production、不宣告 Step5，也不 merge 到 main。下一輪
+應由 Astra 依這份 raw 與 F4F verdict 決定是否要處理 FULL reader contract 或採用
+更精準的 passive source-side publication evidence。
+
+## Final raw / replay integrity
+
+- Attempt 2 observer raw：`raw/attempt-e550e57d-f4f-jtag-runtime/tmp/observer.log`
+- Attempt 2 observer raw SHA-256：`43282D7B79A2BC847F9F41D3CF45CDF438A1F0D87A587757BBC1F44B53B1637D`
+- Attempt 2 bundled raw archive：`raw/f4f-successful-capture.tgz`
+- Attempt 2 archive SHA-256：`D12C54FCA34FEE0A316BEE579CB446961C834ABCBF823E74ED42038AB166D52F`
+- Attempt 2 replay verdict：`analysis/replay-e550e57d-f4f-jtag-runtime/verdict.json`
+- Attempt 2 attempts CSV：`analysis/replay-e550e57d-f4f-jtag-runtime/attempts.csv`

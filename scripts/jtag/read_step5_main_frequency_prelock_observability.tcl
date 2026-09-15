@@ -798,20 +798,32 @@ proc emit_sample {hardware_name sample elapsed_ms} {
     set helper_measurement_residual_present [expr {abs($helper_error) > 200}]
   }
   set main_sample_n_delta INVALID
+  set main_sample_n_delta_is_ambiguous 0
   set main_sample_n_advanced 0
   if {$trace_ok && $update_count ne "INVALID"} {
     if {$::obs_main_trace_prev_update($hardware_name) ne "INVALID"} {
       set main_sample_n_delta [counter_delta \
         $::obs_main_trace_prev_update($hardware_name) $update_count 32]
       if {$main_sample_n_delta ne "INVALID"} {
-        incr ::main_sample_n_delta_count($hardware_name)
-        set ::main_sample_n_delta_sum($hardware_name) [expr {
-          $::main_sample_n_delta_sum($hardware_name) + $main_sample_n_delta}]
-        if {$main_sample_n_delta > 0} {
-          set main_sample_n_advanced 1
-          incr ::obs_main_trace_update_progress($hardware_name)
+        # A 32-bit wrap is only credible when the observed delta is below
+        # half the counter space.  A sudden zero/reset-like publication with
+        # a huge modulo delta is ambiguous; retain the raw sample but do not
+        # count it as Main progress.
+        if {$main_sample_n_delta > 0x7fffffff} {
+          set main_sample_n_delta_is_ambiguous 1
+          set main_sample_n_delta INVALID
+          incr ::main_sample_n_delta_ambiguous($hardware_name)
+        } else {
+          incr ::main_sample_n_delta_count($hardware_name)
+          set ::main_sample_n_delta_sum($hardware_name) [expr {
+            $::main_sample_n_delta_sum($hardware_name) + $main_sample_n_delta}]
+          if {$main_sample_n_delta > 0} {
+            set main_sample_n_advanced 1
+            incr ::obs_main_trace_update_progress($hardware_name)
+          }
         }
       } else {
+        set main_sample_n_delta_is_ambiguous 1
         incr ::main_sample_n_delta_ambiguous($hardware_name)
       }
     }
@@ -1095,8 +1107,8 @@ proc emit_sample {hardware_name sample elapsed_ms} {
   set main_reset_valid [expr {$entry_generation ne "INVALID" &&
     $cpu_reset ne "INVALID" && $wr_reset ne "INVALID" &&
     $si_drop ne "INVALID" ? 1 : 0}]
-  puts [format "STEP5_F4C_MAIN_PHASE_SAMPLE board=%s run_role=%s observer_sample_n=%d elapsed_ms=%d MAIN_CORE_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_UNIQUE=%d MAIN_TRACE_PUBLICATION_EPOCH_BEFORE_RAW=%s MAIN_TRACE_PUBLICATION_EPOCH_AFTER_RAW=%s MAIN_SAMPLE_N=%s MAIN_SAMPLE_N_DELTA=%s MAIN_SAMPLE_N_ADVANCED=%d MAIN_DETECTOR_VALID=%d MAIN_DETECTOR_STABLE=%d MAIN_STATE_RAW=%s MAIN_LIMITS_RAW=%s MAIN_PHASE_LIMITS_RAW=%s MAIN_DETECTOR_ENABLED=%s MAIN_DETECTOR_LOCKED=%s MAIN_DETECTOR_FREQ_LOCKED=%s MAIN_DETECTOR_PHASE_LOCKED=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_PHASE_LOCK_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_PHASE_THRESHOLD=%s MAIN_PHASE_LOCK_SAMPLES=%s MAIN_PHASE_INPUT_DOMAIN=%s MAIN_PHASE_INBAND=%s MAIN_PHASE_DOMAIN_SOURCE=MAIN_DETECTOR_SHADOW MAIN_PHASE_INBAND_ALIGNMENT=ASYNC_TRACE_PI_X_VS_DETECTOR_LIMITS MAIN_PI_X=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s L2_VALID=%d L2_MAIN_PENDING=%s L2_HELPER_PENDING=%s L2_TX_ACTIVE=%s L2_OWNER_MAIN=%s L2_MAIN_PENDING_COUNT=%s L2_HELPER_PENDING_COUNT=%s L2_MAIN_START_COUNT=%s L2_HELPER_START_COUNT=%s L2_MAIN_COMPLETED_COUNT=%s L2_HELPER_COMPLETED_COUNT=%s L2_MAIN_FAILED=%s L2_HELPER_FAILED=%s L2_MAIN_MAX_WAIT=%s L2_HELPER_MAX_WAIT=%s L2_MAIN_CURRENT_WAIT=%s L2_HELPER_CURRENT_WAIT=%s L2_MAIN_MAX_LATENCY=%s L2_HELPER_MAX_LATENCY=%s HELPER_MEASUREMENT_OK=%d HELPER_LOCKED=%s HELPER_ERROR=%s HELPER_OUTPUT=%s HELPER_RESIDUAL_PRESENT=%s HELPER_MEASUREMENT_RESIDUAL_PRESENT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_FIELDS_VALID=%d STOP_REASON=%s" \
-    $hardware_name $run_role $sample $elapsed_ms $main_core_valid $trace_ok $trace_unique $::main_trace_epoch_before_raw($hardware_name) $::main_trace_epoch_after_raw($hardware_name) $update_count $main_sample_n_delta $main_sample_n_advanced $main_detector_ok $main_detector_stable $main_state_raw $main_limits_raw $main_phase_limits_raw $main_detector_enabled $main_detector_locked $main_detector_freq_locked $main_detector_phase_locked $main_freq_lock_count $main_phase_lock_count $main_freq_threshold $main_freq_lock_samples $main_phase_threshold $main_phase_lock_samples $main_phase_input_domain $main_phase_inband $pi_x $pi_unclamped $pi_output $clamp_side $kp $ki $shift $bias $l2_ok $l2_main_pending $l2_helper_pending $l2_tx_active $l2_owner_main $l2_main_pending_count $l2_helper_pending_count $l2_main_start_count $l2_helper_start_count $l2_main_completed_count $l2_helper_completed_count $l2_main_failed_count $l2_helper_failed_count $l2_main_max_wait $l2_helper_max_wait $l2_main_current_wait $l2_helper_current_wait $l2_main_max_latency $l2_helper_max_latency $helper_measurement_ok $helper_locked $helper_error $helper_output $helper_residual_present $helper_measurement_residual_present $entry_generation $cpu_reset $wr_reset $si_drop $main_reset_valid $::obs_stop_reason($hardware_name)]
+  puts [format "STEP5_F4C_MAIN_PHASE_SAMPLE board=%s run_role=%s observer_sample_n=%d elapsed_ms=%d MAIN_CORE_VALID=%d MAIN_TRACE_VALID=%d MAIN_TRACE_UNIQUE=%d MAIN_TRACE_PUBLICATION_EPOCH_BEFORE_RAW=%s MAIN_TRACE_PUBLICATION_EPOCH_AFTER_RAW=%s MAIN_SAMPLE_N=%s MAIN_SAMPLE_N_DELTA=%s MAIN_SAMPLE_N_DELTA_AMBIGUOUS=%d MAIN_SAMPLE_N_ADVANCED=%d MAIN_DETECTOR_VALID=%d MAIN_DETECTOR_STABLE=%d MAIN_STATE_RAW=%s MAIN_LIMITS_RAW=%s MAIN_PHASE_LIMITS_RAW=%s MAIN_DETECTOR_ENABLED=%s MAIN_DETECTOR_LOCKED=%s MAIN_DETECTOR_FREQ_LOCKED=%s MAIN_DETECTOR_PHASE_LOCKED=%s MAIN_FREQ_LOCK_COUNT=%s MAIN_PHASE_LOCK_COUNT=%s MAIN_FREQ_THRESHOLD=%s MAIN_FREQ_LOCK_SAMPLES=%s MAIN_PHASE_THRESHOLD=%s MAIN_PHASE_LOCK_SAMPLES=%s MAIN_PHASE_INPUT_DOMAIN=%s MAIN_PHASE_INBAND=%s MAIN_PHASE_DOMAIN_SOURCE=MAIN_DETECTOR_SHADOW MAIN_PHASE_INBAND_ALIGNMENT=ASYNC_TRACE_PI_X_VS_DETECTOR_LIMITS MAIN_PI_X=%s MAIN_PI_UNCLAMPED=%s MAIN_PI_OUTPUT=%s MAIN_PI_CLAMP_SIDE=%s MAIN_PI_KP=%s MAIN_PI_KI=%s MAIN_PI_SHIFT=%s MAIN_PI_BIAS=%s L2_VALID=%d L2_MAIN_PENDING=%s L2_HELPER_PENDING=%s L2_TX_ACTIVE=%s L2_OWNER_MAIN=%s L2_MAIN_PENDING_COUNT=%s L2_HELPER_PENDING_COUNT=%s L2_MAIN_START_COUNT=%s L2_HELPER_START_COUNT=%s L2_MAIN_COMPLETED_COUNT=%s L2_HELPER_COMPLETED_COUNT=%s L2_MAIN_FAILED=%s L2_HELPER_FAILED=%s L2_MAIN_MAX_WAIT=%s L2_HELPER_MAX_WAIT=%s L2_MAIN_CURRENT_WAIT=%s L2_HELPER_CURRENT_WAIT=%s L2_MAIN_MAX_LATENCY=%s L2_HELPER_MAX_LATENCY=%s HELPER_MEASUREMENT_OK=%d HELPER_LOCKED=%s HELPER_ERROR=%s HELPER_OUTPUT=%s HELPER_RESIDUAL_PRESENT=%s HELPER_MEASUREMENT_RESIDUAL_PRESENT=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_FIELDS_VALID=%d STOP_REASON=%s" \
+    $hardware_name $run_role $sample $elapsed_ms $main_core_valid $trace_ok $trace_unique $::main_trace_epoch_before_raw($hardware_name) $::main_trace_epoch_after_raw($hardware_name) $update_count $main_sample_n_delta $main_sample_n_delta_is_ambiguous $main_sample_n_advanced $main_detector_ok $main_detector_stable $main_state_raw $main_limits_raw $main_phase_limits_raw $main_detector_enabled $main_detector_locked $main_detector_freq_locked $main_detector_phase_locked $main_freq_lock_count $main_phase_lock_count $main_freq_threshold $main_freq_lock_samples $main_phase_threshold $main_phase_lock_samples $main_phase_input_domain $main_phase_inband $pi_x $pi_unclamped $pi_output $clamp_side $kp $ki $shift $bias $l2_ok $l2_main_pending $l2_helper_pending $l2_tx_active $l2_owner_main $l2_main_pending_count $l2_helper_pending_count $l2_main_start_count $l2_helper_start_count $l2_main_completed_count $l2_helper_completed_count $l2_main_failed_count $l2_helper_failed_count $l2_main_max_wait $l2_helper_max_wait $l2_main_current_wait $l2_helper_current_wait $l2_main_max_latency $l2_helper_max_latency $helper_measurement_ok $helper_locked $helper_error $helper_output $helper_residual_present $helper_measurement_residual_present $entry_generation $cpu_reset $wr_reset $si_drop $main_reset_valid $::obs_stop_reason($hardware_name)]
   if {$elapsed_ms >= $::health_next_ms($hardware_name)} {
     puts [format "STEP5_F4C_HEALTH board=%s run_role=%s elapsed_ms=%d MAIN_CORE_VALID_COUNT=%d MAIN_TRACE_VALID_COUNT=%d MAIN_DETECTOR_VALID_COUNT=%d MAIN_SAMPLE_N=%s MAIN_PROGRESS_SAMPLES=%d MAIN_SAMPLE_N_DELTA_SUM=%d MAIN_PHASE_LOCK_COUNT=%s MAIN_PHASE_INBAND_COUNT=%d MAIN_PHASE_OUTBAND_COUNT=%d L2_MAIN_PENDING=%s L2_HELPER_PENDING=%s L2_MAIN_START_COUNT=%s L2_HELPER_START_COUNT=%s L2_MAIN_COMPLETED_COUNT=%s L2_HELPER_COMPLETED_COUNT=%s L2_MAIN_FAILED=%s L2_HELPER_FAILED=%s HELPER_LOCKED=%s HELPER_ERROR=%s HELPER_OUTPUT=%s STOP_REASON=%s" \
       $hardware_name $run_role $elapsed_ms $::main_core_valid_count($hardware_name) $::trace_valid_count($hardware_name) $::main_detector_valid_count($hardware_name) $update_count $::obs_main_trace_update_progress($hardware_name) $::main_sample_n_delta_sum($hardware_name) $main_phase_lock_count $::main_phase_inband_count($hardware_name) $::main_phase_outband_count($hardware_name) $l2_main_pending $l2_helper_pending $l2_main_start_count $l2_helper_start_count $l2_main_completed_count $l2_helper_completed_count $l2_main_failed_count $l2_helper_failed_count $helper_locked $helper_error $helper_output $::obs_stop_reason($hardware_name)]
@@ -1125,6 +1137,9 @@ proc emit_f4c_summary {hardware_name} {
   }
   set main_sample_n_window_delta [counter_delta \
     $::obs_main_update_first($hardware_name) $::obs_main_update_final($hardware_name) 32]
+  if {$::main_sample_n_delta_ambiguous($hardware_name) > 0} {
+    set main_sample_n_window_delta INVALID
+  }
   set helper_completed_delta [counter_delta \
     $::obs_helper_completed_first($hardware_name) $::obs_helper_completed_final($hardware_name) 32]
   set helper_pending_delta [counter_delta \

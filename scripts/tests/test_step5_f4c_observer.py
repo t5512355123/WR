@@ -37,6 +37,8 @@ class Step5F4CObserverTests(unittest.TestCase):
         self.assertIn("main_trace_publication_epoch", self.text)
         self.assertIn("MAIN_SAMPLE_N", self.text)
         self.assertIn("MAIN_SAMPLE_N_DELTA", self.text)
+        self.assertIn("MAIN_SAMPLE_N_DELTA_AMBIGUOUS", self.text)
+        self.assertIn("main_sample_n_window_delta INVALID", self.text)
 
     def test_observer_does_not_request_helper_snapshot_or_write_control(self) -> None:
         self.assertIn("no_helper_pi_snapshot=1", self.text)

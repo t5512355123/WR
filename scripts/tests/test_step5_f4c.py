@@ -121,6 +121,18 @@ class Step5F4CReplayTests(unittest.TestCase):
         self.assertEqual(result["main_sample_n_delta_sum"], 1)
         self.assertEqual(result["main_sample_n_delta_samples"], 1)
 
+    def test_large_modulo_delta_is_ambiguous_and_not_progress(self) -> None:
+        text = "\n".join([
+            f4c_sample(elapsed_ms=0, sample_n=100),
+            f4c_sample(elapsed_ms=100, sample_n=0),
+            f4c_sample(elapsed_ms=200, sample_n=5),
+        ])
+        result = step5_f4c_replay.analyze_text(text)
+        self.assertEqual(result["main_sample_n_delta_ambiguous"], 1)
+        self.assertEqual(result["main_sample_n_delta_sum"], 5)
+        self.assertEqual(result["main_sample_n_delta_samples"], 1)
+        self.assertFalse(result["step5_pass"])
+
     def test_phase_count_does_not_bridge_invalid_frame(self) -> None:
         text = "\n".join([
             f4c_sample(elapsed_ms=0, sample_n=100, phase_count=10),

@@ -245,6 +245,19 @@ wire       force_hpll_rise = force_hpll_sync & ~force_hpll_sync_prev;
 wire [15:0] force_hpll_burst_size =
   (iFORCE_HPLL_BURST_SIZE != 16'd0) ?
     iFORCE_HPLL_BURST_SIZE : JTAG_HPLL_BURST_SIZE[15:0];
+// A normal HPLL target can remain pending implicitly as an absolute-target
+// residual.  Keep this predicate separate from the explicit pending bit so a
+// continuous DPLL residual cannot prevent normal HPLL admission forever.
+wire normal_hpll_residual =
+  ENABLE_NORMAL_HPLL_TRACKER &&
+  !ENABLE_STEP5_HPLL_PLANT_TEST &&
+  static_controller_ready &&
+  (normal_hpll_cooldown_loads == 16'd0) &&
+  hpll_tracker_initialized && hpll_prev_valid &&
+  (((hpll_target_position > hpll_applied_position) &&
+    ((hpll_target_position - hpll_applied_position) >= HPLL_HALF_STEP_CODE)) ||
+   ((hpll_applied_position > hpll_target_position) &&
+    ((hpll_applied_position - hpll_target_position) >= HPLL_HALF_STEP_CODE)));
 // Four writes: PAGE=3, N_FSTEP_MSK, PAGE=0, FINC/FDEC. The mask is
 // at 0x0339, NOT 0x0039. Page restore must complete before the command.
 wire [7:0] runtime_byte_addr =
@@ -843,12 +856,17 @@ always @(posedge iCLK or negedge iRST_n) begin
         // Fable F4b: once a normal Helper request has been admitted, service
         // it before a competing Main residual.  Helper liveness is upstream
         // of Main lock; forced/bootstrap requests keep their existing order.
-        if (static_controller_ready && hpll_pending &&
-            !hpll_pending_forced) begin
+        if (static_controller_ready &&
+            (((hpll_pending && !hpll_pending_forced) ||
+              (!hpll_pending && normal_hpll_residual &&
+               (!ENABLE_STEP5_BOOTSTRAP || bootstrap_done))))) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b0;
-          rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
+          if (hpll_pending)
+            rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
+          else
+            rt_dir <= (hpll_target_position > hpll_applied_position);
           hpll_pending <= 1'b0;
           current_request_forced <= 1'b0;
           current_request_bootstrap <= 1'b0;
@@ -923,15 +941,7 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_forced_reverse <= force_burst_reverse;
           force_burst_remaining <= force_burst_remaining - 1'b1;
           forced_hpll_pending_count <= forced_hpll_pending_count + 1'b1;
-        end else if (ENABLE_NORMAL_HPLL_TRACKER &&
-                     !ENABLE_STEP5_HPLL_PLANT_TEST &&
-                     static_controller_ready &&
-                     (normal_hpll_cooldown_loads == 16'd0) &&
-                     hpll_tracker_initialized && hpll_prev_valid &&
-                     (((hpll_target_position > hpll_applied_position) &&
-                       ((hpll_target_position - hpll_applied_position) >= HPLL_HALF_STEP_CODE)) ||
-                      ((hpll_applied_position > hpll_target_position) &&
-                       ((hpll_applied_position - hpll_target_position) >= HPLL_HALF_STEP_CODE)))) begin
+        end else if (normal_hpll_residual) begin
           // Normal HPLL closed-loop path: admit only one outstanding
           // transaction. Round the absolute target to the nearest physical
           // DCO step: a residual below half a step is retained, while a

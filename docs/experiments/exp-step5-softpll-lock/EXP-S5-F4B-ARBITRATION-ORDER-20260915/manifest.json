@@ -1,0 +1,42 @@
+{
+  "experiment": "EXP-S5-F4B-ARBITRATION-ORDER-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "6ec740735a976d7aba0e08deafb1b696bd4ec960",
+  "change": {
+    "file": "quartus/jtag_runtime_diag/si5340a_controller_dco.v",
+    "scope": "idle_runtime_arbiter_order",
+    "normal_hpll_before_dpll": true,
+    "forced_bootstrap_order_changed": false
+  },
+  "offline_l1": {
+    "build_run": "PASS",
+    "main_jump_completed": 4,
+    "helper_jump_completed": 4,
+    "contention_main_completed": 208,
+    "contention_helper_completed": 0,
+    "source_liveness_risk_reproduced": true,
+    "nack_injection": 1,
+    "nack_helper_completed": 1,
+    "nack_ack_error": 1,
+    "wrong_page": 0,
+    "sequence_errors": 0,
+    "test_result": "PASS"
+  },
+  "hardware": {
+    "build": "NOT_RUN",
+    "program": "NOT_RUN",
+    "step5": "NOT_EVALUATED"
+  },
+  "verdict": {
+    "expected_liveness": "NOT_OBSERVED",
+    "next": "direct_normal_hpll_residual_admission_before_dpll"
+  },
+  "raw_evidence": [
+    "raw/l1-dco-liveness-f4b-arbiter.log",
+    "raw/l1-dco-liveness-f4b-arbiter-timeline.log",
+    "raw/l1-git-head.txt",
+    "raw/l1-git-status.txt"
+  ]
+}

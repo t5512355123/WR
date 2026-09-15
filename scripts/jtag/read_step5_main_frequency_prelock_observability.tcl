@@ -1611,7 +1611,8 @@ proc emit_f4e_sample {role hardware_name device_name sample elapsed_ms} {
     set read_end_ms [clock milliseconds]
   } read_error]
   if {$probe_started} { catch {end_insystem_source_probe} }
-  if {!$read_ok} {
+  # Tcl catch returns 0 for success and non-zero for an exception.
+  if {$read_ok} {
     f4e_sample_error $role $hardware_name $sample $elapsed_ms \
       $read_start_ms [clock milliseconds] $read_error
     return

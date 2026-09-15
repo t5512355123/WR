@@ -753,16 +753,48 @@ proc f4f_measurement_attempt {hardware_name profile cycle retry_n} {
     $owner_unverified $reason]
 }
 
-proc f4f_capture_profile {hardware_name profile cycle} {
+proc f4f_invalid_measurement_result {profile host_start_ms host_end_ms} {
+  set raw [list TIMEOUT NOT_MEASURED NOT_MEASURED NOT_MEASURED \
+    NOT_MEASURED TIMEOUT TIMEOUT TIMEOUT NOT_MEASURED NOT_MEASURED TIMEOUT]
+  set parsed [list -1 -1 INVALID INVALID INVALID INVALID INVALID -1 \
+    INVALID -1 -1]
+  set flags [list 1 1 0 0 0 0 0 1 TRANSPORT_ERROR,PARSE_ERROR]
+  return [concat [list $profile 1 $host_start_ms $host_end_ms \
+    [expr {$host_end_ms - $host_start_ms}]] $raw $parsed $flags]
+}
+
+proc f4f_capture_profile {hardware_name device_name profile cycle} {
   set profile_start_ms [clock milliseconds]
   set final_result {}
   set attempts 0
-  for {set retry_n 1} {$retry_n <= 8} {incr retry_n} {
-    set attempts $retry_n
-    set final_result [f4f_measurement_attempt $hardware_name $profile \
-      $cycle $retry_n]
-    if {[lindex $final_result 33]} { break }
-    after 1
+  set probe_started 0
+  set capture_error ""
+  set capture_failed [catch {
+    start_insystem_source_probe -hardware_name $hardware_name \
+      -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+    for {set retry_n 1} {$retry_n <= 8} {incr retry_n} {
+      set attempts $retry_n
+      set final_result [f4f_measurement_attempt $hardware_name $profile \
+        $cycle $retry_n]
+      if {[lindex $final_result 33]} { break }
+      after 1
+    }
+  } capture_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  if {$capture_failed} {
+    set profile_end_ms [clock milliseconds]
+    set final_result [f4f_invalid_measurement_result $profile \
+      $profile_start_ms $profile_end_ms]
+    set attempts 1
+    set safe_error [string map [list " " _ "\n" | "\r" |] $capture_error]
+    puts [join [list STEP5_F4F_PROFILE_ERROR \
+      "board=$hardware_name" "profile=$profile" "cycle=$cycle" \
+      "host_start_ms=$profile_start_ms" "host_end_ms=$profile_end_ms" \
+      "error=$safe_error"] " "]
+    flush stdout
   }
   set profile_end_ms [clock milliseconds]
   set accepted [lindex $final_result 33]
@@ -2728,7 +2760,8 @@ proc run_f4f_helper_contract_audit {} {
       set profile [expr {$cycle % 2 ? "FULL" : "CORE"}]
       set slave_hardware [lindex $slave_target 1]
       set slave_device [lindex $slave_target 2]
-      set capture [f4f_capture_profile $slave_hardware $profile $cycle]
+      set capture [f4f_capture_profile $slave_hardware $slave_device \
+        $profile $cycle]
       set profile_attempts [lindex $capture 0]
       set profile_start_ms [lindex $capture 1]
       set profile_end_ms [lindex $capture 2]

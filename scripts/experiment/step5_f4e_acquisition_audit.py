@@ -149,13 +149,19 @@ def _producer_fresh(record: Dict[str, Any], previous: Optional[Dict[str, Any]]) 
 
 
 def _valid_acquisition_frame(record: Dict[str, Any]) -> bool:
-    """Return whether this row can belong to the phase-qualified segment."""
+    """Return whether the Main core group is usable for an acquisition segment.
+
+    Detector shadow stability is deliberately not part of this predicate.  The
+    Main trace and the detector shadow are separate producer groups: a torn
+    detector double-read invalidates that phase observation, but it does not
+    erase an otherwise coherent Main producer sample.  Phase observations are
+    filtered separately by ``_phase_observation_valid`` below.
+    """
     required_flags = (
         "TRANSPORT_VALID", "ROLE_IDENTITY_VALID", "PHY_LINK_USABLE",
         "RESET_FIELDS_VALID", "RESET_STABLE", "MAIN_CORE_VALID",
-        "MAIN_TRACE_VALID", "MAIN_DETECTOR_VALID", "MAIN_DETECTOR_STABLE",
+        "MAIN_TRACE_VALID", "MAIN_DETECTOR_VALID",
         "MAIN_DETECTOR_ENABLED", "MAIN_DETECTOR_FREQ_LOCKED",
-        "HELPER_MEASUREMENT_OK", "POSITION_OK", "L2_VALID",
         "HELPER_LOCKED",
     )
     if not all(_flag(record, key) for key in required_flags):
@@ -172,7 +178,17 @@ def _valid_acquisition_frame(record: Dict[str, Any]) -> bool:
         return False
     if _time(record) is None:
         return False
+    if not _flag(record, "ACQUISITION_DIAGNOSTIC_ALLOWED"):
+        return False
     return True
+
+
+def _service_frame(record: Dict[str, Any]) -> bool:
+    """Return whether all independent service/accounting groups are usable."""
+    return (_valid_acquisition_frame(record)
+            and _flag(record, "HELPER_MEASUREMENT_OK")
+            and _flag(record, "POSITION_OK")
+            and _flag(record, "L2_VALID"))
 
 
 def _phase_domain(record: Dict[str, Any]) -> bool:
@@ -181,9 +197,16 @@ def _phase_domain(record: Dict[str, Any]) -> bool:
             and _num(record.get("MAIN_PHASE_THRESHOLD")) is not None)
 
 
+def _phase_observation_valid(record: Dict[str, Any]) -> bool:
+    """Return whether the detector shadow can support a phase trend point."""
+    return (_valid_acquisition_frame(record)
+            and _flag(record, "MAIN_DETECTOR_STABLE")
+            and _phase_domain(record))
+
+
 def _counter_window(previous: Dict[str, Any], current: Dict[str, Any], key: str,
                     max_gap_ms: int) -> Optional[Dict[str, Any]]:
-    if not (_valid_acquisition_frame(previous) and _valid_acquisition_frame(current)):
+    if not (_service_frame(previous) and _service_frame(current)):
         return None
     if not (_gap_ok(previous, current, max_gap_ms)
             and _same_reset(previous, current)):
@@ -201,42 +224,45 @@ def _counter_window(previous: Dict[str, Any], current: Dict[str, Any], key: str,
 def _segments(records: Sequence[Dict[str, Any]], max_gap_ms: int) -> List[Dict[str, Any]]:
     segments: List[Dict[str, Any]] = []
     active: Optional[Dict[str, Any]] = None
-    previous: Optional[Dict[str, Any]] = None
+    previous_valid: Optional[Dict[str, Any]] = None
     for record in records:
         valid = _valid_acquisition_frame(record)
-        contiguous = (previous is not None and valid
-                       and _gap_ok(previous, record, max_gap_ms)
-                       and _same_reset(previous, record)
+        contiguous = (previous_valid is not None and valid
+                       and _gap_ok(previous_valid, record, max_gap_ms)
+                       and _same_reset(previous_valid, record)
                        and not _flag(record, "MAIN_SAMPLE_N_DELTA_AMBIGUOUS"))
-        fresh = valid and _producer_fresh(record, previous)
-        if valid and (active is None or contiguous):
-            if active is None:
-                active = {"start_ms": _time(record), "end_ms": _time(record),
-                          "valid_samples": 1, "fresh_samples": 0,
-                          "phase_lock_samples": 0, "phase_inband_samples": 0,
-                          "records": [record]}
-            else:
-                active["end_ms"] = _time(record)
-                active["valid_samples"] += 1
-                active["records"].append(record)
-            if fresh:
-                active["fresh_samples"] += 1
-            if _flag(record, "MAIN_DETECTOR_PHASE_LOCKED"):
-                active["phase_lock_samples"] += 1
-            if record.get("MAIN_PHASE_INBAND") == 1:
-                active["phase_inband_samples"] += 1
-        else:
+        fresh = (valid and previous_valid is not None
+                 and _producer_fresh(record, previous_valid))
+        if valid and (active is None or not contiguous):
             if active is not None:
                 active["duration_ms"] = active["end_ms"] - active["start_ms"]
                 segments.append(active)
             active = None
-            if valid:
-                active = {"start_ms": _time(record), "end_ms": _time(record),
-                          "valid_samples": 1, "fresh_samples": 0,
-                          "phase_lock_samples": int(_flag(record, "MAIN_DETECTOR_PHASE_LOCKED")),
-                          "phase_inband_samples": int(record.get("MAIN_PHASE_INBAND") == 1),
-                          "records": [record]}
-        previous = record
+            active = {"start_ms": _time(record), "end_ms": _time(record),
+                      "valid_samples": 1, "fresh_samples": 0,
+                      "phase_observation_samples": int(
+                          _phase_observation_valid(record)),
+                      "phase_lock_samples": int(
+                          _phase_observation_valid(record)
+                          and _flag(record, "MAIN_DETECTOR_PHASE_LOCKED")),
+                      "phase_inband_samples": int(
+                          _phase_observation_valid(record)
+                          and record.get("MAIN_PHASE_INBAND") == 1),
+                      "records": [record]}
+        elif valid:
+            active["end_ms"] = _time(record)
+            active["valid_samples"] += 1
+            active["records"].append(record)
+            if fresh:
+                active["fresh_samples"] += 1
+            if _phase_observation_valid(record):
+                active["phase_observation_samples"] += 1
+                if _flag(record, "MAIN_DETECTOR_PHASE_LOCKED"):
+                    active["phase_lock_samples"] += 1
+                if record.get("MAIN_PHASE_INBAND") == 1:
+                    active["phase_inband_samples"] += 1
+        if valid:
+            previous_valid = record
     if active is not None:
         active["duration_ms"] = active["end_ms"] - active["start_ms"]
         segments.append(active)
@@ -246,7 +272,7 @@ def _segments(records: Sequence[Dict[str, Any]], max_gap_ms: int) -> List[Dict[s
 def _service_windows(records: Sequence[Dict[str, Any]], max_gap_ms: int) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
     for previous, current in zip(records, records[1:]):
-        if not (_valid_acquisition_frame(previous) and _valid_acquisition_frame(current)):
+        if not (_service_frame(previous) and _service_frame(current)):
             continue
         if not (_gap_ok(previous, current, max_gap_ms)
                 and _same_reset(previous, current)):
@@ -291,6 +317,18 @@ def _reset_changes(records: Sequence[Dict[str, Any]]) -> Dict[str, int]:
                 reset += 1
                 break
     return {"generation_changes": generation, "reset_changes": reset}
+
+
+def _max_false_streak(records: Sequence[Dict[str, Any]], key: str) -> int:
+    current = 0
+    maximum = 0
+    for record in records:
+        if _flag(record, key):
+            current = 0
+        else:
+            current += 1
+            maximum = max(maximum, current)
+    return maximum
 
 
 def _record_row(record: Dict[str, Any], previous: Optional[Dict[str, Any]],
@@ -379,11 +417,13 @@ def _classify_role(role: str, records: Sequence[Dict[str, Any]],
         previous = record
     entry_records = [record for record in records if _flag(record, "ACQUISITION_DIAGNOSTIC_ALLOWED")]
     valid_records = [record for record in records if _valid_acquisition_frame(record)]
-    fresh_valid_count = sum(
-        _producer_fresh(record, records[index - 1] if index > 0 else None)
-        for index, record in enumerate(records)
-        if _valid_acquisition_frame(record)
-    )
+    fresh_valid_count = 0
+    previous_valid: Optional[Dict[str, Any]] = None
+    for record in records:
+        if _valid_acquisition_frame(record):
+            if previous_valid is not None:
+                fresh_valid_count += int(_producer_fresh(record, previous_valid))
+            previous_valid = record
     segments = _segments(records, max_gap_ms)
     best_segment = max(segments, key=lambda item: (item["fresh_samples"], item["duration_ms"]), default=None)
     service_windows = _service_windows(records, max_gap_ms)
@@ -405,11 +445,15 @@ def _classify_role(role: str, records: Sequence[Dict[str, Any]],
             if record.get("STOP_REASON") not in (None, "NONE"):
                 stop_reason = record.get("STOP_REASON")
                 break
-    phase_locked_count = sum(_flag(record, "MAIN_DETECTOR_PHASE_LOCKED") for record in valid_records)
+    phase_records = [record for record in valid_records
+                     if _phase_observation_valid(record)]
+    phase_locked_count = sum(_flag(record, "MAIN_DETECTOR_PHASE_LOCKED")
+                             for record in phase_records)
     progress_count = sum(_flag(record, "MAIN_SAMPLE_N_ADVANCED") for record in valid_records)
-    phase_domain_count = sum(_phase_domain(record) for record in valid_records)
-    phase_inband_count = sum(record.get("MAIN_PHASE_INBAND") == 1 for record in valid_records)
-    pi_values = [_num(record.get("MAIN_PI_X")) for record in valid_records]
+    phase_domain_count = len(phase_records)
+    phase_inband_count = sum(record.get("MAIN_PHASE_INBAND") == 1
+                             for record in phase_records)
+    pi_values = [_num(record.get("MAIN_PI_X")) for record in phase_records]
     pi_values = [value for value in pi_values if value is not None]
     return {
         "role": role,
@@ -418,7 +462,9 @@ def _classify_role(role: str, records: Sequence[Dict[str, Any]],
         "entry_sample": _num(entry_records[0].get("SAMPLE")) if entry_records else None,
         "entry_elapsed_ms": _time(entry_records[0]) if entry_records else None,
         "acquisition_allowed_samples": len(entry_records),
+        "main_core_valid_samples": len(valid_records),
         "valid_acquisition_samples": len(valid_records),
+        "phase_observation_samples": len(phase_records),
         "fresh_main_producer_samples": fresh_valid_count,
         "main_progress_samples": progress_count,
         "phase_domain_samples": phase_domain_count,
@@ -438,6 +484,7 @@ def _classify_role(role: str, records: Sequence[Dict[str, Any]],
         "helper_service_stalled_window_count": len(helper_service_stalled_windows),
         "reset_changes": reset_changes,
         "transport_invalid_samples": sum(not _flag(record, "TRANSPORT_VALID") for record in records),
+        "transport_invalid_max_streak": _max_false_streak(records, "TRANSPORT_VALID"),
         "phase_convergence_observed": phase_locked_count > 0,
         "stop_reason": stop_reason,
         "diagnostic_result": "INCONCLUSIVE",
@@ -451,13 +498,15 @@ def _diagnostic_result(role_result: Dict[str, Any], done: Optional[Dict[str, Any
                       min_fresh_samples: int, min_duration_ms: int) -> str:
     if role_result["reset_changes"]["generation_changes"] or role_result["reset_changes"]["reset_changes"]:
         return "DETECTOR_CONSISTENCY_UNRESOLVED"
-    if role_result["transport_invalid_samples"] >= 3:
+    if role_result["transport_invalid_max_streak"] >= 3:
         return "DATA_UNRESOLVED"
     if not role_result["entry_seen"]:
         return "NO_ELIGIBLE_ACQUISITION_WINDOW"
     best = role_result.get("best_segment")
     enough_segment = bool(best and best.get("fresh_samples", 0) >= min_fresh_samples
-                          and best.get("duration_ms", 0) >= min_duration_ms)
+                          and best.get("duration_ms", 0) >= min_duration_ms
+                          and best.get("phase_observation_samples", 0)
+                          >= min_fresh_samples)
     stop_reason = str(role_result.get("stop_reason") or "")
     if stop_reason in {"WR_SESSION_ENDED", "REFERENCE_OR_SESSION_LIMITED"}:
         return "REFERENCE_OR_SESSION_LIMITED"

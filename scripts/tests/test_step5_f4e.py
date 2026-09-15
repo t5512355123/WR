@@ -179,3 +179,38 @@ def test_generation_change_invalidates_the_segment() -> None:
     lines = [_sample(0, 600, advanced=0), _sample(1000, 601, generation=2)]
     result = audit.analyze_text(_header() + "\n".join(lines))
     assert result["overall_result"] == "DETECTOR_CONSISTENCY_UNRESOLVED"
+
+
+def test_detector_shadow_hole_does_not_erase_main_progress_segment() -> None:
+    lines = []
+    for index in range(21):
+        line = _sample(index * 1000, 700 + index, advanced=index > 0,
+                       helper_start=800 + index, helper_completed=800 + index,
+                       main_start=900 + index, main_completed=900 + index)
+        if index == 10:
+            line = line.replace("main_detector_stable=1", "main_detector_stable=0")
+        lines.append(line)
+    result = audit.analyze_text(_header() + "\n".join(lines))
+    slave = result["roles"]["SLAVE"]
+    assert result["overall_result"] == "PHASE_CONVERGENCE_NOT_REACHED"
+    assert slave["main_core_valid_samples"] == 21
+    assert slave["phase_observation_samples"] == 20
+    assert slave["best_segment"]["fresh_samples"] == 20
+    assert slave["best_segment"]["duration_ms"] == 20000
+
+
+def test_isolated_transport_hole_does_not_break_main_segment() -> None:
+    lines = []
+    for index in range(22):
+        line = _sample(index * 1000, 900 + index, advanced=index > 0,
+                       helper_start=1000 + index, helper_completed=1000 + index,
+                       main_start=1100 + index, main_completed=1100 + index)
+        if index == 10:
+            line = line.replace("transport_valid=1", "transport_valid=0")
+        lines.append(line)
+    result = audit.analyze_text(_header() + "\n".join(lines))
+    slave = result["roles"]["SLAVE"]
+    assert result["overall_result"] == "PHASE_CONVERGENCE_NOT_REACHED"
+    assert slave["valid_acquisition_samples"] == 21
+    assert slave["best_segment"]["fresh_samples"] == 20
+    assert slave["best_segment"]["duration_ms"] == 21000

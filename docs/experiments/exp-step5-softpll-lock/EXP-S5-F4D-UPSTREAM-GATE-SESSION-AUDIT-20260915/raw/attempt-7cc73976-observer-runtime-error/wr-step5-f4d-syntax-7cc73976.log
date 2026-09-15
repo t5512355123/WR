@@ -1,0 +1,45 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Tue Sep 15 12:04:48 2026
+    Info: System process ID: 132625
+Info: Command: quartus_stp -t scripts/jtag/read_step5_startup_timeline_first_divergence.tcl F4D-SYNTAX __NO_SUCH_BOARD__ 1000 1000 2000 2000
+Info: Quartus(args): F4D-SYNTAX __NO_SUCH_BOARD__ 1000 1000 2000 2000
+Error (23035): Tcl error: no DE5a targets matching 1-11.1 and 1-11.2 were found
+    while executing
+"error "no DE5a targets matching 1-11.1 and 1-11.2 were found""
+    invoked from within
+"if {[llength $::targets] == 0} {
+  error "no DE5a targets matching 1-11.1 and 1-11.2 were found"
+}"
+    (file "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl" line 900)
+------------------------------------------------
+no DE5a targets matching 1-11.1 and 1-11.2 were found
+    while executing
+"error "no DE5a targets matching 1-11.1 and 1-11.2 were found""
+    invoked from within
+"if {[llength $::targets] == 0} {
+  error "no DE5a targets matching 1-11.1 and 1-11.2 were found"
+}"
+    (file "scripts/jtag/read_step5_startup_timeline_first_divergence.tcl" line 900)
+------------------------------------------------
+Error (23031): Evaluation of Tcl script scripts/jtag/read_step5_startup_timeline_first_divergence.tcl unsuccessful
+Error: Quartus Prime Signal Tap was unsuccessful. 2 errors, 0 warnings
+    Error: Peak virtual memory: 677 megabytes
+    Error: Processing ended: Tue Sep 15 12:04:53 2026
+    Error: Elapsed time: 00:00:05
+    Error: System process ID: 132625

@@ -1,0 +1,22 @@
+{
+  "format": "step5-f4d-attempt-v1",
+  "experiment": "EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915",
+  "attempt": 1,
+  "observer_commit": "7cc73976e7fb6400cc8b905f506d841906355fd8",
+  "functional_image_source_commit": "5ba40f84cc4275f9a707bd847ac9809b267f7637",
+  "result": "ABORTED_BY_OBSERVER_ERROR",
+  "f4d_result": "NOT_APPLICABLE",
+  "step5_complete": false,
+  "raw_transfer_archive": {
+    "name": "EXP-S5-F4D-UPSTREAM-GATE-SESSION-AUDIT-20260915-7cc73976-observer-error.tgz",
+    "sha256": "9c01f1ffdbd6d0e7b3a9fed1eb70f86b6ff863c8c9fc8cb8531a93d1eb9eea87"
+  },
+  "raw_files": {
+    "wr-step5-f4d-syntax-7cc73976.log": "ca9559dd5e6c6403c87318090d18ac16e3f7bf0961ff9db61e5cad8db2421152",
+    "wr-step5-f4d-master-build-7cc73976.log": "39e7d9571a1e3c0f09ccb5ea8e2211cd25e6c68c3e36e35f369d494d46b798e1",
+    "wr-step5-f4d-slave-build-7cc73976.log": "7992625b3c0849ea6b9a2d1a2c2234ade71e0ab4259f49bdad94fe22441b9685",
+    "wr-step5-f4d-master-program-7cc73976.log": "3497047a5f6ec9a05b1f9dc9a33c48f51db426e9c069e0ef92ac3f41bd4db1e0",
+    "wr-step5-f4d-slave-program-7cc73976.log": "8c0545384ade955ba9f9c1825a0de36abd20da7b11c530a5071ef477dce7b514",
+    "wr-step5-f4d-timeline-7cc73976.log": "597fb746ec44816a92249c1c83c9d536a8ccd11cf5bc3b819b6b849f6e9a65e9"
+  }
+}

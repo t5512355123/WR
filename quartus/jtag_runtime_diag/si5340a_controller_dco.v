@@ -840,7 +840,22 @@ always @(posedge iCLK or negedge iRST_n) begin
       3'd0: begin
         rt_seen_busy <= 1'b0;
         rt_final_write <= 1'b0;
-        if (static_controller_ready && dpll_tracker_initialized &&
+        // Fable F4b: once a normal Helper request has been admitted, service
+        // it before a competing Main residual.  Helper liveness is upstream
+        // of Main lock; forced/bootstrap requests keep their existing order.
+        if (static_controller_ready && hpll_pending &&
+            !hpll_pending_forced) begin
+          rt_state <= 3'd1;
+          rt_state_enter_count <= rt_state_enter_count + 1'b1;
+          rt_select_dpll <= 1'b0;
+          rt_dir <= hpll_pending_forced_reverse ? ~hpll_dir : hpll_dir;
+          hpll_pending <= 1'b0;
+          current_request_forced <= 1'b0;
+          current_request_bootstrap <= 1'b0;
+          normal_hpll_request_count <= normal_hpll_request_count + 1'b1;
+          hpll_pending_forced <= 1'b0;
+          hpll_pending_bootstrap <= 1'b0;
+        end else if (static_controller_ready && dpll_tracker_initialized &&
             (((dpll_target_position > dpll_applied_position) &&
               ((dpll_target_position - dpll_applied_position) >= DPLL_STEP_CODE)) ||
              ((dpll_applied_position > dpll_target_position) &&
@@ -852,7 +867,8 @@ always @(posedge iCLK or negedge iRST_n) begin
           rt_dir <= (dpll_target_position < dpll_applied_position);
           dpll_pending <= 1'b0;
           current_request_forced <= 1'b0;
-        end else if (static_controller_ready && hpll_pending) begin
+        end else if (static_controller_ready && hpll_pending &&
+                     hpll_pending_forced) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b0;

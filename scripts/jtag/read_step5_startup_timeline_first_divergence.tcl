@@ -619,8 +619,12 @@ proc read_board_sample {role hardware_name device_name sample elapsed} {
     set reset_name [lindex $reset_item 0]
     set reset_array [lindex $reset_item 1]
     set reset_value [lindex $reset_item 2]
-    if {$reset_value >= 0 && [info exists ${reset_array}($role)] &&
-        ${reset_array}($role) != $reset_value} {
+    set reset_previous INVALID
+    if {[info exists ${reset_array}($role)]} {
+      set reset_previous [set ${reset_array}($role)]
+    }
+    if {$reset_value >= 0 && $reset_previous ne "INVALID" &&
+        $reset_previous != $reset_value} {
       set f4d_reset_changed 1
     }
     if {$reset_value >= 0} { set ${reset_array}($role) $reset_value }

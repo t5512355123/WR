@@ -1,0 +1,3 @@
+MASTER_SOF_SHA256=ae017c25ca628f7c7d35636d27079f85e8f5543aa8f712e122f984f5a6932400
+SLAVE_SOF_SHA256=ec4be4bd6390ce2cbe3c603c99b337fb501d60da37e58c2cf2b5bfca1de5f092
+SOURCE=Pain build/build_info_jtag_master.txt and build/build_info_jtag_slave.txt; verified against the transferred SOF files.

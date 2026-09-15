@@ -1,0 +1,72 @@
+{
+  "experiment": "EXP-S5-F4B-ARBITRATION-CONTROL-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "a1980bff30231376a3182486fd786d906876c2d4",
+  "functional_change": {
+    "scope": "normal_hpll_residual_admission_before_dpll",
+    "file": "quartus/jtag_runtime_diag/si5340a_controller_dco.v",
+    "candidate_macro_master": 0,
+    "candidate_macro_slave": 0,
+    "forced_and_bootstrap_order_preserved": true
+  },
+  "held_constant": {
+    "bootstrap_steps": 3388,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "helper_phase_guard_seconds": 8,
+    "helper_threshold": 2000,
+    "helper_lock_samples": 1000,
+    "normal_hpll_cooldown_loads": 0,
+    "hpll_code_per_physical_step": 64,
+    "main_kp": 300,
+    "main_ki": 1,
+    "main_prelock_boost": 20,
+    "wr_timeout_seconds": 60
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "master_sof_sha256": "ae017c25ca628f7c7d35636d27079f85e8f5543aa8f712e122f984f5a6932400",
+    "slave_sof_sha256": "ec4be4bd6390ce2cbe3c603c99b337fb501d60da37e58c2cf2b5bfca1de5f092"
+  },
+  "program": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]",
+    "order": "master_then_slave",
+    "master": "PASS",
+    "slave": "PASS"
+  },
+  "preflight": {
+    "initial": "STEP4B_BLOCKED_BY_STEP2",
+    "retry_after_seconds": 60,
+    "retry": "STEP4B_PASS",
+    "step4b_allowed": true,
+    "jtag_wb_path": "TRUSTED"
+  },
+  "observer": {
+    "smoke_samples": 120,
+    "smoke_wall_seconds": 16.790,
+    "long_samples": 6000,
+    "long_wall_seconds": 845.143,
+    "smoke_helper_error_rms": 105.00571413023198,
+    "long_helper_error_rms": 107.58921646707908,
+    "long_measurement_valid_samples": 6000,
+    "long_frame_valid_samples": 5949,
+    "long_position_valid_samples": 4766,
+    "long_main_frequency_locked": 1,
+    "long_main_phase_locked": 0,
+    "long_pstat_locked": 0,
+    "long_reset_stable": true,
+    "replay_strict_step5_pass": false
+  },
+  "verdict": {
+    "step5": "NOT_COMPLETE",
+    "first_inactive_boundary": "MAIN_PHASE_LOCK",
+    "merge_approved": false,
+    "next": "EXP-S5-F4C-MAIN-PHASE-SERVICE-CAUSE-AUDIT-20260915"
+  },
+  "raw_archive_sha256": "810be426d5a3e022f5bd139445137db645a12e9209ab1141c8db61535840f729"
+}

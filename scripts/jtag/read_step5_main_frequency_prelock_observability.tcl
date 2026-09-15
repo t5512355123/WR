@@ -1,5 +1,9 @@
 # White Rabbit Step5 F4C Main phase-service cause-audit observer.
 #
+# The `acquisition` run role below is the F4E read-only acquisition-window
+# diagnostic.  It shares the established mailbox reader with F4C and never
+# changes firmware/RTL control behaviour.
+#
 # This script is read-only.  It correlates the existing Main trace, the
 # coherent Helper measurement, the stable DCO/accounting probes, and the
 # producer-side L2 telemetry.  It does not request a Helper PI snapshot, write
@@ -11,8 +15,9 @@
 #     ?samples? ?gap_ms? ?board_filter? ?target_duration_ms? \
 #     ?hard_duration_ms? ?run_role?
 #
-# A run is capped by actual wall-clock time below.  The first five samples are
-# a transport/consistency smoke gate; only a valid smoke gate is extended.
+# A legacy run is capped by actual wall-clock time below.  The acquisition run
+# role uses its own bounded two-board scheduler and does not apply the legacy
+# five-sample readiness gate.
 
 package require ::quartus::insystem_source_probe
 
@@ -33,8 +38,8 @@ if {[llength $argv] >= 6} { set run_role [string tolower [lindex $argv 5]] }
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, or long"
+    [lsearch -exact {legacy smoke long acquisition} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, or acquisition"
 }
 
 array set ::wb_toggle {}
@@ -136,6 +141,41 @@ array set ::health_next_ms {}
 array set ::run_end_reason {}
 array set ::elapsed_final {}
 
+# F4E acquisition-mode state.  These arrays deliberately keep entry,
+# producer-progress, protection, and stop state separate from the legacy F4C
+# summary counters.  A single Tcl process interleaves both targets; it never
+# starts a second reader.
+array set ::f4e_role {}
+array set ::f4e_sample_count {}
+array set ::f4e_entry_seen {}
+array set ::f4e_entry_sample {}
+array set ::f4e_entry_elapsed_ms {}
+array set ::f4e_entry_update_count {}
+array set ::f4e_last_update_count {}
+array set ::f4e_last_update_elapsed_ms {}
+array set ::f4e_last_main_core_elapsed_ms {}
+array set ::f4e_main_progress_samples {}
+array set ::f4e_main_core_valid_samples {}
+array set ::f4e_acquisition_allowed_samples {}
+array set ::f4e_phase_domain_samples {}
+array set ::f4e_phase_inband_samples {}
+array set ::f4e_helper_unlock_streak {}
+array set ::f4e_helper_rail_streak {}
+array set ::f4e_freq_unlock_streak {}
+array set ::f4e_terminal_streak {}
+array set ::f4e_transport_error_streak {}
+array set ::f4e_generation_baseline {}
+array set ::f4e_cpu_reset_baseline {}
+array set ::f4e_wr_reset_baseline {}
+array set ::f4e_si_drop_baseline {}
+array set ::f4e_stop_reason {}
+array set ::f4e_run_end_reason {}
+array set ::f4e_first_ms {}
+array set ::f4e_last_ms {}
+set ::f4e_global_stop_reason NONE
+set ::f4e_session_start_ms 0
+set ::f4e_session_end_ms 0
+
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
 }
@@ -207,39 +247,116 @@ proc probe_field32 {value low width} {
   return [expr {($high >> $low) & $mask}]
 }
 
-proc wb_read {hardware_name addr} {
-  global poll_attempts
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+# The mailbox is a bundled CDC boundary.  Keep the completed toggle while
+# preloading the address, then commit the request by changing only the toggle.
+# A completion is accepted only after the done/active bits match and three
+# consecutive reads expose the same 64-bit response.  This is the established
+# runtime-reader protocol used by the F4D JTAG observer.
+proc normalize_probe64 {value} {
+  if {![is_hex $value]} { return $value }
+  set text $value
+  if {[string length $text] > 16} {
+    set text [string range $text end-15 end]
+  }
+  return [string repeat 0 [expr {16 - [string length $text]}]]$text
+}
+
+proc bit64_high {value bit} {
+  set word [probe_high32 $value]
+  if {$word eq "INVALID"} { return INVALID }
+  return [expr {($word >> $bit) & 1}]
+}
+
+proc stale_jtag_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc probe_equal64 {left right} {
+  if {![is_hex $left] || ![is_hex $right]} { return 0 }
+  return [expr {[normalize_probe64 $left] eq [normalize_probe64 $right]}]
+}
+
+proc completion_probe_valid {value expected_toggle} {
+  if {![is_hex $value] || [stale_jtag_word $value]} { return 0 }
+  set done_toggle [bit64_high $value 3]
+  set active [bit64_high $value 4]
+  return [expr {$done_toggle eq $expected_toggle && $active == 0}]
+}
+
+proc safe_probe_read {instance} {
+  if {[catch {set value [read_probe_data -instance_index $instance -value_in_hex]}]} {
+    return TIMEOUT
+  }
+  if {![is_hex $value]} { return INVALID }
+  return $value
+}
+
+proc mailbox_read {hardware_name addr} {
+  set preload_toggle $::wb_toggle($hardware_name)
+  set preload_cmd [expr {$preload_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $preload_cmd] -value_in_hex
+  }]} {
+    return TIMEOUT
+  }
+  after 2
+
+  # Commit by changing only the toggle.  The preload response is not a
+  # completion because it may still expose the previous transaction.
+  set ::wb_toggle($hardware_name) [expr {($preload_toggle ^ 1) & 1}]
+  set expected_toggle $::wb_toggle($hardware_name)
+  set cmd [expr {$expected_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
   if {[catch {
     write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
   }]} {
     return TIMEOUT
   }
+
   after 5
-  for {set n 0} {$n < $poll_attempts} {incr n} {
-    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
-      set value INVALID
+  set first_completion ""
+  for {set n 0} {$n < 100} {incr n} {
+    set value [safe_probe_read 1]
+    if {[completion_probe_valid $value $expected_toggle]} {
+      set first_completion $value
+      break
     }
-    if {[is_hex $value]} {
-      scan $value %x word
-      set done_toggle [expr {($word >> 35) & 1}]
-      set active [expr {($word >> 36) & 1}]
-      if {$done_toggle == $toggle && $active == 0} {
-        return [format %08X [expr {$word & 0xffffffff}]]
-      }
+    after 1
+  }
+  if {$first_completion eq ""} { return TIMEOUT }
+
+  # Reject the done-toggle/new-data visibility race at the JTAG boundary.
+  for {set attempt 1} {$attempt <= 10} {incr attempt} {
+    set p1 [safe_probe_read 1]
+    after 1
+    set p2 [safe_probe_read 1]
+    after 1
+    set p3 [safe_probe_read 1]
+    if {[completion_probe_valid $p1 $expected_toggle] &&
+        [completion_probe_valid $p2 $expected_toggle] &&
+        [completion_probe_valid $p3 $expected_toggle] &&
+        [probe_equal64 $p1 $p2] && [probe_equal64 $p2 $p3]} {
+      return [format %08X [word32 $p3]]
     }
     after 1
   }
   return TIMEOUT
 }
 
+proc wb_read {hardware_name addr} {
+  return [mailbox_read $hardware_name $addr]
+}
+
 proc wb_sync_toggle {hardware_name} {
-  set value [probe_read 1]
+  set value [safe_probe_read 1]
   if {[is_hex $value]} {
-    scan $value %x word
-    set ::wb_toggle($hardware_name) [expr {($word >> 35) & 1}]
+    set toggle [bit64_high $value 3]
+    if {$toggle ne "INVALID"} {
+      set ::wb_toggle($hardware_name) $toggle
+    } else {
+      set ::wb_toggle($hardware_name) 0
+    }
   } else {
     set ::wb_toggle($hardware_name) 0
   }
@@ -249,7 +366,7 @@ proc frame_valid {ctrl_begin ctrl_end} {
   set a [word32 $ctrl_begin]
   set b [word32 $ctrl_end]
   if {$a < 0 || $b < 0} { return 0 }
-  return [expr {(($a & 1) != 0) && (($b & 1) != 0)}]
+  return [expr {(($a & 1) != 0) && (($b & 1) != 0) && $a == $b}]
 }
 
 proc selected_board {hardware_name} {
@@ -1300,6 +1417,759 @@ proc emit_summary {hardware_name} {
   puts [format "STEP5_F4C_LEGACY_SUMMARY board=%s SAMPLES=%d SAMPLE_START_MS=%s SAMPLE_FINAL_MS=%d CORRELATION_SAMPLES=%d HELPER_MEASUREMENT_VALID=%d POSITION_VALID=%d L2_VALID=%d INVALID_STREAK_FINAL=%d SMOKE_SAMPLES=%d SMOKE_VALID=%d STOP_REASON=%s MAIN_TRACE_UPDATE_FIRST=%s MAIN_TRACE_UPDATE_FINAL=%s MAIN_TRACE_UPDATE_DELTA=%s MAIN_SAMPLE_N_ADVANCED=%d MAIN_PROGRESS_FRACTION=%s HELPER_RESIDUAL_SAMPLES=%d HELPER_PENDING_SAMPLES=%d RESIDUAL_WITHOUT_PENDING=%d RESIDUAL_WITHOUT_PENDING_MAIN_PROGRESS=%d HELPER_UNLOCK_SAMPLES=%d HELPER_UNLOCK_MAIN_STALLED=%d HELPER_UNLOCK_MAIN_STALLED_FREQ_STALE=%d MAIN_L2_COMPLETED_DELTA=%s HELPER_L2_COMPLETED_DELTA=%s HELPER_PENDING_COUNT_DELTA=%s DEMAND_RESULT=%s ADMISSION_ELIGIBILITY=UNKNOWN STEP5_COMPLETE=NO MERGE_APPROVED=NO" \
     $hardware_name $::sample_count($hardware_name) $::obs_sample_first_ms($hardware_name) $::obs_sample_final_ms($hardware_name) $::obs_correlation_samples($hardware_name) $::obs_measurement_valid($hardware_name) $::obs_position_valid($hardware_name) $::obs_l2_valid($hardware_name) $::obs_invalid_streak($hardware_name) $::smoke_samples $::obs_smoke_valid($hardware_name) $::obs_stop_reason($hardware_name) $::obs_main_update_first($hardware_name) $::obs_main_update_final($hardware_name) $main_update_delta $::obs_main_trace_update_progress($hardware_name) $main_progress_fraction $::obs_helper_residual_samples($hardware_name) $::obs_helper_pending_samples($hardware_name) $::obs_residual_without_pending($hardware_name) $::obs_residual_without_pending_and_main_progress($hardware_name) $::obs_helper_unlock_samples($hardware_name) $::obs_helper_unlock_main_stalled($hardware_name) $::obs_helper_unlock_main_stalled_freq_stale($hardware_name) $main_completed_delta $helper_completed_delta $helper_pending_delta $demand_result]
   flush stdout
+}
+
+proc f4e_is_number {value} {
+  return [string is integer -strict $value]
+}
+
+proc f4e_hex_token {value} {
+  if {[is_hex $value]} { return 0x[normalize_probe64 $value] }
+  return $value
+}
+
+proc f4e_identity_role_valid {role hardware_name} {
+  if {$role eq "MASTER"} {
+    return [expr {[string first "1-11.1" $hardware_name] >= 0 ? 1 : 0}]
+  }
+  if {$role eq "SLAVE"} {
+    return [expr {[string first "1-11.2" $hardware_name] >= 0 ? 1 : 0}]
+  }
+  return 0
+}
+
+proc f4e_collect_targets {} {
+  set targets {}
+  foreach hardware_name [get_hardware_names] {
+    if {$::board_filter ne "" &&
+        [string first $::board_filter $hardware_name] < 0} {
+      continue
+    }
+    set role ""
+    if {[string first "1-11.1" $hardware_name] >= 0} {
+      set role MASTER
+    } elseif {[string first "1-11.2" $hardware_name] >= 0} {
+      set role SLAVE
+    }
+    if {$role eq ""} { continue }
+    set device_names [get_device_names -hardware_name $hardware_name]
+    if {[llength $device_names] == 0} { continue }
+    lappend targets [list $role $hardware_name [lindex $device_names 0]]
+  }
+  return $targets
+}
+
+proc f4e_initialize_board {role hardware_name} {
+  set ::f4e_role($hardware_name) $role
+  set ::wb_toggle($hardware_name) 0
+  set ::f4e_sample_count($hardware_name) 0
+  set ::f4e_entry_seen($hardware_name) 0
+  set ::f4e_entry_sample($hardware_name) NEVER
+  set ::f4e_entry_elapsed_ms($hardware_name) NEVER
+  set ::f4e_entry_update_count($hardware_name) NEVER
+  set ::f4e_last_update_count($hardware_name) INVALID
+  set ::f4e_last_update_elapsed_ms($hardware_name) INVALID
+  set ::f4e_last_main_core_elapsed_ms($hardware_name) INVALID
+  set ::f4e_main_progress_samples($hardware_name) 0
+  set ::f4e_main_core_valid_samples($hardware_name) 0
+  set ::f4e_acquisition_allowed_samples($hardware_name) 0
+  set ::f4e_phase_domain_samples($hardware_name) 0
+  set ::f4e_phase_inband_samples($hardware_name) 0
+  set ::f4e_helper_unlock_streak($hardware_name) 0
+  set ::f4e_helper_rail_streak($hardware_name) 0
+  set ::f4e_freq_unlock_streak($hardware_name) 0
+  set ::f4e_terminal_streak($hardware_name) 0
+  set ::f4e_transport_error_streak($hardware_name) 0
+  set ::f4e_generation_baseline($hardware_name) INVALID
+  set ::f4e_cpu_reset_baseline($hardware_name) INVALID
+  set ::f4e_wr_reset_baseline($hardware_name) INVALID
+  set ::f4e_si_drop_baseline($hardware_name) INVALID
+  set ::f4e_stop_reason($hardware_name) NONE
+  set ::f4e_run_end_reason($hardware_name) NOT_REACHED
+  set ::f4e_first_ms($hardware_name) NEVER
+  set ::f4e_last_ms($hardware_name) 0
+}
+
+proc f4e_set_stop {reason} {
+  if {$::f4e_global_stop_reason ne "NONE"} { return }
+  set ::f4e_global_stop_reason $reason
+  foreach hardware_name [array names ::f4e_role] {
+    set ::f4e_stop_reason($hardware_name) $reason
+  }
+}
+
+proc f4e_sample_error {role hardware_name sample elapsed_ms read_start_ms \
+    read_end_ms error_message} {
+  set ::f4e_sample_count($hardware_name) $sample
+  set ::f4e_last_ms($hardware_name) $elapsed_ms
+  incr ::f4e_transport_error_streak($hardware_name)
+  set safe_message [string map [list " " "_" "\n" "|" "\r" "|"] $error_message]
+  if {$::f4e_transport_error_streak($hardware_name) >= 3} {
+    f4e_set_stop DATA_UNRESOLVED
+  }
+  puts [join [list \
+    STEP5_F4E_SAMPLE \
+    "run_role=acquisition" \
+    "role=$role" \
+    "board=$hardware_name" \
+    "sample=$sample" \
+    "observer_sample_n=$sample" \
+    "elapsed_ms=$elapsed_ms" \
+    "read_start_ms=$read_start_ms" \
+    "read_end_ms=$read_end_ms" \
+    "frame_valid=0" \
+    "core_frame_valid=0" \
+    "transport_valid=0" \
+    "main_core_valid=0" \
+    "main_trace_valid=0" \
+    "main_sample_n=INVALID" \
+    "main_update_count=INVALID" \
+    "main_sample_n_delta=INVALID" \
+    "main_sample_n_delta_ambiguous=1" \
+    "main_sample_n_advanced=0" \
+    "acquisition_diagnostic_allowed=0" \
+    "entry_class=DATA_UNRESOLVED" \
+    "stop_reason=$::f4e_stop_reason($hardware_name)" \
+    "read_error=$safe_message"] " "]
+  flush stdout
+}
+
+proc emit_f4e_sample {role hardware_name device_name sample elapsed_ms} {
+  set ::f4e_sample_count($hardware_name) $sample
+  if {$sample == 1} { set ::f4e_first_ms($hardware_name) $elapsed_ms }
+  set ::f4e_last_ms($hardware_name) $elapsed_ms
+  set read_start_ms [clock milliseconds]
+  set probe_started 0
+  set read_error ""
+  set read_ok [catch {
+    start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+
+    set ctrl_begin [wb_read $hardware_name 0x00100A04]
+    set status [probe_read 0]
+    set entry_probe [probe_read 26]
+    set reset_probe [probe_read 27]
+    set ptp_meta [wb_read $hardware_name 0x00100A5C]
+    set sstat [wb_read $hardware_name 0x00100A08]
+    set parse_meta [wb_read $hardware_name 0x00100A80]
+    set wr_failure [wb_read $hardware_name 0x00100A6C]
+    set wr_state [wb_read $hardware_name 0x00100A4C]
+    set pstat [wb_read $hardware_name 0x00100A0C]
+    set lock_result [wb_read $hardware_name 0x00100A8C]
+    set spll_state [wb_read $hardware_name 0x00100AA0]
+
+    set ::main_trace_epoch_before_raw($hardware_name) INVALID
+    set ::main_trace_epoch_after_raw($hardware_name) INVALID
+    set trace [read_main_trace $hardware_name]
+    foreach {trace_ok epoch dref dout freq_error prelock_error pi_unclamped \
+        pi_output clamp_side lock_count lock_count_max kp ki shift bias \
+        update_count threshold lock_samples state y_min y_max anti_windup \
+        pi_x magic} $trace break
+    set main_detector [read_main_detector_block $hardware_name]
+    foreach {main_detector_ok main_detector_stable main_state_raw \
+        main_limits_raw main_phase_limits_raw main_detector_enabled \
+        main_detector_locked main_detector_freq_locked \
+        main_detector_phase_locked main_freq_lock_count \
+        main_phase_lock_count main_freq_threshold main_freq_lock_samples \
+        main_phase_threshold main_phase_lock_samples} $main_detector break
+    foreach {helper_state helper_limits} [read_helper_pair $hardware_name] break
+    set helper_locked [field32 $helper_state 0 1]
+    set helper_lock_count [field32 $helper_state 16 16]
+    set helper_threshold [field32 $helper_limits 0 16]
+    set helper_lock_samples [field32 $helper_limits 16 16]
+
+    set helper_measurement [read_helper_measurement $hardware_name]
+    foreach {helper_measurement_ok helper_epoch_before_raw \
+        helper_epoch_after_raw helper_epoch helper_tag helper_expected \
+        helper_freq_error helper_preclamp helper_error helper_update_count \
+        helper_output helper_ref_accept helper_fb_accept} $helper_measurement break
+    set position_observation [read_position_observability]
+    foreach {position_ok position_accounting_before_raw \
+        position_accounting_after_raw position_raw bootstrap_raw actuator_raw \
+        position_epoch target applied finc fdec normal_completed dco_step \
+        bootstrap_completed bootstrap_done forced_finc forced_fdec} \
+        $position_observation break
+    set tracker_raw [probe_read 39]
+    set tracker_word [word64 $tracker_raw]
+    set helper_normal_request [expr {$tracker_word < 0 ? "INVALID" : (($tracker_word >> 32) & 0xffff)}]
+    set l2_observation [read_l2_observability]
+    foreach {l2_ok l2_status_raw l2_pending_raw l2_service_start_raw \
+        l2_completed_raw l2_failed_raw l2_max_wait_raw l2_current_wait_raw \
+        l2_latency_raw l2_failure_raw l2_first_loss_raw l2_first_loss \
+        l2_main_pending l2_helper_pending l2_tx_active l2_owner_main l2_ack \
+        l2_timeout l2_dco_error l2_reason l2_rt_state l2_status_time \
+        l2_main_pending_count l2_helper_pending_count l2_main_start_count \
+        l2_helper_start_count l2_main_completed_count \
+        l2_helper_completed_count l2_main_failed_count l2_helper_failed_count \
+        l2_main_max_wait l2_helper_max_wait l2_main_current_wait \
+        l2_helper_current_wait l2_main_max_latency l2_helper_max_latency \
+        l2_ack_events l2_timeout_events l2_first_loss_time \
+        l2_first_loss_owner l2_first_loss_reason} $l2_observation break
+    set ctrl_end [wb_read $hardware_name 0x00100A04]
+    set read_end_ms [clock milliseconds]
+  } read_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  if {!$read_ok} {
+    f4e_sample_error $role $hardware_name $sample $elapsed_ms \
+      $read_start_ms [clock milliseconds] $read_error
+    return
+  }
+
+  set frame_ok [frame_valid $ctrl_begin $ctrl_end]
+  set direct_values [list $ctrl_begin $ctrl_end $status $entry_probe \
+    $reset_probe $ptp_meta $sstat $parse_meta $wr_failure $wr_state $pstat \
+    $lock_result $spll_state]
+  set direct_valid 1
+  foreach value $direct_values {
+    if {![is_hex $value]} { set direct_valid 0 }
+  }
+  set transport_valid [expr {$frame_ok && $direct_valid ? 1 : 0}]
+  if {$transport_valid} {
+    set ::f4e_transport_error_streak($hardware_name) 0
+  } else {
+    incr ::f4e_transport_error_streak($hardware_name)
+    if {$::f4e_transport_error_streak($hardware_name) >= 3} {
+      f4e_set_stop DATA_UNRESOLVED
+    }
+  }
+
+  set status_valid [is_hex $status]
+  set si_config_done [field32 $status 0 1]
+  set wr_ready [field32 $status 1 1]
+  set core_tm_link_up [field32 $status 2 1]
+  set core_link_ok [field32 $status 3 1]
+  set wr_rx_ready [field32 $status 6 1]
+  set wr_tx_ready [field32 $status 7 1]
+  set cpu_reset_n [field32 $status 15 1]
+  set boot_generation [probe_high32 $entry_probe]
+  set cpu_reset_count [probe_field32 $reset_probe 16 8]
+  set wr_core_reset_count [probe_field32 $reset_probe 24 8]
+  set si_drop_count [probe_field32 $reset_probe 40 8]
+  set reset_fields_valid [expr {[f4e_is_number $boot_generation] &&
+    [f4e_is_number $cpu_reset_count] &&
+    [f4e_is_number $wr_core_reset_count] &&
+    [f4e_is_number $si_drop_count] ? 1 : 0}]
+  set reset_changed 0
+  if {$reset_fields_valid} {
+    if {$::f4e_generation_baseline($hardware_name) eq "INVALID"} {
+      set ::f4e_generation_baseline($hardware_name) $boot_generation
+      set ::f4e_cpu_reset_baseline($hardware_name) $cpu_reset_count
+      set ::f4e_wr_reset_baseline($hardware_name) $wr_core_reset_count
+      set ::f4e_si_drop_baseline($hardware_name) $si_drop_count
+    } elseif {$boot_generation != $::f4e_generation_baseline($hardware_name) ||
+        $cpu_reset_count != $::f4e_cpu_reset_baseline($hardware_name) ||
+        $wr_core_reset_count != $::f4e_wr_reset_baseline($hardware_name) ||
+        $si_drop_count != $::f4e_si_drop_baseline($hardware_name)} {
+      set reset_changed 1
+      f4e_set_stop RESET_OR_GENERATION_CHANGE
+    }
+  }
+  set reset_stable [expr {$reset_fields_valid && !$reset_changed ? 1 : 0}]
+
+  set ptp_state [field32 $ptp_meta 0 8]
+  set pd_state [field32 $ptp_meta 8 8]
+  set ext_state [field32 $ptp_meta 16 8]
+  set wrc_mode [field32 $ptp_meta 24 8]
+  set parent_is_wrnode [field32 $parse_meta 24 1]
+  set parent_mode_on [field32 $parse_meta 25 1]
+  set parent_calibrated [field32 $parse_meta 26 1]
+  set wr_state_value [field32 $wr_state 11 4]
+  set wr_next_state [field32 $wr_state 15 4]
+  set wr_failure_low16 [field32 $wr_failure 0 16]
+  set wr_disable_cause [field32 $wr_failure 8 3]
+  set wr_disable_valid [field32 $wr_failure 11 1]
+  set wr_disable_ptp_state [field32 $wr_failure 12 4]
+  set wr_disable_tics_low [field32 $sstat 16 16]
+  set wr_disable_pd_state [field32 $sstat 1 4]
+  set wr_disable_ext_state [field32 $sstat 12 4]
+  set wr_failure_reason [field32 $lock_result 9 7]
+  set wr_failure_tics_low [field32 $lock_result 16 16]
+  set pstat_locked [field32 $pstat 1 1]
+  set spll_seq_state [field32 $spll_state 0 8]
+  set spll_alignment_state [field32 $spll_state 8 8]
+  set spll_mode [field32 $spll_state 16 8]
+  set spll_delock_count [field32 $spll_state 24 8]
+
+  set main_core_valid 0
+  if {$trace_ok && $main_detector_ok && [f4e_is_number $magic] && $magic == 1} {
+    set main_core_valid 1
+    incr ::f4e_main_core_valid_samples($hardware_name)
+    set ::f4e_last_main_core_elapsed_ms($hardware_name) $elapsed_ms
+  }
+  set main_sample_n_delta INVALID
+  set main_sample_n_delta_ambiguous 0
+  set main_sample_n_advanced 0
+  if {$trace_ok && [f4e_is_number $update_count]} {
+    if {$::f4e_last_update_count($hardware_name) ne "INVALID"} {
+      set main_sample_n_delta [counter_delta \
+        $::f4e_last_update_count($hardware_name) $update_count 32]
+      if {$main_sample_n_delta eq "INVALID" || $main_sample_n_delta > 0x7fffffff} {
+        set main_sample_n_delta INVALID
+        set main_sample_n_delta_ambiguous 1
+      } elseif {$main_sample_n_delta > 0} {
+        set main_sample_n_advanced 1
+      }
+      if {$main_sample_n_advanced} {
+        set ::f4e_last_update_elapsed_ms($hardware_name) $elapsed_ms
+      }
+    } else {
+      # The first coherent producer value establishes the progress clock;
+      # subsequent equal values are intentionally left stale so the 10 s
+      # no-progress stop is meaningful.
+      set ::f4e_last_update_elapsed_ms($hardware_name) $elapsed_ms
+    }
+    set ::f4e_last_update_count($hardware_name) $update_count
+  }
+  if {$main_core_valid && $main_sample_n_advanced} {
+    incr ::f4e_main_progress_samples($hardware_name)
+  }
+
+  set main_phase_input_domain UNKNOWN
+  if {$main_detector_ok && $main_detector_freq_locked ne "INVALID"} {
+    set main_phase_input_domain [expr {$main_detector_freq_locked == 1 ? "PHASE" : "FREQUENCY"}]
+  }
+  set main_phase_inband UNKNOWN
+  if {$main_phase_input_domain eq "PHASE" && [f4e_is_number $pi_x] &&
+      [f4e_is_number $main_phase_threshold]} {
+    set main_phase_inband [expr {abs($pi_x) <= $main_phase_threshold ? 1 : 0}]
+    if {$main_core_valid} {
+      incr ::f4e_phase_domain_samples($hardware_name)
+      if {$main_phase_inband == 1} {
+        incr ::f4e_phase_inband_samples($hardware_name)
+      }
+    }
+  }
+
+  set helper_residual_present UNKNOWN
+  if {$position_ok && [f4e_is_number $target] && [f4e_is_number $applied]} {
+    set helper_residual_present [expr {$target != ($applied & 0xffff) ? 1 : 0}]
+  }
+  set helper_measurement_residual_present UNKNOWN
+  if {$helper_measurement_ok && [f4e_is_number $helper_error]} {
+    set helper_measurement_residual_present [expr {abs($helper_error) > 200 ? 1 : 0}]
+  }
+
+  set role_identity_valid [f4e_identity_role_valid $role $hardware_name]
+  set phy_link_usable [expr {$status_valid && $si_config_done == 1 &&
+    $wr_ready == 1 && $core_tm_link_up == 1 && $core_link_ok == 1 &&
+    $wr_rx_ready == 1 && $wr_tx_ready == 1 ? 1 : 0}]
+  set no_terminal 0
+  if {$direct_valid} {
+    if {[f4e_is_number $pd_state] && $pd_state == 4} { set no_terminal 1 }
+    if {[f4e_is_number $ext_state] && $ext_state == 0} { set no_terminal 1 }
+    if {$::f4e_entry_seen($hardware_name) &&
+        [f4e_is_number $wr_state_value] && $wr_state_value == 0} {
+      set no_terminal 1
+    }
+    if {[f4e_is_number $wr_disable_valid] && $wr_disable_valid == 1} { set no_terminal 1 }
+    if {[f4e_is_number $wr_failure_reason] && $wr_failure_reason >= 1 &&
+        $wr_failure_reason <= 7} { set no_terminal 1 }
+  }
+  if {$no_terminal} {
+    incr ::f4e_terminal_streak($hardware_name)
+  } else {
+    set ::f4e_terminal_streak($hardware_name) 0
+  }
+  if {$::f4e_terminal_streak($hardware_name) >= 2} {
+    f4e_set_stop WR_SESSION_ENDED
+  }
+
+  set acquisition_allowed 0
+  set entry_class WAITING_FOR_ACQUISITION
+  if {!$role_identity_valid} {
+    set entry_class IDENTITY_MISMATCH
+  } elseif {!$phy_link_usable} {
+    set entry_class PHY_LINK_NOT_USABLE
+  } elseif {!$reset_stable} {
+    set entry_class RESET_UNRESOLVED
+  } elseif {$role ne "SLAVE"} {
+    set entry_class MASTER_BACKGROUND
+  } elseif {$wr_state_value ne "2"} {
+    set entry_class WR_NOT_S_LOCK
+  } elseif {$no_terminal} {
+    set entry_class WR_SESSION_ENDED
+  } elseif {$helper_locked ne "1"} {
+    set entry_class HELPER_NOT_LOCKED
+  } elseif {!$main_core_valid} {
+    set entry_class MAIN_CORE_NOT_READY
+  } elseif {$main_detector_enabled ne "1"} {
+    set entry_class MAIN_NOT_ENABLED
+  } elseif {$main_detector_freq_locked ne "1"} {
+    set entry_class MAIN_FREQUENCY_NOT_LOCKED
+  } else {
+    set acquisition_allowed 1
+    set entry_class ELIGIBLE
+  }
+  if {$acquisition_allowed} {
+    incr ::f4e_acquisition_allowed_samples($hardware_name)
+    if {!$::f4e_entry_seen($hardware_name)} {
+      set ::f4e_entry_seen($hardware_name) 1
+      set ::f4e_entry_sample($hardware_name) $sample
+      set ::f4e_entry_elapsed_ms($hardware_name) $elapsed_ms
+      set ::f4e_entry_update_count($hardware_name) $update_count
+      # Start the ten-second producer-progress guard at the acquisition
+      # boundary, not at an older pre-entry observation.
+      set ::f4e_last_update_elapsed_ms($hardware_name) $elapsed_ms
+      puts [join [list STEP5_F4E_ENTRY role=$role board=$hardware_name \
+        sample=$sample elapsed_ms=$elapsed_ms main_sample_n=$update_count \
+        phase_locked=$main_detector_phase_locked helper_locked=$helper_locked] " "]
+      flush stdout
+    }
+    if {$helper_measurement_ok && $helper_locked == 0} {
+      incr ::f4e_helper_unlock_streak($hardware_name)
+    } elseif {$helper_locked == 1} {
+      set ::f4e_helper_unlock_streak($hardware_name) 0
+    }
+    if {$helper_measurement_ok && [f4e_is_number $helper_output] &&
+        ($helper_output <= 5 || $helper_output >= 65531)} {
+      incr ::f4e_helper_rail_streak($hardware_name)
+    } elseif {$helper_measurement_ok && [f4e_is_number $helper_output]} {
+      set ::f4e_helper_rail_streak($hardware_name) 0
+    }
+    if {$main_detector_ok && $main_detector_freq_locked == 0} {
+      incr ::f4e_freq_unlock_streak($hardware_name)
+    } elseif {$main_detector_ok && $main_detector_freq_locked == 1} {
+      set ::f4e_freq_unlock_streak($hardware_name) 0
+    }
+  }
+  if {$::f4e_entry_seen($hardware_name)} {
+    if {$::f4e_last_main_core_elapsed_ms($hardware_name) eq "INVALID"} {
+      set ::f4e_last_main_core_elapsed_ms($hardware_name) $elapsed_ms
+    }
+    if {$main_core_valid && [f4e_is_number $update_count] &&
+        $::f4e_last_update_elapsed_ms($hardware_name) ne "INVALID" &&
+        [expr {$elapsed_ms - $::f4e_last_update_elapsed_ms($hardware_name)}] >= 10000} {
+      f4e_set_stop MAIN_UPDATE_STALL
+    } elseif {!$main_core_valid &&
+        [expr {$elapsed_ms - $::f4e_last_main_core_elapsed_ms($hardware_name)}] >= 10000} {
+      f4e_set_stop DATA_UNRESOLVED
+    }
+    if {$::f4e_helper_unlock_streak($hardware_name) >= 3} {
+      f4e_set_stop HELPER_REGRESSION
+    } elseif {$::f4e_helper_rail_streak($hardware_name) >= 3} {
+      f4e_set_stop HELPER_REGRESSION
+    } elseif {$::f4e_freq_unlock_streak($hardware_name) >= 3} {
+      f4e_set_stop FREQ_ACQUISITION_REGRESSION
+    }
+  }
+
+  puts [join [list \
+    STEP5_F4E_SAMPLE \
+    "run_role=acquisition" \
+    "role=$role" \
+    "board=$hardware_name" \
+    "sample=$sample" \
+    "observer_sample_n=$sample" \
+    "elapsed_ms=$elapsed_ms" \
+    "read_start_ms=$read_start_ms" \
+    "read_end_ms=$read_end_ms" \
+    "frame_valid=$frame_ok" \
+    "core_frame_valid=$direct_valid" \
+    "transport_valid=$transport_valid" \
+    "role_identity_valid=$role_identity_valid" \
+    "phy_link_usable=$phy_link_usable" \
+    "status_raw=$status" \
+    "si_config_done=$si_config_done" \
+    "wr_ready=$wr_ready" \
+    "core_tm_link_up=$core_tm_link_up" \
+    "core_link_ok=$core_link_ok" \
+    "wr_rx_ready=$wr_rx_ready" \
+    "wr_tx_ready=$wr_tx_ready" \
+    "cpu_reset_n=$cpu_reset_n" \
+    "ptp_state=$ptp_state" \
+    "pd_state=$pd_state" \
+    "ext_state=$ext_state" \
+    "wrc_mode=$wrc_mode" \
+    "parent_is_wrnode=$parent_is_wrnode" \
+    "parent_mode_on=$parent_mode_on" \
+    "parent_calibrated=$parent_calibrated" \
+    "wr_state=$wr_state_value" \
+    "wr_next_state=$wr_next_state" \
+    "wr_failure_low16=$wr_failure_low16" \
+    "wr_failure_reason=$wr_failure_reason" \
+    "wr_failure_tics_low=$wr_failure_tics_low" \
+    "wr_disable_valid=$wr_disable_valid" \
+    "wr_disable_cause=$wr_disable_cause" \
+    "wr_disable_ptp_state=$wr_disable_ptp_state" \
+    "wr_disable_pd_state=$wr_disable_pd_state" \
+    "wr_disable_ext_state=$wr_disable_ext_state" \
+    "wr_disable_tics_low=$wr_disable_tics_low" \
+    "pstat_locked=$pstat_locked" \
+    "spll_seq_state=$spll_seq_state" \
+    "spll_alignment_state=$spll_alignment_state" \
+    "spll_mode=$spll_mode" \
+    "spll_delock_count=$spll_delock_count" \
+    "boot_generation=$boot_generation" \
+    "cpu_reset_count=$cpu_reset_count" \
+    "wr_core_reset_count=$wr_core_reset_count" \
+    "si_config_drop_count=$si_drop_count" \
+    "reset_fields_valid=$reset_fields_valid" \
+    "reset_stable=$reset_stable" \
+    "reset_changed=$reset_changed" \
+    "main_core_valid=$main_core_valid" \
+    "main_trace_valid=$trace_ok" \
+    "main_detector_valid=$main_detector_ok" \
+    "main_detector_stable=$main_detector_stable" \
+    "main_state_raw=$main_state_raw" \
+    "main_limits_raw=$main_limits_raw" \
+    "main_phase_limits_raw=$main_phase_limits_raw" \
+    "main_detector_enabled=$main_detector_enabled" \
+    "main_detector_locked=$main_detector_locked" \
+    "main_detector_freq_locked=$main_detector_freq_locked" \
+    "main_detector_phase_locked=$main_detector_phase_locked" \
+    "main_freq_lock_count=$main_freq_lock_count" \
+    "main_phase_lock_count=$main_phase_lock_count" \
+    "main_freq_threshold=$main_freq_threshold" \
+    "main_freq_lock_samples=$main_freq_lock_samples" \
+    "main_phase_threshold=$main_phase_threshold" \
+    "main_phase_lock_samples=$main_phase_lock_samples" \
+    "main_trace_publication_epoch_before_raw=[f4e_hex_token $::main_trace_epoch_before_raw($hardware_name)]" \
+    "main_trace_publication_epoch_after_raw=[f4e_hex_token $::main_trace_epoch_after_raw($hardware_name)]" \
+    "main_publication_epoch=$epoch" \
+    "main_sample_n=$update_count" \
+    "main_update_count=$update_count" \
+    "main_sample_n_delta=$main_sample_n_delta" \
+    "main_sample_n_delta_ambiguous=$main_sample_n_delta_ambiguous" \
+    "main_sample_n_advanced=$main_sample_n_advanced" \
+    "main_dref_dt=$dref" \
+    "main_dout_dt=$dout" \
+    "main_frequency_error=$freq_error" \
+    "main_prelock_error=$prelock_error" \
+    "main_pi_x=$pi_x" \
+    "main_pi_unclamped=$pi_unclamped" \
+    "main_pi_output=$pi_output" \
+    "main_pi_clamp_side=$clamp_side" \
+    "main_pi_kp=$kp" \
+    "main_pi_ki=$ki" \
+    "main_pi_shift=$shift" \
+    "main_pi_bias=$bias" \
+    "main_pi_y_min=$y_min" \
+    "main_pi_y_max=$y_max" \
+    "main_pi_anti_windup=$anti_windup" \
+    "main_phase_input_domain=$main_phase_input_domain" \
+    "main_phase_inband=$main_phase_inband" \
+    "helper_measurement_ok=$helper_measurement_ok" \
+    "helper_epoch_before_raw=$helper_epoch_before_raw" \
+    "helper_epoch_after_raw=$helper_epoch_after_raw" \
+    "helper_epoch=$helper_epoch" \
+    "helper_tag=$helper_tag" \
+    "helper_expected=$helper_expected" \
+    "helper_frequency_error=$helper_freq_error" \
+    "helper_preclamp=$helper_preclamp" \
+    "helper_error=$helper_error" \
+    "helper_update_count=$helper_update_count" \
+    "helper_output=$helper_output" \
+    "helper_ref_accept_count=$helper_ref_accept" \
+    "helper_fb_accept_count=$helper_fb_accept" \
+    "helper_locked=$helper_locked" \
+    "helper_lock_count=$helper_lock_count" \
+    "helper_threshold=$helper_threshold" \
+    "helper_lock_samples=$helper_lock_samples" \
+    "position_ok=$position_ok" \
+    "probe39_tracker_raw=$tracker_raw" \
+    "probe43_position_raw=$position_raw" \
+    "probe42_bootstrap_raw=$bootstrap_raw" \
+    "probe44_accounting_before_raw=$position_accounting_before_raw" \
+    "probe44_accounting_after_raw=$position_accounting_after_raw" \
+    "probe49_actuator_raw=$actuator_raw" \
+    "position_epoch=$position_epoch" \
+    "helper_target_code=$target" \
+    "helper_applied_code=$applied" \
+    "helper_residual_present=$helper_residual_present" \
+    "helper_measurement_residual_present=$helper_measurement_residual_present" \
+    "helper_finc=$finc" \
+    "helper_fdec=$fdec" \
+    "helper_normal_completed=$normal_completed" \
+    "helper_dco_step=$dco_step" \
+    "helper_bootstrap_completed=$bootstrap_completed" \
+    "helper_bootstrap_done=$bootstrap_done" \
+    "helper_forced_finc=$forced_finc" \
+    "helper_forced_fdec=$forced_fdec" \
+    "helper_normal_request=$helper_normal_request" \
+    "l2_valid=$l2_ok" \
+    "l2_status_raw=$l2_status_raw" \
+    "l2_pending_raw=$l2_pending_raw" \
+    "l2_service_start_raw=$l2_service_start_raw" \
+    "l2_completed_raw=$l2_completed_raw" \
+    "l2_failed_raw=$l2_failed_raw" \
+    "l2_max_wait_raw=$l2_max_wait_raw" \
+    "l2_current_wait_raw=$l2_current_wait_raw" \
+    "l2_latency_raw=$l2_latency_raw" \
+    "l2_failure_raw=$l2_failure_raw" \
+    "l2_first_loss_raw=$l2_first_loss_raw" \
+    "l2_main_pending=$l2_main_pending" \
+    "l2_helper_pending=$l2_helper_pending" \
+    "l2_tx_active=$l2_tx_active" \
+    "l2_owner_main=$l2_owner_main" \
+    "l2_main_pending_count=$l2_main_pending_count" \
+    "l2_helper_pending_count=$l2_helper_pending_count" \
+    "l2_main_start_count=$l2_main_start_count" \
+    "l2_helper_start_count=$l2_helper_start_count" \
+    "l2_main_completed_count=$l2_main_completed_count" \
+    "l2_helper_completed_count=$l2_helper_completed_count" \
+    "l2_main_failed_count=$l2_main_failed_count" \
+    "l2_helper_failed_count=$l2_helper_failed_count" \
+    "l2_main_max_wait=$l2_main_max_wait" \
+    "l2_helper_max_wait=$l2_helper_max_wait" \
+    "l2_main_current_wait=$l2_main_current_wait" \
+    "l2_helper_current_wait=$l2_helper_current_wait" \
+    "l2_main_max_latency=$l2_main_max_latency" \
+    "l2_helper_max_latency=$l2_helper_max_latency" \
+    "l2_ack_events=$l2_ack_events" \
+    "l2_timeout_events=$l2_timeout_events" \
+    "l2_first_loss_time=$l2_first_loss_time" \
+    "l2_first_loss_owner=$l2_first_loss_owner" \
+    "l2_first_loss_reason=$l2_first_loss_reason" \
+    "acquisition_diagnostic_allowed=$acquisition_allowed" \
+    "entry_class=$entry_class" \
+    "main_progress_samples=$::f4e_main_progress_samples($hardware_name)" \
+    "acquisition_allowed_samples=$::f4e_acquisition_allowed_samples($hardware_name)" \
+    "helper_unlock_streak=$::f4e_helper_unlock_streak($hardware_name)" \
+    "helper_rail_streak=$::f4e_helper_rail_streak($hardware_name)" \
+    "freq_unlock_streak=$::f4e_freq_unlock_streak($hardware_name)" \
+    "terminal_streak=$::f4e_terminal_streak($hardware_name)" \
+    "stop_reason=$::f4e_stop_reason($hardware_name)" \
+    "helper_admission_eligible=UNKNOWN"] " "]
+  flush stdout
+}
+
+proc run_f4e_acquisition {} {
+  set targets [f4e_collect_targets]
+  set master_target ""
+  set slave_target ""
+  foreach target $targets {
+    if {[lindex $target 0] eq "MASTER"} { set master_target $target }
+    if {[lindex $target 0] eq "SLAVE"} { set slave_target $target }
+  }
+  puts [join [list \
+    STEP5_F4E_CONFIG \
+    "experiment=EXP-S5-F4E-ACQUISITION-MAIN-PHASE-PROGRESS-20260915" \
+    "run_role=acquisition" \
+    "samples_max=$samples" \
+    "target_duration_ms=$target_duration_ms" \
+    "hard_duration_ms=$hard_duration_ms" \
+    "slave_cadence_ms=500" \
+    "master_cadence_ms=3000" \
+    "read_only_observer=1" \
+    "one_reader=1" \
+    "reader_processes=1" \
+    "no_control_write=1" \
+    "no_helper_pi_snapshot=1" \
+    "no_debug_fifo_drain=1" \
+    "main_trace_window=0x00100B58..0x00100BAC" \
+    "main_trace_magic=0x00100BDC" \
+    "main_detector_state=0x00100AC4" \
+    "position_probes=42,43,44,49" \
+    "l2_probes=52..61" \
+    "max_actual_ms=$hard_duration_ms"] " "]
+  flush stdout
+  if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
+    puts [join [list STEP5_F4E_CONFIG_ERROR required=MASTER+SLAVE \
+      discovered=[llength $targets]] " "]
+    puts "STEP5_F4E_DONE run_end_reason=CONFIG_INVALID stop_reason=CONFIG_INVALID step5_complete=NO merge_approved=NO"
+    return
+  }
+  foreach target [list $master_target $slave_target] {
+    f4e_initialize_board [lindex $target 0] [lindex $target 1]
+  }
+  set ::f4e_global_stop_reason NONE
+  set ::f4e_session_start_ms [clock milliseconds]
+  set effective_duration $::target_duration_ms
+  if {$effective_duration <= 0} { set effective_duration $::hard_duration_ms }
+  set target_deadline [expr {$::f4e_session_start_ms + $effective_duration}]
+  set hard_deadline [expr {$::f4e_session_start_ms + $::hard_duration_ms}]
+  set next_slave_ms $::f4e_session_start_ms
+  set next_master_ms $::f4e_session_start_ms
+  set master_sample 0
+  set slave_sample 0
+  while {[clock milliseconds] < $hard_deadline &&
+      [clock milliseconds] < $target_deadline &&
+      $::f4e_global_stop_reason eq "NONE"} {
+    set did_work 0
+    set now [clock milliseconds]
+    if {$now >= $next_slave_ms} {
+      incr slave_sample
+      set slave_elapsed [expr {[clock milliseconds] - $::f4e_session_start_ms}]
+      emit_f4e_sample SLAVE [lindex $slave_target 1] [lindex $slave_target 2] \
+        $slave_sample $slave_elapsed
+      set next_slave_ms [expr {[clock milliseconds] + 500}]
+      set did_work 1
+    }
+    if {$::f4e_global_stop_reason ne "NONE"} { break }
+    set now [clock milliseconds]
+    if {$now >= $next_master_ms} {
+      incr master_sample
+      set master_elapsed [expr {[clock milliseconds] - $::f4e_session_start_ms}]
+      emit_f4e_sample MASTER [lindex $master_target 1] [lindex $master_target 2] \
+        $master_sample $master_elapsed
+      set next_master_ms [expr {[clock milliseconds] + 3000}]
+      set did_work 1
+    }
+    if {!$did_work} {
+      set now [clock milliseconds]
+      set next_due $next_slave_ms
+      if {$next_master_ms < $next_due} { set next_due $next_master_ms }
+      set remaining [expr {$next_due - $now}]
+      if {$remaining > 0} {
+        if {$remaining > 100} { set remaining 100 }
+        after $remaining
+      }
+    }
+  }
+  set ::f4e_session_end_ms [clock milliseconds]
+  set session_elapsed [expr {$::f4e_session_end_ms - $::f4e_session_start_ms}]
+  if {$::f4e_global_stop_reason eq "NONE" && !$::f4e_entry_seen([lindex $slave_target 1])} {
+    f4e_set_stop NO_ELIGIBLE_ACQUISITION_WINDOW
+  }
+  if {$::f4e_global_stop_reason ne "NONE"} {
+    set end_reason STOP_$::f4e_global_stop_reason
+  } elseif {$session_elapsed >= $effective_duration} {
+    set end_reason TARGET_REACHED
+  } elseif {$session_elapsed >= $::hard_duration_ms} {
+    set end_reason HARD_DEADLINE
+  } else {
+    set end_reason OBSERVER_EXIT
+  }
+  foreach target [list $master_target $slave_target] {
+    set role [lindex $target 0]
+    set hardware_name [lindex $target 1]
+    set ::f4e_run_end_reason($hardware_name) $end_reason
+    puts [join [list \
+      STEP5_F4E_ROLE_SUMMARY \
+      "role=$role" \
+      "board=$hardware_name" \
+      "samples=$::f4e_sample_count($hardware_name)" \
+      "entry_seen=$::f4e_entry_seen($hardware_name)" \
+      "entry_sample=$::f4e_entry_sample($hardware_name)" \
+      "entry_elapsed_ms=$::f4e_entry_elapsed_ms($hardware_name)" \
+      "main_core_valid_samples=$::f4e_main_core_valid_samples($hardware_name)" \
+      "main_progress_samples=$::f4e_main_progress_samples($hardware_name)" \
+      "acquisition_allowed_samples=$::f4e_acquisition_allowed_samples($hardware_name)" \
+      "phase_domain_samples=$::f4e_phase_domain_samples($hardware_name)" \
+      "phase_inband_samples=$::f4e_phase_inband_samples($hardware_name)" \
+      "stop_reason=$::f4e_stop_reason($hardware_name)" \
+      "run_end_reason=$end_reason"] " "]
+  }
+  puts [join [list \
+    STEP5_F4E_DONE \
+    "session_elapsed_ms=$session_elapsed" \
+    "target_duration_ms=$effective_duration" \
+    "hard_duration_ms=$::hard_duration_ms" \
+    "master_samples=$master_sample" \
+    "slave_samples=$slave_sample" \
+    "run_end_reason=$end_reason" \
+    "stop_reason=$::f4e_global_stop_reason" \
+    "single_reader=PASS" \
+    "step5_complete=NO" \
+    "merge_approved=NO"] " "]
+  flush stdout
+}
+
+if {$run_role eq "acquisition"} {
+  run_f4e_acquisition
+  exit 0
 }
 
 puts [join [list \

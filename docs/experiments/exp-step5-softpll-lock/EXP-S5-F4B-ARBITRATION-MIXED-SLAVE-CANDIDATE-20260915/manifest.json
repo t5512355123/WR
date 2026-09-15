@@ -1,0 +1,54 @@
+{
+  "experiment": "EXP-S5-F4B-ARBITRATION-MIXED-SLAVE-CANDIDATE-20260915",
+  "date": "2026-09-15",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "c4294d5e9cbda4c83a5b2b4861aef2421dc9f9cf",
+  "source_provenance": {
+    "arbiter_change": true,
+    "mixed_with_previous_slave_only_main_pi_candidate": true,
+    "master_candidate_macro": 0,
+    "slave_candidate_macro": 1
+  },
+  "offline_l1": {
+    "test_result": "PASS",
+    "contention_main_completed": 204,
+    "contention_helper_completed": 4,
+    "source_liveness_risk_reproduced": false,
+    "wrong_page": 0,
+    "sequence_errors": 0,
+    "nack_completion_defect_observed": true
+  },
+  "build": {
+    "master": "PASS",
+    "slave": "PASS",
+    "timing_closed": false,
+    "master_wns_ns": -0.047,
+    "slave_wns_ns": -0.268,
+    "master_sof_sha256": "1872645e33d739f0faf0709592c8b4000ede19ed681245af9232e2af6a8ced8d",
+    "slave_sof_sha256": "68bd76e1933d16fe042bc2eab2bcd14a83fb4e59efb1ec1193a5733d2b88a840"
+  },
+  "program": {
+    "master": "PASS",
+    "slave": "PASS",
+    "order": "master_then_slave",
+    "inter_board_delay_seconds": 45
+  },
+  "preflight": {
+    "initial": "SLAVE_STEP2_INVALID",
+    "retry_after_seconds": 60,
+    "retry": "STEP1_STEP2_STEP3_STEP4B_PASS",
+    "step4b_allowed": true,
+    "jtag_wb_path": "TRUSTED"
+  },
+  "observer": {
+    "smoke": "NOT_RUN",
+    "long": "NOT_RUN",
+    "reason": "PROVENANCE_CONTAMINATED"
+  },
+  "verdict": {
+    "step5": "NOT_EVALUATED",
+    "merge_approved": false,
+    "next": "EXP-S5-F4B-ARBITRATION-CONTROL-20260915"
+  }
+}

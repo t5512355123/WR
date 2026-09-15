@@ -1,0 +1,40 @@
+{
+  "experiment": "EXP-S5-F4G-COMPACT-HELPER-MAIN-SERVICE-WINDOW-20260915",
+  "branch": "exp/step5-softpll-lock",
+  "capture_commit": "3708d85b576236b1407efb7d50c99a30c0e42996",
+  "pain_checkout": "3708d85b576236b1407efb7d50c99a30c0e42996",
+  "observer": {
+    "role": "f4g",
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "session_elapsed_ms": 120374,
+    "slave_cycles": 92,
+    "master_samples": 31,
+    "run_end_reason": "TARGET_REACHED",
+    "stop_reason": "NONE",
+    "single_reader": "PASS",
+    "control_writes": false
+  },
+  "replay": {
+    "classification": "INCONCLUSIVE",
+    "diagnostic_pass": false,
+    "step5_complete": false,
+    "step5_pass": false,
+    "merge_approved": false,
+    "helper_accepted": 92,
+    "main_core_valid": 92,
+    "fresh_bins": 12,
+    "main_phase_locked": 0,
+    "phy_link_usable": 0,
+    "main_completed_delta": 84028,
+    "helper_completed_delta": 11408,
+    "main_failed_delta": 0,
+    "helper_failed_delta": 0
+  },
+  "sha256": {
+    "observer.log": "be9e24dac855a0e3c0b7858feae8fcb5f041d4138cc6eb9505869fd20fae94d7",
+    "attempt-3708d85-f4g-jtag-runtime.tgz": "74d17102d854cbfa50b30db90982f11374d84b426d87401eefe500b15513b8db",
+    "sof.sha256": "26109a089c255dacb58bf557f6abb8e97b609f97669a9b7b672361b6f9a02c7e"
+  },
+  "status": "STOP_AFTER_EXPERIMENT"
+}

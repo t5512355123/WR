@@ -138,37 +138,103 @@ proc probe_read {instance} {
   return [safe_probe_read $instance]
 }
 
-proc wb_read {hardware_name addr} {
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+# The mailbox is a bundled CDC boundary.  Keep the previously completed
+# toggle while preloading the address, then commit the same request by
+# changing only the toggle.  A single toggle write is the only operation that
+# starts a transaction; this remains read-only from the firmware's point of
+# view and matches the established runtime reader protocol.
+proc normalize_probe64 {value} {
+  if {![is_hex $value]} { return $value }
+  set text $value
+  if {[string length $text] > 16} {
+    set text [string range $text end-15 end]
+  }
+  return [string repeat 0 [expr {16 - [string length $text]}]]$text
+}
+
+proc stale_jtag_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc probe_equal64 {left right} {
+  if {![is_hex $left] || ![is_hex $right]} { return 0 }
+  return [expr {[normalize_probe64 $left] eq [normalize_probe64 $right]}]
+}
+
+proc completion_probe_valid {value expected_toggle} {
+  if {![is_hex $value] || [stale_jtag_word $value]} { return 0 }
+  set done_toggle [bit64_high $value 3]
+  set active [bit64_high $value 4]
+  return [expr {$done_toggle == $expected_toggle && $active == 0}]
+}
+
+proc mailbox_read {hardware_name addr} {
+  set preload_toggle $::wb_toggle($hardware_name)
+  set preload_cmd [expr {$preload_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $preload_cmd] -value_in_hex
+  }]} {
+    return TIMEOUT
+  }
+  after 2
+
+  # Commit by changing only the toggle.  Do not treat the preload response as
+  # a completion, because it may still expose the previous transaction.
+  set ::wb_toggle($hardware_name) [expr {($preload_toggle ^ 1) & 1}]
+  set expected_toggle $::wb_toggle($hardware_name)
+  set cmd [expr {$expected_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
   if {[catch {
     write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
   }]} {
     return TIMEOUT
   }
+
   after 5
+  set first_completion ""
   for {set n 0} {$n < 100} {incr n} {
     set value [safe_probe_read 1]
-    set word [word32 $value]
-    if {[is_hex $value]} {
-      scan $value %x wide
-      set done_toggle [expr {($wide >> 35) & 1}]
-      set active [expr {($wide >> 36) & 1}]
-      if {$word >= 0 && $done_toggle == $toggle && $active == 0} {
-        return [format %08X $word]
-      }
+    if {[completion_probe_valid $value $expected_toggle]} {
+      set first_completion $value
+      break
+    }
+    after 1
+  }
+  if {$first_completion eq ""} { return TIMEOUT }
+
+  # Require a coherent 64-bit response; this rejects the done-toggle/new-data
+  # visibility race at the JTAG boundary.
+  for {set attempt 1} {$attempt <= 10} {incr attempt} {
+    set p1 [safe_probe_read 1]
+    after 1
+    set p2 [safe_probe_read 1]
+    after 1
+    set p3 [safe_probe_read 1]
+    if {[completion_probe_valid $p1 $expected_toggle] &&
+        [completion_probe_valid $p2 $expected_toggle] &&
+        [completion_probe_valid $p3 $expected_toggle] &&
+        [probe_equal64 $p1 $p2] && [probe_equal64 $p2 $p3]} {
+      return [format %08X [word32 $p3]]
     }
     after 1
   }
   return TIMEOUT
 }
 
+proc wb_read {hardware_name addr} {
+  return [mailbox_read $hardware_name $addr]
+}
+
 proc wb_sync_toggle {hardware_name} {
   set value [safe_probe_read 1]
   if {[is_hex $value]} {
-    scan $value %x wide
-    set ::wb_toggle($hardware_name) [expr {($wide >> 35) & 1}]
+    set toggle [bit64_high $value 3]
+    if {$toggle >= 0} {
+      set ::wb_toggle($hardware_name) $toggle
+    } else {
+      set ::wb_toggle($hardware_name) 0
+    }
   } else {
     set ::wb_toggle($hardware_name) 0
   }

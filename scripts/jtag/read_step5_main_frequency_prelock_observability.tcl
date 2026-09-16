@@ -297,6 +297,7 @@ array set ::f4j_helper_lock_seen {}
 array set ::f4j_helper_unlock_streak {}
 array set ::f4j_helper_rail_streak {}
 array set ::f4j_phy_bad_streak {}
+array set ::f4j_master_wr_transport_streak {}
 array set ::f4j_stop_reason {}
 array set ::f4j_run_end_reason {}
 array set ::f4j_metadata_seen {}
@@ -2609,10 +2610,22 @@ proc f4j_initialize_board {role hardware_name} {
   set ::f4j_helper_unlock_streak($hardware_name) 0
   set ::f4j_helper_rail_streak($hardware_name) 0
   set ::f4j_phy_bad_streak($hardware_name) 0
+  set ::f4j_master_wr_transport_streak($hardware_name) 0
   set ::f4j_stop_reason($hardware_name) NONE
   set ::f4j_run_end_reason($hardware_name) NOT_REACHED
   set ::f4j_metadata_seen($hardware_name) 0
   set ::f4j_next_service_ms($hardware_name) 0
+}
+
+proc f4j_update_master_wr_health {hardware_name wr_valid wr_transport_failure} {
+  if {$wr_valid} {
+    set ::f4j_master_wr_transport_streak($hardware_name) 0
+  } elseif {$wr_transport_failure} {
+    incr ::f4j_master_wr_transport_streak($hardware_name)
+    if {$::f4j_master_wr_transport_streak($hardware_name) >= 3} {
+      f4j_set_stop DATA_UNRESOLVED
+    }
+  }
 }
 
 proc f4j_invalid_producer_result {host_start_ms host_end_ms attempts transport_failure} {
@@ -3035,8 +3048,12 @@ proc f4j_emit_master_context {hardware_name device_name sample} {
     set wr_transport_failure 1
   }
   set elapsed_ms [expr {$context_host_end - $::f4j_session_start_ms}]
-  f4g_update_core_health $hardware_name $elapsed_ms 0 0 1 0 \
-    $wr_core_valid $wr_transport_failure
+  # F4J intentionally samples only the Master's WR background context.  Do
+  # not feed an absent Master Helper/Main producer into the shared F4G health
+  # gate: that gate is for the Slave's complete service window and would
+  # otherwise raise DATA_UNRESOLVED after ten seconds by design.
+  f4j_update_master_wr_health $hardware_name $wr_core_valid \
+    $wr_transport_failure
   puts [join [list STEP5_F4J_MASTER_SAMPLE "role=MASTER" \
     "board=$hardware_name" "sample=$sample" \
     "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \

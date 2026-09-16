@@ -9,7 +9,11 @@
 #define DE5A_FALLBACK_MAC_4 0x44
 #define DE5A_FALLBACK_MAC_5 0x02
 
-/* Fable F4b arbiter experiment: keep the Main-PI candidate disabled. */
+/* F4b keeps the legacy multi-parameter Main-PI candidate disabled. */
 #define DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE 0
+
+/* F4K: independent, role-specific Main Kp override.  A1/A2 use 300;
+ * the approved B arm changes only this value to 600. */
+#define DE5A_MAIN_PI_KP_OVERRIDE 300
 
 #endif

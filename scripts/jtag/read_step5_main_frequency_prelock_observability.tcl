@@ -14,6 +14,7 @@
 #   quartus_stp -t read_step5_main_frequency_prelock_observability.tcl \
 #     ?samples? ?gap_ms? ?board_filter? ?target_duration_ms? \
 #     ?hard_duration_ms? ?run_role?
+#     ?f4k_arm? ?f4k_expected_main_kp?
 #
 # A legacy run is capped by actual wall-clock time below.  The acquisition run
 # role uses its own bounded two-board scheduler and does not apply the legacy
@@ -29,17 +30,29 @@ set smoke_samples 5
 set target_duration_ms 0
 set hard_duration_ms 240000
 set run_role "legacy"
+set f4k_arm "UNSPECIFIED"
+set f4k_expected_main_kp "UNSPECIFIED"
 if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
 if {[llength $argv] >= 4} { set target_duration_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set hard_duration_ms [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set run_role [string tolower [lindex $argv 5]] }
+if {[llength $argv] >= 7} { set f4k_arm [lindex $argv 6] }
+if {[llength $argv] >= 8} { set f4k_expected_main_kp [expr {int([lindex $argv 7])}] }
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
     [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j} $run_role] < 0} {
   error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, or f4j"
+}
+if {$run_role eq "f4j" && $f4k_arm ne "UNSPECIFIED" &&
+    [lsearch -exact {A1 B A2} $f4k_arm] < 0} {
+  error "F4K arm must be A1, B, or A2"
+}
+if {$f4k_expected_main_kp ne "UNSPECIFIED" &&
+    [lsearch -exact {300 600} $f4k_expected_main_kp] < 0} {
+  error "F4K expected Main Kp must be 300 or 600"
 }
 
 array set ::wb_toggle {}
@@ -3065,6 +3078,7 @@ proc f4j_emit_master_context {hardware_name device_name sample} {
 
 proc run_f4j_main_producer_handoff_snapshot {} {
   global samples target_duration_ms hard_duration_ms gap_ms
+  global f4k_arm f4k_expected_main_kp
   set targets [f4e_collect_targets]
   set master_target ""
   set slave_target ""
@@ -3076,6 +3090,9 @@ proc run_f4j_main_producer_handoff_snapshot {} {
   if {$effective_duration <= 0} { set effective_duration 120000 }
   set hard_duration $hard_duration_ms
   if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
+  set production_control_unchanged [expr {$f4k_arm eq "UNSPECIFIED" ? 1 : 0}]
+  set functional_scope [expr {$f4k_arm eq "UNSPECIFIED" ?
+    "NONE" : "F4K_SLAVE_MAIN_KP_ONLY"}]
   puts [join [list STEP5_F4J_CONFIG \
     "experiment=EXP-S5-F4J-MAIN-PRODUCER-HANDOFF-SNAPSHOT-20260916" \
     "run_role=f4j" "samples_max=$samples" \
@@ -3094,8 +3111,12 @@ proc run_f4j_main_producer_handoff_snapshot {} {
     "main_background_cadence_ms=3000" "read_only_observer=1" \
     "one_reader=1" "reader_processes=1" "no_control_write=1" \
     "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
-    "production_control_unchanged=1" "source_contract_verified=YES" \
-    "dynamic_owner_verified=F4J_EXPLICIT_SCHEMA" "step5_complete=NO" \
+    "production_control_unchanged=$production_control_unchanged" \
+    "functional_experiment_scope=$functional_scope" \
+    "source_contract_verified=YES" \
+    "dynamic_owner_verified=F4J_EXPLICIT_SCHEMA" \
+    "f4k_arm=$::f4k_arm" "configured_main_kp=$::f4k_expected_main_kp" \
+    "configuration_provenance=identity_header" "step5_complete=NO" \
     "merge_approved=NO"] " "]
   flush stdout
   if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {

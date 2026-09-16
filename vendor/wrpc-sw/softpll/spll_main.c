@@ -227,11 +227,23 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	/* Main-frequency polarity is established as positive by the A/B run.
 	 * F4b isolates the candidate gains to the Slave image; the Master keeps
 	 * the known-good control operating point. */
+#ifndef DE5A_MAIN_PI_KP_OVERRIDE
+#define DE5A_MAIN_PI_KP_OVERRIDE 300
+#endif
+#if defined(DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE) && \
+	DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE && \
+	defined(DE5A_MAIN_PI_KP_OVERRIDE)
+#error "F4K Main Kp override cannot be combined with the legacy PI candidate"
+#endif
+#if (DE5A_MAIN_PI_KP_OVERRIDE != 300) && \
+	(DE5A_MAIN_PI_KP_OVERRIDE != 600)
+#error "F4K Main Kp override must be exactly 300 or 600"
+#endif
 #if defined(DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE) && DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE
 	s->pi.kp = 1300;
 	s->pi.ki = 3;
 #else
-	s->pi.kp = 300;
+	s->pi.kp = DE5A_MAIN_PI_KP_OVERRIDE;
 	s->pi.ki = 1;
 #endif
 #else

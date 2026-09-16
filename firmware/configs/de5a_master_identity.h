@@ -9,7 +9,10 @@
 #define DE5A_FALLBACK_MAC_4 0x44
 #define DE5A_FALLBACK_MAC_5 0x01
 
-/* Fable F4b arbiter experiment: keep the Main-PI candidate disabled. */
+/* F4b keeps the legacy multi-parameter Main-PI candidate disabled. */
 #define DE5A_SLAVE_ONLY_MAIN_PI_CANDIDATE 0
+
+/* F4K reference image: Master Main Kp is fixed at the A1/A2 value. */
+#define DE5A_MAIN_PI_KP_OVERRIDE 300
 
 #endif

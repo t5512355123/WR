@@ -1,0 +1,17 @@
+{
+  "source": "C:\\Users\\zenbook\\我的雲端硬碟\\碩士班研究資料\\04_WR\\docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-WDIAGS-TRANSPORT-PREFLIGHT-20260916\\raw\\wdiags-preflight.log",
+  "done_marker_seen": true,
+  "classification": "NO_PREFLIGHT_ROWS",
+  "preflight_pass": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "sample_rows": 0,
+  "transport_complete_rows": 0,
+  "transport_timeout_rows": 0,
+  "mapping_valid_rows": 0,
+  "board_count": 0,
+  "boards": [],
+  "board_summary": {},
+  "minimum_boards_required": 2,
+  "results": []
+}

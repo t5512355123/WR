@@ -1,0 +1,40 @@
+{
+  "experiment": "EXP-S5-WDIAGS-TRANSPORT-PREFLIGHT-20260916",
+  "date": "2026-09-16",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "f38fa9c5d504feb5201314ba421fc6d515ff9a15",
+  "pain_checkout": "f38fa9c5d504feb5201314ba421fc6d515ff9a15",
+  "observer": "scripts/jtag/read_wdiags_mapping_selftest.tcl",
+  "observer_command": "quartus_stp -t scripts/jtag/read_wdiags_mapping_selftest.tcl 1000",
+  "read_only_preflight": true,
+  "production_c_or_rtl_modified": false,
+  "control_write": false,
+  "control_parameters_unchanged": true,
+  "master_sof_sha256": "6b8ae9d565544b427e491ffc158fabe68084aa4fc14f1c9dcb7b24877c51eb98",
+  "slave_sof_sha256": "f5ea70c511bcf44b99fe0395ca63f6aae15fc3d68782db9d1b99e4da925d9241",
+  "master_programmed": true,
+  "slave_programmed": true,
+  "quartus_script_rc": 0,
+  "done_marker_seen": true,
+  "sample_rows": 0,
+  "transport_complete_rows": 0,
+  "transport_timeout_rows": 0,
+  "mapping_valid_rows": 0,
+  "classification": "NO_PREFLIGHT_ROWS",
+  "preflight_pass": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "merge_approved": false,
+  "next_boundary": "JTAG_SIGNAL_TAP_SOURCE_PROBE_AVAILABILITY_INVENTORY",
+  "raw_sha256": {
+    "program_master": "969a973ec7169a78ca5f3c9441421b726e58c0ce6bd94b9f2afb720fdf382ab3",
+    "program_slave": "9332aedc5e68ab14c347e1ea35fb5e5a5e3afc3259a88aa2f11d439422207934",
+    "wdiags_preflight": "202750957a1d4aa195246ea7553c494bc8aa348beb42ee777c08ca0fb12df615"
+  },
+  "analyzer": {
+    "script": "scripts/experiment/step5_wdiags_transport_preflight.py",
+    "classification": "NO_PREFLIGHT_ROWS",
+    "return_code": 2,
+    "offline_tests": "PASS"
+  }
+}

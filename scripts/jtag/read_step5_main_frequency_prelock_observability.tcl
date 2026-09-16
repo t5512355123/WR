@@ -255,6 +255,7 @@ array set ::f4i_last_helper_update {}
 array set ::f4i_last_update {}
 array set ::f4i_last_progress_ms {}
 array set ::f4i_last_main_valid_ms {}
+array set ::f4i_helper_lock_seen {}
 array set ::f4i_trace_count {}
 array set ::f4i_trace_valid_count {}
 array set ::f4i_trace_unique_count {}
@@ -1890,6 +1891,7 @@ proc f4i_initialize_board {role hardware_name} {
   set ::f4i_last_update($hardware_name) INVALID
   set ::f4i_last_progress_ms($hardware_name) INVALID
   set ::f4i_last_main_valid_ms($hardware_name) INVALID
+  set ::f4i_helper_lock_seen($hardware_name) 0
   set ::f4i_trace_count($hardware_name) 0
   set ::f4i_trace_valid_count($hardware_name) 0
   set ::f4i_trace_unique_count($hardware_name) 0
@@ -1926,56 +1928,42 @@ proc f4i_domain_from_state {state} {
 
 proc f4i_read_main_trace_minimal {hardware_name} {
   set read_start_ms [clock milliseconds]
-  set raw_values {}
-  for {set attempt 0} {$attempt < 8} {incr attempt} {
-    set epoch_before_raw [wb_read $hardware_name 0x00100B58]
-    set dref_raw [wb_read $hardware_name 0x00100B5C]
-    set dout_raw [wb_read $hardware_name 0x00100B60]
-    set freq_raw [wb_read $hardware_name 0x00100B64]
-    set prelock_raw [wb_read $hardware_name 0x00100B68]
-    set pi_unclamped_raw [wb_read $hardware_name 0x00100B6C]
-    set pi_output_raw [wb_read $hardware_name 0x00100B70]
-    set clamp_raw [wb_read $hardware_name 0x00100B74]
-    set update_raw [wb_read $hardware_name 0x00100B90]
-    set state_raw [wb_read $hardware_name 0x00100B9C]
-    set pi_x_raw [wb_read $hardware_name 0x00100BAC]
-    set epoch_after_raw [wb_read $hardware_name 0x00100B58]
-    set magic_raw [wb_read $hardware_name 0x00100BDC]
-    set raw_values [list $epoch_before_raw $dref_raw $dout_raw $freq_raw \
-      $prelock_raw $pi_unclamped_raw $pi_output_raw $clamp_raw $update_raw \
-      $state_raw $pi_x_raw $epoch_after_raw $magic_raw]
-    set epoch_before [word32 $epoch_before_raw]
-    set epoch_after [word32 $epoch_after_raw]
-    set epoch [word32 $epoch_after_raw]
-    set dref [signed32 $dref_raw]
-    set dout [signed32 $dout_raw]
-    set freq_error [signed32 $freq_raw]
-    set prelock_error [signed32 $prelock_raw]
-    set pi_unclamped [signed32 $pi_unclamped_raw]
-    set pi_output [signed32 $pi_output_raw]
-    set clamp_side [signed32 $clamp_raw]
-    set update_count [word32 $update_raw]
-    set state [word32 $state_raw]
-    set pi_x [signed32 $pi_x_raw]
-    set magic [word32 $magic_raw]
-    set coherent [expr {$epoch_before >= 0 && $epoch_after >= 0 &&
-      !($epoch_before & 1) && $epoch_before == $epoch_after &&
-      [f4g_is_number $dref] && [f4g_is_number $dout] &&
-      [f4g_is_number $freq_error] && [f4g_is_number $prelock_error] &&
-      [f4g_is_number $pi_unclamped] && [f4g_is_number $pi_output] &&
-      [f4g_is_number $clamp_side] && [f4g_is_number $update_count] &&
-      [f4g_is_number $state] && [f4g_is_number $pi_x] && $magic == 1 ? 1 : 0}]
-    if {$coherent} {
-      set read_end_ms [clock milliseconds]
-      set ::f4i_last_raw_trace($hardware_name) $raw_values
-      return [list 1 $epoch $dref $dout $freq_error $prelock_error \
-        $pi_unclamped $pi_output $clamp_side $update_count $state $pi_x \
-        $magic $read_start_ms $read_end_ms]
-    }
-    after 1
+  # Reuse the established compact reader.  It reads the causal core fields
+  # before the epoch check and keeps optional fields explicitly separate; the
+  # previous F4I implementation reread thirteen words serially and could not
+  # finish before the live publisher advanced the epoch.
+  set trace [read_main_trace $hardware_name]
+  foreach {trace_ok epoch dref dout freq_error prelock_error pi_unclamped \
+      pi_output clamp_side lock_count lock_count_max kp ki shift bias \
+      update_count threshold lock_samples state y_min y_max anti_windup \
+      pi_x magic} $trace break
+  if {[info exists ::main_trace_epoch_before_raw($hardware_name)]} {
+    set epoch_before_raw $::main_trace_epoch_before_raw($hardware_name)
+  } else {
+    set epoch_before_raw INVALID
   }
+  if {[info exists ::main_trace_epoch_after_raw($hardware_name)]} {
+    set epoch_after_raw $::main_trace_epoch_after_raw($hardware_name)
+  } else {
+    set epoch_after_raw INVALID
+  }
+  if {[info exists ::main_trace_magic_raw($hardware_name)]} {
+    set magic_raw $::main_trace_magic_raw($hardware_name)
+  } else {
+    set magic_raw INVALID
+  }
+  set raw_values [list $epoch_before_raw [f4g_hex32 $dref] \
+    [f4g_hex32 $dout] [f4g_hex32 $freq_error] [f4g_hex32 $prelock_error] \
+    [f4g_hex32 $pi_unclamped] [f4g_hex32 $pi_output] \
+    [f4g_hex32 $clamp_side] [f4g_hex32 $update_count] \
+    [f4g_hex32 $state] [f4g_hex32 $pi_x] $epoch_after_raw $magic_raw]
   set read_end_ms [clock milliseconds]
   set ::f4i_last_raw_trace($hardware_name) $raw_values
+  if {$trace_ok} {
+    return [list 1 $epoch $dref $dout $freq_error $prelock_error \
+      $pi_unclamped $pi_output $clamp_side $update_count $state $pi_x \
+      $magic $read_start_ms $read_end_ms]
+  }
   return [concat [list 0] [lrepeat 12 INVALID] [list $read_start_ms $read_end_ms]]
 }
 
@@ -2158,17 +2146,21 @@ proc f4i_update_health {hardware_name elapsed_ms main_valid main_advanced \
     set ::f4i_main_invalid_streak($hardware_name) 0
   } else {
     incr ::f4i_main_invalid_streak($hardware_name)
-    if {$::f4i_last_main_valid_ms($hardware_name) eq "INVALID" ||
-        $elapsed_ms - $::f4i_last_main_valid_ms($hardware_name) >= 10000} {
+    if {$elapsed_ms >= 10000 &&
+        ($::f4i_last_main_valid_ms($hardware_name) eq "INVALID" ||
+         $elapsed_ms - $::f4i_last_main_valid_ms($hardware_name) >= 10000)} {
       f4i_set_stop DATA_UNRESOLVED
     }
   }
-  if {$helper_valid && $helper_locked eq "0"} {
-    incr ::f4i_helper_unlock_streak($hardware_name)
-  } elseif {$helper_valid && $helper_locked eq "1"} {
+  if {$helper_valid && $helper_locked eq "1"} {
+    set ::f4i_helper_lock_seen($hardware_name) 1
     set ::f4i_helper_unlock_streak($hardware_name) 0
+  } elseif {$helper_valid && $helper_locked eq "0" &&
+            $::f4i_helper_lock_seen($hardware_name)} {
+    incr ::f4i_helper_unlock_streak($hardware_name)
   }
   if {$helper_valid && [f4g_is_number $helper_output] &&
+      $::f4i_helper_lock_seen($hardware_name) &&
       ($helper_output <= 5 || $helper_output >= 65531)} {
     incr ::f4i_helper_rail_streak($hardware_name)
   } elseif {$helper_valid && [f4g_is_number $helper_output]} {
@@ -2433,7 +2425,8 @@ proc run_f4i_frequency_phase_handoff_audit {} {
     "hard_duration_ms=$hard_duration" "cadence_hint_ms=$gap_ms" \
     "main_trace_fields=epoch,sample_n,dref_dt,dout_dt,freq_error,prelock_error,pi_x,pi_output,clamp_side,state" \
     "main_trace_window=0x00100B58..0x00100BAC" \
-    "main_trace_minimal_reads=epoch,dref,dout,freq,prelock,pi_unclamped,pi_output,clamp,update_count,state,pi_x,epoch,magic" \
+    "main_trace_reader=ESTABLISHED_READ_MAIN_TRACE_COMPACT_CORE" \
+    "main_trace_optional_fields=prelock,dref,dout,pi_unclamped,magic" \
     "main_domain_rule=trace_state_bit1_freq_locked" \
     "pi_x_classification=PHASE_CONTEXT_OBSERVED_OR_FREQUENCY_CONTEXT_OBSERVED" \
     "publication_coherence=EPOCH_BEFORE_EQUALS_EPOCH_AFTER_EVEN" \

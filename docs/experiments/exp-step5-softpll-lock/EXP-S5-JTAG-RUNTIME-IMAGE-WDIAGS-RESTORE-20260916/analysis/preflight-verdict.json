@@ -1,0 +1,46 @@
+{
+  "source": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-JTAG-RUNTIME-IMAGE-WDIAGS-RESTORE-20260916\\raw\\wdiags-preflight.log",
+  "done_marker_seen": true,
+  "classification": "MAP_SEMANTICS_INVALID",
+  "preflight_pass": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "sample_rows": 20,
+  "transport_complete_rows": 20,
+  "transport_timeout_rows": 0,
+  "mapping_valid_rows": 0,
+  "board_count": 2,
+  "boards": [
+    "DE5 [1-11.1]",
+    "DE5 [1-11.2]"
+  ],
+  "board_summary": {
+    "DE5 [1-11.1]": {
+      "sample_rows": 10,
+      "transport_complete_rows": 10,
+      "mapping_valid_rows": 0,
+      "begin_valid": 0,
+      "end_valid": 0
+    },
+    "DE5 [1-11.2]": {
+      "sample_rows": 10,
+      "transport_complete_rows": 10,
+      "mapping_valid_rows": 0,
+      "begin_valid": 0,
+      "end_valid": 0
+    }
+  },
+  "minimum_boards_required": 2,
+  "results": [
+    {
+      "BOARD": "DE5 [1-11.1]",
+      "BEGIN_VALID": "0",
+      "END_VALID": "0"
+    },
+    {
+      "BOARD": "DE5 [1-11.2]",
+      "BEGIN_VALID": "0",
+      "END_VALID": "0"
+    }
+  ]
+}

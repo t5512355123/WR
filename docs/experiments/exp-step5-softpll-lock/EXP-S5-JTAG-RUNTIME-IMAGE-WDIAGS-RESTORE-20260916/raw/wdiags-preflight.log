@@ -1,0 +1,52 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep 16 20:11:57 2026
+Info: Command: quartus_stp -t scripts/jtag/read_wdiags_mapping_selftest.tcl 1000
+Info: Quartus(args): 1000
+WDIAGS_MAP_CONFIG gap_ms=1000 expected_magic_a=A5A5122C expected_magic_b=A5A51330
+=== DE5 [1-11.1] ===
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=BEGIN attempt=1 valid=0 status=8110DEC1255482FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7013B INVERSE=E108FEC4 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=BEGIN attempt=2 valid=0 status=F110DEC1255082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7013C INVERSE=E108FEC3 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=BEGIN attempt=3 valid=0 status=D110DE6135BC82FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7013C INVERSE=E108FEC3 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=BEGIN attempt=4 valid=0 status=8110DEC1255082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7013D INVERSE=E108FEC2 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=BEGIN attempt=5 valid=0 status=1110DEC1255082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7013D INVERSE=E108FEC1 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=END attempt=1 valid=0 status=A110DEC3355082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF70148 INVERSE=E108FEB7 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=END attempt=2 valid=0 status=B110DE6135BC82FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF70149 INVERSE=E108FEB6 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=END attempt=3 valid=0 status=B110DE6135F082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF70149 INVERSE=E108FEB6 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=END attempt=4 valid=0 status=3110DE6335BC82FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7014A INVERSE=E108FEB5 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.1] label=END attempt=5 valid=0 status=1110DEC1255082FF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF7014A INVERSE=E108FEB5 PTP_META=02010306 PTP=01014106
+WDIAGS_MAP_RESULT board=DE5 [1-11.1] begin_valid=0 end_valid=0
+=== DE5 [1-11.2] ===
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=BEGIN attempt=1 valid=0 status=7110AEC3245082EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700CB INVERSE=E108FF34 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=BEGIN attempt=2 valid=0 status=C110AE6134BC82EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700CB INVERSE=E108FF34 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=BEGIN attempt=3 valid=0 status=7110AEE3345082EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700CC INVERSE=E108FF33 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=BEGIN attempt=4 valid=0 status=7110AE4124DC82EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700CC INVERSE=E108FF33 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=BEGIN attempt=5 valid=0 status=E110AE6334BC82EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700CD INVERSE=E108FF32 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=END attempt=1 valid=0 status=5110AEE334BC82EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700D7 INVERSE=E108FF28 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=END attempt=2 valid=0 status=2110AE41245082EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700D8 INVERSE=E108FF27 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=END attempt=3 valid=0 status=F110AEC1245082EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700D9 INVERSE=E108FF26 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=END attempt=4 valid=0 status=E110AE6134BC82EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700D9 INVERSE=E108FF26 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_SAMPLE board=DE5 [1-11.2] label=END attempt=5 valid=0 status=A110AEE3347082EF MAGIC_A=00000000 MAGIC_B=00000000 COUNTER=1EF700DA INVERSE=E108FF25 PTP_META=03010308 PTP=00004108
+WDIAGS_MAP_RESULT board=DE5 [1-11.2] begin_valid=0 end_valid=0
+WDIAGS_MAP_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wdiags_mapping_selftest.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Wed Sep 16 20:12:00 2026
+    Info: Elapsed time: 00:00:03
+    Info: Total CPU time (on all processors): 00:00:00

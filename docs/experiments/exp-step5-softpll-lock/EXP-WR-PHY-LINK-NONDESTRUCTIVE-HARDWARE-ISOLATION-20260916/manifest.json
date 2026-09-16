@@ -1,0 +1,36 @@
+{
+  "experiment": "EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916",
+  "branch": "exp/step5-softpll-lock",
+  "source_image_commit": "6fa075bdbd5bfaba5fd7e53c9bad026ee217b097",
+  "quartus": "17.0.0 Build 595",
+  "capture": {
+    "phase": "pre-reseat",
+    "timestamp": "2026-09-16T23:51:18+08:00",
+    "same_sof": true,
+    "reprogrammed": false,
+    "read_only": true
+  },
+  "scripts": {
+    "scripts/jtag/read_probe.tcl": "f1e04e860f309c6c1ec3a55ae32c7b5cc72a530d",
+    "scripts/jtag/read_clock_activity.tcl": "e4f7fb09e2d1a49372068346b2442f4004f240ca"
+  },
+  "remote_artifacts": [
+    {
+      "path": "/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_probe.log",
+      "bytes": 3540,
+      "sha256": "ff48220fa2d5565008a3ec8b8fed032702c1d37040a9a93f4258c19f07cba7f1"
+    },
+    {
+      "path": "/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_clock_activity.log",
+      "bytes": 2447,
+      "sha256": "57d8222759d5b98312562178d4f4cbbacaa74136972ad214854025600b8f8c8d"
+    }
+  ],
+  "verdict": {
+    "pre_reseat_capture_valid": true,
+    "post_reseat_capture": "NOT_RUN",
+    "ab_result": "PENDING_PHYSICAL_RESEAT",
+    "step5_pass": false,
+    "preload_evaluation": "NOT_REACHED"
+  }
+}

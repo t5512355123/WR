@@ -114,6 +114,39 @@ The exact remote log is preserved as
 size 5805 bytes. The normalized values are in
 `raw/pre-reseat-status-recheck-20260917.normalized.txt`.
 
+## Final current-status recheck before physical A/B
+
+At `2026-09-17T00:11:57+08:00`, the existing read-only probe pair was run
+once more. There is no recorded physical reseat between the baseline and
+this check, so it is retained as a current-status recheck rather than
+claimed as a post-reseat result.
+
+```text
+Master probe=0xE002EE8D29EBA271
+Slave  probe=0x000220892202A261
+
+Both: si_config_done=1, CPU_RESET_n=1, core_phy_rst=0,
+      core_phy_tx_disable=0, wr_tx_ready=0, wr_ready=0,
+      core_tm_link_up=0, core_link_ok=0, syncstatus=0,
+      patterndetect=0, pattern_ready=0, PHY_READY=0
+Master/Slave wr_rx_ready=1 and wr_rx_enc_err=1.
+```
+
+The 2-second instance-7 reads again showed advancing REF/DMTD/RX counters,
+but `PHY_READY=0` on both boards. The RX lock flags changed over the read
+window, which is treated as time-varying transceiver status and not as WR
+link qualification.
+
+The exact remote log is preserved as
+`pre-reseat/status-recheck-20260917-001050-followup.log` with SHA-256
+`69926a783c1f9f17ca3244184de34570105346d54a81b7af80aad594cb3b3a4e` and
+size 5816 bytes. The normalized values are in
+`raw/status-recheck-20260917-001157.normalized.txt`.
+
+This is the final software-side action for this experiment. No further
+read-only polling will add a causal A/B until the same fiber is physically
+unplugged and reinserted at both ends.
+
 ## Baseline interpretation
 
 The pre-reseat state is consistent with the previously established boundary:
@@ -145,6 +178,7 @@ The exact pre-reseat logs remain on Pain under:
 /home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_probe.log
 /home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_clock_activity.log
 /home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/status-recheck-20260917-000541.log
+/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/status-recheck-20260917-001050-followup.log
 ```
 
 Their hashes and sizes are in `manifest.json`.

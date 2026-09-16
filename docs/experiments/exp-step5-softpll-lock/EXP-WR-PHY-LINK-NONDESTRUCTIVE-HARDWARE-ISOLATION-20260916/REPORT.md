@@ -79,6 +79,41 @@ The counters show reference, DMTD, and recovered-RX clock activity, but
 `PHY_READY` stayed 0. The changing RX lock indications are treated as
 time-varying direct-probe values, not as a stable WR data-link qualification.
 
+## Additional pre-reseat status recheck
+
+At `2026-09-17T00:06:45+08:00`, before any physical reseat, the same
+lane-2 SOF remained programmed and a fresh read-only recheck was performed.
+No physical component, SOF, firmware, RTL, or control setting was changed.
+
+The direct-probe low-level link gate was still down:
+
+```text
+Master probe=0xE002EE020F008231
+Slave  probe=0x000220892FA1A261
+
+Master: si_config_done=1, CPU_RESET_n=1, core_phy_rst=0,
+        core_phy_tx_disable=0, wr_rx_ready=0, wr_tx_ready=0,
+        wr_ready=0, core_tm_link_up=0, core_link_ok=0,
+        RX_LOCK_REF=1, RX_LOCK_DATA=0, syncstatus=0,
+        patterndetect=0, pattern_ready=0
+Slave:  si_config_done=1, CPU_RESET_n=1, core_phy_rst=0,
+        core_phy_tx_disable=0, wr_rx_ready=1, wr_tx_ready=0,
+        wr_ready=0, core_tm_link_up=0, core_link_ok=0,
+        RX_LOCK_REF=1, RX_LOCK_DATA=0, syncstatus=0,
+        patterndetect=0, pattern_ready=0
+```
+
+During the 2-second instance-7 activity read, both boards again reported
+`PHY_READY=0`, while REF/DMTD/RX counters advanced. This confirms that the
+link had not spontaneously recovered while waiting; it is still not a
+post-reseat A/B result.
+
+The exact remote log is preserved as
+`pre-reseat/status-recheck-20260917-000541.log` with SHA-256
+`18b6ec689c22591f29aaac79ada435d8d10e24045293c77a96da9652d103904c` and
+size 5805 bytes. The normalized values are in
+`raw/pre-reseat-status-recheck-20260917.normalized.txt`.
+
 ## Baseline interpretation
 
 The pre-reseat state is consistent with the previously established boundary:
@@ -109,6 +144,7 @@ The exact pre-reseat logs remain on Pain under:
 ```text
 /home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_probe.log
 /home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_clock_activity.log
+/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/status-recheck-20260917-000541.log
 ```
 
 Their hashes and sizes are in `manifest.json`.

@@ -24,6 +24,11 @@
       "path": "/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/read_clock_activity.log",
       "bytes": 2447,
       "sha256": "57d8222759d5b98312562178d4f4cbbacaa74136972ad214854025600b8f8c8d"
+    },
+    {
+      "path": "/home/b10504072/04_WR/pain-preserve/EXP-WR-PHY-LINK-NONDESTRUCTIVE-HARDWARE-ISOLATION-20260916/pre-reseat/status-recheck-20260917-000541.log",
+      "bytes": 5805,
+      "sha256": "18b6ec689c22591f29aaac79ada435d8d10e24045293c77a96da9652d103904c"
     }
   ],
   "verdict": {

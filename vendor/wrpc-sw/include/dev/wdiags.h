@@ -12,6 +12,8 @@
 
 #include <stdint.h>
 
+struct spll_main_diag_frame;
+
 /* "FAUL" marks a complete persistent trap/fault record. */
 #define WDIAGS_PERSISTENT_FAULT_MAGIC 0x4641554cU
 
@@ -45,6 +47,11 @@ void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
                                                int32_t pi_y_max,
                                                int32_t pi_anti_windup,
                                                int32_t pi_x);
+/* Read-only Main producer snapshot.  It owns the same private window as the
+ * legacy Main overlay, but uses an explicit F4J magic/version and a distinct
+ * producer/publication identity. */
+void wdiags_write_wr_spll_main_producer_debug(
+					const struct spll_main_diag_frame *frame, int valid);
 void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 			      uint64_t dms, int32_t asym, int32_t cko,
 			      int32_t setp, int32_t ucnt, uint32_t restart_cnt, uint64_t up_timestamp );

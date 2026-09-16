@@ -11,6 +11,7 @@
 
 #include <wrc.h>
 #include "softpll_ng.h"
+#include "spll_main_diag.h"
 
 #if defined(CONFIG_TARGET_GENERIC_PHY_8BIT) || defined(CONFIG_TARGET_GENERIC_PHY_16BIT)
 #include "boards/generic/de5a-identity.h"
@@ -29,6 +30,173 @@
 #define MPLL_FREQ_DELOCK_FLOOR 10
 
 #undef WITH_SEQUENCING
+
+static volatile uint32_t spll_main_diag_epoch;
+static volatile struct spll_main_diag_frame spll_main_diag_published;
+static uint32_t spll_main_diag_update_id;
+static uint32_t spll_main_diag_total_updates;
+static uint32_t spll_main_diag_frequency_branch_updates;
+static uint32_t spll_main_diag_phase_branch_updates;
+static uint32_t spll_main_diag_frequency_to_phase_transitions;
+static uint32_t spll_main_diag_phase_to_frequency_transitions;
+static uint32_t spll_main_diag_phase_detector_updates;
+static uint32_t spll_main_diag_phase_in_band_updates;
+static uint32_t spll_main_diag_phase_out_of_band_updates;
+static uint32_t spll_main_diag_latest_transition_update_id;
+static uint32_t spll_main_diag_latest_transition;
+static uint32_t spll_main_diag_last_frequency_branch_update_id;
+static uint32_t spll_main_diag_last_phase_branch_update_id;
+static uint32_t spll_main_diag_last_branch;
+
+static inline void spll_main_diag_barrier(void)
+{
+	__asm__ __volatile__("fence iorw, iorw" ::: "memory");
+}
+
+static void spll_main_diag_reset(void)
+{
+	spll_main_diag_epoch = 0;
+	spll_main_diag_update_id = 0;
+	spll_main_diag_total_updates = 0;
+	spll_main_diag_frequency_branch_updates = 0;
+	spll_main_diag_phase_branch_updates = 0;
+	spll_main_diag_frequency_to_phase_transitions = 0;
+	spll_main_diag_phase_to_frequency_transitions = 0;
+	spll_main_diag_phase_detector_updates = 0;
+	spll_main_diag_phase_in_band_updates = 0;
+	spll_main_diag_phase_out_of_band_updates = 0;
+	spll_main_diag_latest_transition_update_id = 0;
+	spll_main_diag_latest_transition = 0;
+	spll_main_diag_last_frequency_branch_update_id = 0;
+	spll_main_diag_last_phase_branch_update_id = 0;
+	spll_main_diag_last_branch = SPLL_MAIN_DIAG_BRANCH_NONE;
+	spll_main_diag_published.producer_epoch = 0;
+	spll_main_diag_published.update_id = 0;
+	spll_main_diag_published.init_generation = 0;
+	spll_main_diag_published.producer_identity = 0;
+	spll_main_diag_published.freq_error = 0;
+	spll_main_diag_published.branch_id = SPLL_MAIN_DIAG_BRANCH_NONE;
+	spll_main_diag_published.branch_error = 0;
+	spll_main_diag_published.pi_x = 0;
+	spll_main_diag_published.pi_output = 0;
+	spll_main_diag_published.pi_clamp_side = 0;
+	spll_main_diag_published.flags = 0;
+	spll_main_diag_published.freq_lock_count_before = 0;
+	spll_main_diag_published.freq_lock_count_after = 0;
+	spll_main_diag_published.phase_lock_count_before = 0;
+	spll_main_diag_published.phase_lock_count_after = 0;
+	spll_main_diag_published.sample_n = 0;
+	spll_main_diag_published.source_ids = 0;
+	spll_main_diag_published.total_updates = 0;
+	spll_main_diag_published.frequency_branch_updates = 0;
+	spll_main_diag_published.phase_branch_updates = 0;
+	spll_main_diag_published.frequency_to_phase_transitions = 0;
+	spll_main_diag_published.phase_to_frequency_transitions = 0;
+	spll_main_diag_published.phase_detector_updates = 0;
+	spll_main_diag_published.phase_in_band_updates = 0;
+	spll_main_diag_published.phase_out_of_band_updates = 0;
+	spll_main_diag_published.latest_transition_update_id = 0;
+	spll_main_diag_published.latest_transition = 0;
+	spll_main_diag_published.status = SPLL_MAIN_DIAG_STATUS_INVALID;
+	spll_main_diag_published.last_frequency_branch_update_id = 0;
+	spll_main_diag_published.last_phase_branch_update_id = 0;
+}
+
+static void spll_main_diag_publish(struct spll_main_diag_frame *frame)
+{
+	uint32_t odd_epoch = spll_main_diag_epoch + 1U;
+	uint32_t even_epoch;
+
+	if (!(odd_epoch & 1U))
+		odd_epoch++;
+	even_epoch = odd_epoch + 1U;
+	spll_main_diag_epoch = odd_epoch;
+	spll_main_diag_barrier();
+	frame->producer_epoch = even_epoch;
+	spll_main_diag_published.producer_epoch = frame->producer_epoch;
+	spll_main_diag_published.update_id = frame->update_id;
+	spll_main_diag_published.init_generation = frame->init_generation;
+	spll_main_diag_published.producer_identity = frame->producer_identity;
+	spll_main_diag_published.freq_error = frame->freq_error;
+	spll_main_diag_published.branch_id = frame->branch_id;
+	spll_main_diag_published.branch_error = frame->branch_error;
+	spll_main_diag_published.pi_x = frame->pi_x;
+	spll_main_diag_published.pi_output = frame->pi_output;
+	spll_main_diag_published.pi_clamp_side = frame->pi_clamp_side;
+	spll_main_diag_published.flags = frame->flags;
+	spll_main_diag_published.freq_lock_count_before = frame->freq_lock_count_before;
+	spll_main_diag_published.freq_lock_count_after = frame->freq_lock_count_after;
+	spll_main_diag_published.phase_lock_count_before = frame->phase_lock_count_before;
+	spll_main_diag_published.phase_lock_count_after = frame->phase_lock_count_after;
+	spll_main_diag_published.sample_n = frame->sample_n;
+	spll_main_diag_published.source_ids = frame->source_ids;
+	spll_main_diag_published.total_updates = frame->total_updates;
+	spll_main_diag_published.frequency_branch_updates = frame->frequency_branch_updates;
+	spll_main_diag_published.phase_branch_updates = frame->phase_branch_updates;
+	spll_main_diag_published.frequency_to_phase_transitions = frame->frequency_to_phase_transitions;
+	spll_main_diag_published.phase_to_frequency_transitions = frame->phase_to_frequency_transitions;
+	spll_main_diag_published.phase_detector_updates = frame->phase_detector_updates;
+	spll_main_diag_published.phase_in_band_updates = frame->phase_in_band_updates;
+	spll_main_diag_published.phase_out_of_band_updates = frame->phase_out_of_band_updates;
+	spll_main_diag_published.latest_transition_update_id = frame->latest_transition_update_id;
+	spll_main_diag_published.latest_transition = frame->latest_transition;
+	spll_main_diag_published.status = frame->status;
+	spll_main_diag_published.last_frequency_branch_update_id = frame->last_frequency_branch_update_id;
+	spll_main_diag_published.last_phase_branch_update_id = frame->last_phase_branch_update_id;
+	spll_main_diag_barrier();
+	spll_main_diag_epoch = even_epoch;
+}
+
+int spll_main_diag_copy(struct spll_main_diag_frame *out)
+{
+	uint32_t before, after;
+	int attempt;
+
+	if (!out)
+		return 0;
+	for (attempt = 0; attempt < 4; attempt++) {
+		before = spll_main_diag_epoch;
+		if (before & 1U)
+			continue;
+		out->producer_epoch = spll_main_diag_published.producer_epoch;
+		out->update_id = spll_main_diag_published.update_id;
+		out->init_generation = spll_main_diag_published.init_generation;
+		out->producer_identity = spll_main_diag_published.producer_identity;
+		out->freq_error = spll_main_diag_published.freq_error;
+		out->branch_id = spll_main_diag_published.branch_id;
+		out->branch_error = spll_main_diag_published.branch_error;
+		out->pi_x = spll_main_diag_published.pi_x;
+		out->pi_output = spll_main_diag_published.pi_output;
+		out->pi_clamp_side = spll_main_diag_published.pi_clamp_side;
+		out->flags = spll_main_diag_published.flags;
+		out->freq_lock_count_before = spll_main_diag_published.freq_lock_count_before;
+		out->freq_lock_count_after = spll_main_diag_published.freq_lock_count_after;
+		out->phase_lock_count_before = spll_main_diag_published.phase_lock_count_before;
+		out->phase_lock_count_after = spll_main_diag_published.phase_lock_count_after;
+		out->sample_n = spll_main_diag_published.sample_n;
+		out->source_ids = spll_main_diag_published.source_ids;
+		out->total_updates = spll_main_diag_published.total_updates;
+		out->frequency_branch_updates = spll_main_diag_published.frequency_branch_updates;
+		out->phase_branch_updates = spll_main_diag_published.phase_branch_updates;
+		out->frequency_to_phase_transitions = spll_main_diag_published.frequency_to_phase_transitions;
+		out->phase_to_frequency_transitions = spll_main_diag_published.phase_to_frequency_transitions;
+		out->phase_detector_updates = spll_main_diag_published.phase_detector_updates;
+		out->phase_in_band_updates = spll_main_diag_published.phase_in_band_updates;
+		out->phase_out_of_band_updates = spll_main_diag_published.phase_out_of_band_updates;
+		out->latest_transition_update_id = spll_main_diag_published.latest_transition_update_id;
+		out->latest_transition = spll_main_diag_published.latest_transition;
+		out->status = spll_main_diag_published.status;
+		out->last_frequency_branch_update_id = spll_main_diag_published.last_frequency_branch_update_id;
+		out->last_phase_branch_update_id = spll_main_diag_published.last_phase_branch_update_id;
+		after = spll_main_diag_epoch;
+		if (before == after && !(after & 1U) &&
+		    out->producer_epoch == after)
+			return out->status == SPLL_MAIN_DIAG_STATUS_VALID;
+	}
+	out->producer_epoch = 0xffffffffU;
+	out->status = SPLL_MAIN_DIAG_STATUS_INVALID;
+	return 0;
+}
 
 #ifdef CONFIG_DAC_LOG
 extern void spll_log_dac(int y);
@@ -86,6 +254,8 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	s->id_out = id_out;
 	s->dac_index = id_out - spll_n_chan_ref;
 	s->dbg_src_id = (s->dac_index == 0) ? SPLL_DBG_SRC_MAIN : SPLL_DBG_SRC_AUX( s->dac_index - 1 );
+	if (s->dac_index == 0)
+		spll_main_diag_reset();
 #ifdef CONFIG_FRAC_SPLL
 	s->div_ref = s->div_fb = 0;
 #endif
@@ -182,6 +352,8 @@ void mpll_start(struct spll_main_state *s)
 
 	s->last_freq_lock_duration_ms = -1;
 	s->last_phase_lock_duration_ms = -1;
+	if (s->dac_index == 0)
+		spll_main_diag_reset();
 
 	if( s->gain_sched )
 	{
@@ -356,6 +528,20 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 #endif
 
 		int freq_error = s->dout_dt - s->dref_dt;
+		uint32_t diag_flags = 0;
+		uint32_t diag_branch = SPLL_MAIN_DIAG_BRANCH_NONE;
+		uint32_t diag_freq_lock_count_before = 0;
+		uint32_t diag_freq_lock_count_after = 0;
+		uint32_t diag_phase_lock_count_before = 0;
+		uint32_t diag_phase_lock_count_after = 0;
+		uint32_t diag_update_id = 0;
+		struct spll_main_diag_frame diag_frame;
+
+		if (s->dac_index == 0) {
+			diag_freq_lock_count_before = (uint32_t)s->freq_ld.lock_cnt;
+			if (s->freq_ld.locked)
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_FREQ_LOCK_BEFORE;
+		}
 
 		ld_update((spll_lock_det_t *)&s->freq_ld, freq_error);
 
@@ -366,10 +552,12 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 
 		if( !s->freq_ld.locked )
 		{
+			diag_branch = SPLL_MAIN_DIAG_BRANCH_FREQUENCY;
 			err = -s->freq_prelock_gain_boost * freq_error;
 		}
 		else
 		{
+			diag_branch = SPLL_MAIN_DIAG_BRANCH_PHASE;
 			err = s->adder_ref + s->tag_ref - s->adder_out - s->tag_out;
 		}
 
@@ -441,6 +629,17 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 
 		if(s->freq_ld.locked)
 		{
+			if (s->dac_index == 0) {
+				diag_phase_lock_count_before = (uint32_t)s->phase_ld.lock_cnt;
+				if (s->phase_ld.locked)
+					diag_flags |= SPLL_MAIN_DIAG_FLAG_PHASE_LOCK_BEFORE;
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_PHASE_CALLED;
+				if (err >= -s->phase_ld.threshold &&
+				    err <= s->phase_ld.threshold)
+					diag_flags |= SPLL_MAIN_DIAG_FLAG_PHASE_IN_BAND;
+				else
+					diag_flags |= SPLL_MAIN_DIAG_FLAG_PHASE_OUT_OF_BAND;
+			}
 
 			ld_update((spll_lock_det_t *)&s->phase_ld, err);
 			if( s->phase_ld.lock_changed) 
@@ -455,10 +654,95 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 			}
 
 			mpll_handle_gain_schedule(s);
-
-			if(s->locked)
-				return SPLL_LOCKED;
 		}
+
+		if (s->dac_index == 0) {
+			diag_freq_lock_count_after = (uint32_t)s->freq_ld.lock_cnt;
+			diag_phase_lock_count_after = (uint32_t)s->phase_ld.lock_cnt;
+			if (s->freq_ld.locked)
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_FREQ_LOCK_AFTER;
+			if (s->phase_ld.locked)
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_PHASE_LOCK_AFTER;
+			if (!s->vco_freeze)
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_DAC_WRITE;
+			if (s->vco_freeze)
+				diag_flags |= SPLL_MAIN_DIAG_FLAG_VCO_FREEZE;
+
+			diag_update_id = ++spll_main_diag_update_id;
+			++spll_main_diag_total_updates;
+			if (diag_branch == SPLL_MAIN_DIAG_BRANCH_FREQUENCY) {
+				++spll_main_diag_frequency_branch_updates;
+				spll_main_diag_last_frequency_branch_update_id = diag_update_id;
+			} else if (diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE) {
+				++spll_main_diag_phase_branch_updates;
+				spll_main_diag_last_phase_branch_update_id = diag_update_id;
+			}
+			if (diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE)
+				++spll_main_diag_phase_detector_updates;
+			if (diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE &&
+			    (diag_flags & SPLL_MAIN_DIAG_FLAG_PHASE_IN_BAND))
+				++spll_main_diag_phase_in_band_updates;
+			if (diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE &&
+			    (diag_flags & SPLL_MAIN_DIAG_FLAG_PHASE_OUT_OF_BAND))
+				++spll_main_diag_phase_out_of_band_updates;
+			if (spll_main_diag_last_branch != SPLL_MAIN_DIAG_BRANCH_NONE &&
+			    spll_main_diag_last_branch != diag_branch) {
+				if (spll_main_diag_last_branch == SPLL_MAIN_DIAG_BRANCH_FREQUENCY &&
+				    diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE)
+					++spll_main_diag_frequency_to_phase_transitions;
+				else if (spll_main_diag_last_branch == SPLL_MAIN_DIAG_BRANCH_PHASE &&
+					 diag_branch == SPLL_MAIN_DIAG_BRANCH_FREQUENCY)
+					++spll_main_diag_phase_to_frequency_transitions;
+				spll_main_diag_latest_transition_update_id = diag_update_id;
+				spll_main_diag_latest_transition =
+					(spll_main_diag_last_branch << 8) | diag_branch;
+			}
+			spll_main_diag_last_branch = diag_branch;
+			diag_flags |= SPLL_MAIN_DIAG_FLAG_VALID;
+			diag_frame.update_id = diag_update_id;
+			diag_frame.init_generation = wrpc_spll_init_count;
+			diag_frame.producer_identity =
+				((uint32_t)s->dac_index & 0xffU) |
+				(((uint32_t)s->id_ref & 0xffU) << 8) |
+				(((uint32_t)s->id_out & 0xffU) << 16);
+			diag_frame.freq_error = (int32_t)freq_error;
+			diag_frame.branch_id = diag_branch;
+			diag_frame.branch_error = (int32_t)err;
+			diag_frame.pi_x = (int32_t)s->pi.trace_x;
+			diag_frame.pi_output = (int32_t)y;
+			diag_frame.pi_clamp_side = (int32_t)s->pi.trace_clamp_side;
+			diag_frame.flags = diag_flags;
+			diag_frame.freq_lock_count_before = diag_freq_lock_count_before;
+			diag_frame.freq_lock_count_after = diag_freq_lock_count_after;
+			diag_frame.phase_lock_count_before = diag_phase_lock_count_before;
+			diag_frame.phase_lock_count_after = diag_phase_lock_count_after;
+			diag_frame.sample_n = (uint32_t)s->sample_n;
+			diag_frame.source_ids =
+				((uint32_t)s->id_ref & 0xffU) |
+				(((uint32_t)s->id_out & 0xffU) << 8);
+			diag_frame.total_updates = spll_main_diag_total_updates;
+			diag_frame.frequency_branch_updates = spll_main_diag_frequency_branch_updates;
+			diag_frame.phase_branch_updates = spll_main_diag_phase_branch_updates;
+			diag_frame.frequency_to_phase_transitions =
+				spll_main_diag_frequency_to_phase_transitions;
+			diag_frame.phase_to_frequency_transitions =
+				spll_main_diag_phase_to_frequency_transitions;
+			diag_frame.phase_detector_updates = spll_main_diag_phase_detector_updates;
+			diag_frame.phase_in_band_updates = spll_main_diag_phase_in_band_updates;
+			diag_frame.phase_out_of_band_updates = spll_main_diag_phase_out_of_band_updates;
+			diag_frame.latest_transition_update_id =
+				spll_main_diag_latest_transition_update_id;
+			diag_frame.latest_transition = spll_main_diag_latest_transition;
+			diag_frame.status = SPLL_MAIN_DIAG_STATUS_VALID;
+			diag_frame.last_frequency_branch_update_id =
+				spll_main_diag_last_frequency_branch_update_id;
+			diag_frame.last_phase_branch_update_id =
+				spll_main_diag_last_phase_branch_update_id;
+			spll_main_diag_publish(&diag_frame);
+		}
+
+		if(s->locked)
+			return SPLL_LOCKED;
 	}
 
 	return SPLL_LOCKING;

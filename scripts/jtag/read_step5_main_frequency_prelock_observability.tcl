@@ -38,8 +38,8 @@ if {[llength $argv] >= 6} { set run_role [string tolower [lindex $argv 5]] }
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, or f4i"
+    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, or f4j"
 }
 
 array set ::wb_toggle {}
@@ -273,6 +273,37 @@ array set ::f4i_run_end_reason {}
 set ::f4i_global_stop_reason NONE
 set ::f4i_session_start_ms 0
 set ::f4i_session_end_ms 0
+
+# F4J captures a completed Main producer frame.  These arrays contain only
+# observer-side bookkeeping; no control request or Helper PI snapshot is
+# issued by this role.
+array set ::f4j_last_update_id {}
+array set ::f4j_last_sample_n {}
+array set ::f4j_last_init_generation {}
+array set ::f4j_last_producer_epoch {}
+array set ::f4j_no_valid_since_ms {}
+array set ::f4j_valid_count {}
+array set ::f4j_unique_count {}
+array set ::f4j_duplicate_count {}
+array set ::f4j_update_progress_count {}
+array set ::f4j_sample_progress_count {}
+array set ::f4j_bin_keys {}
+array set ::f4j_frequency_branch_count {}
+array set ::f4j_phase_branch_count {}
+array set ::f4j_phase_call_count {}
+array set ::f4j_phase_in_band_count {}
+array set ::f4j_phase_out_band_count {}
+array set ::f4j_helper_lock_seen {}
+array set ::f4j_helper_unlock_streak {}
+array set ::f4j_helper_rail_streak {}
+array set ::f4j_phy_bad_streak {}
+array set ::f4j_stop_reason {}
+array set ::f4j_run_end_reason {}
+array set ::f4j_metadata_seen {}
+array set ::f4j_next_service_ms {}
+set ::f4j_global_stop_reason NONE
+set ::f4j_session_start_ms 0
+set ::f4j_session_end_ms 0
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -2541,6 +2572,623 @@ proc run_f4i_frequency_phase_handoff_audit {} {
   flush stdout
 }
 
+# -------------------------------------------------------------------------
+# F4J: Main producer-handoff snapshot audit
+# -------------------------------------------------------------------------
+
+proc f4j_set_stop {reason} {
+  if {$::f4j_global_stop_reason ne "NONE"} { return }
+  set ::f4j_global_stop_reason $reason
+  foreach hardware_name [array names ::f4j_stop_reason] {
+    set ::f4j_stop_reason($hardware_name) $reason
+  }
+  if {$::f4g_global_stop_reason eq "NONE"} {
+    f4g_set_stop $reason
+  }
+}
+
+proc f4j_initialize_board {role hardware_name} {
+  f4g_initialize_board $role $hardware_name
+  set ::f4j_last_update_id($hardware_name) INVALID
+  set ::f4j_last_sample_n($hardware_name) INVALID
+  set ::f4j_last_init_generation($hardware_name) INVALID
+  set ::f4j_last_producer_epoch($hardware_name) INVALID
+  set ::f4j_no_valid_since_ms($hardware_name) INVALID
+  set ::f4j_valid_count($hardware_name) 0
+  set ::f4j_unique_count($hardware_name) 0
+  set ::f4j_duplicate_count($hardware_name) 0
+  set ::f4j_update_progress_count($hardware_name) 0
+  set ::f4j_sample_progress_count($hardware_name) 0
+  set ::f4j_bin_keys($hardware_name) {}
+  set ::f4j_frequency_branch_count($hardware_name) 0
+  set ::f4j_phase_branch_count($hardware_name) 0
+  set ::f4j_phase_call_count($hardware_name) 0
+  set ::f4j_phase_in_band_count($hardware_name) 0
+  set ::f4j_phase_out_band_count($hardware_name) 0
+  set ::f4j_helper_lock_seen($hardware_name) 0
+  set ::f4j_helper_unlock_streak($hardware_name) 0
+  set ::f4j_helper_rail_streak($hardware_name) 0
+  set ::f4j_phy_bad_streak($hardware_name) 0
+  set ::f4j_stop_reason($hardware_name) NONE
+  set ::f4j_run_end_reason($hardware_name) NOT_REACHED
+  set ::f4j_metadata_seen($hardware_name) 0
+  set ::f4j_next_service_ms($hardware_name) 0
+}
+
+proc f4j_invalid_producer_result {host_start_ms host_end_ms attempts transport_failure} {
+  set payload [lrepeat 33 INVALID]
+  set fields [lrepeat 36 INVALID]
+  return [concat [list 0] $fields [list $payload $host_start_ms $host_end_ms \
+    $attempts $transport_failure]]
+}
+
+proc f4j_read_main_producer {hardware_name} {
+  set host_start_ms [clock milliseconds]
+  set attempts 0
+  set transport_failure 0
+  set result {}
+  set producer_offsets {0x00100B5C 0x00100B60 0x00100B64 0x00100B68 \
+    0x00100B6C 0x00100B70 0x00100B74 0x00100B78 0x00100B7C 0x00100B80 \
+    0x00100B84 0x00100B88 0x00100B8C 0x00100B90 0x00100B94 0x00100B98 \
+    0x00100B9C 0x00100BA0 0x00100BA4 0x00100BA8 0x00100BAC 0x00100BB0 \
+    0x00100BB4 0x00100BB8 0x00100BBC 0x00100BC0 0x00100BC4 0x00100BC8 \
+    0x00100BCC 0x00100BD0 0x00100BD4 0x00100BD8 0x00100BDC}
+  for {set attempt 1} {$attempt <= 6} {incr attempt} {
+    set attempts $attempt
+    set publication_before_raw [wb_read $hardware_name 0x00100B58]
+    set publication_before [word32 $publication_before_raw]
+    if {$publication_before < 0 || ($publication_before & 1)} {
+      if {$publication_before_raw eq "TIMEOUT"} { set transport_failure 1 }
+      after 1
+      continue
+    }
+    set payload {}
+    foreach address $producer_offsets {
+      set raw [wb_read $hardware_name $address]
+      if {$raw eq "TIMEOUT"} { set transport_failure 1 }
+      lappend payload $raw
+    }
+    set publication_after_raw [wb_read $hardware_name 0x00100B58]
+    if {$publication_after_raw eq "TIMEOUT"} { set transport_failure 1 }
+    set publication_after [word32 $publication_after_raw]
+    set producer_epoch [word32 [lindex $payload 0]]
+    set update_id [word32 [lindex $payload 1]]
+    set init_generation [word32 [lindex $payload 2]]
+    set producer_identity [word32 [lindex $payload 3]]
+    set freq_error [signed32 [lindex $payload 4]]
+    set branch_id [word32 [lindex $payload 5]]
+    set branch_error [signed32 [lindex $payload 6]]
+    set pi_x [signed32 [lindex $payload 7]]
+    set pi_output [signed32 [lindex $payload 8]]
+    set pi_clamp_side [signed32 [lindex $payload 9]]
+    set flags [word32 [lindex $payload 10]]
+    set freq_before [word32 [lindex $payload 11]]
+    set freq_after [word32 [lindex $payload 12]]
+    set phase_before [word32 [lindex $payload 13]]
+    set phase_after [word32 [lindex $payload 14]]
+    set sample_n [word32 [lindex $payload 15]]
+    set source_ids [word32 [lindex $payload 16]]
+    set total_updates [word32 [lindex $payload 17]]
+    set freq_updates [word32 [lindex $payload 18]]
+    set phase_updates [word32 [lindex $payload 19]]
+    set freq_to_phase [word32 [lindex $payload 20]]
+    set phase_to_freq [word32 [lindex $payload 21]]
+    set phase_detector [word32 [lindex $payload 22]]
+    set phase_in_band [word32 [lindex $payload 23]]
+    set phase_out_band [word32 [lindex $payload 24]]
+    set last_transition_update [word32 [lindex $payload 25]]
+    set last_transition [word32 [lindex $payload 26]]
+    set status [word32 [lindex $payload 27]]
+    set last_freq_update [word32 [lindex $payload 28]]
+    set last_phase_update [word32 [lindex $payload 29]]
+    set frame_words [word32 [lindex $payload 30]]
+    set version [word32 [lindex $payload 31]]
+    set magic [word32 [lindex $payload 32]]
+    set raw_valid 1
+    foreach raw $payload {
+      if {![is_hex $raw]} { set raw_valid 0 }
+    }
+    set publication_coherent [expr {
+      $publication_after >= 0 && $publication_before == $publication_after &&
+      !($publication_after & 1) ? 1 : 0}]
+    set identity_dac [expr {$producer_identity < 0 ? -1 :
+      ($producer_identity & 0xff)}]
+    set identity_source_ids [expr {$producer_identity < 0 ? -1 :
+      ((($producer_identity >> 8) & 0xff) |
+       ((($producer_identity >> 16) & 0xff) << 8))}]
+    set schema_ok [expr {$raw_valid && $publication_coherent &&
+      $producer_epoch >= 0 && !($producer_epoch & 1) &&
+      $status == 1 && $identity_dac == 0 &&
+      $identity_source_ids == $source_ids && $frame_words == 30 &&
+      $version == 1 && $magic == 0x4d50344a ? 1 : 0}]
+    if {$schema_ok} {
+      set result [list 1 $publication_before_raw $publication_after_raw \
+        $publication_after $producer_epoch $update_id $init_generation \
+        $producer_identity $freq_error $branch_id $branch_error $pi_x \
+        $pi_output $pi_clamp_side $flags $freq_before $freq_after \
+        $phase_before $phase_after $sample_n $source_ids $total_updates \
+        $freq_updates $phase_updates $freq_to_phase $phase_to_freq \
+        $phase_detector $phase_in_band $phase_out_band \
+        $last_transition_update $last_transition $status $last_freq_update \
+        $last_phase_update $frame_words $version $magic $payload \
+        $host_start_ms [clock milliseconds] $attempts $transport_failure]
+      break
+    }
+    after 1
+  }
+  if {$result eq ""} {
+    set result [f4j_invalid_producer_result $host_start_ms \
+      [clock milliseconds] $attempts $transport_failure]
+  }
+  return $result
+}
+
+proc f4j_emit_main_producer {hardware_name cycle elapsed_ms} {
+  set result [f4j_read_main_producer $hardware_name]
+  foreach {valid publication_before_raw publication_after_raw publication_epoch \
+      producer_epoch update_id init_generation producer_identity freq_error \
+      branch_id branch_error pi_x pi_output pi_clamp_side flags freq_before \
+      freq_after phase_before phase_after sample_n source_ids total_updates \
+      freq_updates phase_updates freq_to_phase phase_to_freq phase_detector \
+      phase_in_band phase_out_band last_transition_update last_transition \
+      status last_freq_update last_phase_update frame_words version magic \
+      payload host_start_ms host_end_ms attempts transport_failure} $result break
+  set publication_coherent [expr {$valid ? 1 : 0}]
+  set raw_names {PRODUCER_EPOCH UPDATE_ID INIT_GENERATION PRODUCER_IDENTITY \
+    FREQ_ERROR BRANCH_ID BRANCH_ERROR PI_X PI_OUTPUT PI_CLAMP_SIDE FLAGS \
+    FREQ_COUNT_BEFORE FREQ_COUNT_AFTER PHASE_COUNT_BEFORE PHASE_COUNT_AFTER \
+    SAMPLE_N SOURCE_IDS TOTAL_UPDATES FREQ_UPDATES PHASE_UPDATES \
+    FREQ_TO_PHASE PHASE_TO_FREQ PHASE_DETECTOR PHASE_IN_BAND PHASE_OUT_BAND \
+    LAST_TRANSITION_UPDATE LAST_TRANSITION STATUS LAST_FREQ_UPDATE \
+    LAST_PHASE_UPDATE FRAME_WORDS VERSION MAGIC}
+  set raw_pairs {}
+  for {set i 0} {$i < [llength $raw_names]} {incr i} {
+    lappend raw_pairs "[lindex $raw_names $i]_RAW=0x[lindex $payload $i]"
+  }
+  puts [join [concat [list STEP5_F4J_MAIN_PRODUCER \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "elapsed_ms=$elapsed_ms" "READ_DURATION_MS=[expr {$host_end_ms - $host_start_ms}]" \
+    "MAIN_PRODUCER_VALID=$valid" "PUBLICATION_COHERENT=$publication_coherent" \
+    "PUBLICATION_EPOCH_RAW_BEFORE=0x$publication_before_raw" \
+    "PUBLICATION_EPOCH_RAW_AFTER=0x$publication_after_raw" \
+    "PUBLICATION_EPOCH=$publication_epoch" "PRODUCER_EPOCH=$producer_epoch" \
+    "UPDATE_ID=$update_id" "INIT_GENERATION=$init_generation" \
+    "PRODUCER_IDENTITY=$producer_identity" "FREQ_ERROR=$freq_error" \
+    "BRANCH_ID=$branch_id" "BRANCH_ERROR=$branch_error" "PI_X=$pi_x" \
+    "PI_OUTPUT=$pi_output" "PI_CLAMP_SIDE=$pi_clamp_side" "FLAGS=$flags" \
+    "FREQ_COUNT_BEFORE=$freq_before" "FREQ_COUNT_AFTER=$freq_after" \
+    "PHASE_COUNT_BEFORE=$phase_before" "PHASE_COUNT_AFTER=$phase_after" \
+    "SAMPLE_N=$sample_n" "SOURCE_IDS=$source_ids" \
+    "TOTAL_UPDATES=$total_updates" "FREQ_UPDATES=$freq_updates" \
+    "PHASE_UPDATES=$phase_updates" "FREQ_TO_PHASE=$freq_to_phase" \
+    "PHASE_TO_FREQ=$phase_to_freq" "PHASE_DETECTOR=$phase_detector" \
+    "PHASE_IN_BAND=$phase_in_band" "PHASE_OUT_BAND=$phase_out_band" \
+    "LAST_TRANSITION_UPDATE=$last_transition_update" \
+    "LAST_TRANSITION=$last_transition" "STATUS=$status" \
+    "LAST_FREQ_UPDATE=$last_freq_update" "LAST_PHASE_UPDATE=$last_phase_update" \
+    "FRAME_WORDS=$frame_words" "SCHEMA_VERSION=$version" "MAGIC=$magic" \
+    "SCHEMA_MAGIC_EXPECTED=4D50344A" "PRODUCER_SOURCE=MAIN_MPLL_UPDATE_DAC0" \
+    "DYNAMIC_OWNER=F4J_MAIN_PRODUCER" "TRANSPORT_FAILURE=$transport_failure" \
+    "ATTEMPTS=$attempts"] $raw_pairs] " "]
+  flush stdout
+  return $result
+}
+
+proc f4j_update_producer_state {hardware_name elapsed_ms result} {
+  set valid [lindex $result 0]
+  if {!$valid} {
+    if {$::f4j_no_valid_since_ms($hardware_name) eq "INVALID"} {
+      set ::f4j_no_valid_since_ms($hardware_name) $elapsed_ms
+    } elseif {$elapsed_ms - $::f4j_no_valid_since_ms($hardware_name) >= 10000} {
+      f4j_set_stop PRODUCER_NO_VALID_10S
+    }
+    return [list 0 0 0 INVALID INVALID]
+  }
+  set ::f4j_no_valid_since_ms($hardware_name) INVALID
+  incr ::f4j_valid_count($hardware_name)
+  set init_generation [lindex $result 6]
+  set update_id [lindex $result 5]
+  set sample_n [lindex $result 19]
+  set producer_epoch [lindex $result 4]
+  set branch_id [lindex $result 9]
+  set flags [lindex $result 14]
+  set freq_error [lindex $result 8]
+  if {$::f4j_last_init_generation($hardware_name) ne "INVALID" &&
+      $init_generation != $::f4j_last_init_generation($hardware_name)} {
+    f4j_set_stop GENERATION_CHANGE
+  }
+  set update_advanced 0
+  set sample_advanced 0
+  if {$::f4j_last_update_id($hardware_name) ne "INVALID"} {
+    set delta [counter_delta $::f4j_last_update_id($hardware_name) $update_id 32]
+    if {$delta eq "INVALID" || $delta > 0x7fffffff} {
+      f4j_set_stop PRODUCER_UPDATE_AMBIGUOUS
+    } elseif {$delta > 0} {
+      set update_advanced 1
+      incr ::f4j_update_progress_count($hardware_name)
+    } else {
+      incr ::f4j_duplicate_count($hardware_name)
+    }
+  }
+  if {$::f4j_last_sample_n($hardware_name) ne "INVALID"} {
+    set sample_delta [counter_delta $::f4j_last_sample_n($hardware_name) $sample_n 32]
+    if {$sample_delta eq "INVALID" || $sample_delta > 0x7fffffff} {
+      f4j_set_stop PRODUCER_SAMPLE_AMBIGUOUS
+    } elseif {$sample_delta > 0} {
+      set sample_advanced 1
+      incr ::f4j_sample_progress_count($hardware_name)
+    }
+  }
+  if {$update_advanced || $::f4j_last_update_id($hardware_name) eq "INVALID"} {
+    incr ::f4j_unique_count($hardware_name)
+    set bin_key "${branch_id}:[expr {$freq_error / 50}]"
+    if {[lsearch -exact $::f4j_bin_keys($hardware_name) $bin_key] < 0} {
+      lappend ::f4j_bin_keys($hardware_name) $bin_key
+    }
+  }
+  if {$branch_id == 1} { incr ::f4j_frequency_branch_count($hardware_name) }
+  if {$branch_id == 2} { incr ::f4j_phase_branch_count($hardware_name) }
+  if {$branch_id == 2 && ($flags & (1 << 5))} {
+    incr ::f4j_phase_call_count($hardware_name)
+  }
+  if {$branch_id == 2 && ($flags & (1 << 6))} {
+    incr ::f4j_phase_in_band_count($hardware_name)
+  }
+  if {$branch_id == 2 && ($flags & (1 << 7))} {
+    incr ::f4j_phase_out_band_count($hardware_name)
+  }
+  set ::f4j_last_update_id($hardware_name) $update_id
+  set ::f4j_last_sample_n($hardware_name) $sample_n
+  set ::f4j_last_init_generation($hardware_name) $init_generation
+  set ::f4j_last_producer_epoch($hardware_name) $producer_epoch
+  return [list 1 $update_advanced $sample_advanced $update_id $branch_id]
+}
+
+proc f4j_update_health {hardware_name elapsed_ms helper_valid helper_locked \
+    helper_output helper_transport main_valid main_transport wr_valid \
+    phy_link_usable terminal} {
+  f4g_update_core_health $hardware_name $elapsed_ms $helper_valid \
+    $helper_transport $main_valid $main_transport $wr_valid \
+    [expr {$wr_valid ? 0 : 1}]
+  if {$helper_valid && $helper_locked eq "1"} {
+    set ::f4j_helper_lock_seen($hardware_name) 1
+    set ::f4j_helper_unlock_streak($hardware_name) 0
+  } elseif {$helper_valid && $helper_locked eq "0" &&
+      $::f4j_helper_lock_seen($hardware_name)} {
+    incr ::f4j_helper_unlock_streak($hardware_name)
+  }
+  if {$helper_valid && [f4g_is_number $helper_output] &&
+      $::f4j_helper_lock_seen($hardware_name) &&
+      ($helper_output <= 5 || $helper_output >= 65531)} {
+    incr ::f4j_helper_rail_streak($hardware_name)
+  } elseif {$helper_valid && [f4g_is_number $helper_output]} {
+    set ::f4j_helper_rail_streak($hardware_name) 0
+  }
+  if {$::f4j_helper_unlock_streak($hardware_name) >= 3 ||
+      $::f4j_helper_rail_streak($hardware_name) >= 3} {
+    f4j_set_stop HELPER_REGRESSION
+  }
+  if {$wr_valid && !$phy_link_usable} {
+    incr ::f4j_phy_bad_streak($hardware_name)
+    if {$::f4j_phy_bad_streak($hardware_name) >= 3} {
+      f4j_set_stop TRUE_PHY_GATE_NOT_MET
+    }
+  } elseif {$phy_link_usable} {
+    set ::f4j_phy_bad_streak($hardware_name) 0
+  }
+  if {$terminal} { f4j_set_stop WR_SESSION_ENDED }
+  if {$::f4g_global_stop_reason ne "NONE" &&
+      $::f4j_global_stop_reason eq "NONE"} {
+    set ::f4j_global_stop_reason $::f4g_global_stop_reason
+  }
+}
+
+proc f4j_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
+  set context_host_start [clock milliseconds]
+  set probe_started 0
+  set helper_attempts 0
+  set helper_accepted 0
+  set helper_transport_failure 1
+  set helper_update INVALID
+  set helper_output INVALID
+  set helper_state_valid 0
+  set helper_locked INVALID
+  set helper_lock_count INVALID
+  set helper_residual UNKNOWN
+  set helper_target INVALID
+  set helper_applied INVALID
+  set normal_request INVALID
+  set normal_completed INVALID
+  set bootstrap_done INVALID
+  set main_result [f4j_invalid_producer_result 0 0 0 1]
+  set main_valid 0
+  set main_update INVALID
+  set main_advanced 0
+  set main_branch INVALID
+  set wr_core_valid 0
+  set phy_link_usable 0
+  set terminal 0
+  set wr_transport_failure 1
+  set service_read 0
+  set context_failed [catch {
+    start_insystem_source_probe -hardware_name $hardware_name \
+      -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+    set helper_capture [f4g_capture_helper_core $hardware_name $cycle]
+    set helper_attempts [lindex $helper_capture 0]
+    set helper_result [lindex $helper_capture 1]
+    set helper_accepted [lindex $helper_result 0]
+    set helper_transport_failure [lindex $helper_capture 2]
+    set helper_update [lindex $helper_result 8]
+    set helper_output [lindex $helper_result 9]
+    set helper_state [f4g_emit_helper_state $hardware_name $cycle]
+    foreach {helper_state_valid helper_locked helper_lock_count helper_threshold \
+        helper_lock_samples helper_state_raw helper_limits_raw} $helper_state break
+    set position_result [f4g_emit_helper_position $hardware_name $cycle]
+    foreach {position_valid helper_residual normal_request normal_completed \
+        bootstrap_done helper_target helper_applied} $position_result break
+    set main_result [f4j_emit_main_producer $hardware_name $cycle $elapsed_ms]
+    set main_valid [lindex $main_result 0]
+    set main_update [lindex $main_result 5]
+    set main_state_update [f4j_update_producer_state $hardware_name \
+      $elapsed_ms $main_result]
+    set main_advanced [lindex $main_state_update 1]
+    set main_branch [lindex $main_state_update 4]
+    set status_result [f4g_read_l2_word 52]
+    f4g_emit_l2_word $hardware_name $cycle 52 STATUS $status_result
+    set pending_result [f4g_read_l2_word 53]
+    f4g_emit_l2_word $hardware_name $cycle 53 PENDING $pending_result
+    f4g_emit_service_demand $hardware_name $cycle $status_result $pending_result
+    set wr_result [f4g_emit_wr_core SLAVE $hardware_name $cycle \
+      STEP5_F4J_WR_CORE]
+    foreach {wr_core_valid terminal phy_link_usable wr_state_value \
+        pstat_locked role_identity_valid reset_valid reset_changed \
+        wr_transport_failure} $wr_result break
+    set now_elapsed [expr {[clock milliseconds] - $::f4j_session_start_ms}]
+    if {$now_elapsed >= $::f4j_next_service_ms($hardware_name)} {
+      foreach {l2_probe l2_name} {54 START 55 COMPLETED 56 FAILED 57 MAX_WAIT \
+          58 CURRENT_WAIT 59 LATENCY 60 FAILURE 61 FIRST_LOSS} {
+        set l2_result [f4g_read_l2_word $l2_probe]
+        f4g_emit_l2_word $hardware_name $cycle $l2_probe $l2_name $l2_result
+      }
+      set ::f4j_next_service_ms($hardware_name) [expr {$now_elapsed + 3000}]
+      set service_read 1
+    }
+  } context_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  set context_host_end [clock milliseconds]
+  set elapsed_final [expr {$context_host_end - $::f4j_session_start_ms}]
+  if {$context_failed} {
+    set helper_accepted 0
+    set helper_state_valid 0
+    set helper_locked INVALID
+    set helper_output INVALID
+    set main_valid 0
+    set main_update INVALID
+    set main_advanced 0
+    set main_branch INVALID
+    set wr_core_valid 0
+    set phy_link_usable 0
+    set terminal 0
+    set wr_transport_failure 1
+    set context_error [string map [list " " _ "\n" | "\r" |] $context_error]
+    puts [join [list STEP5_F4J_CONTEXT_ERROR "role=SLAVE" \
+      "board=$hardware_name" "cycle=$cycle" \
+      "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+      "elapsed_ms=$elapsed_final" "error=$context_error"] " "]
+    flush stdout
+  }
+  f4j_update_health $hardware_name $elapsed_final \
+    [expr {$helper_accepted && $helper_state_valid ? 1 : 0}] \
+    $helper_locked $helper_output $helper_transport_failure $main_valid \
+    [lindex $main_result 41] $wr_core_valid $phy_link_usable $terminal
+  puts [join [list STEP5_F4J_CYCLE "role=SLAVE" "board=$hardware_name" \
+    "cycle=$cycle" "host_start_ms=$context_host_start" \
+    "host_end_ms=$context_host_end" "elapsed_ms=$elapsed_final" \
+    "context_duration_ms=[expr {$context_host_end - $context_host_start}]" \
+    "HELPER_ATTEMPTS=$helper_attempts" "HELPER_CORE_VALID=$helper_accepted" \
+    "HELPER_UPDATE_COUNT=$helper_update" "HELPER_STATE_VALID=$helper_state_valid" \
+    "HELPER_LOCKED=$helper_locked" "HELPER_LOCK_COUNT=$helper_lock_count" \
+    "POSITION_VALID=$position_valid" "HELPER_RESIDUAL_PRESENT=$helper_residual" \
+    "HELPER_TARGET_CODE=$helper_target" "HELPER_APPLIED_CODE=$helper_applied" \
+    "HELPER_NORMAL_REQUEST=$normal_request" \
+    "HELPER_NORMAL_COMPLETED=$normal_completed" \
+    "HELPER_BOOTSTRAP_DONE=$bootstrap_done" "MAIN_PRODUCER_VALID=$main_valid" \
+    "MAIN_UPDATE_ID=$main_update" "MAIN_UPDATE_ADVANCED=$main_advanced" \
+    "MAIN_BRANCH_ID=$main_branch" "WR_CORE_VALID=$wr_core_valid" \
+    "PHY_LINK_USABLE=$phy_link_usable" "PSTAT_LOCKED=$pstat_locked" \
+    "TERMINAL=$terminal" "SERVICE_READ=$service_read" \
+    "STOP_REASON=$::f4j_global_stop_reason"] " "]
+  flush stdout
+}
+
+proc f4j_emit_master_context {hardware_name device_name sample} {
+  set context_host_start [clock milliseconds]
+  set probe_started 0
+  set wr_core_valid 0
+  set terminal 0
+  set phy_link_usable 0
+  set pstat_locked INVALID
+  set wr_transport_failure 1
+  set context_failed [catch {
+    start_insystem_source_probe -hardware_name $hardware_name \
+      -device_name $device_name
+    set probe_started 1
+    set ::wb_toggle($hardware_name) 0
+    wb_sync_toggle $hardware_name
+    set wr_result [f4g_emit_wr_core MASTER $hardware_name $sample \
+      STEP5_F4J_WR_CORE]
+    foreach {wr_core_valid terminal phy_link_usable wr_state_value \
+        pstat_locked role_identity_valid reset_valid reset_changed \
+        wr_transport_failure} $wr_result break
+  } context_error]
+  if {$probe_started} { catch {end_insystem_source_probe} }
+  set context_host_end [clock milliseconds]
+  if {$context_failed} {
+    set wr_core_valid 0
+    set terminal 0
+    set phy_link_usable 0
+    set pstat_locked INVALID
+    set wr_transport_failure 1
+  }
+  set elapsed_ms [expr {$context_host_end - $::f4j_session_start_ms}]
+  f4g_update_core_health $hardware_name $elapsed_ms 0 0 1 0 \
+    $wr_core_valid $wr_transport_failure
+  puts [join [list STEP5_F4J_MASTER_SAMPLE "role=MASTER" \
+    "board=$hardware_name" "sample=$sample" \
+    "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
+    "elapsed_ms=$elapsed_ms" "WR_CORE_VALID=$wr_core_valid" \
+    "PHY_LINK_USABLE=$phy_link_usable" "PSTAT_LOCKED=$pstat_locked" \
+    "TERMINAL=$terminal" "STOP_REASON=$::f4j_global_stop_reason"] " "]
+  flush stdout
+}
+
+proc run_f4j_main_producer_handoff_snapshot {} {
+  global samples target_duration_ms hard_duration_ms gap_ms
+  set targets [f4e_collect_targets]
+  set master_target ""
+  set slave_target ""
+  foreach target $targets {
+    if {[lindex $target 0] eq "MASTER"} { set master_target $target }
+    if {[lindex $target 0] eq "SLAVE"} { set slave_target $target }
+  }
+  set effective_duration $target_duration_ms
+  if {$effective_duration <= 0} { set effective_duration 120000 }
+  set hard_duration $hard_duration_ms
+  if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
+  puts [join [list STEP5_F4J_CONFIG \
+    "experiment=EXP-S5-F4J-MAIN-PRODUCER-HANDOFF-SNAPSHOT-20260916" \
+    "run_role=f4j" "samples_max=$samples" \
+    "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
+    "cadence_hint_ms=$gap_ms" "main_producer_window=0x00100B58..0x00100BDC" \
+    "main_producer_magic=0x4D50344A" "main_producer_version=1" \
+    "main_producer_frame_words=30" "producer_source=MAIN_MPLL_UPDATE_DAC0" \
+    "publication_coherence=PUBLICATION_EPOCH_BEFORE_EQUALS_AFTER_EVEN" \
+    "producer_coherence=PRODUCER_EPOCH_EVEN_AND_FRAME_STABLE" \
+    "branch_formula_frequency=BRANCH_ERROR_EQUALS_MINUS20_TIMES_FREQ_ERROR" \
+    "branch_formula_phase=SOURCE_CAPTURED_FINAL_SIGNED_ERROR" \
+    "helper_core=F4F_COMPACT_SOURCE_CONTRACT" \
+    "helper_position_probes=42,43,44,49" "l2_probes=52..61" \
+    "phy_status_source=JTAG_PROBE0" "phy_status_instance=0" \
+    "phy_status_width_bits=64" "phy_required_mask=000000CF" \
+    "main_background_cadence_ms=3000" "read_only_observer=1" \
+    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+    "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
+    "production_control_unchanged=1" "source_contract_verified=YES" \
+    "dynamic_owner_verified=F4J_EXPLICIT_SCHEMA" "step5_complete=NO" \
+    "merge_approved=NO"] " "]
+  flush stdout
+  if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
+    puts "STEP5_F4J_CONFIG_ERROR required=MASTER+SLAVE discovered=[llength $targets]"
+    puts "STEP5_F4J_DONE run_end_reason=CONFIG_INVALID stop_reason=CONFIG_INVALID step5_complete=NO step5_pass=NO merge_approved=NO"
+    flush stdout
+    return
+  }
+  f4j_initialize_board MASTER [lindex $master_target 1]
+  f4j_initialize_board SLAVE [lindex $slave_target 1]
+  set ::f4g_run_role f4j
+  set ::f4g_experiment_name EXP-S5-F4J-MAIN-PRODUCER-HANDOFF-SNAPSHOT-20260916
+  set ::f4g_phy_status_source JTAG_PROBE0
+  set ::f4g_global_stop_reason NONE
+  set ::f4j_global_stop_reason NONE
+  set ::f4j_session_start_ms [clock milliseconds]
+  set ::f4g_session_start_ms $::f4j_session_start_ms
+  set target_deadline [expr {$::f4j_session_start_ms + $effective_duration}]
+  set hard_deadline [expr {$::f4j_session_start_ms + $hard_duration}]
+  set next_slave_ms $::f4j_session_start_ms
+  set next_master_ms $::f4j_session_start_ms
+  set slave_cycle 0
+  set master_sample 0
+  while {[clock milliseconds] < $hard_deadline &&
+      [clock milliseconds] < $target_deadline && $slave_cycle < $samples &&
+      $::f4j_global_stop_reason eq "NONE" &&
+      $::f4g_global_stop_reason eq "NONE"} {
+    set did_work 0
+    set now [clock milliseconds]
+    if {$now >= $next_slave_ms} {
+      incr slave_cycle
+      f4j_emit_slave_context [lindex $slave_target 1] \
+        [lindex $slave_target 2] $slave_cycle \
+        [expr {[clock milliseconds] - $::f4j_session_start_ms}]
+      set next_slave_ms [expr {[clock milliseconds] + $gap_ms}]
+      set did_work 1
+    }
+    if {$::f4j_global_stop_reason ne "NONE" ||
+        $::f4g_global_stop_reason ne "NONE"} { break }
+    set now [clock milliseconds]
+    if {$now >= $next_master_ms} {
+      incr master_sample
+      f4j_emit_master_context [lindex $master_target 1] \
+        [lindex $master_target 2] $master_sample
+      set next_master_ms [expr {[clock milliseconds] + 3000}]
+      set did_work 1
+    }
+    if {$::f4j_global_stop_reason ne "NONE" ||
+        $::f4g_global_stop_reason ne "NONE"} { break }
+    if {!$did_work} {
+      set now [clock milliseconds]
+      set next_due $next_slave_ms
+      if {$next_master_ms < $next_due} { set next_due $next_master_ms }
+      set remaining [expr {$next_due - $now}]
+      if {$remaining > 100} { set remaining 100 }
+      if {$remaining > 0} { after $remaining }
+    }
+  }
+  set ::f4j_session_end_ms [clock milliseconds]
+  set session_elapsed [expr {$::f4j_session_end_ms - $::f4j_session_start_ms}]
+  if {$::f4g_global_stop_reason ne "NONE" &&
+      $::f4j_global_stop_reason eq "NONE"} {
+    set ::f4j_global_stop_reason $::f4g_global_stop_reason
+  }
+  if {$::f4j_global_stop_reason ne "NONE"} {
+    set end_reason STOP_$::f4j_global_stop_reason
+  } elseif {$slave_cycle >= $samples} {
+    set end_reason SAMPLE_LIMIT
+  } elseif {$session_elapsed >= $effective_duration} {
+    set end_reason TARGET_REACHED
+  } elseif {$session_elapsed >= $hard_duration} {
+    set end_reason HARD_DEADLINE
+  } else {
+    set end_reason OBSERVER_EXIT
+  }
+  foreach target [list $master_target $slave_target] {
+    set role [lindex $target 0]
+    set hardware_name [lindex $target 1]
+    set ::f4j_run_end_reason($hardware_name) $end_reason
+    puts [join [list STEP5_F4J_ROLE_SUMMARY "role=$role" \
+      "board=$hardware_name" "producer_valid=$::f4j_valid_count($hardware_name)" \
+      "producer_unique=$::f4j_unique_count($hardware_name)" \
+      "producer_duplicates=$::f4j_duplicate_count($hardware_name)" \
+      "update_progress=$::f4j_update_progress_count($hardware_name)" \
+      "sample_progress=$::f4j_sample_progress_count($hardware_name)" \
+      "branch_bins=[llength $::f4j_bin_keys($hardware_name)]" \
+      "freq_branch=$::f4j_frequency_branch_count($hardware_name)" \
+      "phase_branch=$::f4j_phase_branch_count($hardware_name)" \
+      "phase_calls=$::f4j_phase_call_count($hardware_name)" \
+      "phase_in_band=$::f4j_phase_in_band_count($hardware_name)" \
+      "phase_out_band=$::f4j_phase_out_band_count($hardware_name)" \
+      "stop_reason=$::f4j_stop_reason($hardware_name)" \
+      "run_end_reason=$end_reason"] " "]
+  }
+  set slave_name [lindex $slave_target 1]
+  puts [join [list STEP5_F4J_DONE "session_elapsed_ms=$session_elapsed" \
+    "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
+    "slave_cycles=$slave_cycle" "master_samples=$master_sample" \
+    "producer_valid=$::f4j_valid_count($slave_name)" \
+    "producer_unique=$::f4j_unique_count($slave_name)" \
+    "producer_duplicates=$::f4j_duplicate_count($slave_name)" \
+    "update_progress=$::f4j_update_progress_count($slave_name)" \
+    "sample_progress=$::f4j_sample_progress_count($slave_name)" \
+    "branch_bins=[llength $::f4j_bin_keys($slave_name)]" \
+    "run_end_reason=$end_reason" "stop_reason=$::f4j_global_stop_reason" \
+    "single_reader=PASS" "step5_complete=NO" "step5_pass=NO" \
+    "merge_approved=NO"] " "]
+  flush stdout
+}
+
 proc f4f_capture_profile {hardware_name device_name profile cycle} {
   set profile_start_ms [clock milliseconds]
   set final_result {}
@@ -4694,6 +5342,14 @@ if {$run_role eq "f4i"} {
   set ::f4g_experiment_name EXP-S5-F4I-MAIN-FREQUENCY-PHASE-HANDOFF-AUDIT-20260916
   set ::f4g_phy_status_source JTAG_PROBE0
   run_f4i_frequency_phase_handoff_audit
+  exit 0
+}
+
+if {$run_role eq "f4j"} {
+  set ::f4g_run_role f4j
+  set ::f4g_experiment_name EXP-S5-F4J-MAIN-PRODUCER-HANDOFF-SNAPSHOT-20260916
+  set ::f4g_phy_status_source JTAG_PROBE0
+  run_f4j_main_producer_handoff_snapshot
   exit 0
 }
 

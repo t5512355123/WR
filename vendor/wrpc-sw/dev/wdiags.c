@@ -16,6 +16,7 @@
 #include "wrc-debug.h"
 #include "hw/rawmem.h"
 #include "hw/wrc_diags_regs.h"
+#include "softpll/spll_main_diag.h"
 
 #define WDIAGS_VERSION 2
 #define WDIAGS_PERSISTENT_MAGIC 0x504D5354U /* "PMST" */
@@ -84,6 +85,7 @@ static uint32_t wdiags_helper_pi_snapshot_bank_commit_count;
 static uint32_t wdiags_helper_pi_snapshot_overwrite_count;
 static uint32_t wdiags_main_frequency_trace_epoch;
 static int wdiags_main_frequency_trace_active;
+static int wdiags_main_producer_active;
 static int wdiags_wr_s_lock_trace_active;
 static uint32_t wdiags_wr_s_lock_trace_seq;
 /* Once a snapshot request is observed, the overlapping 0x158..0x1dc
@@ -339,6 +341,8 @@ int wdiag_get_snapshot(void)
 int wdiags_helper_pi_snapshot_request_pending(uint32_t *request_seq)
 {
 	uint32_t request = 0;
+	if (wdiags_main_producer_active)
+		return 0;
 
 	/* The request lives in the one-word SYSCON User-Diag R/W bank.  It is
 	 * intentionally separate from WDIAGS CTRL because the external/JTAG
@@ -1286,7 +1290,7 @@ void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
 
 	/* The Helper PI request claims the same private window.  Do not tear a
 	 * frozen Helper frame if a different observer has armed that protocol. */
-	if (wdiags_helper_pi_snapshot_v2_active)
+	if (wdiags_helper_pi_snapshot_v2_active || wdiags_main_producer_active)
 		return;
 
 	/* Main owns the overlapping legacy window after its first coherent
@@ -1344,6 +1348,134 @@ void wdiags_write_wr_spll_main_frequency_debug(int32_t dref_dt,
 			++wdiags_main_frequency_trace_epoch);
 }
 
+void wdiags_write_wr_spll_main_producer_debug(
+		const struct spll_main_diag_frame *frame, int valid)
+{
+	uint32_t epoch;
+	uint32_t producer_epoch = 0xffffffffU;
+	uint32_t update_id = 0;
+	uint32_t init_generation = 0;
+	uint32_t producer_identity = 0;
+	uint32_t freq_error = 0;
+	uint32_t branch_id = 0;
+	uint32_t branch_error = 0;
+	uint32_t pi_x = 0;
+	uint32_t pi_output = 0;
+	uint32_t pi_clamp_side = 0;
+	uint32_t flags = 0;
+	uint32_t freq_before = 0;
+	uint32_t freq_after = 0;
+	uint32_t phase_before = 0;
+	uint32_t phase_after = 0;
+	uint32_t sample_n = 0;
+	uint32_t source_ids = 0;
+	uint32_t total_updates = 0;
+	uint32_t freq_updates = 0;
+	uint32_t phase_updates = 0;
+	uint32_t freq_to_phase = 0;
+	uint32_t phase_to_freq = 0;
+	uint32_t phase_detector = 0;
+	uint32_t phase_in_band = 0;
+	uint32_t phase_out_band = 0;
+	uint32_t last_transition_update = 0;
+	uint32_t last_transition = 0;
+	uint32_t status = SPLL_MAIN_DIAG_STATUS_INVALID;
+	uint32_t last_freq_update = 0;
+	uint32_t last_phase_update = 0;
+	uint32_t frame_words = 0;
+
+	/* The first Helper PI request claims this window permanently.  Do not
+	 * tear a frozen Helper frame if an older observer already armed it. */
+	if (wdiags_helper_pi_snapshot_v2_active)
+		return;
+
+	/* Main producer mode owns the dynamic overlay for this firmware lifetime;
+	 * persistent/legacy writers are already gated by this active flag. */
+	wdiags_main_producer_active = 1;
+	wdiags_main_frequency_trace_active = 1;
+	if (valid && frame && frame->status == SPLL_MAIN_DIAG_STATUS_VALID) {
+		producer_epoch = frame->producer_epoch;
+		update_id = frame->update_id;
+		init_generation = frame->init_generation;
+		producer_identity = frame->producer_identity;
+		freq_error = (uint32_t)frame->freq_error;
+		branch_id = frame->branch_id;
+		branch_error = (uint32_t)frame->branch_error;
+		pi_x = (uint32_t)frame->pi_x;
+		pi_output = (uint32_t)frame->pi_output;
+		pi_clamp_side = (uint32_t)frame->pi_clamp_side;
+		flags = frame->flags;
+		freq_before = frame->freq_lock_count_before;
+		freq_after = frame->freq_lock_count_after;
+		phase_before = frame->phase_lock_count_before;
+		phase_after = frame->phase_lock_count_after;
+		sample_n = frame->sample_n;
+		source_ids = frame->source_ids;
+		total_updates = frame->total_updates;
+		freq_updates = frame->frequency_branch_updates;
+		phase_updates = frame->phase_branch_updates;
+		freq_to_phase = frame->frequency_to_phase_transitions;
+		phase_to_freq = frame->phase_to_frequency_transitions;
+		phase_detector = frame->phase_detector_updates;
+		phase_in_band = frame->phase_in_band_updates;
+		phase_out_band = frame->phase_out_of_band_updates;
+		last_transition_update = frame->latest_transition_update_id;
+		last_transition = frame->latest_transition;
+		status = frame->status;
+		last_freq_update = frame->last_frequency_branch_update_id;
+		last_phase_update = frame->last_phase_branch_update_id;
+		frame_words = (uint32_t)(sizeof(*frame) / sizeof(uint32_t));
+	}
+
+	epoch = ++wdiags_main_frequency_trace_epoch;
+	if (!(epoch & 1U))
+		epoch = ++wdiags_main_frequency_trace_epoch;
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PUBLICATION_EPOCH, epoch);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_EPOCH, producer_epoch);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_UPDATE_ID, update_id);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_INIT_GENERATION, init_generation);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_IDENTITY, producer_identity);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FREQ_ERROR, freq_error);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_BRANCH_ID, branch_id);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_BRANCH_ERROR, branch_error);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PI_X, pi_x);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PI_OUTPUT, pi_output);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PI_CLAMP_SIDE, pi_clamp_side);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FLAGS, flags);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FREQ_COUNT_BEFORE, freq_before);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FREQ_COUNT_AFTER, freq_after);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_COUNT_BEFORE, phase_before);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_COUNT_AFTER, phase_after);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_SAMPLE_N, sample_n);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_SOURCE_IDS, source_ids);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_TOTAL_UPDATES, total_updates);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FREQ_UPDATES, freq_updates);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_UPDATES, phase_updates);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FREQ_TO_PHASE, freq_to_phase);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_TO_FREQ, phase_to_freq);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_DETECTOR, phase_detector);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_IN_BAND, phase_in_band);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PHASE_OUT_BAND, phase_out_band);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_LAST_TRANSITION_UPDATE,
+		last_transition_update);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_LAST_TRANSITION,
+		last_transition);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_STATUS, status);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_LAST_FREQ_UPDATE,
+		last_freq_update);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_LAST_PHASE_UPDATE,
+		last_phase_update);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_FRAME_WORDS, frame_words);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_VERSION,
+		WRC_DIAGS_WDIAG_MAIN_PRODUCER_VERSION_VALUE);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_MAGIC,
+		WRC_DIAGS_WDIAG_MAIN_PRODUCER_MAGIC_VALUE);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PUBLICATION_EPOCH,
+		++wdiags_main_frequency_trace_epoch);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;
@@ -1378,6 +1510,7 @@ int wdiags_init(void)
 	wdiags_helper_pi_snapshot_overwrite_count = 0;
 	wdiags_main_frequency_trace_epoch = 0;
 	wdiags_main_frequency_trace_active = 0;
+	wdiags_main_producer_active = 0;
 	wdiags_wr_s_lock_trace_active = 0;
 	wdiags_wr_s_lock_trace_seq = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;

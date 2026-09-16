@@ -56,7 +56,7 @@ entity DE5a_wr_slave_portb is
   );
 end DE5a_wr_slave_portb;
 
-architecture rtl of DE5a_wr_slave_jtag is
+architecture rtl of DE5a_wr_slave_portb is
   component si5340a_controller_dco is
     generic (
       ENABLE_SAME_CODE_TEST : integer := 0;

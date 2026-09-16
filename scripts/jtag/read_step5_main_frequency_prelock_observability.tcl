@@ -43,8 +43,8 @@ if {[llength $argv] >= 8} { set f4k_expected_main_kp [expr {int([lindex $argv 7]
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j f4l} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, f4j, or f4l"
+    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j f4l f4m} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, f4j, f4l, or f4m"
 }
 if {$run_role eq "f4j" && $f4k_arm ne "UNSPECIFIED" &&
     [lsearch -exact {A1 B A2} $f4k_arm] < 0} {
@@ -341,6 +341,22 @@ set ::f4l_no_valid_timeout_ms 30000
 set ::f4l_smoke_duration_ms 60000
 set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
+set ::f4l_event_tag F4L
+set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
+
+# F4M is an observer-only closure run layered on the existing F4L wire image.
+# It records the page sequence as observed by one reader and samples the
+# existing WRS_S_LOCK trace at each Slave context.  It never requests a
+# control snapshot or writes any WR/SoftPLL state.
+set ::f4m_enabled 0
+array set ::f4m_current_page {}
+array set ::f4m_previous_page {}
+array set ::f4m_page_publish_count {}
+array set ::f4m_page_due_count {}
+array set ::f4m_page_skip_count {}
+array set ::f4m_page_rotation_count {}
+array set ::f4m_page_transition_mismatch_count {}
+array set ::f4m_first_loss_sample_count {}
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -3124,11 +3140,165 @@ proc f4l_initialize_board {role hardware_name} {
   set ::f4l_stop_reason($hardware_name) NONE
   set ::f4l_run_end_reason($hardware_name) NOT_REACHED
   set ::f4l_next_service_ms($hardware_name) 0
+  set ::f4m_current_page($hardware_name) INVALID
+  set ::f4m_previous_page($hardware_name) INVALID
+  set ::f4m_page_rotation_count($hardware_name) 0
+  set ::f4m_page_transition_mismatch_count($hardware_name) 0
+  set ::f4m_first_loss_sample_count($hardware_name) 0
   for {set page 0} {$page < 3} {incr page} {
     set page_key "$hardware_name:$page"
     set ::f4l_page_valid_count($page_key) 0
     set ::f4l_page_seen($page_key) 0
+    set ::f4m_page_publish_count($page_key) 0
+    set ::f4m_page_due_count($page_key) 0
+    set ::f4m_page_skip_count($page_key) 0
   }
+}
+
+# Record only unique, coherent page publications observed by this reader.
+# The expected page is an observer-side inference from the previous unique
+# page; a mismatch is therefore called a skip/mismatch, never a firmware
+# scheduling failure.  This distinction is important when a producer reset
+# or a slow reader aliases the page sequence.
+proc f4m_record_page {hardware_name elapsed_ms result} {
+  if {!$::f4m_enabled || ![lindex $result 0]} { return }
+  set page [lindex $result 4]
+  set source_epoch [lindex $result 5]
+  set update_id [lindex $result 6]
+  set init_generation [lindex $result 7]
+  set previous $::f4m_current_page($hardware_name)
+  set expected $page
+  if {$previous ne "INVALID"} {
+    set expected [expr {($previous + 1) % 3}]
+  }
+  incr ::f4m_page_due_count($hardware_name:$expected)
+  incr ::f4m_page_publish_count($hardware_name:$page)
+  set rotation 0
+  set mismatch 0
+  if {$previous ne "INVALID"} {
+    if {$page == $expected} {
+      incr ::f4m_page_rotation_count($hardware_name)
+      set rotation 1
+    } else {
+      incr ::f4m_page_skip_count($hardware_name:$expected)
+      incr ::f4m_page_transition_mismatch_count($hardware_name)
+      set mismatch 1
+    }
+  }
+  set ::f4m_previous_page($hardware_name) $previous
+  set ::f4m_current_page($hardware_name) $page
+  puts [join [list STEP5_F4M_PAGE_OBSERVATION \
+    "board=$hardware_name" "elapsed_ms=$elapsed_ms" \
+    "current_page=$page" "previous_page=$previous" \
+    "expected_page=$expected" "page_rotation=$rotation" \
+    "page_transition_mismatch=$mismatch" \
+    "page_publish_count_0=$::f4m_page_publish_count($hardware_name:0)" \
+    "page_publish_count_1=$::f4m_page_publish_count($hardware_name:1)" \
+    "page_publish_count_2=$::f4m_page_publish_count($hardware_name:2)" \
+    "page_due_count_0=$::f4m_page_due_count($hardware_name:0)" \
+    "page_due_count_1=$::f4m_page_due_count($hardware_name:1)" \
+    "page_due_count_2=$::f4m_page_due_count($hardware_name:2)" \
+    "page_skip_count_0=$::f4m_page_skip_count($hardware_name:0)" \
+    "page_skip_count_1=$::f4m_page_skip_count($hardware_name:1)" \
+    "page_skip_count_2=$::f4m_page_skip_count($hardware_name:2)" \
+    "page2_due_count=$::f4m_page_due_count($hardware_name:2)" \
+    "page2_skip_count=$::f4m_page_skip_count($hardware_name:2)" \
+    "page_rotation_count=$::f4m_page_rotation_count($hardware_name)" \
+    "source_epoch=$source_epoch" "update_id=$update_id" \
+    "init_generation=$init_generation" \
+    "semantics=UNIQUE_COHERENT_READER_OBSERVATION" \
+    "skip_semantics=OBSERVER_EXPECTED_NEXT_PAGE_MISMATCH" ] " "]
+  flush stdout
+}
+
+# The WRS_S_LOCK trace already has a dedicated read-only tail bank.  Sample it
+# together with the current Main/Helper frame so the first terminal transition
+# can be aligned to firmware's remaining-ms clock, without a second reader or
+# any diagnostic request that can perturb the shared bank.
+proc f4m_read_s_lock_trace {hardware_name} {
+  set host_start_ms [clock milliseconds]
+  set addresses {0x00100BE0 0x00100BE4 0x00100BE8 0x00100BEC \
+    0x00100BF0 0x00100BF4 0x00100BF8 0x00100BFC}
+  set payload {}
+  set valid 1
+  foreach address $addresses {
+    set raw [wb_read $hardware_name $address]
+    lappend payload $raw
+    if {![is_hex $raw]} { set valid 0 }
+  }
+  set host_end_ms [clock milliseconds]
+  set magic [word32 [lindex $payload 0]]
+  set stage [word32 [lindex $payload 1]]
+  set retry [word32 [lindex $payload 2]]
+  set entry_tics [word32 [lindex $payload 3]]
+  set remaining_ms [word32 [lindex $payload 4]]
+  set poll_ret [signed32 [lindex $payload 5]]
+  set wr_state [word32 [lindex $payload 6]]
+  set seq [word32 [lindex $payload 7]]
+  set trace_valid [expr {$valid && $magic == 0x5752534c ? 1 : 0}]
+  return [list $trace_valid $magic $stage $retry $entry_tics \
+    $remaining_ms $poll_ret $wr_state $seq $payload $host_start_ms $host_end_ms]
+}
+
+proc f4m_emit_first_loss_sample {hardware_name cycle elapsed_ms main_result \
+    helper_locked helper_residual helper_target helper_applied wr_result} {
+  set trace [f4m_read_s_lock_trace $hardware_name]
+  foreach {trace_valid magic stage retry entry_tics remaining_ms poll_ret \
+      trace_wr_state seq payload host_start_ms host_end_ms} $trace break
+  set first_loss [f4g_read_l2_word 61]
+  foreach {first_loss_raw first_loss_start_ms first_loss_end_ms \
+      first_loss_transport_valid} $first_loss break
+  set main_valid [lindex $main_result 0]
+  set main_page [lindex $main_result 4]
+  set main_source_epoch [lindex $main_result 5]
+  set main_update [lindex $main_result 6]
+  set main_generation [lindex $main_result 7]
+  set main_branch [lindex $main_result 9]
+  set main_flags [lindex $main_result 10]
+  set main_error [lindex $main_result 11]
+  set main_freq_error [lindex $main_result 12]
+  set main_pi_x [lindex $main_result 13]
+  set main_pi_output [lindex $main_result 14]
+  set main_phase_shift [lindex $main_result 16]
+  set wr_core_valid [lindex $wr_result 0]
+  set wr_terminal [lindex $wr_result 1]
+  set wr_state_value [lindex $wr_result 3]
+  set pstat_locked [lindex $wr_result 4]
+  incr ::f4m_first_loss_sample_count($hardware_name)
+  set current_page $::f4m_current_page($hardware_name)
+  set previous_page $::f4m_previous_page($hardware_name)
+  puts [join [list STEP5_F4M_FIRST_LOSS_SAMPLE \
+    "role=SLAVE" "board=$hardware_name" "cycle=$cycle" \
+    "elapsed_ms=$elapsed_ms" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "trace_duration_ms=[expr {$host_end_ms - $host_start_ms}]" \
+    "trace_valid=$trace_valid" "SLOCK_MAGIC_RAW=[lindex $payload 0]" \
+    "SLOCK_STAGE=$stage" "SLOCK_RETRY=$retry" \
+    "SLOCK_ENTRY_TICS=$entry_tics" "SLOCK_REMAINING_MS=$remaining_ms" \
+    "SLOCK_POLL_RET=$poll_ret" "SLOCK_WR_STATE=$trace_wr_state" \
+    "SLOCK_SEQ=$seq" "SLOCK_TRACE_MULTIWORD_ATOMICITY=NOT_AVAILABLE" \
+    "MAIN_F4L_VALID=$main_valid" "MAIN_F4L_PAGE=$main_page" \
+    "MAIN_F4L_CURRENT_PAGE=$current_page" \
+    "MAIN_F4L_PREVIOUS_PAGE=$previous_page" \
+    "MAIN_F4L_SOURCE_EPOCH=$main_source_epoch" \
+    "MAIN_F4L_UPDATE_ID=$main_update" \
+    "MAIN_F4L_INIT_GENERATION=$main_generation" \
+    "MAIN_BRANCH_ID=$main_branch" "MAIN_FLAGS=$main_flags" \
+    "MAIN_BRANCH_ERROR=$main_error" "MAIN_FREQ_ERROR=$main_freq_error" \
+    "MAIN_PI_X=$main_pi_x" "MAIN_PI_OUTPUT=$main_pi_output" \
+    "MAIN_PHASE_SHIFT_CURRENT=$main_phase_shift" \
+    "HELPER_LOCKED=$helper_locked" \
+    "HELPER_RESIDUAL_PRESENT=$helper_residual" \
+    "HELPER_TARGET_CODE=$helper_target" \
+    "HELPER_APPLIED_CODE=$helper_applied" \
+    "WR_CORE_VALID=$wr_core_valid" "WR_TERMINAL=$wr_terminal" \
+    "CURRENT_WR_STATE=$wr_state_value" "PSTAT_LOCKED=$pstat_locked" \
+    "L2_FIRST_LOSS_RAW=$first_loss_raw" \
+    "L2_FIRST_LOSS_VALID=$first_loss_transport_valid" \
+    "L2_FIRST_LOSS_READ_START_MS=$first_loss_start_ms" \
+    "L2_FIRST_LOSS_READ_END_MS=$first_loss_end_ms" \
+    "sample_semantics=PASSIVE_S_LOCK_AND_MAIN_CORRELATION" ] " "]
+  flush stdout
 }
 
 proc f4l_invalid_main_result {host_start_ms host_end_ms attempts transport_failure} {
@@ -3294,7 +3464,13 @@ proc f4l_emit_main_diag {hardware_name cycle elapsed_ms} {
   set host_end_ms [lindex $result 23]
   set attempts [lindex $result 24]
   set transport_failure [lindex $result 25]
+  set unique_before $::f4l_unique_count($hardware_name)
   set state_update [f4l_update_diag_state $hardware_name $elapsed_ms $result]
+  set unique_observation [expr {$::f4l_unique_count($hardware_name) >
+    $unique_before ? 1 : 0}]
+  if {$::f4m_enabled && $unique_observation} {
+    f4m_record_page $hardware_name $elapsed_ms $result
+  }
   set raw_pairs {}
   for {set i 0} {$i < 34} {incr i} {
     lappend raw_pairs [format "F4L_W%02d_RAW=%s" $i [lindex $payload $i]]
@@ -3303,7 +3479,7 @@ proc f4l_emit_main_diag {hardware_name cycle elapsed_ms} {
   if {$page == 0} { set page_name SUMMARY }
   if {$page == 1} { set page_name INTEGRATOR }
   if {$page == 2} { set page_name HISTOGRAM }
-  puts [join [concat [list STEP5_F4L_MAIN_DIAG \
+  puts [join [concat [list STEP5_${::f4l_event_tag}_MAIN_DIAG \
     "board=$hardware_name" "cycle=$cycle" \
     "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
     "elapsed_ms=$elapsed_ms" \
@@ -3323,7 +3499,7 @@ proc f4l_emit_main_diag {hardware_name cycle elapsed_ms} {
     "SCHEMA_VERSION_EXPECTED=1" "FRAME_WORDS=34" \
     "SOURCE_FRAME_EPOCH_RAW=[lindex $payload 3]" \
     "STATE_UPDATE=$state_update" "TRANSPORT_FAILURE=$transport_failure" \
-    "ATTEMPTS=$attempts"] $raw_pairs] " "]
+    "ATTEMPTS=$attempts" "UNIQUE_OBSERVATION=$unique_observation"] $raw_pairs] " "]
   flush stdout
   return $result
 }
@@ -3343,7 +3519,7 @@ proc f4l_emit_master_context {hardware_name device_name sample} {
     set ::wb_toggle($hardware_name) 0
     wb_sync_toggle $hardware_name
     set wr_result [f4g_emit_wr_core MASTER $hardware_name $sample \
-      STEP5_F4L_WR_CORE]
+      STEP5_${::f4l_event_tag}_WR_CORE]
     foreach {wr_core_valid terminal phy_link_usable wr_state_value \
         pstat_locked role_identity_valid reset_valid reset_changed \
         wr_transport_failure} $wr_result break
@@ -3361,7 +3537,7 @@ proc f4l_emit_master_context {hardware_name device_name sample} {
   f4g_update_core_health $hardware_name $elapsed_ms 1 0 1 0 \
     $wr_core_valid $wr_transport_failure
   if {$terminal} { f4l_set_stop WR_SESSION_ENDED }
-  puts [join [list STEP5_F4L_MASTER_SAMPLE "role=MASTER" \
+  puts [join [list STEP5_${::f4l_event_tag}_MASTER_SAMPLE "role=MASTER" \
     "board=$hardware_name" "sample=$sample" \
     "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
     "elapsed_ms=$elapsed_ms" "WR_CORE_VALID=$wr_core_valid" \
@@ -3429,10 +3605,16 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     f4g_emit_l2_word $hardware_name $cycle 53 PENDING $pending_result
     f4g_emit_service_demand $hardware_name $cycle $status_result $pending_result
     set wr_result [f4g_emit_wr_core SLAVE $hardware_name $cycle \
-      STEP5_F4L_WR_CORE]
+      STEP5_${::f4l_event_tag}_WR_CORE]
     foreach {wr_core_valid terminal phy_link_usable wr_state_value \
         pstat_locked role_identity_valid reset_valid reset_changed \
         wr_transport_failure} $wr_result break
+    if {$::f4m_enabled} {
+      f4m_emit_first_loss_sample $hardware_name $cycle \
+        [expr {[clock milliseconds] - $::f4l_session_start_ms}] \
+        $main_result $helper_locked $helper_residual $helper_target \
+        $helper_applied $wr_result
+    }
     set now_elapsed [expr {[clock milliseconds] - $::f4l_session_start_ms}]
     if {$now_elapsed >= $::f4l_next_service_ms($hardware_name)} {
       foreach {l2_probe l2_name} {54 START 55 COMPLETED 56 FAILED 57 MAX_WAIT \
@@ -3462,7 +3644,7 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     set terminal 0
     set wr_transport_failure 1
     set context_error [string map [list " " _ "\n" | "\r" |] $context_error]
-    puts [join [list STEP5_F4L_CONTEXT_ERROR "role=SLAVE" \
+    puts [join [list STEP5_${::f4l_event_tag}_CONTEXT_ERROR "role=SLAVE" \
       "board=$hardware_name" "cycle=$cycle" \
       "host_start_ms=$context_host_start" "host_end_ms=$context_host_end" \
       "elapsed_ms=$elapsed_final" "error=$context_error"] " "]
@@ -3473,7 +3655,7 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     $helper_transport_failure $main_valid $main_transport_failure \
     $wr_core_valid $wr_transport_failure
   if {$terminal} { f4l_set_stop WR_SESSION_ENDED }
-  puts [join [list STEP5_F4L_CYCLE "role=SLAVE" "board=$hardware_name" \
+  puts [join [list STEP5_${::f4l_event_tag}_CYCLE "role=SLAVE" "board=$hardware_name" \
     "cycle=$cycle" "host_start_ms=$context_host_start" \
     "host_end_ms=$context_host_end" "elapsed_ms=$elapsed_final" \
     "context_duration_ms=[expr {$context_host_end - $context_host_start}]" \
@@ -3495,6 +3677,7 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
 
 proc run_f4l_main_phase_drift_integrator_balance {} {
   global samples target_duration_ms hard_duration_ms gap_ms
+  set event_tag $::f4l_event_tag
   set targets [f4e_collect_targets]
   set master_target ""
   set slave_target ""
@@ -3515,9 +3698,9 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
   set smoke_duration 60000
   set ::f4l_no_valid_timeout_ms $no_valid_timeout_ms
   set ::f4l_smoke_duration_ms $smoke_duration
-  puts [join [list STEP5_F4L_CONFIG \
-    "experiment=EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916" \
-    "run_role=f4l" "samples_max=$samples" "smoke_duration_ms=$smoke_duration" \
+  puts [join [list STEP5_${event_tag}_CONFIG \
+    "experiment=$::f4l_experiment_name" \
+    "run_role=[string tolower $event_tag]" "samples_max=$samples" "smoke_duration_ms=$smoke_duration" \
     "no_valid_timeout_ms=$no_valid_timeout_ms" \
     "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
     "cadence_hint_ms=$gap_ms" "main_f4l_window=0x00100B58..0x00100BDC" \
@@ -3537,18 +3720,20 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
     "no_shared_control_struct_extension=1" "no_rtl_or_sdb_change=1" \
     "control_parameters_unchanged=1" "step5_complete=NO" \
-    "merge_approved=NO"] " "]
+    "merge_approved=NO" "f4m_observer_enabled=$::f4m_enabled" \
+    "s_lock_trace_addresses=0x00100BE0..0x00100BFC" \
+    "s_lock_trace_alignment=FIRMWARE_REMAINING_MS_AUXILIARY"] " "]
   flush stdout
   if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
-    puts "STEP5_F4L_CONFIG_ERROR required=MASTER+SLAVE discovered=[llength $targets]"
-    puts "STEP5_F4L_DONE run_end_reason=CONFIG_INVALID stop_reason=CONFIG_INVALID diagnostic_complete=NO step5_complete=NO step5_pass=NO merge_approved=NO"
+    puts "STEP5_${event_tag}_CONFIG_ERROR required=MASTER+SLAVE discovered=[llength $targets]"
+    puts "STEP5_${event_tag}_DONE run_end_reason=CONFIG_INVALID stop_reason=CONFIG_INVALID diagnostic_complete=NO step5_complete=NO step5_pass=NO merge_approved=NO"
     flush stdout
     return
   }
   f4l_initialize_board MASTER [lindex $master_target 1]
   f4l_initialize_board SLAVE [lindex $slave_target 1]
-  set ::f4g_run_role f4l
-  set ::f4g_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
+  set ::f4g_run_role [string tolower $event_tag]
+  set ::f4g_experiment_name $::f4l_experiment_name
   set ::f4g_phy_status_source JTAG_PROBE0
   set ::f4g_global_stop_reason NONE
   set ::f4l_smoke_ok 0
@@ -3583,7 +3768,7 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
         }
         if {$::f4l_valid_count($slave_name) >= 3 && $smoke_pages} {
           set ::f4l_smoke_ok 1
-          puts [join [list STEP5_F4L_SMOKE "board=$slave_name" \
+          puts [join [list STEP5_${event_tag}_SMOKE "board=$slave_name" \
             "elapsed_ms=$elapsed_now" "result=PASS" \
             "valid=$::f4l_valid_count($slave_name)" \
             "unique=$::f4l_unique_count($slave_name)" \
@@ -3634,7 +3819,7 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     set role [lindex $target 0]
     set hardware_name [lindex $target 1]
     set ::f4l_run_end_reason($hardware_name) $end_reason
-    puts [join [list STEP5_F4L_ROLE_SUMMARY "role=$role" \
+    puts [join [list STEP5_${event_tag}_ROLE_SUMMARY "role=$role" \
       "board=$hardware_name" "diag_valid=$::f4l_valid_count($hardware_name)" \
       "diag_unique=$::f4l_unique_count($hardware_name)" \
       "diag_duplicates=$::f4l_duplicate_count($hardware_name)" \
@@ -3644,7 +3829,13 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
       "stop_reason=$::f4l_stop_reason($hardware_name)" \
       "run_end_reason=$end_reason"] " "]
   }
-  puts [join [list STEP5_F4L_DONE "session_elapsed_ms=$session_elapsed" \
+  set f4m_page_closure 0
+  if {$::f4m_enabled} {
+    set f4m_page_closure [expr {$::f4m_page_publish_count($slave_name:0) > 0 &&
+      $::f4m_page_publish_count($slave_name:1) > 0 &&
+      $::f4m_page_publish_count($slave_name:2) > 0 ? 1 : 0}]
+  }
+  puts [join [list STEP5_${event_tag}_DONE "session_elapsed_ms=$session_elapsed" \
     "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
     "slave_cycles=$slave_cycle" "master_samples=$master_sample" \
     "smoke_ok=$::f4l_smoke_ok" "diag_valid=$::f4l_valid_count($slave_name)" \
@@ -3652,10 +3843,30 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "page0=$::f4l_page_valid_count($slave_name:0)" \
     "page1=$::f4l_page_valid_count($slave_name:1)" \
     "page2=$::f4l_page_valid_count($slave_name:2)" \
+    "page_publish_count_0=$::f4m_page_publish_count($slave_name:0)" \
+    "page_publish_count_1=$::f4m_page_publish_count($slave_name:1)" \
+    "page_publish_count_2=$::f4m_page_publish_count($slave_name:2)" \
+    "page2_due_count=$::f4m_page_due_count($slave_name:2)" \
+    "page2_skip_count=$::f4m_page_skip_count($slave_name:2)" \
+    "page_rotation_count=$::f4m_page_rotation_count($slave_name)" \
+    "page_transition_mismatch_count=$::f4m_page_transition_mismatch_count($slave_name)" \
+    "first_loss_sample_count=$::f4m_first_loss_sample_count($slave_name)" \
+    "page_closure=$f4m_page_closure" \
     "run_end_reason=$end_reason" "stop_reason=$::f4g_global_stop_reason" \
     "single_reader=PASS" "diagnostic_complete=PENDING_OFFLINE_ANALYSIS" \
     "step5_complete=NO" "step5_pass=NO" "merge_approved=NO"] " "]
   flush stdout
+}
+
+proc run_f4m_first_loss_full_rotation {} {
+  # F4M reuses the established F4L reader and scheduler so that this run
+  # changes only observer output: page-sequence bookkeeping plus the existing
+  # WRS_S_LOCK tail snapshot.  The firmware image and all controller
+  # parameters remain exactly those of the preceding F4L run.
+  set ::f4m_enabled 1
+  set ::f4l_event_tag F4M
+  set ::f4l_experiment_name EXP-S5-F4M-F4L-FIRST-LOSS-FULL-ROTATION-20260916
+  run_f4l_main_phase_drift_integrator_balance
 }
 
 proc run_f4j_main_producer_handoff_snapshot {} {
@@ -5974,10 +6185,19 @@ if {$run_role eq "f4j"} {
 }
 
 if {$run_role eq "f4l"} {
+  set ::f4m_enabled 0
+  set ::f4l_event_tag F4L
+  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
   set ::f4g_run_role f4l
-  set ::f4g_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
+  set ::f4g_experiment_name $::f4l_experiment_name
   set ::f4g_phy_status_source JTAG_PROBE0
   run_f4l_main_phase_drift_integrator_balance
+  exit 0
+}
+
+if {$run_role eq "f4m"} {
+  set ::f4g_phy_status_source JTAG_PROBE0
+  run_f4m_first_loss_full_rotation
   exit 0
 }
 

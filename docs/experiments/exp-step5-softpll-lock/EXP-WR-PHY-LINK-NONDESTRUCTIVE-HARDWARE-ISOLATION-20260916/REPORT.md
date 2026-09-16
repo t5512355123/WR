@@ -112,4 +112,3 @@ The exact pre-reseat logs remain on Pain under:
 ```
 
 Their hashes and sizes are in `manifest.json`.
-

@@ -1,0 +1,10 @@
+=== MASTER IMAGE HASHES ===
+735fda963e9e562ec893c05c7801acbcf1f2d0fde1b569fecc5ce340057fec24  build/firmware/master/wrc.elf
+aaa974cc7f283a084cb55ec4e59646c913088225d6e9de3b82e8a3eae6971b6b  build/firmware/master/wrc.bin
+51ef27bcb6383f2d5dc1bd363d948d0ae680ea77bdf3f3dab715abc374215f3b  build/firmware/master/wrc.mif
+047c2f421fe55ad8e2b02347e665dede39b7a047c9eb0eb007841b81e03ae5e8  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+=== SLAVE IMAGE HASHES ===
+067d2128057bf838323269a1c7d4a1c934628ccc3ef7124cec67cafcd4a01f35  build/firmware/slave/wrc.elf
+aab097cc2b22873914ef36319630405971bcae7129a77d999b5ae49c1ff3c910  build/firmware/slave/wrc.bin
+0f6b4c7f5d72a72b49d183442039a5206319bc8614ab04d220fecc097c456d87  build/firmware/slave/wrc.mif
+848e6ff87ab6a43369ab62488fdb8c4f889a4a7b9d4c9549193fee4b5af3ad78  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

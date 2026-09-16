@@ -1,0 +1,67 @@
+{
+  "experiment": "EXP-S5-F4I-MAIN-FREQUENCY-PHASE-HANDOFF-AUDIT-20260916",
+  "date": "2026-09-16",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "a67fee352e57213bc05dc06d5518462d97a54d55",
+  "pain_checkout": "a67fee352e57213bc05dc06d5518462d97a54d55",
+  "run_role": "f4i",
+  "targets": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "sof_sha256": {
+    "master": "add03fb14c93c8dec231bf217c9ba5d49c6faa58969f765b417d17b684cfe549",
+    "slave": "012dec89a28b40f02bb095a80a7c91457be757267c8cf96b41432b61bb9c0a76"
+  },
+  "capture": {
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "session_elapsed_ms": 120041,
+    "slave_cycles": 100,
+    "master_samples": 34,
+    "main_trace_count": 100,
+    "main_trace_valid_count": 100,
+    "main_unique_count": 64,
+    "main_duplicate_count": 36,
+    "main_progress_count": 63,
+    "domain_transitions": 8,
+    "run_end_reason": "TARGET_REACHED",
+    "stop_reason": "NONE",
+    "single_reader": "PASS"
+  },
+  "coverage": {
+    "main_unique_span_ms": 118927,
+    "valid_background_bins": 12,
+    "required_unique_main": 20,
+    "required_main_span_ms": 30000,
+    "required_background_bins": 3,
+    "wr_core_rows": 134,
+    "phy_valid_rows": 134,
+    "phy_gate_pass_rows": 134,
+    "context_errors": 0
+  },
+  "service": {
+    "main_completed_delta_sum_by_bins": 56205,
+    "helper_completed_delta_sum_by_bins": 6327,
+    "main_start_delta_sum_by_bins": 56204,
+    "helper_start_delta_sum_by_bins": 6327,
+    "helper_state_rows": 100,
+    "helper_locked_rows": 100
+  },
+  "verdict": {
+    "classification": "RESIDUAL_FREQUENCY_WITH_VISIBLE_HANDOFFS",
+    "diagnostic_pass": true,
+    "step5_complete": false,
+    "step5_pass": false,
+    "merge_approved": false,
+    "producer_domain_coherence": "UNPROVEN"
+  },
+  "hashes": {
+    "formal_log": "c2da4c61c931c0e021ee4b872471c26c0256905b637e9bd7f78ae800fec3d5f",
+    "smoke_log": "55307aaeed31696f8ade4c504e4161df5ba728f9d1af3c0a8e88b8ac544af491",
+    "archive": "dcde493da372932cf55916d498bef893c8ebd5f0f6f0f6f624a78f7767492bc436"
+  },
+  "production_control_changed": false,
+  "power_cycle": false
+}

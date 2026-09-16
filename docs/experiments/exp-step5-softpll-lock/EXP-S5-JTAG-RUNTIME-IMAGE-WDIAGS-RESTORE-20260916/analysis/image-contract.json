@@ -1,0 +1,69 @@
+{
+  "source_root": "C:\\Users\\zenbook\\我的雲端硬碟\\碩士班研究資料\\04_WR",
+  "classification": "PASS",
+  "image_contract_pass": true,
+  "required_probe_indices": [
+    0,
+    1
+  ],
+  "production_c_or_rtl_modified": false,
+  "hardware_inspected": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "checks": [
+    {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf",
+      "requirement": "Master JTAG QSF includes the mailbox source",
+      "needle": "VHDL_FILE wr_jtag_wb_mailbox.vhd",
+      "present": true
+    },
+    {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf",
+      "requirement": "Slave JTAG QSF includes the mailbox source",
+      "needle": "VHDL_FILE wr_jtag_wb_mailbox.vhd",
+      "present": true
+    },
+    {
+      "path": "quartus/jtag_runtime_diag/wr_jtag_wb_mailbox.vhd",
+      "requirement": "Mailbox is pinned to source/probe instance 1",
+      "needle": "sld_instance_index      => 1",
+      "present": true
+    },
+    {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd",
+      "requirement": "Master top instantiates the mailbox",
+      "needle": "u_jtag_wb_mailbox",
+      "present": true
+    },
+    {
+      "path": "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+      "requirement": "Slave top instantiates the mailbox",
+      "needle": "u_jtag_wb_mailbox",
+      "present": true
+    },
+    {
+      "path": "scripts/build/build_jtag_master.sh",
+      "requirement": "Master build selects the JTAG runtime project",
+      "needle": "PROJECT_DIR=\"$ROOT/quartus/jtag_runtime_diag\"",
+      "present": true
+    },
+    {
+      "path": "scripts/build/build_jtag_slave.sh",
+      "requirement": "Slave build selects the JTAG runtime project",
+      "needle": "PROJECT_DIR=\"$ROOT/quartus/jtag_runtime_diag\"",
+      "present": true
+    },
+    {
+      "path": "scripts/program/program_jtag_master.sh",
+      "requirement": "Master programmer selects the JTAG runtime SOF",
+      "needle": "jtag_runtime_diag/output_files_master_jtag",
+      "present": true
+    },
+    {
+      "path": "scripts/program/program_jtag_slave.sh",
+      "requirement": "Slave programmer selects the JTAG runtime SOF",
+      "needle": "jtag_runtime_diag/output_files_slave_jtag",
+      "present": true
+    }
+  ]
+}

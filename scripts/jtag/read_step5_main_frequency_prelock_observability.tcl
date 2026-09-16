@@ -38,8 +38,8 @@ if {[llength $argv] >= 6} { set run_role [string tolower [lindex $argv 5]] }
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long acquisition f4f f4g} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, or f4g"
+    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, or f4h"
 }
 
 array set ::wb_toggle {}
@@ -240,6 +240,9 @@ array set ::f4g_run_end_reason {}
 set ::f4g_global_stop_reason NONE
 set ::f4g_session_start_ms 0
 set ::f4g_session_end_ms 0
+set ::f4g_run_role f4g
+set ::f4g_experiment_name EXP-S5-F4G-COMPACT-HELPER-MAIN-SERVICE-WINDOW-20260915
+set ::f4g_phy_status_source WDIAGS_CTRL_LEGACY
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -825,6 +828,24 @@ proc f4g_raw_high32 {value} {
   return [format %08X $word]
 }
 
+proc f4g_phy_failure_bits {valid si_config_done wr_ready core_tm_link_up \
+    core_link_ok wr_rx_ready wr_tx_ready} {
+  if {!$valid} { return UNKNOWN }
+  set failures {}
+  foreach {name value} [list \
+      SI_CONFIG_DONE $si_config_done \
+      WR_READY $wr_ready \
+      CORE_TM_LINK_UP $core_tm_link_up \
+      CORE_LINK_OK $core_link_ok \
+      WR_RX_READY $wr_rx_ready \
+      WR_TX_READY $wr_tx_ready] {
+    if {![f4g_is_number $value]} { return UNKNOWN }
+    if {$value != 1} { lappend failures $name }
+  }
+  if {[llength $failures] == 0} { return NONE }
+  return [join $failures ","]
+}
+
 proc f4g_initialize_board {role hardware_name} {
   set ::f4g_role($hardware_name) $role
   set ::wb_toggle($hardware_name) 0
@@ -1176,7 +1197,10 @@ proc f4g_emit_helper_position {hardware_name cycle} {
 
 proc f4g_emit_wr_core {role hardware_name cycle prefix} {
   set host_start_ms [clock milliseconds]
-  set status [wb_read $hardware_name 0x00100A04]
+  # WDIAGS_CTRL and the direct WR_SYNC probe are different interfaces.  F4G
+  # keeps the historical CTRL decoder; F4H selects instance 0 for the
+  # physical WR status predicate and records both sources independently.
+  set wdiags_ctrl [wb_read $hardware_name 0x00100A04]
   set sstat [wb_read $hardware_name 0x00100A08]
   set ptp_meta [wb_read $hardware_name 0x00100A5C]
   set wr_failure [wb_read $hardware_name 0x00100A6C]
@@ -1184,11 +1208,18 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
   set pstat [wb_read $hardware_name 0x00100A0C]
   set lock_result [wb_read $hardware_name 0x00100A8C]
   set spll_state [wb_read $hardware_name 0x00100AA0]
+  set phy_status_probe0 NOT_MEASURED
+  if {$::f4g_phy_status_source eq "JTAG_PROBE0"} {
+    set phy_status_probe0 [probe_read 0]
+  }
   set entry_probe [probe_read 26]
   set reset_probe [probe_read 27]
   set host_end_ms [clock milliseconds]
-  set direct_values [list $status $sstat $ptp_meta $wr_failure $wr_state \
+  set direct_values [list $wdiags_ctrl $sstat $ptp_meta $wr_failure $wr_state \
     $pstat $lock_result $spll_state $entry_probe $reset_probe]
+  if {$::f4g_phy_status_source eq "JTAG_PROBE0"} {
+    lappend direct_values $phy_status_probe0
+  }
   set direct_valid 1
   set transport_failure 0
   foreach value $direct_values {
@@ -1199,16 +1230,33 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
   set reset_state [f4g_update_reset_state $hardware_name $entry_probe $reset_probe]
   foreach {reset_valid reset_changed boot_generation cpu_reset_count \
       wr_core_reset_count si_drop_count} $reset_state break
-  set status_valid [is_hex $status]
-  set si_config_done [field32 $status 0 1]
-  set wr_ready [field32 $status 1 1]
-  set core_tm_link_up [field32 $status 2 1]
-  set core_link_ok [field32 $status 3 1]
-  set wr_rx_ready [field32 $status 6 1]
-  set wr_tx_ready [field32 $status 7 1]
-  set cpu_reset_n [field32 $status 15 1]
+
+  set wdiags_ctrl_valid [is_hex $wdiags_ctrl]
+  set wdiags_ctrl_data_valid [field32 $wdiags_ctrl 0 1]
+  set wdiags_ctrl_data_snapshot [field32 $wdiags_ctrl 8 1]
+  set phy_status_valid [is_hex $phy_status_probe0]
+  if {$::f4g_phy_status_source eq "JTAG_PROBE0"} {
+    set phy_decode_source $phy_status_probe0
+  } else {
+    # Preserve the historical F4G decoder exactly for old captures.
+    set phy_decode_source $wdiags_ctrl
+    set phy_status_valid $wdiags_ctrl_valid
+  }
+  set si_config_done [field32 $phy_decode_source 0 1]
+  set wr_ready [field32 $phy_decode_source 1 1]
+  set core_tm_link_up [field32 $phy_decode_source 2 1]
+  set core_link_ok [field32 $phy_decode_source 3 1]
+  set wr_rx_ready [field32 $phy_decode_source 6 1]
+  set wr_tx_ready [field32 $phy_decode_source 7 1]
+  set cpu_reset_n [field32 $phy_decode_source 15 1]
+  set phy_rx_locked_to_data NOT_MEASURED
+  set phy_rx_locked_to_ref NOT_MEASURED
+  if {$::f4g_phy_status_source eq "JTAG_PROBE0"} {
+    set phy_rx_locked_to_data [field64 $phy_status_probe0 32 1]
+    set phy_rx_locked_to_ref [field64 $phy_status_probe0 33 1]
+  }
   set phy_link_usable 0
-  if {$status_valid && [f4g_is_number $si_config_done] &&
+  if {$phy_status_valid && [f4g_is_number $si_config_done] &&
       [f4g_is_number $wr_ready] && [f4g_is_number $core_tm_link_up] &&
       [f4g_is_number $core_link_ok] && [f4g_is_number $wr_rx_ready] &&
       [f4g_is_number $wr_tx_ready] && $si_config_done == 1 &&
@@ -1216,12 +1264,16 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
       $wr_rx_ready == 1 && $wr_tx_ready == 1} {
     set phy_link_usable 1
   }
+  set phy_gate_failure_bits [f4g_phy_failure_bits $phy_status_valid \
+    $si_config_done $wr_ready $core_tm_link_up $core_link_ok \
+    $wr_rx_ready $wr_tx_ready]
   set ptp_state [field32 $ptp_meta 0 8]
   set pd_state [field32 $ptp_meta 8 8]
   set ext_state [field32 $ptp_meta 16 8]
   set wrc_mode [field32 $ptp_meta 24 8]
   set wr_state_value [field32 $wr_state 11 4]
   set wr_next_state [field32 $wr_state 15 4]
+  set pstat_link [field32 $pstat 0 1]
   set pstat_locked [field32 $pstat 1 1]
   set spll_delock_count [field32 $spll_state 24 8]
   set wr_disable_valid [field32 $wr_failure 11 1]
@@ -1247,8 +1299,17 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
   if {$::f4g_terminal_streak($hardware_name) >= 2} {
     f4g_set_stop WR_SESSION_ENDED
   }
+  set core_data_valid 1
+  if {$::f4g_phy_status_source eq "JTAG_PROBE0"} {
+    # A valid direct probe is physical evidence, but CTRL DATA_VALID remains
+    # an independent diagnostic-data gate.  Do not manufacture WR_CORE_VALID
+    # from a good probe when the WDIAGS control word says its snapshot is not
+    # valid.
+    set core_data_valid [expr {$wdiags_ctrl_data_valid == 1 ? 1 : 0}]
+  }
   set core_valid [expr {$direct_valid && $role_identity_valid &&
-    $reset_valid ? 1 : 0}]
+    $reset_valid && $core_data_valid ? 1 : 0}]
+  set phy_source_id [expr {$role eq "MASTER" ? "WR_SYNC_MASTER" : "WR_SYNC_SLAVE"}]
   puts [join [list $prefix \
     "role=$role" "board=$hardware_name" "cycle=$cycle" \
     "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
@@ -1256,17 +1317,32 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
     "WR_CORE_VALID=$core_valid" "DIRECT_VALID=$direct_valid" \
     "TRANSPORT_FAILURE=$transport_failure" \
     "ROLE_IDENTITY_VALID=$role_identity_valid" \
-    "STATUS_RAW=$status" "SSTAT_RAW=$sstat" "PTP_META_RAW=$ptp_meta" \
-    "WR_FAILURE_RAW=$wr_failure" "WR_STATE_RAW=$wr_state" \
-    "PSTAT_RAW=$pstat" "LOCK_RESULT_RAW=$lock_result" \
-    "SPLL_STATE_RAW=$spll_state" "ENTRY_PROBE_RAW=$entry_probe" \
-    "RESET_PROBE_RAW=$reset_probe" "SI_CONFIG_DONE=$si_config_done" \
+    "STATUS_RAW=$wdiags_ctrl" "STATUS_VALID=$wdiags_ctrl_valid" \
+    "WDIAGS_CTRL_RAW=$wdiags_ctrl" "WDIAGS_CTRL_VALID=$wdiags_ctrl_valid" \
+    "WDIAGS_CTRL_DATA_VALID=$wdiags_ctrl_data_valid" \
+    "WDIAGS_CTRL_DATA_SNAPSHOT=$wdiags_ctrl_data_snapshot" \
+    "WDIAGS_CTRL_ADDR=0x00100A04" "SSTAT_RAW=$sstat" \
+    "PTP_META_RAW=$ptp_meta" "WR_FAILURE_RAW=$wr_failure" \
+    "WR_STATE_RAW=$wr_state" "PSTAT_RAW=$pstat" \
+    "LOCK_RESULT_RAW=$lock_result" "SPLL_STATE_RAW=$spll_state" \
+    "ENTRY_PROBE_RAW=$entry_probe" "RESET_PROBE_RAW=$reset_probe" \
+    "RESET_PROBE_SOURCE=JTAG_PROBE26_27" "SI_CONFIG_DONE=$si_config_done" \
     "WR_READY=$wr_ready" "CORE_TM_LINK_UP=$core_tm_link_up" \
     "CORE_LINK_OK=$core_link_ok" "WR_RX_READY=$wr_rx_ready" \
     "WR_TX_READY=$wr_tx_ready" "CPU_RESET_N=$cpu_reset_n" \
+    "PHY_STATUS_PROBE0_RAW=$phy_status_probe0" \
+    "PHY_STATUS_VALID=$phy_status_valid" \
+    "PHY_STATUS_SOURCE=$::f4g_phy_status_source" \
+    "PHY_STATUS_SOURCE_ID=$phy_source_id" "PHY_STATUS_INSTANCE=0" \
+    "PHY_STATUS_WIDTH_BITS=64" "PHY_GATE_REQUIRED_MASK=000000CF" \
+    "PHY_GATE_FAILURE_BITS=$phy_gate_failure_bits" \
+    "PHY_RX_LOCKED_TO_DATA=$phy_rx_locked_to_data" \
+    "PHY_RX_LOCKED_TO_REF=$phy_rx_locked_to_ref" \
+    "WR_CORE_DATA_VALID=$core_data_valid" \
     "PHY_LINK_USABLE=$phy_link_usable" "PTP_STATE=$ptp_state" \
     "PD_STATE=$pd_state" "EXT_STATE=$ext_state" "WRC_MODE=$wrc_mode" \
     "CURRENT_WR_STATE=$wr_state_value" "WR_NEXT_STATE=$wr_next_state" \
+    "PSTAT_ADDR=0x00100A0C" "PSTAT_LINK=$pstat_link" \
     "PSTAT_LOCKED=$pstat_locked" "SPLL_DELOCK_COUNT=$spll_delock_count" \
     "BOOT_GENERATION=$boot_generation" "CPU_RESET_COUNT=$cpu_reset_count" \
     "WR_CORE_RESET_COUNT=$wr_core_reset_count" \
@@ -1642,8 +1718,8 @@ proc run_f4g_compact_progress_window {} {
   set hard_duration $hard_duration_ms
   if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
   puts [join [list STEP5_F4G_CONFIG \
-    "experiment=EXP-S5-F4G-COMPACT-HELPER-MAIN-SERVICE-WINDOW-20260915" \
-    "run_role=f4g" "samples_max=$samples" \
+    "experiment=$::f4g_experiment_name" \
+    "run_role=$::f4g_run_role" "samples_max=$samples" \
     "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
     "cadence_hint_ms=$gap_ms" "slave_profile=CORE_ONLY" \
     "helper_core_offsets=0x00100B00,0x00100B14,0x00100B18,0x00100B1C" \
@@ -1662,6 +1738,12 @@ proc run_f4g_compact_progress_window {} {
     "source_contract=helper_source_contract.md" \
     "source_contract_verified=YES" "dynamic_owner_verified=NOT_AVAILABLE" \
     "runtime_image_verified=REQUIRED_AT_CAPTURE" \
+    "wdiags_ctrl_addr=0x00100A04" "wdiags_ctrl_width_bits=32" \
+    "phy_status_source=$::f4g_phy_status_source" \
+    "phy_status_instance=0" "phy_status_width_bits=64" \
+    "phy_required_bits=SI_CONFIG_DONE:0,WR_READY:1,CORE_TM_LINK_UP:2,CORE_LINK_OK:3,WR_RX_READY:6,WR_TX_READY:7" \
+    "phy_required_mask=000000CF" "pstat_addr=0x00100A0C" \
+    "pstat_link_bit=0" "pstat_locked_bit=1" \
     "step5_complete=NO" "merge_approved=NO"] " "]
   flush stdout
   if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
@@ -3891,6 +3973,17 @@ if {$run_role eq "f4f"} {
 }
 
 if {$run_role eq "f4g"} {
+  set ::f4g_run_role f4g
+  set ::f4g_experiment_name EXP-S5-F4G-COMPACT-HELPER-MAIN-SERVICE-WINDOW-20260915
+  set ::f4g_phy_status_source WDIAGS_CTRL_LEGACY
+  run_f4g_compact_progress_window
+  exit 0
+}
+
+if {$run_role eq "f4h"} {
+  set ::f4g_run_role f4h
+  set ::f4g_experiment_name EXP-S5-F4H-PHY-STATUS-SOURCE-FIX-RETEST-20260916
+  set ::f4g_phy_status_source JTAG_PROBE0
   run_f4g_compact_progress_window
   exit 0
 }

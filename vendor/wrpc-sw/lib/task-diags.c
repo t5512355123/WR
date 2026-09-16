@@ -75,10 +75,9 @@ int wrc_wr_diags(void)
 	int main_f4l_snapshot_valid;
 	struct spll_main_f4l_diag_frame main_f4l_frame;
 #endif
-	uint32_t pi_trace_epoch = 0xffffffffu;
 #if !DE5A_F4L_MAIN_PHASE_DIAG
+	uint32_t pi_trace_epoch = 0xffffffffu;
 	uint32_t pi_snapshot_request_seq = 0;
-#endif
 	uint32_t pi_trace_lock_state = 0;
 	uint32_t pi_trace_update_count = 0;
 	int32_t pi_trace_tag_raw = 0;
@@ -107,6 +106,7 @@ int wrc_wr_diags(void)
 	int32_t pi_trace_lock_samples = 0;
 	int32_t pi_trace_ref_src = 0;
 	int pi_trace_snapshot_valid;
+#endif
 
 	struct pp_instance *ppi = ppg->pp_instances;
 	valid    = wdiag_get_valid();
@@ -347,7 +347,9 @@ int wrc_wr_diags(void)
 			 * source payload is captured in helper_update(); WDIAGS is only a
 			 * slower transport window for the passive JTAG observer. */
 			measurement_snapshot_valid = 0;
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 			pi_trace_snapshot_valid = 0;
+#endif
 			for (i = 0; i < 4 && !measurement_snapshot_valid; i++) {
 				measurement_epoch_before =
 					wrpc_spll_helper_measurement_epoch;
@@ -376,6 +378,7 @@ int wrc_wr_diags(void)
 					wrpc_spll_helper_measurement_dmtd_ref_accept_count;
 				measurement_fb_accept_count =
 					wrpc_spll_helper_measurement_dmtd_fb_accept_count;
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 				pi_trace_tag_raw = wrpc_spll_helper_last_tag;
 				pi_trace_p_adder = wrpc_spll_helper_p_adder;
 				/* The error is formed against expected_tag before the next
@@ -414,6 +417,7 @@ int wrc_wr_diags(void)
 				pi_trace_lock_threshold = softpll.helper.ld.threshold;
 				pi_trace_lock_samples = softpll.helper.ld.lock_samples;
 				pi_trace_ref_src = softpll.helper.ref_src;
+#endif
 				measurement_epoch_after =
 					wrpc_spll_helper_measurement_epoch;
 				pi_source_epoch_after = softpll.helper.pi.trace_epoch;
@@ -423,8 +427,10 @@ int wrc_wr_diags(void)
 				    !(pi_source_epoch_after & 1u)) {
 					measurement_epoch = measurement_epoch_after;
 					measurement_snapshot_valid = 1;
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 					pi_trace_epoch = measurement_epoch_after;
 					pi_trace_snapshot_valid = 1;
+#endif
 				}
 			}
 			wdiags_write_wr_spll_helper_measurement_debug(
@@ -481,9 +487,6 @@ int wrc_wr_diags(void)
 					pi_snapshot_request_seq);
 			}
 #endif
-			#if DE5A_F4L_MAIN_PHASE_DIAG
-			(void)pi_trace_snapshot_valid;
-			#endif
 
 		}
 	}

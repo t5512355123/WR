@@ -1,0 +1,180 @@
+{
+  "format": "step5-f4k-slave-main-kp-aba-v1",
+  "experiment": "EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916",
+  "common_window_ms": null,
+  "baseline_reproducible": false,
+  "direction_supported": false,
+  "comparison_checks": [
+    "ONE_OR_MORE_ARMS_NOT_READY"
+  ],
+  "classification": "ARM_DATA_INVALID",
+  "diagnostic_pass": false,
+  "step5_complete": false,
+  "step5_pass": false,
+  "merge_approved": false,
+  "arms": {
+    "A1": {
+      "path": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916\\raw\\A1\\observer-formal.log",
+      "expected_arm": "A1",
+      "expected_main_kp": 300,
+      "configured_arm": "A1",
+      "configured_main_kp": 300,
+      "config_scope": "F4K_SLAVE_MAIN_KP_ONLY",
+      "session_elapsed_ms": 40907,
+      "stop_reason": "WR_SESSION_ENDED",
+      "ready": false,
+      "checks": [
+        "CYCLE_WR_SESSION_ENDED",
+        "FORMAL_STOP_WR_SESSION_ENDED",
+        "FORMAL_WINDOW_SHORT",
+        "STOP_WR_SESSION_ENDED",
+        "WR_TERMINAL"
+      ],
+      "classification": "DIAGNOSTIC_IMPLEMENTATION_LIMITED",
+      "f4j_diagnostic_pass": false,
+      "unique_count": 22,
+      "unique_span_ms": 39830,
+      "valid_background_bin_count": 4,
+      "safety": {
+        "safe": false,
+        "problems": [
+          "CYCLE_WR_SESSION_ENDED",
+          "STOP_WR_SESSION_ENDED",
+          "WR_TERMINAL"
+        ],
+        "cycle_count": 43,
+        "wr_count": 54
+      },
+      "metrics": {
+        "valid": true,
+        "rows": 22,
+        "first_ms": 1789545183272,
+        "last_ms": 1789545223102,
+        "span_ms": 39830,
+        "deltas": {
+          "total": 151761,
+          "frequency": 3794,
+          "phase": 147967,
+          "detector": 147967,
+          "in_band": 20182,
+          "out_band": 127785,
+          "freq_to_phase": 5,
+          "phase_to_freq": 5
+        },
+        "phase_in_band_ratio": 0.13639527732534956,
+        "phase_active_ratio": 0.9750001647327047,
+        "handoff_delta": 10,
+        "handoff_per_second": 0.2510670348983179,
+        "freq_error_min": 35,
+        "freq_error_max": 59,
+        "freq_error_mean": 47.04545454545455,
+        "phase_count_max_sampled": 147,
+        "phase_lock_seen": false,
+        "pstat_locked_seen": false,
+        "wr_rows_in_window": 53
+      }
+    },
+    "B": {
+      "path": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916\\raw\\B\\observer-formal.log",
+      "expected_arm": "B",
+      "expected_main_kp": 600,
+      "configured_arm": "B",
+      "configured_main_kp": 600,
+      "config_scope": "F4K_SLAVE_MAIN_KP_ONLY",
+      "session_elapsed_ms": 120023,
+      "stop_reason": "NONE",
+      "ready": true,
+      "checks": [],
+      "classification": "DIAGNOSTIC_IMPLEMENTATION_LIMITED",
+      "f4j_diagnostic_pass": false,
+      "unique_count": 64,
+      "unique_span_ms": 119264,
+      "valid_background_bin_count": 12,
+      "safety": {
+        "safe": true,
+        "problems": [],
+        "cycle_count": 127,
+        "wr_count": 159
+      },
+      "metrics": {
+        "valid": true,
+        "rows": 64,
+        "first_ms": 1789548144998,
+        "last_ms": 1789548264262,
+        "span_ms": 119264,
+        "deltas": {
+          "total": 455273,
+          "frequency": 18305,
+          "phase": 436968,
+          "detector": 436968,
+          "in_band": 59651,
+          "out_band": 377317,
+          "freq_to_phase": 42,
+          "phase_to_freq": 42
+        },
+        "phase_in_band_ratio": 0.13651114040387397,
+        "phase_active_ratio": 0.959793354756377,
+        "handoff_delta": 84,
+        "handoff_per_second": 0.7043198282801181,
+        "freq_error_min": 17,
+        "freq_error_max": 74,
+        "freq_error_mean": 45.890625,
+        "phase_count_max_sampled": 143,
+        "phase_lock_seen": false,
+        "pstat_locked_seen": false,
+        "wr_rows_in_window": 158
+      }
+    },
+    "A2": {
+      "path": "docs\\experiments\\exp-step5-softpll-lock\\EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916\\raw\\A2\\observer-formal.log",
+      "expected_arm": "A2",
+      "expected_main_kp": 300,
+      "configured_arm": "A2",
+      "configured_main_kp": 300,
+      "config_scope": "F4K_SLAVE_MAIN_KP_ONLY",
+      "session_elapsed_ms": 120553,
+      "stop_reason": "NONE",
+      "ready": true,
+      "checks": [],
+      "classification": "DIAGNOSTIC_IMPLEMENTATION_LIMITED",
+      "f4j_diagnostic_pass": false,
+      "unique_count": 64,
+      "unique_span_ms": 118927,
+      "valid_background_bin_count": 12,
+      "safety": {
+        "safe": true,
+        "problems": [],
+        "cycle_count": 127,
+        "wr_count": 159
+      },
+      "metrics": {
+        "valid": true,
+        "rows": 64,
+        "first_ms": 1789549648327,
+        "last_ms": 1789549767254,
+        "span_ms": 118927,
+        "deltas": {
+          "total": 455282,
+          "frequency": 17452,
+          "phase": 437830,
+          "detector": 437830,
+          "in_band": 59607,
+          "out_band": 378223,
+          "freq_to_phase": 26,
+          "phase_to_freq": 26
+        },
+        "phase_in_band_ratio": 0.13614188155220064,
+        "phase_active_ratio": 0.9616677136368229,
+        "handoff_delta": 52,
+        "handoff_per_second": 0.4372430146224154,
+        "freq_error_min": 24,
+        "freq_error_max": 67,
+        "freq_error_mean": 47.671875,
+        "phase_count_max_sampled": 146,
+        "phase_lock_seen": false,
+        "pstat_locked_seen": false,
+        "wr_rows_in_window": 157
+      }
+    }
+  }
+}

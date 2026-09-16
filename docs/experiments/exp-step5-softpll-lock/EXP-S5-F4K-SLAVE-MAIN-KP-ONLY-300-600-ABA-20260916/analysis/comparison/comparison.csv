@@ -1,0 +1,4 @@
+arm,expected_main_kp,configured_main_kp,ready,checks,unique_count,unique_span_ms,common_window_ms,producer_rows,phase_detector_delta,phase_in_band_delta,phase_out_band_delta,phase_in_band_ratio,phase_active_ratio,handoff_delta,handoff_per_second,phase_count_max_sampled,phase_lock_seen,pstat_locked_seen,safety_safe,safety_problems
+A1,300,300,0,CYCLE_WR_SESSION_ENDED;FORMAL_STOP_WR_SESSION_ENDED;FORMAL_WINDOW_SHORT;STOP_WR_SESSION_ENDED;WR_TERMINAL,22,39830,,22,147967,20182,127785,0.13639527732534956,0.9750001647327047,10,0.2510670348983179,147,0,0,0,CYCLE_WR_SESSION_ENDED;STOP_WR_SESSION_ENDED;WR_TERMINAL
+B,600,600,1,,64,119264,,64,436968,59651,377317,0.13651114040387397,0.959793354756377,84,0.7043198282801181,143,0,0,1,
+A2,300,300,1,,64,118927,,64,437830,59607,378223,0.13614188155220064,0.9616677136368229,52,0.4372430146224154,146,0,0,1,

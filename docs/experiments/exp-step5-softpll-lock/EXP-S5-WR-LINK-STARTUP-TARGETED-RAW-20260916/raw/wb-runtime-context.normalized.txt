@@ -1,0 +1,28 @@
+capture=2026-09-16T23:35:30+08:00
+quartus=17.0.0 Build 595
+command=quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+
+WB_REQUEST_COUNT=352
+PRELOAD_COUNT=352
+COMMIT_COUNT=352
+PROBE_3WAY_MATCH_COUNT=352
+TIMEOUT_COUNT=0
+INVALID_COUNT=0
+JTAG_WB_DIAGNOSTIC_PATH=TRUSTED
+
+MASTER:
+si_config_done=1 CPU_RESET_n=1 core_phy_rst=0
+wr_ready=0 core_tm_link_up=0 core_link_ok=0 wr_tx_ready=0
+pstat_link=0 ptp_rx_delta=0
+dmtd_ref_accept_delta=13204 dmtd_fb_accept_delta=23492 dmtd_accept_delta=36696
+tag_trr_irq_helper_delta=approximately_23500
+boot_generation_delta=0 cpu_reset_count_delta=0 wr_core_reset_count_delta=0 si_config_drop_count_delta=0
+
+SLAVE:
+si_config_done=1 CPU_RESET_n=1 core_phy_rst=0
+wr_ready=0 core_tm_link_up=0 core_link_ok=0 wr_tx_ready=0
+pstat_link=0 lock_enable=0
+spll_init_delta=0 tag_trr_irq_helper_delta=0
+
+Note: this is a normalized extraction of the terminal capture; the two exact
+targeted direct-probe logs and their hashes are listed in manifest.json.

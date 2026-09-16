@@ -1,0 +1,51 @@
+{
+  "experiment": "EXP-S5-WR-LINK-STARTUP-TARGETED-RAW-20260916",
+  "date": "2026-09-16",
+  "branch": "exp/step5-softpll-lock",
+  "image_source_commit": "6fa075bdbd5bfaba5fd7e53c9bad026ee217b097",
+  "image_programmer_checksums": {
+    "master": "0x30B89B19",
+    "slave": "0x30B84088"
+  },
+  "quartus": "17.0.0 Build 595",
+  "scope": {
+    "production_code_changed": false,
+    "rtl_changed": false,
+    "control_parameters_changed": false,
+    "reprogrammed": false,
+    "wishbone_writes": false,
+    "read_only": true
+  },
+  "commands": [
+    "/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t scripts/jtag/read_probe.tcl",
+    "/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t scripts/jtag/read_clock_activity.tcl 2000"
+  ],
+  "script_blobs": {
+    "scripts/jtag/read_probe.tcl": "f1e04e860f309c6c1ec3a55ae32c7b5cc72a530d",
+    "scripts/jtag/read_clock_activity.tcl": "e4f7fb09e2d1a49372068346b2442f4004f240ca",
+    "scripts/jtag/read_wb_runtime.tcl": "6f297488a70d9d6b87c5229256a68a3eea5af2dd"
+  },
+  "capture_times": {
+    "instance0": "2026-09-16T23:41:21+08:00",
+    "instance7": "2026-09-16T23:42:16+08:00"
+  },
+  "remote_artifacts": [
+    {
+      "path": "/home/b10504072/04_WR/pain-preserve/EXP-S5-WR-LINK-STARTUP-TARGETED-RAW-20260916/read_probe.log",
+      "bytes": 3540,
+      "sha256": "1bb26caee45f1752b7eae7b42a57a3a7594838128d53a73d71f7760a72370e24"
+    },
+    {
+      "path": "/home/b10504072/04_WR/pain-preserve/EXP-S5-WR-LINK-STARTUP-TARGETED-RAW-20260916/read_clock_activity.log",
+      "bytes": 2446,
+      "sha256": "0e4f430ceab430e8b9de2d688a14908ee5f8152a45e2d3f5a6ae0cc96cd5598a"
+    }
+  ],
+  "verdict": {
+    "targeted_snapshot_valid": true,
+    "upstream_wr_link_startup_blocker": true,
+    "step5_pass": false,
+    "f4m_result": "NOT_EVALUATED",
+    "preload_causality": "NOT_EVALUATED"
+  }
+}

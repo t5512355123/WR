@@ -2060,7 +2060,7 @@ proc f4i_emit_main_trace {hardware_name sample elapsed_ms} {
       "PHASE_CONTEXT_OBSERVED" : ($domain eq "FREQUENCY" ? \
       "FREQUENCY_CONTEXT_OBSERVED" : "UNKNOWN")}]
     set freq_sign [f4i_frequency_sign $freq_error]
-    set freq_abs_gt_50 [expr {[abs($freq_error)] > 50 ? 1 : 0}]
+    set freq_abs_gt_50 [expr {abs($freq_error) > 50 ? 1 : 0}]
     if {$dref ne "INVALID" && $dout ne "INVALID" && $freq_error ne "INVALID"} {
       set pair_check [expr {$freq_error == ($dout - $dref) ? "PASS" : "FAIL"}]
     }

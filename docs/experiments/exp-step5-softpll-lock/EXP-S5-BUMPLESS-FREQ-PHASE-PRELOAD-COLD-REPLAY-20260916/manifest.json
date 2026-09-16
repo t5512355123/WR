@@ -1,0 +1,48 @@
+{
+  "experiment": "EXP-S5-BUMPLESS-FREQ-PHASE-PRELOAD-COLD-REPLAY-20260916",
+  "date": "2026-09-16",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "6fa075bdbd5bfaba5fd7e53c9bad026ee217097",
+  "scope": "same-image cold-session replay and entry-gate validation",
+  "production_control_changed": false,
+  "physical_power_cycle": true,
+  "recompiled": false,
+  "programmed_same_images": true,
+  "entry_gate": {
+    "wr_core_valid_master": 1,
+    "wr_core_valid_slave": 1,
+    "terminal_master": 0,
+    "terminal_slave": 0,
+    "phy_link_usable_master": 0,
+    "phy_link_usable_slave": 0,
+    "pstat_link_master": 0,
+    "pstat_link_slave": 0,
+    "current_wr_state_master": 0,
+    "current_wr_state_slave": 0,
+    "boot_generation_master": 1,
+    "boot_generation_slave": 1,
+    "cpu_reset_count_master": 1,
+    "cpu_reset_count_slave": 1,
+    "wr_core_reset_count_master": 0,
+    "wr_core_reset_count_slave": 0,
+    "si_config_drop_count_master": 0,
+    "si_config_drop_count_slave": 0
+  },
+  "result": {
+    "classification": "SESSION_START_INVALID",
+    "formal_f4m_started": false,
+    "diagnostic_complete": false,
+    "step5_pass": false,
+    "reason": "PHY_LINK_AND_PSTAT_LINK_NOT_ESTABLISHED",
+    "terminal_preflight_samples": 3
+  },
+  "artifacts": {
+    "preflight_initial": "raw/terminal-preflight.log",
+    "preflight_after_link_wait": "raw/terminal-preflight-after-link.log",
+    "preflight_after_90s": "raw/terminal-preflight-after-90s.log",
+    "build_master": "raw/build/build_info_jtag_master.txt",
+    "build_slave": "raw/build/build_info_jtag_slave.txt",
+    "report": "REPORT.md"
+  },
+  "merge_approved": false
+}

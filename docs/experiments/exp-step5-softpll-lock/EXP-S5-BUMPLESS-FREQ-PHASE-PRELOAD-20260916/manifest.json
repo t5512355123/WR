@@ -1,0 +1,61 @@
+{
+  "experiment": "EXP-S5-BUMPLESS-FREQ-PHASE-PRELOAD-20260916",
+  "date": "2026-09-16",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "6fa075bdbd5bfaba5fd7e53c9bad026ee217097",
+  "scope": "Main frequency-to-phase bumpless integrator preload hardware treatment",
+  "production_control_changed": true,
+  "only_control_change": "Main frequency-to-phase integrator preload",
+  "rtl_or_sdb_changed": false,
+  "offline_tests": {
+    "bumpless_preload": "PASS",
+    "f4l_regression": "PASS",
+    "f4m_regression": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "observer": {
+    "script": "scripts/jtag/read_step5_main_frequency_prelock_observability.tcl",
+    "run_role": "f4m",
+    "samples_max": 100,
+    "gap_ms": 1000,
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "timeout_wrapper_ms": 180000,
+    "single_reader": true,
+    "no_control_write": true
+  },
+  "build_program": {
+    "master_compile": "successful",
+    "slave_compile": "successful",
+    "master_sof_checksum": "0x30B89B19",
+    "slave_sof_checksum": "0x30B84088",
+    "timing_closed": false,
+    "master_wns_ns": -0.047,
+    "slave_wns_ns": -0.268,
+    "mapping_preflight": "PASS"
+  },
+  "result": {
+    "classification": "INVALID_SESSION_START",
+    "diagnostic_complete": false,
+    "step5_pass": false,
+    "session_elapsed_ms": 1386,
+    "f4m_frame_count": 1,
+    "f4m_unique_count": 1,
+    "master_terminal": true,
+    "master_current_wr_state": 3,
+    "master_pstat_locked": 0,
+    "master_wr_failure_raw": "0x00006A00",
+    "master_wr_disable_valid": 1,
+    "master_wr_failure_reason": 0,
+    "run_end_reason": "STOP_WR_SESSION_ENDED",
+    "smoke_ok": false,
+    "preload_causality_observed": false
+  },
+  "artifacts": {
+    "observer_log": "raw/observer-f4m.log",
+    "preflight_log": "raw/wdiags-preflight.log",
+    "verdict": "analysis/f4m-verdict.json",
+    "report": "REPORT.md"
+  },
+  "merge_approved": false
+}

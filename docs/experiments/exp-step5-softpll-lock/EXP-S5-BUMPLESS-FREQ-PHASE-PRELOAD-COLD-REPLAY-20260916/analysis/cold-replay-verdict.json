@@ -1,0 +1,27 @@
+{
+  "experiment": "EXP-S5-BUMPLESS-FREQ-PHASE-PRELOAD-COLD-REPLAY-20260916",
+  "classification": "SESSION_START_INVALID",
+  "formal_f4m_started": false,
+  "diagnostic_complete": false,
+  "step5_pass": false,
+  "entry_gate": {
+    "terminal": {
+      "master": 0,
+      "slave": 0
+    },
+    "phy_link_usable": {
+      "master": 0,
+      "slave": 0
+    },
+    "pstat_link": {
+      "master": 0,
+      "slave": 0
+    },
+    "current_wr_state": {
+      "master": 0,
+      "slave": 0
+    }
+  },
+  "interpretation": "Same-image cold replay did not reach a clean link-established WR session; no preload causality can be inferred.",
+  "next_step": "Await phase-lock analysis of the startup/link boundary before another experiment."
+}

@@ -1,0 +1,57 @@
+{
+  "experiment": "EXP-S5-F4H-PHY-STATUS-SOURCE-FIX-RETEST-20260916",
+  "date": "2026-09-16",
+  "timezone": "Asia/Taipei",
+  "branch": "exp/step5-softpll-lock",
+  "source_commit": "898b041afa2fcd6ca48a84eb7326eebc419ac4a3",
+  "pain_checkout": "898b041afa2fcd6ca48a84eb7326eebc419ac4a3",
+  "run_role": "f4h",
+  "targets": {
+    "master": "DE5 [1-11.1]",
+    "slave": "DE5 [1-11.2]"
+  },
+  "sof_sha256": {
+    "master": "fe73fe54e702e974ed4452e517751ebf8a1cbcd93d7a19207839ed13e3a9bed7",
+    "slave": "30c78989caa9496b5a34bc771f4c0a238ebd9c271045f55c6a7d4963c13df7bc"
+  },
+  "capture": {
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "session_elapsed_ms": 120090,
+    "slave_cycles": 100,
+    "master_samples": 34,
+    "run_end_reason": "TARGET_REACHED",
+    "stop_reason": "NONE",
+    "single_reader": "PASS"
+  },
+  "phy_source": {
+    "source": "JTAG_PROBE0",
+    "source_instance": 0,
+    "width_bits": 64,
+    "required_mask": "000000CF",
+    "schema": "PASS",
+    "valid_rows": 134,
+    "gate_pass_rows": 134,
+    "gate_fail_rows": 0
+  },
+  "service": {
+    "main_completed_trusted_delta": 84216,
+    "helper_completed_trusted_delta": 10369,
+    "main_failed_trusted_delta": 0,
+    "helper_failed_trusted_delta": 0
+  },
+  "verdict": {
+    "classification": "MAIN_SERVICE_PROGRESS_WITHOUT_PHASE_LOCK",
+    "diagnostic_pass": true,
+    "step5_complete": false,
+    "step5_pass": false,
+    "merge_approved": false
+  },
+  "hashes": {
+    "observer_log": "ecda10c94009513d27129f06217b51c600990f663680a4d87ab9b559809b7f84",
+    "smoke_log": "0b7b9889169a6a22d57f7796f7f05d896bebb2e8cede6134a58f0a1583353b95",
+    "raw_archive": "a525dfd0202ed42e1c1eccb4234d4505bc4c286ac89ebeff2d63b3b149d87352"
+  },
+  "production_control_changed": false,
+  "power_cycle": false
+}

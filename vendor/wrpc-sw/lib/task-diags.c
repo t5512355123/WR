@@ -21,6 +21,14 @@
 #include "dev/pps_gen.h"
 #include "wrc_global.h"
 #include "softpll/spll_main_diag.h"
+#include "softpll/spll_main_f4l_diag.h"
+
+#if defined(CONFIG_TARGET_GENERIC_PHY_8BIT) || defined(CONFIG_TARGET_GENERIC_PHY_16BIT)
+#include "boards/generic/de5a-identity.h"
+#endif
+#ifndef DE5A_F4L_MAIN_PHASE_DIAG
+#define DE5A_F4L_MAIN_PHASE_DIAG 0
+#endif
 
 /* Keep the existing read-only WDIAGS shadow current at the cadence used by
  * the long-lock convergence observer. This changes observability only. */
@@ -36,6 +44,9 @@ int wrc_wr_diags(void)
 	static uint32_t last_update_tick;
 	static uint32_t mapping_self_test_counter;
 	static uint32_t main_freq_trace_publish_divider;
+#if DE5A_F4L_MAIN_PHASE_DIAG
+	static uint32_t main_f4l_page;
+#endif
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
 	uint64_t sec;
@@ -56,10 +67,18 @@ int wrc_wr_diags(void)
 	int32_t measurement_helper_error = 0;
 	int32_t measurement_output = 0;
 	int measurement_snapshot_valid;
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 	int main_producer_snapshot_valid;
 	struct spll_main_diag_frame main_producer_frame;
+#endif
+#if DE5A_F4L_MAIN_PHASE_DIAG
+	int main_f4l_snapshot_valid;
+	struct spll_main_f4l_diag_frame main_f4l_frame;
+#endif
 	uint32_t pi_trace_epoch = 0xffffffffu;
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 	uint32_t pi_snapshot_request_seq = 0;
+#endif
 	uint32_t pi_trace_lock_state = 0;
 	uint32_t pi_trace_update_count = 0;
 	int32_t pi_trace_tag_raw = 0;
@@ -92,8 +111,10 @@ int wrc_wr_diags(void)
 	struct pp_instance *ppi = ppg->pp_instances;
 	valid    = wdiag_get_valid();
 	snapshot = wdiag_get_snapshot();
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 	(void)wdiags_helper_pi_snapshot_request_pending(
 		&pi_snapshot_request_seq);
+#endif
 
 	/* if the data is snapshot and there is already valid data, do not
 	 * refresh */
@@ -246,6 +267,9 @@ int wrc_wr_diags(void)
 					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
 			if (!softpll.mpll.enabled) {
 				main_freq_trace_publish_divider = 0;
+#if DE5A_F4L_MAIN_PHASE_DIAG
+				main_f4l_page = SPLL_MAIN_F4L_PAGE_SUMMARY;
+#endif
 			} else if (main_freq_trace_publish_divider == 0 ||
 				   ++main_freq_trace_publish_divider >=
 					WRC_MAIN_FREQ_TRACE_PUBLISH_PERIOD) {
@@ -253,15 +277,27 @@ int wrc_wr_diags(void)
 			}
 			if (!softpll.mpll.enabled ||
 				main_freq_trace_publish_divider == 1) {
-				/* The previous publisher assembled this overlay from live Main
-				 * state after the control iteration.  F4J instead transports one
-				 * completed producer frame; it never reruns a detector or PI. */
+				/* The dynamic Main overlay has one explicit owner per firmware
+				 * image.  F4L rotates passive pages; F4J keeps its producer frame
+				 * unchanged.  Neither path reruns a detector or PI. */
+#if DE5A_F4L_MAIN_PHASE_DIAG
+				main_f4l_snapshot_valid = 0;
+				if (softpll.mpll.enabled)
+					main_f4l_snapshot_valid = spll_main_f4l_diag_copy(
+						main_f4l_page, &main_f4l_frame);
+				wdiags_write_wr_spll_main_f4l_debug(
+					&main_f4l_frame, main_f4l_snapshot_valid);
+				if (main_f4l_snapshot_valid)
+					main_f4l_page = (main_f4l_page + 1U) %
+						SPLL_MAIN_F4L_DIAG_PAGE_COUNT;
+#else
 				main_producer_snapshot_valid = 0;
 				if (softpll.mpll.enabled)
 					main_producer_snapshot_valid =
 						spll_main_diag_copy(&main_producer_frame);
 				wdiags_write_wr_spll_main_producer_debug(
 					&main_producer_frame, main_producer_snapshot_valid);
+#endif
 			}
 			wdiags_write_wr_spll_activity_debug(
 				softpll.ref_count,
@@ -407,6 +443,7 @@ int wrc_wr_diags(void)
 			 * the next request, so a slow JTAG reader cannot starve its epoch
 			 * seqlock.  This path never changes Helper, DMTD, SoftPLL, DAC,
 			 * tracker, reset, or lock state. */
+#if !DE5A_F4L_MAIN_PHASE_DIAG
 			if (pi_trace_snapshot_valid &&
 			    wdiags_helper_pi_snapshot_request_pending(
 				    &pi_snapshot_request_seq)) {
@@ -443,6 +480,10 @@ int wrc_wr_diags(void)
 				wdiags_write_wr_spll_helper_pi_snapshot_ack(
 					pi_snapshot_request_seq);
 			}
+#endif
+			#if DE5A_F4L_MAIN_PHASE_DIAG
+			(void)pi_trace_snapshot_valid;
+			#endif
 
 		}
 	}

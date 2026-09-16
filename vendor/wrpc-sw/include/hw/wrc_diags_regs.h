@@ -286,6 +286,15 @@
 #define WRC_DIAGS_WDIAG_MAIN_PRODUCER_MAGIC_VALUE       0x4d50344aUL
 #define WRC_DIAGS_WDIAG_MAIN_PRODUCER_VERSION_VALUE     1UL
 
+/* F4L paged Main phase-drift/integrator diagnostics.  This is a versioned
+ * replacement for the same dynamic overlay and therefore needs no DPRAM/SDB
+ * expansion.  The transport epoch is word 0; source words 1..33 are copied
+ * from one coherent F4L page. */
+#define WRC_DIAGS_WDIAG_MAIN_F4L_BASE                   0x158UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_FRAME_WORDS            34UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_MAGIC_VALUE            0x46344c31UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_VERSION_VALUE          1UL
+
 /* Private read-only SoftPLL re-init attribution overlay.  The four
  * reason-counter words pack four 8-bit counters per word. */
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON       0x1e0UL

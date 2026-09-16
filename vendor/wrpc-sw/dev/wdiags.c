@@ -17,6 +17,7 @@
 #include "hw/rawmem.h"
 #include "hw/wrc_diags_regs.h"
 #include "softpll/spll_main_diag.h"
+#include "softpll/spll_main_f4l_diag.h"
 
 #define WDIAGS_VERSION 2
 #define WDIAGS_PERSISTENT_MAGIC 0x504D5354U /* "PMST" */
@@ -1473,6 +1474,43 @@ void wdiags_write_wr_spll_main_producer_debug(
 		WRC_DIAGS_WDIAG_MAIN_PRODUCER_MAGIC_VALUE);
 	wdiag_publish_barrier();
 	wdiag_write(WRC_DIAGS_WDIAG_MAIN_PRODUCER_PUBLICATION_EPOCH,
+		++wdiags_main_frequency_trace_epoch);
+}
+
+void wdiags_write_wr_spll_main_f4l_debug(
+		const struct spll_main_f4l_diag_frame *frame, int valid)
+{
+	uint32_t epoch;
+	uint32_t i;
+
+	/* The first Helper PI request claims this window permanently.  F4L is
+	 * intentionally deployed in a separate image/observer session, so an old
+	 * Helper snapshot cannot be torn by this writer. */
+	if (wdiags_helper_pi_snapshot_v2_active)
+		return;
+
+	wdiags_main_frequency_trace_active = 1;
+	wdiags_main_producer_active = 1;
+	epoch = ++wdiags_main_frequency_trace_epoch;
+	if (!(epoch & 1U))
+		epoch = ++wdiags_main_frequency_trace_epoch;
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_BASE, epoch);
+	wdiag_publish_barrier();
+	if (valid && frame &&
+	    frame->words[1] == WRC_DIAGS_WDIAG_MAIN_F4L_MAGIC_VALUE &&
+	    (frame->words[2] & 0xffU) == WRC_DIAGS_WDIAG_MAIN_F4L_VERSION_VALUE) {
+		for (i = 1; i < WRC_DIAGS_WDIAG_MAIN_F4L_FRAME_WORDS; i++)
+			wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_BASE + (i * 4U),
+				frame->words[i]);
+	} else {
+		/* Leave an unmistakably invalid frame behind if the source seqlock
+		 * could not be copied.  The final even transport epoch alone is never
+		 * sufficient for the observer to accept a page. */
+		for (i = 1; i < WRC_DIAGS_WDIAG_MAIN_F4L_FRAME_WORDS; i++)
+			wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_BASE + (i * 4U), 0);
+	}
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_BASE,
 		++wdiags_main_frequency_trace_epoch);
 }
 

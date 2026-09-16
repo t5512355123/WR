@@ -30,6 +30,17 @@
  * lock_samples; a value above it makes a claimed frequency lock sticky. */
 #define MPLL_FREQ_DELOCK_FLOOR 10
 
+/* F5 treatment arm: enable only the Main (dac_index 0) bumpless transfer
+ * described by the Step5 handoff experiment.  The identity header selects
+ * the arm for the DE5a images; generic/non-DE5a builds retain the baseline. */
+#ifndef DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD
+#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 0
+#endif
+#if (DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD != 0) && \
+	(DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD != 1)
+#error "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD must be 0 or 1"
+#endif
+
 #undef WITH_SEQUENCING
 
 static volatile uint32_t spll_main_diag_epoch;
@@ -818,6 +829,27 @@ static inline void update_dtag_dt( int *dtag_dt, int tag, int *tag_d )
 }
 //#endif
 
+#if defined(CONFIG_WR_NODE) && DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD
+/* The PI integrator is stored in pre-shift numerator units.  At the
+ * frequency-to-phase boundary, pi.y is the last frequency-branch actuator
+ * command and phase_error is the first error presented to pi_update().
+ *
+ * pi_update() adds Ki*phase_error to the integrator before adding Kp*error to
+ * form the current output.  Account for that same-sample Ki proposal here so
+ * the first phase update reproduces the previous command (apart from output
+ * clamping/rounding already inherent in pi_update()). */
+static inline void mpll_preload_phase_integrator(
+	struct spll_main_state *s, int phase_error)
+{
+	int64_t output_term = ((int64_t)s->pi.y - (int64_t)s->pi.bias)
+		<< s->pi.shift;
+	int64_t proportional_term = (int64_t)s->pi.kp * phase_error;
+	int64_t integral_proposal = (int64_t)s->pi.ki * phase_error;
+
+	s->pi.integrator = output_term - proportional_term - integral_proposal;
+}
+#endif
+
 int mpll_update(struct spll_main_state *s, int tag, int source)
 {
 	if(!s->enabled)
@@ -1012,6 +1044,14 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 
 #endif
 
+#if defined(CONFIG_WR_NODE) && DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD
+		/* ld_update() has just accepted the final frequency-lock sample.  This
+		 * is the first phase-branch update; preload only the Main controller and
+		 * only on the actual F->P transition, never on steady-state samples. */
+		if (s->dac_index == 0 && s->freq_ld.lock_changed &&
+		    s->freq_ld.locked)
+			mpll_preload_phase_integrator(s, err);
+#endif
 		y = pi_update((spll_pi_t *)&s->pi, err);
 #if defined(DE5A_F4L_MAIN_PHASE_DIAG) && DE5A_F4L_MAIN_PHASE_DIAG
 		if (s->dac_index == 0) {

@@ -17,4 +17,7 @@
 #define DE5A_MAIN_PI_KP_OVERRIDE 300
 #define DE5A_F4L_MAIN_PHASE_DIAG 1
 
+/* F5: enable the single Main frequency-to-phase bumpless-preload treatment. */
+#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+
 #endif

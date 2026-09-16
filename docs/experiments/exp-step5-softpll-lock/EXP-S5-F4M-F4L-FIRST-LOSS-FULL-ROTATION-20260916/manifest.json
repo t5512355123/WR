@@ -1,0 +1,46 @@
+{
+  "experiment": "EXP-S5-F4M-F4L-FIRST-LOSS-FULL-ROTATION-20260916",
+  "date": "2026-09-16",
+  "branch": "exp/step5-softpll-lock",
+  "commit": "e1ac5ca1e9aaacef08c7441745271430ec2da432",
+  "scope": "observer-only F4M page rotation and first-loss correlation",
+  "production_control_changed": false,
+  "rtl_or_sdb_changed": false,
+  "single_reader": true,
+  "diagnostic_pass": true,
+  "step5_pass": false,
+  "classification": "DIAGNOSTIC_COMPLETE",
+  "observer": {
+    "script": "scripts/jtag/read_step5_main_frequency_prelock_observability.tcl",
+    "script_sha256": "4d2fda9647a04b9a697c078376bad36413ee3e64c2ac7985b2467a9c31731c11",
+    "run_role": "f4m",
+    "samples_max": 100,
+    "gap_ms": 1000,
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "timeout_wrapper_ms": 180000
+  },
+  "result": {
+    "session_elapsed_ms": 120095,
+    "frame_count": 64,
+    "unique_count": 64,
+    "unique_span_ms": 119095,
+    "page_counts": {"0": 21, "1": 21, "2": 22},
+    "page2_due_count": 22,
+    "page2_skip_count": 0,
+    "page_rotation_count": 63,
+    "page_transition_mismatch_count": 0,
+    "first_loss_sample_count": 64,
+    "first_loss_trace_valid_count": 64,
+    "pstat_locked": 0,
+    "boot_generation": 1,
+    "main_progress_intervals": 63,
+    "helper_valid_cycle_count": 64
+  },
+  "artifacts": {
+    "observer_log": "raw/observer-f4m.log",
+    "preflight_log": "raw/wdiags-preflight.log",
+    "verdict": "analysis/f4m-verdict.json",
+    "report": "REPORT.md"
+  }
+}

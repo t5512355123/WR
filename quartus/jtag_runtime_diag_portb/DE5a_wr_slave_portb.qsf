@@ -19,11 +19,11 @@ set_global_assignment -name VHDL_FILE ../../vendor/wr-cores-arria10/platform/alt
 set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.qip
 set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.qip
 set_global_assignment -name QIP_FILE ../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/wr_arria10_e3p1_rst_ctl.qip
-set_global_assignment -name VERILOG_FILE si5340a_controller_dco.v
+set_global_assignment -name VERILOG_FILE ../jtag_runtime_diag/si5340a_controller_dco.v
 set_global_assignment -name VERILOG_FILE ../../rtl/clock/si5340_controller/si5340a_clk_frq_sel_gen.v
 set_global_assignment -name VERILOG_FILE ../../rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v
-set_global_assignment -name VERILOG_FILE si5340a_i2c_reg_controller_dco.v
-set_global_assignment -name VERILOG_FILE i2c_bus_controller_dco.v
+set_global_assignment -name VERILOG_FILE ../jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v
+set_global_assignment -name VERILOG_FILE ../jtag_runtime_diag/i2c_bus_controller_dco.v
 set_global_assignment -name VERILOG_FILE ../../rtl/clock/si5340_controller/edge_detector.v
 set_global_assignment -name VERILOG_FILE ../../rtl/clock/si5340_controller/clock_divider.v
 set_global_assignment -name VERILOG_FILE ../../rtl/clock/si5340_controller/initial_config.v

@@ -1,0 +1,77 @@
+{
+  "format": "step5-f4l-run-manifest-v1",
+  "experiment": "EXP-S5-F4L-WDIAGS-CORRECTED-STARTUP-20260916",
+  "diagnostic_experiment": "EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916",
+  "source_commit": "68545617be4f2de781269ed6588f984557be2318",
+  "source_branch": "exp/step5-softpll-lock",
+  "hardware": {
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]"
+  },
+  "control": {
+    "production_parameters_changed": false,
+    "observer_only": true,
+    "no_control_write": true,
+    "no_helper_pi_snapshot": true,
+    "no_debug_fifo_drain": true,
+    "no_rtl_or_sdb_change": true,
+    "no_shared_control_struct_extension": true
+  },
+  "observer": {
+    "script": "scripts/jtag/read_step5_main_frequency_prelock_observability.tcl",
+    "f4l_pages": {
+      "0": "SUMMARY_PAGE0",
+      "1": "INTEGRATOR_PAGE1",
+      "2": "HISTOGRAM_PAGE2"
+    },
+    "frame_words": 34,
+    "no_valid_timeout_ms": 30000,
+    "smoke_duration_ms": 60000,
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "single_reader": true,
+    "wdiags_preflight": "PASS"
+  },
+  "build": {
+    "quartus": "17.0 Build 595",
+    "build_after_pull": true,
+    "master_compile": "PASS",
+    "slave_compile": "PASS",
+    "master_mif_sha256": "ca01aaa884feca6b9caa9cb58cb521b3568b06d0772cf0f46035e386e99e8c87",
+    "slave_mif_sha256": "91c0946aa0e3a4d07870145fc6dee9162251d9f66e5176da314c62d41ab2ac7a",
+    "master_sof_sha256": "3e294cc085b3c710835f98cf036db31c503b7e91305a8fea54fad1a7ac6773e1",
+    "slave_sof_sha256": "5af58409244dbf0a49846d6b4edc80a7d8e0a33f4957d562debd23bd095d1db1",
+    "master_timing_closed": false,
+    "slave_timing_closed": false
+  },
+  "program": {
+    "master": "PASS",
+    "slave": "PASS"
+  },
+  "formal": {
+    "session_elapsed_ms": 40524,
+    "run_end_reason": "STOP_WR_SESSION_ENDED",
+    "stop_reason": "WR_SESSION_ENDED",
+    "slave_cycles": 15,
+    "master_samples": 13,
+    "diagnostic_frames": 15,
+    "diagnostic_unique": 15,
+    "page0": 8,
+    "page1": 7,
+    "page2": 0,
+    "transport_errors": 0,
+    "invalid_frames": 0,
+    "diagnostic_complete": false,
+    "step5_pass": false
+  },
+  "evidence": {
+    "observer_log": "raw/observer-f4l.log",
+    "wdiags_preflight_log": "raw/wdiags-preflight.log",
+    "analysis": "analysis/f4l-verdict.json",
+    "build_info_master": "raw/build/build-info-jtag-master.txt",
+    "build_info_slave": "raw/build/build-info-jtag-slave.txt",
+    "program_master_log": "raw/program-jtag-master.log",
+    "program_slave_log": "raw/program-jtag-slave.log"
+  },
+  "merge_approved": false
+}

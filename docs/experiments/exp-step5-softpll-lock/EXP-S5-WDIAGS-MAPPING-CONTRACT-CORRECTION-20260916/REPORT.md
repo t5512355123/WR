@@ -63,7 +63,7 @@ MERGE_APPROVED           = NO
 
 ## 下一步
 
-依 Fable 的工作包順序，停止繼續擴充 reader 細節，進入下一輪單一功能變因：Helper PI 重標定（F1，`kp=-4500`、`ki=-8`）。其餘 bootstrap、lock detector、Main PI、guard、timeout 與仲裁保持不變；下一輪仍須先做離線測試，再依 Laptop push → Pain pull/build/program → 只讀觀測 → 回傳 raw/report → push 的流程執行。
+依最新 `ai_advice/Step5/14_Astra.md`，本輪先不修改 PI 或其他控制參數。F4L frame transport 已在首次有效窗口成立，但 10 秒 smoke 因取樣相位只看到 page 1/2，且重新初始化後又觀察到 Helper 未鎖定；因此下一輪仍是同一 F4L 被動診斷的有效重測：修正 observer 的 smoke 等待／頁面覆蓋判定，並依 Master → 等待 → Slave 的既定啟動順序重新取得跨 page 資料。只有完成可信 F4L correlation 後，才決定是否提出新的單一控制變因；不能從本輪直接調 PI、宣告 Step5 或 merge。
 
 ## 原始資料
 
@@ -75,4 +75,3 @@ MERGE_APPROVED           = NO
 - `raw/observer-f4l-smoke-retry.log`：WR session ended window。
 - `raw/observer-f4l-smoke-reinit.log`、`raw/observer-f4l-smoke-postwait.log`：重新初始化後未進入有效 F4L frame 的窗口。
 - `analysis/`：四次 F4L raw 的離線分析輸出。
-

@@ -22,8 +22,9 @@ def _sample(board: str, label: str, valid: int = 1) -> str:
     return (
         "WDIAGS_MAP_SAMPLE "
         f"board={board} label={label} attempt=1 valid={valid} "
-        "status=00000001 MAGIC_A=A5A5122C MAGIC_B=A5A51330 "
-        "COUNTER=00000010 INVERSE=0000FFEF MODE_META=03010309 PTP=00000009"
+        "status=00000001 SNAPSHOT_REQ_COUNT=00000000 "
+        "SNAPSHOT_ACK_COUNT=00000000 COUNTER=00000010 "
+        "INVERSE=FFFFFFEF MODE_META=03010309 PTP=00000009"
     )
 
 
@@ -61,7 +62,17 @@ def test_timeout_is_not_mapping_failure(tmp_path: Path) -> None:
 
 def test_completed_but_wrong_mapping_is_separate(tmp_path: Path) -> None:
     log = _sample("DE5 [1-11.2]", "BEGIN", valid=0) + "\nWDIAGS_MAP_DONE\n"
-    log = log.replace("MAGIC_A=A5A5122C", "MAGIC_A=00000000")
+    log = log.replace("INVERSE=FFFFFFEF", "INVERSE=00000000")
+    verdict = MODULE.analyze(_write(tmp_path, log))
+    assert verdict["classification"] == "MAP_SEMANTICS_INVALID"
+    assert verdict["transport_complete_rows"] == 1
+    assert verdict["mapping_valid_rows"] == 0
+
+
+def test_snapshot_overlay_is_not_mapping_valid(tmp_path: Path) -> None:
+    log = _sample("DE5 [1-11.2]", "BEGIN", valid=1)
+    log = log.replace("SNAPSHOT_REQ_COUNT=00000000", "SNAPSHOT_REQ_COUNT=00000001")
+    log += "\nWDIAGS_MAP_DONE\n"
     verdict = MODULE.analyze(_write(tmp_path, log))
     assert verdict["classification"] == "MAP_SEMANTICS_INVALID"
     assert verdict["transport_complete_rows"] == 1
@@ -73,6 +84,10 @@ def test_source_contract_mentions_established_selftest() -> None:
         encoding="utf-8"
     )
     assert "proc wb_read" in observer
-    assert "A5A5122C" in observer
-    assert "A5A51330" in observer
+    assert "SNAPSHOT_REQ_COUNT" in observer
+    assert "SNAPSHOT_ACK_COUNT" in observer
+    assert "0x00100B34" in observer
+    assert "0x00100B38" in observer
+    assert "A5A5122C" not in observer
+    assert "A5A51330" not in observer
     assert "WDIAGS_MAP_RESULT" in observer

@@ -1,6 +1,8 @@
 # WDIAGS firmware-to-JTAG register-map self-test。
 #
-# 只讀取 firmware 每秒寫入的 magic words 與 counter，不寫入任何設定。
+# 只讀取 firmware 的 snapshot request/ack counters 與 mapping
+# counter/inverse，不寫入任何設定。這些欄位必須與目前 firmware header
+# 的 source-backed map 一致；不再期待舊版的固定 magic words。
 # 用法：
 #   quartus_stp -t read_wdiags_mapping_selftest.tcl ?gap_ms?
 
@@ -34,20 +36,24 @@ proc wb_read {addr} {
   return "TIMEOUT"
 }
 
-proc mapping_sample_valid {magic_a magic_b counter inverse} {
-  if {$magic_a eq "TIMEOUT" || $magic_b eq "TIMEOUT" ||
+proc mapping_sample_valid {snapshot_req snapshot_ack counter inverse} {
+  if {$snapshot_req eq "TIMEOUT" || $snapshot_ack eq "TIMEOUT" ||
       $counter eq "TIMEOUT" || $inverse eq "TIMEOUT"} {
     return 0
   }
-  if {[scan $counter %x counter_value] != 1 ||
+  if {[scan $snapshot_req %x snapshot_req_value] != 1 ||
+      [scan $snapshot_ack %x snapshot_ack_value] != 1 ||
+      [scan $counter %x counter_value] != 1 ||
       [scan $inverse %x inverse_value] != 1} {
     return 0
   }
-  set expected_inverse_low [expr {(~$counter_value) & 0xffff}]
-  set inverse_low [expr {$inverse_value & 0xffff}]
-  return [expr {$magic_a eq "A5A5122C" &&
-                $magic_b eq "A5A51330" &&
-                $inverse_low == $expected_inverse_low}]
+  # 0x134/0x138 are mapping counter/inverse only before the first
+  # snapshot request. After that request they are owned by the frozen-bank
+  # overlay, so a non-zero request/ack count is not a valid mapping sample.
+  set expected_inverse [expr {(~$counter_value) & 0xffffffff}]
+  return [expr {$snapshot_req_value == 0 &&
+                $snapshot_ack_value == 0 &&
+                $inverse_value == $expected_inverse}]
 }
 
 proc wb_sync_toggle {} {
@@ -59,15 +65,15 @@ proc wb_sync_toggle {} {
 proc read_map_sample {hardware_name label} {
   for {set attempt 1} {$attempt <= 5} {incr attempt} {
     set status [read_probe_data -instance_index 0 -value_in_hex]
-    set magic_a [wb_read 0x00100B2C]
-    set magic_b [wb_read 0x00100B30]
+    set snapshot_req [wb_read 0x00100B2C]
+    set snapshot_ack [wb_read 0x00100B30]
     set counter [wb_read 0x00100B34]
     set inverse [wb_read 0x00100B38]
     set mode_meta [wb_read 0x00100A5C]
     set ptp [wb_read 0x00100A10]
-    set valid [mapping_sample_valid $magic_a $magic_b $counter $inverse]
-    puts [format "WDIAGS_MAP_SAMPLE board=%s label=%s attempt=%d valid=%d status=%s MAGIC_A=%s MAGIC_B=%s COUNTER=%s INVERSE=%s PTP_META=%s PTP=%s" \
-          $hardware_name $label $attempt $valid $status $magic_a $magic_b $counter $inverse $mode_meta $ptp]
+    set valid [mapping_sample_valid $snapshot_req $snapshot_ack $counter $inverse]
+    puts [format "WDIAGS_MAP_SAMPLE board=%s label=%s attempt=%d valid=%d status=%s SNAPSHOT_REQ_COUNT=%s SNAPSHOT_ACK_COUNT=%s COUNTER=%s INVERSE=%s PTP_META=%s PTP=%s" \
+          $hardware_name $label $attempt $valid $status $snapshot_req $snapshot_ack $counter $inverse $mode_meta $ptp]
     flush stdout
     if {$valid} {
       return $valid
@@ -77,7 +83,7 @@ proc read_map_sample {hardware_name label} {
   return 0
 }
 
-puts [format "WDIAGS_MAP_CONFIG gap_ms=%d expected_magic_a=A5A5122C expected_magic_b=A5A51330" $gap_ms]
+puts [format "WDIAGS_MAP_CONFIG gap_ms=%d expected_snapshot_req_count=0 expected_snapshot_ack_count=0 expected_inverse=bitwise_not_counter" $gap_ms]
 
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]

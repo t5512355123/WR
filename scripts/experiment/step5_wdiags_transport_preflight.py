@@ -2,8 +2,8 @@
 """Classify the read-only WDIAGS mapping/transport preflight output.
 
 The preflight deliberately distinguishes a mailbox transaction timeout from a
-completed transaction whose returned WDIAGS words do not match the established
-mapping.  It never infers Step5 lock from this test.
+completed transaction whose returned WDIAGS words do not match the current
+source-backed mapping contract.  It never infers Step5 lock from this test.
 """
 
 from __future__ import annotations
@@ -22,6 +22,13 @@ SAMPLE_RE = re.compile(r"^WDIAGS_MAP_SAMPLE\b")
 RESULT_RE = re.compile(r"^WDIAGS_MAP_RESULT\b")
 DONE_RE = re.compile(r"^WDIAGS_MAP_DONE\b")
 TIMEOUT_VALUES = {"", "TIMEOUT", "INVALID", "NA"}
+SOURCE_MAPPING_FIELDS = (
+    "SNAPSHOT_REQ_COUNT",
+    "SNAPSHOT_ACK_COUNT",
+    "COUNTER",
+    "INVERSE",
+)
+LEGACY_MAPPING_FIELDS = ("MAGIC_A", "MAGIC_B", "COUNTER", "INVERSE")
 
 
 def _fields(line: str) -> dict[str, str]:
@@ -43,12 +50,30 @@ def _is_hex(value: str | None) -> bool:
 
 
 def _transport_complete(row: dict[str, str]) -> bool:
-    required = ("MAGIC_A", "MAGIC_B", "COUNTER", "INVERSE")
-    return all(_is_hex(row.get(field)) for field in required)
+    return any(
+        all(_is_hex(row.get(field)) for field in fields)
+        for fields in (SOURCE_MAPPING_FIELDS, LEGACY_MAPPING_FIELDS)
+    )
+
+
+def _hex_value(value: str) -> int:
+    return int(value, 16)
 
 
 def _map_valid(row: dict[str, str]) -> bool:
-    return row.get("VALID", "0") == "1"
+    if row.get("VALID", "0") != "1":
+        return False
+    if not all(_is_hex(row.get(field)) for field in SOURCE_MAPPING_FIELDS):
+        return False
+    request_count = _hex_value(row["SNAPSHOT_REQ_COUNT"])
+    acknowledgement_count = _hex_value(row["SNAPSHOT_ACK_COUNT"])
+    counter = _hex_value(row["COUNTER"])
+    inverse = _hex_value(row["INVERSE"])
+    return (
+        request_count == 0
+        and acknowledgement_count == 0
+        and inverse == ((~counter) & 0xFFFFFFFF)
+    )
 
 
 def analyze(path: Path, min_boards: int = 2) -> dict[str, Any]:

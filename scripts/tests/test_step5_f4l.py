@@ -136,3 +136,9 @@ def test_source_declares_f4l_without_control_parameter_changes() -> None:
     assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in (
         ROOT / "firmware" / "configs" / "de5a_slave_identity.h"
     ).read_text(encoding="utf-8")
+    observer = (
+        ROOT / "scripts" / "jtag" /
+        "read_step5_main_frequency_prelock_observability.tcl"
+    ).read_text(encoding="utf-8")
+    assert "set no_valid_timeout_ms 30000" in observer
+    assert "set smoke_duration 60000" in observer

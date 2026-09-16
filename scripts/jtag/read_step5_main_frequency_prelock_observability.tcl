@@ -337,6 +337,8 @@ array set ::f4l_next_service_ms {}
 array set ::f4l_stop_reason {}
 array set ::f4l_run_end_reason {}
 set ::f4l_smoke_ok 0
+set ::f4l_no_valid_timeout_ms 30000
+set ::f4l_smoke_duration_ms 60000
 set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
 
@@ -3231,8 +3233,9 @@ proc f4l_update_diag_state {hardware_name elapsed_ms result} {
   if {!$valid} {
     if {$::f4l_no_valid_since_ms($hardware_name) eq "INVALID"} {
       set ::f4l_no_valid_since_ms($hardware_name) $elapsed_ms
-    } elseif {$elapsed_ms - $::f4l_no_valid_since_ms($hardware_name) >= 10000} {
-      f4l_set_stop F4L_NO_VALID_10S
+    } elseif {$elapsed_ms - $::f4l_no_valid_since_ms($hardware_name) >=
+        $::f4l_no_valid_timeout_ms} {
+      f4l_set_stop F4L_NO_VALID_TIMEOUT
     }
     return 0
   }
@@ -3503,10 +3506,19 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
   if {$effective_duration <= 0} { set effective_duration 120000 }
   set hard_duration $hard_duration_ms
   if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
-  set smoke_duration 10000
+  # F4L is a passive paged diagnostic.  Startup can legitimately spend more
+  # than ten seconds before Main publishes its first coherent page, and the
+  # observer's context reads are slower than the producer rotation period.
+  # Keep the longer readiness windows local to this observer; they do not
+  # change any firmware timeout, lock detector, or control path.
+  set no_valid_timeout_ms 30000
+  set smoke_duration 60000
+  set ::f4l_no_valid_timeout_ms $no_valid_timeout_ms
+  set ::f4l_smoke_duration_ms $smoke_duration
   puts [join [list STEP5_F4L_CONFIG \
     "experiment=EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916" \
     "run_role=f4l" "samples_max=$samples" "smoke_duration_ms=$smoke_duration" \
+    "no_valid_timeout_ms=$no_valid_timeout_ms" \
     "target_duration_ms=$effective_duration" "hard_duration_ms=$hard_duration" \
     "cadence_hint_ms=$gap_ms" "main_f4l_window=0x00100B58..0x00100BDC" \
     "main_f4l_magic=0x46344C31" "main_f4l_version=1" \
@@ -3562,7 +3574,8 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
       set next_slave_ms [expr {[clock milliseconds] + $gap_ms}]
       set did_work 1
       set elapsed_now [expr {[clock milliseconds] - $::f4l_session_start_ms}]
-      if {!$::f4l_smoke_ok && $elapsed_now >= 10000} {
+      if {!$::f4l_smoke_ok &&
+          $elapsed_now >= $::f4l_smoke_duration_ms} {
         set smoke_pages 1
         for {set page 0} {$page < 3} {incr page} {
           set page_key "$slave_name:$page"

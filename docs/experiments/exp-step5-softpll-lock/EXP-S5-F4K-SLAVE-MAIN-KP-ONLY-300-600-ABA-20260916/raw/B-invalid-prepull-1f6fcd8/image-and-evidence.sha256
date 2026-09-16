@@ -1,0 +1,11 @@
+814d7c2a167ef08888008abaa868425298d0eadd2634f169176e80aa55012eab  /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+8c36aa4406f24190b99c86f1c06cd34cbc95dfba166f3b1bc92ebb3fd6a2c31f  /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+87284b958ccce2a341a32b3f2c41fb39779a3c6d06c08fee063dfc351a193814  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/observer-formal.log
+aa8b7e1e3c623c46a7d2c4cec6f7a3c743bdc4b564b2da4eb8a3e4896b6ac721  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/build-info-master.txt
+9f42b2b412a9299cc2c06642af249911612ad1e9c98a9d10c680ab10234a0511  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/build-info-slave.txt
+18da6c952d19ff373487c644f3d16ae109f91b5cff56d3f6f8ab39a0b32810a5  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/firmware-master-build.log
+9699fb268859b4d3a4083baca344285cb1ec101c63341a4016c967c55e70904f  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/firmware-master-hashes.sha256
+20d3ecfd693de4e2ea2fa872a933cc9fa027ccb6773e5c87f0fb5d027b65cccb  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/firmware-slave-build.log
+1eb0f9ddc02912a713e991de43ede8d8726da3e66f76b158a306088847a92aa6  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/firmware-slave-hashes.sha256
+3aa7972de5e1747a44a1db6d331ccb7fec7b2a4a8987fcc44b974ee04fee1867  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/quartus-master-compile.log
+b1d323a31e6b532632f696467a89bb9897d9915a690ba2fe70c344b11e8a619e  /home/b10504072/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916/raw/B/build/quartus-slave-compile.log

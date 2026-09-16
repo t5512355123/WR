@@ -1,0 +1,78 @@
+{
+  "format": "step5-f4k-arm-manifest-v1",
+  "experiment": "EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916",
+  "arm": "B",
+  "source_commit": "34013477fc225a8074840e2ba7e0dfb44e69873d",
+  "source_branch": "exp/step5-softpll-lock",
+  "configured_main_kp": 600,
+  "fixed_parameters": {
+    "slave_main_ki": 1,
+    "slave_prelock_boost": 20,
+    "master_main_kp": 300,
+    "master_main_ki": 1,
+    "master_prelock_boost": 20,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "legacy_candidate_enabled": false
+  },
+  "observer": {
+    "read_only": true,
+    "one_reader": true,
+    "no_control_write": true,
+    "no_helper_pi_snapshot": true,
+    "no_debug_fifo_drain": true,
+    "schema_changed": false
+  },
+  "build": {
+    "quartus": "17.0 Build 595",
+    "build_after_pull": true,
+    "master_commit_in_build_info": "34013477fc225a8074840e2ba7e0dfb44e69873d",
+    "slave_commit_in_build_info": "34013477fc225a8074840e2ba7e0dfb44e69873d",
+    "master_compile": "PASS",
+    "slave_compile": "PASS",
+    "master_mif_sha256": "3f8528690daa38cafece36ccb6d24d8ed8a48aaf914801d94052891e63b583df",
+    "slave_mif_sha256": "f2300b6ee2901c52ec989d740a4b794a6f5a436d5b733071a461e154cc18da8f",
+    "master_sof_sha256": "58b18b6d8731c001316742d5de8e5772d1b4cc6972bf74e1eaae248df1f172ff",
+    "slave_sof_sha256": "c988b68df2ff8992102ab11a985ab55c7d920728339f1597b7072f2c1adcb3b2",
+    "master_timing_closed": false,
+    "slave_timing_closed": false
+  },
+  "program": {
+    "master": "PASS",
+    "slave": "PASS",
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]"
+  },
+  "smoke": {
+    "target_duration_ms": 10000,
+    "session_elapsed_ms": 10641,
+    "producer_valid": 2,
+    "producer_unique": 1,
+    "stop_reason": "NONE",
+    "single_reader": "PASS",
+    "startup_frames_require_warmup": true
+  },
+  "formal": {
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "session_elapsed_ms": 120023,
+    "producer_valid": 127,
+    "producer_unique": 64,
+    "producer_span_ms": 119264,
+    "frame_errors": 0,
+    "publication_context_mismatches": 0,
+    "stop_reason": "NONE",
+    "terminal": false,
+    "pstat_locked_seen": false,
+    "step5_pass": false,
+    "comparison_ready": true
+  },
+  "evidence": {
+    "formal_log": "raw/B/observer-formal.log",
+    "smoke_log": "raw/B/observer-smoke.log",
+    "analysis": "analysis/B/verdict.json",
+    "image_and_evidence_sha256": "raw/B/image-and-evidence.sha256"
+  },
+  "excluded_pre_pull_capture": "raw/B-invalid-prepull-1f6fcd8",
+  "merge_approved": false
+}

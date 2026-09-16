@@ -1,0 +1,73 @@
+{
+  "format": "step5-f4k-arm-manifest-v1",
+  "experiment": "EXP-S5-F4K-SLAVE-MAIN-KP-ONLY-300-600-ABA-20260916",
+  "arm": "A1",
+  "source_commit": "1f6fcd89096dbfa4dfc9ac0f744a6a1fe08449a5",
+  "source_branch": "exp/step5-softpll-lock",
+  "configured_main_kp": 300,
+  "fixed_parameters": {
+    "slave_main_ki": 1,
+    "slave_prelock_boost": 20,
+    "master_main_kp": 300,
+    "master_main_ki": 1,
+    "master_prelock_boost": 20,
+    "helper_kp": -2250,
+    "helper_ki": -2,
+    "legacy_candidate_enabled": false
+  },
+  "observer": {
+    "read_only": true,
+    "one_reader": true,
+    "no_control_write": true,
+    "no_helper_pi_snapshot": true,
+    "no_debug_fifo_drain": true,
+    "schema_changed": false
+  },
+  "build": {
+    "quartus": "17.0 Build 595",
+    "master_compile": "PASS",
+    "slave_compile": "PASS",
+    "master_sof_sha256": "b05175b38fe6c69290ca6551b4c7c2d59342b83ef4cf1f6fdc1534667080d5b5",
+    "slave_sof_sha256": "02a3ae5aa3f55782968c889f7ae69c3fff2102619e91d0db92b9e4d9e0a9859d",
+    "master_timing_closed": false,
+    "slave_timing_closed": false
+  },
+  "program": {
+    "master": "PASS",
+    "slave": "PASS",
+    "master_cable": "DE5 [1-11.1]",
+    "slave_cable": "DE5 [1-11.2]"
+  },
+  "smoke": {
+    "target_duration_ms": 10000,
+    "session_elapsed_ms": 11034,
+    "producer_valid": 12,
+    "producer_unique": 7,
+    "stop_reason": "NONE",
+    "single_reader": "PASS"
+  },
+  "formal": {
+    "target_duration_ms": 120000,
+    "hard_duration_ms": 130000,
+    "session_elapsed_ms": 40907,
+    "producer_valid": 43,
+    "producer_unique": 22,
+    "producer_span_ms": 39830,
+    "frame_errors": 0,
+    "publication_context_mismatches": 0,
+    "stop_reason": "WR_SESSION_ENDED",
+    "wr_failure_reason": 3,
+    "wr_failure_name": "WR_S_LOCK_TIMEOUT",
+    "terminal": true,
+    "pstat_locked_seen": false,
+    "step5_pass": false,
+    "comparison_ready": false
+  },
+  "evidence": {
+    "formal_log": "raw/A1/observer-formal.log",
+    "smoke_log": "raw/A1/observer-smoke.log",
+    "analysis": "analysis/A1/verdict.json",
+    "image_and_evidence_sha256": "raw/A1/image-and-evidence.sha256"
+  },
+  "merge_approved": false
+}

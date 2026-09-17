@@ -43,8 +43,8 @@ if {[llength $argv] >= 8} { set f4k_expected_main_kp [expr {int([lindex $argv 7]
 if {$samples <= 0 || $gap_ms < 0 || $target_duration_ms < 0 ||
     $hard_duration_ms <= 0 ||
     ($target_duration_ms > 0 && $target_duration_ms > $hard_duration_ms) ||
-    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j f4l f4m} $run_role] < 0} {
-  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, f4j, f4l, or f4m"
+    [lsearch -exact {legacy smoke long acquisition f4f f4g f4h f4i f4j f4l f4m f4s} $run_role] < 0} {
+  error "samples must be > 0, gap_ms must be >= 0, durations must be valid, and run_role must be legacy, smoke, long, acquisition, f4f, f4g, f4h, f4i, f4j, f4l, f4m, or f4s"
 }
 if {$run_role eq "f4j" && $f4k_arm ne "UNSPECIFIED" &&
     [lsearch -exact {A1 B A2} $f4k_arm] < 0} {

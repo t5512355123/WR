@@ -37,7 +37,7 @@ run_logged "$EXP_DIR/raw/build/firmware-master-build.log" \
         "$ROOT/firmware/configs/de5a_master_identity.h" \
         "$ROOT/build/firmware/master/wrc.mif"
     printf '%s\n' '--- F4L compile-time identity markers ---'
-    rg -n 'DE5A_F4L_MAIN_PHASE_DIAG|DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD|DE5A_MAIN_PI_KP_OVERRIDE' \
+    grep -En 'DE5A_F4L_MAIN_PHASE_DIAG|DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD|DE5A_MAIN_PI_KP_OVERRIDE' \
         "$ROOT/firmware/configs/de5a_slave_identity.h" \
         "$ROOT/firmware/configs/de5a_master_identity.h"
 } | tee "$EXP_DIR/raw/build/firmware-image-manifest.txt"

@@ -46,6 +46,14 @@ int wrc_wr_diags(void)
 	static uint32_t main_freq_trace_publish_divider;
 #if DE5A_F4L_MAIN_PHASE_DIAG
 	static uint32_t main_f4l_page;
+	static uint32_t main_f4l_enabled_state;
+	static int main_f4l_enabled_state_valid;
+	static uint32_t main_f4l_enabled_rise_count;
+	static uint32_t main_f4l_enabled_fall_count;
+	static uint32_t main_f4l_page_advance_count;
+	static uint32_t main_f4l_page_reset_to_summary_count;
+	static uint32_t main_f4l_page_due_count[SPLL_MAIN_F4L_DIAG_PAGE_COUNT];
+	static uint32_t main_f4l_page_publish_count[SPLL_MAIN_F4L_DIAG_PAGE_COUNT];
 #endif
 	struct wrc_netif_device *ndev = netif_get_device(0);
 	int tx, rx, rx_err;
@@ -265,6 +273,25 @@ int wrc_wr_diags(void)
 					(((uint32_t)softpll.mpll.freq_ld.lock_samples & 0xffffu) << 16),
 				((uint32_t)softpll.mpll.phase_ld.threshold & 0xffffu) |
 					(((uint32_t)softpll.mpll.phase_ld.lock_samples & 0xffffu) << 16));
+#if DE5A_F4L_MAIN_PHASE_DIAG
+			/* These counters observe the existing producer decision points only.
+			 * They do not gate Main, change the page cadence, or touch SoftPLL. */
+			{
+				uint32_t main_enabled_now = softpll.mpll.enabled ? 1U : 0U;
+				if (!main_f4l_enabled_state_valid) {
+					main_f4l_enabled_state = main_enabled_now;
+					main_f4l_enabled_state_valid = 1;
+				} else if (main_enabled_now != main_f4l_enabled_state) {
+					if (main_enabled_now)
+						main_f4l_enabled_rise_count++;
+					else {
+						main_f4l_enabled_fall_count++;
+						main_f4l_page_reset_to_summary_count++;
+					}
+					main_f4l_enabled_state = main_enabled_now;
+				}
+			}
+#endif
 			if (!softpll.mpll.enabled) {
 				main_freq_trace_publish_divider = 0;
 #if DE5A_F4L_MAIN_PHASE_DIAG
@@ -281,15 +308,23 @@ int wrc_wr_diags(void)
 				 * image.  F4L rotates passive pages; F4J keeps its producer frame
 				 * unchanged.  Neither path reruns a detector or PI. */
 #if DE5A_F4L_MAIN_PHASE_DIAG
+				if (softpll.mpll.enabled &&
+					main_f4l_page < SPLL_MAIN_F4L_DIAG_PAGE_COUNT)
+					main_f4l_page_due_count[main_f4l_page]++;
 				main_f4l_snapshot_valid = 0;
 				if (softpll.mpll.enabled)
 					main_f4l_snapshot_valid = spll_main_f4l_diag_copy(
 						main_f4l_page, &main_f4l_frame);
 				wdiags_write_wr_spll_main_f4l_debug(
 					&main_f4l_frame, main_f4l_snapshot_valid);
-				if (main_f4l_snapshot_valid)
+				if (main_f4l_snapshot_valid) {
+					if (main_f4l_page < SPLL_MAIN_F4L_DIAG_PAGE_COUNT) {
+						main_f4l_page_publish_count[main_f4l_page]++;
+						main_f4l_page_advance_count++;
+					}
 					main_f4l_page = (main_f4l_page + 1U) %
 						SPLL_MAIN_F4L_DIAG_PAGE_COUNT;
+				}
 #else
 				main_producer_snapshot_valid = 0;
 				if (softpll.mpll.enabled)
@@ -342,6 +377,17 @@ int wrc_wr_diags(void)
 				wrpc_spll_last_init_reason_tics,
 				(const uint32_t *)wrpc_spll_init_reason_counts,
 				WRPC_SPLL_INIT_REASON_COUNT);
+#if DE5A_F4L_MAIN_PHASE_DIAG
+			wdiags_write_wr_spll_main_f4l_schedule_debug(
+				softpll.mpll.enabled ? 1U : 0U,
+				main_f4l_page,
+				main_f4l_enabled_rise_count,
+				main_f4l_enabled_fall_count,
+				main_f4l_page_advance_count,
+				main_f4l_page_reset_to_summary_count,
+				main_f4l_page_due_count[SPLL_MAIN_F4L_PAGE_HISTOGRAM],
+				main_f4l_page_publish_count[SPLL_MAIN_F4L_PAGE_HISTOGRAM]);
+#endif
 
 			/* Copy one complete Helper invocation from the RAM seqlock.  The
 			 * source payload is captured in helper_update(); WDIAGS is only a

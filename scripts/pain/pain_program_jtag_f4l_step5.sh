@@ -36,5 +36,5 @@ run_logged "$EXP_DIR/raw/program/master-program.log" \
     printf 'slave_cable=%s\n' "$SLAVE_CABLE"
     printf 'master_cable=%s\n' "$MASTER_CABLE"
     sha256sum "$SLAVE_SOF" "$MASTER_SOF"
-    printf 'JTAG_F4L_STEP5_PROGRAM=PASS\n'
+    printf 'JTAG_F4L_SCHEDULE_OBSERVABILITY_PROGRAM=PASS\n'
 } | tee "$EXP_DIR/raw/program/program-manifest.txt"

@@ -295,6 +295,26 @@
 #define WRC_DIAGS_WDIAG_MAIN_F4L_MAGIC_VALUE            0x46344c31UL
 #define WRC_DIAGS_WDIAG_MAIN_F4L_VERSION_VALUE          1UL
 
+/* F4S read-only Main producer-schedule shadow.  It occupies the existing
+ * private 0x1e0..0x1fc tail without changing the WDIAGS SDB/DPRAM size.  The
+ * schedule image is owned only by the F4L diagnostic firmware after the F4L
+ * writer claims the Main overlay.  Word 0 is a schema magic, word 1 is an
+ * even/odd publication sequence, and words 2..7 are the passive counters. */
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_MAGIC          0x1e0UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_SEQUENCE       0x1e4UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE          0x1e8UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_ENABLED_FALL   0x1ecUL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE_ADVANCE  0x1f0UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE_RESET    0x1f4UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE2_DUE     0x1f8UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE2_PUBLISH 0x1fcUL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_MAGIC_VALUE   0x46345331UL /* F4S1 */
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_ENABLED_MASK 0x00000001UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_PAGE_SHIFT 8
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_PAGE_MASK 0x00000300UL
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_RISE_SHIFT 16
+#define WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_RISE_MASK 0xffff0000UL
+
 /* Private read-only SoftPLL re-init attribution overlay.  The four
  * reason-counter words pack four 8-bit counters per word. */
 #define WRC_DIAGS_WDIAG_SPLL_LAST_INIT_REASON       0x1e0UL

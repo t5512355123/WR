@@ -336,6 +336,17 @@ array set ::f4l_page_seen {}
 array set ::f4l_next_service_ms {}
 array set ::f4l_stop_reason {}
 array set ::f4l_run_end_reason {}
+array set ::f4l_schedule_last_sequence {}
+array set ::f4l_schedule_valid_count {}
+array set ::f4l_schedule_invalid_count {}
+array set ::f4l_schedule_last_main_enabled {}
+array set ::f4l_schedule_last_page {}
+array set ::f4l_schedule_last_enabled_rise {}
+array set ::f4l_schedule_last_enabled_fall {}
+array set ::f4l_schedule_last_page_advance {}
+array set ::f4l_schedule_last_page_reset {}
+array set ::f4l_schedule_last_page2_due {}
+array set ::f4l_schedule_last_page2_publish {}
 set ::f4l_smoke_ok 0
 set ::f4l_no_valid_timeout_ms 10000
 set ::f4l_smoke_duration_ms 10000
@@ -343,6 +354,8 @@ set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
 set ::f4l_event_tag F4L
 set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
+set ::f4l_schedule_mode 0
+set ::f4l_schedule_magic 0x46345331
 
 # F4M is an observer-only closure run layered on the existing F4L wire image.
 # It records the page sequence as observed by one reader and samples the
@@ -3151,6 +3164,17 @@ proc f4l_initialize_board {role hardware_name} {
   set ::f4l_stop_reason($hardware_name) NONE
   set ::f4l_run_end_reason($hardware_name) NOT_REACHED
   set ::f4l_next_service_ms($hardware_name) 0
+  set ::f4l_schedule_last_sequence($hardware_name) INVALID
+  set ::f4l_schedule_valid_count($hardware_name) 0
+  set ::f4l_schedule_invalid_count($hardware_name) 0
+  set ::f4l_schedule_last_main_enabled($hardware_name) INVALID
+  set ::f4l_schedule_last_page($hardware_name) INVALID
+  set ::f4l_schedule_last_enabled_rise($hardware_name) INVALID
+  set ::f4l_schedule_last_enabled_fall($hardware_name) INVALID
+  set ::f4l_schedule_last_page_advance($hardware_name) INVALID
+  set ::f4l_schedule_last_page_reset($hardware_name) INVALID
+  set ::f4l_schedule_last_page2_due($hardware_name) INVALID
+  set ::f4l_schedule_last_page2_publish($hardware_name) INVALID
   set ::f4m_current_page($hardware_name) INVALID
   set ::f4m_previous_page($hardware_name) INVALID
   set ::f4m_page_rotation_count($hardware_name) 0
@@ -3318,6 +3342,149 @@ proc f4l_invalid_main_result {host_start_ms host_end_ms attempts transport_failu
   # retry failures so the caller never shifts a later field by accident.
   return [concat [list 0] [lrepeat 21 INVALID] [list $host_start_ms \
     $host_end_ms $attempts $transport_failure]]
+}
+
+# F4S reads the existing private tail window that the firmware fills with the
+# passive Main producer-schedule shadow.  It is a separate seqlock from the
+# 34-word F4L frame; the observer never claims the two windows are one atomic
+# firmware cycle.
+proc f4l_invalid_schedule_result {host_start_ms host_end_ms attempts transport_failure} {
+  return [concat [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID \
+    INVALID INVALID INVALID INVALID INVALID INVALID INVALID] [list \
+    $host_start_ms $host_end_ms $attempts $transport_failure]]
+}
+
+proc f4l_read_schedule_diag {hardware_name} {
+  set host_start_ms [clock milliseconds]
+  set attempts 0
+  set transport_failure 0
+  set result ""
+  set base 0x00100BE0
+  set offsets {}
+  for {set i 0} {$i < 8} {incr i} {
+    lappend offsets [format "0x%08X" [expr {$base + (4 * $i)}]]
+  }
+  for {set attempt 1} {$attempt <= 6} {incr attempt} {
+    set attempts $attempt
+    set magic_raw [wb_read $hardware_name [lindex $offsets 0]]
+    set sequence_before_raw [wb_read $hardware_name [lindex $offsets 1]]
+    if {$magic_raw eq "TIMEOUT" || $sequence_before_raw eq "TIMEOUT"} {
+      set transport_failure 1
+    }
+    set sequence_before [word32 $sequence_before_raw]
+    if {$sequence_before < 0 || ($sequence_before & 1)} {
+      after 1
+      continue
+    }
+    set payload [list $magic_raw $sequence_before_raw]
+    for {set i 2} {$i < 8} {incr i} {
+      set raw [wb_read $hardware_name [lindex $offsets $i]]
+      if {$raw eq "TIMEOUT"} { set transport_failure 1 }
+      lappend payload $raw
+    }
+    set sequence_after_raw [wb_read $hardware_name [lindex $offsets 1]]
+    if {$sequence_after_raw eq "TIMEOUT"} { set transport_failure 1 }
+    set sequence_after [word32 $sequence_after_raw]
+    set raw_valid 1
+    foreach raw $payload {
+      if {![is_hex $raw]} { set raw_valid 0 }
+    }
+    set magic [word32 [lindex $payload 0]]
+    set state_raw [lindex $payload 2]
+    set state [word32 $state_raw]
+    set main_enabled [field32 $state_raw 0 1]
+    set page [field32 $state_raw 8 2]
+    set enabled_rise [field32 $state_raw 16 16]
+    set enabled_fall [word32 [lindex $payload 3]]
+    set page_advance [word32 [lindex $payload 4]]
+    set page_reset [word32 [lindex $payload 5]]
+    set page2_due [word32 [lindex $payload 6]]
+    set page2_publish [word32 [lindex $payload 7]]
+    if {$raw_valid && $magic == $::f4l_schedule_magic &&
+        $sequence_before >= 0 && $sequence_after == $sequence_before &&
+        !($sequence_after & 1) && $state >= 0 &&
+        $main_enabled ne "INVALID" && $page ne "INVALID" &&
+        $enabled_rise ne "INVALID" && $enabled_fall >= 0 &&
+        $page_advance >= 0 && $page_reset >= 0 &&
+        $page2_due >= 0 && $page2_publish >= 0} {
+      set result [list 1 $magic_raw $sequence_before_raw \
+        $sequence_after_raw $sequence_after $state_raw $main_enabled $page \
+        $enabled_rise $enabled_fall $page_advance $page_reset $page2_due \
+        $page2_publish $payload $host_start_ms [clock milliseconds] \
+        $attempts $transport_failure]
+      break
+    }
+    after 1
+  }
+  if {$result eq ""} {
+    set result [f4l_invalid_schedule_result $host_start_ms \
+      [clock milliseconds] $attempts $transport_failure]
+  }
+  return $result
+}
+
+proc f4l_emit_schedule_diag {hardware_name cycle elapsed_ms} {
+  set result [f4l_read_schedule_diag $hardware_name]
+  set valid [lindex $result 0]
+  set magic_raw [lindex $result 1]
+  set sequence_before_raw [lindex $result 2]
+  set sequence_after_raw [lindex $result 3]
+  set sequence [lindex $result 4]
+  set state_raw [lindex $result 5]
+  set main_enabled [lindex $result 6]
+  set page [lindex $result 7]
+  set enabled_rise [lindex $result 8]
+  set enabled_fall [lindex $result 9]
+  set page_advance [lindex $result 10]
+  set page_reset [lindex $result 11]
+  set page2_due [lindex $result 12]
+  set page2_publish [lindex $result 13]
+  set payload [lindex $result 14]
+  set host_start_ms [lindex $result 15]
+  set host_end_ms [lindex $result 16]
+  set attempts [lindex $result 17]
+  set transport_failure [lindex $result 18]
+  if {$valid} {
+    incr ::f4l_schedule_valid_count($hardware_name)
+    set ::f4l_schedule_last_sequence($hardware_name) $sequence
+    set ::f4l_schedule_last_main_enabled($hardware_name) $main_enabled
+    set ::f4l_schedule_last_page($hardware_name) $page
+    set ::f4l_schedule_last_enabled_rise($hardware_name) $enabled_rise
+    set ::f4l_schedule_last_enabled_fall($hardware_name) $enabled_fall
+    set ::f4l_schedule_last_page_advance($hardware_name) $page_advance
+    set ::f4l_schedule_last_page_reset($hardware_name) $page_reset
+    set ::f4l_schedule_last_page2_due($hardware_name) $page2_due
+    set ::f4l_schedule_last_page2_publish($hardware_name) $page2_publish
+  } else {
+    incr ::f4l_schedule_invalid_count($hardware_name)
+  }
+  set raw_pairs {}
+  for {set i 0} {$i < 8} {incr i} {
+    lappend raw_pairs [format "F4S_W%02d_RAW=%s" $i [lindex $payload $i]]
+  }
+  puts [join [concat [list STEP5_${::f4l_event_tag}_MAIN_SCHEDULE \
+    "board=$hardware_name" "cycle=$cycle" \
+    "host_start_ms=$host_start_ms" "host_end_ms=$host_end_ms" \
+    "elapsed_ms=$elapsed_ms" \
+    "READ_DURATION_MS=[expr {$host_end_ms - $host_start_ms}]" \
+    "SCHEDULE_VALID=$valid" "TRANSPORT_COHERENT=[expr {$valid ? 1 : 0}]" \
+    "MAGIC_RAW=$magic_raw" \
+    "SEQUENCE_RAW_BEFORE=0x$sequence_before_raw" \
+    "SEQUENCE_RAW_AFTER=0x$sequence_after_raw" "SEQUENCE=$sequence" \
+    "STATE_RAW=$state_raw" "MAIN_ENABLED_CURRENT=$main_enabled" \
+    "MAIN_ENABLED_RISE_COUNT=$enabled_rise" \
+    "MAIN_ENABLED_FALL_COUNT=$enabled_fall" \
+    "F4L_PAGE_SELECTOR_CURRENT=$page" \
+    "F4L_PAGE_ADVANCE_COUNT=$page_advance" \
+    "F4L_PAGE_RESET_TO_SUMMARY_COUNT=$page_reset" \
+    "F4L_PAGE2_DUE_COUNT=$page2_due" \
+    "F4L_PAGE2_PUBLISH_COUNT=$page2_publish" \
+    "SCHEMA_MAGIC_EXPECTED=46345331" "FRAME_WORDS=8" \
+    "TRANSPORT_FAILURE=$transport_failure" "ATTEMPTS=$attempts" \
+    "SCHEDULE_SOURCE=TASK_DIAGS_F4L_MAIN_PRODUCER" \
+    "NON_ATOMIC_WITH_F4L_FRAME=1"] $raw_pairs] " "]
+  flush stdout
+  return $result
 }
 
 proc f4l_read_main_diag {hardware_name} {
@@ -3583,6 +3750,16 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
   set main_state_raw INVALID
   set main_enabled INVALID
   set main_startup_waiting 0
+  set schedule_result [f4l_invalid_schedule_result 0 0 0 1]
+  set schedule_valid 0
+  set schedule_main_enabled INVALID
+  set schedule_page INVALID
+  set schedule_enabled_rise INVALID
+  set schedule_enabled_fall INVALID
+  set schedule_page_advance INVALID
+  set schedule_page_reset INVALID
+  set schedule_page2_due INVALID
+  set schedule_page2_publish INVALID
   set wr_core_valid 0
   set phy_link_usable 0
   set terminal 0
@@ -3639,6 +3816,18 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     set main_source_epoch [lindex $main_result 5]
     set main_update [lindex $main_result 6]
     set main_transport_failure [lindex $main_result 25]
+    if {$::f4l_schedule_mode} {
+      set schedule_result [f4l_emit_schedule_diag $hardware_name $cycle $elapsed_ms]
+      set schedule_valid [lindex $schedule_result 0]
+      set schedule_main_enabled [lindex $schedule_result 6]
+      set schedule_page [lindex $schedule_result 7]
+      set schedule_enabled_rise [lindex $schedule_result 8]
+      set schedule_enabled_fall [lindex $schedule_result 9]
+      set schedule_page_advance [lindex $schedule_result 10]
+      set schedule_page_reset [lindex $schedule_result 11]
+      set schedule_page2_due [lindex $schedule_result 12]
+      set schedule_page2_publish [lindex $schedule_result 13]
+    }
     set status_result [f4g_read_l2_word 52]
     f4g_emit_l2_word $hardware_name $cycle 52 STATUS $status_result
     set pending_result [f4g_read_l2_word 53]
@@ -3717,6 +3906,15 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     "STARTUP_GATE_WAITING=$main_startup_waiting" \
     "MAIN_F4L_PAGE=$main_page" "MAIN_F4L_SOURCE_EPOCH=$main_source_epoch" \
     "MAIN_F4L_UPDATE_ID=$main_update" "WR_CORE_VALID=$wr_core_valid" \
+    "SCHEDULE_VALID=$schedule_valid" \
+    "SCHEDULE_MAIN_ENABLED=$schedule_main_enabled" \
+    "SCHEDULE_PAGE=$schedule_page" \
+    "SCHEDULE_ENABLED_RISE=$schedule_enabled_rise" \
+    "SCHEDULE_ENABLED_FALL=$schedule_enabled_fall" \
+    "SCHEDULE_PAGE_ADVANCE=$schedule_page_advance" \
+    "SCHEDULE_PAGE_RESET=$schedule_page_reset" \
+    "SCHEDULE_PAGE2_DUE=$schedule_page2_due" \
+    "SCHEDULE_PAGE2_PUBLISH=$schedule_page2_publish" \
     "PHY_LINK_USABLE=$phy_link_usable" "PSTAT_LOCKED=$pstat_locked" \
     "TERMINAL=$terminal" "SERVICE_READ=$service_read" \
     "STOP_REASON=$::f4g_global_stop_reason"] " "]
@@ -3752,6 +3950,10 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
   }
   set ::f4l_no_valid_timeout_ms $no_valid_timeout_ms
   set ::f4l_smoke_duration_ms $smoke_duration
+  set s_lock_trace_addresses 0x00100BE0..0x00100BFC
+  if {$::f4l_schedule_mode} {
+    set s_lock_trace_addresses NOT_USED_F4S_SCHEDULE_OWNS_TAIL
+  }
   puts [join [list STEP5_${event_tag}_CONFIG \
     "experiment=$::f4l_experiment_name" \
     "run_role=[string tolower $event_tag]" "samples_max=$samples" "smoke_duration_ms=$smoke_duration" \
@@ -3765,6 +3967,10 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "page2=HISTOGRAM_PAGE2" \
     "publication_coherence=TRANSPORT_EPOCH_BEFORE_EQUALS_AFTER_EVEN" \
     "source_coherence=SOURCE_EPOCH_EVEN_AND_FRAME_STABLE" \
+    "main_schedule_window=0x00100BE0..0x00100BFC" \
+    "main_schedule_magic=0x46345331" "main_schedule_frame_words=8" \
+    "main_schedule_source=TASK_DIAGS_F4L_MAIN_PRODUCER" \
+    "main_schedule_non_atomic_with_f4l_frame=1" \
     "helper_core=F4G_COMPACT_SOURCE_CONTRACT" \
     "helper_position_probes=42,43,44,49" "l2_probes=52..61" \
     "phy_status_source=JTAG_PROBE0" "phy_status_instance=0" \
@@ -3777,7 +3983,7 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "merge_approved=NO" "f4m_observer_enabled=$::f4m_enabled" \
     "startup_gate_condition=HELPER_LOCKED_AND_MAIN_ENABLED" \
     "startup_gate_timeout_ms=$::f4m_startup_gate_timeout_ms" \
-     "s_lock_trace_addresses=0x00100BE0..0x00100BFC" \
+     "s_lock_trace_addresses=$s_lock_trace_addresses" \
     "s_lock_trace_alignment=FIRMWARE_REMAINING_MS_AUXILIARY"] " "]
   flush stdout
   if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
@@ -3817,23 +4023,43 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
       set elapsed_now [expr {[clock milliseconds] - $::f4l_session_start_ms}]
       if {!$::f4l_smoke_ok &&
           $elapsed_now >= $::f4l_smoke_duration_ms} {
-        set smoke_pages 1
-        for {set page 0} {$page < 3} {incr page} {
-          set page_key "$slave_name:$page"
-          if {!$::f4l_page_seen($page_key)} { set smoke_pages 0 }
-        }
-        if {$::f4l_valid_count($slave_name) >= 3 && $smoke_pages} {
-          set ::f4l_smoke_ok 1
-          puts [join [list STEP5_${event_tag}_SMOKE "board=$slave_name" \
-            "elapsed_ms=$elapsed_now" "result=PASS" \
-            "valid=$::f4l_valid_count($slave_name)" \
-            "unique=$::f4l_unique_count($slave_name)" \
-            "page0=$::f4l_page_valid_count($slave_name:0)" \
-            "page1=$::f4l_page_valid_count($slave_name:1)" \
-            "page2=$::f4l_page_valid_count($slave_name:2)"] " "]
-          flush stdout
+        if {$::f4l_schedule_mode} {
+          if {$::f4l_schedule_valid_count($slave_name) >= 3} {
+            set ::f4l_smoke_ok 1
+            puts [join [list STEP5_${event_tag}_SMOKE "board=$slave_name" \
+              "elapsed_ms=$elapsed_now" "result=PASS" \
+              "schedule_valid=$::f4l_schedule_valid_count($slave_name)" \
+              "schedule_invalid=$::f4l_schedule_invalid_count($slave_name)" \
+              "main_enabled=$::f4l_schedule_last_main_enabled($slave_name)" \
+              "page=$::f4l_schedule_last_page($slave_name)" \
+              "enabled_fall=$::f4l_schedule_last_enabled_fall($slave_name)" \
+              "page_advance=$::f4l_schedule_last_page_advance($slave_name)" \
+              "page_reset=$::f4l_schedule_last_page_reset($slave_name)" \
+              "page2_due=$::f4l_schedule_last_page2_due($slave_name)" \
+              "page2_publish=$::f4l_schedule_last_page2_publish($slave_name)"] " "]
+            flush stdout
+          } else {
+            f4l_set_stop F4S_SCHEDULE_SCHEMA_NOT_READY
+          }
         } else {
-          f4l_set_stop F4L_SMOKE_SCHEMA_NOT_READY
+          set smoke_pages 1
+          for {set page 0} {$page < 3} {incr page} {
+            set page_key "$slave_name:$page"
+            if {!$::f4l_page_seen($page_key)} { set smoke_pages 0 }
+          }
+          if {$::f4l_valid_count($slave_name) >= 3 && $smoke_pages} {
+            set ::f4l_smoke_ok 1
+            puts [join [list STEP5_${event_tag}_SMOKE "board=$slave_name" \
+              "elapsed_ms=$elapsed_now" "result=PASS" \
+              "valid=$::f4l_valid_count($slave_name)" \
+              "unique=$::f4l_unique_count($slave_name)" \
+              "page0=$::f4l_page_valid_count($slave_name:0)" \
+              "page1=$::f4l_page_valid_count($slave_name:1)" \
+              "page2=$::f4l_page_valid_count($slave_name:2)"] " "]
+            flush stdout
+          } else {
+            f4l_set_stop F4L_SMOKE_SCHEMA_NOT_READY
+          }
         }
       }
     }
@@ -3899,6 +4125,16 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "page0=$::f4l_page_valid_count($slave_name:0)" \
     "page1=$::f4l_page_valid_count($slave_name:1)" \
     "page2=$::f4l_page_valid_count($slave_name:2)" \
+    "schedule_valid=$::f4l_schedule_valid_count($slave_name)" \
+    "schedule_invalid=$::f4l_schedule_invalid_count($slave_name)" \
+    "schedule_main_enabled=$::f4l_schedule_last_main_enabled($slave_name)" \
+    "schedule_page=$::f4l_schedule_last_page($slave_name)" \
+    "schedule_enabled_rise=$::f4l_schedule_last_enabled_rise($slave_name)" \
+    "schedule_enabled_fall=$::f4l_schedule_last_enabled_fall($slave_name)" \
+    "schedule_page_advance=$::f4l_schedule_last_page_advance($slave_name)" \
+    "schedule_page_reset=$::f4l_schedule_last_page_reset($slave_name)" \
+    "schedule_page2_due=$::f4l_schedule_last_page2_due($slave_name)" \
+    "schedule_page2_publish=$::f4l_schedule_last_page2_publish($slave_name)" \
     "page_publish_count_0=$::f4m_page_publish_count($slave_name:0)" \
     "page_publish_count_1=$::f4m_page_publish_count($slave_name:1)" \
     "page_publish_count_2=$::f4m_page_publish_count($slave_name:2)" \
@@ -6245,9 +6481,22 @@ if {$run_role eq "f4j"} {
 
 if {$run_role eq "f4l"} {
   set ::f4m_enabled 0
+  set ::f4l_schedule_mode 0
   set ::f4l_event_tag F4L
   set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
   set ::f4g_run_role f4l
+  set ::f4g_experiment_name $::f4l_experiment_name
+  set ::f4g_phy_status_source JTAG_PROBE0
+  run_f4l_main_phase_drift_integrator_balance
+  exit 0
+}
+
+if {$run_role eq "f4s"} {
+  set ::f4m_enabled 0
+  set ::f4l_schedule_mode 1
+  set ::f4l_event_tag F4S
+  set ::f4l_experiment_name EXP-S5-F4L-PRODUCER-SCHEDULE-OBSERVABILITY-20260917
+  set ::f4g_run_role f4s
   set ::f4g_experiment_name $::f4l_experiment_name
   set ::f4g_phy_status_source JTAG_PROBE0
   run_f4l_main_phase_drift_integrator_balance

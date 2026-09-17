@@ -89,6 +89,7 @@ static int wdiags_main_frequency_trace_active;
 static int wdiags_main_producer_active;
 static int wdiags_wr_s_lock_trace_active;
 static uint32_t wdiags_wr_s_lock_trace_seq;
+static uint32_t wdiags_main_f4l_schedule_epoch;
 /* Once a snapshot request is observed, the overlapping 0x158..0x1dc
  * private window belongs exclusively to the PI frozen bank.  Legacy
  * diagnostic state is still updated in host RAM, but must not be mirrored
@@ -1514,6 +1515,59 @@ void wdiags_write_wr_spll_main_f4l_debug(
 		++wdiags_main_frequency_trace_epoch);
 }
 
+void wdiags_write_wr_spll_main_f4l_schedule_debug(
+					uint32_t main_enabled,
+					uint32_t page_selector,
+					uint32_t main_enabled_rise_count,
+					uint32_t main_enabled_fall_count,
+					uint32_t page_advance_count,
+					uint32_t page_reset_to_summary_count,
+					uint32_t page2_due_count,
+					uint32_t page2_publish_count)
+{
+	uint32_t epoch;
+	uint32_t state;
+
+	/* The F4L schedule shadow shares the private tail with the older
+	 * re-init/S_LOCK overlays.  Never tear an explicitly claimed Helper PI or
+	 * S_LOCK bank; F4L's one-reader experiment does not arm either bank. */
+	if (wdiags_helper_pi_snapshot_v2_active ||
+		wdiags_wr_s_lock_trace_active)
+		return;
+
+	wdiags_reinit_attribution_active = 1;
+	wdiags_main_frequency_trace_active = 1;
+	wdiags_main_producer_active = 1;
+	state = (main_enabled &
+		WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_ENABLED_MASK) |
+		((page_selector << WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_PAGE_SHIFT) &
+		 WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_PAGE_MASK) |
+		((main_enabled_rise_count <<
+		  WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_RISE_SHIFT) &
+		 WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE_RISE_MASK);
+
+	epoch = ++wdiags_main_f4l_schedule_epoch;
+	if (!(epoch & 1U))
+		epoch = ++wdiags_main_f4l_schedule_epoch;
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_MAGIC,
+		WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_MAGIC_VALUE);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_SEQUENCE, epoch);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_STATE, state);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_ENABLED_FALL,
+		main_enabled_fall_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE_ADVANCE,
+		page_advance_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE_RESET,
+		page_reset_to_summary_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE2_DUE,
+		page2_due_count);
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_PAGE2_PUBLISH,
+		page2_publish_count);
+	wdiag_publish_barrier();
+	wdiag_write(WRC_DIAGS_WDIAG_MAIN_F4L_SCHEDULE_SEQUENCE,
+		++wdiags_main_f4l_schedule_epoch);
+}
+
 void wdiags_set_base_address( void *base )
 {
 	wdiags_base = base;
@@ -1549,6 +1603,8 @@ int wdiags_init(void)
 	wdiags_main_frequency_trace_epoch = 0;
 	wdiags_main_frequency_trace_active = 0;
 	wdiags_main_producer_active = 0;
+	wdiags_main_f4l_schedule_epoch = 0;
+	wdiags_reinit_attribution_active = 0;
 	wdiags_wr_s_lock_trace_active = 0;
 	wdiags_wr_s_lock_trace_seq = 0;
 	wdiags_helper_pi_snapshot_v2_active = 0;

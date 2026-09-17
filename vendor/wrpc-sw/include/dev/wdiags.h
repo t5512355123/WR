@@ -57,6 +57,18 @@ void wdiags_write_wr_spll_main_producer_debug(
  * dynamic Main overlay and is mutually exclusive with the Helper PI bank. */
 void wdiags_write_wr_spll_main_f4l_debug(
 					const struct spll_main_f4l_diag_frame *frame, int valid);
+/* Read-only F4L producer-schedule shadow.  It reuses the existing private
+ * tail window and never feeds back into Main enable, page selection, or any
+ * SoftPLL control path. */
+void wdiags_write_wr_spll_main_f4l_schedule_debug(
+					uint32_t main_enabled,
+					uint32_t page_selector,
+					uint32_t main_enabled_rise_count,
+					uint32_t main_enabled_fall_count,
+					uint32_t page_advance_count,
+					uint32_t page_reset_to_summary_count,
+					uint32_t page2_due_count,
+					uint32_t page2_publish_count);
 void wdiags_write_servo_state(int wr_mode, uint8_t servostate, uint64_t mu,
 			      uint64_t dms, int32_t asym, int32_t cko,
 			      int32_t setp, int32_t ucnt, uint32_t restart_cnt, uint64_t up_timestamp );

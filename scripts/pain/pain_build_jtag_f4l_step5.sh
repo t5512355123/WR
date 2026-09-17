@@ -42,14 +42,18 @@ run_logged "$EXP_DIR/raw/build/firmware-master-build.log" \
     sha256sum \
         "$ROOT/vendor/wrpc-sw/softpll/spll_main.c" \
         "$ROOT/vendor/wrpc-sw/softpll/spll_main_f4l_diag.h" \
+        "$ROOT/vendor/wrpc-sw/dev/wdiags.c" \
+        "$ROOT/vendor/wrpc-sw/include/dev/wdiags.h" \
+        "$ROOT/vendor/wrpc-sw/include/hw/wrc_diags_regs.h" \
         "$ROOT/vendor/wrpc-sw/lib/task-diags.c" \
-        "$ROOT/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl"
+        "$ROOT/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl" \
+        "$ROOT/scripts/experiment/step5_f4s_producer_schedule.py"
     printf '%s\n' '--- F4L compile-time identity markers ---'
     grep -En 'DE5A_F4L_MAIN_PHASE_DIAG|DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD|DE5A_MAIN_PI_KP_OVERRIDE' \
         "$ROOT/firmware/configs/de5a_slave_identity.h" \
         "$ROOT/firmware/configs/de5a_master_identity.h"
     printf '%s\n' '--- observer contract markers ---'
-    grep -En 'EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917|set no_valid_timeout_ms 10000|set smoke_duration 10000|no_control_write=1|no_rtl_or_sdb_change=1' \
+    grep -En 'EXP-S5-F4L-PRODUCER-SCHEDULE-OBSERVABILITY-20260917|set no_valid_timeout_ms 10000|set smoke_duration 10000|0x46345331|no_control_write=1|no_rtl_or_sdb_change=1' \
         "$ROOT/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl"
 } | tee "$EXP_DIR/raw/build/firmware-image-manifest.txt"
 

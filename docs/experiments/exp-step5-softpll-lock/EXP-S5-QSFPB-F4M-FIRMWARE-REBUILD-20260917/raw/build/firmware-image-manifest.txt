@@ -1,0 +1,10 @@
+2026-09-17T08:40:04+08:00
+git_commit=b288f14d0fee638b87728918b7cacacbde8a66f8
+--- identity/config/MIF hashes ---
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/firmware/configs/de5a_slave_defconfig
+aa283a28dd201ec2a547f5804b91ab8b1771d8e0d7b6c83a90bcc726f039a546  /home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h
+ee99ed1d9c042593dd1ed23d63f6eee67a5867565c319ed57ea2e929abf8a421  /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/04_WR/firmware/configs/de5a_master_defconfig
+90c32a0b4084150db93031666b95ebed568105e691b10dcdbaf398c5c7f152ee  /home/b10504072/04_WR/firmware/configs/de5a_master_identity.h
+5a7f7a662b6535138f1076b108682dbaeb8c57ec03e211ad6bc4700d4ae55e1a  /home/b10504072/04_WR/build/firmware/master/wrc.mif
+--- F4L compile-time identity markers ---

@@ -1,0 +1,13 @@
+2026-09-17T10:55:34+08:00
+git_commit=f847f4e74c5b16389c9848d4fe2592a9873a6b5c
+--- JTAG SOF SHA256 ---
+a39f315806251fe39b0d8ba62ac7a2b9aa908d9bae5593e771086f8978f02a49  output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+b163ca1b084550e34335403fb168d68a3799799b14cfe527c25e9775be56cea1  output_files_master_jtag/DE5a_wr_master_jtag.sof
+--- JTAG SOF sizes ---
+output_files_slave_jtag/DE5a_wr_slave_jtag.sof 36823988 bytes 2026-09-17 10:51:21.923053039 +0800
+output_files_master_jtag/DE5a_wr_master_jtag.sof 36809100 bytes 2026-09-17 10:55:20.581676539 +0800
+--- timing summary ---
+output_files_slave_jtag/DE5a_wr_slave_jtag.fit.summary:Fitter Status : Successful - Thu Sep 17 10:50:50 2026
+output_files_slave_jtag/DE5a_wr_slave_jtag.sta.rpt:Info (332146): Worst-case setup slack is -0.268
+output_files_master_jtag/DE5a_wr_master_jtag.fit.summary:Fitter Status : Successful - Thu Sep 17 10:54:49 2026
+output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case setup slack is -0.047

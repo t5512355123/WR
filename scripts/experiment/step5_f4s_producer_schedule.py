@@ -26,11 +26,30 @@ UINT32_MASK = (1 << 32) - 1
 INVALID = {"", "INVALID", "UNKNOWN", "TIMEOUT", "NOT_MEASURED", "NONE"}
 
 
+def _raw_u32(value: Any) -> Optional[int]:
+    """Parse the observer's fixed-width raw words as hexadecimal.
+
+    F4S emits ``F4S_Wxx_RAW`` as eight hexadecimal digits without a ``0x``
+    prefix, while the surrounding metadata uses both prefixed and decimal
+    forms.  Treating these fixed-width raw words as decimal silently changes
+    the magic and sequence values, so keep their wire representation explicit.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    text = str(value).strip()
+    if text.upper() in INVALID:
+        return None
+    try:
+        return int(text, 16) & UINT32_MASK
+    except ValueError:
+        return _u32(text)
+
+
 def _raw_schedule_words(fields: Dict[str, str]) -> Tuple[List[Optional[int]], List[str]]:
     words: List[Optional[int]] = [None] * SCHEDULE_WORDS
     problems: List[str] = []
     for index in range(SCHEDULE_WORDS):
-        value = _u32(fields.get(f"F4S_W{index:02d}_RAW"))
+        value = _raw_u32(fields.get(f"F4S_W{index:02d}_RAW"))
         words[index] = value
         if value is None:
             problems.append(f"RAW_WORD_{index:02d}_MISSING_OR_INVALID")

@@ -1,0 +1,6 @@
+2026-09-17T10:56:49+08:00
+slave_cable=DE5 [1-11.2]
+master_cable=DE5 [1-11.1]
+a39f315806251fe39b0d8ba62ac7a2b9aa908d9bae5593e771086f8978f02a49  /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+b163ca1b084550e34335403fb168d68a3799799b14cfe527c25e9775be56cea1  /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+JTAG_F4L_SCHEDULE_OBSERVABILITY_PROGRAM=PASS

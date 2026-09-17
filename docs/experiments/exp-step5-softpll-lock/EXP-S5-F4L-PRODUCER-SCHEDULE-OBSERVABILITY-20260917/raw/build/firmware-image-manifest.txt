@@ -1,0 +1,39 @@
+2026-09-17T10:42:47+08:00
+git_commit=f847f4e74c5b16389c9848d4fe2592a9873a6b5c
+git_branch=exp/step5-softpll-lock
+--- identity/config/MIF hashes ---
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/firmware/configs/de5a_slave_defconfig
+aa283a28dd201ec2a547f5804b91ab8b1771d8e0d7b6c83a90bcc726f039a546  /home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h
+da938cdd87eae4227c55cd9a4c1dbb3d5da8012594f7138e08112e44754753fe  /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/04_WR/firmware/configs/de5a_master_defconfig
+90c32a0b4084150db93031666b95ebed568105e691b10dcdbaf398c5c7f152ee  /home/b10504072/04_WR/firmware/configs/de5a_master_identity.h
+c5da0f097daccc2bd7179554d9ba2c0fe8d150296698bdd9591f795051a511cb  /home/b10504072/04_WR/build/firmware/master/wrc.mif
+--- F4L source/observer hashes ---
+f09d20768f6583c490c3de2aa1b7fe331d72ee0b1148d57abc0cc3c816b7a40c  /home/b10504072/04_WR/vendor/wrpc-sw/softpll/spll_main.c
+816e9f18460adf8f7cf055a8ca172286fe7ef3bba6135c5a02d5c2ea3b794d31  /home/b10504072/04_WR/vendor/wrpc-sw/softpll/spll_main_f4l_diag.h
+b4cd975a3b5c036b4fa644ebbd70ac21fc5d6c82393c5163dce22b7088eb7e79  /home/b10504072/04_WR/vendor/wrpc-sw/dev/wdiags.c
+1aad772df144b917774e793a4fc03e13e37717d3ddc3e2c7cd138ce31c5fbe9a  /home/b10504072/04_WR/vendor/wrpc-sw/include/dev/wdiags.h
+2d1876c021a76a9d1ababcd409f9ad9e370b1093c4f62c1c4a8d1288e16a28a6  /home/b10504072/04_WR/vendor/wrpc-sw/include/hw/wrc_diags_regs.h
+fd649ce5172eca865e51facba1fb02ba5838f1d3019b4912141b3531c26b4bf1  /home/b10504072/04_WR/vendor/wrpc-sw/lib/task-diags.c
+d5b357929d4a94526456894726a26d3a31faa83f92e73ffa840b38164c700136  /home/b10504072/04_WR/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl
+1892c39928a6f12214a4745b3be952f1bc535ca871f7280fbd6e2ea524850ea5  /home/b10504072/04_WR/scripts/experiment/step5_f4s_producer_schedule.py
+--- F4L compile-time identity markers ---
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:17:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:18:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:21:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:16:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:17:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:20:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+--- observer contract markers ---
+358:set ::f4l_schedule_magic 0x46345331
+1873:    "no_control_write=1" "no_helper_pi_snapshot=1" \
+2550:    "no_control_write=1" "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
+3948:    set no_valid_timeout_ms 10000
+3949:    set smoke_duration 10000
+3971:    "main_schedule_magic=0x46345331" "main_schedule_frame_words=8" \
+3979:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+3981:    "no_shared_control_struct_extension=1" "no_rtl_or_sdb_change=1" \
+4200:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+5886:    "no_control_write=1" \
+6278:    "no_control_write=1" \
+6498:  set ::f4l_experiment_name EXP-S5-F4L-PRODUCER-SCHEDULE-OBSERVABILITY-20260917

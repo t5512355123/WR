@@ -88,6 +88,21 @@ def test_full_rotation_is_diagnostic_pass_but_not_step5() -> None:
     assert result["step5_pass"] is False
 
 
+def test_fixed_width_bare_hex_raw_words_are_decoded_as_hex() -> None:
+    line = _schedule(1, 0).replace("0x", "")
+    result = audit.analyze_text(
+        "\n".join([
+            line,
+            "STEP5_F4S_CONFIG main_schedule_magic=0x46345331",
+            "STEP5_F4S_DONE STOP_REASON=NONE",
+        ])
+        + "\n"
+    )
+    assert result["invalid_schedule_count"] == 0
+    assert result["schedule_count"] == 1
+    assert result["last_schedule"]["words"][0] == audit.SCHEDULE_MAGIC
+
+
 def test_source_uses_existing_read_only_schedule_shadow() -> None:
     task_diags = (ROOT / "vendor" / "wrpc-sw" / "lib" / "task-diags.c").read_text(
         encoding="utf-8"

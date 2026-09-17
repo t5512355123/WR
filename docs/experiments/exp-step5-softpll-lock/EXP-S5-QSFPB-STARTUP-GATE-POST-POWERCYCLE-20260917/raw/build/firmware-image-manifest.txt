@@ -1,0 +1,16 @@
+2026-09-17T11:33:09+08:00
+git_commit=5ef4dc156ba6d1b11017285bf4c4fd366255afaa
+--- identity/config/MIF hashes ---
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_slave_defconfig
+aa283a28dd201ec2a547f5804b91ab8b1771d8e0d7b6c83a90bcc726f039a546  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_slave_identity.h
+36cee911824c24bf9b3837954c7a8090fef8b55df893fabc7aa0b4cc541ee3e9  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/build/firmware/slave/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_master_defconfig
+90c32a0b4084150db93031666b95ebed568105e691b10dcdbaf398c5c7f152ee  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_master_identity.h
+3732978078b2d934e1f53dbee7dc57084084064c8f45acea0ae3ce25fd39861f  /home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/build/firmware/master/wrc.mif
+--- F4L compile-time identity markers ---
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_slave_identity.h:17:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_slave_identity.h:18:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_slave_identity.h:21:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_master_identity.h:16:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_master_identity.h:17:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/pain-worktrees/qsfpb-startup-gate-5ef4dc15/firmware/configs/de5a_master_identity.h:20:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1

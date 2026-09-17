@@ -1,0 +1,8 @@
+2026-09-17T08:55:46+08:00
+git_commit=f92e8f1de5065b603b70284171f72b4afb26862d
+--- SOF SHA256 ---
+3d77b1bc7e80f4bebd3161baf752f3f28b1778495313d4626ab4d89aa3985873  output_files_slave_portb/DE5a_wr_slave_portb.sof
+624fe96b7f9f81a1fe771bba86fa9d24b19a6ab54c130e7e38098de2bae1a80e  output_files_master_portb/DE5a_wr_master_portb.sof
+--- sizes ---
+output_files_slave_portb/DE5a_wr_slave_portb.sof 36823995 bytes 2026-09-17 08:47:17.342098595 +0800
+output_files_master_portb/DE5a_wr_master_portb.sof 36809107 bytes 2026-09-17 08:55:31.996206354 +0800

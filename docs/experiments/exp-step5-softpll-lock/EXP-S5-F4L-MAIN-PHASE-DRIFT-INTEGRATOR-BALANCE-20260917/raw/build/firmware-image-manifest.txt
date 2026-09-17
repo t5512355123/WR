@@ -1,0 +1,34 @@
+2026-09-17T09:45:10+08:00
+git_commit=b1ac0cd7eb8eac8268f9d7e540f76932c9bb1712
+git_branch=exp/step5-softpll-lock
+--- identity/config/MIF hashes ---
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/firmware/configs/de5a_slave_defconfig
+aa283a28dd201ec2a547f5804b91ab8b1771d8e0d7b6c83a90bcc726f039a546  /home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h
+e20fb392af80217cdbda3a61f8fd65cd58b45fed8a27c78278a1dad8fac0b85e  /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/04_WR/firmware/configs/de5a_master_defconfig
+90c32a0b4084150db93031666b95ebed568105e691b10dcdbaf398c5c7f152ee  /home/b10504072/04_WR/firmware/configs/de5a_master_identity.h
+9bfb6602891b360c7c3f350b76b52c3c678119151a8944fcdda48b85f3c1c47f  /home/b10504072/04_WR/build/firmware/master/wrc.mif
+--- F4L source/observer hashes ---
+f09d20768f6583c490c3de2aa1b7fe331d72ee0b1148d57abc0cc3c816b7a40c  /home/b10504072/04_WR/vendor/wrpc-sw/softpll/spll_main.c
+816e9f18460adf8f7cf055a8ca172286fe7ef3bba6135c5a02d5c2ea3b794d31  /home/b10504072/04_WR/vendor/wrpc-sw/softpll/spll_main_f4l_diag.h
+c990cdf00ee43f1b5387a4b154e95a4ddbdf98fa0d3a57837121df3d93a2540f  /home/b10504072/04_WR/vendor/wrpc-sw/lib/task-diags.c
+a71fc2dc714be867e5e93284ab74036120e1fc22751b624dd06cd72f7d3ef80f  /home/b10504072/04_WR/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl
+--- F4L compile-time identity markers ---
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:17:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:18:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/firmware/configs/de5a_slave_identity.h:21:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:16:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:17:#define DE5A_F4L_MAIN_PHASE_DIAG 1
+/home/b10504072/04_WR/firmware/configs/de5a_master_identity.h:20:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+--- observer contract markers ---
+345:set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
+1860:    "no_control_write=1" "no_helper_pi_snapshot=1" \
+2537:    "no_control_write=1" "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
+3750:    set no_valid_timeout_ms 10000
+3751:    set smoke_duration 10000
+3773:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+3775:    "no_shared_control_struct_extension=1" "no_rtl_or_sdb_change=1" \
+3964:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+5650:    "no_control_write=1" \
+6042:    "no_control_write=1" \
+6249:  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917

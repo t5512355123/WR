@@ -349,6 +349,9 @@ set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-2026091
 # existing WRS_S_LOCK trace at each Slave context.  It never requests a
 # control snapshot or writes any WR/SoftPLL state.
 set ::f4m_enabled 0
+set ::f4m_startup_gate_timeout_ms 0
+set ::f4m_startup_gate_since_ms INVALID
+set ::f4m_startup_gate_seen 0
 array set ::f4m_current_page {}
 array set ::f4m_previous_page {}
 array set ::f4m_page_publish_count {}
@@ -1473,7 +1476,7 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
 
 proc f4g_update_core_health {hardware_name elapsed_ms helper_accepted \
     helper_transport_failure main_core_valid main_transport_failure \
-    wr_core_valid wr_transport_failure} {
+    wr_core_valid wr_transport_failure {main_startup_waiting 0}} {
   if {$helper_accepted} {
     set ::f4g_helper_core_transport_streak($hardware_name) 0
     set ::f4g_last_helper_usable_ms($hardware_name) $elapsed_ms
@@ -1513,12 +1516,20 @@ proc f4g_update_core_health {hardware_name elapsed_ms helper_accepted \
       $elapsed_ms - $::f4g_helper_no_core_since_ms($hardware_name) >= 10000} {
     f4g_set_stop DATA_UNRESOLVED
   }
-  if {$::f4g_last_main_usable_ms($hardware_name) ne "INVALID" &&
-      $elapsed_ms - $::f4g_last_main_usable_ms($hardware_name) >= 10000} {
-    f4g_set_stop DATA_UNRESOLVED
-  } elseif {$::f4g_last_main_usable_ms($hardware_name) eq "INVALID" &&
-      $elapsed_ms - $::f4g_main_no_core_since_ms($hardware_name) >= 10000} {
-    f4g_set_stop DATA_UNRESOLVED
+  if {!$main_startup_waiting} {
+    if {$::f4g_last_main_usable_ms($hardware_name) ne "INVALID" &&
+        $elapsed_ms - $::f4g_last_main_usable_ms($hardware_name) >= 10000} {
+      f4g_set_stop DATA_UNRESOLVED
+    } elseif {$::f4g_last_main_usable_ms($hardware_name) eq "INVALID" &&
+        $elapsed_ms - $::f4g_main_no_core_since_ms($hardware_name) >= 10000} {
+      f4g_set_stop DATA_UNRESOLVED
+    }
+  } else {
+    # Before Helper lock and Main enable, an absent F4L frame is an expected
+    # startup state, not a transport failure. Keep the no-core watchdog from
+    # converting that startup state into DATA_UNRESOLVED.
+    set ::f4g_main_no_core_since_ms($hardware_name) $elapsed_ms
+    set ::f4g_last_main_usable_ms($hardware_name) INVALID
   }
 }
 
@@ -3569,6 +3580,9 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
   set main_page INVALID
   set main_source_epoch INVALID
   set main_transport_failure 1
+  set main_state_raw INVALID
+  set main_enabled INVALID
+  set main_startup_waiting 0
   set wr_core_valid 0
   set phy_link_usable 0
   set terminal 0
@@ -3593,7 +3607,33 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     set position_result [f4g_emit_helper_position $hardware_name $cycle]
     foreach {position_valid helper_residual normal_request normal_completed \
         bootstrap_done helper_target helper_applied} $position_result break
-    set main_result [f4l_emit_main_diag $hardware_name $cycle $elapsed_ms]
+    # F4M must not spend its first startup window issuing a long 34-word F4L
+    # read while Main is still disabled.  The existing Main shadow at 0xAC4 is
+    # passive and already part of the WDIAGS contract; use it only as a
+    # readiness gate, never as a control input.
+    if {$::f4m_enabled} {
+      set main_state_raw [wb_read $hardware_name 0x00100AC4]
+      set main_enabled [field32 $main_state_raw 0 1]
+      set main_startup_waiting [expr {
+        !($helper_locked eq "1" && [f4g_is_number $main_enabled] &&
+          $main_enabled == 1) ? 1 : 0}]
+    }
+    if {$main_startup_waiting} {
+      set main_result [f4l_invalid_main_result 0 0 0 0]
+      if {$::f4m_startup_gate_since_ms eq "INVALID"} {
+        set ::f4m_startup_gate_since_ms $elapsed_ms
+      }
+      puts [join [list STEP5_F4M_STARTUP_GATE \
+        "board=$hardware_name" "cycle=$cycle" \
+        "elapsed_ms=$elapsed_ms" "HELPER_LOCKED=$helper_locked" \
+        "MAIN_STATE_RAW=$main_state_raw" "MAIN_ENABLED=$main_enabled" \
+        "RESULT=WAIT" "condition=HELPER_LOCKED_AND_MAIN_ENABLED" \
+        "timeout_ms=$::f4m_startup_gate_timeout_ms"] " "]
+      flush stdout
+    } else {
+      set ::f4m_startup_gate_seen 1
+      set main_result [f4l_emit_main_diag $hardware_name $cycle $elapsed_ms]
+    }
     set main_valid [lindex $main_result 0]
     set main_page [lindex $main_result 4]
     set main_source_epoch [lindex $main_result 5]
@@ -3653,7 +3693,13 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
   f4g_update_core_health $hardware_name $elapsed_final \
     [expr {$helper_accepted && $helper_state_valid ? 1 : 0}] \
     $helper_transport_failure $main_valid $main_transport_failure \
-    $wr_core_valid $wr_transport_failure
+    $wr_core_valid $wr_transport_failure $main_startup_waiting
+  if {$::f4m_enabled && $main_startup_waiting &&
+      $::f4m_startup_gate_since_ms ne "INVALID" &&
+      $elapsed_final - $::f4m_startup_gate_since_ms >=
+        $::f4m_startup_gate_timeout_ms} {
+    f4g_set_stop STARTUP_GATE_NOT_REACHED
+  }
   if {$terminal} { f4l_set_stop WR_SESSION_ENDED }
   puts [join [list STEP5_${::f4l_event_tag}_CYCLE "role=SLAVE" "board=$hardware_name" \
     "cycle=$cycle" "host_start_ms=$context_host_start" \
@@ -3667,6 +3713,8 @@ proc f4l_emit_slave_context {hardware_name device_name cycle elapsed_ms} {
     "HELPER_NORMAL_REQUEST=$normal_request" \
     "HELPER_NORMAL_COMPLETED=$normal_completed" \
     "HELPER_BOOTSTRAP_DONE=$bootstrap_done" "MAIN_F4L_VALID=$main_valid" \
+    "MAIN_STATE_RAW=$main_state_raw" "MAIN_ENABLED=$main_enabled" \
+    "STARTUP_GATE_WAITING=$main_startup_waiting" \
     "MAIN_F4L_PAGE=$main_page" "MAIN_F4L_SOURCE_EPOCH=$main_source_epoch" \
     "MAIN_F4L_UPDATE_ID=$main_update" "WR_CORE_VALID=$wr_core_valid" \
     "PHY_LINK_USABLE=$phy_link_usable" "PSTAT_LOCKED=$pstat_locked" \
@@ -3721,7 +3769,9 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     "no_shared_control_struct_extension=1" "no_rtl_or_sdb_change=1" \
     "control_parameters_unchanged=1" "step5_complete=NO" \
     "merge_approved=NO" "f4m_observer_enabled=$::f4m_enabled" \
-    "s_lock_trace_addresses=0x00100BE0..0x00100BFC" \
+    "startup_gate_condition=HELPER_LOCKED_AND_MAIN_ENABLED" \
+    "startup_gate_timeout_ms=$::f4m_startup_gate_timeout_ms" \
+     "s_lock_trace_addresses=0x00100BE0..0x00100BFC" \
     "s_lock_trace_alignment=FIRMWARE_REMAINING_MS_AUXILIARY"] " "]
   flush stdout
   if {[llength $targets] != 2 || $master_target eq "" || $slave_target eq ""} {
@@ -3864,6 +3914,9 @@ proc run_f4m_first_loss_full_rotation {} {
   # WRS_S_LOCK tail snapshot.  The firmware image and all controller
   # parameters remain exactly those of the preceding F4L run.
   set ::f4m_enabled 1
+  set ::f4m_startup_gate_timeout_ms 30000
+  set ::f4m_startup_gate_since_ms INVALID
+  set ::f4m_startup_gate_seen 0
   set ::f4l_event_tag F4M
   set ::f4l_experiment_name EXP-S5-F4M-F4L-FIRST-LOSS-FULL-ROTATION-20260916
   run_f4l_main_phase_drift_integrator_balance

@@ -337,12 +337,12 @@ array set ::f4l_next_service_ms {}
 array set ::f4l_stop_reason {}
 array set ::f4l_run_end_reason {}
 set ::f4l_smoke_ok 0
-set ::f4l_no_valid_timeout_ms 30000
-set ::f4l_smoke_duration_ms 60000
+set ::f4l_no_valid_timeout_ms 10000
+set ::f4l_smoke_duration_ms 10000
 set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
 set ::f4l_event_tag F4L
-set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
+set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
 
 # F4M is an observer-only closure run layered on the existing F4L wire image.
 # It records the page sequence as observed by one reader and samples the
@@ -3737,13 +3737,19 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
   if {$effective_duration <= 0} { set effective_duration 120000 }
   set hard_duration $hard_duration_ms
   if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
-  # F4L is a passive paged diagnostic.  Startup can legitimately spend more
-  # than ten seconds before Main publishes its first coherent page, and the
-  # observer's context reads are slower than the producer rotation period.
-  # Keep the longer readiness windows local to this observer; they do not
-  # change any firmware timeout, lock detector, or control path.
-  set no_valid_timeout_ms 30000
-  set smoke_duration 60000
+  # F4L is a passive paged diagnostic.  Use the experiment contract's short
+  # smoke/no-valid windows so a missing or stale frame stops promptly.  F4M
+  # retains its separately validated longer startup gate because it adds the
+  # first-loss rotation observation on top of F4L.  These are observer-only
+  # windows; they do not change any firmware timeout, lock detector, or
+  # control path.
+  if {$::f4m_enabled} {
+    set no_valid_timeout_ms 30000
+    set smoke_duration 60000
+  } else {
+    set no_valid_timeout_ms 10000
+    set smoke_duration 10000
+  }
   set ::f4l_no_valid_timeout_ms $no_valid_timeout_ms
   set ::f4l_smoke_duration_ms $smoke_duration
   puts [join [list STEP5_${event_tag}_CONFIG \
@@ -6240,7 +6246,7 @@ if {$run_role eq "f4j"} {
 if {$run_role eq "f4l"} {
   set ::f4m_enabled 0
   set ::f4l_event_tag F4L
-  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260916
+  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
   set ::f4g_run_role f4l
   set ::f4g_experiment_name $::f4l_experiment_name
   set ::f4g_phy_status_source JTAG_PROBE0

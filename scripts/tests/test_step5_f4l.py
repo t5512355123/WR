@@ -140,5 +140,8 @@ def test_source_declares_f4l_without_control_parameter_changes() -> None:
         ROOT / "scripts" / "jtag" /
         "read_step5_main_frequency_prelock_observability.tcl"
     ).read_text(encoding="utf-8")
+    assert "if {$::f4m_enabled}" in observer
+    assert "set no_valid_timeout_ms 10000" in observer
+    assert "set smoke_duration 10000" in observer
     assert "set no_valid_timeout_ms 30000" in observer
     assert "set smoke_duration 60000" in observer

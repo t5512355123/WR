@@ -24,6 +24,15 @@ The exact source/image identity is taken from
 `EXP-S5-F4H-PHY-STATUS-SOURCE-FIX-RETEST-20260916/REPORT.md`, whose formal
 window had `PSTAT_LINK=1` and a valid direct-PHY gate on every recorded row.
 
+## Execution identity note
+
+The two historical SOF binaries identified by the hashes above were not
+present in the local workspace, Pain artifacts, or the source-commit archive.
+The execution therefore used fresh Quartus rebuilds from the exact source
+commit `898b041`, classified as **source-equivalent rebuilds**, not as the
+historical exact binaries. The report records both identities explicitly and
+does not treat this run as proof of the historical SOF binary's behavior.
+
 ## Allowed actions
 
 - Recreate the exact 898b041 F4H images if the binary artifacts are not still

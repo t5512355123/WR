@@ -1,0 +1,33 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 19:16:46 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/f4l-lane0-c4095e75/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER} {1 96 64 STER} {2 1 64 STER} {3 1 64 STER} {4 1 64 STER} {5 1 64 STER} {6 1 64 STER} {7 1 64 STER} {8 1 64 STER} {9 1 64 STER} {10 1 64 STER} {11 1 64 STER} {12 1 64 STER} {13 1 64 STER} {14 1 64 STER} {15 1 64 STER} {16 1 64 STER} {17 1 64 STER} {18 1 64 STER} {19 1 64 STER} {20 1 64 STER} {21 1 64 STER} {22 1 64 STER} {23 1 64 STER} {24 1 64 STER} {25 1 64 STER} {26 1 64 STER} {27 1 64 STER} {28 1 64 STER} {29 1 64 STER} {30 1 64 STER} {31 1 64 STER} {32 1 64 STER} {33 1 64 STER} {34 1 64 STER} {35 1 64 STER} {52 1 64 STER} {53 1 64 STER} {54 1 64 STER} {55 1 64 STER} {56 1 64 STER} {57 1 64 STER} {58 1 64 STER} {59 1 64 STER} {60 1 64 STER} {61 1 64 STER}
+probe_hex: 00109AE137BC82FF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE} {1 96 64 LAVE} {2 1 64 LAVE} {3 1 64 LAVE} {4 1 64 LAVE} {5 1 64 LAVE} {6 1 64 LAVE} {7 1 64 LAVE} {8 1 64 LAVE} {9 1 64 LAVE} {10 1 64 LAVE} {11 1 64 LAVE} {12 1 64 LAVE} {13 1 64 LAVE} {14 1 64 LAVE} {15 1 64 LAVE} {16 1 64 LAVE} {17 1 64 LAVE} {18 1 64 LAVE} {19 1 64 LAVE} {20 1 64 LAVE} {21 1 64 LAVE} {22 1 64 LAVE} {23 1 64 LAVE} {24 1 64 LAVE} {25 1 64 LAVE} {26 1 64 LAVE} {27 1 64 LAVE} {28 1 64 LAVE} {29 1 64 LAVE} {30 1 64 LAVE} {31 1 64 LAVE} {32 1 64 LAVE} {33 1 64 LAVE} {34 1 64 LAVE} {35 1 64 LAVE} {36 1 64 LAVE} {37 1 64 LAVE} {38 1 64 LAVE} {39 1 64 LAVE} {40 16 64 LAVE} {41 1 64 LAVE} {42 1 64 LAVE} {43 1 64 LAVE} {44 1 64 LAVE} {45 1 64 LAVE} {46 1 64 LAVE} {47 1 64 LAVE} {48 1 64 LAVE} {49 1 64 LAVE} {50 1 64 LAVE} {51 1 64 LAVE} {52 1 64 LAVE} {53 1 64 LAVE} {54 1 64 LAVE} {55 1 64 LAVE} {56 1 64 LAVE} {57 1 64 LAVE} {58 1 64 LAVE} {59 1 64 LAVE} {60 1 64 LAVE} {61 1 64 LAVE}
+probe_hex: 711E46C1285082EF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/f4l-lane0-c4095e75/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 19:16:47 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

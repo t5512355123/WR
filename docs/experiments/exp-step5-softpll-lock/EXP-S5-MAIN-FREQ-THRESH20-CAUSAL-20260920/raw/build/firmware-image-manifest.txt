@@ -1,0 +1,38 @@
+2026-09-20T01:44:15+08:00
+git_commit=165d25ae29eba4a8265c75b66d33a0c55ce2e2c4
+git_branch=--- identity/config/MIF hashes ---
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_slave_defconfig
+454c981888a66f6d83918cb059bba1297df901a7216bc4eb522e5948953abc02  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_slave_identity.h
+d5398adf4d3ceff143f7a2dd6ec9f0ee16d94d2b7a59abdc23b7d68dac973a03  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/build/firmware/slave/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_master_defconfig
+fbe55684638f8fabced4396a539c524acd4dc055c1dacc38a89d1c3db71f7e8b  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_master_identity.h
+2ce9ac0898b8fd64c69ae3d93c527ccec9f70da387f6fdcffcbb3fdc67c1d81c  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/build/firmware/master/wrc.mif
+--- F4L source/observer hashes ---
+a684f4cba159d2e60aca403a7a7a40525c2cc9f5d070df4ddbcec63090739564  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/softpll/spll_main.c
+816e9f18460adf8f7cf055a8ca172286fe7ef3bba6135c5a02d5c2ea3b794d31  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/softpll/spll_main_f4l_diag.h
+b4cd975a3b5c036b4fa644ebbd70ac21fc5d6c82393c5163dce22b7088eb7e79  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/dev/wdiags.c
+1aad772df144b917774e793a4fc03e13e37717d3ddc3e2c7cd138ce31c5fbe9a  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/include/dev/wdiags.h
+2d1876c021a76a9d1ababcd409f9ad9e370b1093c4f62c1c4a8d1288e16a28a6  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/include/hw/wrc_diags_regs.h
+fd649ce5172eca865e51facba1fb02ba5838f1d3019b4912141b3531c26b4bf1  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/vendor/wrpc-sw/lib/task-diags.c
+db5ccbdd4ae68092ace02cc740f11cee23365a5f870a6e192fb38f7faeebcb98  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl
+edfda9ad58aa7df4a47a537851465505e3ec1082f39a83e0fffa25e2219b0a9f  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/scripts/experiment/step5_f4s_producer_schedule.py
+--- F4L compile-time identity markers ---
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_slave_identity.h:17:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_slave_identity.h:18:#define DE5A_F4L_MAIN_PHASE_DIAG 0
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_slave_identity.h:29:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_master_identity.h:16:#define DE5A_MAIN_PI_KP_OVERRIDE 300
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_master_identity.h:17:#define DE5A_F4L_MAIN_PHASE_DIAG 0
+/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/firmware/configs/de5a_master_identity.h:24:#define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
+--- observer contract markers ---
+362:set ::f4l_schedule_magic 0x46345331
+1917:    "no_control_write=1" "no_helper_pi_snapshot=1" \
+2594:    "no_control_write=1" "no_helper_pi_snapshot=1" "no_debug_fifo_drain=1" \
+4005:    set no_valid_timeout_ms 10000
+4006:    set smoke_duration 10000
+4028:    "main_schedule_magic=0x46345331" "main_schedule_frame_words=8" \
+4036:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+4038:    "no_shared_control_struct_extension=1" "no_rtl_or_sdb_change=1" \
+4257:    "one_reader=1" "reader_processes=1" "no_control_write=1" \
+5943:    "no_control_write=1" \
+6335:    "no_control_write=1" \
+6555:  set ::f4l_experiment_name EXP-S5-F4L-PRODUCER-SCHEDULE-OBSERVABILITY-20260917

@@ -1,0 +1,6 @@
+2026-09-20T01:57:55+08:00
+slave_cable=DE5 [1-11.2]
+master_cable=DE5 [1-11.1]
+964891814cead5b8d2ef67ad301826d1c5fdc586341cfd30a6f4500f39693328  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+7c7fa79ae41018c0ec65b871d58faad7c903401e43b40a2b968b4d50598477c1  /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+JTAG_F4L_SCHEDULE_OBSERVABILITY_PROGRAM=PASS

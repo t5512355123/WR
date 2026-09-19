@@ -7,6 +7,12 @@
 # after commit), so BANK_SEQ and the other forensic overlays never decide
 # frame validity.  Probe 43/44 provide the signed physical-position context.
 #
+# The two WB writes used by this observer are diagnostic snapshot request/
+# trigger writes only (0x42c/0x428).  They do not write SoftPLL, DAC, DCO,
+# arbiter, mailbox, PHY, reset, or control registers.  Keep this distinction
+# explicit in the experiment report: diagnostic request traffic is not a
+# production control write.
+#
 # Usage:
 #   quartus_stp -t read_step5_helper_pi_state_rail_audit.tcl ?samples? ?gap_ms? ?board_filter? ?double_read?
 
@@ -27,8 +33,8 @@ if {$samples <= 0 || $gap_ms < 0 || ($double_read_enabled != 0 && $double_read_e
 }
 set ::double_read_enabled $double_read_enabled
 
-set PI_KP -150
-set PI_KI -1
+set PI_KP -2250
+set PI_KI -2
 set PI_SHIFT 12
 set PI_BIAS 5
 set PI_Y_MIN 5
@@ -1931,13 +1937,13 @@ proc emit_summary {hardware_name} {
 }
 
   if {$::double_read_enabled} {
-    set experiment_name EXP-WRPC-STEP5-TRUE-BASELINE-REVALIDATION-KP-MINUS150-3388-COOLDOWN0-PI-TRACE-20260912
+    set experiment_name EXP-S5-HELPER-STARTUP-RAIL-DIAGNOSTIC-LANE0-20260919
     set snapshot_mode serialized_request_in_band_epoch_v3_double_read
   } else {
-    set experiment_name EXP-WRPC-STEP5-TRUE-BASELINE-REVALIDATION-KP-MINUS150-3388-COOLDOWN0-PI-TRACE-20260912
+    set experiment_name EXP-S5-HELPER-STARTUP-RAIL-DIAGNOSTIC-LANE0-20260919
     set snapshot_mode serialized_request_in_band_epoch_v3_single_read
   }
-  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3388 code_per_physical_step=%d kp=-150 ki=-1 helper_pi_integral_decimation=1 effective_ki=-1 threshold=%d lock_samples=%d normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1 pi_trace=enabled" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP $::PI_LOCK_THRESHOLD $::PI_LOCK_SAMPLES]
+  puts [format "STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=%d gap_ms=%d board_filter=%s experiment=%s read_only=1 control_write=0 diagnostic_request_writes=1 wb_transport=preload_then_toggle_commit snapshot_transport=%s double_read=%d bootstrap_steps=3388 code_per_physical_step=%d kp=%d ki=%d helper_pi_integral_decimation=1 effective_ki=%d threshold=%d lock_samples=%d normal_hpll_cooldown_loads=0 helper_pi_update_decimation=1 fresh_reset_required=1 pi_trace=enabled" $samples $gap_ms $board_filter $experiment_name $snapshot_mode $::double_read_enabled $::CODE_PER_PHYSICAL_STEP $PI_KP $PI_KI $PI_KI $::PI_LOCK_THRESHOLD $::PI_LOCK_SAMPLES]
 
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && $hardware_name ne $board_filter} { continue }

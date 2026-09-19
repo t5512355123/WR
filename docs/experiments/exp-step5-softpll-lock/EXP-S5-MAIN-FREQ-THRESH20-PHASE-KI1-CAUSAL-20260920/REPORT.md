@@ -4,15 +4,18 @@
 
 ```text
 PHASE_KI1_IMPLEMENTATION = PASS
-MAIN_RUNTIME_GATE        = NOT_EVALUATED_UPSTREAM
+HELPER_ACQUISITION       = PASS
+HELPER_LOCK_HELD         = YES
+MAIN_RUNTIME_GATE        = NOT_EVALUATED
 PHASE_KI1_F4L_FORMAL     = NOT_ALLOWED
 STEP5                    = NO
 ```
 
 The source candidate was implemented, tested, built, and programmed
-successfully.  The single direct runtime gate then stopped at Slave Helper
-acquisition before Main was enabled, so this round provides no causal result
-for effective phase Ki=1.
+successfully.  The direct runtime gate initially stopped before Helper lock;
+the one bounded follow-up correlation then showed that the Slave Helper
+acquired and held lock with active DCO service.  Main phase control was still
+not evaluated in this round.
 
 ## Exact candidate and provenance
 
@@ -108,21 +111,62 @@ The Master side was not the candidate under test; its direct snapshot showed
 Step 1, Step 2, and Step 4A healthy.  It does not change the Slave gate
 classification.
 
+## Bounded Helper correlation
+
+The advisor-approved follow-up was executed once on the same live
+`threshold20 + phase-Ki1` session:
+
+```text
+quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 20 500
+```
+
+No reprogramming, reset, F4L capture, `read_wb_runtime`, or control-parameter
+change was performed in this follow-up.
+
+```text
+quartus_exit                     = 0
+samples / gap                    = 20 / 500 ms
+final raw SHA256 (laptop)        = 33aa295ce61997c690d876d52d57f926869a3eee561dc0935460b9d3193219c3
+Pain pre-append digest           = 74d8361253756e9863a01eea22d87a87e8615019d5fff9246cfb2c0333a637ee
+Slave board                      = DE5 [1-11.2]
+SPLL_STATE                      = 00030008 on samples 1..20 (SEQ_READY)
+HELPER_STATE                    = 03E80001 on samples 1..20
+HELPER_LOCK_COUNT               = 1000 (encoded in HELPER_STATE)
+HELPER_ERROR_SIGNED             = +192 .. -211
+HELPER_UPDATE_COUNT             = 00381233 -> 0038DFD3
+STEP_DELTA                      = 0 on sample 1; nonzero on samples 2..20
+STEP_EVENT                      = 0 on sample 1; 1 on samples 2..20
+DCO ERROR                       = 0 on samples 1..20
+```
+
+The Slave therefore satisfies the bounded Helper conditions: Helper lock was
+acquired and held, its error stayed within the requested band, the update
+counter advanced, and DCO service events continued.  The observed state is
+`SEQ_READY`, not the advisor's preferred `SEQ_WAIT_MAIN (00030006)`; this is
+recorded exactly and is not promoted to a Main-enabled or phase-lock claim.
+
+The Master samples in the same two-board reader are not used for the Slave
+candidate verdict.  The formal Step5/F4L path was not started after this
+capture, as required by the stop rule.
+
 ## Stop decision
 
 The advisor's stop condition was met:
 
 ```text
 PHASE_KI1_IMPLEMENTATION = PASS
-PHASE_KI1_CONTROL_RESULT  = NOT_EVALUATED_UPSTREAM
+HELPER_ACQUISITION        = PASS
+HELPER_LOCK_ACQUIRED_HELD = YES
+PHASE_KI1_CONTROL_RESULT  = NOT_EVALUATED
 PHASE_KI1_F4L_FORMAL      = NOT_ALLOWED
+STEP5                     = NO
 ```
 
-No Helper correlation, F4L capture, second programming attempt, threshold
-change, PI/gain change, timeout change, or reset was performed after the
-direct gate.  This round cannot declare Step5 PASS because Main never reached
-the phase branch.
+The single bounded Helper correlation was the only post-gate observation.  No
+F4L capture, second programming attempt, threshold change, PI/gain change,
+timeout change, or reset was performed.  This round cannot declare Step5 PASS
+because Main phase control was not evaluated and no formal phase-lock capture
+was run.
 
 The next action is deferred to the phase-lock advisor after review of this
 report.
-

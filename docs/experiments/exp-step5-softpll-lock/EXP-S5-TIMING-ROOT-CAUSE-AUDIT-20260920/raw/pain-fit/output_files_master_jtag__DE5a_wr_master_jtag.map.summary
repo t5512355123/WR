@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Sun Sep 20 02:58:29 2026
+Quartus Prime Version : 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Revision Name : DE5a_wr_master_jtag
+Top-level Entity Name : DE5a_wr_master_jtag
+Family : Arria 10
+Logic utilization (in ALMs) : N/A
+Total registers : 16017
+Total pins : 41
+Total virtual pins : 0
+Total block memory bits : 1,676,928
+Total DSP Blocks : 4
+Total HSSI RX channels : 1
+Total HSSI TX channels : 1
+Total PLLs : 3

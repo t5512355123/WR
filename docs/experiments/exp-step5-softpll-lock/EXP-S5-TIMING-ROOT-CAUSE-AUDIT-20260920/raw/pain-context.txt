@@ -1,0 +1,9 @@
+Pain worktree: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919
+Pain HEAD: 5d7d1a46784581dd1396daeb5a24624b62b1c440
+Pain worktree status: only the Ki1 F4L raw capture directory was untracked
+Quartus Prime: 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Device: 10AX115N2F45E1SG
+Master STA report SHA256: 90be295c0e8410831c691c246c255affc4688cd494736c1dac87f0c503553006
+Slave STA report SHA256: 501cc3da3414a37a5fcbc57a0e6a930bcc2f6b7e1d14fd5ed7c792538688eab9
+Master report time: Sun Sep 20 03:02:28 2026
+Slave report time: Sun Sep 20 04:23:39 2026

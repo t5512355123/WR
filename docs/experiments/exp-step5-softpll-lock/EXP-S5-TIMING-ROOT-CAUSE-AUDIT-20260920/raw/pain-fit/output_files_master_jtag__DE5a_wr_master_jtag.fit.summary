@@ -1,0 +1,17 @@
+Fitter Status : Successful - Sun Sep 20 03:01:43 2026
+Quartus Prime Version : 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Revision Name : DE5a_wr_master_jtag
+Top-level Entity Name : DE5a_wr_master_jtag
+Family : Arria 10
+Device : 10AX115N2F45E1SG
+Timing Models : Final
+Logic utilization (in ALMs) : 9,694 / 427,200 ( 2 % )
+Total registers : 16460
+Total pins : 49 / 992 ( 5 % )
+Total virtual pins : 0
+Total block memory bits : 1,676,928 / 55,562,240 ( 3 % )
+Total RAM Blocks : 113 / 2,713 ( 4 % )
+Total DSP Blocks : 4 / 1,518 ( < 1 % )
+Total HSSI RX channels : 1 / 48 ( 2 % )
+Total HSSI TX channels : 1 / 48 ( 2 % )
+Total PLLs : 5 / 112 ( 4 % )

@@ -10,7 +10,8 @@ MAIN_START                    = CONFIRMED
 MAIN_FREQUENCY_LOCK           = CONFIRMED
 MAIN_PHASE_LOCK               = NO
 F4L_SHORT_SCHEMA_SMOKE        = PASS
-F4L_FORMAL_CAPTURE            = ALLOWED_NEXT
+F4L_FORMAL_CAPTURE            = PASS
+F4L_DIAGNOSTIC_COMPLETE       = YES
 STEP5                         = NO
 ```
 
@@ -41,6 +42,8 @@ direct_runtime_exit     = 0
 direct_runtime_raw_sha256 = DDBC432EA47F5A6E17C8270EA8C32CA987BD5B2144CBDF6520003FC2FA2B803F
 f4l_short_raw_sha256      = 98A4F2AE12391898398870DB3BD8F0CDAFB6488393D9B3AFF93FEC7E62F137DC
 f4l_analysis_sha256       = D38465773D788665A4634B63AD8B43E57E9FBD69D8AD9DC80FCEF2D49F1D7202
+f4l_formal_raw_sha256     = 0389C7750C74CF7316CA3822FF6E462B0BF12CB2771A2C49E916FA67AA726361
+f4l_formal_analysis_sha256 = C4EBD70A7CEEC488D6065533DDDD399380C000CD675ED9BBB304E010382E34BC
 ```
 
 ## Observed evidence
@@ -187,14 +190,83 @@ preserved.
 ## Next authorized read-only boundary
 
 Per the current advisor instruction, the direct runtime gate and short F4L
-schema gate are now satisfied.  The next action is the prescribed formal F4L
-capture in the same session, without reprogramming:
+schema gate were satisfied.  The prescribed formal F4L capture then ran in the
+same session, without reprogramming:
 
 ```text
 quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 120000 130000 f4l
 ```
 
-Stop at 120 seconds or the 130-second hard limit, and stop earlier for a
-terminal freshness edge, generation/reset change, transport failure, identity
-failure, or missing valid frames according to the F4L contract.  This report
-still does not claim Step5 pass.
+It reached the 120-second target without an early-stop condition.  Its complete
+raw output is `raw/f4l_formal.log` and its offline result is
+`analysis/f4l-formal-analysis.json`.
+
+## Formal F4L result
+
+```text
+quartus_exit             = 0
+session_elapsed_ms       = 120059
+run_end_reason           = TARGET_REACHED
+stop_reason              = NONE
+valid_frames             = 126
+invalid_frames           = 0
+unique_frames            = 64
+unique_span_ms           = 119361
+valid_time_bins_10s      = 12
+page0/page1/page2        = 42/42/42
+helper_unlocked_with_main_valid = 0
+main_progress_intervals = 63
+semantic_problems        = []
+diagnostic_complete      = true
+diagnostic_pass          = true
+step5_pass               = false
+```
+
+The formal diagnostic is therefore closed successfully.  This is a pass for
+the passive F4L measurement contract only, not a Step5 lock pass.
+
+## Phase-drift and integrator evidence
+
+The analyzer keeps pages separate; these counters are not claimed to be one
+atomic cross-page sample.  Within their valid same-page counter windows:
+
+```text
+PAGE0 phase_delta_sum_delta          = -19396058 (modulo proxy)
+PAGE0 positive_boundary_delta        = 1184
+PAGE0 negative_boundary_delta        = 0
+PAGE0 pair_eligible_delta            = 440966
+PAGE0 phase_freq_error_sum_delta     = 19398454
+PAGE0 phase_in_band_updates_delta    = 59264
+PAGE0 phase_out_of_band_updates_delta = 381712
+
+PAGE1 frequency_actual_i_sum_delta   = -15022620
+PAGE1 phase_actual_i_sum_delta       = 13112433
+PAGE1 frequency_ki_x_sum_delta       = -15022620
+PAGE1 phase_ki_x_sum_delta            = 13112433
+PAGE1 clamp_event_count_delta        = 0
+PAGE1 anti_windup_event_count_delta  = 0
+PAGE1 actual_delta_mismatch_count    = 0
+```
+
+The phase band ratio is approximately 13.44% of phase-detector updates.  The
+histogram has all 16 bins populated (final bin counts 269240..328875), so the
+data do not show a fixed narrow phase offset.  The one-sided boundary proxy and
+positive phase-conditioned frequency-error sum are consistent with phase
+circling rather than settling.  The frequency and phase integrator changes have
+opposite signs and nearly cancel qualitatively, while the proposed and actual
+integrator deltas agree and no clamp/anti-windup event is reported.
+
+This supports the current hypothesis that residual frequency error is not
+being removed effectively and that shared frequency/phase integrator balance
+may be contributing to the phase sweep.  Because the phase delta is a modulo
+crossing proxy and the page windows are not atomic with one another, this is
+not by itself a causal proof of the required control fix.  The schedule shadow
+fields were invalid in this image, so this run does not answer page-due versus
+page-publish causality.
+
+## Required review boundary
+
+No production control change was made after this evidence.  Per the latest
+advice, the next candidate must be reviewed before changing Ki, acquisition
+logic, or any other control parameter.  Do not reinterpret this F4L diagnostic
+pass as Step5.

@@ -1,0 +1,29 @@
+Experiment: EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920
+Purpose: read-only TimeQuest full-path export from existing fitted databases
+Host: Pain (140.112.48.154:41230)
+Worktree: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919
+Source/build identity: 5d7d1a46784581dd1396daeb5a24624b62b1c440
+Quartus Prime: 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Device: 10AX115N2F45E1SG
+
+Project/revision runs:
+  DE5a_wr_master_jtag / DE5a_wr_master_jtag
+  DE5a_wr_slave_jtag  / DE5a_wr_slave_jtag
+
+Timing model:
+  slow 900mV 100C
+  target clock: clk_50m
+  setup, npaths=20, nworst=20, detail=full_path, show_routing
+
+The fitted database, QSF, SDC, RTL, and hardware image were not changed.
+No Quartus compile, FPGA programming, reset, or power cycle was performed.
+
+The Tcl used was copied to /tmp/EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920.tcl
+and is preserved in the experiment scripts directory.  Its local SHA256 is:
+6E6F8F9273F06A98E47DA817F6E2340C850826A0C50A789B497F3F827EBF948B
+
+Commands executed from quartus/jtag_runtime_diag:
+  /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_sta -t /tmp/EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920.tcl DE5a_wr_master_jtag DE5a_wr_master_jtag /tmp/EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920/master master
+  /mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_sta -t /tmp/EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920.tcl DE5a_wr_slave_jtag DE5a_wr_slave_jtag /tmp/EXP-S5-TIMING-TOP20-PATH-EXPORT-20260920/slave slave
+
+Both commands returned 0 and emitted TIMING_EXPORT_COMPLETE.

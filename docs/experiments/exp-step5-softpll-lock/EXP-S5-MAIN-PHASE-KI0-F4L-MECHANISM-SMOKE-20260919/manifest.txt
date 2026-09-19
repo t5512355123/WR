@@ -1,0 +1,17 @@
+experiment=EXP-S5-MAIN-PHASE-KI0-F4L-MECHANISM-SMOKE-20260919
+source_commit=db7e0be12fcf1268059b916be6a21437da286fdd
+prior_report_commit=a4b36b53
+command=read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 10000 30000 f4l
+valid_invocation=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
+smoke_ok=1
+session_elapsed_ms=10214
+valid_frames=11
+unique_frames=6
+page0=4
+page1=3
+page2=4
+phase_ki0_implementation=PASS_SMOKE_LEVEL
+phase_ki0_direction=INCONCLUSIVE
+phase_lock_observed=NO
+formal_120s=NOT_RUN
+step5=NO

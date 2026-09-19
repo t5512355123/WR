@@ -1,0 +1,26 @@
+experiment=EXP-S5-F4J-PRODUCER-AUDIT-FREQ-COUNT-RECAPTURE-20260920
+branch=exp/step5-softpll-lock
+fpga_image_source_commit=63bf952a3ea46dd0231f12d6d3e9b86d816ed953
+observer_source_commit=b4ca04ac
+pain_worktree_commit=eee6802806c689d7ddaac4838099674094c95214
+reprogram=NO
+control_change=NONE
+quartus_exit=0
+target_duration_ms=30000
+hard_duration_ms=40000
+session_elapsed_ms=31246
+run_end_reason=TARGET_REACHED
+stop_reason=NONE
+producer_valid=33
+producer_unique=17
+phase_branch_unique=17
+frequency_branch_unique=0
+acceptance_or_recovery_unique=15
+out_of_band_decrement_unique=2
+terminal_freshness_mode=SESSION_EDGE
+terminal=0
+fresh_edge=0
+main_freq_acceptance_policy_boundary=SUPPORTED
+hysteresis_as_primary_cause=NOT_SUPPORTED
+step5=NO
+raw/observe/f4j_producer_audit_full.log sha256=0807261EA9231E284D86003F1070580BEF859CE9AFCF735CAC185FAC4710DA35 size=265449

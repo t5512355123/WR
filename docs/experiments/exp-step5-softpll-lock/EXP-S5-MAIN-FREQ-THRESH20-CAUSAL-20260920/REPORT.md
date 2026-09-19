@@ -6,20 +6,24 @@
 THRESH20_IMPLEMENTATION = PASS
 HELPER_ACQUISITION = PASS
 HELPER_LOCK_ACQUIRED_AND_HELD = YES
-THRESH20_CONTROL_RESULT = MAIN_NOT_YET_EVALUATED
+MAIN_START = PASS
+MAIN_FREQ_ACQUISITION = ACTIVE_NOT_LOCKED
+THRESH20_CONTROL_RESULT = VALID_OPERATING_STATE
 THRESH20_CAUSAL_RESULT = NOT_YET_EVALUATED
+F4J_THRESH20_AUDIT = ALLOWED_NEXT
 STEP5 = NO
-STEP5_RESULT = MAIN_START_NOT_YET_EVALUATED
+STEP5_RESULT = MAIN_PHASE_LOCK_NOT_OBSERVED
 ```
 
 The Slave Main frequency-lock threshold override was implemented and observed in
 the programmed runtime image.  The first direct snapshot showed the Helper
 before lock, so the dashboard reported an upstream Step2/Step4B boundary.  The
 bounded follow-up correlation on the same live session then showed the Helper
-acquiring and holding lock.  Main startup and the threshold causal effect were
-not evaluated in this experiment.  This is not evidence that threshold 20
-failed, and it is not evidence that the acceptance-margin hypothesis is
-confirmed.
+acquiring and holding lock.  A subsequent Main shadow read confirmed Main is
+enabled and actively acquiring frequency, but it is not yet frequency- or
+phase-locked.  The threshold causal effect remains unevaluated.  This is not
+evidence that threshold 20 failed, and it is not evidence that the
+acceptance-margin hypothesis is confirmed.
 
 ## Scope and source provenance
 
@@ -213,9 +217,59 @@ active.  The correlation ended normally at sample 20.  Per the experiment
 stop rule, it was not extended and was not followed by F4J or another runtime
 capture.
 
+## Main startup direct gate
+
+The advisor then authorized exactly one additional read-only Main shadow read
+on the same live session:
+
+```text
+read_wb_runtime.tcl --raw
+quartus_exit = 0
+```
+
+Raw file:
+
+```text
+raw/observe/direct_runtime_main_start.log
+SHA256 = 23728ca1a85ef10f78dc70ec313f6ca0bff3163626ab89978938f334866f0b20
+```
+
+Slave result:
+
+```text
+WDIAGS_PTP          = 9 SLAVE
+STEP4B_RESULT       = PASS
+SPLL_SEQ_STATE      = 6 (SEQ_WAIT_MAIN)
+spll_main_limits    = 00320014
+HELPER_LOCKED       = 1
+HELPER_LOCK_COUNT   = 1000/1000
+MAIN_ENABLED        = 1
+MAIN_FREQ_LOCKED    = 0
+MAIN_PHASE_LOCKED   = 0
+PSTAT_LOCKED        = 0
+```
+
+The runtime infrastructure remained valid during this read:
+
+```text
+PHY/link            = PASS
+BOOT_GENERATION     = unchanged
+CPU_RESET_COUNT     = unchanged
+WR_CORE_RESET_COUNT = unchanged
+SI_CONFIG_DROP_COUNT= unchanged
+RXERR               = 0 delta
+JTAG/WB transport   = trusted; timeout/invalid = 0
+```
+
+This is the advisor's valid Case A: threshold20 implementation is present,
+Main has started, and frequency acquisition is active but not yet locked.  It
+is a valid operating state rather than a candidate failure.  The single-window
+`PSTAT_LOCKED=0` result is not a Step5 completion and is not a long-term
+stability verdict.
+
 ## Next action boundary
 
-Stop this experiment here.  The next round may evaluate whether Main starts and
-how the threshold20 Main detector behaves, but must not reinterpret the Helper
-result as a Step5 lock or as a completed threshold causal test.  Do not run F4J
-in this round and do not change another control parameter.
+Stop this experiment here.  The next round is now allowed to run the bounded
+threshold20 F4J Main producer audit to evaluate the causal effect.  Do not
+reinterpret the single direct window as a Step5 lock, and do not change another
+control parameter before that audit.

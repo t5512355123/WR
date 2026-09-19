@@ -17,6 +17,10 @@
 #define DE5A_MAIN_PI_KP_OVERRIDE 300
 #define DE5A_F4L_MAIN_PHASE_DIAG 0
 
+/* Causal candidate: narrow only the Slave Main frequency-lock acceptance
+ * window. The Master identity intentionally does not define this override. */
+#define DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE 20
+
 /* Step5 causal candidate: keep frequency-branch Ki=1, but use Ki=0 only
  * for Main phase-branch pi_update(). */
 #define DE5A_MAIN_PHASE_PI_KI_ZERO 1

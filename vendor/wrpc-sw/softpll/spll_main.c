@@ -49,6 +49,13 @@
 #error "DE5A_MAIN_PHASE_PI_KI_ZERO must be 0 or 1"
 #endif
 
+#if defined(DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE)
+#if (DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE <= 0) || \
+	(DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE > 50)
+#error "DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE must be in the range 1..50"
+#endif
+#endif
+
 #undef WITH_SEQUENCING
 
 static volatile uint32_t spll_main_diag_epoch;
@@ -689,6 +696,13 @@ void mpll_init(struct spll_main_state *s, int id_ref, int id_out)
 	s->id_ref = id_ref;
 	s->id_out = id_out;
 	s->dac_index = id_out - spll_n_chan_ref;
+	/* Keep the default threshold for every output and every Master build.
+	 * The identity-selected override is intentionally scoped to Slave Main
+	 * (dac_index 0) so the AUX channel and Master remain at 50. */
+#if defined(CONFIG_WR_NODE) && defined(DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE)
+	if (s->dac_index == 0)
+		s->freq_ld.threshold = DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE;
+#endif
 	s->dbg_src_id = (s->dac_index == 0) ? SPLL_DBG_SRC_MAIN : SPLL_DBG_SRC_AUX( s->dac_index - 1 );
 	if (s->dac_index == 0) {
 		spll_main_diag_reset();

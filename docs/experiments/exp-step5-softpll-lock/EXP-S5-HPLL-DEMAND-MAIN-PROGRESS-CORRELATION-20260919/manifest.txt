@@ -1,0 +1,12 @@
+experiment=EXP-S5-HPLL-DEMAND-MAIN-PROGRESS-CORRELATION-20260919
+observer_source_commit=c73116480a9f5c3fa2c5a77b3e8d8f0d3aa037eb
+observer=scripts/jtag/read_hpll_helper_correlation.tcl
+command=quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 60 500
+programming=NOT_PERFORMED
+raw=raw/helper_dco_correlation.log
+raw_sha256=5c0c73ecaca3cf2ad6556057a121cc185332e6f78c9ec585a57029354d1d664d
+raw_bytes=120249
+capture_rc=0
+captured_samples=120
+verdict=INCONCLUSIVE_DCO_TRANSACTION_BOUNDARY
+step5=NOT_PASS

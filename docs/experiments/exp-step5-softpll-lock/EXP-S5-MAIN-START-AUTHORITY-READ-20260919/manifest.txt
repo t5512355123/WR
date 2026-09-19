@@ -1,0 +1,13 @@
+experiment=EXP-S5-MAIN-START-AUTHORITY-READ-20260919
+observer=scripts/jtag/read_wb_runtime.tcl
+command=quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+programming=NOT_PERFORMED
+quartus_stp_rc=0
+wb_requests=352
+wb_3way_matches=352
+wb_timeout_count=0
+wb_invalid_count=0
+raw=raw/read_wb_runtime_raw.log
+raw_sha256=d7460a21425e6033d5ecc651c0f6894c03e29bda3ce24ae9e315a80bf303c0d7
+verdict=MAIN_START_PASS_MAIN_PHASE_NOT_LOCKED
+step5=NOT_PASS

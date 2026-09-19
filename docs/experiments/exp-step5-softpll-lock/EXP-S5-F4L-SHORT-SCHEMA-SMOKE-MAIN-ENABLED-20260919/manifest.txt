@@ -1,0 +1,14 @@
+experiment=EXP-S5-F4L-SHORT-SCHEMA-SMOKE-MAIN-ENABLED-20260919
+observer=scripts/jtag/read_step5_main_frequency_prelock_observability.tcl
+command=quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 10000 30000 f4l
+programming=NOT_PERFORMED
+raw=raw/f4l_smoke.log
+raw_sha256=f9446418ce1894d48be28cc9f6f854edc29525a146343a55b4214c03e4b1dccb
+session_elapsed_ms=1163
+main_f4l_valid=1
+page0=1
+page1=0
+page2=0
+smoke_ok=0
+run_end_reason=STOP_WR_SESSION_ENDED
+step5=NOT_PASS

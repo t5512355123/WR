@@ -1,0 +1,16 @@
+experiment=EXP-S5-SLOCK-TAIL-TRACE-20260919
+date=2026-09-19
+branch=exp/step5-softpll-lock
+baseline_commit=a81f8edf
+remote_worktree=/home/b10504072/pain-worktrees/EXP-S5-HELPER-STARTUP-RAIL-DIAGNOSTIC-LANE0-20260919
+command=quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 1 100 "" 3000 3000 f4m
+mode=read-only
+contexts=1
+reprogram=no
+build=no
+step5_pass=no
+firmware_s_lock_timeout=yes
+f4l_new_terminal_edge=not_proven
+classification=sticky_historical_terminal
+raw_file=raw/f4m_slock_tail_trace_key_raw.log
+raw_sha256=8EC3DA021662BC62D40B9CB61A53EE367E3C6DCEF216559B851CE0A0CD250E80

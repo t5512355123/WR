@@ -1,0 +1,3 @@
+arm,start_ms,end_ms,span_ms,generation_start,generation_end,total_delta,freq_delta,phase_delta,detector_delta,inband_delta,outband_delta,freq_to_phase_delta,phase_to_freq_delta,update_id_delta,freq_error_first,freq_error_last,source_rows
+B,1789548144615,1789548154187,9572,1,1,36133,1391,34742,34742,4726,30016,3,3,36133,48,50,64
+A2,1789549647945,1789549656946,9001,1,1,36134,1578,34556,34556,4696,29860,2,2,36134,63,51,64

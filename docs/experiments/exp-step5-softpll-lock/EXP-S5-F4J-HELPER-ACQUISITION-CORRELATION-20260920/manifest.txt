@@ -1,0 +1,13 @@
+experiment=EXP-S5-F4J-HELPER-ACQUISITION-CORRELATION-20260920
+branch=exp/step5-softpll-lock
+session_image=F4J fresh image retained from 701416ca
+source_commit=63bf952a3ea46dd0231f12d6d3e9b86d816ed953
+slave_sof_sha256=f70d688bd1e703177e4e59b713f8165d871fe4b3c735888b169ddea9526346a6
+master_sof_sha256=7cbe368bab2f94a8e7276cb7d8f066ee386e02f8e072b686a6e2a9ca59b96f1c
+command=quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 20 500
+samples=20
+gap_ms=500
+direct_gate_followup=NOT_RUN
+f4j_acceptance_audit=STILL_NOT_RUN
+step5=NO
+raw/observe/helper_correlation_20x500.log sha256=E06CB484BB403E2417506AE7E5A2DB043A200D49AF4F6B45E968D624AC1E8CA6 size=41268

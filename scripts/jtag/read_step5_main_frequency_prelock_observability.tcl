@@ -1430,14 +1430,16 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
     }
   }
   # A WR failure reason and disable bit are sticky across a completed
-  # session. F4L/F4S must not turn that historical state into a new
+  # session. F4L/F4S/F4J must not turn historical sticky state into a new
   # observer terminal. In those passive modes, only a 0->1 transition of
-  # the combined terminal candidate is fresh. F4G/F4M retain their legacy
+  # the combined terminal candidate is fresh. F4G/F4M retain legacy
   # semantics because they are explicit health/first-loss audits.
   set terminal_freshness_mode LEGACY
   set terminal_state_changed $terminal_candidate
   set terminal_fresh_edge 0
-  if {$::f4g_run_role eq "f4l" || $::f4g_run_role eq "f4s"} {
+  if {$::f4g_run_role eq "f4l" ||
+      $::f4g_run_role eq "f4s" ||
+      $::f4g_run_role eq "f4j"} {
     set terminal_freshness_mode SESSION_EDGE
     if {!$::f4g_terminal_candidate_seen($hardware_name)} {
       set ::f4g_terminal_candidate_seen($hardware_name) 1

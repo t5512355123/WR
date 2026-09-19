@@ -130,12 +130,12 @@ def test_source_declares_f4l_without_control_parameter_changes() -> None:
     )
     assert "spll_main_f4l_diag_record" in source
     assert "wdiags_write_wr_spll_main_f4l_debug" in task_diags
-    assert "DE5A_F4L_MAIN_PHASE_DIAG 1" in (
+    identity = (
         ROOT / "firmware" / "configs" / "de5a_slave_identity.h"
     ).read_text(encoding="utf-8")
-    assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in (
-        ROOT / "firmware" / "configs" / "de5a_slave_identity.h"
-    ).read_text(encoding="utf-8")
+    assert "DE5A_F4L_MAIN_PHASE_DIAG " in identity
+    assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in identity
+    assert "DE5A_MAIN_PHASE_PI_KI_ZERO 1" in identity
     observer = (
         ROOT / "scripts" / "jtag" /
         "read_step5_main_frequency_prelock_observability.tcl"

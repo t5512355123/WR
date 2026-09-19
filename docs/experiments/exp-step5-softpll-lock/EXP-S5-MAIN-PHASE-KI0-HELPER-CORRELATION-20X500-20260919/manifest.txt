@@ -1,0 +1,14 @@
+experiment=EXP-S5-MAIN-PHASE-KI0-HELPER-CORRELATION-20X500-20260919
+source_commit=db7e0be12fcf1268059b916be6a21437da286fdd
+prior_report_commit=13a52fcd
+command=quartus_stp -t scripts/jtag/read_hpll_helper_correlation.tcl 20 500
+valid_invocation=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
+sample_count=20
+gap_ms=500
+helper_acquisition=PASS
+helper_lock_acquired_and_held=YES
+dco_service_active=YES
+dco_error=0
+phase_ki0_mechanism=NOT_EVALUATED
+f4l_smoke=NOT_RUN
+step5=NOT_REACHED

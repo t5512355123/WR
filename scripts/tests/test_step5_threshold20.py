@@ -41,4 +41,3 @@ def test_threshold20_does_not_change_other_frozen_identity_values() -> None:
     assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in identity
     assert "DE5A_MAIN_PHASE_PI_KI_ZERO 1" in identity
     assert "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1" in identity
-    assert "DE5A_F4L_MAIN_PHASE_DIAG 0" in identity

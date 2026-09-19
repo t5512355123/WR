@@ -15,7 +15,8 @@
 /* F4K: independent, role-specific Main Kp override.  A1/A2 use 300;
  * the approved B arm changes only this value to 600. */
 #define DE5A_MAIN_PI_KP_OVERRIDE 300
-#define DE5A_F4L_MAIN_PHASE_DIAG 0
+/* Threshold20 image: make F4L the diagnostic owner on both boards. */
+#define DE5A_F4L_MAIN_PHASE_DIAG 1
 
 /* Causal candidate: narrow only the Slave Main frequency-lock acceptance
  * window. The Master identity intentionally does not define this override. */

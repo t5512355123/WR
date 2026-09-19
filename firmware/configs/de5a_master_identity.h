@@ -14,7 +14,8 @@
 
 /* F4K reference image: Master Main Kp is fixed at the A1/A2 value. */
 #define DE5A_MAIN_PI_KP_OVERRIDE 300
-#define DE5A_F4L_MAIN_PHASE_DIAG 0
+/* Threshold20 image: make F4L the diagnostic owner on both boards. */
+#define DE5A_F4L_MAIN_PHASE_DIAG 1
 
 /* Step5 causal candidate: keep frequency-branch Ki=1, but use Ki=0 only
  * for Main phase-branch pi_update(). */

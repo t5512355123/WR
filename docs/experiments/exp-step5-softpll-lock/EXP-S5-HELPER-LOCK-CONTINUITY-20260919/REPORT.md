@@ -9,7 +9,8 @@ HELPER_ACQUISITION_OUT_OF_BAND_CONTINUOUS = NO
 MAIN_START                    = CONFIRMED
 MAIN_FREQUENCY_LOCK           = CONFIRMED
 MAIN_PHASE_LOCK               = NO
-F4L_SHORT_SCHEMA_SMOKE        = ALLOWED_NEXT
+F4L_SHORT_SCHEMA_SMOKE        = PASS
+F4L_FORMAL_CAPTURE            = ALLOWED_NEXT
 STEP5                         = NO
 ```
 
@@ -38,6 +39,8 @@ quartus_warnings        = 0
 direct_runtime_command  = read_wb_runtime.tcl --raw
 direct_runtime_exit     = 0
 direct_runtime_raw_sha256 = DDBC432EA47F5A6E17C8270EA8C32CA987BD5B2144CBDF6520003FC2FA2B803F
+f4l_short_raw_sha256      = 98A4F2AE12391898398870DB3BD8F0CDAFB6488393D9B3AFF93FEC7E62F137DC
+f4l_analysis_sha256       = D38465773D788665A4634B63AD8B43E57E9FBD69D8AD9DC80FCEF2D49F1D7202
 ```
 
 ## Observed evidence
@@ -119,6 +122,58 @@ freshness-corrected F4L smoke showed `TERMINAL=0` and no fresh terminal edge,
 so this is retained as historical evidence, not treated as a new session-end
 event.
 
+### F4L short schema smoke
+
+After the direct runtime gate, the corrected one-shot F4L command was run in
+the same session without reprogramming.  The first invocation was rejected by
+Tcl argument parsing before opening a reader because the remote shell lost the
+empty board-filter argument; it took zero seconds and is not counted as a
+hardware run.  The corrected invocation completed normally:
+
+```text
+command = read_step5_main_frequency_prelock_observability.tcl 2400 100 '' 10000 30000 f4l
+quartus_exit = 0
+STOP_REASON = NONE
+RUN_END_REASON = TARGET_REACHED
+SMOKE_OK = 1
+SESSION_ELAPSED_MS = 10378
+valid_frames = 11
+unique_frames = 6
+unique_span_ms = 9606
+page0 = 3
+page1 = 4
+page2 = 4
+schedule_valid = 0
+schedule_fields = INVALID (not used for a causal claim)
+TERMINAL = 0
+TERMINAL_FRESH_EDGE = 0
+RESET_CHANGED = 0
+```
+
+The offline analyzer completed without schema or semantic errors:
+
+```text
+classification = INCONCLUSIVE
+diagnostic_pass = false
+frame_count = 11
+unique_count = 6
+unique_span_ms = 9606
+valid_time_bins_10s = 2
+page_counts = {0: 3, 1: 4, 2: 4}
+cycle_main_valid_count = 11
+main_progress_intervals = 5
+helper_unlocked_with_main_valid = 0
+helper_residual_with_main_valid = 9
+semantic_problems = []
+step5_pass = false
+```
+
+Thus the short schema gate passed and all three pages were seen, but the
+formal F4L diagnostic is not closed: its required long-window uniqueness and
+time-span criteria were not met by a 10-second smoke.  The same frozen session
+is eligible for the prescribed 120-second formal F4L capture; this smoke is not
+Step5 evidence.
+
 ## Interpretation
 
 The previous F4L smoke stopped before a valid Main frame because Helper was not
@@ -131,15 +186,15 @@ preserved.
 
 ## Next authorized read-only boundary
 
-Per the current advisor instruction, the direct runtime gate is now satisfied.
-The next action is one short F4L schema smoke in the same session, without
-reprogramming:
+Per the current advisor instruction, the direct runtime gate and short F4L
+schema gate are now satisfied.  The next action is the prescribed formal F4L
+capture in the same session, without reprogramming:
 
 ```text
-quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 10000 30000 f4l
+quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 120000 130000 f4l
 ```
 
-Stop after the short smoke according to the existing F4L stop rules.  Do not
-extend it to formal 120 seconds unless all three pages are observed with
-coherent, same-generation frames.  This report still does not claim Step5
-pass.
+Stop at 120 seconds or the 130-second hard limit, and stop earlier for a
+terminal freshness edge, generation/reset change, transport failure, identity
+failure, or missing valid frames according to the F4L contract.  This report
+still does not claim Step5 pass.

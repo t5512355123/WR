@@ -1,0 +1,6 @@
+2026-09-19T20:59:54+08:00
+slave_cable=DE5 [1-11.2]
+master_cable=DE5 [1-11.1]
+3edaacdeb6cabf4030226b886c14f309e70485d66ff2f6deb9ad8eefd9854564  /home/b10504072/pain-worktrees/EXP-S5-F4L-TERMINAL-FRESHNESS-20260919/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+934c6e60fade1043a5fbd7d9aa6e77dabcfe688c48f405f41da9e868a76c8bc1  /home/b10504072/pain-worktrees/EXP-S5-F4L-TERMINAL-FRESHNESS-20260919/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+JTAG_F4L_SCHEDULE_OBSERVABILITY_PROGRAM=PASS

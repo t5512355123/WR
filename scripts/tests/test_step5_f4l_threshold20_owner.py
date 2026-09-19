@@ -26,11 +26,16 @@ def test_f4l_owner_is_enabled_on_both_threshold20_identities() -> None:
     assert _define(master, "DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE") is None
 
 
-def test_f4l_owner_change_keeps_control_identity_frozen() -> None:
-    for name in ("de5a_master_identity.h", "de5a_slave_identity.h"):
-        identity = (ROOT / "firmware" / "configs" / name).read_text(
-            encoding="utf-8"
-        )
-        assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in identity
-        assert "DE5A_MAIN_PHASE_PI_KI_ZERO 1" in identity
-        assert "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1" in identity
+def test_threshold20_ki1_candidate_changes_only_slave_phase_ki() -> None:
+    master = (ROOT / "firmware" / "configs" / "de5a_master_identity.h").read_text(
+        encoding="utf-8"
+    )
+    slave = (ROOT / "firmware" / "configs" / "de5a_slave_identity.h").read_text(
+        encoding="utf-8"
+    )
+    assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in master
+    assert "DE5A_MAIN_PI_KP_OVERRIDE 300" in slave
+    assert "DE5A_MAIN_PHASE_PI_KI_ZERO 1" in master
+    assert "DE5A_MAIN_PHASE_PI_KI_ZERO 0" in slave
+    assert "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1" in master
+    assert "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1" in slave

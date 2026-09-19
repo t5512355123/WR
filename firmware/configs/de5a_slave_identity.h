@@ -22,9 +22,10 @@
  * window. The Master identity intentionally does not define this override. */
 #define DE5A_MAIN_FREQ_LOCK_THRESHOLD_OVERRIDE 20
 
-/* Step5 causal candidate: keep frequency-branch Ki=1, but use Ki=0 only
- * for Main phase-branch pi_update(). */
-#define DE5A_MAIN_PHASE_PI_KI_ZERO 1
+/* Step5 causal candidate: keep frequency-branch Ki=1 and restore the
+ * configured Ki=1 for Main phase-branch pi_update().  The preceding Ki=0
+ * arm used this same switch with value 1. */
+#define DE5A_MAIN_PHASE_PI_KI_ZERO 0
 
 /* F5: enable the single Main frequency-to-phase bumpless-preload treatment. */
 #define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1

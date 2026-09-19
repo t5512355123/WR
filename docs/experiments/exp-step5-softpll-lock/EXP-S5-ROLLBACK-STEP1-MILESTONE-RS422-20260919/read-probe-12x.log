@@ -1,0 +1,408 @@
+=== sample 1 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:49 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102E1333C82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026132BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:49 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 2 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:49 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102C3235C82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C3225082CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:50 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 3 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:50 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 00010261333C82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026132BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:50 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 4 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:51 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102C1235082CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C3225082CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:51 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 5 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:51 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102C123D082CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026332BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:51 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 6 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:52 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 00010261333C82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026132BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:52 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 7 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:52 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102C1235082CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C1225082CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:53 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 8 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:53 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 0001026133BC82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026132BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:53 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 9 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:53 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 0001026133BC82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C1225082CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:54 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 10 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:54 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 0001026133BC82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C1225082CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:54 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 11 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:54 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 000102C123D082CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 000102C3225C82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:55 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00
+=== sample 12 ===
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Sep 19 18:22:55 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl
+=== DE5 [1-11.1] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 STER}
+probe_hex: 0001026333BC82CF
+=== DE5 [1-11.2] ===
+device: @1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+instances: {0 1 64 LAVE}
+probe_hex: 0001026132BC82CF
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/pain-worktrees/qsfpa-f4h-exact-898b041/scripts/jtag/read_probe.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Sep 19 18:22:55 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00

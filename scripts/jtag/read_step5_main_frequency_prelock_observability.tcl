@@ -244,6 +244,8 @@ array set ::f4g_helper_rail_streak {}
 array set ::f4g_freq_unlock_streak {}
 array set ::f4g_terminal_streak {}
 array set ::f4g_wr_seen_active {}
+array set ::f4g_terminal_candidate_seen {}
+array set ::f4g_terminal_candidate_previous {}
 array set ::f4g_generation_baseline {}
 array set ::f4g_cpu_reset_baseline {}
 array set ::f4g_wr_reset_baseline {}
@@ -999,6 +1001,8 @@ proc f4g_initialize_board {role hardware_name} {
   set ::f4g_freq_unlock_streak($hardware_name) 0
   set ::f4g_terminal_streak($hardware_name) 0
   set ::f4g_wr_seen_active($hardware_name) 0
+  set ::f4g_terminal_candidate_seen($hardware_name) 0
+  set ::f4g_terminal_candidate_previous($hardware_name) 0
   set ::f4g_generation_baseline($hardware_name) INVALID
   set ::f4g_cpu_reset_baseline($hardware_name) INVALID
   set ::f4g_wr_reset_baseline($hardware_name) INVALID
@@ -1414,14 +1418,46 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
       $wr_state_value > 0} {
     set ::f4g_wr_seen_active($hardware_name) 1
   }
-  set terminal 0
+  set terminal_candidate 0
   if {$direct_valid} {
-    if {$wr_disable_valid == 1} { set terminal 1 }
-    if {$wr_failure_reason >= 1 && $wr_failure_reason <= 7} { set terminal 1 }
+    if {$wr_disable_valid == 1} { set terminal_candidate 1 }
+    if {$wr_failure_reason >= 1 && $wr_failure_reason <= 7} {
+      set terminal_candidate 1
+    }
     if {$::f4g_wr_seen_active($hardware_name) &&
         (($pd_state == 4) || ($ext_state == 0) || ($wr_state_value == 0))} {
+      set terminal_candidate 1
+    }
+  }
+  # A WR failure reason and disable bit are sticky across a completed
+  # session. F4L/F4S must not turn that historical state into a new
+  # observer terminal. In those passive modes, only a 0->1 transition of
+  # the combined terminal candidate is fresh. F4G/F4M retain their legacy
+  # semantics because they are explicit health/first-loss audits.
+  set terminal_freshness_mode LEGACY
+  set terminal_state_changed $terminal_candidate
+  set terminal_fresh_edge 0
+  if {$::f4g_run_role eq "f4l" || $::f4g_run_role eq "f4s"} {
+    set terminal_freshness_mode SESSION_EDGE
+    if {!$::f4g_terminal_candidate_seen($hardware_name)} {
+      set ::f4g_terminal_candidate_seen($hardware_name) 1
+      set ::f4g_terminal_candidate_previous($hardware_name) $terminal_candidate
+      set terminal_state_changed 0
+    } else {
+      set previous_candidate $::f4g_terminal_candidate_previous($hardware_name)
+      set terminal_state_changed [expr {$terminal_candidate != $previous_candidate ? 1 : 0}]
+      if {$terminal_candidate == 1 && $previous_candidate == 0} {
+        set terminal_fresh_edge 1
+      }
+      set ::f4g_terminal_candidate_previous($hardware_name) $terminal_candidate
+    }
+    set terminal 0
+    if {$terminal_candidate == 1 &&
+        ($terminal_fresh_edge || $::f4g_terminal_streak($hardware_name) > 0)} {
       set terminal 1
     }
+  } else {
+    set terminal $terminal_candidate
   }
   if {$terminal} {
     incr ::f4g_terminal_streak($hardware_name)
@@ -1480,6 +1516,10 @@ proc f4g_emit_wr_core {role hardware_name cycle prefix} {
     "WR_CORE_RESET_COUNT=$wr_core_reset_count" \
     "SI_CONFIG_DROP_COUNT=$si_drop_count" "RESET_FIELDS_VALID=$reset_valid" \
     "RESET_CHANGED=$reset_changed" "TERMINAL=$terminal" \
+    "TERMINAL_CANDIDATE=$terminal_candidate" \
+    "TERMINAL_STATE_CHANGED=$terminal_state_changed" \
+    "TERMINAL_FRESH_EDGE=$terminal_fresh_edge" \
+    "TERMINAL_FRESHNESS_MODE=$terminal_freshness_mode" \
     "TERMINAL_STREAK=$::f4g_terminal_streak($hardware_name)" \
     "WR_FAILURE_REASON=$wr_failure_reason" "WR_DISABLE_VALID=$wr_disable_valid" \
     "STOP_REASON=$::f4g_global_stop_reason"] " "]

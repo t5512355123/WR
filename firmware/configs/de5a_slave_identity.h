@@ -17,6 +17,10 @@
 #define DE5A_MAIN_PI_KP_OVERRIDE 300
 #define DE5A_F4L_MAIN_PHASE_DIAG 1
 
+/* Step5 causal candidate: keep frequency-branch Ki=1, but use Ki=0 only
+ * for Main phase-branch pi_update(). */
+#define DE5A_MAIN_PHASE_PI_KI_ZERO 1
+
 /* F5: enable the single Main frequency-to-phase bumpless-preload treatment. */
 #define DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD 1
 

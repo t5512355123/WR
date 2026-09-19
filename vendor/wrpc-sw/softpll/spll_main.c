@@ -41,6 +41,14 @@
 #error "DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD must be 0 or 1"
 #endif
 
+#ifndef DE5A_MAIN_PHASE_PI_KI_ZERO
+#define DE5A_MAIN_PHASE_PI_KI_ZERO 0
+#endif
+#if (DE5A_MAIN_PHASE_PI_KI_ZERO != 0) && \
+	(DE5A_MAIN_PHASE_PI_KI_ZERO != 1)
+#error "DE5A_MAIN_PHASE_PI_KI_ZERO must be 0 or 1"
+#endif
+
 #undef WITH_SEQUENCING
 
 static volatile uint32_t spll_main_diag_epoch;
@@ -856,6 +864,10 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 	    return SPLL_LOCKED;
 
 	int err, y;
+#if defined(CONFIG_WR_NODE) && DE5A_MAIN_PHASE_PI_KI_ZERO
+	int phase_pi_ki_saved = 0;
+	int phase_pi_ki_overridden = 0;
+#endif
 
 	if (source == s->id_ref)
 	{
@@ -1044,6 +1056,19 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 
 #endif
 
+#if defined(CONFIG_WR_NODE) && DE5A_MAIN_PHASE_PI_KI_ZERO
+		/* The causal candidate removes only the Main phase-branch I term.
+		 * Apply it before both the optional bumpless preload and pi_update(),
+		 * then restore the configured value before the rest of the state
+		 * machine can observe it.  No integrator is reset or duplicated. */
+		if (s->dac_index == 0 &&
+		    diag_branch == SPLL_MAIN_DIAG_BRANCH_PHASE) {
+			phase_pi_ki_saved = s->pi.ki;
+			s->pi.ki = 0;
+			phase_pi_ki_overridden = 1;
+		}
+#endif
+
 #if defined(CONFIG_WR_NODE) && DE5A_MAIN_BUMPLESS_FREQ_PHASE_PRELOAD
 		/* ld_update() has just accepted the final frequency-lock sample.  This
 		 * is the first phase-branch update; preload only the Main controller and
@@ -1067,6 +1092,12 @@ int mpll_update(struct spll_main_state *s, int tag, int source)
 			diag_f4l_i_new = s->pi.trace_i_new;
 			diag_f4l_integrator_after = s->pi.trace_integrator_after;
 		}
+#endif
+		/* Restore the configured Ki after the completed PI operation.  The
+		 * trace and F4L publication above retain the effective phase Ki=0. */
+#if defined(CONFIG_WR_NODE) && DE5A_MAIN_PHASE_PI_KI_ZERO
+		if (phase_pi_ki_overridden)
+			s->pi.ki = phase_pi_ki_saved;
 #endif
 		if(!s->vco_freeze)
 		{

@@ -353,7 +353,9 @@ set ::f4l_smoke_duration_ms 10000
 set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
 set ::f4l_event_tag F4L
-set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
+set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260919
+set ::f4l_contract_target_duration_ms 120000
+set ::f4l_contract_hard_duration_ms 130000
 set ::f4l_schedule_mode 0
 set ::f4l_schedule_magic 0x46345331
 
@@ -3932,8 +3934,21 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
     if {[lindex $target 0] eq "SLAVE"} { set slave_target $target }
   }
   set effective_duration $target_duration_ms
-  if {$effective_duration <= 0} { set effective_duration 120000 }
+  if {$effective_duration <= 0} {
+    set effective_duration $::f4l_contract_target_duration_ms
+  }
   set hard_duration $hard_duration_ms
+  if {!$::f4m_enabled} {
+    # F4L has one fixed observer contract: 120 s formal capture and a hard
+    # 130 s wall-clock ceiling.  This protects the experiment from an
+    # accidental legacy/default 240 s invocation without touching firmware
+    # timeout or lock-detector behavior.  F4M keeps its separately validated
+    # startup gate and caller-provided duration.
+    if {$effective_duration > $::f4l_contract_target_duration_ms} {
+      set effective_duration $::f4l_contract_target_duration_ms
+    }
+    set hard_duration $::f4l_contract_hard_duration_ms
+  }
   if {$hard_duration < $effective_duration} { set hard_duration $effective_duration }
   # F4L is a passive paged diagnostic.  Use the experiment contract's short
   # smoke/no-valid windows so a missing or stale frame stops promptly.  F4M
@@ -6483,7 +6498,7 @@ if {$run_role eq "f4l"} {
   set ::f4m_enabled 0
   set ::f4l_schedule_mode 0
   set ::f4l_event_tag F4L
-  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260917
+  set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260919
   set ::f4g_run_role f4l
   set ::f4g_experiment_name $::f4l_experiment_name
   set ::f4g_phy_status_source JTAG_PROBE0

@@ -1,0 +1,4 @@
+git_commit=26e138fdc0bfc8426704b397141d563cf4d580a2
+e149a70147c969765beb6705b4daaaacc47965354177af47be6728ef6d97c449  quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.fit.summary:Fitter Status : Successful - Sun Sep 20 04:22:54 2026
+quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sta.rpt:Info (332146): Worst-case setup slack is -0.361

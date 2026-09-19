@@ -1,0 +1,24 @@
+Experiment: EXP-S5-F4J-PRODUCER-AUDIT-FREQ-COUNT-20260920
+Command: quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 2400 100 "" 30000 40000 f4j
+Corrected Pain source: eee68028
+FPGA source: 63bf952a3ea46dd0231f12d6d3e9b86d816ed953
+Observer source: b4ca04ac
+Reprogram: NO
+
+Corrected run summary:
+STEP5_F4J_DONE session_elapsed_ms=31087 target_duration_ms=30000 hard_duration_ms=40000
+run_end_reason=TARGET_REACHED stop_reason=NONE single_reader=PASS step5_complete=NO step5_pass=NO
+Slave producer_valid=33 producer_unique=17 producer_duplicates=16 update_progress=16 sample_progress=16
+branch_bins=2 freq_branch=0 phase_branch=33 phase_calls=33 phase_in_band=8 phase_out_band=25
+HELPER_LOCKED=1 HELPER_LOCK_COUNT=1000 PHY_LINK_USABLE=1 PSTAT_LOCKED=0
+TERMINAL=0 TERMINAL_CANDIDATE=1 TERMINAL_FRESH_EDGE=0 TERMINAL_FRESHNESS_MODE=SESSION_EDGE
+WR_FAILURE_REASON=3 STOP_REASON=NONE
+
+Representative coherent frames retained from the terminal excerpt:
+FREQ_ERROR=39 BRANCH_ID=2 FREQ_COUNT_BEFORE=50 FREQ_COUNT_AFTER=50
+FREQ_ERROR=35 BRANCH_ID=2 FREQ_COUNT_BEFORE=50 FREQ_COUNT_AFTER=50
+FREQ_ERROR=22 BRANCH_ID=2 FREQ_COUNT_BEFORE=50 FREQ_COUNT_AFTER=50
+
+Capture note: the full stdout was not redirected before execution; this is a
+normalized summary/excerpt. It is intentionally insufficient for an acceptance
+versus hysteresis causal verdict.

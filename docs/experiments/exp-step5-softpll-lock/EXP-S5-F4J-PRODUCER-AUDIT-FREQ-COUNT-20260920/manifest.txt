@@ -1,0 +1,20 @@
+experiment=EXP-S5-F4J-PRODUCER-AUDIT-FREQ-COUNT-20260920
+branch=exp/step5-softpll-lock
+fpga_image_source_commit=63bf952a3ea46dd0231f12d6d3e9b86d816ed953
+observer_source_commit=b4ca04ac
+pain_checked_out_commit=eee68028
+reprogram=NO
+control_change=NONE
+target_duration_ms=30000
+hard_duration_ms=40000
+session_elapsed_ms=31087
+producer_valid=33
+producer_unique=17
+phase_branch=33
+freq_branch=0
+terminal_freshness_mode=SESSION_EDGE
+terminal=0
+fresh_edge=0
+policy_causal_result=INCONCLUSIVE_CAPTURE_LOSS
+step5=NO
+raw/observe/f4j_producer_audit_summary.log sha256=58B3363C57F2B92E0A3F71EF8D66C6A579812C672AF1E5BF43E3A030B74301D6 size=1368

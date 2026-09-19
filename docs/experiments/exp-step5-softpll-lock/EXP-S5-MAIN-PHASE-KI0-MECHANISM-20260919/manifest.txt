@@ -1,0 +1,17 @@
+experiment=EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919
+source_commit=db7e0be12fcf1268059b916be6a21437da286fdd
+offline_tests=18/18
+build=PASS
+program=PASS
+slave_sof_sha256=fa5de2430152190f61eb54c63506103a7ce7f676b0e0945f02a1957baa65ae60
+master_sof_sha256=7e5ef99bc74d9f8e65d147a68d28a2c47985800d7422e84eb224632034b32dee
+direct_runtime_rc=0
+direct_runtime_sha256=DF6A5D94279BDD7C52708F2DDB819C7A2AA7F0E617BD032C00BFF12579FBC3B
+step1_link=PASS
+step2_ptp=UNCALIBRATED
+step4b=BLOCKED_BY_STEP2
+helper_locked=0
+main_enabled=0
+f4l=NOT_RUN
+step5=NO
+control_result=INVALID

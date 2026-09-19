@@ -4,18 +4,22 @@
 
 ```text
 THRESH20_IMPLEMENTATION = PASS
-THRESH20_CONTROL_RESULT = NOT_EVALUATED_UPSTREAM
-THRESH20_CAUSAL_RESULT = NOT_EVALUATED
+HELPER_ACQUISITION = PASS
+HELPER_LOCK_ACQUIRED_AND_HELD = YES
+THRESH20_CONTROL_RESULT = MAIN_NOT_YET_EVALUATED
+THRESH20_CAUSAL_RESULT = NOT_YET_EVALUATED
 STEP5 = NO
-STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_RESULT = MAIN_START_NOT_YET_EVALUATED
 ```
 
 The Slave Main frequency-lock threshold override was implemented and observed in
-the programmed runtime image.  The control candidate itself was not evaluated:
-the Slave runtime remained PTP-uncalibrated, so Step4B was blocked before the
-Helper/Main closed-loop operating state became valid.  This is not evidence that
-threshold 20 failed, and it is not evidence that the acceptance-margin
-hypothesis is confirmed.
+the programmed runtime image.  The first direct snapshot showed the Helper
+before lock, so the dashboard reported an upstream Step2/Step4B boundary.  The
+bounded follow-up correlation on the same live session then showed the Helper
+acquiring and holding lock.  Main startup and the threshold causal effect were
+not evaluated in this experiment.  This is not evidence that threshold 20
+failed, and it is not evidence that the acceptance-margin hypothesis is
+confirmed.
 
 ## Scope and source provenance
 
@@ -172,13 +176,46 @@ the acceptance margin changes frequency-branch occupancy, handoff behavior, or
 phase convergence.
 
 No Step5 lock was observed or claimed.  No F4J follow-up was run, and no further
-programming was performed after this single capture.
+programming was performed after the candidate image was installed.
+
+## Bounded Helper correlation
+
+Following the advisor's diagnosis, the same freshly-programmed threshold20
+image and live session were observed once with:
+
+```text
+read_hpll_helper_correlation.tcl 20 500
+samples = 20
+gap     = 500 ms
+quartus_exit = 0
+```
+
+Raw file:
+
+```text
+raw/observe/helper_correlation.log
+SHA256 = d615ab2003a326226e8df9541f3f3fb3dcd15ac8b87aa3be55a85a08654eef6b
+```
+
+The Slave samples provided the required Helper result:
+
+```text
+HELPER_STATE = 03E80001 throughout the 20-sample window
+HELPER_LOCK_COUNT = 1000
+HELPER_ERROR absolute maximum observed = 336
+STEP_DELTA        = non-zero after the initial sample
+HELPER_UPDATE_COUNT = advancing
+DCO ERROR          = 0 in every sample
+```
+
+The Helper therefore acquired and held lock, and its service path remained
+active.  The correlation ended normally at sample 20.  Per the experiment
+stop rule, it was not extended and was not followed by F4J or another runtime
+capture.
 
 ## Next action boundary
 
-Stop this experiment here and obtain a new diagnosis/action for the Slave PTP
-uncalibrated upstream condition.  Do not interpret this as a threshold20
-negative result, do not run F4J on this invalid operating state, and do not
-change another control parameter until the Slave reaches a valid Step4B entry
-state.
-
+Stop this experiment here.  The next round may evaluate whether Main starts and
+how the threshold20 Main detector behaves, but must not reinterpret the Helper
+result as a Step5 lock or as a completed threshold causal test.  Do not run F4J
+in this round and do not change another control parameter.

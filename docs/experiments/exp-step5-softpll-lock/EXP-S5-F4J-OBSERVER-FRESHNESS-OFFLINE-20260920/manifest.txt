@@ -1,0 +1,13 @@
+experiment=EXP-S5-F4J-OBSERVER-FRESHNESS-OFFLINE-20260920
+branch=exp/step5-softpll-lock
+observer_test_commit=b4ca04ac
+fpga_image_source_commit=63bf952a3ea46dd0231f12d6d3e9b86d816ed953
+observer_only_diff=PASS
+production_control_diff=NONE
+fpga_image_diff=NONE
+offline_tests=PASS_16_OF_16
+f4j_observer_freshness_fix=OFFLINE_PASS
+fpga_build_program=NOT_RUN
+f4j_30s=STILL_NOT_RUN
+step5=NO
+raw/offline_regression.log sha256=889B61FAEB54BDED70765406E8E48FFAEEE34064C040ADAE176692AE57B50732 size=290

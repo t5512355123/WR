@@ -1,0 +1,9 @@
+Offline runner: workspace-bundled Python
+Tests:
+  scripts/tests/test_step5_terminal_freshness.py
+  scripts/tests/test_step5_f4l.py
+  scripts/tests/test_step5_f4m.py
+Result:
+  PASS 16 tests: terminal freshness + F4L/F4M offline regression
+Hardware/JTAG: NOT USED
+FPGA build/program: NOT RUN

@@ -1,0 +1,15 @@
+experiment=EXP-S5-MAIN-PHASE-KI0-DIRECT-GATE-20260919
+source_commit=db7e0be12fcf1268059b916be6a21437da286fdd
+prior_report_commit=d4b64f1b
+command=quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+valid_invocation=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
+helper_acquisition=PASS
+main_enabled=1
+main_frequency_locked=1
+main_phase_locked=0
+step4b=PASS
+wr_failure_reason=3
+direct_runtime_gate=PARTIAL_NOT_PASS
+phase_ki0_mechanism=NOT_EVALUATED
+f4l=NOT_RUN
+step5=NO

@@ -16,7 +16,7 @@ milestone。這一節只補充目前狀態，下面原有的 Step2 merge readine
 ```text
 STEP5_FUNCTIONAL_PASS = PASS
 STEP5_MERGE_STATUS     = MERGED_TO_MAIN
-MERGED_COMMIT          = 3dfd24b7eccc62269c6cf677ab9dc83a7b6834c8
+MERGED_COMMIT          = 61f410ad4c74129d378fcc9370316ccb7cb262a5
 ```
 
 ## Historical Step2 merge readiness：`exp/restore-c88cc05-baseline`

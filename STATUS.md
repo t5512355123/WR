@@ -19,6 +19,11 @@ Master/Slave SOF SHA-256 與 3600-sample evidence 詳列於
 鎖定，也不宣稱 timing closure 已完成。所有較早的 `STEP5_COMPLETE=NO` 實驗
 仍是當時判定下的歷史紀錄，不改寫原始 evidence。
 
+注意：原始 2026-09-12 報告採用較嚴格的 300 秒門檻，因此保留
+`STEP5 = NOT PASS`；本頁的 `STEP5_FUNCTIONAL_PASS = PASS` 是依目前四項鎖定
+門檻對同一 coherent window 的正式重分類。2026-09-20 新鮮重驗證未重現該組
+SOF evidence，已另存報告，不改變本 milestone 的 exact provenance。
+
 ## 最新 signed HPLL target FDEC5632 實驗：造成 upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `bc735d8` 將 `iHPLL_DATA` sign-extend 後重新建置與燒錄；兩次

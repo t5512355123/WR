@@ -20,6 +20,21 @@ STEP5_PASS_MILESTONE     = 2026-09-20
 TIMING_CLOSED             = NO  # timing closure 不作為本 milestone 的 gate
 ```
 
+這是對 2026-09-12 硬體 evidence 的正式 policy reclassification。原始實驗報告
+仍保留當時的 `STEP5 = NOT PASS`，因為它採用的是「完整 lock chain 連續 300 秒」
+舊門檻；本文件不改寫原始報告，只依 2026-09-20 的 milestone 定義重新判定：
+
+```text
+HELPER_LOCK_FINAL       = 1
+MAIN_FREQ_LOCK_FINAL    = 1
+MAIN_PHASE_LOCK_FINAL   = 1
+PSTAT_LOCK_FINAL        = 1
+STEP5_FUNCTIONAL_PASS   = PASS
+```
+
+`FULL_CHAIN_300S`、lock reacquisition 次數與 `TIMING_CLOSED` 都是附帶觀測／
+implementation status，不是本 functional PASS 的必要條件。
+
 這個 milestone 不宣稱 300 秒連續 lock、零 lock reacquisition、零 timing
 violation 或完整 Quartus timing closure；那些屬於後續 stability / implementation
 hardening 工作。
@@ -84,6 +99,11 @@ RESET_SI_CONFIG_DELTA           = 0
 
 同樣地，2026-09-20 的 timing audit 仍顯示 `TIMING_CLOSED=NO`。這不會撤銷本
 functional milestone，但必須在 release / implementation 文件中保留。
+
+2026-09-20 的新鮮重驗證另記於
+`EXP-S5-FUNCTIONAL-MILESTONE-PSTAT-LOCK-REVALIDATION-20260920/REPORT.md`。
+該輪使用新編譯的 SOF，未重現這組歷史 lock evidence，因此不取代本 milestone
+的 exact source／SOF provenance，也不能把該輪結果誤寫成新的 PASS。
 
 ## Merge provenance
 

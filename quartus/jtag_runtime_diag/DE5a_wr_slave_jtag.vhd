@@ -232,6 +232,9 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal core_phy_tx_disable  : std_logic;
   signal core_tm_link_up      : std_logic;
   signal core_tm_time_valid   : std_logic;
+  signal core_tm_tai          : std_logic_vector(39 downto 0);
+  signal core_tm_cycles       : std_logic_vector(27 downto 0);
+  signal core_pps_csync       : std_logic;
   signal core_pps_valid       : std_logic;
   signal core_link_ok         : std_logic;
   signal cpu_pc               : std_logic_vector(31 downto 0);
@@ -277,6 +280,18 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal step5_burst_size_source : std_logic_vector(15 downto 0);
   signal step5_polarity_active : std_logic;
   signal clock_activity_probe : std_logic_vector(63 downto 0);
+  -- Step6A read-only, PPS-boundary atomic snapshot.  The snapshot is
+  -- captured in the same 125 MHz reference-clock domain as wr_pps_gen so a
+  -- JTAG read never has to combine independently changing TAI/cycle words.
+  signal global_time_snapshot_tai        : std_logic_vector(39 downto 0) := (others => '0');
+  signal global_time_snapshot_cycles     : std_logic_vector(27 downto 0) := (others => '0');
+  signal global_time_snapshot_time_valid : std_logic := '0';
+  signal global_time_snapshot_pps_valid  : std_logic := '0';
+  signal global_time_snapshot_valid      : std_logic := '0';
+  signal global_time_snapshot_count      : unsigned(15 downto 0) := (others => '0');
+  signal global_time_snapshot_probe0     : std_logic_vector(63 downto 0);
+  signal global_time_snapshot_probe1     : std_logic_vector(63 downto 0);
+  signal global_time_live_probe          : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
   signal rx_activity_div      : unsigned(7 downto 0) := (others => '0');
@@ -559,6 +574,30 @@ begin
     end if;
   end process;
 
+  -- Step6A only: freeze the WR global-time tuple at the PPS synchronisation
+  -- boundary.  This is intentionally observation-only; it does not feed the
+  -- WR core, PPS generator, reset tree, SoftPLL, or any board output.
+  p_global_time_snapshot : process(QSFPA_REFCLK_p)
+  begin
+    if rising_edge(QSFPA_REFCLK_p) then
+      if CPU_RESET_n = '0' or core_tm_time_valid = '0' then
+        global_time_snapshot_tai        <= (others => '0');
+        global_time_snapshot_cycles     <= (others => '0');
+        global_time_snapshot_time_valid <= '0';
+        global_time_snapshot_pps_valid  <= '0';
+        global_time_snapshot_valid      <= '0';
+        global_time_snapshot_count      <= (others => '0');
+      elsif core_pps_csync = '1' then
+        global_time_snapshot_tai        <= core_tm_tai;
+        global_time_snapshot_cycles     <= core_tm_cycles;
+        global_time_snapshot_time_valid <= core_tm_time_valid;
+        global_time_snapshot_pps_valid  <= core_pps_valid;
+        global_time_snapshot_valid      <= '1';
+        global_time_snapshot_count      <= global_time_snapshot_count + 1;
+      end if;
+    end if;
+  end process;
+
   p_dmtd_activity : process(QSFPB_REFCLK_p)
   begin
     if rising_edge(QSFPB_REFCLK_p) then
@@ -764,6 +803,22 @@ begin
   clock_activity_probe(52) <= wr_rx_locked_to_ref;
   clock_activity_probe(53) <= wr_rx_locked_to_data;
   clock_activity_probe(63 downto 54) <= (others => '0');
+
+  -- Probe 62: TAI[39:0] and cycle[23:0].
+  global_time_snapshot_probe0(39 downto 0)  <= global_time_snapshot_tai;
+  global_time_snapshot_probe0(63 downto 40) <= global_time_snapshot_cycles(23 downto 0);
+  -- Probe 63: cycle[27:24], validity flags, snapshot-valid, and sequence.
+  global_time_snapshot_probe1(3 downto 0)   <= global_time_snapshot_cycles(27 downto 24);
+  global_time_snapshot_probe1(4)            <= global_time_snapshot_time_valid;
+  global_time_snapshot_probe1(5)            <= global_time_snapshot_pps_valid;
+  global_time_snapshot_probe1(6)            <= global_time_snapshot_valid;
+  global_time_snapshot_probe1(22 downto 7)  <= std_logic_vector(global_time_snapshot_count);
+  global_time_snapshot_probe1(63 downto 23) <= (others => '0');
+  -- Probe 64 is a single packed live sample for the short-interval cycle
+  -- monotonicity check.  The PPS-boundary probes above remain the authoritative
+  -- coherent full-width TAI/cycle record.
+  global_time_live_probe(35 downto 0)  <= core_tm_tai(35 downto 0);
+  global_time_live_probe(63 downto 36) <= core_tm_cycles;
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -1179,6 +1234,51 @@ begin
     )
     port map (
       probe      => clock_activity_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_global_time_snapshot_probe0 : altsource_probe
+    generic map (
+      instance_id             => "WR_GLOBAL_TIME_SNAPSHOT_0_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 62,
+      source_width            => 1
+    )
+    port map (
+      probe      => global_time_snapshot_probe0,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_global_time_snapshot_probe1 : altsource_probe
+    generic map (
+      instance_id             => "WR_GLOBAL_TIME_SNAPSHOT_1_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 63,
+      source_width            => 1
+    )
+    port map (
+      probe      => global_time_snapshot_probe1,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_global_time_live_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_GLOBAL_TIME_LIVE_SLAVE",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 64,
+      source_width            => 1
+    )
+    port map (
+      probe      => global_time_live_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'
@@ -2121,9 +2221,9 @@ begin
       tm_link_up_o               => core_tm_link_up,
       tm_dac_value_o             => open,
       tm_time_valid_o            => core_tm_time_valid,
-      tm_tai_o                   => open,
-      tm_cycles_o                => open,
-      pps_csync_o                => open,
+      tm_tai_o                   => core_tm_tai,
+      tm_cycles_o                => core_tm_cycles,
+      pps_csync_o                => core_pps_csync,
       pps_valid_o                => core_pps_valid,
       pps_p_o                    => SMA_CLKOUT,
       pps_led_o                  => open,

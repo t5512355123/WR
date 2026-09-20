@@ -39,6 +39,54 @@ if {[get_collection_size $wr_rx_sync0_regs] <= 0} {
 set_false_path -from $wr_rx_clkout  -to $wr_rx_sync0_regs
 set_false_path -from $wr_rx_pma_clk -to $wr_rx_sync0_regs
 
+# EXP-S5-RX2SYS-PROTOCOLLED-MULTIBIT-HOLD-CONSTRAINT-FIX-20260920
+# Source-proven RX -> SYS bundled-data protocols.
+# Exclude HOLD analysis only; keep SETUP analysis as a datapath guard.
+set lcr_src [get_registers -nowarn \
+    {*|ep_rx_pcs_8bit:*|lcr_final_val*}]
+
+set lcr_dst [get_registers -nowarn [list \
+    {*|ep_autonegotiation:*|rx_config_reg*} \
+    {*|ep_autonegotiation:*|mdio_lpa_full_o*} \
+    {*|ep_autonegotiation:*|mdio_lpa_half_o*} \
+    {*|ep_autonegotiation:*|mdio_lpa_pause_o*} \
+    {*|ep_autonegotiation:*|mdio_lpa_rfault_o*} \
+    {*|ep_autonegotiation:*|mdio_lpa_lpack_o*} \
+    {*|ep_autonegotiation:*|mdio_lpa_npage_o*} \
+    {*|ep_autonegotiation:*|state*}]]
+
+if {[get_collection_size $lcr_src] <= 0 ||
+    [get_collection_size $lcr_dst] <= 0} {
+    post_message -type error \
+        "LCR bundled-data CDC collection is empty"
+    error "LCR_PROTOCOL_CDC_COLLECTION_EMPTY"
+}
+
+set_false_path -hold -from $lcr_src -to $lcr_dst
+
+set pclass_src [get_registers -nowarn \
+    {*|ep_packet_filter:*|pclass_int*}]
+set pclass_dst [get_registers -nowarn \
+    {*|ep_packet_filter:*|pclass_o*}]
+set drop_src [get_registers -nowarn \
+    {*|ep_packet_filter:*|drop_int*}]
+set drop_dst [get_registers -nowarn \
+    {*|ep_packet_filter:*|drop_o*}]
+
+foreach {src dst name} [list \
+    $pclass_src $pclass_dst PCLASS \
+    $drop_src   $drop_dst   DROP] {
+
+    if {[get_collection_size $src] <= 0 ||
+        [get_collection_size $dst] <= 0} {
+        post_message -type error \
+            "${name} bundled-data CDC collection is empty"
+        error "${name}_PROTOCOL_CDC_COLLECTION_EMPTY"
+    }
+
+    set_false_path -hold -from $src -to $dst
+}
+
 # Diagnostic-only activity-toggle CDC.
 # Only the asynchronous source -> first metastability-capture register is
 # excluded from synchronous setup/hold analysis.  meta -> sync -> prev remains

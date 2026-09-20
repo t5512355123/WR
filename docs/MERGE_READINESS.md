@@ -3,20 +3,21 @@
 ## Current Step5 merge note（2026-09-20）
 
 目前 Step5 functional milestone 已依專案新判定成立：同一 coherent observer
-window 同時看到 HPLL/Helper、Main frequency、Main phase 與 `PSTAT.locked`。
-精確版本與 raw evidence 見
-[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
+window 連續 300.321 秒同時看到 HPLL/Helper、Main frequency、Main phase 與
+`PSTAT.locked`。精確版本與 raw evidence 見
+[`docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
 
 `TIMING_CLOSED=NO` 仍須保留在 release 說明；它不再阻止 functional Step5
 milestone。這一節只補充目前狀態，下面原有的 Step2 merge readiness 是歷史
 文件，不代表 Step5 的 current verdict。
 
-目前 merge 狀態：
+目前 merge 狀態（待本輪 milestone commit 完成後 fast-forward）：
 
 ```text
 STEP5_FUNCTIONAL_PASS = PASS
-STEP5_MERGE_STATUS     = MERGED_TO_MAIN
-MERGED_COMMIT          = 61f410ad4c74129d378fcc9370316ccb7cb262a5
+STEP5_MERGE_STATUS     = READY_TO_MERGE
+MILESTONE_SOURCE        = 26e138fdc0bfc8426704b397141d563cf4d580a2
+TIMING_CLOSED           = NO (not a functional gate)
 ```
 
 ## Historical Step2 merge readiness：`exp/restore-c88cc05-baseline`

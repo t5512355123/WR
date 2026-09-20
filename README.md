@@ -28,13 +28,13 @@ Laptop/pain 衝突記錄在 `docs/migration/06_path_mapping.md` 與
 ## 目前狀態
 
 請先閱讀 `STATUS.md`。目前已找到曾同時看到 HPLL/Helper lock、Main frequency
-lock、Main phase lock 與 `PSTAT.locked=1` 的最佳候選，但該窗完整 lock chain
-只有 113.791 秒，尚未滿足 Step5 所需的連續 300 秒，因此目前不能宣稱 PASS。
-Step5 不要求 Quartus timing closure 全部為 0；timing closure 是獨立的後續工作，
-詳見 [`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
-待找到 300 秒穩定版本後，必須以該版本的同一 coherent observer window 作為
-exact evidence；2026-09-20 新鮮重驗證未重現歷史 SOF 組合，已另存為失敗重驗證
-紀錄，不能與 milestone evidence 混用。
+lock、Main phase lock 與 `PSTAT.locked=1` 的版本，並在同一個有效 WR session
+維持連續 300 秒，因此目前 Step5 functional milestone 已 PASS。精確證據、
+SOF/MIF provenance 與 raw observer output 見
+[`EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
+Step5 不要求 Quartus timing closure 全部為 0；本次 Master WNS=-0.289 ns、
+Slave WNS=-0.361 ns，timing closure 是獨立的後續工作，詳見
+[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
 
 ## 在 pain 上建置
 

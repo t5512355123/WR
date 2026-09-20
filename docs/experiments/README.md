@@ -10,6 +10,11 @@ milestone 的必要條件，但仍須如實記錄為獨立的 implementation sta
 目前 milestone 與 exact provenance 見
 [`exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
 
+目前已達成的 300 秒 milestone 是
+[`EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
+該報告保留四項 lock 的逐週期統計、raw checksum 與 F4L page-accounting
+caveat；timing closure 仍獨立追蹤，不會回寫成這個 functional gate 的必要條件。
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

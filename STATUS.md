@@ -2,27 +2,35 @@
 
 ## 目前 Step5 functional milestone 狀態（2026-09-20）
 
-依目前專案採用的 functional 判定，Step5 在同一個 coherent observer window
-同時達成 HPLL/Helper lock、Main frequency lock、Main phase lock 與
-`PSTAT.locked=1`，因此：
+最新的 `threshold20 + phase-Ki1` 版本已在同一個有效 WR session 完成
+300.321 秒唯讀觀測，四項 functional gate 全部維持成立：
 
 ```text
-STEP5_FOUR_LOCKS_OBSERVED = HISTORICAL_CANDIDATE
-STEP5_FUNCTIONAL_PASS     = NOT_PROVEN
-STEP5_PASS_MILESTONE      = PENDING_300S_STABLE_LOCK
-TIMING_CLOSED         = NO
+STEP5_FOUR_LOCKS_OBSERVED = PASS
+STEP5_FUNCTIONAL_PASS     = PASS
+STEP5_PASS_MILESTONE      = ESTABLISHED
+FULL_CHAIN_300S            = 1
+TIMING_CLOSED              = NO  # independent implementation status
 ```
 
-選定版本是 source commit `17f20ad32c619212133e6134205cf017212d7dd8`，對應的
-Master/Slave SOF SHA-256 與 3600-sample evidence 詳列於
-[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
-該版本的完整 lock chain 最長只有 113.791 秒，`FULL_CHAIN_300S=0`，所以它是
-目前最佳候選而不是 Step5 PASS。Timing closure 不作為 functional gate，但 300 秒
-穩定 lock 仍然是必要條件。所有較早的 `STEP5_COMPLETE=NO` 實驗
-仍是當時判定下的歷史紀錄，不改寫原始 evidence。
+精確 milestone 證據位於
+[`docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)：
 
-2026-09-20 新鮮重驗證未重現該組 SOF evidence，且沒有 300 秒證據，已另存
-報告；不能把它或 113.791 秒候選誤寫成 Step5 PASS。
+```text
+HELPER/HPLL_LOCK     = 316/316
+MAIN_FREQUENCY_LOCK  = 316/316
+MAIN_PHASE_LOCK      = 316/316
+PSTAT_LOCK           = 316/316
+SESSION_ELAPSED      = 300321 ms
+RESET/DELOCK          = stable / 0
+```
+
+Milestone firmware source commit 是
+`26e138fdc0bfc8426704b397141d563cf4d580a2`。本次 build 的 timing closure
+仍為 `NO`（Master WNS=-0.289 ns、Slave WNS=-0.361 ns），但依目前 policy
+不作為 Step5 functional gate。F4L paged-frame strict analyzer 另保留四筆
+重複 page-accounting caveat；四筆仍帶有相同四-lock flags，詳見實驗報告。
+所有較早的 `STEP5_COMPLETE=NO` 實驗仍是歷史紀錄，不改寫原始 evidence。
 
 ## 最新 signed HPLL target FDEC5632 實驗：造成 upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
 

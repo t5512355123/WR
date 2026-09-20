@@ -56,8 +56,11 @@ set rc [catch {
         set clock_report [file join $output_dir "${role_prefix}_${label}_clocks.rpt"]
         report_clocks -file $clock_report
         set ucp_report [file join $output_dir "${role_prefix}_${label}_unconstrained.rpt"]
-        set ucp_rc [catch {report_ucp -npaths 100 -file $ucp_report} ucp_error]
+        set ucp_rc [catch {report_ucp -file $ucp_report} ucp_error]
         puts "UNCONSTRAINED_REPORT role=$role_prefix name=$label rc=$ucp_rc file=$ucp_report"
+        if {$ucp_rc} {
+            puts "UNCONSTRAINED_REPORT_ERROR role=$role_prefix name=$label error=$ucp_error"
+        }
         if {$ucp_rc || ![file exists $ucp_report]} {
             error "UNCONSTRAINED_REPORT_FAILED:$label"
         }

@@ -21,7 +21,8 @@ from typing import Any
 
 
 _SAMPLE_RE = re.compile(r"^GLOBAL_TIME_SAMPLE\s+(?P<body>.*)$")
-_FIELD_RE = re.compile(r"(?P<key>[A-Z0-9_]+)=(?P<value>[^\s]+)")
+_FIELD_RE = re.compile(r"(?P<key>[A-Za-z0-9_]+)=(?P<value>[^\s]+)")
+_BOARD_RE = re.compile(r"\bboard=(?P<board>DE5\s+\[[^\]]+\])\s+sample=")
 _TAI_MODULUS = 1 << 40
 _COUNT_MODULUS = 1 << 16
 
@@ -43,9 +44,12 @@ def parse_samples(text: str) -> list[dict[str, Any]]:
         if not match:
             continue
         fields = {
-            key: _parse_value(value)
+            key.upper(): _parse_value(value)
             for key, value in _FIELD_RE.findall(match.group("body"))
         }
+        board = _BOARD_RE.search(line)
+        if board:
+            fields["BOARD"] = board.group("board")
         samples.append(fields)
     return samples
 
@@ -124,8 +128,23 @@ def analyze_text(text: str, *, reference_clock_hz: int = 125_000_000) -> dict[st
         current_cycles = _int(current, "LIVE_CYCLES")
         if current_cycles >= previous_cycles:
             continue
-        if (previous_cycles >= reference_clock_hz - 1024
-                and current_cycles <= 1024):
+        live_tai_delta = _mod_delta(
+            _int(current, "LIVE_TAI_LO"),
+            _int(previous, "LIVE_TAI_LO"),
+            1 << 36,
+        )
+        # The host sample interval is hundreds of milliseconds, so the live
+        # read may legitimately miss the final few reference-clock ticks
+        # before rollover.  A one-second TAI-low increment is stronger wrap
+        # evidence than requiring the previous sample to be within 1k ticks of
+        # the endpoint.
+        if (
+            live_tai_delta == 1
+            and previous_cycles > current_cycles
+        ) or (
+            previous_cycles >= reference_clock_hz - 1024
+            and current_cycles <= 1024
+        ):
             live_wraps += 1
         else:
             live_bad_steps += 1

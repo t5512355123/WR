@@ -1,0 +1,38 @@
+{
+  "experiment": "EXP-S6-GLOBAL-TIME-OBSERVABILITY-20260920",
+  "source_commit": "ec1f25e81e0eb8c2caee796d13a225eaae81e5f2",
+  "master": {
+    "classification": "GLOBAL_TIME_COUNTER_VALID",
+    "sample_count": 59,
+    "stable_sample_count": 59,
+    "valid_sample_count": 59,
+    "pps_event_count": 15,
+    "sequence_deltas": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "tai_deltas": [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    "boundary_cycle_pass": true,
+    "live_sample_count": 59,
+    "live_wrap_count": 14,
+    "live_bad_step_count": 0,
+    "cycles_monotonic": true,
+    "cycles_wrap": true,
+    "tai_increment_at_wrap": true,
+    "diagnostic_pass": true
+  },
+  "slave": {
+    "classification": "GLOBAL_TIME_NOT_VALID",
+    "sample_count": 59,
+    "stable_sample_count": 59,
+    "valid_sample_count": 0,
+    "pps_event_count": 0,
+    "boundary_cycle_pass": false,
+    "live_sample_count": 0,
+    "live_wrap_count": 0,
+    "diagnostic_pass": false
+  },
+  "cross_board": {
+    "classification": "INCONCLUSIVE_NO_SHARED_TAI",
+    "same_boundary_evidence": false,
+    "step6a_pass": false,
+    "step6b_trigger_pass": false
+  }
+}

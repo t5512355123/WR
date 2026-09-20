@@ -1,0 +1,306 @@
+Info: *******************************************************************
+Info: Running Quartus Prime TimeQuest Timing Analyzer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Sep 20 10:20:20 2026
+Info: Command: quartus_sta -t ../../docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/scripts/all_corner_sta_summary.tcl DE5a_wr_master_jtag DE5a_wr_master_jtag ../../docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master master
+Info: Quartus(args): DE5a_wr_master_jtag DE5a_wr_master_jtag ../../docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master master
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
+Info (21077): Core supply voltage is 0.9V
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_master_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (332174): Ignored filter at DE5a_wr_master_jtag.sdc(4): *|clk_dmtd_62m496 could not be matched with a register File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Critical Warning (332049): Ignored create_generated_clock at DE5a_wr_master_jtag.sdc(4): Argument <targets> is an empty collection File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+    Info (332050): create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}] File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: clk_dmtd_62m496 was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_d0_transition_gray[31] is being clocked by clk_dmtd_62m496
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[5] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[52] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+CORNER role=master name=slow_900mV_100C SYSCLK625_COLLECTION=1
+Info (332115): Report Timing: Found 1 setup paths (0 violated).  Worst case slack is 0.292
+    Info (332115): -setup
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_setup.rpt}
+CORNER_PATH role=master name=slow_900mV_100C analysis=setup rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_setup.rpt
+Info (332115): Report Timing: Found 1 hold paths (0 violated).  Worst case slack is 0.041
+    Info (332115): -hold
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_hold.rpt}
+CORNER_PATH role=master name=slow_900mV_100C analysis=hold rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_hold.rpt
+Info (332115): Report Timing: Found 1 recovery paths (0 violated).  Worst case slack is 0.372
+    Info (332115): -recovery
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_recovery.rpt}
+CORNER_PATH role=master name=slow_900mV_100C analysis=recovery rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_recovery.rpt
+Info (332115): Report Timing: Found 1 removal paths (0 violated).  Worst case slack is 0.286
+    Info (332115): -removal
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_removal.rpt}
+CORNER_PATH role=master name=slow_900mV_100C analysis=removal rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_removal.rpt
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+UNCONSTRAINED_REPORT role=master name=slow_900mV_100C rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_100C_unconstrained.rpt
+DMTD_62M496_TARGET role=master name=slow_900mV_100C count=0
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (21077): Core supply voltage is 0.9V
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_master_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (332174): Ignored filter at DE5a_wr_master_jtag.sdc(4): *|clk_dmtd_62m496 could not be matched with a register File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Critical Warning (332049): Ignored create_generated_clock at DE5a_wr_master_jtag.sdc(4): Argument <targets> is an empty collection File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+    Info (332050): create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}] File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: clk_dmtd_62m496 was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_d0_transition_gray[31] is being clocked by clk_dmtd_62m496
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[5] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[52] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+CORNER role=master name=slow_900mV_0C SYSCLK625_COLLECTION=1
+Info (332115): Report Timing: Found 1 setup paths (0 violated).  Worst case slack is 0.307
+    Info (332115): -setup
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_setup.rpt}
+CORNER_PATH role=master name=slow_900mV_0C analysis=setup rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_setup.rpt
+Info (332115): Report Timing: Found 1 hold paths (0 violated).  Worst case slack is 0.039
+    Info (332115): -hold
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_hold.rpt}
+CORNER_PATH role=master name=slow_900mV_0C analysis=hold rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_hold.rpt
+Info (332115): Report Timing: Found 1 recovery paths (0 violated).  Worst case slack is 0.998
+    Info (332115): -recovery
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_recovery.rpt}
+CORNER_PATH role=master name=slow_900mV_0C analysis=recovery rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_recovery.rpt
+Info (332115): Report Timing: Found 1 removal paths (1 violated).  Worst case slack is -0.051
+    Info (332115): -removal
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_removal.rpt}
+CORNER_PATH role=master name=slow_900mV_0C analysis=removal rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_removal.rpt
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+UNCONSTRAINED_REPORT role=master name=slow_900mV_0C rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_slow_900mV_0C_unconstrained.rpt
+DMTD_62M496_TARGET role=master name=slow_900mV_0C count=0
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (21077): Core supply voltage is 0.9V
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_master_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (332174): Ignored filter at DE5a_wr_master_jtag.sdc(4): *|clk_dmtd_62m496 could not be matched with a register File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Critical Warning (332049): Ignored create_generated_clock at DE5a_wr_master_jtag.sdc(4): Argument <targets> is an empty collection File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+    Info (332050): create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}] File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: clk_dmtd_62m496 was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_d0_transition_gray[31] is being clocked by clk_dmtd_62m496
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[5] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[52] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+CORNER role=master name=fast_900mV_100C SYSCLK625_COLLECTION=1
+Info (332115): Report Timing: Found 1 setup paths (0 violated).  Worst case slack is 0.660
+    Info (332115): -setup
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_setup.rpt}
+CORNER_PATH role=master name=fast_900mV_100C analysis=setup rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_setup.rpt
+Info (332115): Report Timing: Found 1 hold paths (1 violated).  Worst case slack is -0.414
+    Info (332115): -hold
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_hold.rpt}
+CORNER_PATH role=master name=fast_900mV_100C analysis=hold rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_hold.rpt
+Info (332115): Report Timing: Found 1 recovery paths (0 violated).  Worst case slack is 1.316
+    Info (332115): -recovery
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_recovery.rpt}
+CORNER_PATH role=master name=fast_900mV_100C analysis=recovery rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_recovery.rpt
+Info (332115): Report Timing: Found 1 removal paths (0 violated).  Worst case slack is 0.180
+    Info (332115): -removal
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_removal.rpt}
+CORNER_PATH role=master name=fast_900mV_100C analysis=removal rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_removal.rpt
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+UNCONSTRAINED_REPORT role=master name=fast_900mV_100C rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_100C_unconstrained.rpt
+DMTD_62M496_TARGET role=master name=fast_900mV_100C count=0
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (21077): Core supply voltage is 0.9V
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../../generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_master_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (332174): Ignored filter at DE5a_wr_master_jtag.sdc(4): *|clk_dmtd_62m496 could not be matched with a register File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Critical Warning (332049): Ignored create_generated_clock at DE5a_wr_master_jtag.sdc(4): Argument <targets> is an empty collection File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+    Info (332050): create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}] File: /home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc Line: 4
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: clk_dmtd_62m496 was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_d0_transition_gray[31] is being clocked by clk_dmtd_62m496
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[5] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[52] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+CORNER role=master name=fast_900mV_0C SYSCLK625_COLLECTION=1
+Info (332115): Report Timing: Found 1 setup paths (0 violated).  Worst case slack is 1.718
+    Info (332115): -setup
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_setup.rpt}
+CORNER_PATH role=master name=fast_900mV_0C analysis=setup rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_setup.rpt
+Info (332115): Report Timing: Found 1 hold paths (0 violated).  Worst case slack is 0.014
+    Info (332115): -hold
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_hold.rpt}
+CORNER_PATH role=master name=fast_900mV_0C analysis=hold rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_hold.rpt
+Info (332115): Report Timing: Found 1 recovery paths (0 violated).  Worst case slack is 3.046
+    Info (332115): -recovery
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_recovery.rpt}
+CORNER_PATH role=master name=fast_900mV_0C analysis=recovery rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_recovery.rpt
+Info (332115): Report Timing: Found 1 removal paths (0 violated).  Worst case slack is 0.159
+    Info (332115): -removal
+    Info (332115): -nworst 1
+    Info (332115): -npaths 1
+    Info (332115): -detail summary
+    Info (332115): -file {/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_removal.rpt}
+CORNER_PATH role=master name=fast_900mV_0C analysis=removal rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_removal.rpt
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+UNCONSTRAINED_REPORT role=master name=fast_900mV_0C rc=0 file=/home/b10504072/pain-worktrees/EXP-S5-MAIN-PHASE-KI0-MECHANISM-20260919/docs/experiments/exp-step5-softpll-lock/EXP-S5-RX2SYS-FIRST-STAGE-GC-SYNC-FFS-CONSTRAINT-FIX-20260920/raw/corners/master/master_fast_900mV_0C_unconstrained.rpt
+DMTD_62M496_TARGET role=master name=fast_900mV_0C count=0
+ALL_CORNER_STA_SUMMARY=PASS role=master

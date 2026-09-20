@@ -2,10 +2,10 @@
 
 ## Step5 目前 milestone policy
 
-目前 Step5 functional PASS 以同一可信 coherent observer window 同時觀察到
-以下四項為必要條件：HPLL/Helper lock、Main frequency lock、Main phase lock、
-`PSTAT.locked=1`。Quartus timing closure 不再是宣稱這個 functional milestone
-的必要條件，但仍須如實記錄為獨立的 implementation status。
+目前 Step5 functional PASS 必須在同一可信、有效 WR session 的連續至少 300 秒
+觀測窗同時觀察到以下四項：HPLL/Helper lock、Main frequency lock、Main phase
+lock、`PSTAT.locked=1`。Quartus timing closure 不再是宣稱這個 functional
+milestone 的必要條件，但仍須如實記錄為獨立的 implementation status。
 
 目前 milestone 與 exact provenance 見
 [`exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。

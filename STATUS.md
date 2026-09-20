@@ -1,28 +1,28 @@
 # DE5a White Rabbit 目前狀態
 
-## 目前 Step5 functional PASS milestone（2026-09-20）
+## 目前 Step5 functional milestone 狀態（2026-09-20）
 
 依目前專案採用的 functional 判定，Step5 在同一個 coherent observer window
 同時達成 HPLL/Helper lock、Main frequency lock、Main phase lock 與
 `PSTAT.locked=1`，因此：
 
 ```text
-STEP5_FUNCTIONAL_PASS = PASS
-STEP5_PASS_MILESTONE  = 2026-09-20
+STEP5_FOUR_LOCKS_OBSERVED = HISTORICAL_CANDIDATE
+STEP5_FUNCTIONAL_PASS     = NOT_PROVEN
+STEP5_PASS_MILESTONE      = PENDING_300S_STABLE_LOCK
 TIMING_CLOSED         = NO
 ```
 
 選定版本是 source commit `17f20ad32c619212133e6134205cf017212d7dd8`，對應的
 Master/Slave SOF SHA-256 與 3600-sample evidence 詳列於
 [`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
-該版本的完整 lock chain 最長 113.791 秒；這個 milestone 不宣稱 300 秒穩定
-鎖定，也不宣稱 timing closure 已完成。所有較早的 `STEP5_COMPLETE=NO` 實驗
+該版本的完整 lock chain 最長只有 113.791 秒，`FULL_CHAIN_300S=0`，所以它是
+目前最佳候選而不是 Step5 PASS。Timing closure 不作為 functional gate，但 300 秒
+穩定 lock 仍然是必要條件。所有較早的 `STEP5_COMPLETE=NO` 實驗
 仍是當時判定下的歷史紀錄，不改寫原始 evidence。
 
-注意：原始 2026-09-12 報告採用較嚴格的 300 秒門檻，因此保留
-`STEP5 = NOT PASS`；本頁的 `STEP5_FUNCTIONAL_PASS = PASS` 是依目前四項鎖定
-門檻對同一 coherent window 的正式重分類。2026-09-20 新鮮重驗證未重現該組
-SOF evidence，已另存報告，不改變本 milestone 的 exact provenance。
+2026-09-20 新鮮重驗證未重現該組 SOF evidence，且沒有 300 秒證據，已另存
+報告；不能把它或 113.791 秒候選誤寫成 Step5 PASS。
 
 ## 最新 signed HPLL target FDEC5632 實驗：造成 upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
 

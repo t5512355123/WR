@@ -27,14 +27,14 @@ Laptop/pain 衝突記錄在 `docs/migration/06_path_mapping.md` 與
 
 ## 目前狀態
 
-請先閱讀 `STATUS.md`。目前已建立 Step5 functional PASS milestone：同一可信
-coherent observer window 已同時看到 HPLL/Helper lock、Main frequency lock、
-Main phase lock 與 `PSTAT.locked=1`。本 milestone 不要求 Quartus timing
-closure 全部為 0；目前 timing closure 仍是後續工作，詳見
-[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。此 PASS 以 source commit
-`17f20ad32c619212133e6134205cf017212d7dd8` 的同一 coherent observer window
-為 exact evidence；2026-09-20 新鮮重驗證未重現該 SOF 組合，已另存為失敗
-重驗證紀錄，不能與 milestone evidence 混用。
+請先閱讀 `STATUS.md`。目前已找到曾同時看到 HPLL/Helper lock、Main frequency
+lock、Main phase lock 與 `PSTAT.locked=1` 的最佳候選，但該窗完整 lock chain
+只有 113.791 秒，尚未滿足 Step5 所需的連續 300 秒，因此目前不能宣稱 PASS。
+Step5 不要求 Quartus timing closure 全部為 0；timing closure 是獨立的後續工作，
+詳見 [`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
+待找到 300 秒穩定版本後，必須以該版本的同一 coherent observer window 作為
+exact evidence；2026-09-20 新鮮重驗證未重現歷史 SOF 組合，已另存為失敗重驗證
+紀錄，不能與 milestone evidence 混用。
 
 ## 在 pain 上建置
 

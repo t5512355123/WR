@@ -145,3 +145,12 @@ def test_source_declares_f4l_without_control_parameter_changes() -> None:
     assert "set smoke_duration 10000" in observer
     assert "set no_valid_timeout_ms 30000" in observer
     assert "set smoke_duration 60000" in observer
+
+
+def test_f4l_observer_uses_the_300_second_step5_contract() -> None:
+    observer = (
+        ROOT / "scripts" / "jtag" /
+        "read_step5_main_frequency_prelock_observability.tcl"
+    ).read_text(encoding="utf-8")
+    assert "set ::f4l_contract_target_duration_ms 300000" in observer
+    assert "set ::f4l_contract_hard_duration_ms 310000" in observer

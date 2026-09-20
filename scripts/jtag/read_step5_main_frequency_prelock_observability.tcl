@@ -356,8 +356,11 @@ set ::f4l_session_start_ms 0
 set ::f4l_session_end_ms 0
 set ::f4l_event_tag F4L
 set ::f4l_experiment_name EXP-S5-F4L-MAIN-PHASE-DRIFT-INTEGRATOR-BALANCE-20260919
-set ::f4l_contract_target_duration_ms 120000
-set ::f4l_contract_hard_duration_ms 130000
+# Step5 functional evidence requires one continuous 300-second observation.
+# This is an observer-only wall-clock contract; it does not alter firmware
+# timeout, lock-detector, PI, or control behavior.
+set ::f4l_contract_target_duration_ms 300000
+set ::f4l_contract_hard_duration_ms 310000
 set ::f4l_schedule_mode 0
 set ::f4l_schedule_magic 0x46345331
 
@@ -3981,8 +3984,8 @@ proc run_f4l_main_phase_drift_integrator_balance {} {
   }
   set hard_duration $hard_duration_ms
   if {!$::f4m_enabled} {
-    # F4L has one fixed observer contract: 120 s formal capture and a hard
-    # 130 s wall-clock ceiling.  This protects the experiment from an
+    # F4L has one fixed observer contract: 300 s formal capture and a hard
+    # 310 s wall-clock ceiling.  This protects the experiment from an
     # accidental legacy/default 240 s invocation without touching firmware
     # timeout or lock-detector behavior.  F4M keeps its separately validated
     # startup gate and caller-provided duration.

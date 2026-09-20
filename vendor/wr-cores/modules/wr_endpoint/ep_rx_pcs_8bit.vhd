@@ -210,6 +210,7 @@ architecture behavioral of ep_rx_pcs_8bit is
   signal cal_pattern_cntr      : unsigned(c_cal_pattern_counter_bits-1 downto 0);
   signal mdio_mcr_reset_synced : std_logic;
   signal mdio_mcr_pdown_synced : std_logic;
+  signal mdio_wr_spec_rx_cal_stat_rx : std_logic;
 
 
   signal pcs_valid_int     : std_logic;
@@ -306,7 +307,7 @@ begin
   -- state of CAL_STA bit in Receive Control Register.
   --
   -- reads: phy_rx_data_i, mdio_wr_spec_cal_crst_i
-  -- writes: mdio_wr_spec_rx_cal_stat_o
+  -- writes: mdio_wr_spec_rx_cal_stat_rx
   --
   p_detect_cal : process(phy_rx_clk_i)
   begin
@@ -327,19 +328,32 @@ begin
 -- we've got c_cal_pattern_threshold valid calibration characters - indicate
 -- that we're receiving a valid calibration pattern
           if(cal_pattern_cntr(cal_pattern_cntr'high) = '1') then
-            mdio_wr_spec_rx_cal_stat_o <= '1';
+            mdio_wr_spec_rx_cal_stat_rx <= '1';
           else
-            mdio_wr_spec_rx_cal_stat_o <= '0';
+            mdio_wr_spec_rx_cal_stat_rx <= '0';
             cal_pattern_cntr           <= cal_pattern_cntr + 1;
           end if;
 -- we've got a non-calibration character or the pattern detection has been reset
         else
-          mdio_wr_spec_rx_cal_stat_o <= '0';
+          mdio_wr_spec_rx_cal_stat_rx <= '0';
           cal_pattern_cntr           <= (others => '0');
         end if;
       end if;
     end if;
   end process;
+
+  -- Calibration status is generated in the recovered RX clock domain and is
+  -- read from the system-clock MDIO/Wishbone domain.  Keep the RX-domain
+  -- level separate from the destination output and cross it with the
+  -- standard two-flop level synchronizer.
+  U_sync_rx_cal_stat : entity work.gc_sync
+    generic map (
+      g_SYNC_EDGE => "positive")
+    port map (
+      clk_i     => clk_sys_i,
+      rst_n_a_i => rst_n_i,
+      d_i       => mdio_wr_spec_rx_cal_stat_rx,
+      q_o       => mdio_wr_spec_rx_cal_stat_o);
 
 
 -------------------------------------------------------------------------------
@@ -854,5 +868,4 @@ begin
   rmon_rx_sync_lost <= rx_sync_lost_p and (not mdio_mcr_pdown_synced);
 
 end behavioral;
-
 

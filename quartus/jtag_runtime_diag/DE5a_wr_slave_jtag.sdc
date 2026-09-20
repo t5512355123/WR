@@ -27,7 +27,8 @@ if {[get_collection_size $wr_rx_pma_clk] != 1} {
 
 set wr_rx_sync0_regs [get_registers -nowarn [list \
     {*|gc_sync:*|sync0*} \
-    {*|gc_sync_register:*|sync0*}]]
+    {*|gc_sync_register:*|sync0*} \
+    {*|gc_sync_ffs:*|sync0*}]]
 
 if {[get_collection_size $wr_rx_sync0_regs] <= 0} {
     post_message -type error \

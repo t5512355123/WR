@@ -11,11 +11,12 @@ window 連續 300.321 秒同時看到 HPLL/Helper、Main frequency、Main phase 
 milestone。這一節只補充目前狀態，下面原有的 Step2 merge readiness 是歷史
 文件，不代表 Step5 的 current verdict。
 
-目前 merge 狀態（待本輪 milestone commit 完成後 fast-forward）：
+目前 merge 狀態：本輪 milestone 已 fast-forward 合併到 `main`。
 
 ```text
 STEP5_FUNCTIONAL_PASS = PASS
-STEP5_MERGE_STATUS     = READY_TO_MERGE
+STEP5_MERGE_STATUS     = MERGED_TO_MAIN
+MERGED_MILESTONE_COMMIT= e81ec6c1d2ced1063190306e5eabfeabf0791c4c
 MILESTONE_SOURCE        = 26e138fdc0bfc8426704b397141d563cf4d580a2
 TIMING_CLOSED           = NO (not a functional gate)
 ```

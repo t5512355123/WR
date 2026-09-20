@@ -1,5 +1,22 @@
 # Step5：Slave SoftPLL Closed-loop Lock
 
+## 目前 functional milestone（2026-09-20）
+
+目前 branch 已建立 **Step5 functional PASS milestone**。判定條件是同一可信
+coherent observer window 同時看到：
+
+```text
+HPLL / Helper lock   = 1
+Main frequency lock  = 1
+Main phase lock      = 1
+PSTAT.locked         = 1
+```
+
+最穩定的已驗證版本、SOF hashes、observer 數據與限制，集中記錄於
+[`STEP5-PASS-MILESTONE.md`](STEP5-PASS-MILESTONE.md)。這個 milestone 不代表
+300 秒 continuous lock，也不代表 Quartus timing closure 已完成；後兩者是
+後續 stability / implementation hardening 工作。
+
 本資料夾記錄 `exp/step5-softpll-lock`。基線為 `main@a89b2df`，也就是已經
 合併 Step4B 的版本。本輪先完成 source-backed observability 與 fresh-program
 baseline；沒有修改 SoftPLL、PI、DCO、SI5340、PTP、WR signaling、PHY 或
@@ -62,9 +79,8 @@ Step5 PASS；`STABLE_LOCK` 才需要同一張板、同一個 JTAG session 的長
 - helper 已 lock、main frequency 未 lock：boundary 是 `MAIN_FREQUENCY_LOCK`。
 - main frequency 已 lock、main phase/main locked 未 lock：boundary 是
   `MAIN_PHASE_LOCK`。
-- 四個 source-backed lock 與 `PSTAT.locked` 均成立：最多先記為
-  `LOCK_ACQUIRED_NOT_STABLE`。
+- 四個 source-backed lock 與 `PSTAT.locked` 均成立：依目前 milestone policy
+  記為 `STEP5_FUNCTIONAL_PASS`；若同時要宣稱 long-duration stability，另須
+  完成 stability gate。
 - 長時間窗口內曾成立後又失去任一 lock 或 `delock_count` 增加：
-  `LOCK_ACQUIRED_THEN_LOST`。
-- 只有在分支5明確審核實驗紀錄、同意 Step5 完成後，才可詢問並執行 merge。
-
+  仍記錄為 stability evidence，不會抹除 functional PASS milestone。

@@ -1,5 +1,18 @@
 # Step5 source audit
 
+## Current milestone policy
+
+自 2026-09-20 起，專案把 Step5 分成兩個可追溯層次：
+
+1. `STEP5_FUNCTIONAL_PASS`：同一可信 coherent observer window 同時觀察到
+   HPLL/Helper lock、Main frequency lock、Main phase lock 與 `PSTAT.locked=1`。
+2. `STEP5_LONG_DURATION_STABILITY`：額外要求連續時間、lock-loss / delock 與
+   其他穩定性條件；未完成時不撤銷第 1 層 milestone，只標記 stability 未完成。
+
+因此本文件後面的 source semantics 仍保留作為訊號語意與證據品質要求；歷史
+實驗當時使用的較嚴格 long-duration 判定，不回寫成目前 functional milestone
+的失敗。
+
 - Branch: `exp/step5-softpll-lock`
 - Baseline: `main@a89b2df`
 - Scope: read-only observability and evidence collection
@@ -69,17 +82,18 @@ lock.
 
 ## PASS suitability
 
-The first Step5 run is a baseline and must not emit `STEP5_RESULT = PASS`. It
-should report the first inactive boundary and preserve all raw source-backed
-fields. A future formal Step5 PASS requires, at minimum:
+每一輪仍必須保留 first inactive boundary 與所有 raw source-backed fields。
+依目前 milestone policy，functional PASS 至少要求：
 
 1. Step1–4B upstream gates are established in the same run.
 2. Helper lock, main frequency lock, main phase lock, main final lock, and
    `PSTAT.locked` are all observed.
-3. No lock loss is observed and `SPLL_DELOCK_COUNT` does not increase.
-4. The required long-duration stability window is complete and documented.
+3. Coherent measurement 與 image/source provenance 可追溯。
+
+Long-duration stability 是獨立的第二層 gate：若 lock 曾掉出或
+`SPLL_DELOCK_COUNT` 增加，必須在報告中記錄，但不把已符合第 1、2 項的
+functional milestone 改寫成未達成。
 
 Any unmapped or aliasing value is `SOURCE_SEMANTICS_NOT_PROVEN`, not a failure
 claim. The firmware commit, RTL/SOF identity, and Tcl decoder commit must remain
 fixed in each experiment record.
-

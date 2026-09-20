@@ -27,7 +27,11 @@ Laptop/pain 衝突記錄在 `docs/migration/06_path_mapping.md` 與
 
 ## 目前狀態
 
-請先閱讀 `STATUS.md`。目前基準版本已證明 FPGA 設定與 PHY/PCS link，但尚未證明 White Rabbit 時間同步。
+請先閱讀 `STATUS.md`。目前已建立 Step5 functional PASS milestone：同一可信
+coherent observer window 已同時看到 HPLL/Helper lock、Main frequency lock、
+Main phase lock 與 `PSTAT.locked=1`。本 milestone 不要求 Quartus timing
+closure 全部為 0；目前 timing closure 仍是後續工作，詳見
+[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
 
 ## 在 pain 上建置
 

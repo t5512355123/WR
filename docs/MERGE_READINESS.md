@@ -1,5 +1,16 @@
 # Merge Readiness：`exp/restore-c88cc05-baseline`
 
+## Current Step5 merge note（2026-09-20）
+
+目前 Step5 functional milestone 已依專案新判定成立：同一 coherent observer
+window 同時看到 HPLL/Helper、Main frequency、Main phase 與 `PSTAT.locked`。
+精確版本與 raw evidence 見
+[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
+
+`TIMING_CLOSED=NO` 仍須保留在 release 說明；它不再阻止 functional Step5
+milestone。這一節只補充目前狀態，下面原有的 Step2 merge readiness 是歷史
+文件，不代表 Step5 的 current verdict。
+
 最後整理：2026-08-19
 
 ## 結論

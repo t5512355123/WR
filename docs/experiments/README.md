@@ -1,5 +1,15 @@
 # 實驗紀錄索引
 
+## Step5 目前 milestone policy
+
+目前 Step5 functional PASS 以同一可信 coherent observer window 同時觀察到
+以下四項為必要條件：HPLL/Helper lock、Main frequency lock、Main phase lock、
+`PSTAT.locked=1`。Quartus timing closure 不再是宣稱這個 functional milestone
+的必要條件，但仍須如實記錄為獨立的 implementation status。
+
+目前 milestone 與 exact provenance 見
+[`exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

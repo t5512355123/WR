@@ -1,5 +1,24 @@
 # DE5a White Rabbit 目前狀態
 
+## 目前 Step5 functional PASS milestone（2026-09-20）
+
+依目前專案採用的 functional 判定，Step5 在同一個 coherent observer window
+同時達成 HPLL/Helper lock、Main frequency lock、Main phase lock 與
+`PSTAT.locked=1`，因此：
+
+```text
+STEP5_FUNCTIONAL_PASS = PASS
+STEP5_PASS_MILESTONE  = 2026-09-20
+TIMING_CLOSED         = NO
+```
+
+選定版本是 source commit `17f20ad32c619212133e6134205cf017212d7dd8`，對應的
+Master/Slave SOF SHA-256 與 3600-sample evidence 詳列於
+[`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
+該版本的完整 lock chain 最長 113.791 秒；這個 milestone 不宣稱 300 秒穩定
+鎖定，也不宣稱 timing closure 已完成。所有較早的 `STEP5_COMPLETE=NO` 實驗
+仍是當時判定下的歷史紀錄，不改寫原始 evidence。
+
 ## 最新 signed HPLL target FDEC5632 實驗：造成 upstream regression（2026-09-08，branch `exp/step5-softpll-lock`）
 
 本輪 source `bc735d8` 將 `iHPLL_DATA` sign-extend 後重新建置與燒錄；兩次

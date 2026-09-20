@@ -1,5 +1,14 @@
 # 變更紀錄
 
+## 2026-09-20
+
+- 建立 Step5 functional PASS milestone：同一 coherent observer window 同時
+  證明 HPLL/Helper lock、Main frequency lock、Main phase lock 與 `PSTAT.locked=1`。
+- 固定可追溯版本為 source commit `17f20ad32c619212133e6134205cf017212d7dd8`，
+  並保留 SOF hash、observer window 與 timing-not-closed 限制。
+- 明確區分 functional PASS 與後續 long-duration stability / Quartus timing
+  closure，不改寫歷史實驗原始報告。
+
 ## 2026-08-16
 
 - 將 Laptop 與 pain 的正式原始碼資料夾從 `de5a-white-rabbit` 更名為 `04_WR`。

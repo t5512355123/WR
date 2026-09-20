@@ -1,4 +1,4 @@
-# Merge Readiness：`exp/restore-c88cc05-baseline`
+# Merge Readiness
 
 ## Current Step5 merge note（2026-09-20）
 
@@ -10,6 +10,16 @@ window 同時看到 HPLL/Helper、Main frequency、Main phase 與 `PSTAT.locked`
 `TIMING_CLOSED=NO` 仍須保留在 release 說明；它不再阻止 functional Step5
 milestone。這一節只補充目前狀態，下面原有的 Step2 merge readiness 是歷史
 文件，不代表 Step5 的 current verdict。
+
+目前 merge 狀態：
+
+```text
+STEP5_FUNCTIONAL_PASS = PASS
+STEP5_MERGE_STATUS     = MERGED_TO_MAIN
+MERGED_COMMIT          = 3dfd24b7eccc62269c6cf677ab9dc83a7b6834c8
+```
+
+## Historical Step2 merge readiness：`exp/restore-c88cc05-baseline`
 
 最後整理：2026-08-19
 
@@ -62,7 +72,7 @@ milestone。這一節只補充目前狀態，下面原有的 Step2 merge readine
 - 本機 Git object database 缺少 `aef63f8916c94e088f9595741025009d7d38c622`，所以某些三點 diff 統計無法在本機重建。不得用 reset、rebase 或 force push 掩蓋；應另開 repository integrity 維護工作處理。
 - 時序 script 的 mailbox frame 在跨 register snapshot 邊界偶爾需要重試；有效 sample 仍通過，這不等於 PTP packet path failure。
 
-## Merge gate
+## Historical Step2 merge gate
 
 - [x] fresh HEAD firmware / MIF / SOF 已產生
 - [x] Quartus 17 clean compile 完成

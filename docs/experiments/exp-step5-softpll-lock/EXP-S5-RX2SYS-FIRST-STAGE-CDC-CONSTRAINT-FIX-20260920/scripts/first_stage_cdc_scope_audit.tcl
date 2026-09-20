@@ -17,10 +17,10 @@ file mkdir $output_dir
 
 set families [list \
     [list RX_CAL_STAT {*U_sync_rx_cal_stat*sync0} {*U_sync_rx_cal_stat*sync1}] \
-    [list DMTD_NATIVE_EDGE {*U_SYNC_DMTD_NATIVE_EDGE_COUNT*sync0} {*U_SYNC_DMTD_NATIVE_EDGE_COUNT*sync1}] \
-    [list ASYNC_FIFO_GRAY {*U_Sync2*sync0} {*U_Sync2*sync1}] \
-    [list PULSE_SYNC {*cmp_in2out_sync*sync0} {*cmp_in2out_sync*sync1}] \
-    [list BITSLIDE {*U_sync_bslide*sync0} {*U_sync_bslide*sync1}]]
+    [list DMTD_NATIVE_EDGE {*U_SYNC_DMTD_NATIVE_EDGE_COUNT*|sync0*} {*U_SYNC_DMTD_NATIVE_EDGE_COUNT*|sync1*}] \
+    [list ASYNC_FIFO_GRAY {*U_Sync2*|sync0*} {*U_Sync2*|sync1*}] \
+    [list PULSE_SYNC {*cmp_in2out_sync*|sync0*} {*cmp_in2out_sync*|sync1*}] \
+    [list BITSLIDE {*U_sync_bslide*|sync0*} {*U_sync_bslide*|sync1*}]]
 
 set opened 0
 set rc [catch {

@@ -7,6 +7,7 @@
 # Modes:
 #   baseline  EXP-ID baseline 5 250
 #   recovery  EXP-ID recovery 480 250 120000 BASELINE_LOG
+#   postmortem EXP-ID postmortem 10 250 10000 BASELINE_LOG
 #
 # The baseline is paired and records the Slave sticky drop counters.  If the
 # Slave is already linked before Master programming, recovery requires a
@@ -27,12 +28,17 @@ if {[llength $argv] >= 3} { set ::rb_sample_limit [expr {int([lindex $argv 2])}]
 if {[llength $argv] >= 4} { set ::rb_gap_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set ::rb_recovery_window_ms [expr {int([lindex $argv 4])}] }
 if {[llength $argv] >= 6} { set ::rb_baseline_log [lindex $argv 5] }
-if {$rb_mode ni {baseline recovery}} { error "mode must be baseline or recovery" }
+if {$rb_mode ni {baseline recovery postmortem}} {
+  error "mode must be baseline, recovery, or postmortem"
+}
 if {$rb_sample_limit <= 0 || $rb_gap_ms < 0 || $rb_recovery_window_ms <= 0} {
   error "invalid sample, gap, or recovery window argument"
 }
 if {$rb_mode eq "recovery" && $rb_baseline_log eq ""} {
   error "recovery mode requires baseline log path"
+}
+if {$rb_mode eq "postmortem" && $rb_baseline_log eq ""} {
+  error "postmortem mode requires baseline log path"
 }
 
 set ::wb_library_mode 1
@@ -246,7 +252,6 @@ proc rb_baseline_last_field {path role key} {
   set value ""
   while {[gets $handle line] >= 0} {
     if {[string first "REBUILD_BASELINE_PAIR" $line] != 0} { continue }
-    if {[string first "ROLE=$role" $line] < 0} { continue }
     set pattern [format {(^| )%s=([^ ]+)} $key]
     if {[regexp $pattern $line -> prefix candidate]} {
       set value $candidate
@@ -375,6 +380,209 @@ if {$::rb_mode eq "baseline"} {
           ($slave_link_up_count == $::rb_sample_limit ? "UP" : "MIXED")}]]
   puts [format "BASELINE_DONE samples=%d elapsed_ms=%d" $::rb_sample_limit \
     [expr {[clock milliseconds] - $begin_ms}]]
+  flush stdout
+  return
+}
+
+if {$::rb_mode eq "postmortem"} {
+  # This is a read-only postmortem of the already-completed Master rebuild.
+  # It deliberately does not program, reset, or otherwise perturb either board.
+  set baseline_result [rb_baseline_scalar $::rb_baseline_log BASELINE_RESULT]
+  set baseline_samples [rb_baseline_scalar $::rb_baseline_log BASELINE_SAMPLE_COUNT]
+  set baseline_link_count [rb_baseline_scalar $::rb_baseline_log BASELINE_SLAVE_LINK_UP_COUNT]
+  set baseline_link_mode [rb_baseline_scalar $::rb_baseline_log BASELINE_SLAVE_LINK_MODE]
+  if {$baseline_result ne "PASS" || $baseline_samples eq "" ||
+      $baseline_link_count eq "" || $baseline_link_mode ni {UP DOWN}} {
+    error "baseline log is not a completed PASS capture"
+  }
+
+  set baseline_sticky46_sync_loss [rb_baseline_last_field \
+    $::rb_baseline_log SLAVE SLAVE_STICKY46_SYNC_LOSS]
+  set baseline_sticky47_lock_loss [rb_baseline_last_field \
+    $::rb_baseline_log SLAVE SLAVE_STICKY47_LOCK_LOSS]
+  set baseline_sticky47_link_drop [rb_baseline_last_field \
+    $::rb_baseline_log SLAVE SLAVE_STICKY47_LINK_DROP]
+  set baseline_sticky48_tm_link_drop [rb_baseline_last_field \
+    $::rb_baseline_log SLAVE SLAVE_STICKY48_TM_LINK_DROP]
+  set baseline_slave_boot [rb_baseline_last_field \
+    $::rb_baseline_log SLAVE SLAVE_BOOT_GENERATION]
+  foreach value [list $baseline_sticky46_sync_loss \
+      $baseline_sticky47_lock_loss $baseline_sticky47_link_drop \
+      $baseline_sticky48_tm_link_drop] {
+    if {![string is integer -strict $value]} {
+      error "baseline sticky counter unavailable"
+    }
+  }
+  if {$baseline_slave_boot eq ""} {
+    error "baseline Slave boot generation unavailable"
+  }
+
+  set begin_ms [clock milliseconds]
+  set sample 0
+  set transport_error 0
+  set reset_changed 0
+  set link_drop_seen 0
+  set tm_link_drop_seen 0
+  set sync_loss_seen 0
+  set lock_loss_seen 0
+  set stable_streak 0
+  set max_stable_streak 0
+  set previous_master_reset ""
+  set previous_slave_reset ""
+  set last_slave_boot ""
+  set result NONE
+
+  while {$sample < $::rb_sample_limit &&
+         ([clock milliseconds] - $begin_ms) <= $::rb_recovery_window_ms &&
+         $result eq "NONE"} {
+    set elapsed [expr {[clock milliseconds] - $begin_ms}]
+    set master [rb_collect $::rb_master_hardware MASTER $sample $elapsed]
+    set slave [rb_collect $::rb_slave_hardware SLAVE $sample $elapsed]
+    if {$master eq "" || $slave eq ""} {
+      set transport_error 1
+      rb_emit POSTMORTEM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+        READ_VALID 0 MASTER_LOCAL_READY 0 STABLE_GOOD 0 \
+        STABLE_STREAK $stable_streak MAX_STABLE_STREAK $max_stable_streak \
+        LINK_DROP_SEEN $link_drop_seen TM_LINK_DROP_SEEN $tm_link_drop_seen \
+        RESET_CHANGED 0]
+      set result INCONCLUSIVE_TRANSPORT
+      break
+    }
+
+    array set m $master
+    array set s $slave
+    set read_valid [expr {$m(READ_VALID) == 1 && $s(READ_VALID) == 1}]
+    if {!$read_valid} {
+      set transport_error 1
+      rb_emit POSTMORTEM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+        READ_VALID 0 MASTER_LOCAL_READY 0 STABLE_GOOD 0 \
+        STABLE_STREAK $stable_streak MAX_STABLE_STREAK $max_stable_streak \
+        LINK_DROP_SEEN $link_drop_seen TM_LINK_DROP_SEEN $tm_link_drop_seen \
+        RESET_CHANGED 0]
+      set result INCONCLUSIVE_TRANSPORT
+      break
+    }
+
+    set master_reset [rb_reset_signature $master]
+    set slave_reset [rb_reset_signature $slave]
+    set pair_reset_changed 0
+    if {$previous_master_reset ne "" &&
+        [rb_reset_changed $previous_master_reset $master_reset]} {
+      set pair_reset_changed 1
+    }
+    if {$previous_slave_reset ne "" &&
+        [rb_reset_changed $previous_slave_reset $slave_reset]} {
+      set pair_reset_changed 1
+    }
+    if {$last_slave_boot ne "" && $s(BOOT_GENERATION) ne $last_slave_boot} {
+      set pair_reset_changed 1
+    }
+    if {$s(BOOT_GENERATION) ne $baseline_slave_boot} {
+      set pair_reset_changed 1
+    }
+    if {$pair_reset_changed} { set reset_changed 1 }
+    set previous_master_reset $master_reset
+    set previous_slave_reset $slave_reset
+    set last_slave_boot $s(BOOT_GENERATION)
+
+    set link_drop_delta [rb_counter_delta $baseline_sticky47_link_drop \
+      $s(STICKY47_LINK_DROP)]
+    set tm_link_drop_delta [rb_counter_delta $baseline_sticky48_tm_link_drop \
+      $s(STICKY48_TM_LINK_DROP)]
+    set sync_loss_delta [rb_counter_delta $baseline_sticky46_sync_loss \
+      $s(STICKY46_SYNC_LOSS)]
+    set lock_loss_delta [rb_counter_delta $baseline_sticky47_lock_loss \
+      $s(STICKY47_LOCK_LOSS)]
+    if {$link_drop_delta ne "INVALID" && $link_drop_delta ne "DECREASED" &&
+        $link_drop_delta > 0} { set link_drop_seen 1 }
+    if {$tm_link_drop_delta ne "INVALID" &&
+        $tm_link_drop_delta ne "DECREASED" && $tm_link_drop_delta > 0} {
+      set tm_link_drop_seen 1
+    }
+    if {$sync_loss_delta ne "INVALID" &&
+        $sync_loss_delta ne "DECREASED" && $sync_loss_delta > 0} {
+      set sync_loss_seen 1
+    }
+    if {$lock_loss_delta ne "INVALID" &&
+        $lock_loss_delta ne "DECREASED" && $lock_loss_delta > 0} {
+      set lock_loss_seen 1
+    }
+
+    set master_local_ready [rb_master_local_ready $master]
+    set stable_good [expr {$master_local_ready &&
+      $s(RX_LOCKED_TO_DATA) == 1 &&
+      $s(RX_ACTIVITY_CHANGED) == 1 &&
+      $s(RX_PATTERN_READY) == 1 &&
+      $s(CORE_LINK_OK) == 1 &&
+      $s(CORE_TM_LINK_UP) == 1 &&
+      !$pair_reset_changed}]
+    if {$stable_good} {
+      incr stable_streak
+      if {$stable_streak > $max_stable_streak} {
+        set max_stable_streak $stable_streak
+      }
+    } else {
+      set stable_streak 0
+    }
+
+    rb_emit POSTMORTEM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+      READ_VALID 1 MASTER_LOCAL_READY $master_local_ready \
+      MASTER_SI_CONFIG_DONE $m(SI_CONFIG_DONE) MASTER_WR_READY $m(WR_READY) \
+      MASTER_RX_READY $m(RX_READY) MASTER_TX_READY $m(TX_READY) \
+      MASTER_CPU_RESET_N $m(CPU_RESET_N) MASTER_PHY_RST $m(PHY_RST) \
+      MASTER_PHY_TX_DISABLE $m(PHY_TX_DISABLE) MASTER_PTP_STATE $m(PTP_STATE) \
+      SLAVE_RX_LOCKED_TO_DATA $s(RX_LOCKED_TO_DATA) \
+      SLAVE_RX_ACTIVITY_COUNT $s(RX_ACTIVITY_COUNT) \
+      SLAVE_RX_ACTIVITY_CHANGED $s(RX_ACTIVITY_CHANGED) \
+      SLAVE_RX_PATTERN_READY $s(RX_PATTERN_READY) \
+      SLAVE_CORE_LINK_OK $s(CORE_LINK_OK) \
+      SLAVE_CORE_TM_LINK_UP $s(CORE_TM_LINK_UP) \
+      LINK_DROP_DELTA $link_drop_delta TM_LINK_DROP_DELTA $tm_link_drop_delta \
+      SYNC_LOSS_DELTA $sync_loss_delta LOCK_LOSS_DELTA $lock_loss_delta \
+      LINK_DROP_SEEN $link_drop_seen TM_LINK_DROP_SEEN $tm_link_drop_seen \
+      LINK_DROP_EVIDENCE [expr {$link_drop_seen || $tm_link_drop_seen}] \
+      STABLE_GOOD $stable_good STABLE_STREAK $stable_streak \
+      MAX_STABLE_STREAK $max_stable_streak \
+      MASTER_BOOT_GENERATION $m(BOOT_GENERATION) \
+      SLAVE_BOOT_GENERATION $s(BOOT_GENERATION) \
+      MASTER_CPU_RESET_COUNT $m(CPU_RESET_COUNT) \
+      SLAVE_CPU_RESET_COUNT $s(CPU_RESET_COUNT) \
+      MASTER_WR_CORE_RESET_COUNT $m(WR_CORE_RESET_COUNT) \
+      SLAVE_WR_CORE_RESET_COUNT $s(WR_CORE_RESET_COUNT) \
+      MASTER_SI_CONFIG_DROP_COUNT $m(SI_CONFIG_DROP_COUNT) \
+      SLAVE_SI_CONFIG_DROP_COUNT $s(SI_CONFIG_DROP_COUNT) \
+      RESET_CHANGED $pair_reset_changed]
+    flush stdout
+
+    if {$pair_reset_changed} {
+      set result INCONCLUSIVE_RESET
+    }
+    incr sample
+    if {$result eq "NONE" && $sample < $::rb_sample_limit} {
+      after $::rb_gap_ms
+    }
+  }
+
+  if {$result eq "NONE"} {
+    if {$transport_error} {
+      set result INCONCLUSIVE_TRANSPORT
+    } elseif {$reset_changed} {
+      set result INCONCLUSIVE_RESET
+    } elseif {($link_drop_seen || $tm_link_drop_seen) &&
+              $max_stable_streak >= 5} {
+      set result PASS_POSTMORTEM_DROP_AND_REACQUISITION
+    } elseif {$link_drop_seen || $tm_link_drop_seen} {
+      set result FAIL_STABLE_REACQUISITION_NOT_PRESENT_POSTMORTEM
+    } elseif {$sync_loss_seen || $lock_loss_seen} {
+      set result INCONCLUSIVE_ONLY_PHY_LOSS_EVIDENCE
+    } else {
+      set result INCONCLUSIVE_POSTMORTEM_NO_LINK_DROP_EVIDENCE
+    }
+  }
+  puts [format "POSTMORTEM_RESULT=%s LINK_DROP_SEEN=%d TM_LINK_DROP_SEEN=%d SYNC_LOSS_SEEN=%d LOCK_LOSS_SEEN=%d MAX_STABLE_STREAK=%d SAMPLES=%d ELAPSED_MS=%d" \
+    $result $link_drop_seen $tm_link_drop_seen $sync_loss_seen $lock_loss_seen \
+    $max_stable_streak $sample [expr {[clock milliseconds] - $begin_ms}]]
+  puts [format "POSTMORTEM_DONE result=%s" $result]
   flush stdout
   return
 }

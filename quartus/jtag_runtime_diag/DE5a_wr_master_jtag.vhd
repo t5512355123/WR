@@ -271,6 +271,30 @@ architecture rtl of DE5a_wr_master_jtag is
   signal global_time_snapshot_probe0     : std_logic_vector(63 downto 0);
   signal global_time_snapshot_probe1     : std_logic_vector(63 downto 0);
   signal global_time_live_probe          : std_logic_vector(63 downto 0);
+  -- Step6B functional scheduler.  The comparator and one-shot state all run
+  -- in QSFPA_REFCLK_p, the same 125 MHz domain as the WR Global-Time tuple.
+  -- The JTAG target/arm sources are sampled only after two flip-flop stages;
+  -- the target bus is required to remain stable before ARM is asserted.
+  constant STEP6B_TARGET_CYCLES : unsigned(27 downto 0) :=
+    to_unsigned(62500000, 28);
+  signal step6b_target_tai_source   : std_logic_vector(39 downto 0);
+  signal step6b_arm_source          : std_logic_vector(0 downto 0);
+  signal step6b_target_tai_meta     : std_logic_vector(39 downto 0) := (others => '0');
+  signal step6b_target_tai_sync     : std_logic_vector(39 downto 0) := (others => '0');
+  signal step6b_arm_meta            : std_logic := '0';
+  signal step6b_arm_sync            : std_logic := '0';
+  signal step6b_arm_sync_prev       : std_logic := '0';
+  signal step6b_target_tai_latched  : std_logic_vector(39 downto 0) := (others => '0');
+  signal step6b_armed               : std_logic := '0';
+  signal step6b_fired               : std_logic := '0';
+  signal step6b_fire_count          : unsigned(15 downto 0) := (others => '0');
+  signal step6b_actual_tai          : std_logic_vector(39 downto 0) := (others => '0');
+  signal step6b_actual_cycles       : std_logic_vector(27 downto 0) := (others => '0');
+  signal step6b_target_tai_probe    : std_logic_vector(63 downto 0);
+  signal step6b_arm_status_probe    : std_logic_vector(63 downto 0);
+  signal step6b_latched_tai_probe   : std_logic_vector(63 downto 0);
+  signal step6b_actual_tai_probe    : std_logic_vector(63 downto 0);
+  signal step6b_actual_cycles_probe : std_logic_vector(63 downto 0);
   signal ref_activity_div     : unsigned(7 downto 0) := (others => '0');
   signal dmtd_activity_div    : unsigned(7 downto 0) := (others => '0');
   signal rx_activity_div      : unsigned(7 downto 0) := (others => '0');
@@ -566,6 +590,59 @@ begin
     end if;
   end process;
 
+  -- Step6B: deterministic one-shot scheduled trigger state.  This state is
+  -- intentionally internal only; SMA_CLKOUT remains connected to the WR PPS
+  -- output and is not changed by this experiment.
+  p_step6b_scheduler : process(QSFPA_REFCLK_p)
+  begin
+    if rising_edge(QSFPA_REFCLK_p) then
+      if CPU_RESET_n = '0' then
+        step6b_target_tai_meta    <= (others => '0');
+        step6b_target_tai_sync    <= (others => '0');
+        step6b_arm_meta           <= '0';
+        step6b_arm_sync           <= '0';
+        step6b_arm_sync_prev      <= '0';
+        step6b_target_tai_latched <= (others => '0');
+        step6b_armed              <= '0';
+        step6b_fired              <= '0';
+        step6b_fire_count         <= (others => '0');
+        step6b_actual_tai         <= (others => '0');
+        step6b_actual_cycles      <= (others => '0');
+      else
+        step6b_target_tai_meta <= step6b_target_tai_source;
+        step6b_target_tai_sync <= step6b_target_tai_meta;
+        step6b_arm_meta        <= step6b_arm_source(0);
+        step6b_arm_sync        <= step6b_arm_meta;
+        step6b_arm_sync_prev   <= step6b_arm_sync;
+
+        -- ARM=0 is the explicit re-arm boundary.  Keeping FIRED sticky while
+        -- ARM remains high makes the one-shot observation unambiguous.
+        if step6b_arm_sync = '0' then
+          step6b_armed <= '0';
+          step6b_fired <= '0';
+        elsif step6b_arm_sync = '1' and step6b_arm_sync_prev = '0' and
+              step6b_fired = '0' then
+          step6b_target_tai_latched <= step6b_target_tai_sync;
+          step6b_actual_tai         <= (others => '0');
+          step6b_actual_cycles      <= (others => '0');
+          step6b_armed              <= '1';
+        end if;
+
+        if step6b_armed = '1' and core_tm_time_valid = '1' and
+           core_tm_tai = step6b_target_tai_latched and
+           core_tm_cycles = std_logic_vector(STEP6B_TARGET_CYCLES) then
+          step6b_fired <= '1';
+          step6b_armed <= '0';
+          if step6b_fire_count /= x"FFFF" then
+            step6b_fire_count <= step6b_fire_count + 1;
+          end if;
+          step6b_actual_tai    <= core_tm_tai;
+          step6b_actual_cycles <= core_tm_cycles;
+        end if;
+      end if;
+    end if;
+  end process;
+
   p_dmtd_activity : process(QSFPB_REFCLK_p)
   begin
     if rising_edge(QSFPB_REFCLK_p) then
@@ -687,6 +764,37 @@ begin
   tx_observer_status_probe(11)           <= core_phy_rst;
   tx_observer_status_probe(12)           <= core_phy_tx_disable;
   tx_observer_status_probe(63 downto 13) <= (others => '0');
+
+  -- Step6B JTAG-visible control/readback.  The source buses are written only
+  -- while ARM is low; the readback probes expose the sampled target, one-shot
+  -- state, and the exact Global-Time tuple captured at firing.
+  step6b_target_tai_probe(39 downto 0)  <= step6b_target_tai_source;
+  step6b_target_tai_probe(63 downto 40) <= (others => '0');
+  step6b_arm_status_probe(0) <= step6b_arm_source(0);
+  step6b_arm_status_probe(1) <= step6b_arm_sync;
+  step6b_arm_status_probe(2) <= step6b_armed;
+  step6b_arm_status_probe(3) <= step6b_fired;
+  step6b_arm_status_probe(4) <= core_tm_time_valid;
+  step6b_arm_status_probe(5) <= core_pps_valid;
+  step6b_arm_status_probe(6) <= core_tm_link_up;
+  step6b_arm_status_probe(7) <= core_link_ok;
+  step6b_arm_status_probe(8) <= CPU_RESET_n;
+  step6b_arm_status_probe(9) <= wr_core_reset_n;
+  step6b_arm_status_probe(10) <= si_config_done;
+  step6b_arm_status_probe(11) <= wr_rx_locked_to_data;
+  step6b_arm_status_probe(12) <= wr_rx_pattern_ready;
+  step6b_arm_status_probe(13) <= step6b_arm_sync_prev;
+  step6b_arm_status_probe(29 downto 14) <= std_logic_vector(step6b_fire_count);
+  step6b_arm_status_probe(63 downto 30) <= (others => '0');
+  step6b_latched_tai_probe(39 downto 0)  <= step6b_target_tai_latched;
+  step6b_latched_tai_probe(63 downto 40) <= (others => '0');
+  step6b_actual_tai_probe(39 downto 0)  <= step6b_actual_tai;
+  step6b_actual_tai_probe(63 downto 40) <= (others => '0');
+  step6b_actual_cycles_probe(27 downto 0) <= step6b_actual_cycles;
+  step6b_actual_cycles_probe(55 downto 28) <= std_logic_vector(STEP6B_TARGET_CYCLES);
+  step6b_actual_cycles_probe(56) <= step6b_fired;
+  step6b_actual_cycles_probe(57) <= step6b_armed;
+  step6b_actual_cycles_probe(63 downto 58) <= (others => '0');
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -1201,6 +1309,45 @@ begin
       source_clk => CLK_50_B2J,
       source_ena => '1'
     );
+
+  u_step6b_target_tai_probe : altsource_probe
+    generic map (instance_id => "WR_STEP6B_TARGET_TAI_MASTER",
+                 probe_width => 64, sld_auto_instance_index => "NO",
+                 sld_instance_index => 67, source_initial_value => "0",
+                 source_width => 40)
+    port map (probe => step6b_target_tai_probe,
+              source => step6b_target_tai_source,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_step6b_arm_status_probe : altsource_probe
+    generic map (instance_id => "WR_STEP6B_ARM_STATUS_MASTER",
+                 probe_width => 64, sld_auto_instance_index => "NO",
+                 sld_instance_index => 68, source_initial_value => "0",
+                 source_width => 1)
+    port map (probe => step6b_arm_status_probe,
+              source => step6b_arm_source,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_step6b_latched_tai_probe : altsource_probe
+    generic map (instance_id => "WR_STEP6B_LATCHED_TAI_MASTER",
+                 probe_width => 64, sld_auto_instance_index => "NO",
+                 sld_instance_index => 69, source_width => 1)
+    port map (probe => step6b_latched_tai_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_step6b_actual_tai_probe : altsource_probe
+    generic map (instance_id => "WR_STEP6B_ACTUAL_TAI_MASTER",
+                 probe_width => 64, sld_auto_instance_index => "NO",
+                 sld_instance_index => 70, source_width => 1)
+    port map (probe => step6b_actual_tai_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
+
+  u_step6b_actual_cycles_probe : altsource_probe
+    generic map (instance_id => "WR_STEP6B_ACTUAL_CYCLES_MASTER",
+                 probe_width => 64, sld_auto_instance_index => "NO",
+                 sld_instance_index => 71, source_width => 1)
+    port map (probe => step6b_actual_cycles_probe, source => open,
+              source_clk => CLK_50_B2J, source_ena => '1');
 
   -- L2 low-perturbation first-loss probes.  The probe indices mirror the
   -- Slave image and are otherwise unused in this Master top level.

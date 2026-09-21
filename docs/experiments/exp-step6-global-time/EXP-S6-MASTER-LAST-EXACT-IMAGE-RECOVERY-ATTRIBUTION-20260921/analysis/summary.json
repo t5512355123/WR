@@ -1,0 +1,13 @@
+{
+  "experiment": "EXP-S6-MASTER-LAST-EXACT-IMAGE-RECOVERY-ATTRIBUTION-20260921",
+  "result": "NOT_RUN_ARTIFACT_UNAVAILABLE",
+  "source_commit_required": "ec1f25e81e0eb8c2caee796d13a225eaae81e5f2",
+  "expected_master_sof_sha256": "568f08c974064bdd3e82f68e3f1ecb0ff6c8a2a8e5705bdcc15b5941d33173a3",
+  "actual_default_master_sof_sha256": "f371c0ed3df88f629d1c57d2333246395a92993420435039619867fe88449487",
+  "master_program_count": 0,
+  "slave_program_count": 0,
+  "compile_count": 0,
+  "power_cycle": false,
+  "step6a": "NOT_PASS",
+  "step6b": "NOT_RUN"
+}

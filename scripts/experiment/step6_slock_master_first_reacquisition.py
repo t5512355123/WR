@@ -90,6 +90,14 @@ def _row(record: Dict[str, Any], previous: Optional[Dict[str, Any]]) -> Dict[str
         "sample": _number(record.get("SAMPLE")),
         "timestamp_ms": timestamp,
         "read_valid": record.get("READ_VALID"),
+        "si_config_done": _number(record.get("SI_CONFIG_DONE")),
+        "wr_ready": _number(record.get("WR_READY")),
+        "wr_rx_ready": _number(record.get("WR_RX_READY")),
+        "wr_tx_ready": _number(record.get("WR_TX_READY")),
+        "core_tm_link_up": _number(record.get("CORE_TM_LINK_UP")),
+        "core_link_ok": _number(record.get("CORE_LINK_OK")),
+        "wr_rx_locked_to_data": _number(record.get("WR_RX_LOCKED_TO_DATA")),
+        "cpu_reset_n": _number(record.get("CPU_RESET_N")),
         "ptp_state": _embedded(record.get("PTP_STATE")),
         "pd_state": _embedded(record.get("PD_STATE")),
         "ext_state": _embedded(record.get("EXT_STATE")),
@@ -150,6 +158,11 @@ def analyze_text(text: str, source: str = "", mode: str = "reacquisition") -> Di
     if mode == "preflight":
         gate_ok = bool(rows) and len(rows) >= 10 and all(
             row["read_valid"] == 1
+            and row["si_config_done"] == 1
+            and row["wr_rx_ready"] == 1
+            and row["wr_tx_ready"] == 1
+            and row["core_tm_link_up"] == 1
+            and row["core_link_ok"] == 1
             and row["ptp_state"] == 6
             and row["wr_disable_valid"] == 0
             and row["same_reset_as_previous"] in (0, 1)

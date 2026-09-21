@@ -41,4 +41,3 @@ success message. Any such message is an unexpected-action stop.
 The raw command log, provenance record, stop classification, and JSON summary
 are written under `raw/` and `analysis/`. A PASS only means direct programmer
 access is available; it does not authorize programming in this experiment.
-

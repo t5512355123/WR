@@ -1,0 +1,15 @@
+{
+  "format": "step6-post-slave-link-gate-v1",
+  "source": "docs\\experiments\\exp-step6-global-time\\EXP-S6-SLOCK-MASTER-FIRST-REACQUISITION-V2-20260921\\raw\\slave-reacq\\slave-slock-reacquisition.log",
+  "mode": "post-slave-link",
+  "sample_count": 45,
+  "valid_samples": 45,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "link_gate_pass": false,
+  "link_gate_pass_ms": null,
+  "link_gate_streak_max": 0,
+  "classification": "FAIL_POST_SLAVE_LINK_GATE",
+  "step6a": "NOT_PASS",
+  "step6b_trigger_run": false
+}

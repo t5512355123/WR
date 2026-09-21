@@ -12,7 +12,12 @@ set ::wf_library_only 1
 source [file join [file dirname [info script]] \
   read_step6_wr_extension_fallback_terminal_liveness.tcl]
 
-set ::s6b_trial_id "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922"
+set ::s6b_mode "TRIGGER"
+if {[llength $argv] >= 1 && [lindex $argv 0] eq "__S6A_LATE_TAIL__"} {
+  set ::s6b_mode "LATE_TAIL"
+  set argv [lrange $argv 1 end]
+}
+set ::s6b_trial_id "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-V2-20260922"
 set ::s6b_prearm_timeout_ms 60000
 set ::s6b_prearm_gap_ms 350
 set ::s6b_target_settle_ms 150
@@ -20,16 +25,26 @@ set ::s6b_arm_settle_ms 120
 set ::s6b_capture_gap_ms 250
 set ::s6b_observe_timeout_ms 25000
 set ::s6b_target_cycles 62500000
-if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
-if {[llength $argv] >= 2} { set ::s6b_prearm_timeout_ms [expr {int([lindex $argv 1])}] }
-if {[llength $argv] >= 3} { set ::s6b_prearm_gap_ms [expr {int([lindex $argv 2])}] }
-if {[llength $argv] >= 4} { set ::s6b_capture_gap_ms [expr {int([lindex $argv 3])}] }
-if {$::s6b_prearm_timeout_ms <= 0 || $::s6b_prearm_gap_ms < 0 ||
-    $::s6b_target_settle_ms < 100 || $::s6b_arm_settle_ms < 0 ||
-    $::s6b_capture_gap_ms < 0} {
-  error "invalid Step6B timing arguments"
+set ::s6a_tail_window_ms 45000
+set ::s6a_tail_gap_ms 300
+if {$::s6b_mode eq "LATE_TAIL"} {
+  if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
+  if {[llength $argv] >= 2} { set ::s6a_tail_window_ms [expr {int([lindex $argv 1])}] }
+  if {[llength $argv] >= 3} { set ::s6a_tail_gap_ms [expr {int([lindex $argv 2])}] }
+} else {
+  if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
+  if {[llength $argv] >= 2} { set ::s6b_prearm_timeout_ms [expr {int([lindex $argv 1])}] }
+  if {[llength $argv] >= 3} { set ::s6b_prearm_gap_ms [expr {int([lindex $argv 2])}] }
+  if {[llength $argv] >= 4} { set ::s6b_capture_gap_ms [expr {int([lindex $argv 3])}] }
 }
-
+if {($::s6b_mode eq "LATE_TAIL" &&
+     ($::s6a_tail_window_ms <= 0 || $::s6a_tail_gap_ms < 0)) ||
+    ($::s6b_mode ne "LATE_TAIL" &&
+     ($::s6b_prearm_timeout_ms <= 0 || $::s6b_prearm_gap_ms < 0 ||
+      $::s6b_target_settle_ms < 100 || $::s6b_arm_settle_ms < 0 ||
+      $::s6b_capture_gap_ms < 0))} {
+  error "invalid Step6 observation timing arguments"
+}
 array set ::s6b_baseline_reset {}
 set ::s6b_ptp_restart_used 0
 
@@ -344,6 +359,245 @@ proc s6b_runtime_bad {master slave} {
 proc s6b_emit_board_samples {master slave prefix} {
   if {$master ne ""} { s6b_emit $prefix $master }
   if {$slave ne ""} { s6b_emit $prefix $slave }
+}
+
+proc s6a_reset_ok {snapshot} {
+  if {$snapshot eq ""} { return 0 }
+  array set row $snapshot
+  foreach key {BOOT_GENERATION CPU_RESET_COUNT WR_CORE_RESET_COUNT \
+      SI_CONFIG_DROP_COUNT RESET_CHANGED} {
+    if {![info exists row($key)] ||
+        ![string is integer -strict $row($key)]} { return 0 }
+  }
+  return [expr {$row(BOOT_GENERATION) == 1 &&
+      $row(CPU_RESET_COUNT) == 1 && $row(WR_CORE_RESET_COUNT) == 1 &&
+      $row(SI_CONFIG_DROP_COUNT) == 1 && $row(RESET_CHANGED) == 0}]
+}
+
+proc s6a_master_gate_ok {snapshot} {
+  if {$snapshot eq ""} { return 0 }
+  array set row $snapshot
+  return [expr {$row(READ_VALID) == 1 && [s6a_reset_ok $snapshot] &&
+      $row(STATUS_LINK_OK) == 1 && $row(STATUS_TM_LINK_UP) == 1 &&
+      $row(STATUS_TIME_VALID) == 1 && $row(SNAPSHOT_VALID) == 1}]
+}
+
+proc s6a_slave_active_gate_ok {snapshot} {
+  if {$snapshot eq ""} { return 0 }
+  array set row $snapshot
+  return [expr {$row(READ_VALID) == 1 && [s6a_reset_ok $snapshot] &&
+      $row(STATUS_LINK_OK) == 1 && $row(STATUS_TM_LINK_UP) == 1 &&
+      $row(RX_LOCKED_TO_DATA) == 1 && $row(RX_PATTERN_READY) == 1 &&
+      $row(SPLL_SEQ_STATE) == 8 && $row(PSTAT_LOCKED) == 1 &&
+      $row(MAIN_FREQ_LOCKED) == 1 && $row(MAIN_PHASE_LOCKED) == 1 &&
+      $row(MAIN_LOCKED) == 1 && $row(PTP_STATE) == 9 &&
+      $row(PD_STATE) == 3 && $row(EXT_STATE) == 1 && $row(WRC_MODE) == 3}]
+}
+
+proc s6a_slave_time_valid_ok {snapshot} {
+  if {![s6a_slave_active_gate_ok $snapshot]} { return 0 }
+  array set row $snapshot
+  return [expr {$row(STATUS_TIME_VALID) == 1 && $row(STATUS_PPS_VALID) == 1 &&
+      $row(SNAPSHOT_ACCEPTED) == 1 && $row(SNAPSHOT_VALID) == 1 &&
+      $row(SNAPSHOT_TIME_VALID) == 1 && $row(SNAPSHOT_PPS_VALID) == 1}]
+}
+
+proc s6a_late_tail_run {} {
+  set master_hardware ""
+  set slave_hardware ""
+  foreach hardware_name [get_hardware_names] {
+    if {[string first "1-11.1" $hardware_name] >= 0} {
+      set master_hardware $hardware_name
+    } elseif {[string first "1-11.2" $hardware_name] >= 0} {
+      set slave_hardware $hardware_name
+    }
+  }
+  if {$master_hardware eq "" || $slave_hardware eq ""} {
+    error "both DE5a targets are required"
+  }
+
+  puts [format "S6A_TAIL_CONFIG trial=%s window_ms=%d cadence_request_ms=%d MASTER_PROGRAM=0 SLAVE_PROGRAM=0 PTP_RESTART=0 POWER_CYCLE=0 TARGET_WRITE=0 ARM_WRITE=0" \
+    $::s6b_trial_id $::s6a_tail_window_ms $::s6a_tail_gap_ms]
+  flush stdout
+
+  set gate_pairs 0
+  set gate_start [clock milliseconds]
+  for {set gate_sample 0} {$gate_sample < 3} {incr gate_sample} {
+    set elapsed [expr {[clock milliseconds] - $gate_start}]
+    set master [s6b_collect $master_hardware MASTER $gate_sample $elapsed]
+    set slave [s6b_collect $slave_hardware SLAVE $gate_sample $elapsed]
+    s6b_emit_board_samples $master $slave S6A_CURRENT_GATE_SAMPLE
+    set master_gate [s6a_master_gate_ok $master]
+    set slave_gate [s6a_slave_active_gate_ok $slave]
+    if {$master_gate && $slave_gate} { incr gate_pairs }
+    set reset_ok [expr {$master ne "" && $slave ne "" &&
+        [s6a_reset_ok $master] && [s6a_reset_ok $slave]}]
+    set master_time_valid 0
+    if {$master ne ""} {
+      array set master_row $master
+      set master_time_valid $master_row(STATUS_TIME_VALID)
+    }
+    set slave_time_valid 0
+    if {$slave ne ""} {
+      array set slave_row $slave
+      set slave_time_valid $slave_row(STATUS_TIME_VALID)
+    }
+    s6b_emit S6A_CURRENT_GATE_PAIR [list SAMPLE $gate_sample ELAPSED_MS $elapsed \
+      MASTER_GATE $master_gate SLAVE_ACTIVE_GATE $slave_gate RESET_STABLE $reset_ok \
+      MASTER_TIME_VALID $master_time_valid SLAVE_TIME_VALID $slave_time_valid]
+    if {$gate_sample < 2} { after $::s6a_tail_gap_ms }
+  }
+  if {$gate_pairs < 3} {
+    puts [format "S6A_TAIL_RESULT=INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED GATE_PAIRS=%d TAIL_SAMPLES=0 VALID_SAMPLES=0 MAX_VALID_STREAK=0 SNAPSHOT_DELTA=0 COMMON_TAI_COUNT=0 MAX_ABS_DELTA_TICKS=NA" $gate_pairs]
+    puts "S6A_DONE result=INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED phase=gate"
+    flush stdout
+    return
+  }
+
+  array set ::s6b_master_by_tai {}
+  array set ::s6b_slave_by_tai {}
+  set ::s6b_coherence_violation 0
+  set tail_start [clock milliseconds]
+  set tail_deadline [expr {$tail_start + $::s6a_tail_window_ms}]
+  set tail_sample 0
+  set tail_samples 0
+  set valid_samples 0
+  set valid_streak 0
+  set max_valid_streak 0
+  set snapshot_first -1
+  set snapshot_last -1
+  set active_samples 0
+  set active_seen 0
+  set terminal_streak 0
+  set softpll_bad_streak 0
+  set state_changed 0
+  set pass_candidate 0
+  set time_valid_prev -1
+  set time_valid_rising 0
+  set time_valid_falling 0
+  set first_valid_elapsed -1
+  set last_valid_elapsed -1
+  set result ""
+  set final_master {}
+  set final_slave {}
+
+  while {[clock milliseconds] <= $tail_deadline} {
+    set elapsed [expr {[clock milliseconds] - $tail_start}]
+    set master [s6b_collect $master_hardware MASTER $tail_sample $elapsed]
+    set slave [s6b_collect $slave_hardware SLAVE $tail_sample $elapsed]
+    incr tail_samples
+    set final_master $master
+    set final_slave $slave
+    s6b_emit_board_samples $master $slave S6A_TAIL_SAMPLE
+    if {$master eq "" || $slave eq ""} {
+      set state_changed 1
+      set result "INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED"
+      break
+    }
+    array set m $master
+    array set s $slave
+    set master_ok [s6a_master_gate_ok $master]
+    set slave_active [s6a_slave_active_gate_ok $slave]
+    set slave_valid [s6a_slave_time_valid_ok $slave]
+    set reset_ok [expr {[s6a_reset_ok $master] && [s6a_reset_ok $slave]}]
+    set terminal_now [expr {$s(PTP_STATE) == 9 && $s(PD_STATE) == 4 &&
+        $s(EXT_STATE) == 2 && $s(WR_STATE_VALUE) == 0}]
+    set softpll_bad [expr {$s(SPLL_SEQ_STATE) != 8 || $s(PSTAT_LOCKED) != 1 ||
+        $s(MAIN_LOCKED) != 1}]
+    if {!$reset_ok || !$master_ok} {
+      set state_changed 1
+      set result "INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED"
+      break
+    }
+    if {!$slave_active && !$terminal_now && !$softpll_bad} {
+      set state_changed 1
+      set result "INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED"
+      break
+    }
+    if {$slave_active} {
+      set active_seen 1
+      incr active_samples
+    }
+    if {$time_valid_prev >= 0} {
+      if {!$time_valid_prev && $s(STATUS_TIME_VALID) == 1} { incr time_valid_rising }
+      if {$time_valid_prev && $s(STATUS_TIME_VALID) == 0} { incr time_valid_falling }
+    }
+    set time_valid_prev $s(STATUS_TIME_VALID)
+    if {$slave_valid} {
+      incr valid_samples
+      incr valid_streak
+      if {$valid_streak > $max_valid_streak} { set max_valid_streak $valid_streak }
+      if {$first_valid_elapsed < 0} { set first_valid_elapsed $elapsed }
+      set last_valid_elapsed $elapsed
+      if {$snapshot_first < 0} { set snapshot_first $s(SNAPSHOT_COUNT) }
+      set snapshot_last $s(SNAPSHOT_COUNT)
+      s6b_snapshot_map_update MASTER $master
+      s6b_snapshot_map_update SLAVE $slave
+    } else {
+      set valid_streak 0
+    }
+    if {$terminal_now} { incr terminal_streak } else { set terminal_streak 0 }
+    if {$softpll_bad} { incr softpll_bad_streak } else { set softpll_bad_streak 0 }
+    set common [s6b_common_tais]
+    s6b_emit S6A_TAIL_PAIR [list SAMPLE $tail_sample ELAPSED_MS $elapsed \
+      MASTER_GATE $master_ok SLAVE_ACTIVE_GATE $slave_active SLAVE_TIME_VALID $slave_valid \
+      SLAVE_SNAPSHOT_COUNT $s(SNAPSHOT_COUNT) VALID_STREAK $valid_streak \
+      COMMON_TAI_COUNT [llength $common] RESET_STABLE $reset_ok \
+      TERMINAL_STREAK $terminal_streak SOFTPLL_BAD_STREAK $softpll_bad_streak]
+    if {$terminal_streak >= 3} {
+      set result "FAIL_ACTIVE_EXTENSION_TRANSITIONED_TO_TERMINAL_FALLBACK"
+      break
+    }
+    if {$softpll_bad_streak >= 3} {
+      set result "FAIL_SOFTPLL_READY_STATE_LOST_DURING_ACTIVE_EXTENSION_TAIL"
+      break
+    }
+    set snapshot_delta 0
+    if {$snapshot_first >= 0 && $snapshot_last >= 0} {
+      set snapshot_delta [expr {$snapshot_last - $snapshot_first}]
+    }
+    if {$valid_streak >= 5 && $snapshot_delta >= 2 && [llength $common] >= 3 &&
+        !$::s6b_coherence_violation && !$state_changed} {
+      set pass_candidate 1
+    }
+    incr tail_sample
+    after $::s6a_tail_gap_ms
+  }
+
+  if {$result eq ""} {
+    set snapshot_delta 0
+    if {$snapshot_first >= 0 && $snapshot_last >= 0} {
+      set snapshot_delta [expr {$snapshot_last - $snapshot_first}]
+    }
+    if {$state_changed} {
+      set result "INCONCLUSIVE_CURRENT_SESSION_PRECONDITION_CHANGED"
+    } elseif {$pass_candidate && $valid_streak >= 5 && $snapshot_delta >= 2 &&
+        [llength $common] >= 3 && !$::s6b_coherence_violation} {
+      set result "PASS_ACTIVE_EXTENSION_LATE_GLOBAL_TIME_RECOVERY"
+    } elseif {$valid_samples > 0} {
+      set result "FAIL_INTERMITTENT_GLOBAL_TIME_VALIDITY"
+    } elseif {$active_seen && $active_samples == $tail_samples && $tail_samples > 0} {
+      set result "FAIL_ACTIVE_EXTENSION_GLOBAL_TIME_STUCK"
+    } else {
+      set result "INCONCLUSIVE_ACTIVE_EXTENSION_NOT_MAINTAINED"
+    }
+  }
+  set common [s6b_common_tais]
+  set max_delta NA
+  if {[llength $common] > 0} {
+    set max_delta 0
+    foreach tai $common {
+      set delta [expr {abs($::s6b_master_by_tai($tai) - $::s6b_slave_by_tai($tai))}]
+      if {$delta > $max_delta} { set max_delta $delta }
+    }
+  }
+  puts [format "S6A_TAIL_RESULT=%s GATE_PAIRS=%d TAIL_SAMPLES=%d VALID_SAMPLES=%d MAX_VALID_STREAK=%d FIRST_VALID_MS=%d LAST_VALID_MS=%d SNAPSHOT_DELTA=%d COMMON_TAI_COUNT=%d MAX_ABS_DELTA_TICKS=%s TIME_VALID_RISING=%d TIME_VALID_FALLING=%d ACTIVE_SAMPLES=%d COHERENCE_VIOLATION=%d" \
+    $result $gate_pairs $tail_samples $valid_samples $max_valid_streak \
+    $first_valid_elapsed $last_valid_elapsed $snapshot_delta [llength $common] \
+    $max_delta $time_valid_rising $time_valid_falling $active_samples \
+    $::s6b_coherence_violation]
+  puts [format "S6A_DONE result=%s phase=tail" $result]
+  flush stdout
 }
 
 proc s6b_run {} {
@@ -698,4 +952,8 @@ proc s6b_run {} {
   flush stdout
 }
 
-s6b_run
+if {$::s6b_mode eq "LATE_TAIL"} {
+  s6a_late_tail_run
+} else {
+  s6b_run
+}

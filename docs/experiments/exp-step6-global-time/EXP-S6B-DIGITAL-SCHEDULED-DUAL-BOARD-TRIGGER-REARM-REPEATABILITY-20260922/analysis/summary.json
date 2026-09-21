@@ -1,0 +1,79 @@
+{
+  "arm0_write_master": 1,
+  "arm0_write_slave": 1,
+  "arm1_write_master": 1,
+  "arm1_write_slave": 1,
+  "arm_result": "PASS",
+  "capture_samples": 27,
+  "classification": "PASS_DIGITAL_SCHEDULED_DUAL_BOARD_TRIGGER_REARM_REPEATABILITY",
+  "coherence_violation": 0,
+  "dearm_result": "PASS",
+  "format": "step6b-rearm-repeatability-v1",
+  "initial_result": "PASS",
+  "master_actual_cycles": 62500000,
+  "master_actual_tai": 6791,
+  "master_fire_count": 2,
+  "new_target_tai": 6791,
+  "observer_result": "PASS_DIGITAL_SCHEDULED_DUAL_BOARD_TRIGGER_REARM_REPEATABILITY",
+  "post_dearm_common_tai_count": 2,
+  "post_dearm_gate_pairs": 3,
+  "post_dearm_gate_result": "PASS",
+  "post_fire_samples": 3,
+  "pre_common_tai_count": 2,
+  "pre_gate_pairs": 3,
+  "pre_gate_result": "PASS",
+  "second_trigger_delta_ns": 0,
+  "second_trigger_delta_ticks": 0,
+  "slave_actual_cycles": 62500000,
+  "slave_actual_tai": 6791,
+  "slave_fire_count": 2,
+  "source_sequence": [
+    {
+      "board": "MASTER",
+      "index": 68,
+      "ok": 1,
+      "value": 0
+    },
+    {
+      "board": "SLAVE",
+      "index": 68,
+      "ok": 1,
+      "value": 0
+    },
+    {
+      "board": "MASTER",
+      "index": 67,
+      "ok": 1,
+      "value": 6791
+    },
+    {
+      "board": "SLAVE",
+      "index": 67,
+      "ok": 1,
+      "value": 6791
+    },
+    {
+      "board": "MASTER",
+      "index": 68,
+      "ok": 1,
+      "value": 1
+    },
+    {
+      "board": "SLAVE",
+      "index": 68,
+      "ok": 1,
+      "value": 1
+    }
+  ],
+  "source_sequence_ok": true,
+  "step6a": "PASS",
+  "step6b_1_digital_scheduled_trigger": "PASS",
+  "step6b_physical_edge": "NOT_EVALUATED",
+  "t0": 6771,
+  "target_cycles": 62500000,
+  "target_result": "PASS",
+  "target_write_master": 1,
+  "target_write_slave": 1,
+  "verdict": "PASS",
+  "write_count": 6
+}

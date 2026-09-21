@@ -1,0 +1,3 @@
+SLAVE_PROGRAM_START=2026-09-22T04:55:21+08:00
+sudo: a terminal is required to read the password; either use the -S option to read from standard input or configure an askpass helper
+SLAVE_PROGRAM_DONE=2026-09-22T04:55:21+08:00

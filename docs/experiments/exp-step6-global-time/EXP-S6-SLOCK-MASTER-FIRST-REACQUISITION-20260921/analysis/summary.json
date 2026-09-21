@@ -1,0 +1,22 @@
+{
+  "experiment": "EXP-S6-SLOCK-MASTER-FIRST-REACQUISITION",
+  "source_commit": "ec1f25e81e0eb8c2caee796d13a225eaae81e5f2",
+  "observer_commit": "4d5ab6e8",
+  "analyzer_commit": "969dc67c",
+  "master_programmed": true,
+  "slave_programmed": false,
+  "full_compile": false,
+  "power_cycle": false,
+  "master_precondition": "INCONCLUSIVE_MASTER_PRECONDITION",
+  "master_samples": 10,
+  "master_valid_samples": 10,
+  "master_ptp_states": [4, 6],
+  "master_link_up_all_samples": false,
+  "master_link_ok_all_samples": false,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "slock_master_first_reacquisition": "NOT_RUN",
+  "step6a": "NOT_PASS",
+  "step6b_trigger_run": false,
+  "stop_reason": "MASTER_PRECONDITION_NOT_SATISFIED"
+}

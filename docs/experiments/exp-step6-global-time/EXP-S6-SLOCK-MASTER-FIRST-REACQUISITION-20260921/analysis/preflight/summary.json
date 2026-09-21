@@ -1,0 +1,17 @@
+{
+  "format": "step6-slock-master-first-preflight-v1",
+  "source": "docs\\experiments\\exp-step6-global-time\\EXP-S6-SLOCK-MASTER-FIRST-REACQUISITION-20260921\\raw\\preflight\\master-preflight.log",
+  "mode": "preflight",
+  "sample_count": 10,
+  "valid_samples": 10,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "master_ptp_states": [
+    4,
+    6
+  ],
+  "master_precondition": "INCONCLUSIVE_MASTER_PRECONDITION",
+  "pass": false,
+  "step6a": "NOT_PASS",
+  "step6b_trigger_run": false
+}

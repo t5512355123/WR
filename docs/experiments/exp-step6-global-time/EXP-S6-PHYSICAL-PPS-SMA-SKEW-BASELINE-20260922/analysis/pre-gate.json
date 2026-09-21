@@ -1,0 +1,54 @@
+{
+  "all_gate_rows_valid": true,
+  "classification": "PASS_PHYSICAL_PPS_PRECONDITION",
+  "common_tai_count": 3,
+  "common_tai_labels": [
+    5015,
+    5016,
+    5017
+  ],
+  "format": "step6-physical-pps-sma-gate-v1",
+  "gate_result": "PASS",
+  "master_sample_count": 3,
+  "pair_count": 3,
+  "reset_signatures": [
+    [
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1
+    ]
+  ],
+  "slave_sample_count": 3,
+  "verdict": "PASS"
+}

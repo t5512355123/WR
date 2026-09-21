@@ -247,7 +247,8 @@ proc rb_baseline_last_field {path role key} {
   while {[gets $handle line] >= 0} {
     if {[string first "REBUILD_BASELINE_PAIR" $line] != 0} { continue }
     if {[string first "ROLE=$role" $line] < 0} { continue }
-    if {[regexp "(^| )${key}=([^ ]+)" $line -> prefix candidate]} {
+    set pattern [format {(^| )%s=([^ ]+)} $key]
+    if {[regexp $pattern $line -> prefix candidate]} {
       set value $candidate
     }
   }
@@ -260,7 +261,8 @@ proc rb_baseline_scalar {path key} {
   set handle [open $path r]
   set value ""
   while {[gets $handle line] >= 0} {
-    if {[regexp "^${key}=([^ ]+)" $line -> candidate]} {
+    set pattern [format {^%s=([^ ]+)} $key]
+    if {[regexp $pattern $line -> candidate]} {
       set value $candidate
     }
   }

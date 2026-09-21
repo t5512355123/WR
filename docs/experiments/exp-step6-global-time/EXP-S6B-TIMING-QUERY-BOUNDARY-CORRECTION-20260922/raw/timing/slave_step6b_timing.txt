@@ -1,0 +1,33 @@
+STEP6B_TIMING_PROJECT=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qpf
+STEP6B_TIMING_REVISION=DE5a_wr_slave_jtag
+STEP6B_TIMING_CLOCK=qsfp_ref_125m
+STEP6B_TIMING_QUERY_API=get_path_info_-slack
+STEP6B_TIMING_SOURCE_DOMAIN=qsfp_ref_125m
+STEP6B_ENDPOINTS name=target_meta_to_sync matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_meta_to_sync type=setup status=PASS count=40 slack_ns=7.246 from=node_27891 to=node_18965 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_meta_to_sync type=hold status=PASS count=40 slack_ns=0.049 from=node_27832 to=node_18753 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=target_sync_to_latched matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_sync_to_latched type=setup status=PASS count=40 slack_ns=6.558 from=node_18595 to=node_6282 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_sync_to_latched type=hold status=PASS count=40 slack_ns=0.153 from=node_18702 to=node_6365 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=arm_meta_to_sync matched_from=1 matched_to=1
+STEP6B_TIMING_PATH name=arm_meta_to_sync type=setup status=PASS count=1 slack_ns=7.503 from=node_19088 to=node_6629 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=arm_meta_to_sync type=hold status=PASS count=1 slack_ns=0.086 from=node_19088 to=node_6629 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=arm_sync_to_prev matched_from=1 matched_to=1
+STEP6B_TIMING_PATH name=arm_sync_to_prev type=setup status=PASS count=1 slack_ns=7.002 from=node_6629 to=node_6623 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=arm_sync_to_prev type=hold status=PASS count=1 slack_ns=0.491 from=node_6629 to=node_6623 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_armed matched_from=0 matched_to=1
+STEP6B_TIMING_PATH name=refclk_to_armed type=setup status=PASS count=100 slack_ns=4.686 from=node_6086 to=node_6302 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=refclk_to_armed type=hold status=PASS count=100 slack_ns=0.178 from=node_6635 to=node_6302 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_fired matched_from=0 matched_to=1
+STEP6B_TIMING_PATH name=refclk_to_fired type=setup status=PASS count=100 slack_ns=4.738 from=node_6086 to=node_6635 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=refclk_to_fired type=hold status=PASS count=100 slack_ns=0.158 from=node_6635 to=node_6635 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_fire_count matched_from=0 matched_to=16
+STEP6B_TIMING_PATH name=refclk_to_fire_count type=setup status=PASS count=100 slack_ns=3.814 from=node_6086 to=node_73993 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=refclk_to_fire_count type=hold status=PASS count=100 slack_ns=0.15 from=node_73944 to=node_73944 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_actual_tai matched_from=0 matched_to=115
+STEP6B_TIMING_PATH name=refclk_to_actual_tai type=setup status=PASS count=100 slack_ns=4.371 from=node_6086 to=node_91644 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=refclk_to_actual_tai type=hold status=PASS count=100 slack_ns=0.281 from=node_6337 to=node_27686 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_actual_cycles matched_from=0 matched_to=102
+STEP6B_TIMING_PATH name=refclk_to_actual_cycles type=setup status=PASS count=100 slack_ns=4.371 from=node_6086 to=node_37159 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=refclk_to_actual_cycles type=hold status=PASS count=100 slack_ns=0.262 from=node_5883 to=node_54828 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_TIMING_RESULT=PASS_STEP6B_POSTFIT_TIMING_PROVEN REASON=

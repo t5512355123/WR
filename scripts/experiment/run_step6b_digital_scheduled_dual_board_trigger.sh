@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Verify the already fitted Step6B artifacts, program, and observe
-# EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922.
+# EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-V2-20260922.
 # This is a single controlled run: there is no compile or timing refit;
-# Slave is programmed once, Master once and last, and the observer never
-# re-arms or reprograms after a hard stop.
+# Slave is programmed once directly, Master once directly and last, and the
+# observer never re-arms or reprograms after a hard stop.
 set -u
 set -o pipefail
 
@@ -14,7 +14,7 @@ QUARTUS_STP="$QUARTUS_BIN/quartus_stp"
 QUARTUS_STA="$QUARTUS_BIN/quartus_sta"
 QUARTUS_PGM="$QUARTUS_BIN/quartus_pgm"
 PYTHON=${PYTHON:-python3}
-EXP_ID=${1:-EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922}
+EXP_ID=${1:-EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-V2-20260922}
 EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
 BUILD_DIR="$EXP_DIR/raw/build"
 TIMING_DIR="$EXP_DIR/raw/timing"
@@ -37,6 +37,7 @@ mkdir -p "$BUILD_DIR" "$TIMING_DIR" "$PROGRAM_DIR" "$OBSERVE_DIR" "$ANALYSIS_DIR
 
 cat > "$EXP_DIR/raw/protocol.txt" <<EOF
 EXP_ID=$EXP_ID
+PROGRAM_METHOD=DIRECT_NON_SUDO
 MASTER_COMPILE=NO
 SLAVE_COMPILE=NO
 FIRMWARE_BUILD=NO
@@ -184,13 +185,26 @@ printf 'TIMING_GATE=EXTERNAL_POSTFIT_TIMING_PROVEN\nCOMPILE=NOT_PERFORMED\n' \
   > "$TIMING_DIR/gate.txt"
 
 set +e
-echo "SLAVE_PROGRAM_START=$(date -Is)" > "$PROGRAM_DIR/slave_program.log"
-sudo "$QUARTUS_PGM" -c 'DE5 [1-11.2]' -m jtag -o "p;$SLAVE_SOF" \
+echo "PROGRAM_METHOD=DIRECT_NON_SUDO" > "$PROGRAM_DIR/slave_program.log"
+echo "PROGRAM_CABLE=DE5 [1-11.2]" >> "$PROGRAM_DIR/slave_program.log"
+echo "SOF_SHA256=$(actual_hash "$SLAVE_SOF")" >> "$PROGRAM_DIR/slave_program.log"
+echo "SLAVE_PROGRAM_START=$(date -Is)" >> "$PROGRAM_DIR/slave_program.log"
+"$QUARTUS_PGM" -c 'DE5 [1-11.2]' -m jtag -o "p;$SLAVE_SOF" \
   >> "$PROGRAM_DIR/slave_program.log" 2>&1
 slave_program_rc=$?
 echo "SLAVE_PROGRAM_DONE=$(date -Is)" >> "$PROGRAM_DIR/slave_program.log"
 set -e
-if [ "$slave_program_rc" -ne 0 ]; then
+program_log_ok() {
+  local log_file="$1"
+  local cable="$2"
+  grep -Fq "Using programming cable \"$cable\"" "$log_file" &&
+    grep -Fq 'Configuration succeeded' "$log_file" &&
+    grep -Fq '1 device(s) configured' "$log_file" &&
+    grep -Fq 'Successfully performed operation(s)' "$log_file" &&
+    grep -Eiq '0 errors([, ]|$)' "$log_file"
+}
+if [ "$slave_program_rc" -ne 0 ] || \
+   ! program_log_ok "$PROGRAM_DIR/slave_program.log" 'DE5 [1-11.2]'; then
   printf 'RESULT=INCONCLUSIVE_PROGRAM_FAILURE\nSTOP_REASON=SLAVE_PROGRAM_FAILURE\nSLAVE_PROGRAM_COUNT=1\nMASTER_PROGRAM_COUNT=0\n' \
     > "$PROGRAM_DIR/stop.txt"
   exit 5
@@ -199,13 +213,17 @@ printf 'SLAVE_PROGRAM_COUNT=1\nSLAVE_PROGRAM_RC=%s\n' "$slave_program_rc" \
   > "$PROGRAM_DIR/slave_program_result.txt"
 
 set +e
-echo "MASTER_PROGRAM_START=$(date -Is)" > "$PROGRAM_DIR/master_program.log"
-sudo "$QUARTUS_PGM" -c 'DE5 [1-11.1]' -m jtag -o "p;$MASTER_SOF" \
+echo "PROGRAM_METHOD=DIRECT_NON_SUDO" > "$PROGRAM_DIR/master_program.log"
+echo "PROGRAM_CABLE=DE5 [1-11.1]" >> "$PROGRAM_DIR/master_program.log"
+echo "SOF_SHA256=$(actual_hash "$MASTER_SOF")" >> "$PROGRAM_DIR/master_program.log"
+echo "MASTER_PROGRAM_START=$(date -Is)" >> "$PROGRAM_DIR/master_program.log"
+"$QUARTUS_PGM" -c 'DE5 [1-11.1]' -m jtag -o "p;$MASTER_SOF" \
   >> "$PROGRAM_DIR/master_program.log" 2>&1
 master_program_rc=$?
 echo "MASTER_PROGRAM_DONE=$(date -Is)" >> "$PROGRAM_DIR/master_program.log"
 set -e
-if [ "$master_program_rc" -ne 0 ]; then
+if [ "$master_program_rc" -ne 0 ] || \
+   ! program_log_ok "$PROGRAM_DIR/master_program.log" 'DE5 [1-11.1]'; then
   printf 'RESULT=INCONCLUSIVE_PROGRAM_FAILURE\nSTOP_REASON=MASTER_PROGRAM_FAILURE\nSLAVE_PROGRAM_COUNT=1\nMASTER_PROGRAM_COUNT=1\n' \
     > "$PROGRAM_DIR/stop.txt"
   exit 5

@@ -1,0 +1,19 @@
+BUILD=MASTER_FULL_COMPILE
+SOURCE_COMMIT=7acbc58b9363a4cc036f45d1a79c0bfd7b3e3368
+QUARTUS_VERSION=17.0.0_BUILD_595
+COMPILE_RESULT=PASS
+COMPILE_ERRORS=0
+COMPILE_WARNINGS=297
+FITTER_RESULT=PASS
+ASSEMBLER_RESULT=PASS
+TIMING_CLOSED=NO
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case setup slack is -0.384
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case hold slack is 0.039
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case setup slack is 0.405
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case hold slack is 0.030
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case setup slack is 0.163
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case hold slack is 0.014
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case setup slack is 1.811
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info (332146): Worst-case hold slack is 0.010
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt:Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
+quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.fit.rpt:Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings

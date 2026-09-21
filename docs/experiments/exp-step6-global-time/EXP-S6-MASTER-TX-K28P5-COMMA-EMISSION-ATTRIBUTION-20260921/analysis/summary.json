@@ -1,0 +1,16 @@
+{
+  "format": "step6-master-tx-comma-attribution-v1",
+  "classification": "POST_MASTER_REPROGRAM_RECOVERY_OBSERVED",
+  "local_ready_pass": true,
+  "local_ready_max_streak": 3,
+  "formal_samples": 1,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "post_master_reprogram_recovery": true,
+  "tx_cycle_delta": 17356957,
+  "tx_k28p5_delta": 8678301,
+  "master_tx_k28p5_emission_formal_pass": false,
+  "step6a": "NOT_PASS",
+  "step6b": "NOT_RUN",
+  "s_lock": "NOT_REACHED_BY_THIS_OBSERVER"
+}

@@ -253,6 +253,12 @@ architecture rtl of DE5a_wr_master_jtag is
   signal cpu_mcause            : std_logic_vector(31 downto 0);
   signal sync_probe           : std_logic_vector(63 downto 0);
   signal clock_activity_probe : std_logic_vector(63 downto 0);
+  -- Step6 attribution only: observe the TX PCS/transceiver parallel
+  -- boundary without feeding any value back into the WR datapath.
+  signal tx_cycle_count            : unsigned(31 downto 0) := (others => '0');
+  signal tx_k28p5_count            : unsigned(31 downto 0) := (others => '0');
+  signal tx_comma_probe            : std_logic_vector(63 downto 0);
+  signal tx_observer_status_probe  : std_logic_vector(63 downto 0);
   -- Step6A read-only, PPS-boundary atomic snapshot.  The snapshot is
   -- captured in the same 125 MHz reference-clock domain as wr_pps_gen so a
   -- JTAG read never has to combine independently changing TAI/cycle words.
@@ -590,6 +596,20 @@ begin
     end if;
   end process;
 
+  -- Step6 attribution only: count the characters presented by the Master
+  -- TX PCS at the Arria-10 transceiver boundary.  These counters are in the
+  -- TX-clock domain, are initialized at FPGA configuration, and are strictly
+  -- observational; they do not drive the TX path, reset tree, or WR state.
+  p_tx_comma_observer : process(wr_tx_clk)
+  begin
+    if rising_edge(wr_tx_clk) then
+      tx_cycle_count <= tx_cycle_count + 1;
+      if core_tx_k(0) = '1' and core_tx_data = x"BC" then
+        tx_k28p5_count <= tx_k28p5_count + 1;
+      end if;
+    end if;
+  end process;
+
   p_activity_observer : process(CLK_50_B2J)
   begin
     if rising_edge(CLK_50_B2J) then
@@ -655,6 +675,18 @@ begin
   -- coherent full-width TAI/cycle record.
   global_time_live_probe(35 downto 0)  <= core_tm_tai(35 downto 0);
   global_time_live_probe(63 downto 36) <= core_tm_cycles;
+
+  -- Probe 65: TX clock cycles in bits 31:0 and K28.5 comma characters in
+  -- bits 63:32.  Probe 66: the sampled TX boundary/status context.
+  tx_comma_probe(31 downto 0)  <= std_logic_vector(tx_cycle_count);
+  tx_comma_probe(63 downto 32) <= std_logic_vector(tx_k28p5_count);
+  tx_observer_status_probe(7 downto 0)   <= core_tx_data;
+  tx_observer_status_probe(8)            <= core_tx_k(0);
+  tx_observer_status_probe(9)            <= wr_tx_ready;
+  tx_observer_status_probe(10)           <= wr_tx_enc_err;
+  tx_observer_status_probe(11)           <= core_phy_rst;
+  tx_observer_status_probe(12)           <= core_phy_tx_disable;
+  tx_observer_status_probe(63 downto 13) <= (others => '0');
 
   -- Diagnostic only: count SoftPLL DAC update requests.  The counters are
   -- readable through the existing 64-bit JTAG probe and do not drive pins.
@@ -1135,6 +1167,36 @@ begin
     )
     port map (
       probe      => global_time_live_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_tx_comma_counter_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP6_TX_COMMA_COUNTER_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 65,
+      source_width            => 1
+    )
+    port map (
+      probe      => tx_comma_probe,
+      source     => open,
+      source_clk => CLK_50_B2J,
+      source_ena => '1'
+    );
+
+  u_tx_observer_status_probe : altsource_probe
+    generic map (
+      instance_id             => "WR_STEP6_TX_OBSERVER_STATUS_MASTER",
+      probe_width             => 64,
+      sld_auto_instance_index => "NO",
+      sld_instance_index      => 66,
+      source_width            => 1
+    )
+    port map (
+      probe      => tx_observer_status_probe,
       source     => open,
       source_clk => CLK_50_B2J,
       source_ena => '1'

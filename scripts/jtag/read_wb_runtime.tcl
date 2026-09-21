@@ -14,6 +14,9 @@
 
 package require ::quartus::insystem_source_probe
 
+if {![info exists ::wb_library_mode]} {
+  set ::wb_library_mode 0
+}
 set ::wb_toggle 0
 array set ::snap {}
 array set ::board_name {}
@@ -1706,6 +1709,7 @@ proc print_raw_snapshot {board label} {
   }
 }
 
+if {!$::wb_library_mode} {
 foreach hardware_name [get_hardware_names] {
   set device_names [get_device_names -hardware_name $hardware_name]
   if {[llength $device_names] == 0} { continue }
@@ -1785,4 +1789,5 @@ if {$::step4_master_name ne "" || [array size ::step4b_result] > 0} {
     puts [format "STEP5_FIRST_INACTIVE_BOUNDARY = %s" $::step5_boundary($board)]
   }
   puts "============================================================"
+}
 }

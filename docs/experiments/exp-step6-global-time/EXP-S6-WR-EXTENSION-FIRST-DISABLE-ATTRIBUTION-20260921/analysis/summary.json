@@ -1,0 +1,42 @@
+{
+  "experiment": "EXP-S6-WR-EXTENSION-FIRST-DISABLE-ATTRIBUTION",
+  "source_commit": "5b1ce7f1",
+  "programming": "NOT_PERFORMED_BY_DESIGN",
+  "power_cycle": "NOT_PERFORMED_BY_DESIGN",
+  "sample_count": 3,
+  "board_count": 1,
+  "board": "DE5 [1-11.2]",
+  "transport": {
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "stale_count": 0,
+    "unstable_count": 0
+  },
+  "classification": "PASS_HANDSHAKE_WR_S_LOCK_TIMEOUT",
+  "wr_extension_disable_attribution": "PASS",
+  "step6a": "NOT_PASS",
+  "step6b_trigger_run": false,
+  "first_disable": {
+    "valid": 1,
+    "cause": 2,
+    "cause_name": "HANDSHAKE_FAILURE",
+    "ptp_state_at_disable": 8,
+    "failure_reason": 3,
+    "failure_reason_name": "WR_S_LOCK_TIMEOUT",
+    "pre_disable_pd_state": 3,
+    "pre_disable_pd_state_name": "PDETECTED",
+    "pre_disable_ext_state": 1,
+    "pre_disable_ext_state_name": "ACTIVE",
+    "current_pd_state": 4,
+    "current_pd_state_name": "FAILURE",
+    "current_ext_state": 2,
+    "current_ext_state_name": "PTP"
+  },
+  "stability": {
+    "handshake_failure_streak_max": 3,
+    "record_changed": false,
+    "reset_changed": false,
+    "transport_valid": true
+  },
+  "stop_reason": "PASS_HANDSHAKE_WR_S_LOCK_TIMEOUT"
+}

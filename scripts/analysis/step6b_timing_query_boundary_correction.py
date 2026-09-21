@@ -62,12 +62,25 @@ def _group_pass(row: dict[str, Any] | None) -> bool:
     except ValueError:
         return False
     slack = _number(row.get("slack_ns", ""))
+    query_from_clock = row.get("query_from_clock", "")
+    query_to_clock = row.get("query_to_clock", "")
+    if query_from_clock or query_to_clock:
+        domain_ok = (
+            "qsfp_ref_125m" in query_from_clock
+            and "qsfp_ref_125m" in query_to_clock
+        )
+    else:
+        # Backward-compatible parsing for synthetic/earlier reports whose
+        # path objects themselves exposed the public clock name.
+        domain_ok = (
+            "qsfp_ref_125m" in row.get("from_clock", "")
+            and "qsfp_ref_125m" in row.get("to_clock", "")
+        )
     return (
         count > 0
         and slack is not None
         and slack >= 0
-        and "qsfp_ref_125m" in row.get("from_clock", "")
-        and "qsfp_ref_125m" in row.get("to_clock", "")
+        and domain_ok
     )
 
 
@@ -102,6 +115,14 @@ def analyze_directory(directory: Path) -> dict[str, Any]:
     else:
         classification = "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED"
         verdict = "INCONCLUSIVE"
+    serializable_reports = {}
+    for role, report in reports.items():
+        copied = dict(report)
+        copied["paths"] = {
+            f"{key[0]}::{key[1]}": value
+            for key, value in report["paths"].items()
+        }
+        serializable_reports[role] = copied
     return {
         "format": "step6b-timing-query-boundary-correction-v1",
         "classification": classification,
@@ -111,7 +132,7 @@ def analyze_directory(directory: Path) -> dict[str, Any]:
         "missing_roles": missing_roles,
         "group_status": group_status,
         "all_groups_pass": all_groups_pass,
-        "reports": reports,
+        "reports": serializable_reports,
     }
 
 

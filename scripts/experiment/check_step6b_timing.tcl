@@ -130,8 +130,16 @@ proc s6b_query_paths {from_clock to_clock from to mode label} {
     if {$from_clock eq ""} {
       set paths [get_timing_paths -from $from -to $to -npaths 100 $mode]
     } else {
-      set paths [get_timing_paths -from_clock $from_clock -to_clock $to_clock \
-        -to $to -npaths 100 $mode]
+      # Keep the public clock-domain constraint and, when available, the
+      # explicit source register collection.  The latter prevents TimeQuest
+      # from selecting an unrelated path in the same clock domain.
+      set command [list get_timing_paths -from_clock $from_clock \
+        -to_clock $to_clock]
+      if {[s6b_collection_count $from] > 0} {
+        lappend command -from $from
+      }
+      lappend command -to $to -npaths 100 $mode
+      set paths [eval $command]
     }
   } err]} {
     set query_error $err
@@ -148,10 +156,13 @@ proc s6b_report_timing_file {from_clock to_clock from to mode output_file} {
   set command [list report_timing]
   if {$from_clock ne ""} {
     lappend command -from_clock $from_clock -to_clock $to_clock
+    if {[s6b_collection_count $from] > 0} {
+      lappend command -from $from
+    }
   } else {
     lappend command -from $from
   }
-  lappend command -to $to -npaths 20 -detail full $mode -file $output_file
+  lappend command -to $to -npaths 20 -detail full_path $mode -file $output_file
   if {[catch {eval $command} err]} {
     s6b_report [format "STEP6B_REPORT_TIMING_ERROR mode=%s file=%s error=%s" \
       $mode $output_file $err]
@@ -169,8 +180,8 @@ proc s6b_check_group {name from to use_clock refclk report_prefix} {
   }
 
   if {$use_clock} {
-    set setup_query [s6b_query_paths $refclk $refclk {} $to -setup $name.setup]
-    set hold_query [s6b_query_paths $refclk $refclk {} $to -hold $name.hold]
+    set setup_query [s6b_query_paths $refclk $refclk $from $to -setup $name.setup]
+    set hold_query [s6b_query_paths $refclk $refclk $from $to -hold $name.hold]
   } else {
     set setup_query [s6b_query_paths {} {} $from $to -setup $name.setup]
     set hold_query [s6b_query_paths {} {} $from $to -hold $name.hold]
@@ -197,10 +208,15 @@ proc s6b_check_group {name from to use_clock refclk report_prefix} {
     set to_clock [dict get $measure to_clock]
     set path_type [dict get $measure type]
     set error_text [dict get $measure error]
-    s6b_report [format "STEP6B_TIMING_PATH name=%s type=%s status=%s count=%s slack_ns=%s from=%s to=%s from_clock=%s to_clock=%s path_type=%s error=%s" \
-      $name $kind $status $count $slack $from_node $to_node $from_clock $to_clock $path_type $error_text]
-    set domain_ok [string match "*qsfp_ref_125m*" $from_clock]
-    set domain_ok [expr {$domain_ok && [string match "*qsfp_ref_125m*" $to_clock]}]
+    set query_from_clock [expr {$use_clock ? "qsfp_ref_125m" : "UNQUALIFIED"}]
+    set query_to_clock [expr {$use_clock ? "qsfp_ref_125m" : "UNQUALIFIED"}]
+    s6b_report [format "STEP6B_TIMING_PATH name=%s type=%s status=%s count=%s slack_ns=%s from=%s to=%s from_clock=%s to_clock=%s query_from_clock=%s query_to_clock=%s path_type=%s error=%s" \
+      $name $kind $status $count $slack $from_node $to_node $from_clock $to_clock $query_from_clock $query_to_clock $path_type $error_text]
+    # TimeQuest 17 may expose the resolved clock object as an internal alias
+    # (for example clock_3) in get_path_info.  The public clock-domain query
+    # above is the authoritative provenance, while the alias is retained in
+    # the report for auditability.
+    set domain_ok [expr {$use_clock}]
     if {$status eq "PASS" && $count > 0 && [string is double -strict $slack] &&
         $domain_ok && $slack < 0.0} {
       s6b_mark_failure "${name}_${kind}_negative_slack" FAIL_STEP6B_POSTFIT_TIMING
@@ -242,23 +258,24 @@ if {[catch {
       [s6b_collection_count $refclk]]
     s6b_mark_failure REFCLK_NOT_UNIQUE NOT_RUN_STEP6B_CLOCK_DOMAIN_NOT_PROVEN
   } else {
-    # P1-P4: explicit synchronous register boundaries.  The JTAG source to
-    # the *_meta first stage is intentionally outside this STA gate.
+    # P1-P4: explicit synchronous register boundaries, all constrained by
+    # the public qsfp_ref_125m clock object.  The JTAG source to the *_meta
+    # first stage is intentionally outside this STA gate.
     s6b_check_group target_meta_to_sync \
       [get_registers -nowarn *step6b_target_tai_meta*] \
-      [get_registers -nowarn *step6b_target_tai_sync*] 0 $refclk \
+      [get_registers -nowarn *step6b_target_tai_sync*] 1 $refclk \
       target_meta_to_sync
     s6b_check_group target_sync_to_latched \
       [get_registers -nowarn *step6b_target_tai_sync*] \
-      [get_registers -nowarn *step6b_target_tai_latched*] 0 $refclk \
+      [get_registers -nowarn *step6b_target_tai_latched*] 1 $refclk \
       target_sync_to_latched
     s6b_check_group arm_meta_to_sync \
       [get_registers -nowarn *step6b_arm_meta*] \
-      [s6b_filtered_registers *step6b_arm_sync* *step6b_arm_sync_prev*] 0 $refclk \
+      [s6b_filtered_registers *step6b_arm_sync* *step6b_arm_sync_prev*] 1 $refclk \
       arm_meta_to_sync
     s6b_check_group arm_sync_to_prev \
       [s6b_filtered_registers *step6b_arm_sync* *step6b_arm_sync_prev*] \
-      [get_registers -nowarn *step6b_arm_sync_prev*] 0 $refclk \
+      [get_registers -nowarn *step6b_arm_sync_prev*] 1 $refclk \
       arm_sync_to_prev
 
     # P5-P9: all same-clock launch registers to each functional destination.

@@ -11,19 +11,24 @@
 
 package require ::quartus::insystem_source_probe
 
+if {![info exists ::wf_library_only]} {
+  set ::wf_library_only 0
+}
 set ::wf_trial_id "EXP-S6-WR-EXTENSION-FALLBACK-TERMINAL-LIVENESS-20260922"
 set ::wf_preflight_samples 5
 set ::wf_gap_ms 250
 set ::wf_duration_ms 15000
 set ::wf_capture_gap_ms 350
-if {[llength $argv] >= 1} { set ::wf_trial_id [lindex $argv 0] }
-if {[llength $argv] >= 2} { set ::wf_preflight_samples [expr {int([lindex $argv 1])}] }
-if {[llength $argv] >= 3} { set ::wf_gap_ms [expr {int([lindex $argv 2])}] }
-if {[llength $argv] >= 4} { set ::wf_duration_ms [expr {int([lindex $argv 3])}] }
-if {[llength $argv] >= 5} { set ::wf_capture_gap_ms [expr {int([lindex $argv 4])}] }
-if {$::wf_preflight_samples <= 0 || $::wf_gap_ms < 0 ||
-    $::wf_duration_ms <= 0 || $::wf_capture_gap_ms < 0} {
-  error "invalid preflight, gap, duration, or capture-gap argument"
+if {!$::wf_library_only} {
+  if {[llength $argv] >= 1} { set ::wf_trial_id [lindex $argv 0] }
+  if {[llength $argv] >= 2} { set ::wf_preflight_samples [expr {int([lindex $argv 1])}] }
+  if {[llength $argv] >= 3} { set ::wf_gap_ms [expr {int([lindex $argv 2])}] }
+  if {[llength $argv] >= 4} { set ::wf_duration_ms [expr {int([lindex $argv 3])}] }
+  if {[llength $argv] >= 5} { set ::wf_capture_gap_ms [expr {int([lindex $argv 4])}] }
+  if {$::wf_preflight_samples <= 0 || $::wf_gap_ms < 0 ||
+      $::wf_duration_ms <= 0 || $::wf_capture_gap_ms < 0} {
+    error "invalid preflight, gap, duration, or capture-gap argument"
+  }
 }
 
 set ::wb_library_mode 1
@@ -65,6 +70,35 @@ proc wf_activity_count {value} {
   set high [probe_high32 $value]
   if {$high < 0} { return -1 }
   return [expr {$high & 0xffff}]
+}
+
+proc wf_live_fields {live} {
+  if {![wf_raw_valid $live]} { return [list -1 -1] }
+  set normalized [normalize_probe64 $live]
+  scan [string range $normalized 0 7] %x high
+  scan [string range $normalized 8 15] %x low
+  set tai_lo [expr {(($high & 0x0000000F) << 32) | $low}]
+  set cycles [expr {($high >> 4) & 0x0FFFFFFF}]
+  return [list $tai_lo $cycles]
+}
+
+proc wf_snapshot_fields {word0 word1} {
+  if {![wf_raw_valid $word0] || ![wf_raw_valid $word1]} {
+    return [list -1 -1 -1 -1 -1 -1]
+  }
+  set low0 [word32 $word0]
+  set high0 [probe_high32 $word0]
+  set low1 [word32 $word1]
+  if {$low0 < 0 || $high0 < 0 || $low1 < 0} {
+    return [list -1 -1 -1 -1 -1 -1]
+  }
+  set tai [expr {(($high0 & 0xff) << 32) | $low0}]
+  set cycles [expr {($high0 & 0x00ffffff) | (($low1 & 0xf) << 24)}]
+  set time_valid [expr {($low1 >> 4) & 1}]
+  set pps_valid [expr {($low1 >> 5) & 1}]
+  set snapshot_valid [expr {($low1 >> 6) & 1}]
+  set count [expr {($low1 >> 7) & 0xffff}]
+  return [list $tai $cycles $time_valid $pps_valid $snapshot_valid $count]
 }
 
 proc wf_ptp_fields {value} {
@@ -126,6 +160,10 @@ proc wf_capture {hardware_name role sample elapsed_ms} {
   set status [safe_probe_read 0]
   set entry [safe_probe_read 26]
   set reset [safe_probe_read 27]
+  set global_live [safe_probe_read 64]
+  set global_word1_before [safe_probe_read 63]
+  set global_word0 [safe_probe_read 62]
+  set global_word1_after [safe_probe_read 63]
 
   # Existing source-backed read-only diagnostic shadows.
   set ptp [wb_read 0x00100A10]
@@ -177,6 +215,13 @@ proc wf_capture {hardware_name role sample elapsed_ms} {
   set main_word [word32 $main_state]
   set ptp_rx_word [word32 $ptp_rx]
   set ptp_tx_word [word32 $ptp_tx]
+
+  lassign [wf_live_fields $global_live] global_live_tai_lo global_live_cycles
+  lassign [wf_snapshot_fields $global_word0 $global_word1_after] \
+    global_snapshot_tai global_snapshot_cycles \
+    global_snapshot_time_valid global_snapshot_pps_valid \
+    global_snapshot_valid global_snapshot_count
+  set global_snapshot_stable [expr {$global_word1_before eq $global_word1_after ? 1 : 0}]
 
   lassign [wf_ptp_fields $ptp_meta] ptp_state pd_state ext_state wrc_mode
   set servo_state [expr {$sstat_word < 0 ? -1 : (($sstat_word >> 8) & 0xf)}]
@@ -232,7 +277,8 @@ proc wf_capture {hardware_name role sample elapsed_ms} {
       $activity_end_value >= 0 && $activity_start_value != $activity_end_value}]
 
   set read_valid 1
-  foreach value [list $activity_start $status $entry $reset $ptp $ptp_meta $sstat \
+  foreach value [list $activity_start $status $entry $reset $global_live \
+      $global_word1_before $global_word0 $global_word1_after $ptp $ptp_meta $sstat \
       $wr_failure $lock_result $wr_state $wr_rx_signal $wr_tx_signal \
       $lock_polls $lock_unlocked $lock_calib_fail $lock_enable $spll_state \
       $pstat $helper_state $main_state $ptp_rx $ptp_tx $slock_magic $slock_stage \
@@ -313,6 +359,18 @@ proc wf_capture {hardware_name role sample elapsed_ms} {
     STATUS_PHY_TX_DISABLE $status_tx_disable RX_LOCKED_TO_DATA $rx_locked \
     RX_PATTERN_READY $rx_pattern_ready RX_ACTIVITY_START $activity_start_value \
     RX_ACTIVITY_COUNT $activity_end_value RX_ACTIVITY_CHANGED $activity_changed \
+    GLOBAL_TIME_LIVE_RAW [wf_probe64 $global_live] \
+    GLOBAL_TIME_LIVE_TAI_LO $global_live_tai_lo \
+    GLOBAL_TIME_LIVE_CYCLES $global_live_cycles \
+    GLOBAL_TIME_SNAPSHOT_RAW0 [wf_probe64 $global_word0] \
+    GLOBAL_TIME_SNAPSHOT_RAW1_BEFORE [wf_probe64 $global_word1_before] \
+    GLOBAL_TIME_SNAPSHOT_RAW1_AFTER [wf_probe64 $global_word1_after] \
+    GLOBAL_TIME_SNAPSHOT_STABLE $global_snapshot_stable \
+    GLOBAL_TIME_SNAPSHOT_VALID $global_snapshot_valid \
+    GLOBAL_TIME_SNAPSHOT_TIME_VALID $global_snapshot_time_valid \
+    GLOBAL_TIME_SNAPSHOT_PPS_VALID $global_snapshot_pps_valid \
+    GLOBAL_TIME_SNAPSHOT_COUNT $global_snapshot_count \
+    GLOBAL_TIME_TAI $global_snapshot_tai GLOBAL_TIME_CYCLES $global_snapshot_cycles \
     WDIAGS_PTP_META [wf_probe64 $ptp_meta] WRC_MODE $wrc_mode \
     PTP_STATE $ptp_state PD_STATE $pd_state EXT_STATE $ext_state \
     WDIAGS_SSTAT [wf_probe64 $sstat] SERVO_STATE $servo_state \
@@ -371,6 +429,53 @@ proc wf_collect {hardware_name role sample elapsed_ms} {
   return $snapshot
 }
 
+# The recovery experiment is the sole exception to this observer's normal
+# read-only behavior.  It uses the same validated HOST_TDR Wishbone path as
+# the earlier VUART experiments, with a preload/commit transaction so the
+# write is not mistaken for a read-side toggle.
+proc wf_wb_write {addr data} {
+  set preload_toggle $::wb_toggle
+  set base [expr {(1 << 1) | (0xf << 2) |
+      (($addr & 0xffffffff) << 6) |
+      (($data & 0xffffffff) << 38)}]
+  set preload_cmd [expr {$preload_toggle | $base}]
+  if {[catch {
+    write_source_data -instance_index 1 \
+      -value [format %024X $preload_cmd] -value_in_hex
+  }]} { return 0 }
+  after 2
+
+  set expected_toggle [expr {(($preload_toggle ^ 1) & 1)}]
+  set ::wb_toggle $expected_toggle
+  set commit_cmd [expr {$expected_toggle | $base}]
+  if {[catch {
+    write_source_data -instance_index 1 \
+      -value [format %024X $commit_cmd] -value_in_hex
+  }]} { return 0 }
+  after 5
+  for {set attempt 0} {$attempt < 100} {incr attempt} {
+    set value [wb_probe_read]
+    if {[completion_probe_valid $value $expected_toggle]} { return 1 }
+    after 1
+  }
+  return 0
+}
+
+proc wf_send_vuart {hardware_name command label} {
+  set index 0
+  set ok 1
+  foreach character [split $command ""] {
+    scan $character %c byte
+    set result [wf_wb_write 0x00100510 $byte]
+    puts [format "S6_PTP_RESTART_VUART board=%s action=%s index=%02d BYTE=0x%02X WB_RESULT=%d" \
+      $hardware_name $label $index $byte $result]
+    flush stdout
+    if {!$result} { set ok 0 }
+    incr index
+  }
+  return $ok
+}
+
 proc wf_emit {prefix pairs} {
   set tokens [list $prefix]
   foreach {key value} $pairs {
@@ -403,6 +508,7 @@ proc wf_reentry {snapshot role} {
   return 0
 }
 
+if {!$::wf_library_only} {
 set ::wf_master_hardware ""
 set ::wf_slave_hardware ""
 foreach hardware_name [get_hardware_names] {
@@ -510,3 +616,4 @@ puts [format "WR_FALLBACK_LIVENESS_CAPTURE_RESULT=%s SAMPLES=%d ELAPSED_MS=%d" \
   $result $phase_sample [expr {[clock milliseconds] - $phase_begin_ms}]]
 puts [format "WR_FALLBACK_LIVENESS_DONE result=%s phase=observation" $result]
 flush stdout
+}

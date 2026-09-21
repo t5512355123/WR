@@ -104,7 +104,10 @@ def _board_result(rows: list[dict[str, Any]]) -> dict[str, Any]:
         and _int(row, "ESCR_TM_VALID") == 1
         and _int(row, "STATUS_TIME_VALID") == 1
         and _int(row, "STATUS_PPS_VALID") == 1
-        and _int(row, "STEP5_LOCKED") == 1
+        # The Master reference gate is Global-Time/transport health; the
+        # Slave recovery gate additionally requires the existing Step5 locks.
+        # This mirrors the advice's separate Master and Slave stop criteria.
+        and (role != "SLAVE" or _int(row, "STEP5_LOCKED") == 1)
         and _int(row, "BOOT_CHANGED") == 0
         and _int(row, "RESET_CHANGED") == 0
     ]

@@ -1,0 +1,48 @@
+{
+  "experiment": "EXP-S6-SLAVE-TMVALID-SOURCE-ATTRIBUTION",
+  "source_commit": "7c704b23",
+  "programming": "NOT_PERFORMED_BY_DESIGN",
+  "power_cycle": "NOT_PERFORMED_BY_DESIGN",
+  "sample_count": 163,
+  "board_count": 2,
+  "transport": {
+    "timeout_count": 0,
+    "invalid_count": 0,
+    "stale_count": 0,
+    "unstable_count": 0
+  },
+  "boards": {
+    "DE5 [1-11.1]": {
+      "role": "MASTER",
+      "classification": "MASTER_REFERENCE_PASS",
+      "diagnostic_pass": true,
+      "sample_count": 153,
+      "recovery_streak_max": 153,
+      "snapshot_delta_first_to_last": 180,
+      "reset_seen": false,
+      "stop_reason": "TIME_LIMIT_OR_CAPTURE_END"
+    },
+    "DE5 [1-11.2]": {
+      "role": "SLAVE",
+      "classification": "FAIL_PTP_SERVO_NOT_COMPLETE",
+      "diagnostic_pass": true,
+      "sample_count": 10,
+      "recovery_streak_max": 0,
+      "ptp_servo_streak_max": 10,
+      "mapping_streak_max": 0,
+      "timing_output_streak_max": 0,
+      "snapshot_delta_first_to_last": 0,
+      "first_escr_tm_valid": 0,
+      "last_escr_tm_valid": 0,
+      "first_status_time_valid": 0,
+      "last_status_time_valid": 0,
+      "last_ptp_state": 9,
+      "last_servo_state": 0,
+      "reset_seen": false,
+      "stop_reason": "FAIL_PTP_SERVO_NOT_COMPLETE"
+    }
+  },
+  "tmvalid_attribution": "PASS",
+  "step6a_slave_global_time": "NOT_PASS",
+  "step6b_trigger_run": false
+}

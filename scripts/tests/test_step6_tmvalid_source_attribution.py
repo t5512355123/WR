@@ -93,3 +93,23 @@ def test_slave_recovery_passes_with_stable_valid_and_two_snapshots() -> None:
 def test_step6b_is_never_claimed_by_attribution() -> None:
     result = MODULE.analyze_text(_row(0))
     assert result["step6b_trigger_run"] is False
+
+
+def test_master_reference_pass_does_not_require_slave_servo_or_step5_flags() -> None:
+    text = "\n".join(
+        _row(
+            i,
+            board="DE5 [1-11.1]",
+            ptp=6,
+            servo=0,
+            tm_valid=1,
+            status_time=1,
+            snapshot=100 + i,
+            step5=0,
+            ucnt_inc=0,
+        )
+        for i in range(12)
+    )
+    result = MODULE.analyze_text(text)
+    board = result["boards"]["DE5 [1-11.1]"]
+    assert board["classification"] == "MASTER_REFERENCE_PASS"

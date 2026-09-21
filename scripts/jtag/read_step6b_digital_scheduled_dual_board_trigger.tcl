@@ -12,7 +12,7 @@ set ::wf_library_only 1
 source [file join [file dirname [info script]] \
   read_step6_wr_extension_fallback_terminal_liveness.tcl]
 
-set ::s6b_trial_id "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922"
+set ::s6b_trial_id "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922"
 set ::s6b_prearm_timeout_ms 60000
 set ::s6b_prearm_gap_ms 350
 set ::s6b_target_settle_ms 150
@@ -31,6 +31,7 @@ if {$::s6b_prearm_timeout_ms <= 0 || $::s6b_prearm_gap_ms < 0 ||
 }
 
 array set ::s6b_baseline_reset {}
+set ::s6b_ptp_restart_used 0
 
 proc s6b_u40 {value} {
   if {![wf_raw_valid $value]} { return -1 }
@@ -173,6 +174,7 @@ proc s6b_capture {hardware_name role sample elapsed_ms} {
       $status_pps_valid == 1 && $snapshot_accepted}]
   set terminal_fallback [expr {$role eq "SLAVE" && $read_valid &&
       $capture_healthy && $rx_pattern_ready == 1 && $spll_seq == 8 &&
+      $pstat_locked == 1 && $main_locked == 1 &&
       $ptp_state == 9 && $pd_state == 4 && $ext_state == 2 &&
       $wr_state_value == 0 && $status_time_valid == 0}]
 
@@ -262,6 +264,36 @@ proc s6b_write_source {hardware_name role index value width} {
   return $ok
 }
 
+proc s6b_restart_slave_ptp {hardware_name} {
+  if {$::s6b_ptp_restart_used} { return 0 }
+  set stop_ok 0
+  if {[catch {
+    s6b_open_board $hardware_name
+    set stop_ok [wf_send_vuart $hardware_name "ptp stop\n" STEP6B_STOP]
+  }]} { set stop_ok 0 }
+  catch {end_insystem_source_probe}
+
+  set start_ok 0
+  if {$stop_ok} {
+    after 100
+    if {[catch {
+      s6b_open_board $hardware_name
+      set start_ok [wf_send_vuart $hardware_name "ptp start\n" STEP6B_START]
+    }]} { set start_ok 0 }
+    catch {end_insystem_source_probe}
+  }
+  if {$stop_ok && $start_ok} {
+    set ::s6b_ptp_restart_used 1
+    puts "S6B_TERMINAL_FALLBACK_RECOVERY=PASS SLAVE_PTP_STOP_COUNT=1 SLAVE_PTP_START_COUNT=1 MASTER_PTP_RESTART_COUNT=0"
+    flush stdout
+    return 1
+  }
+  puts [format "S6B_TERMINAL_FALLBACK_RECOVERY=INCONCLUSIVE_COMMAND_TRANSPORT SLAVE_PTP_STOP_COUNT=%d SLAVE_PTP_START_COUNT=%d MASTER_PTP_RESTART_COUNT=0" \
+    [expr {$stop_ok ? 1 : 0}] [expr {$start_ok ? 1 : 0}]]
+  flush stdout
+  return 0
+}
+
 proc s6b_snapshot_map_update {role snapshot} {
   if {$snapshot eq ""} { return 0 }
   array set row $snapshot
@@ -328,7 +360,7 @@ proc s6b_run {} {
     error "both DE5a targets are required"
   }
 
-  puts [format "S6B_CONFIG trial=%s target_cycles=%d target_source_index=67 arm_source_index=68 latch_probe_index=69 actual_tai_probe_index=70 actual_cycles_probe_index=71 prearm_timeout_ms=%d prearm_gap_ms=%d target_settle_ms=%d arm_settle_ms=%d capture_gap_ms=%d observe_timeout_ms=%d MASTER_COMPILE=1 SLAVE_COMPILE=1 FIRMWARE_BUILD=0 MASTER_PROGRAM=1 SLAVE_PROGRAM=1 POWER_CYCLE=0 CPU_RESET=0 WR_CORE_RESET=0 PTP_RESTART=0 SMA_CLKOUT_CHANGED=0" \
+  puts [format "S6B_CONFIG trial=%s target_cycles=%d target_source_index=67 arm_source_index=68 latch_probe_index=69 actual_tai_probe_index=70 actual_cycles_probe_index=71 prearm_timeout_ms=%d prearm_gap_ms=%d target_settle_ms=%d arm_settle_ms=%d capture_gap_ms=%d observe_timeout_ms=%d MASTER_COMPILE=0 SLAVE_COMPILE=0 FIRMWARE_BUILD=0 MASTER_PROGRAM=1 SLAVE_PROGRAM=1 POWER_CYCLE=0 CPU_RESET=0 WR_CORE_RESET=0 PTP_RESTART=CONDITIONAL_SLAVE_ONLY SMA_CLKOUT_CHANGED=0" \
     $::s6b_trial_id $::s6b_target_cycles $::s6b_prearm_timeout_ms \
     $::s6b_prearm_gap_ms $::s6b_target_settle_ms $::s6b_arm_settle_ms \
     $::s6b_capture_gap_ms $::s6b_observe_timeout_ms]
@@ -342,45 +374,75 @@ proc s6b_run {} {
   set sample 0
   set prearm_ok 0
   set terminal_fallback 0
-  while {[clock milliseconds] - $gate_start <= $::s6b_prearm_timeout_ms} {
-    set elapsed [expr {[clock milliseconds] - $gate_start}]
-    set master [s6b_collect $master_hardware MASTER $sample $elapsed]
-    set slave [s6b_collect $slave_hardware SLAVE $sample $elapsed]
-    s6b_emit_board_samples $master $slave S6B_PREARM_SAMPLE
-    if {$master ne "" && $slave ne ""} {
-      array set m $master
-      array set s $slave
-      s6b_snapshot_map_update MASTER $master
-      s6b_snapshot_map_update SLAVE $slave
-      set master_good [expr {$m(PREARM_HEALTHY) == 1}]
-      set slave_good [expr {$s(PREARM_HEALTHY) == 1}]
-      if {$m(TERMINAL_FALLBACK) == 1 || $s(TERMINAL_FALLBACK) == 1} {
-        set terminal_fallback 1
+  set prearm_attempt 0
+  set last_master {}
+  set last_slave {}
+  while {$prearm_attempt < 2 && !$prearm_ok} {
+    set gate_start [clock milliseconds]
+    set sample 0
+    set gate_pairs 0
+    set terminal_fallback 0
+    array unset ::s6b_master_by_tai *
+    array unset ::s6b_slave_by_tai *
+    set ::s6b_coherence_violation 0
+    while {[clock milliseconds] - $gate_start <= $::s6b_prearm_timeout_ms} {
+      set elapsed [expr {[clock milliseconds] - $gate_start}]
+      set master [s6b_collect $master_hardware MASTER $sample $elapsed]
+      set slave [s6b_collect $slave_hardware SLAVE $sample $elapsed]
+      set last_master $master
+      set last_slave $slave
+      s6b_emit_board_samples $master $slave S6B_PREARM_SAMPLE
+      if {$master ne "" && $slave ne ""} {
+        array set m $master
+        array set s $slave
+        s6b_snapshot_map_update MASTER $master
+        s6b_snapshot_map_update SLAVE $slave
+        set master_good [expr {$m(PREARM_HEALTHY) == 1}]
+        set slave_good [expr {$s(PREARM_HEALTHY) == 1}]
+        if {$m(TERMINAL_FALLBACK) == 1 || $s(TERMINAL_FALLBACK) == 1} {
+          set terminal_fallback 1
+        }
+        if {$master_good && $slave_good && !$m(RESET_CHANGED) &&
+            !$s(RESET_CHANGED)} { incr gate_pairs }
+        set common [s6b_common_tais]
+        s6b_emit S6B_PREARM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+          READ_VALID 1 MASTER_GATE $master_good SLAVE_GATE $slave_good \
+          MASTER_TAI $m(SNAPSHOT_TAI) SLAVE_TAI $s(SNAPSHOT_TAI) \
+          MASTER_CYCLES $m(SNAPSHOT_CYCLES) SLAVE_CYCLES $s(SNAPSHOT_CYCLES) \
+          COMMON_TAI_COUNT [llength $common] COHERENCE_VIOLATION $::s6b_coherence_violation]
+        if {$gate_pairs >= 5 && [llength $common] >= 3 &&
+            !$::s6b_coherence_violation} {
+          set prearm_ok 1
+          break
+        }
+      } else {
+        s6b_emit S6B_PREARM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+          READ_VALID 0 MASTER_GATE 0 SLAVE_GATE 0 COMMON_TAI_COUNT 0]
       }
-      if {$master_good && $slave_good && !$m(RESET_CHANGED) &&
-          !$s(RESET_CHANGED)} { incr gate_pairs }
-      set common [s6b_common_tais]
-      s6b_emit S6B_PREARM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
-        READ_VALID 1 MASTER_GATE $master_good SLAVE_GATE $slave_good \
-        MASTER_TAI $m(SNAPSHOT_TAI) SLAVE_TAI $s(SNAPSHOT_TAI) \
-        MASTER_CYCLES $m(SNAPSHOT_CYCLES) SLAVE_CYCLES $s(SNAPSHOT_CYCLES) \
-        COMMON_TAI_COUNT [llength $common] COHERENCE_VIOLATION $::s6b_coherence_violation]
-      if {$gate_pairs >= 5 && [llength $common] >= 3 &&
-          !$::s6b_coherence_violation} {
-        set prearm_ok 1
-        break
-      }
-    } else {
-      s6b_emit S6B_PREARM_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
-        READ_VALID 0 MASTER_GATE 0 SLAVE_GATE 0 COMMON_TAI_COUNT 0]
+      incr sample
+      after $::s6b_prearm_gap_ms
     }
-    incr sample
-    after $::s6b_prearm_gap_ms
+    if {$prearm_ok} { break }
+    if {$terminal_fallback && !$::s6b_ptp_restart_used} {
+      puts "S6B_TERMINAL_FALLBACK_SIGNATURE=PASS"
+      flush stdout
+      if {![s6b_restart_slave_ptp $slave_hardware]} {
+        puts "S6B_GATE_RESULT=INCONCLUSIVE_TERMINAL_FALLBACK_RECOVERY_COMMAND"
+        puts "S6B_DONE result=INCONCLUSIVE_TERMINAL_FALLBACK_RECOVERY_COMMAND phase=prearm"
+        flush stdout
+        return
+      }
+      incr prearm_attempt
+    } else {
+      break
+    }
   }
 
   if {!$prearm_ok} {
     set result INCONCLUSIVE_STEP6A_PRECONDITION_NOT_RECOVERED
-    if {$terminal_fallback} { set result INCONCLUSIVE_TERMINAL_FALLBACK_RECOVERY_REQUIRED }
+    if {$terminal_fallback && !$::s6b_ptp_restart_used} {
+      set result INCONCLUSIVE_TERMINAL_FALLBACK_RECOVERY_REQUIRED
+    }
     if {$::s6b_coherence_violation} { set result INCONCLUSIVE_SNAPSHOT_COHERENCE_VIOLATION }
     puts [format "S6B_GATE_RESULT=%s PAIRED_HEALTHY=%d COMMON_TAI_COUNT=%d COHERENCE_VIOLATION=%d" \
       $result $gate_pairs [llength [s6b_common_tais]] $::s6b_coherence_violation]
@@ -396,15 +458,47 @@ proc s6b_run {} {
     $gate_pairs [llength $common] $t0]
   flush stdout
 
-  foreach board [list [list $master_hardware MASTER] [list $slave_hardware SLAVE]] {
-    lassign $board hardware role
-    if {![s6b_write_source $hardware $role 68 0 1]} {
-      puts "S6B_TARGET_SETUP_RESULT=INCONCLUSIVE_SOURCE_WRITE_FAILURE"
-      puts "S6B_DONE result=INCONCLUSIVE_SOURCE_WRITE_FAILURE phase=target_setup"
-      flush stdout
-      return
+  set initial_state_ok 1
+  foreach snapshot [list $last_master $last_slave] {
+    if {$snapshot eq ""} {
+      set initial_state_ok 0
+      continue
+    }
+    array set row $snapshot
+    if {$row(STEP6B_ARM_SOURCE) != 0 || $row(STEP6B_FIRED) != 0 ||
+        $row(STEP6B_FIRE_COUNT) != 0} {
+      set initial_state_ok 0
     }
   }
+  set initial_result [expr {$initial_state_ok ? "PASS" : "INCONCLUSIVE_STEP6B_INITIAL_STATE_INVALID"}]
+  set initial_master_arm NA
+  set initial_slave_arm NA
+  set initial_master_fired NA
+  set initial_slave_fired NA
+  set initial_master_count NA
+  set initial_slave_count NA
+  if {$last_master ne ""} {
+    array set initial_m $last_master
+    set initial_master_arm $initial_m(STEP6B_ARM_SOURCE)
+    set initial_master_fired $initial_m(STEP6B_FIRED)
+    set initial_master_count $initial_m(STEP6B_FIRE_COUNT)
+  }
+  if {$last_slave ne ""} {
+    array set initial_s $last_slave
+    set initial_slave_arm $initial_s(STEP6B_ARM_SOURCE)
+    set initial_slave_fired $initial_s(STEP6B_FIRED)
+    set initial_slave_count $initial_s(STEP6B_FIRE_COUNT)
+  }
+  puts [format "S6B_INITIAL_STATE_RESULT=%s MASTER_ARM_SOURCE=%s SLAVE_ARM_SOURCE=%s MASTER_FIRED=%s SLAVE_FIRED=%s MASTER_FIRE_COUNT=%s SLAVE_FIRE_COUNT=%s" \
+    $initial_result $initial_master_arm $initial_slave_arm $initial_master_fired \
+    $initial_slave_fired $initial_master_count $initial_slave_count]
+  flush stdout
+  if {!$initial_state_ok} {
+    puts "S6B_DONE result=INCONCLUSIVE_STEP6B_INITIAL_STATE_INVALID phase=initial_state"
+    flush stdout
+    return
+  }
+
   foreach board [list [list $master_hardware MASTER] [list $slave_hardware SLAVE]] {
     lassign $board hardware role
     if {![s6b_write_source $hardware $role 67 $target_tai 40]} {
@@ -454,8 +548,15 @@ proc s6b_run {} {
     array set row $snapshot
     if {$row(TARGET_TAI_SOURCE) != $target_tai ||
         $row(STEP6B_LATCHED_TAI) != $target_tai ||
+        $row(STEP6B_ARM_SOURCE) != 1 || $row(STEP6B_ARM_SYNC) != 1 ||
         $row(STEP6B_ARMED) != 1 || $row(STEP6B_FIRED) != 0 ||
-        $row(STEP6B_FIRE_COUNT) != 0} { set arm_ok 0 }
+        $row(STEP6B_FIRE_COUNT) != 0 ||
+        $row(STEP6B_ARM_TIME_VALID) != 1 ||
+        $row(STEP6B_ARM_PPS_VALID) != 1 ||
+        $row(STEP6B_ARM_TM_LINK) != 1 ||
+        $row(STEP6B_ARM_LINK_OK) != 1 ||
+        $row(RESET_CHANGED) != 0 || $row(CAPTURE_HEALTHY) != 1 ||
+        $row(PLL_READY) != 1} { set arm_ok 0 }
     if {$row(LIVE_TAI) < 0 || $target_tai - $row(LIVE_TAI) < 10} {
       set remaining_ok 0
     }
@@ -484,6 +585,8 @@ proc s6b_run {} {
   set final_master {}
   set final_slave {}
   set stop_now 0
+  set trigger_seen 0
+  set post_fire_samples 0
   while {!$stop_now && [clock milliseconds] <= $capture_deadline} {
     set elapsed [expr {[clock milliseconds] - $capture_start}]
     set master [s6b_collect $master_hardware MASTER $sample $elapsed]
@@ -512,9 +615,15 @@ proc s6b_run {} {
     } elseif {$count_violation} {
       set stop_now 1
     } elseif {$master_fired && $slave_fired} {
-      set stop_now 1
-    } elseif {$m(LIVE_TAI) >= $target_tai + 2 ||
-        $s(LIVE_TAI) >= $target_tai + 2} {
+      if {!$trigger_seen} {
+        set trigger_seen 1
+        set post_fire_samples 0
+      } else {
+        incr post_fire_samples
+        if {$post_fire_samples >= 3} { set stop_now 1 }
+      }
+    } elseif {!$trigger_seen && ($m(LIVE_TAI) >= $target_tai + 2 ||
+        $s(LIVE_TAI) >= $target_tai + 2)} {
       set stop_now 1
     }
     incr sample
@@ -580,8 +689,9 @@ proc s6b_run {} {
       set delta_ns 0
     }
   }
-  puts [format "S6B_CAPTURE_RESULT=%s SAMPLES=%d ELAPSED_MS=%d TARGET_TAI=%d TARGET_CYCLES=%d MASTER_FIRED=%d SLAVE_FIRED=%d MASTER_FIRE_COUNT=%s SLAVE_FIRE_COUNT=%s TARGET_MATCH=%s DIGITAL_TRIGGER_DELTA_TICKS=%s DIGITAL_TRIGGER_DELTA_NS=%s" \
-    $result $sample [expr {[clock milliseconds] - $capture_start}] $target_tai \
+  set capture_elapsed [expr {[clock milliseconds] - $capture_start}]
+  puts [format "S6B_CAPTURE_RESULT=%s SAMPLES=%d POST_FIRE_SAMPLES=%d ELAPSED_MS=%d TARGET_TAI=%d TARGET_CYCLES=%d MASTER_FIRED=%d SLAVE_FIRED=%d MASTER_FIRE_COUNT=%s SLAVE_FIRE_COUNT=%s TARGET_MATCH=%s DIGITAL_TRIGGER_DELTA_TICKS=%s DIGITAL_TRIGGER_DELTA_NS=%s" \
+    $result $sample $post_fire_samples $capture_elapsed $target_tai \
     $::s6b_target_cycles $master_fired $slave_fired $master_count $slave_count \
     $target_match $delta_ticks $delta_ns]
   puts [format "S6B_DONE result=%s phase=capture" $result]

@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Build, timing-gate, program, and observe EXP-S6B-DIGITAL-SCHEDULED-
-# DUAL-BOARD-TRIGGER-20260922.  This is a single controlled run: Slave is
-# programmed once, Master once and last, and the observer never re-arms or
-# reprograms after a hard stop.
+# Verify the already fitted Step6B artifacts, program, and observe
+# EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922.
+# This is a single controlled run: there is no compile or timing refit;
+# Slave is programmed once, Master once and last, and the observer never
+# re-arms or reprograms after a hard stop.
 set -u
 set -o pipefail
 
@@ -13,7 +14,7 @@ QUARTUS_STP="$QUARTUS_BIN/quartus_stp"
 QUARTUS_STA="$QUARTUS_BIN/quartus_sta"
 QUARTUS_PGM="$QUARTUS_BIN/quartus_pgm"
 PYTHON=${PYTHON:-python3}
-EXP_ID=${1:-EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922}
+EXP_ID=${1:-EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-20260922}
 EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
 BUILD_DIR="$EXP_DIR/raw/build"
 TIMING_DIR="$EXP_DIR/raw/timing"
@@ -28,20 +29,23 @@ MASTER_SOF="$ROOT/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_mas
 SLAVE_SOF="$ROOT/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
 MASTER_MIF="$ROOT/build/firmware/master/wrc.mif"
 SLAVE_MIF="$ROOT/build/firmware/slave/wrc.mif"
+PREV_BUILD_DIR="$ROOT/docs/experiments/exp-step6-global-time/EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922/raw/build"
+POSTFIT_TIMING_SUMMARY="$ROOT/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/analysis/summary.json"
+DESIGN_SOURCE_COMMIT="c24568e383be3355ac8684b7d13f293115931586"
 
 mkdir -p "$BUILD_DIR" "$TIMING_DIR" "$PROGRAM_DIR" "$OBSERVE_DIR" "$ANALYSIS_DIR"
 
 cat > "$EXP_DIR/raw/protocol.txt" <<EOF
 EXP_ID=$EXP_ID
-MASTER_COMPILE=YES
-SLAVE_COMPILE=YES
+MASTER_COMPILE=NO
+SLAVE_COMPILE=NO
 FIRMWARE_BUILD=NO
 MASTER_PROGRAM=YES_ONCE_LAST
 SLAVE_PROGRAM=YES_ONCE_FIRST
 POWER_CYCLE=NO
 CPU_RESET=NO
 WR_CORE_RESET=NO
-PTP_RESTART=NO
+PTP_RESTART=CONDITIONAL_SLAVE_ONLY
 SMA_CLKOUT_CHANGED=NO
 SDC_CHANGED=NO
 TARGET_CYCLES=62500000
@@ -53,7 +57,9 @@ TARGET_SETTLE_MS=150
 ARM_SETTLE_MS=120
 OBSERVE_CADENCE_MS=250
 OBSERVE_MAX_MS=25000
-TIMING_GATE=STEP6B_PATHS_ONLY
+TIMING_GATE=EXTERNAL_POSTFIT_TIMING_PROVEN
+POSTFIT_TIMING_SUMMARY=$POSTFIT_TIMING_SUMMARY
+DESIGN_SOURCE_COMMIT=$DESIGN_SOURCE_COMMIT
 EOF
 
 printf 'MASTER_PROGRAM_COUNT=0\nSLAVE_PROGRAM_COUNT=0\nPOWER_CYCLE=0\n' \
@@ -84,77 +90,105 @@ printf 'MASTER_PROGRAM_COUNT=0\nSLAVE_PROGRAM_COUNT=0\nPOWER_CYCLE=0\n' \
   done
 } > "$BUILD_DIR/source_identity.txt" 2>&1
 
-if [ ! -f "$MASTER_MIF" ] || [ ! -f "$SLAVE_MIF" ]; then
-  printf 'RESULT=NOT_RUN_BUILD_FAIL\nSTOP_REASON=MIF_MISSING\nPROGRAM_COUNT=0\n' \
+if [ ! -f "$MASTER_MIF" ] || [ ! -f "$SLAVE_MIF" ] || \
+   [ ! -s "$MASTER_SOF" ] || [ ! -s "$SLAVE_SOF" ] || \
+   [ ! -f "$PREV_BUILD_DIR/source_identity.txt" ] || \
+   [ ! -f "$PREV_BUILD_DIR/build_result.txt" ] || \
+   [ ! -f "$POSTFIT_TIMING_SUMMARY" ]; then
+  printf 'RESULT=NOT_RUN_FITTED_ARTIFACT_PROVENANCE_MISMATCH\nSTOP_REASON=REQUIRED_RECORD_OR_ARTIFACT_MISSING\nPROGRAM_COUNT=0\n' \
     > "$PROGRAM_DIR/stop.txt"
-  exit 3
-fi
-
-MASTER_MIF_BEFORE=$(sha256sum "$MASTER_MIF" | awk '{print $1}')
-SLAVE_MIF_BEFORE=$(sha256sum "$SLAVE_MIF" | awk '{print $1}')
-
-set +e
-"$ROOT/scripts/build/build_jtag_slave.sh" > "$BUILD_DIR/slave_compile.log" 2>&1
-slave_build_rc=$?
-"$ROOT/scripts/build/build_jtag_master.sh" > "$BUILD_DIR/master_compile.log" 2>&1
-master_build_rc=$?
-set -e
-
-if [ "$slave_build_rc" -ne 0 ] || [ "$master_build_rc" -ne 0 ] || \
-   [ ! -s "$SLAVE_SOF" ] || [ ! -s "$MASTER_SOF" ]; then
-  printf 'RESULT=NOT_RUN_BUILD_FAIL\nSTOP_REASON=FULL_COMPILE_OR_SOF_FAILURE\nSLAVE_BUILD_RC=%s\nMASTER_BUILD_RC=%s\nPROGRAM_COUNT=0\n' \
-    "$slave_build_rc" "$master_build_rc" > "$PROGRAM_DIR/stop.txt"
-  exit 3
-fi
-
-MASTER_MIF_AFTER=$(sha256sum "$MASTER_MIF" | awk '{print $1}')
-SLAVE_MIF_AFTER=$(sha256sum "$SLAVE_MIF" | awk '{print $1}')
-if [ "$MASTER_MIF_BEFORE" != "$MASTER_MIF_AFTER" ] || \
-   [ "$SLAVE_MIF_BEFORE" != "$SLAVE_MIF_AFTER" ]; then
-  printf 'RESULT=NOT_RUN_BUILD_FAIL\nSTOP_REASON=MIF_CHANGED\nPROGRAM_COUNT=0\n' \
-    > "$PROGRAM_DIR/stop.txt"
-  exit 3
-fi
-
-{
-  echo "MASTER_SOF_SHA256=$(sha256sum "$MASTER_SOF" | awk '{print $1}')"
-  echo "SLAVE_SOF_SHA256=$(sha256sum "$SLAVE_SOF" | awk '{print $1}')"
-  echo "MASTER_MIF_SHA256=$MASTER_MIF_AFTER"
-  echo "SLAVE_MIF_SHA256=$SLAVE_MIF_AFTER"
-  echo "MIF_UNCHANGED=YES"
-  echo "SLAVE_BUILD_RC=$slave_build_rc"
-  echo "MASTER_BUILD_RC=$master_build_rc"
-} > "$BUILD_DIR/build_result.txt"
-
-set +e
-"$QUARTUS_STA" -t "$ROOT/scripts/experiment/check_step6b_timing.tcl" \
-  "$SLAVE_PROJECT" "$SLAVE_REVISION" "$TIMING_DIR/slave_step6b_timing.txt" \
-  > "$TIMING_DIR/slave_quartus_sta.log" 2>&1
-slave_timing_rc=$?
-"$QUARTUS_STA" -t "$ROOT/scripts/experiment/check_step6b_timing.tcl" \
-  "$MASTER_PROJECT" "$MASTER_REVISION" "$TIMING_DIR/master_step6b_timing.txt" \
-  > "$TIMING_DIR/master_quartus_sta.log" 2>&1
-master_timing_rc=$?
-set -e
-
-slave_timing_pass=0
-master_timing_pass=0
-grep -q '^STEP6B_TIMING_RESULT=PASS ' "$TIMING_DIR/slave_step6b_timing.txt" 2>/dev/null && slave_timing_pass=1
-grep -q '^STEP6B_TIMING_RESULT=PASS ' "$TIMING_DIR/master_step6b_timing.txt" 2>/dev/null && master_timing_pass=1
-if [ "$slave_timing_rc" -ne 0 ] || [ "$master_timing_rc" -ne 0 ] || \
-   [ "$slave_timing_pass" -ne 1 ] || [ "$master_timing_pass" -ne 1 ]; then
-  printf 'RESULT=NOT_RUN_STEP6B_TIMING_NOT_PROVEN\nSTOP_REASON=STEP6B_PATH_TIMING_GATE_FAILED\nSLAVE_TIMING_RC=%s\nMASTER_TIMING_RC=%s\nPROGRAM_COUNT=0\n' \
-    "$slave_timing_rc" "$master_timing_rc" > "$PROGRAM_DIR/stop.txt"
   exit 4
 fi
 
-printf 'TIMING_GATE=PASS\nSLAVE_TIMING_RC=%s\nMASTER_TIMING_RC=%s\n' \
-  "$slave_timing_rc" "$master_timing_rc" > "$TIMING_DIR/gate.txt"
+expected_file_hash() {
+  local base="$1"
+  awk -v base="$base" '$2 ~ ("/" base "$") {print $1; exit}' \
+    "$PREV_BUILD_DIR/source_identity.txt"
+}
+expected_build_hash() {
+  local key="$1"
+  sed -n "s/^${key}=//p" "$PREV_BUILD_DIR/build_result.txt" | tail -1
+}
+actual_hash() { sha256sum "$1" | awk '{print $1}'; }
+
+provenance_ok=1
+expected_source_commit=$(sed -n 's/^GIT_HEAD=//p' "$PREV_BUILD_DIR/source_identity.txt" | head -1)
+{
+  echo "DESIGN_SOURCE_COMMIT=$DESIGN_SOURCE_COMMIT"
+  echo "EXPECTED_BUILD_SOURCE_COMMIT=$expected_source_commit"
+  if [ "$expected_source_commit" = "$DESIGN_SOURCE_COMMIT" ]; then
+    echo 'BUILD_SOURCE_COMMIT_MATCH=YES'
+  else
+    echo 'BUILD_SOURCE_COMMIT_MATCH=NO'
+    provenance_ok=0
+  fi
+  echo "POSTFIT_TIMING_PROOF=PASS_STEP6B_POSTFIT_TIMING_PROVEN"
+  echo "FILE HASH EXPECTED ACTUAL MATCH"
+  for spec in \
+    "DE5a_wr_master_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd" \
+    "DE5a_wr_slave_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd" \
+    "DE5a_wr_master_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf" \
+    "DE5a_wr_slave_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf" \
+    "DE5a_wr_master_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc" \
+    "DE5a_wr_slave_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc"; do
+    base=${spec%%|*}
+    file=${spec#*|}
+    expected=$(expected_file_hash "$base")
+    actual=$(actual_hash "$file")
+    match=NO
+    [ -n "$expected" ] && [ "$expected" = "$actual" ] && match=YES
+    printf '%s %s %s %s\n' "$base" "$expected" "$actual" "$match"
+    [ "$match" = YES ] || provenance_ok=0
+  done
+  for spec in \
+    "MASTER_MIF_SHA256|$MASTER_MIF" \
+    "SLAVE_MIF_SHA256|$SLAVE_MIF" \
+    "MASTER_SOF_SHA256|$MASTER_SOF" \
+    "SLAVE_SOF_SHA256|$SLAVE_SOF"; do
+    label=${spec%%|*}
+    file=${spec#*|}
+    expected=$(expected_build_hash "$label")
+    actual=$(actual_hash "$file")
+    match=NO
+    [ -n "$expected" ] && [ "$expected" = "$actual" ] && match=YES
+    printf '%s %s %s %s\n' "$label" "$expected" "$actual" "$match"
+    [ "$match" = YES ] || provenance_ok=0
+  done
+  if grep -q '"classification": "PASS_STEP6B_POSTFIT_TIMING_PROVEN"' \
+      "$POSTFIT_TIMING_SUMMARY"; then
+    echo 'POSTFIT_TIMING_SUMMARY_MATCH=YES'
+  else
+    echo 'POSTFIT_TIMING_SUMMARY_MATCH=NO'
+    provenance_ok=0
+  fi
+  echo "PROVENANCE_CHECK=$provenance_ok"
+} > "$BUILD_DIR/provenance.txt"
+
+if [ "$provenance_ok" -ne 1 ]; then
+  printf 'RESULT=NOT_RUN_FITTED_ARTIFACT_PROVENANCE_MISMATCH\nSTOP_REASON=HASH_OR_POSTFIT_PROOF_MISMATCH\nMASTER_PROGRAM_COUNT=0\nSLAVE_PROGRAM_COUNT=0\n' \
+    > "$PROGRAM_DIR/stop.txt"
+  exit 4
+fi
+
+{
+  echo "MASTER_SOF_SHA256=$(actual_hash "$MASTER_SOF")"
+  echo "SLAVE_SOF_SHA256=$(actual_hash "$SLAVE_SOF")"
+  echo "MASTER_MIF_SHA256=$(actual_hash "$MASTER_MIF")"
+  echo "SLAVE_MIF_SHA256=$(actual_hash "$SLAVE_MIF")"
+  echo "MIF_UNCHANGED=YES"
+  echo "MASTER_COMPILE=NO"
+  echo "SLAVE_COMPILE=NO"
+} > "$BUILD_DIR/build_result.txt"
+
+printf 'TIMING_GATE=EXTERNAL_POSTFIT_TIMING_PROVEN\nCOMPILE=NOT_PERFORMED\n' \
+  > "$TIMING_DIR/gate.txt"
 
 set +e
+echo "SLAVE_PROGRAM_START=$(date -Is)" > "$PROGRAM_DIR/slave_program.log"
 sudo "$QUARTUS_PGM" -c 'DE5 [1-11.2]' -m jtag -o "p;$SLAVE_SOF" \
-  > "$PROGRAM_DIR/slave_program.log" 2>&1
+  >> "$PROGRAM_DIR/slave_program.log" 2>&1
 slave_program_rc=$?
+echo "SLAVE_PROGRAM_DONE=$(date -Is)" >> "$PROGRAM_DIR/slave_program.log"
 set -e
 if [ "$slave_program_rc" -ne 0 ]; then
   printf 'RESULT=INCONCLUSIVE_PROGRAM_FAILURE\nSTOP_REASON=SLAVE_PROGRAM_FAILURE\nSLAVE_PROGRAM_COUNT=1\nMASTER_PROGRAM_COUNT=0\n' \
@@ -165,9 +199,11 @@ printf 'SLAVE_PROGRAM_COUNT=1\nSLAVE_PROGRAM_RC=%s\n' "$slave_program_rc" \
   > "$PROGRAM_DIR/slave_program_result.txt"
 
 set +e
+echo "MASTER_PROGRAM_START=$(date -Is)" > "$PROGRAM_DIR/master_program.log"
 sudo "$QUARTUS_PGM" -c 'DE5 [1-11.1]' -m jtag -o "p;$MASTER_SOF" \
-  > "$PROGRAM_DIR/master_program.log" 2>&1
+  >> "$PROGRAM_DIR/master_program.log" 2>&1
 master_program_rc=$?
+echo "MASTER_PROGRAM_DONE=$(date -Is)" >> "$PROGRAM_DIR/master_program.log"
 set -e
 if [ "$master_program_rc" -ne 0 ]; then
   printf 'RESULT=INCONCLUSIVE_PROGRAM_FAILURE\nSTOP_REASON=MASTER_PROGRAM_FAILURE\nSLAVE_PROGRAM_COUNT=1\nMASTER_PROGRAM_COUNT=1\n' \

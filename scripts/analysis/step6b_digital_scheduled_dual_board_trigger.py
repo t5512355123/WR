@@ -122,6 +122,7 @@ def analyze_text(text: str) -> dict[str, Any]:
     gate_result = _scalar(text, "S6B_GATE_RESULT") or "MISSING"
     setup_result = _scalar(text, "S6B_TARGET_SETUP_RESULT") or "MISSING"
     arm_result = _scalar(text, "S6B_ARM_RESULT") or "MISSING"
+    capture_rows = _rows(text, "S6B_CAPTURE_RESULT")
     capture_result = _scalar(text, "S6B_CAPTURE_RESULT") or "MISSING"
     done_result = _scalar(text, "S6B_DONE") or capture_result
 
@@ -169,6 +170,7 @@ def analyze_text(text: str) -> dict[str, Any]:
     slave_actual_tai = _int(final_slave, "STEP6B_ACTUAL_TAI") if final_slave else None
     master_actual_cycles = _int(final_master, "STEP6B_ACTUAL_CYCLES") if final_master else None
     slave_actual_cycles = _int(final_slave, "STEP6B_ACTUAL_CYCLES") if final_slave else None
+    post_fire_samples = _int(capture_rows[-1], "POST_FIRE_SAMPLES", -1) if capture_rows else -1
     timestamp_delta_ticks: int | None = None
     if None not in (master_actual_tai, slave_actual_tai, master_actual_cycles, slave_actual_cycles):
         timestamp_delta_ticks = (
@@ -196,6 +198,7 @@ def analyze_text(text: str) -> dict[str, Any]:
         and master_actual_cycles == target_cycles
         and slave_actual_cycles == target_cycles
         and timestamp_delta_ticks == 0
+        and post_fire_samples >= 3
     )
 
     if not prearm_pass:
@@ -270,6 +273,7 @@ def analyze_text(text: str) -> dict[str, Any]:
         "target_match": "PASS" if formal_pass else "FAIL",
         "digital_trigger_delta_ticks": timestamp_delta_ticks,
         "digital_trigger_delta_ns": timestamp_delta_ns,
+        "post_fire_samples": post_fire_samples,
         "runtime_invalid": runtime_invalid,
         "stability_loss": stability_loss,
         "program_source_write_count": len(source_writes),

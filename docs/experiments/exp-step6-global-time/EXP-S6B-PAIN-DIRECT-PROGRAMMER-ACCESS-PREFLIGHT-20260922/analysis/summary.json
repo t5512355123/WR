@@ -1,0 +1,10 @@
+{
+  "classification": "PASS_DIRECT_NONSUDO_PROGRAMMER_ACCESS",
+  "failure_class": "NONE",
+  "verdict": "PASS",
+  "quartus_pgm_list_rc": 0,
+  "master_cable_visible": "YES",
+  "slave_cable_visible": "YES",
+  "fpga_program_count": 0,
+  "sudo_used": false
+}

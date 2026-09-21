@@ -54,10 +54,10 @@ proc ext_reason_name {value} {
 
 proc ext_pd_name {value} {
   switch -- $value {
-    0 { return PDETECTION }
-    1 { return PDETECTED }
-    2 { return PTP }
-    3 { return CALIBRATED }
+    0 { return NONE }
+    1 { return WAIT_MSG }
+    2 { return PDETECTION }
+    3 { return PDETECTED }
     4 { return FAILURE }
   }
   return UNKNOWN

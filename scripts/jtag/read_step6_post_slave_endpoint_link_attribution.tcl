@@ -67,12 +67,44 @@ proc endpoint_probe64 {value} {
   return [normalize_probe64 $value]
 }
 
+proc endpoint_field64 {value low width} {
+  if {![endpoint_raw_valid $value] || $low < 0 || $width <= 0 ||
+      $width > 32 || $low + $width > 64} {
+    return -1
+  }
+  set low_word [probe_low32 $value]
+  set high_word [probe_high32 $value]
+  if {$low_word < 0 || $high_word < 0} { return -1 }
+  set mask [expr {(1 << $width) - 1}]
+  if {$low >= 32} {
+    return [expr {($high_word >> ($low - 32)) & $mask}]
+  }
+  if {$low + $width <= 32} {
+    return [expr {($low_word >> $low) & $mask}]
+  }
+  set low_width [expr {32 - $low}]
+  set high_width [expr {$width - $low_width}]
+  set low_mask [expr {(1 << $low_width) - 1}]
+  set high_mask [expr {(1 << $high_width) - 1}]
+  return [expr {(($low_word >> $low) & $low_mask) |
+                (($high_word & $high_mask) << $low_width)}]
+}
+
 proc endpoint_counter_delta {before after} {
   set a [word32 $before]
   set b [word32 $after]
   if {$a < 0 || $b < 0} { return INVALID }
   if {$b < $a} { return DECREASED }
   return [expr {$b - $a}]
+}
+
+proc endpoint_counter_delta16 {before after} {
+  set a [word32 $before]
+  set b [word32 $after]
+  if {$a < 0 || $b < 0} { return INVALID }
+  set a [expr {$a & 0xffff}]
+  set b [expr {$b & 0xffff}]
+  return [expr {(($b - $a) & 0xffff)}]
 }
 
 proc endpoint_counter_value {raw high} {
@@ -174,7 +206,10 @@ proc endpoint_sample {hardware_name role sample elapsed_ms} {
   # Instance 7 source mapping is defined in the current Master/Slave image.
   set ref_activity_count [field32 $clock 0 16]
   set dmtd_activity_count [field32 $clock 16 16]
-  set rx_activity_count [field32 $clock 32 16]
+  # clock_activity_probe is a 64-bit word.  The recovered-RX activity is
+  # bits [47:32], so field32() is invalid here because it intentionally
+  # truncates the probe to its low 32 bits first.
+  set rx_activity_count [endpoint_field64 $clock 32 16]
 
   set ecr_tx_en [bit32 $ecr 6]
   set ecr_rx_en [bit32 $ecr 7]
@@ -205,9 +240,15 @@ proc endpoint_sample {hardware_name role sample elapsed_ms} {
   }
 
   set rx_activity_delta INVALID
+  set rx_activity_changed 0
   if {[info exists ::endpoint_prev_rx_activity($hardware_name)]} {
-    set rx_activity_delta [endpoint_counter_delta \
+    set rx_activity_delta [endpoint_counter_delta16 \
       $::endpoint_prev_rx_activity($hardware_name) $rx_activity_count]
+    set previous_rx_activity [word32 $::endpoint_prev_rx_activity($hardware_name)]
+    if {$previous_rx_activity >= 0 && $rx_activity_count >= 0 &&
+        (($previous_rx_activity & 0xffff) != ($rx_activity_count & 0xffff))} {
+      set rx_activity_changed 1
+    }
   }
   set ::endpoint_prev_rx_activity($hardware_name) $rx_activity_count
 
@@ -231,10 +272,10 @@ proc endpoint_sample {hardware_name role sample elapsed_ms} {
     set ::endpoint_prev_sticky($hardware_name) $current_sticky
   }
 
-  set rx_activity_increasing 0
-  if {[endpoint_numeric $rx_activity_delta] ne "" && $rx_activity_delta > 0} {
-    set rx_activity_increasing 1
-  }
+  # This is a 16-bit wrapping activity counter.  A non-zero modulo delta is
+  # useful telemetry, but a changed raw value is the conservative activity
+  # evidence; do not classify a wrap as DECREASED/no activity.
+  set rx_activity_increasing $rx_activity_changed
   set phy_input_unhealthy [expr {$direct_phy_error || $sticky_error_delta}]
   set raw_phy_healthy [expr {$endpoint_control_good &&
                              $rx_locked_to_data == 1 &&
@@ -302,13 +343,13 @@ proc endpoint_sample {hardware_name role sample elapsed_ms} {
   if {$read_valid} { incr ::endpoint_valid_count($hardware_name) } \
   else { incr ::endpoint_error_count($hardware_name) }
 
-  puts [format "ENDPOINTLINK_SAMPLE ROLE=%s BOARD=%s SAMPLE=%03d TIMESTAMP_MS=%d READ_VALID=%d STATUS_RAW=%s CLOCK_ACTIVITY_RAW=%s ENTRY_RAW=%s RESET_STICKY_RAW=%s SI_CONFIG_DONE=%d WR_READY=%d CPU_RESET_N=%d PHY_RST=%d PHY_TX_DISABLE=%d RX_READY=%d TX_READY=%d CORE_TM_LINK_UP=%d CORE_LINK_OK=%d RX_LOCKED_TO_DATA=%d RX_LOCKED_TO_REF=%d RX_CLOCK_ACTIVITY=%d RX_CLOCK_ACTIVITY_DELTA=%s RX_ENC_ERR=%d RX_DISPERR=%d RX_ERRDETECT=%d RX_SYNCSTATUS=%d RX_PATTERNDETECT=%d RX_PATTERN_READY=%d RX_RUNNINGDISP=%d RX_DATA=%d RX_DATA_K=%d RX_BITSLIDE=%d PTP_STATE=%d WDIAGS_TX=%s WDIAGS_RX=%s WDIAGS_RXERR=%s PTP_RX=%s PTP_TX=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s ECR_RAW=%s ECR_TX_EN=%d ECR_RX_EN=%d DSR_RAW=%s DSR_LINK=%d DSR_ACTIVITY=%d STICKY45_RAW=%s STICKY46_RAW=%s STICKY47_RAW=%s STICKY48_RAW=%s STICKY_ERROR_DELTA=%d STICKY_ERROR_DELTA_VALID=%d CONTROL_GOOD=%d PHY_INPUT_UNHEALTHY=%d RAW_PHY_HEALTHY=%d LINK_GOOD=%d BOOT_CHANGED=%d RESET_CHANGED=%d CONTROL_BAD_STREAK=%d RX_NO_LOCK_STREAK=%d RX_NO_ACTIVITY_STREAK=%d PHY_BAD_STREAK=%d RAW_LINK_BAD_STREAK=%d LINK_GOOD_STREAK=%d STOP_CANDIDATE=%s" \
+  puts [format "ENDPOINTLINK_SAMPLE ROLE=%s BOARD=%s SAMPLE=%03d TIMESTAMP_MS=%d READ_VALID=%d STATUS_RAW=%s CLOCK_ACTIVITY_RAW=%s ENTRY_RAW=%s RESET_STICKY_RAW=%s SI_CONFIG_DONE=%d WR_READY=%d CPU_RESET_N=%d PHY_RST=%d PHY_TX_DISABLE=%d RX_READY=%d TX_READY=%d CORE_TM_LINK_UP=%d CORE_LINK_OK=%d RX_LOCKED_TO_DATA=%d RX_LOCKED_TO_REF=%d RX_CLOCK_ACTIVITY=%d RX_CLOCK_ACTIVITY_DELTA=%s RX_CLOCK_ACTIVITY_CHANGED=%d RX_ENC_ERR=%d RX_DISPERR=%d RX_ERRDETECT=%d RX_SYNCSTATUS=%d RX_PATTERNDETECT=%d RX_PATTERN_READY=%d RX_RUNNINGDISP=%d RX_DATA=%d RX_DATA_K=%d RX_BITSLIDE=%d PTP_STATE=%d WDIAGS_TX=%s WDIAGS_RX=%s WDIAGS_RXERR=%s PTP_RX=%s PTP_TX=%s BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s ECR_RAW=%s ECR_TX_EN=%d ECR_RX_EN=%d DSR_RAW=%s DSR_LINK=%d DSR_ACTIVITY=%d STICKY45_RAW=%s STICKY46_RAW=%s STICKY47_RAW=%s STICKY48_RAW=%s STICKY_ERROR_DELTA=%d STICKY_ERROR_DELTA_VALID=%d CONTROL_GOOD=%d PHY_INPUT_UNHEALTHY=%d RAW_PHY_HEALTHY=%d LINK_GOOD=%d BOOT_CHANGED=%d RESET_CHANGED=%d CONTROL_BAD_STREAK=%d RX_NO_LOCK_STREAK=%d RX_NO_ACTIVITY_STREAK=%d PHY_BAD_STREAK=%d RAW_LINK_BAD_STREAK=%d LINK_GOOD_STREAK=%d STOP_CANDIDATE=%s" \
     $role $hardware_name $sample $elapsed_ms $read_valid [endpoint_probe64 $status] \
     [endpoint_probe64 $clock] [endpoint_probe64 $entry] [endpoint_probe64 $reset] \
     $si_config_done $wr_ready \
     $cpu_reset_n $phy_rst $phy_tx_disable $rx_ready $tx_ready $core_tm_link_up \
     $core_link_ok $rx_locked_to_data $rx_locked_to_ref $rx_activity_count \
-    $rx_activity_delta $rx_enc_err $rx_disperr $rx_errdetect $rx_syncstatus \
+    $rx_activity_delta $rx_activity_changed $rx_enc_err $rx_disperr $rx_errdetect $rx_syncstatus \
     $rx_patterndetect $rx_pattern_ready $rx_runningdisp $rx_data $rx_data_k \
     $rx_bitslide $ptp_state [endpoint_hex32 $tx] [endpoint_hex32 $rx] \
     [endpoint_hex32 $rxerr] [endpoint_hex32 $ptp_rx] [endpoint_hex32 $ptp_tx] \

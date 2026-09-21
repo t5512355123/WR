@@ -70,4 +70,3 @@ This preflight is complete. A future hardware run needs a new adviser-approved
 experiment using direct non-sudo `quartus_pgm` programming, with a fresh
 Slave-once then Master-once allowance; this report does not grant that
 allowance.
-

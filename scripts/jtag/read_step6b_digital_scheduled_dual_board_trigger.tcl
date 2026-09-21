@@ -1398,10 +1398,12 @@ proc s6b_run {} {
   flush stdout
 }
 
-if {$::s6b_mode eq "LATE_TAIL"} {
-  s6a_late_tail_run
-} elseif {$::s6b_mode eq "LIVE_SESSION"} {
-  s6b_live_session_run
-} else {
-  s6b_run
+if {![info exists ::s6b_no_autorun] || !$::s6b_no_autorun} {
+  if {$::s6b_mode eq "LATE_TAIL"} {
+    s6a_late_tail_run
+  } elseif {$::s6b_mode eq "LIVE_SESSION"} {
+    s6b_live_session_run
+  } else {
+    s6b_run
+  }
 }

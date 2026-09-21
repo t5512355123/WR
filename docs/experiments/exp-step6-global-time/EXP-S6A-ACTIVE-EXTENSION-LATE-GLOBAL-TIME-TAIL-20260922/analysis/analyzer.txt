@@ -1,0 +1,23 @@
+{
+  "active_samples": 61,
+  "classification": "PASS_ACTIVE_EXTENSION_LATE_GLOBAL_TIME_RECOVERY",
+  "coherence_violation": 0,
+  "common_tai_count": 45,
+  "first_valid_ms": 0,
+  "format": "step6a-active-extension-late-global-time-tail-v1",
+  "gate_pairs": 3,
+  "last_valid_ms": 44529,
+  "max_abs_delta_ns": 0,
+  "max_abs_delta_ticks": 0,
+  "max_valid_streak": 61,
+  "observer_result": "PASS_ACTIVE_EXTENSION_LATE_GLOBAL_TIME_RECOVERY",
+  "physical_edge": "NOT_EVALUATED",
+  "snapshot_delta": 45,
+  "step6a_requalification": "PASS",
+  "step6b_1": "NOT_RUN",
+  "tail_samples": 61,
+  "time_valid_falling": 0,
+  "time_valid_rising": 0,
+  "valid_samples": 61,
+  "verdict": "PASS"
+}

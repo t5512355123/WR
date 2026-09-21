@@ -1,0 +1,22 @@
+=== STEP6A LATE TAIL SOURCE IDENTITY ===
+2026-09-22T05:47:42+08:00
+HOST=pain
+ROOT=/home/b10504072/04_WR/pain-worktrees/step6-global-time
+GIT_HEAD=39c401494e156238f1096a46ec0621b6f13a2f9d
+GIT_BRANCH=exp/step6-Global-Time-Testing
+?? .codex-preserved-step6b-hardware-run-raw-20260922/
+?? .codex-preserved-step6b-preflight-analysis-20260922/
+?? .codex-preserved-step6b-preflight-raw-20260922/
+?? .codex-preserved-step6b-timing-20260922/
+?? .codex-preserved-step6b-v2-analysis-after-run-20260922/
+?? .codex-preserved-step6b-v2-raw-after-run-20260922/
+?? docs/experiments/exp-step6-global-time/EXP-S6A-ACTIVE-EXTENSION-LATE-GLOBAL-TIME-TAIL-20260922/raw/
+DESIGN_SOURCE_COMMIT=c24568e383be3355ac8684b7d13f293115931586
+EXPECTED_FITTED_BUILD_SOURCE_COMMIT=c24568e383be3355ac8684b7d13f293115931586
+FITTED_BUILD_SOURCE_COMMIT_MATCH=YES
+MASTER_SOF_SHA256 EXPECTED=1cc55bfd9f90dda061fb39f626d49473a7bbb6f6e5deb5803e81627865af76c5 ACTUAL=1cc55bfd9f90dda061fb39f626d49473a7bbb6f6e5deb5803e81627865af76c5 MATCH=YES FILE=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+SLAVE_SOF_SHA256 EXPECTED=66360fe362983ab1a45eb19111ab7e731580b95878293ccf9532487e51462151 ACTUAL=66360fe362983ab1a45eb19111ab7e731580b95878293ccf9532487e51462151 MATCH=YES FILE=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+MASTER_MIF_SHA256 EXPECTED=8b569afe29d93cfedca84eed484c9c683f1fc58cf10e89943574b7de8d31df7e ACTUAL=8b569afe29d93cfedca84eed484c9c683f1fc58cf10e89943574b7de8d31df7e MATCH=YES FILE=/home/b10504072/04_WR/pain-worktrees/step6-global-time/build/firmware/master/wrc.mif
+SLAVE_MIF_SHA256 EXPECTED=eab60d5ceb4af234284f6f241a4595ee850cf3a0184a939d70a30c3d8a5ad26b ACTUAL=eab60d5ceb4af234284f6f241a4595ee850cf3a0184a939d70a30c3d8a5ad26b MATCH=YES FILE=/home/b10504072/04_WR/pain-worktrees/step6-global-time/build/firmware/slave/wrc.mif
+POSTFIT_TIMING_PROOF=PASS_STEP6B_POSTFIT_TIMING_PROVEN
+PROVENANCE_CHECK=1

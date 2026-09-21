@@ -98,6 +98,10 @@ def _row(record: Dict[str, Any], previous: Optional[Dict[str, Any]]) -> Dict[str
         "core_link_ok": _number(record.get("CORE_LINK_OK")),
         "wr_rx_locked_to_data": _number(record.get("WR_RX_LOCKED_TO_DATA")),
         "cpu_reset_n": _number(record.get("CPU_RESET_N")),
+        "link_good": _number(record.get("LINK_GOOD")),
+        "link_gate_streak": _number(record.get("LINK_GATE_STREAK")),
+        "link_gate_pass": _number(record.get("LINK_GATE_PASS")),
+        "link_gate_pass_ms": _number(record.get("LINK_GATE_PASS_MS")),
         "ptp_state": _embedded(record.get("PTP_STATE")),
         "pd_state": _embedded(record.get("PD_STATE")),
         "ext_state": _embedded(record.get("EXT_STATE")),
@@ -155,23 +159,26 @@ def analyze_text(text: str, source: str = "", mode: str = "reacquisition") -> Di
         if new["same_reset_as_previous"] == 0:
             reset_changes += 1
 
-    if mode == "preflight":
-        gate_ok = bool(rows) and len(rows) >= 10 and all(
+    if mode in {"preflight", "local-ready"}:
+        minimum_samples = 10 if mode == "preflight" else 5
+        gate_ok = bool(rows) and len(rows) >= minimum_samples and all(
             row["read_valid"] == 1
             and row["si_config_done"] == 1
+            and row["wr_ready"] == 1
             and row["wr_rx_ready"] == 1
             and row["wr_tx_ready"] == 1
-            and row["core_tm_link_up"] == 1
-            and row["core_link_ok"] == 1
+            and row["cpu_reset_n"] == 1
             and row["ptp_state"] == 6
             and row["wr_disable_valid"] == 0
             and row["same_reset_as_previous"] in (0, 1)
+            and (mode == "local-ready" or
+                 (row["core_tm_link_up"] == 1 and row["core_link_ok"] == 1))
             for row in rows
         )
         stable = reset_changes == 0 and errors == 0 and len(valid_rows) == len(rows)
         result = "PASS_MASTER_PRECONDITION" if gate_ok and stable else "INCONCLUSIVE_MASTER_PRECONDITION"
         return {
-            "format": "step6-slock-master-first-preflight-v1",
+            "format": "step6-slock-master-first-preflight-v2",
             "source": source,
             "mode": mode,
             "sample_count": len(rows),
@@ -181,6 +188,31 @@ def analyze_text(text: str, source: str = "", mode: str = "reacquisition") -> Di
             "master_ptp_states": sorted({row["ptp_state"] for row in rows}),
             "master_precondition": result,
             "pass": result == "PASS_MASTER_PRECONDITION",
+            "step6a": "NOT_PASS",
+            "step6b_trigger_run": False,
+            "rows": rows,
+        }
+
+    if mode == "post-slave-link":
+        link_hit = next((row for row in rows if (row["link_gate_streak"] or 0) >= 5), None)
+        if errors or reset_changes or any(row["read_valid"] != 1 for row in rows):
+            classification = "INCONCLUSIVE"
+        elif link_hit is not None:
+            classification = "PASS_POST_SLAVE_LINK_GATE"
+        else:
+            classification = "FAIL_POST_SLAVE_LINK_GATE"
+        return {
+            "format": "step6-post-slave-link-gate-v1",
+            "source": source,
+            "mode": mode,
+            "sample_count": len(rows),
+            "valid_samples": len(valid_rows),
+            "transport_errors": errors,
+            "reset_changes": reset_changes,
+            "link_gate_pass": link_hit is not None,
+            "link_gate_pass_ms": link_hit["timestamp_ms"] if link_hit else None,
+            "link_gate_streak_max": max((row["link_gate_streak"] or 0 for row in rows), default=0),
+            "classification": classification,
             "step6a": "NOT_PASS",
             "step6b_trigger_run": False,
             "rows": rows,
@@ -267,7 +299,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--mode", choices=("preflight", "reacquisition"), default="reacquisition")
+    parser.add_argument("--mode", choices=("preflight", "local-ready", "post-slave-link", "reacquisition"), default="reacquisition")
     args = parser.parse_args()
     result = analyze_text(args.input.read_text(encoding="utf-8", errors="replace"), str(args.input), args.mode)
     write_outputs(result, args.output_dir)

@@ -34,6 +34,7 @@ def sample(
         f"ROLE={role} board={board} sample={sample_no:03d} timestamp_ms={timestamp} "
         "READ_VALID=1 SI_CONFIG_DONE=1 WR_READY=1 WR_RX_READY=1 WR_TX_READY=1 "
         "CORE_TM_LINK_UP=1 CORE_LINK_OK=1 WR_RX_LOCKED_TO_DATA=1 CPU_RESET_N=1 "
+        "LINK_GOOD=1 LINK_GATE_STREAK=5 LINK_GATE_PASS=1 LINK_GATE_PASS_MS=2000 "
         f"WRC_MODE={'2' if role == 'MASTER' else '3'} PTP_STATE={'6' if role == 'MASTER' else '9'} "
         "PD_STATE=3 EXT_STATE=1 SERVO_STATE=4 "
         f"WR_STATE_VALUE={state} WR_NEXT_STATE=0 WR_TX_ID={'4098' if pass_ready else '4097'} "
@@ -84,6 +85,13 @@ def test_reset_is_inconclusive():
 def test_master_preflight_requires_ten_stable_samples():
     text = "\n".join(sample(role="MASTER", sample_no=i, timestamp=i * 500, state=0) for i in range(10))
     result = module.analyze_text(text, mode="preflight")
+    assert result["master_precondition"] == "PASS_MASTER_PRECONDITION"
+
+
+def test_master_local_ready_does_not_require_peer_link():
+    text = "\n".join(sample(role="MASTER", sample_no=i, timestamp=i * 500, state=0) for i in range(5))
+    text = text.replace("CORE_TM_LINK_UP=1 CORE_LINK_OK=1", "CORE_TM_LINK_UP=0 CORE_LINK_OK=0")
+    result = module.analyze_text(text, mode="local-ready")
     assert result["master_precondition"] == "PASS_MASTER_PRECONDITION"
 
 

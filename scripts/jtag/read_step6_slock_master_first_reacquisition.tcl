@@ -22,10 +22,14 @@ set ::trial_id "S6-SLOCK-MASTER-FIRST"
 set ::board_filter ""
 set ::sample_limit 600
 set ::gap_ms 500
+set ::link_gate_timeout_ms 0
+set ::require_link_gate 0
 if {[llength $argv] >= 1} { set ::trial_id [lindex $argv 0] }
 if {[llength $argv] >= 2} { set ::board_filter [lindex $argv 1] }
 if {[llength $argv] >= 3} { set ::sample_limit [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set ::gap_ms [expr {int([lindex $argv 3])}] }
+if {[llength $argv] >= 5} { set ::link_gate_timeout_ms [expr {int([lindex $argv 4])}] }
+if {[llength $argv] >= 6} { set ::require_link_gate [expr {int([lindex $argv 5])}] }
 if {$sample_limit <= 0 || $gap_ms < 0} {
   error "sample_limit must be > 0 and gap_ms must be >= 0"
 }
@@ -52,6 +56,9 @@ set ::slock_max_success 0
 set ::slock_max_calib_fail 0
 set ::slock_max_polls 0
 set ::slock_max_unlocked 0
+set ::slock_link_good_streak 0
+set ::slock_link_gate_pass_ms -1
+set ::slock_link_gate_pass 0
 
 proc slock_raw_valid {value} {
   return [expr {$value ne "TIMEOUT" && $value ne "INVALID" && [is_hex $value]}]
@@ -212,6 +219,26 @@ proc slock_sample {hardware_name role sample elapsed_ms} {
       $lock_success_count > 0 && $::slock_first_success_ms < 0} {
     set ::slock_first_success_ms $elapsed_ms
   }
+
+  # In V2 the peer/link gate is evaluated only after Slave programming.  Keep
+  # the gate evidence in the same sample stream so the link and S_LOCK
+  # timelines cannot be separated by a second observer session.
+  set link_good 0
+  if {$read_valid && [bit32 $status 0] == 1 && [bit32 $status 1] == 1 &&
+      [bit32 $status 6] == 1 && [bit32 $status 7] == 1 &&
+      [bit64_high $status 0] == 1 && [bit32 $status 2] == 1 &&
+      [bit32 $status 3] == 1} {
+    set link_good 1
+    incr ::slock_link_good_streak
+  } else {
+    set ::slock_link_good_streak 0
+  }
+  if {$link_good && $::slock_link_good_streak >= 5 &&
+      $::slock_link_gate_pass_ms < 0} {
+    set ::slock_link_gate_pass_ms $elapsed_ms
+    set ::slock_link_gate_pass 1
+  }
+
   set state_exit 0
   if {$read_valid && $::slock_first_entry_ms >= 0 &&
       $::slock_first_success_ms >= 0 &&
@@ -239,7 +266,15 @@ proc slock_sample {hardware_name role sample elapsed_ms} {
   }
 
   set stop_candidate NONE
-  if {!$read_valid} {
+  set link_gate_timeout 0
+  if {$::require_link_gate && !$::slock_link_gate_pass &&
+      $::link_gate_timeout_ms > 0 && $elapsed_ms >= $::link_gate_timeout_ms} {
+    set link_gate_timeout 1
+  }
+  if {$link_gate_timeout} {
+    set stop_candidate POST_SLAVE_LINK_GATE_FAIL
+    set ::slock_stop_reason $stop_candidate
+  } elseif {!$read_valid} {
     set stop_candidate INCONCLUSIVE_TRANSPORT
     set ::slock_stop_reason $stop_candidate
   } elseif {$boot_changed || $reset_changed} {
@@ -260,10 +295,11 @@ proc slock_sample {hardware_name role sample elapsed_ms} {
   }
 
   incr ::slock_sample_count
-  puts [format "SLOCK_REACQ_SAMPLE ROLE=%s board=%s sample=%03d timestamp_ms=%d READ_VALID=%d SI_CONFIG_DONE=%d WR_READY=%d WR_RX_READY=%d WR_TX_READY=%d CORE_TM_LINK_UP=%d CORE_LINK_OK=%d WR_RX_LOCKED_TO_DATA=%d CPU_RESET_N=%d WRC_MODE=%d PTP_STATE=%d PD_STATE=%d EXT_STATE=%d SERVO_STATE=%d WR_STATE_VALUE=%d WR_NEXT_STATE=%d WR_TX_ID=%d WR_DISABLE_VALID=%d WR_DISABLE_CAUSE=%d WR_FAILURE_REASON=%d LOCK_POLLS=%s LOCK_UNLOCKED=%s LOCK_CALIB_FAIL=%s LOCK_ENABLE=%s LOCK_SUCCESS_COUNT=%d SPLL_SEQ_STATE=%d PSTAT_LOCKED=%d HELPER_LOCKED=%d MAIN_ENABLED=%d MAIN_LOCKED=%d MAIN_FREQ_LOCKED=%d MAIN_PHASE_LOCKED=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s SLOCK_MAGIC=%s SLOCK_STAGE=%s SLOCK_REMAINING_MS=%s FIRST_SLOCK_MS=%d FIRST_SUCCESS_MS=%d FIRST_EXIT_MS=%d FIRST_FAILURE_MS=%d PASS_READY=%d FAILURE_SEEN=%d FAILURE_CLASS=%s POST_EVENT_SAMPLES=%d STOP_CANDIDATE=%s" \
+  puts [format "SLOCK_REACQ_SAMPLE ROLE=%s board=%s sample=%03d timestamp_ms=%d READ_VALID=%d SI_CONFIG_DONE=%d WR_READY=%d WR_RX_READY=%d WR_TX_READY=%d CORE_TM_LINK_UP=%d CORE_LINK_OK=%d WR_RX_LOCKED_TO_DATA=%d CPU_RESET_N=%d LINK_GOOD=%d LINK_GATE_STREAK=%d LINK_GATE_PASS=%d LINK_GATE_PASS_MS=%d WRC_MODE=%d PTP_STATE=%d PD_STATE=%d EXT_STATE=%d SERVO_STATE=%d WR_STATE_VALUE=%d WR_NEXT_STATE=%d WR_TX_ID=%d WR_DISABLE_VALID=%d WR_DISABLE_CAUSE=%d WR_FAILURE_REASON=%d LOCK_POLLS=%s LOCK_UNLOCKED=%s LOCK_CALIB_FAIL=%s LOCK_ENABLE=%s LOCK_SUCCESS_COUNT=%d SPLL_SEQ_STATE=%d PSTAT_LOCKED=%d HELPER_LOCKED=%d MAIN_ENABLED=%d MAIN_LOCKED=%d MAIN_FREQ_LOCKED=%d MAIN_PHASE_LOCKED=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s SLOCK_MAGIC=%s SLOCK_STAGE=%s SLOCK_REMAINING_MS=%s FIRST_SLOCK_MS=%d FIRST_SUCCESS_MS=%d FIRST_EXIT_MS=%d FIRST_FAILURE_MS=%d PASS_READY=%d FAILURE_SEEN=%d FAILURE_CLASS=%s POST_EVENT_SAMPLES=%d STOP_CANDIDATE=%s" \
     $role $hardware_name $sample $elapsed_ms $read_valid \
     [bit32 $status 0] [bit32 $status 1] [bit32 $status 6] [bit32 $status 7] \
     [bit32 $status 2] [bit32 $status 3] [bit64_high $status 0] [bit32 $status 15] \
+    $link_good $::slock_link_good_streak $::slock_link_gate_pass $::slock_link_gate_pass_ms \
     $wrc_mode $ptp_state $pd_state $ext_state $servo_state $wr_state_value $wr_next_state $tx_id \
     $disable_valid $disable_cause $failure_reason [slock_hex32 $lock_polls] \
     [slock_hex32 $lock_unlocked] [slock_hex32 $lock_calib_fail] [slock_hex32 $lock_enable] \
@@ -277,8 +313,8 @@ proc slock_sample {hardware_name role sample elapsed_ms} {
   return $stop_candidate
 }
 
-puts [format "SLOCK_REACQ_CONFIG trial=%s board_filter=%s samples=%d gap_ms=%d read_only=1 reprogram=0 compile=0 power_cycle=0" \
-    $::trial_id $::board_filter $::sample_limit $::gap_ms]
+puts [format "SLOCK_REACQ_CONFIG trial=%s board_filter=%s samples=%d gap_ms=%d link_gate_timeout_ms=%d require_link_gate=%d read_only=1 reprogram=0 compile=0 power_cycle=0" \
+    $::trial_id $::board_filter $::sample_limit $::gap_ms $::link_gate_timeout_ms $::require_link_gate]
 flush stdout
 
 set ::selected 0
@@ -318,11 +354,12 @@ foreach hardware_name [get_hardware_names] {
 
 if {!$::selected} { error "no matching DE5a target" }
 if {$::slock_stop_reason eq "NONE"} { set ::slock_stop_reason MAX_CAPTURE }
-puts [format "SLOCK_REACQ_SUMMARY trial=%s samples=%d valid=%d errors=%d first_slock_ms=%d first_success_ms=%d first_exit_ms=%d first_failure_ms=%d max_polls=%d max_unlocked=%d max_calib_fail=%d lock_success_count_final=%d failure_class=%s stop_reason=%s boot_first=%s boot_last=%s" \
+puts [format "SLOCK_REACQ_SUMMARY trial=%s samples=%d valid=%d errors=%d first_slock_ms=%d first_success_ms=%d first_exit_ms=%d first_failure_ms=%d max_polls=%d max_unlocked=%d max_calib_fail=%d lock_success_count_final=%d link_gate_pass=%d link_gate_pass_ms=%d link_gate_streak_final=%d failure_class=%s stop_reason=%s boot_first=%s boot_last=%s" \
     $::trial_id $::slock_sample_count $::slock_valid_count $::slock_error_count \
     $::slock_first_entry_ms $::slock_first_success_ms $::slock_first_exit_ms \
     $::slock_first_failure_ms $::slock_max_polls $::slock_max_unlocked $::slock_max_calib_fail \
     [expr {$::slock_max_polls - $::slock_max_unlocked - $::slock_max_calib_fail}] \
+    $::slock_link_gate_pass $::slock_link_gate_pass_ms $::slock_link_good_streak \
     $::slock_failure_class $::slock_stop_reason $::slock_first_generation $::slock_last_generation]
 puts "SLOCK_REACQ_DONE"
 flush stdout

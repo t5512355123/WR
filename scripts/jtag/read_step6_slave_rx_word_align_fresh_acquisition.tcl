@@ -106,8 +106,19 @@ proc wa_counter_part {raw high} {
 }
 
 proc wa_delta32 {before after} {
-  set a [word32 $before]
-  set b [word32 $after]
+  # wa_counter_part already returns numeric 32-bit values.  Do not pass those
+  # decimal values through word32(), whose transport helper interprets a
+  # string as a hexadecimal probe word.
+  if {[string is integer -strict $before]} {
+    set a $before
+  } else {
+    set a [word32 $before]
+  }
+  if {[string is integer -strict $after]} {
+    set b $after
+  } else {
+    set b [word32 $after]
+  }
   if {$a < 0 || $b < 0} { return INVALID }
   if {$b < $a} { return DECREASED }
   return [expr {$b - $a}]

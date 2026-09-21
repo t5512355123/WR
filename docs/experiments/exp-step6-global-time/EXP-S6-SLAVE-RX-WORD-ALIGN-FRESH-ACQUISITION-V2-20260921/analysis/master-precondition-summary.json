@@ -1,0 +1,12 @@
+{
+  "format": "step6-slave-rx-word-align-fresh-acquisition-v1",
+  "mode": "master-precondition",
+  "source": "docs\\experiments\\exp-step6-global-time\\EXP-S6-SLAVE-RX-WORD-ALIGN-FRESH-ACQUISITION-V2-20260921\\raw\\preflight\\master-tx-precondition.log",
+  "board": "DE5 [1-11.1]",
+  "sample_count": 5,
+  "valid_samples": 5,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "master_tx_precondition": "PASS",
+  "pass": true
+}

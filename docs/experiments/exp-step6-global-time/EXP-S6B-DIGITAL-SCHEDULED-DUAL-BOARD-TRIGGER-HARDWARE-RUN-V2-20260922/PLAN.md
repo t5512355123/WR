@@ -52,4 +52,3 @@ The scheduled target is the latest common snapshot TAI plus 20 seconds and
 ARM is raised once per board. Formal PASS requires both boards to fire once at
 the exact target TAI/cycles, digital delta 0 ticks/0 ns, and three additional
 read-only post-fire samples. Physical SMA edge timing remains not evaluated.
-

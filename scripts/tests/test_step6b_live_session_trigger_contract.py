@@ -15,6 +15,7 @@ PLAN = (
     / "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-LIVE-SESSION-20260922"
     / "PLAN.md"
 )
+HARNESS = Path(__file__).with_name("step6b_live_session_tcl_parse_harness.tcl")
 
 
 def test_runner_does_not_program_or_compile() -> None:
@@ -51,3 +52,9 @@ def test_plan_requires_no_program_and_exact_target_cycles() -> None:
     assert "MASTER/SLAVE PROGRAM = NO" in text
     assert "TARGET_CYCLES = 62500000" in text
     assert "PASS_DIGITAL_SCHEDULED_DUAL_BOARD_TRIGGER" in text
+
+
+def test_quartus_parse_harness_is_present() -> None:
+    text = HARNESS.read_text(encoding="utf-8")
+    assert "__S6B_LIVE_SESSION__" in text
+    assert "STEP6B_LIVE_TCL_PARSE=PASS" in text

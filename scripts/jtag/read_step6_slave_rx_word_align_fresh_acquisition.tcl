@@ -57,6 +57,9 @@ array set ::wa_sample_count {}
 array set ::wa_valid_count {}
 array set ::wa_error_count {}
 array set ::wa_reset_baseline {}
+array set ::wa_local_ready_pass_ms {}
+array set ::wa_window_start_ms {}
+array set ::wa_first_count {}
 
 proc wa_raw_valid {value} {
   return [expr {$value ne "TIMEOUT" && $value ne "INVALID" &&
@@ -215,6 +218,31 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
     set sticky47_lock_loss [wa_counter_part $sticky47 0]
     set sticky47_link_drop [wa_counter_part $sticky47 1]
     set sticky48_tm_link_drop [wa_counter_part $sticky48 0]
+    if {![info exists ::wa_first_count($hardware_name,enc)]} {
+      set ::wa_first_count($hardware_name,enc) $sticky45_enc
+      set ::wa_first_count($hardware_name,disperr) $sticky45_disperr
+      set ::wa_first_count($hardware_name,errdetect) $sticky46_errdetect
+      set ::wa_first_count($hardware_name,sync_loss) $sticky46_sync_loss
+      set ::wa_first_count($hardware_name,lock_loss) $sticky47_lock_loss
+      set ::wa_first_count($hardware_name,link_drop) $sticky47_link_drop
+      set ::wa_first_count($hardware_name,tm_link_drop) $sticky48_tm_link_drop
+    }
+  }
+
+  set first_enc_count -1
+  set first_disperr_count -1
+  set first_errdetect_count -1
+  set first_sync_loss_count -1
+  set first_lock_loss_count -1
+  set first_link_drop_count -1
+  if {$::mode eq "word-align" &&
+      [info exists ::wa_first_count($hardware_name,enc)]} {
+    set first_enc_count $::wa_first_count($hardware_name,enc)
+    set first_disperr_count $::wa_first_count($hardware_name,disperr)
+    set first_errdetect_count $::wa_first_count($hardware_name,errdetect)
+    set first_sync_loss_count $::wa_first_count($hardware_name,sync_loss)
+    set first_lock_loss_count $::wa_first_count($hardware_name,lock_loss)
+    set first_link_drop_count $::wa_first_count($hardware_name,link_drop)
   }
 
   set boot_changed 0
@@ -253,6 +281,12 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
     set local_ready_pass 1
   }
 
+  if {$::mode eq "word-align" && $local_ready_pass &&
+      ![info exists ::wa_local_ready_pass_ms($hardware_name)]} {
+    set ::wa_local_ready_pass_ms($hardware_name) $elapsed_ms
+    set ::wa_window_start_ms($hardware_name) $elapsed_ms
+  }
+
   # Establish the fresh error-counter baseline at the first local-ready pass.
   set baseline_set 0
   set enc_delta INVALID
@@ -288,6 +322,16 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
     set lock_loss_delta [wa_delta32 $::wa_baseline($hardware_name,lock_loss) $sticky47_lock_loss]
     set link_drop_delta [wa_delta32 $::wa_baseline($hardware_name,link_drop) $sticky47_link_drop]
     set tm_link_drop_delta [wa_delta32 $::wa_baseline($hardware_name,tm_link_drop) $sticky48_tm_link_drop]
+  }
+
+  set local_ready_pass_ms -1
+  set word_align_window_start_ms -1
+  set word_align_elapsed_ms -1
+  if {$::mode eq "word-align" &&
+      [info exists ::wa_local_ready_pass_ms($hardware_name)]} {
+    set local_ready_pass_ms $::wa_local_ready_pass_ms($hardware_name)
+    set word_align_window_start_ms $::wa_window_start_ms($hardware_name)
+    set word_align_elapsed_ms [expr {$elapsed_ms - $word_align_window_start_ms}]
   }
 
   set counter_invalid 0
@@ -356,32 +400,29 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
         set stop_candidate FAIL_RX_CDR_OR_RECOVERED_CLOCK_REGRESSION
       } elseif {$::wa_alignment_seen($hardware_name) &&
           $rx_syncstatus == 0 && $new_error} {
-        set stop_candidate FAIL_RX_WORD_ALIGNMENT_LOSS
+        set stop_candidate FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS
       }
     } elseif {[info exists ::wa_baseline($hardware_name,enc)] && $counter_invalid} {
       set stop_candidate INCONCLUSIVE_COUNTER_BASELINE
     }
 
-    if {$stop_candidate eq "NONE" &&
-        $elapsed_ms >= ($::sample_limit * $::gap_ms)} {
-      if {$::wa_local_ready_streak($hardware_name) < 3} {
+    if {$stop_candidate eq "NONE"} {
+      if {$local_ready_pass_ms < 0 && $elapsed_ms >= $::max_duration_ms} {
         set stop_candidate FAIL_SLAVE_PHY_LOCAL_READY
-      } elseif {!$::wa_sync_seen($hardware_name) &&
-          !$::wa_pattern_seen($hardware_name) &&
-          $::wa_error_seen($hardware_name)} {
-        set stop_candidate FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS
-      } else {
-        set stop_candidate INCONCLUSIVE_MAX_CAPTURE
-      }
-    } elseif {$stop_candidate eq "NONE" && $sample + 1 >= $::sample_limit} {
-      if {$::wa_local_ready_streak($hardware_name) < 3} {
-        set stop_candidate FAIL_SLAVE_PHY_LOCAL_READY
-      } elseif {!$::wa_sync_seen($hardware_name) &&
-          !$::wa_pattern_seen($hardware_name) &&
-          $::wa_error_seen($hardware_name)} {
-        set stop_candidate FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS
-      } else {
-        set stop_candidate INCONCLUSIVE_MAX_CAPTURE
+      } elseif {$local_ready_pass_ms >= 0 &&
+          $word_align_elapsed_ms >= $::max_duration_ms} {
+        if {$first_sync_loss_count > 0 || $::wa_alignment_seen($hardware_name)} {
+          set stop_candidate FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS
+        } elseif {!$::wa_sync_seen($hardware_name) &&
+            !$::wa_pattern_seen($hardware_name) &&
+            $::wa_error_seen($hardware_name)} {
+          set stop_candidate FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS
+        } else {
+          set stop_candidate INCONCLUSIVE_MAX_CAPTURE
+        }
+      } elseif {$sample + 1 >= $::sample_limit} {
+        # A sample safety cap is never a formal word-align failure.
+        set stop_candidate INCONCLUSIVE_SAMPLE_CAP
       }
     }
   }
@@ -410,11 +451,20 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
     CPU_RESET_COUNT $cpu_reset_count WR_CORE_RESET_COUNT $wr_core_reset_count \
     SI_CONFIG_DROP_COUNT $si_config_drop_count STICKY45_RAW $sticky45 \
     STICKY46_RAW $sticky46 STICKY47_RAW $sticky47 STICKY48_RAW $sticky48 \
+    ENC_ERR_COUNT $sticky45_enc DISPERR_COUNT $sticky45_disperr \
+    ERRDETECT_COUNT $sticky46_errdetect SYNC_LOSS_COUNT $sticky46_sync_loss \
+    LOCK_LOSS_COUNT $sticky47_lock_loss LINK_DROP_COUNT $sticky47_link_drop \
+    TM_LINK_DROP_COUNT $sticky48_tm_link_drop FIRST_ENC_ERR_COUNT $first_enc_count \
+    FIRST_DISPERR_COUNT $first_disperr_count FIRST_ERRDETECT_COUNT $first_errdetect_count \
+    FIRST_SYNC_LOSS_COUNT $first_sync_loss_count FIRST_LOCK_LOSS_COUNT $first_lock_loss_count \
+    FIRST_LINK_DROP_COUNT $first_link_drop_count \
     ENC_ERR_DELTA $enc_delta DISPERR_DELTA $disperr_delta ERRDETECT_DELTA $errdetect_delta \
     SYNC_LOSS_DELTA $sync_loss_delta LOCK_LOSS_DELTA $lock_loss_delta \
     LINK_DROP_DELTA $link_drop_delta TM_LINK_DROP_DELTA $tm_link_drop_delta \
     LOCAL_READY $local_ready LOCAL_READY_STREAK $::wa_local_ready_streak($hardware_name) \
-    LOCAL_READY_PASS $local_ready_pass BASELINE_SET $baseline_set \
+    LOCAL_READY_PASS $local_ready_pass LOCAL_READY_PASS_TIMESTAMP_MS $local_ready_pass_ms \
+    WORD_ALIGN_WINDOW_START_MS $word_align_window_start_ms WORD_ALIGN_ELAPSED_MS $word_align_elapsed_ms \
+    BASELINE_SET $baseline_set \
     WORD_ALIGN_OBSERVED $word_align_observed ACTIVITY_PRESENT $activity_present \
     ALIGNMENT_GOOD $alignment_good ALIGNMENT_STREAK $::wa_alignment_streak($hardware_name) \
     RX_NO_LOCK_STREAK $::wa_no_lock_streak($hardware_name) \
@@ -462,13 +512,20 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
-    set deadline_ms [expr {$begin_ms + $::max_duration_ms}]
+    if {$::mode eq "word-align"} {
+      # Allow up to 10 s for local-ready and then a separate 10 s word-align
+      # window, with a small host/JTAG safety margin.  Formal failure is
+      # decided inside wa_sample from WORD_ALIGN_ELAPSED_MS, never here.
+      set deadline_ms [expr {$begin_ms + (2 * $::max_duration_ms) + 5000}]
+    } else {
+      set deadline_ms [expr {$begin_ms + $::max_duration_ms}]
+    }
     for {set sample 0} {$sample < $::sample_limit} {incr sample} {
       set elapsed [expr {[clock milliseconds] - $begin_ms}]
       set stop_candidate [wa_sample $hardware_name $role $sample $elapsed]
       if {$stop_candidate ne "NONE"} { break }
-      if {$::mode eq "word-align" && [clock milliseconds] >= $deadline_ms} {
-        set ::wa_stop_reason($hardware_name) INCONCLUSIVE_MAX_CAPTURE
+      if {[clock milliseconds] >= $deadline_ms} {
+        set ::wa_stop_reason($hardware_name) INCONCLUSIVE_SAFETY_DEADLINE
         break
       }
       if {$sample + 1 < $::sample_limit} { after $::gap_ms }

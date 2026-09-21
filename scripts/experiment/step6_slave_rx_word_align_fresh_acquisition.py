@@ -110,7 +110,11 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
     )
     local_ready = any(integer(row, "LOCAL_READY_PASS", 0) == 1 for row in rows)
     max_elapsed_ms = max((integer(row, "TIMESTAMP_MS", 0) or 0 for row in rows), default=0)
-    observation_window_complete = max_elapsed_ms >= 10000
+    max_word_align_elapsed_ms = max(
+        (integer(row, "WORD_ALIGN_ELAPSED_MS", -1) or -1 for row in rows),
+        default=-1,
+    )
+    observation_window_complete = max_word_align_elapsed_ms >= 10000
     pass_row = next(
         (row for row in rows if integer(row, "ALIGNMENT_STREAK", 0) >= 5), None
     )
@@ -127,23 +131,36 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
         classification = "PASS_WORD_ALIGN_ACQUISITION"
     else:
         candidate = stop_candidates[-1] if stop_candidates else "INCONCLUSIVE_MAX_CAPTURE"
-        if (not any(integer(row, "SYNC_SEEN", 0) == 1 for row in rows)
-                and not any(integer(row, "PATTERN_SEEN", 0) == 1 for row in rows)
-                and any(integer(row, "ERROR_SEEN", 0) == 1 for row in rows)):
-            preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS"
+        sync_seen = any(integer(row, "SYNC_SEEN", 0) == 1 for row in rows)
+        pattern_seen = any(integer(row, "PATTERN_SEEN", 0) == 1 for row in rows)
+        error_seen = any(integer(row, "ERROR_SEEN", 0) == 1 for row in rows)
+        first_sync_loss = integer(rows[0], "FIRST_SYNC_LOSS_COUNT", 0) or 0
+        if first_sync_loss > 0 or candidate == "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS":
+            preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS"
+            classification = (preliminary_failure_class
+                              if observation_window_complete
+                              else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
+        elif not sync_seen and not pattern_seen and error_seen:
+            preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS"
             classification = (preliminary_failure_class
                               if observation_window_complete
                               else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
         elif candidate in {
             "FAIL_SLAVE_PHY_LOCAL_READY",
             "FAIL_RX_CDR_OR_RECOVERED_CLOCK_REGRESSION",
-            "FAIL_RX_WORD_ALIGNMENT_LOSS",
-            "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS",
+            "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS",
+            "FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS",
             "INCONCLUSIVE_COUNTER_BASELINE",
+            "INCONCLUSIVE_TRANSPORT",
+            "INCONCLUSIVE_RESET",
+            "INCONCLUSIVE_SAFETY_DEADLINE",
+            "INCONCLUSIVE_SAMPLE_CAP",
         }:
-            classification = candidate
+            classification = (candidate if candidate != "INCONCLUSIVE_SAMPLE_CAP" else "INCONCLUSIVE_SAMPLE_CAP")
         elif not local_ready:
             classification = "FAIL_SLAVE_PHY_LOCAL_READY"
+        elif not observation_window_complete:
+            classification = "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT"
         else:
             classification = "INCONCLUSIVE_MAX_CAPTURE"
 
@@ -158,7 +175,7 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
     activity_values = [integer(row, "RX_CLOCK_ACTIVITY") for row in rows]
     activity_values = [value for value in activity_values if value is not None and value >= 0]
     return {
-        "format": "step6-slave-rx-word-align-fresh-acquisition-v1",
+        "format": "step6-slave-rx-word-align-fresh-acquisition-v2",
         "mode": "word-align",
         "source": source,
         "board": rows[0].get("BOARD", "UNKNOWN") if rows else "UNKNOWN",
@@ -173,8 +190,15 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
         "eightbtenb_error_delta_seen": error_delta_seen,
         "max_alignment_streak": max((integer(row, "ALIGNMENT_STREAK", 0) or 0 for row in rows), default=0),
         "max_elapsed_ms": max_elapsed_ms,
+        "max_word_align_elapsed_ms": max_word_align_elapsed_ms,
         "observation_window_complete": observation_window_complete,
         "preliminary_failure_class": preliminary_failure_class,
+        "first_enc_err_count": integer(rows[0], "FIRST_ENC_ERR_COUNT") if rows else None,
+        "first_disperr_count": integer(rows[0], "FIRST_DISPERR_COUNT") if rows else None,
+        "first_errdetect_count": integer(rows[0], "FIRST_ERRDETECT_COUNT") if rows else None,
+        "first_sync_loss_count": integer(rows[0], "FIRST_SYNC_LOSS_COUNT") if rows else None,
+        "first_lock_loss_count": integer(rows[0], "FIRST_LOCK_LOSS_COUNT") if rows else None,
+        "first_link_drop_count": integer(rows[0], "FIRST_LINK_DROP_COUNT") if rows else None,
         "max_local_ready_streak": max((integer(row, "LOCAL_READY_STREAK", 0) or 0 for row in rows), default=0),
         "max_rx_no_lock_streak": max((integer(row, "RX_NO_LOCK_STREAK", 0) or 0 for row in rows), default=0),
         "max_rx_no_activity_streak": max((integer(row, "RX_NO_ACTIVITY_STREAK", 0) or 0 for row in rows), default=0),

@@ -26,9 +26,12 @@ def sample(index: int, *, good: bool = True, raw_activity: int = 0x1000) -> str:
         f"BOOT_GENERATION=00000001 CPU_RESET_COUNT=00000001 WR_CORE_RESET_COUNT=00000001 SI_CONFIG_DROP_COUNT=00000001 "
         "STICKY45_RAW=0000000000000001 STICKY46_RAW=0000000000000001 "
         "STICKY47_RAW=0000000000000000 STICKY48_RAW=0000000000000000 "
+        "FIRST_ENC_ERR_COUNT=0 FIRST_DISPERR_COUNT=0 FIRST_ERRDETECT_COUNT=0 "
+        "FIRST_SYNC_LOSS_COUNT=0 FIRST_LOCK_LOSS_COUNT=0 FIRST_LINK_DROP_COUNT=0 "
         "ENC_ERR_DELTA=0 DISPERR_DELTA=0 ERRDETECT_DELTA=0 SYNC_LOSS_DELTA=0 "
         "LOCK_LOSS_DELTA=0 LINK_DROP_DELTA=0 TM_LINK_DROP_DELTA=0 "
-        f"LOCAL_READY=1 LOCAL_READY_STREAK=3 LOCAL_READY_PASS=1 BASELINE_SET=0 "
+        f"LOCAL_READY=1 LOCAL_READY_STREAK=3 LOCAL_READY_PASS=1 "
+        f"LOCAL_READY_PASS_TIMESTAMP_MS=0 WORD_ALIGN_WINDOW_START_MS=0 WORD_ALIGN_ELAPSED_MS={index * 100} BASELINE_SET=0 "
         f"WORD_ALIGN_OBSERVED=1 ACTIVITY_PRESENT=1 ALIGNMENT_GOOD={1 if good else 0} "
         f"ALIGNMENT_STREAK={index + 1 if good else 0} RX_NO_LOCK_STREAK=0 RX_NO_ACTIVITY_STREAK=0 "
         f"SYNC_SEEN={1 if good else 0} PATTERN_SEEN={1 if good else 0} ERROR_SEEN={0 if good else 1} COUNTER_INVALID=0 STOP_CANDIDATE=NONE"
@@ -65,7 +68,26 @@ def test_persistent_errors_classify_alignment_failure():
     for i in range(10):
         rows.append(sample(i, good=False, raw_activity=0x2000 + i).replace(
             f"TIMESTAMP_MS={i * 100}", f"TIMESTAMP_MS={(i + 1) * 1000}"
+        ).replace(
+            f"WORD_ALIGN_ELAPSED_MS={i * 100}", f"WORD_ALIGN_ELAPSED_MS={(i + 1) * 1000}"
         ))
     result = analyze_text("\n".join(rows))
-    assert result["classification"] == "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS"
+    assert result["classification"] == "FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS"
     assert result["recovered_rx_clock_activity"] == "PRESENT"
+
+
+def test_first_sync_loss_history_classifies_early_loss_after_full_window():
+    rows = []
+    for i in range(10):
+        row = sample(i, good=False, raw_activity=0x3000 + i)
+        row = row.replace(
+            "FIRST_SYNC_LOSS_COUNT=0", "FIRST_SYNC_LOSS_COUNT=1"
+        ).replace(
+            f"TIMESTAMP_MS={i * 100}", f"TIMESTAMP_MS={(i + 1) * 1000}"
+        ).replace(
+            f"WORD_ALIGN_ELAPSED_MS={i * 100}", f"WORD_ALIGN_ELAPSED_MS={(i + 1) * 1000}"
+        )
+        rows.append(row)
+    result = analyze_text("\n".join(rows))
+    assert result["classification"] == "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS"
+    assert result["observation_window_complete"] is True

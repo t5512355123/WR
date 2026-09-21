@@ -1,0 +1,121 @@
+----------------
+; Command Info ;
+----------------
+Report Timing: Found 1 setup paths (0 violated).  Worst case slack is 7.503 
+
+Tcl Command:
+    report_timing -setup -file /home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/slave_step6b_timing.txt.arm_meta_to_sync.setup.rpt -to [remove_from_collection [get_registers {*step6b_arm_sync*}] [get_registers {*step6b_arm_sync_prev*}]] -from_clock [get_clocks {qsfp_ref_125m}] -to_clock [get_clocks {qsfp_ref_125m}] -npaths 20 -detail full_path
+
+Options:
+    -to [remove_from_collection [get_registers {*step6b_arm_sync*}] [get_registers {*step6b_arm_sync_prev*}]] 
+    -from_clock [get_clocks {qsfp_ref_125m}] 
+    -to_clock [get_clocks {qsfp_ref_125m}] 
+    -setup 
+    -npaths 20 
+    -detail full_path 
+    -file {/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/slave_step6b_timing.txt.arm_meta_to_sync.setup.rpt} 
+
+Delay Model:
+    Slow 900mV 100C Model
+
++--------------------------------------------------------------------------------------------------------------------+
+; Summary of Paths                                                                                                   ;
++-------+-----------------+-----------------+---------------+---------------+--------------+------------+------------+
+; Slack ; From Node       ; To Node         ; Launch Clock  ; Latch Clock   ; Relationship ; Clock Skew ; Data Delay ;
++-------+-----------------+-----------------+---------------+---------------+--------------+------------+------------+
+; 7.503 ; step6b_arm_meta ; step6b_arm_sync ; qsfp_ref_125m ; qsfp_ref_125m ; 8.000        ; -0.002     ; 0.680      ;
++-------+-----------------+-----------------+---------------+---------------+--------------+------------+------------+
+
+Path #1: Setup slack is 7.503 
+===============================================================================
++--------------------------------------+
+; Path Summary                         ;
++--------------------+-----------------+
+; Property           ; Value           ;
++--------------------+-----------------+
+; From Node          ; step6b_arm_meta ;
+; To Node            ; step6b_arm_sync ;
+; Launch Clock       ; qsfp_ref_125m   ;
+; Latch Clock        ; qsfp_ref_125m   ;
+; Data Arrival Time  ; 5.932           ;
+; Data Required Time ; 13.435          ;
+; Slack              ; 7.503           ;
++--------------------+-----------------+
+
++------------------------------------------------------------------------------------+
+; Statistics                                                                         ;
++------------------------+--------+-------+-------------+------------+-------+-------+
+; Property               ; Value  ; Count ; Total Delay ; % of Total ; Min   ; Max   ;
++------------------------+--------+-------+-------------+------------+-------+-------+
+; Setup Relationship     ; 8.000  ;       ;             ;            ;       ;       ;
+; Clock Skew             ; -0.002 ;       ;             ;            ;       ;       ;
+; Data Delay             ; 0.680  ;       ;             ;            ;       ;       ;
+; Number of Logic Levels ;        ; 0     ;             ;            ;       ;       ;
+; Physical Delays        ;        ;       ;             ;            ;       ;       ;
+;  Arrival Path          ;        ;       ;             ;            ;       ;       ;
+;   Clock                ;        ;       ;             ;            ;       ;       ;
+;    IC                  ;        ; 4     ; 3.545       ; 67         ; 0.000 ; 3.545 ;
+;    Cell                ;        ; 5     ; 1.707       ; 33         ; 0.000 ; 1.166 ;
+;   Data                 ;        ;       ;             ;            ;       ;       ;
+;    Cell                ;        ; 2     ; 0.452       ; 66         ; 0.000 ; 0.452 ;
+;    uTco                ;        ; 1     ; 0.228       ; 34         ; 0.228 ; 0.228 ;
+;  Required Path         ;        ;       ;             ;            ;       ;       ;
+;   Clock                ;        ;       ;             ;            ;       ;       ;
+;    IC                  ;        ; 4     ; 3.289       ; 70         ; 0.000 ; 3.289 ;
+;    Cell                ;        ; 5     ; 1.442       ; 30         ; 0.000 ; 0.974 ;
++------------------------+--------+-------+-------------+------------+-------+-------+
+Note: Negative delays are omitted from totals when calculating percentages
+
++---------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Data Arrival Path                                                                                                                                                         ;
++---------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+; Total   ; Incr    ; RF ; Type ; Fanout ; Location              ; HS/LP     ; Element                                                                                      ;
++---------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+; 0.000   ; 0.000   ;    ;      ;        ;                       ;           ; launch edge time                                                                             ;
+; 5.252   ; 5.252   ;    ;      ;        ;                       ;           ; clock path                                                                                   ;
+;   0.000 ;   0.000 ;    ;      ;        ;                       ;           ; source latency                                                                               ;
+;   0.000 ;   0.000 ;    ;      ; 1      ; PIN_AH5               ;           ; QSFPA_REFCLK_p                                                                               ;
+;   0.000 ;   0.000 ; RR ; IC   ; 1      ; IOIBUF_X224_Y13_N108  ;           ; QSFPA_REFCLK_p~input|i                                                                       ;
+;   0.070 ;   0.070 ; RR ; CELL ; 1      ; IOIBUF_X224_Y13_N108  ;           ; QSFPA_REFCLK_p~input|o                                                                       ;
+;   0.070 ;   0.000 ; RR ; IC   ; 1      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED|refclk_inp                                               ;
+;   0.070 ;   0.000 ; RR ; CELL ; 3      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED|refclk_a                                                 ;
+;   1.236 ;   1.166 ; RR ; CELL ; 1      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED~hssi_tile/ch4_pld_pma_fpll_fbclkout_lc_lvpecl_to_coreclk ;
+;   1.236 ;   0.000 ; RR ; IC   ; 2      ; CLKCTRL_4C_G_I18      ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|inclk                                             ;
+;   1.707 ;   0.471 ; RR ; CELL ; 1017   ; CLKCTRL_4C_G_I18      ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk                                            ;
+;   5.252 ;   3.545 ; RR ; IC   ; 1      ; FF_X146_Y43_N53       ; Low Power ; step6b_arm_meta|clk                                                                          ;
+;   5.252 ;   0.000 ; RR ; CELL ; 1      ; FF_X146_Y43_N53       ; Low Power ; step6b_arm_meta                                                                              ;
+; 5.932   ; 0.680   ;    ;      ;        ;                       ;           ; data path                                                                                    ;
+;   5.480 ;   0.228 ; RR ; uTco ; 1      ; FF_X146_Y43_N53       ;           ; step6b_arm_meta|q                                                                            ;
+;   5.932 ;   0.452 ; RR ; CELL ; 1      ; FF_X146_Y43_N52       ; Low Power ; step6b_arm_sync|d                                                                            ;
+;   5.932 ;   0.000 ; RR ; CELL ; 1      ; FF_X146_Y43_N52       ; Low Power ; step6b_arm_sync                                                                              ;
++---------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Data Required Path                                                                                                                                                         ;
++----------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+; Total    ; Incr    ; RF ; Type ; Fanout ; Location              ; HS/LP     ; Element                                                                                      ;
++----------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+; 8.000    ; 8.000   ;    ;      ;        ;                       ;           ; latch edge time                                                                              ;
+; 13.250   ; 5.250   ;    ;      ;        ;                       ;           ; clock path                                                                                   ;
+;   8.000  ;   0.000 ;    ;      ;        ;                       ;           ; source latency                                                                               ;
+;   8.000  ;   0.000 ;    ;      ; 1      ; PIN_AH5               ;           ; QSFPA_REFCLK_p                                                                               ;
+;   8.000  ;   0.000 ; RR ; IC   ; 1      ; IOIBUF_X224_Y13_N108  ;           ; QSFPA_REFCLK_p~input|i                                                                       ;
+;   8.070  ;   0.070 ; RR ; CELL ; 1      ; IOIBUF_X224_Y13_N108  ;           ; QSFPA_REFCLK_p~input|o                                                                       ;
+;   8.070  ;   0.000 ; RR ; IC   ; 1      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED|refclk_inp                                               ;
+;   8.070  ;   0.000 ; RR ; CELL ; 3      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED|refclk_a                                                 ;
+;   9.044  ;   0.974 ; RR ; CELL ; 1      ; HSSIREFCLKDIVIDER_4CT ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTED~hssi_tile/ch4_pld_pma_fpll_fbclkout_lc_lvpecl_to_coreclk ;
+;   9.044  ;   0.000 ; RR ; IC   ; 2      ; CLKCTRL_4C_G_I18      ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|inclk                                             ;
+;   9.442  ;   0.398 ; RR ; CELL ; 1017   ; CLKCTRL_4C_G_I18      ;           ; QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk                                            ;
+;   12.731 ;   3.289 ; RR ; IC   ; 1      ; FF_X146_Y43_N52       ; Low Power ; step6b_arm_sync|clk                                                                          ;
+;   12.731 ;   0.000 ; RR ; CELL ; 1      ; FF_X146_Y43_N52       ; Low Power ; step6b_arm_sync                                                                              ;
+;   13.250 ;   0.519 ;    ;      ;        ;                       ;           ; clock pessimism removed                                                                      ;
+; 13.210   ; -0.040  ;    ;      ;        ;                       ;           ; clock uncertainty                                                                            ;
+; 13.435   ; 0.225   ;    ; uTsu ; 1      ; FF_X146_Y43_N52       ;           ; step6b_arm_sync                                                                              ;
++----------+---------+----+------+--------+-----------------------+-----------+----------------------------------------------------------------------------------------------+
+
+----------------------------
+; Extra Fitter Information ;
+----------------------------
+HTML report is unavailable in plain text report export.
+
+

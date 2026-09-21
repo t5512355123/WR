@@ -18,7 +18,7 @@ QUARTUS_PGM=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 PYTHON=python3
 MASTER_CABLE='DE5 [1-11.1]'
-BUILD_ROOT="/tmp/wr-step6-rebuild-$EXP_ID"
+BUILD_ROOT="/tmp/wr-step6-rebuild-$EXP_ID-$(date +%s)"
 SOURCE_TREE="$BUILD_ROOT/source"
 BUILD_MANIFEST="$EXP_DIR/raw/build/build-manifest.txt"
 BASELINE_LOG="$EXP_DIR/raw/baseline/baseline.log"
@@ -88,6 +88,10 @@ set +e
   > "$EXP_DIR/raw/build/quartus-master-compile.log" 2>&1
 quartus_rc=$?
 set -e
+QUARTUS_FULL_LOG="$SOURCE_TREE/build/quartus_jtag_master_compile.log"
+if [ -s "$QUARTUS_FULL_LOG" ]; then
+  cp "$QUARTUS_FULL_LOG" "$EXP_DIR/raw/build/quartus-master-compile.log"
+fi
 if [ "$quartus_rc" -ne 0 ] || [ ! -s "$MASTER_SOF" ] || \
    [ ! -s "$MASTER_PROJECT_DIR/output_files_master_jtag/DE5a_wr_master_jtag.fit.summary" ] || \
    [ ! -s "$MASTER_PROJECT_DIR/output_files_master_jtag/DE5a_wr_master_jtag.sta.rpt" ]; then

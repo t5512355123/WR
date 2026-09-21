@@ -1,0 +1,22 @@
+=== STEP6B SOURCE IDENTITY ===
+2026-09-22T03:26:41+08:00
+HOST=pain
+ROOT=/home/b10504072/04_WR/pain-worktrees/step6-global-time
+GIT_HEAD=c24568e383be3355ac8684b7d13f293115931586
+GIT_BRANCH=exp/step6-Global-Time-Testing
+GIT_STATUS_BEGIN
+?? docs/experiments/exp-step6-global-time/EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922/raw/
+GIT_STATUS_END
+QUARTUS_VERSION_BEGIN
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+QUARTUS_VERSION_END
+1209b6b14767a7270c29aa00f1e545ed559dab416bdaa61cd45def755cf748c9  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd
+8a995d85e2232e9fdc929805bbed55364e5a4a0ab5983e63f90bac6a8eabe8c1  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd
+f434c9b7e0ecfcc2378e0c1c5966762328e04ce6fc63f3cede4a77ccfb8c7607  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf
+99851099c786f14ebbdc91949c9f2caaa8b0679273df7703c1a0e6a4a3aaf5f2  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf
+083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc
+083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d  /home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc
+8b569afe29d93cfedca84eed484c9c683f1fc58cf10e89943574b7de8d31df7e  /home/b10504072/04_WR/pain-worktrees/step6-global-time/build/firmware/master/wrc.mif
+eab60d5ceb4af234284f6f241a4595ee850cf3a0184a939d70a30c3d8a5ad26b  /home/b10504072/04_WR/pain-worktrees/step6-global-time/build/firmware/slave/wrc.mif

@@ -1,0 +1,9 @@
+STEP6B_TIMING_PROJECT=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qpf
+STEP6B_TIMING_REVISION=DE5a_wr_slave_jtag
+STEP6B_TIMING_CLOCK=qsfp_ref_125m
+STEP6B_TIMING_PATH name=target_latch setup_min_ns=EMPTY hold_min_ns=EMPTY setup_paths=0 hold_paths=0 matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=arm_sync setup_min_ns=INVALID hold_min_ns=INVALID setup_paths=0 hold_paths=0 matched_from=1 matched_to=2
+STEP6B_TIMING_PATH name=comparator_fired setup_min_ns=INVALID hold_min_ns=INVALID setup_paths=0 hold_paths=0 matched_from=1 matched_to=1
+STEP6B_TIMING_PATH name=comparator_actual_tai setup_min_ns=INVALID hold_min_ns=INVALID setup_paths=0 hold_paths=0 matched_from=1 matched_to=115
+STEP6B_TIMING_PATH name=comparator_actual_cycles setup_min_ns=INVALID hold_min_ns=INVALID setup_paths=0 hold_paths=0 matched_from=1 matched_to=102
+STEP6B_TIMING_RESULT=NOT_RUN_STEP6B_TIMING_NOT_PROVEN REASON=target_latch_setup_or_hold_not_proven

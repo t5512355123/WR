@@ -1,0 +1,30 @@
+{
+  "format": "step6-slave-rx-word-align-fresh-acquisition-v1",
+  "mode": "word-align",
+  "source": "docs\\experiments\\exp-step6-global-time\\EXP-S6-SLAVE-RX-WORD-ALIGN-FRESH-ACQUISITION-20260921\\raw\\word-align\\slave-word-align.log",
+  "board": "DE5 [1-11.2]",
+  "sample_count": 10,
+  "valid_samples": 10,
+  "transport_errors": 0,
+  "reset_changes": 0,
+  "local_ready_pass": true,
+  "classification": "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT",
+  "word_align_acquisition": "INCONCLUSIVE",
+  "recovered_rx_clock_activity": "PRESENT",
+  "eightbtenb_error_delta_seen": true,
+  "max_alignment_streak": 0,
+  "max_elapsed_ms": 1502,
+  "observation_window_complete": false,
+  "preliminary_failure_class": "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS",
+  "max_local_ready_streak": 10,
+  "max_rx_no_lock_streak": 0,
+  "max_rx_no_activity_streak": 0,
+  "sync_seen": false,
+  "pattern_seen": false,
+  "error_seen": true,
+  "stop_candidates": [
+    "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS"
+  ],
+  "step6a": "NOT_PASS",
+  "step6b": "NOT_RUN"
+}

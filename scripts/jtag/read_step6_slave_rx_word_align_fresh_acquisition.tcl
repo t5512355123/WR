@@ -24,16 +24,18 @@ set ::board_filter ""
 set ::sample_limit 100
 set ::gap_ms 100
 set ::mode "word-align"
+set ::max_duration_ms 10000
 if {[llength $argv] >= 1} { set ::trial_id [lindex $argv 0] }
 if {[llength $argv] >= 2} { set ::board_filter [lindex $argv 1] }
 if {[llength $argv] >= 3} { set ::sample_limit [expr {int([lindex $argv 2])}] }
 if {[llength $argv] >= 4} { set ::gap_ms [expr {int([lindex $argv 3])}] }
 if {[llength $argv] >= 5} { set ::mode [lindex $argv 4] }
+if {[llength $argv] >= 6} { set ::max_duration_ms [expr {int([lindex $argv 5])}] }
 if {$::mode ni {master-precondition word-align}} {
   error "mode must be master-precondition or word-align"
 }
-if {$::sample_limit <= 0 || $::gap_ms < 0} {
-  error "sample_limit must be > 0 and gap_ms must be >= 0"
+if {$::sample_limit <= 0 || $::gap_ms < 0 || $::max_duration_ms <= 0} {
+  error "sample_limit must be > 0, gap_ms must be >= 0, max_duration_ms must be > 0"
 }
 
 set ::wb_library_mode 1
@@ -425,7 +427,7 @@ proc wa_sample {hardware_name role sample elapsed_ms} {
 
 wa_emit WORDALIGN_CONFIG [list TRIAL $::trial_id BOARD_FILTER $::board_filter \
   MODE $::mode SAMPLES $::sample_limit GAP_MS $::gap_ms \
-  MAX_CAPTURE_MS [expr {$::sample_limit * $::gap_ms}] READ_ONLY 1 \
+  MAX_CAPTURE_MS $::max_duration_ms READ_ONLY 1 \
   SLAVE_PROGRAMMED_EXTERNALLY 1 COMPILE 0 POWER_CYCLE 0 MDIO_WRITE 0]
 
 set ::selected 0
@@ -460,11 +462,19 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
+    set deadline_ms [expr {$begin_ms + $::max_duration_ms}]
     for {set sample 0} {$sample < $::sample_limit} {incr sample} {
       set elapsed [expr {[clock milliseconds] - $begin_ms}]
       set stop_candidate [wa_sample $hardware_name $role $sample $elapsed]
       if {$stop_candidate ne "NONE"} { break }
+      if {$::mode eq "word-align" && [clock milliseconds] >= $deadline_ms} {
+        set ::wa_stop_reason($hardware_name) INCONCLUSIVE_MAX_CAPTURE
+        break
+      }
       if {$sample + 1 < $::sample_limit} { after $::gap_ms }
+    }
+    if {$::mode eq "word-align" && $::wa_stop_reason($hardware_name) eq "NONE"} {
+      set ::wa_stop_reason($hardware_name) INCONCLUSIVE_MAX_CAPTURE
     }
   } error_message]} {
     incr ::wa_error_count($hardware_name)

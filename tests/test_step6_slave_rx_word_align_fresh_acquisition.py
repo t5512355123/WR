@@ -63,7 +63,9 @@ def test_five_consecutive_alignment_samples_pass():
 def test_persistent_errors_classify_alignment_failure():
     rows = []
     for i in range(10):
-        rows.append(sample(i, good=False, raw_activity=0x2000 + i))
+        rows.append(sample(i, good=False, raw_activity=0x2000 + i).replace(
+            f"TIMESTAMP_MS={i * 100}", f"TIMESTAMP_MS={(i + 1) * 1000}"
+        ))
     result = analyze_text("\n".join(rows))
     assert result["classification"] == "FAIL_RX_WORD_ALIGNMENT_WITH_8B10B_ERRORS"
     assert result["recovered_rx_clock_activity"] == "PRESENT"

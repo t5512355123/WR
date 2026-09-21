@@ -42,19 +42,22 @@ proc s6b_mark_failure {reason result} {
 }
 
 proc s6b_filtered_registers {pattern exclude_pattern} {
-  set candidates {}
-  if {[catch {set candidates [get_registers -nowarn $pattern]} err]} {
+  set selected {}
+  if {[catch {set selected [get_registers -nowarn $pattern]} err]} {
     s6b_report [format "STEP6B_REGISTER_QUERY_ERROR pattern=%s error=%s" $pattern $err]
     s6b_mark_failure REGISTER_QUERY_ERROR NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED
     return [get_registers -nowarn __step6b_no_match__]
   }
-  set selected [get_registers -nowarn __step6b_no_match__]
-  foreach_in_collection item $candidates {
-    set name [get_object_name $item]
-    if {$exclude_pattern ne "" && [string match $exclude_pattern $name]} {
-      continue
+  if {$exclude_pattern ne ""} {
+    if {[catch {
+      set excluded [get_registers -nowarn $exclude_pattern]
+      set selected [remove_from_collection $selected $excluded]
+    } err]} {
+      s6b_report [format "STEP6B_REGISTER_FILTER_ERROR pattern=%s exclude=%s error=%s" \
+        $pattern $exclude_pattern $err]
+      s6b_mark_failure REGISTER_FILTER_ERROR NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED
+      return [get_registers -nowarn __step6b_no_match__]
     }
-    set selected [add_to_collection $selected $item]
   }
   return $selected
 }

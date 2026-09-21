@@ -224,22 +224,22 @@ set local_begin_ms [clock milliseconds]
 for {set sample 0} {$sample < $::local_ready_sample_limit} {incr sample} {
   set elapsed [expr {[clock milliseconds] - $local_begin_ms}]
   if {$elapsed > $::local_ready_window_ms} { break }
-  set snap {}
+  set master_snapshot {}
   set board_error ""
   if {[catch {
     comma_open_board $::master_hardware
-    set snap [comma_master_snapshot $::master_hardware $sample $elapsed]
+    set master_snapshot [comma_master_snapshot $::master_hardware $sample $elapsed]
   } board_error]} {
     set local_error $board_error
   }
   comma_close_board
 
-  if {$snap eq ""} {
+  if {$master_snapshot eq ""} {
     comma_emit COMMA_LOCAL_SAMPLE [list BOARD $::master_hardware SAMPLE $sample \
       ELAPSED_MS $elapsed READ_VALID 0 LOCAL_READY 0 ERROR $local_error]
     set ready_streak 0
   } else {
-    array set s $snap
+    array set s $master_snapshot
     if {$s(LOCAL_READY) == 1} {
       incr ready_streak
     } else {

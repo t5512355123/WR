@@ -16,6 +16,9 @@ set ::s6b_mode "TRIGGER"
 if {[llength $argv] >= 1 && [lindex $argv 0] eq "__S6A_LATE_TAIL__"} {
   set ::s6b_mode "LATE_TAIL"
   set argv [lrange $argv 1 end]
+} elseif {[llength $argv] >= 1 && [lindex $argv 0] eq "__S6B_LIVE_SESSION__"} {
+  set ::s6b_mode "LIVE_SESSION"
+  set argv [lrange $argv 1 end]
 }
 set ::s6b_trial_id "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-HARDWARE-RUN-V2-20260922"
 set ::s6b_prearm_timeout_ms 60000
@@ -27,10 +30,19 @@ set ::s6b_observe_timeout_ms 25000
 set ::s6b_target_cycles 62500000
 set ::s6a_tail_window_ms 45000
 set ::s6a_tail_gap_ms 300
+set ::s6b_live_gate_timeout_ms 10000
+set ::s6b_live_gate_gap_ms 300
+set ::s6b_live_target_settle_ms 150
+set ::s6b_live_arm_settle_ms 120
+set ::s6b_live_capture_gap_ms 300
 if {$::s6b_mode eq "LATE_TAIL"} {
   if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
   if {[llength $argv] >= 2} { set ::s6a_tail_window_ms [expr {int([lindex $argv 1])}] }
   if {[llength $argv] >= 3} { set ::s6a_tail_gap_ms [expr {int([lindex $argv 2])}] }
+} elseif {$::s6b_mode eq "LIVE_SESSION"} {
+  if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
+  if {[llength $argv] >= 2} { set ::s6b_live_gate_timeout_ms [expr {int([lindex $argv 1])}] }
+  if {[llength $argv] >= 3} { set ::s6b_live_gate_gap_ms [expr {int([lindex $argv 2])}] }
 } else {
   if {[llength $argv] >= 1} { set ::s6b_trial_id [lindex $argv 0] }
   if {[llength $argv] >= 2} { set ::s6b_prearm_timeout_ms [expr {int([lindex $argv 1])}] }
@@ -39,7 +51,12 @@ if {$::s6b_mode eq "LATE_TAIL"} {
 }
 if {($::s6b_mode eq "LATE_TAIL" &&
      ($::s6a_tail_window_ms <= 0 || $::s6a_tail_gap_ms < 0)) ||
+    ($::s6b_mode eq "LIVE_SESSION" &&
+     ($::s6b_live_gate_timeout_ms <= 0 || $::s6b_live_gate_gap_ms < 0 ||
+      $::s6b_live_target_settle_ms < 150 || $::s6b_live_arm_settle_ms < 120 ||
+      $::s6b_live_capture_gap_ms < 200)) ||
     ($::s6b_mode ne "LATE_TAIL" &&
+     $::s6b_mode ne "LIVE_SESSION" &&
      ($::s6b_prearm_timeout_ms <= 0 || $::s6b_prearm_gap_ms < 0 ||
       $::s6b_target_settle_ms < 100 || $::s6b_arm_settle_ms < 0 ||
       $::s6b_capture_gap_ms < 0))} {
@@ -600,6 +617,435 @@ proc s6a_late_tail_run {} {
   flush stdout
 }
 
+proc s6b_live_common_gate_ok {snapshot role} {
+  if {$snapshot eq ""} { return 0 }
+  array set row $snapshot
+  set common_ok [expr {$row(READ_VALID) == 1 && [s6a_reset_ok $snapshot] &&
+      $row(STATUS_LINK_OK) == 1 && $row(STATUS_TM_LINK_UP) == 1 &&
+      $row(STATUS_TIME_VALID) == 1 && $row(STATUS_PPS_VALID) == 1 &&
+      $row(SNAPSHOT_ACCEPTED) == 1 && $row(SNAPSHOT_VALID) == 1 &&
+      $row(SNAPSHOT_TIME_VALID) == 1 && $row(SNAPSHOT_PPS_VALID) == 1}]
+  if {!$common_ok} { return 0 }
+  if {$role eq "SLAVE"} {
+    return [expr {$row(RX_LOCKED_TO_DATA) == 1 &&
+        $row(RX_PATTERN_READY) == 1 && $row(SPLL_SEQ_STATE) == 8 &&
+        $row(PSTAT_LOCKED) == 1 && $row(MAIN_LOCKED) == 1 &&
+        $row(PD_STATE) == 3 && $row(EXT_STATE) == 1}]
+  }
+  return 1
+}
+
+proc s6b_live_initial_pristine {snapshot} {
+  if {$snapshot eq ""} { return 0 }
+  array set row $snapshot
+  return [expr {[s6b_live_common_gate_ok $snapshot $row(ROLE)] &&
+      $row(TARGET_TAI_SOURCE) == 0 && $row(STEP6B_ARM_SOURCE) == 0 &&
+      $row(STEP6B_ARM_SYNC) == 0 && $row(STEP6B_ARMED) == 0 &&
+      $row(STEP6B_FIRED) == 0 && $row(STEP6B_FIRE_COUNT) == 0 &&
+      $row(STEP6B_ACTUAL_TAI) == 0 && $row(STEP6B_ACTUAL_CYCLES) == 0}]
+}
+
+proc s6b_live_now_ticks {snapshot} {
+  if {$snapshot eq ""} { return -1 }
+  array set row $snapshot
+  if {$row(LIVE_TAI) < 0 || $row(LIVE_CYCLES) < 0} { return -1 }
+  return [expr {$row(LIVE_TAI) * 125000000 + $row(LIVE_CYCLES)}]
+}
+
+proc s6b_live_target_delta_ticks {snapshot target_tai target_cycles} {
+  set now [s6b_live_now_ticks $snapshot]
+  if {$now < 0 || ![string is integer -strict $target_tai]} { return -1 }
+  return [expr {$target_tai * 125000000 + $target_cycles - $now}]
+}
+
+proc s6b_live_emit_result {result phase} {
+  set ::s6b_live_result $result
+  puts [format "S6B_LIVE_RESULT=%s PHASE=%s TRIAL=%s T0=%s TARGET_TAI=%s TARGET_CYCLES=%s GATE_PAIRS=%s COMMON_TAI_COUNT=%s COHERENCE_VIOLATION=%s TARGET_WRITE_MASTER=%s TARGET_WRITE_SLAVE=%s ARM_WRITE_MASTER=%s ARM_WRITE_SLAVE=%s CAPTURE_SAMPLES=%s POST_FIRE_SAMPLES=%s MASTER_FIRED=%s SLAVE_FIRED=%s MASTER_FIRE_COUNT=%s SLAVE_FIRE_COUNT=%s MASTER_ACTUAL_TAI=%s MASTER_ACTUAL_CYCLES=%s SLAVE_ACTUAL_TAI=%s SLAVE_ACTUAL_CYCLES=%s DIGITAL_TRIGGER_DELTA_TICKS=%s DIGITAL_TRIGGER_DELTA_NS=%s" \
+    $result $phase $::s6b_trial_id $::s6b_live_t0 $::s6b_live_target_tai \
+    $::s6b_live_target_cycles $::s6b_live_gate_pairs $::s6b_live_common_tai_count \
+    $::s6b_coherence_violation $::s6b_live_target_write_master \
+    $::s6b_live_target_write_slave $::s6b_live_arm_write_master \
+    $::s6b_live_arm_write_slave $::s6b_live_capture_samples \
+    $::s6b_live_post_fire_samples $::s6b_live_master_fired \
+    $::s6b_live_slave_fired $::s6b_live_master_count $::s6b_live_slave_count \
+    $::s6b_live_master_actual_tai $::s6b_live_master_actual_cycles \
+    $::s6b_live_slave_actual_tai $::s6b_live_slave_actual_cycles \
+    $::s6b_live_delta_ticks $::s6b_live_delta_ns]
+  puts [format "S6B_LIVE_DONE result=%s phase=%s" $result $phase]
+  flush stdout
+}
+
+proc s6b_live_session_run {} {
+  set master_hardware ""
+  set slave_hardware ""
+  foreach hardware_name [get_hardware_names] {
+    if {[string first "1-11.1" $hardware_name] >= 0} {
+      set master_hardware $hardware_name
+    } elseif {[string first "1-11.2" $hardware_name] >= 0} {
+      set slave_hardware $hardware_name
+    }
+  }
+  if {$master_hardware eq "" || $slave_hardware eq ""} {
+    error "both DE5a targets are required"
+  }
+
+  set ::s6b_live_t0 NA
+  set ::s6b_live_target_tai NA
+  set ::s6b_live_target_cycles $::s6b_target_cycles
+  set ::s6b_live_gate_pairs 0
+  set ::s6b_live_common_tai_count 0
+  set ::s6b_live_target_write_master 0
+  set ::s6b_live_target_write_slave 0
+  set ::s6b_live_arm_write_master 0
+  set ::s6b_live_arm_write_slave 0
+  set ::s6b_live_capture_samples 0
+  set ::s6b_live_post_fire_samples 0
+  set ::s6b_live_master_fired 0
+  set ::s6b_live_slave_fired 0
+  set ::s6b_live_master_count 0
+  set ::s6b_live_slave_count 0
+  set ::s6b_live_master_actual_tai 0
+  set ::s6b_live_master_actual_cycles 0
+  set ::s6b_live_slave_actual_tai 0
+  set ::s6b_live_slave_actual_cycles 0
+  set ::s6b_live_delta_ticks NA
+  set ::s6b_live_delta_ns NA
+
+  puts [format "S6B_LIVE_CONFIG trial=%s gate_timeout_ms=%d gate_gap_ms=%d target_settle_ms=%d arm_settle_ms=%d capture_gap_ms=%d TARGET_SOURCE_INDEX=67 ARM_SOURCE_INDEX=68 TARGET_CYCLES=%d MASTER_PROGRAM=0 SLAVE_PROGRAM=0 MASTER_COMPILE=0 SLAVE_COMPILE=0 FIRMWARE_BUILD=0 PTP_RESTART=0 POWER_CYCLE=0" \
+    $::s6b_trial_id $::s6b_live_gate_timeout_ms $::s6b_live_gate_gap_ms \
+    $::s6b_live_target_settle_ms $::s6b_live_arm_settle_ms \
+    $::s6b_live_capture_gap_ms $::s6b_target_cycles]
+  flush stdout
+
+  array set ::s6b_master_by_tai {}
+  array set ::s6b_slave_by_tai {}
+  set ::s6b_coherence_violation 0
+  set gate_start [clock milliseconds]
+  set sample 0
+  set last_master {}
+  set last_slave {}
+  while {[clock milliseconds] - $gate_start <= $::s6b_live_gate_timeout_ms} {
+    set elapsed [expr {[clock milliseconds] - $gate_start}]
+    set master [s6b_collect $master_hardware MASTER $sample $elapsed]
+    set slave [s6b_collect $slave_hardware SLAVE $sample $elapsed]
+    set last_master $master
+    set last_slave $slave
+    s6b_emit_board_samples $master $slave S6B_LIVE_PREWRITE_SAMPLE
+    set master_gate [s6b_live_common_gate_ok $master MASTER]
+    set slave_gate [s6b_live_common_gate_ok $slave SLAVE]
+    if {$master_gate && $slave_gate} {
+      s6b_snapshot_map_update MASTER $master
+      s6b_snapshot_map_update SLAVE $slave
+      incr ::s6b_live_gate_pairs
+    }
+    set common [s6b_common_tais]
+    set ::s6b_live_common_tai_count [llength $common]
+    s6b_emit S6B_LIVE_PREWRITE_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
+      MASTER_GATE $master_gate SLAVE_GATE $slave_gate \
+      GATE_PAIRS $::s6b_live_gate_pairs COMMON_TAI_COUNT $::s6b_live_common_tai_count \
+      COHERENCE_VIOLATION $::s6b_coherence_violation]
+    if {$::s6b_live_gate_pairs >= 3 &&
+        $::s6b_live_common_tai_count >= 3 &&
+        !$::s6b_coherence_violation} { break }
+    incr sample
+    after $::s6b_live_gate_gap_ms
+  }
+
+  set common [s6b_common_tais]
+  set ::s6b_live_common_tai_count [llength $common]
+  if {$::s6b_live_gate_pairs < 3 || $::s6b_live_common_tai_count < 3 ||
+      $::s6b_coherence_violation} {
+    s6b_live_emit_result INCONCLUSIVE_LIVE_SESSION_PREWRITE_GATE_FAILED prewrite_gate
+    return
+  }
+
+  set ::s6b_live_t0 [lindex $common end]
+  set ::s6b_live_target_tai [expr {$::s6b_live_t0 + 20}]
+  puts [format "S6B_LIVE_PREWRITE_GATE_RESULT=PASS GATE_PAIRS=%d COMMON_TAI_COUNT=%d T0=%d" \
+    $::s6b_live_gate_pairs $::s6b_live_common_tai_count $::s6b_live_t0]
+  flush stdout
+
+  set initial_master [s6b_collect $master_hardware MASTER 0 0]
+  set initial_slave [s6b_collect $slave_hardware SLAVE 0 0]
+  s6b_emit_board_samples $initial_master $initial_slave S6B_LIVE_INITIAL_SAMPLE
+  set initial_ok [expr {[s6b_live_initial_pristine $initial_master] &&
+      [s6b_live_initial_pristine $initial_slave]}]
+  set initial_master_arm NA
+  set initial_slave_arm NA
+  set initial_master_target NA
+  set initial_slave_target NA
+  set initial_master_sync NA
+  set initial_slave_sync NA
+  set initial_master_armed NA
+  set initial_slave_armed NA
+  set initial_master_fired NA
+  set initial_slave_fired NA
+  set initial_master_count NA
+  set initial_slave_count NA
+  if {$initial_master ne ""} {
+    array set initial_m $initial_master
+    set initial_master_target $initial_m(TARGET_TAI_SOURCE)
+    set initial_master_arm $initial_m(STEP6B_ARM_SOURCE)
+    set initial_master_sync $initial_m(STEP6B_ARM_SYNC)
+    set initial_master_armed $initial_m(STEP6B_ARMED)
+    set initial_master_fired $initial_m(STEP6B_FIRED)
+    set initial_master_count $initial_m(STEP6B_FIRE_COUNT)
+  }
+  if {$initial_slave ne ""} {
+    array set initial_s $initial_slave
+    set initial_slave_target $initial_s(TARGET_TAI_SOURCE)
+    set initial_slave_arm $initial_s(STEP6B_ARM_SOURCE)
+    set initial_slave_sync $initial_s(STEP6B_ARM_SYNC)
+    set initial_slave_armed $initial_s(STEP6B_ARMED)
+    set initial_slave_fired $initial_s(STEP6B_FIRED)
+    set initial_slave_count $initial_s(STEP6B_FIRE_COUNT)
+  }
+  puts [format "S6B_LIVE_INITIAL_STATE_RESULT=%s MASTER_TARGET=%s SLAVE_TARGET=%s MASTER_ARM=%s SLAVE_ARM=%s MASTER_ARM_SYNC=%s SLAVE_ARM_SYNC=%s MASTER_ARMED=%s SLAVE_ARMED=%s MASTER_FIRED=%s SLAVE_FIRED=%s MASTER_FIRE_COUNT=%s SLAVE_FIRE_COUNT=%s" \
+    [expr {$initial_ok ? "PASS" : "INCONCLUSIVE_STEP6B_INITIAL_STATE_NOT_PRISTINE"}] \
+    $initial_master_target $initial_slave_target $initial_master_arm $initial_slave_arm \
+    $initial_master_sync $initial_slave_sync $initial_master_armed $initial_slave_armed \
+    $initial_master_fired $initial_slave_fired \
+    $initial_master_count $initial_slave_count]
+  flush stdout
+  if {!$initial_ok} {
+    s6b_live_emit_result INCONCLUSIVE_STEP6B_INITIAL_STATE_NOT_PRISTINE initial_state
+    return
+  }
+
+  puts [format "S6B_LIVE_TARGET_SELECTED T0=%d TARGET_TAI=%d TARGET_CYCLES=%d" \
+    $::s6b_live_t0 $::s6b_live_target_tai $::s6b_target_cycles]
+  flush stdout
+
+  if {[s6b_write_source $master_hardware MASTER 67 $::s6b_live_target_tai 40]} {
+    set ::s6b_live_target_write_master 1
+  } else {
+    s6b_live_emit_result INCONCLUSIVE_SOURCE_WRITE_FAILURE target_write
+    return
+  }
+  if {[s6b_write_source $slave_hardware SLAVE 67 $::s6b_live_target_tai 40]} {
+    set ::s6b_live_target_write_slave 1
+  } else {
+    s6b_live_emit_result INCONCLUSIVE_SOURCE_WRITE_FAILURE target_write
+    return
+  }
+  after $::s6b_live_target_settle_ms
+
+  set target_master [s6b_collect $master_hardware MASTER 0 0]
+  set target_slave [s6b_collect $slave_hardware SLAVE 0 0]
+  s6b_emit_board_samples $target_master $target_slave S6B_LIVE_TARGET_VERIFY_SAMPLE
+  set target_verify_ok [expr {[s6b_live_common_gate_ok $target_master MASTER] &&
+      [s6b_live_common_gate_ok $target_slave SLAVE]}]
+  foreach snapshot [list $target_master $target_slave] {
+    if {$snapshot eq ""} { set target_verify_ok 0; continue }
+    array set row $snapshot
+    if {$row(TARGET_TAI_SOURCE) != $::s6b_live_target_tai ||
+        $row(STEP6B_ARM_SOURCE) != 0 || $row(STEP6B_FIRED) != 0 ||
+        $row(STEP6B_FIRE_COUNT) != 0} { set target_verify_ok 0 }
+  }
+  puts [format "S6B_LIVE_TARGET_VERIFY_RESULT=%s TARGET_TAI=%d" \
+    [expr {$target_verify_ok ? "PASS" : "INCONCLUSIVE_TARGET_WRITE_OR_READBACK_MISMATCH"}] \
+    $::s6b_live_target_tai]
+  flush stdout
+  if {!$target_verify_ok} {
+    s6b_live_emit_result INCONCLUSIVE_TARGET_WRITE_OR_READBACK_MISMATCH target_verify
+    return
+  }
+
+  set master_delta [s6b_live_target_delta_ticks $target_master \
+    $::s6b_live_target_tai $::s6b_target_cycles]
+  set slave_delta [s6b_live_target_delta_ticks $target_slave \
+    $::s6b_live_target_tai $::s6b_target_cycles]
+  set min_delta $master_delta
+  if {$min_delta < 0 || ($slave_delta >= 0 && $slave_delta < $min_delta)} {
+    set min_delta $slave_delta
+  }
+  puts [format "S6B_LIVE_PREARM_TIME_GATE MASTER_REMAINING_TICKS=%s SLAVE_REMAINING_TICKS=%s MIN_REMAINING_TICKS=%s REQUIRED_REMAINING_TICKS=%d" \
+    $master_delta $slave_delta $min_delta [expr {12 * 125000000}]]
+  flush stdout
+  if {$master_delta < 12 * 125000000 || $slave_delta < 12 * 125000000} {
+    s6b_live_emit_result INCONCLUSIVE_TARGET_WINDOW_TOO_CLOSE prearm_time_gate
+    return
+  }
+
+  if {[s6b_write_source $master_hardware MASTER 68 1 1]} {
+    set ::s6b_live_arm_write_master 1
+  } else {
+    s6b_live_emit_result INCONCLUSIVE_SOURCE_WRITE_FAILURE arm_write
+    return
+  }
+  if {[s6b_write_source $slave_hardware SLAVE 68 1 1]} {
+    set ::s6b_live_arm_write_slave 1
+  } else {
+    s6b_live_emit_result INCONCLUSIVE_SOURCE_WRITE_FAILURE arm_write
+    return
+  }
+  after $::s6b_live_arm_settle_ms
+
+  set arm_master [s6b_collect $master_hardware MASTER 0 0]
+  set arm_slave [s6b_collect $slave_hardware SLAVE 0 0]
+  s6b_emit_board_samples $arm_master $arm_slave S6B_LIVE_ARM_VERIFY_SAMPLE
+  set arm_state_ok 1
+  set arm_latch_ok 1
+  set arm_remaining_ok 1
+  foreach snapshot [list $arm_master $arm_slave] {
+    if {$snapshot eq ""} {
+      set arm_state_ok 0
+      set arm_latch_ok 0
+      set arm_remaining_ok 0
+      continue
+    }
+    array set row $snapshot
+    if {![s6b_live_common_gate_ok $snapshot $row(ROLE)] ||
+        $row(TARGET_TAI_SOURCE) != $::s6b_live_target_tai ||
+        $row(STEP6B_ARM_SOURCE) != 1 || $row(STEP6B_ARM_SYNC) != 1 ||
+        $row(STEP6B_ARMED) != 1 || $row(STEP6B_FIRED) != 0 ||
+        $row(STEP6B_FIRE_COUNT) != 0} { set arm_state_ok 0 }
+    if {$row(STEP6B_LATCHED_TAI) != $::s6b_live_target_tai} {
+      set arm_latch_ok 0
+    }
+    if {[s6b_live_target_delta_ticks $snapshot $::s6b_live_target_tai \
+        $::s6b_target_cycles] < 10 * 125000000} { set arm_remaining_ok 0 }
+  }
+  puts [format "S6B_LIVE_ARM_VERIFY_RESULT=%s TARGET_LATCH=%s REMAINING_OK=%s" \
+    [expr {$arm_state_ok && $arm_latch_ok && $arm_remaining_ok ? "PASS" : \
+      ($arm_latch_ok ? "INCONCLUSIVE_DUAL_ARM_NOT_ESTABLISHED" : "INCONCLUSIVE_TARGET_LATCH_MISMATCH")}] \
+    [expr {$arm_latch_ok ? "PASS" : "FAIL"}] \
+    [expr {$arm_remaining_ok ? "PASS" : "FAIL"}]]
+  flush stdout
+  if {!$arm_latch_ok} {
+    s6b_live_emit_result INCONCLUSIVE_TARGET_LATCH_MISMATCH arm_verify
+    return
+  }
+  if {!$arm_state_ok || !$arm_remaining_ok} {
+    s6b_live_emit_result INCONCLUSIVE_DUAL_ARM_NOT_ESTABLISHED arm_verify
+    return
+  }
+
+  set target_ticks [expr {$::s6b_live_target_tai * 125000000 + $::s6b_target_cycles}]
+  set target_plus_one [expr {$target_ticks + 125000000}]
+  set target_plus_two [expr {$target_ticks + 2 * 125000000}]
+  set hard_deadline [expr {[clock milliseconds] + 40000}]
+  set capture_sample 0
+  set trigger_seen 0
+  set result ""
+  set final_master $arm_master
+  set final_slave $arm_slave
+  while {[clock milliseconds] <= $hard_deadline} {
+    set master [s6b_collect $master_hardware MASTER $capture_sample 0]
+    set slave [s6b_collect $slave_hardware SLAVE $capture_sample 0]
+    incr ::s6b_live_capture_samples
+    set final_master $master
+    set final_slave $slave
+    s6b_emit_board_samples $master $slave S6B_LIVE_CAPTURE_SAMPLE
+    if {$master eq "" || $slave eq ""} {
+      set result INCONCLUSIVE_RUNTIME_STATE_CHANGED
+      break
+    }
+    array set m $master
+    array set s $slave
+    set ::s6b_live_master_fired $m(STEP6B_FIRED)
+    set ::s6b_live_slave_fired $s(STEP6B_FIRED)
+    set ::s6b_live_master_count $m(STEP6B_FIRE_COUNT)
+    set ::s6b_live_slave_count $s(STEP6B_FIRE_COUNT)
+    set ::s6b_live_master_actual_tai $m(STEP6B_ACTUAL_TAI)
+    set ::s6b_live_master_actual_cycles $m(STEP6B_ACTUAL_CYCLES)
+    set ::s6b_live_slave_actual_tai $s(STEP6B_ACTUAL_TAI)
+    set ::s6b_live_slave_actual_cycles $s(STEP6B_ACTUAL_CYCLES)
+    set master_now [s6b_live_now_ticks $master]
+    set slave_now [s6b_live_now_ticks $slave]
+    set now_ticks $master_now
+    if {$now_ticks < 0 || ($slave_now >= 0 && $slave_now > $now_ticks)} {
+      set now_ticks $slave_now
+    }
+    set before_target [expr {$now_ticks >= 0 && $now_ticks < $target_ticks}]
+    if {$m(STEP6B_FIRE_COUNT) > 1 || $s(STEP6B_FIRE_COUNT) > 1} {
+      set result FAIL_TRIGGER_ONE_SHOT_VIOLATION
+      break
+    }
+    if {$before_target && ($m(STEP6B_FIRED) == 1 || $s(STEP6B_FIRED) == 1 ||
+        $m(STEP6B_FIRE_COUNT) > 0 || $s(STEP6B_FIRE_COUNT) > 0)} {
+      set result FAIL_EARLY_SCHEDULED_TRIGGER
+      break
+    }
+    set runtime_ok [expr {[s6b_live_common_gate_ok $master MASTER] &&
+        [s6b_live_common_gate_ok $slave SLAVE]}]
+    if {!$runtime_ok} {
+      if {$before_target} {
+        for {set post 0} {$post < 3} {incr post} {
+          after $::s6b_live_capture_gap_ms
+          set post_master [s6b_collect $master_hardware MASTER $post 0]
+          set post_slave [s6b_collect $slave_hardware SLAVE $post 0]
+          s6b_emit_board_samples $post_master $post_slave S6B_LIVE_POST_LOSS_SAMPLE
+          incr ::s6b_live_capture_samples
+        }
+        set result INCONCLUSIVE_STEP6A_STABILITY_LOST_BEFORE_TARGET
+      } else {
+        set result INCONCLUSIVE_RUNTIME_STATE_CHANGED
+      }
+      break
+    }
+    if {$m(STEP6B_FIRED) == 1 && $s(STEP6B_FIRED) == 1} {
+      if {!$trigger_seen} {
+        set trigger_seen 1
+        set ::s6b_live_post_fire_samples 0
+        if {$m(STEP6B_ACTUAL_TAI) != $s(STEP6B_ACTUAL_TAI) ||
+            $m(STEP6B_ACTUAL_CYCLES) != $s(STEP6B_ACTUAL_CYCLES)} {
+          set result FAIL_SCHEDULED_TRIGGER_TIMESTAMP_MISMATCH
+          if {$m(STEP6B_ACTUAL_TAI) >= 0 && $s(STEP6B_ACTUAL_TAI) >= 0 &&
+              $m(STEP6B_ACTUAL_CYCLES) >= 0 && $s(STEP6B_ACTUAL_CYCLES) >= 0} {
+            set ::s6b_live_delta_ticks [expr {($s(STEP6B_ACTUAL_TAI) - $m(STEP6B_ACTUAL_TAI)) * 125000000 +
+                $s(STEP6B_ACTUAL_CYCLES) - $m(STEP6B_ACTUAL_CYCLES)}]
+            set ::s6b_live_delta_ns [expr {$::s6b_live_delta_ticks * 8}]
+          }
+          break
+        }
+        if {$m(STEP6B_ACTUAL_TAI) != $::s6b_live_target_tai ||
+            $s(STEP6B_ACTUAL_TAI) != $::s6b_live_target_tai ||
+            $m(STEP6B_ACTUAL_CYCLES) != $::s6b_target_cycles ||
+            $s(STEP6B_ACTUAL_CYCLES) != $::s6b_target_cycles} {
+          set result FAIL_COMMON_TRIGGER_TARGET_MISS
+          break
+        }
+        set ::s6b_live_delta_ticks 0
+        set ::s6b_live_delta_ns 0
+      } else {
+        if {$m(STEP6B_FIRED) != 1 || $s(STEP6B_FIRED) != 1 ||
+            $m(STEP6B_FIRE_COUNT) != 1 || $s(STEP6B_FIRE_COUNT) != 1 ||
+            $m(STEP6B_ARMED) != 0 || $s(STEP6B_ARMED) != 0} {
+          set result FAIL_TRIGGER_ONE_SHOT_VIOLATION
+          break
+        }
+        incr ::s6b_live_post_fire_samples
+        if {$::s6b_live_post_fire_samples >= 3} {
+          set result PASS_DIGITAL_SCHEDULED_DUAL_BOARD_TRIGGER
+          break
+        }
+      }
+    } elseif {$trigger_seen && ($m(STEP6B_FIRED) != 1 ||
+        $s(STEP6B_FIRED) != 1 || $m(STEP6B_FIRE_COUNT) != 1 ||
+        $s(STEP6B_FIRE_COUNT) != 1)} {
+      set result FAIL_TRIGGER_ONE_SHOT_VIOLATION
+      break
+    }
+    if {!$trigger_seen && $now_ticks >= $target_plus_one} {
+      if {$m(STEP6B_FIRE_COUNT) == 1 || $s(STEP6B_FIRE_COUNT) == 1} {
+        set result FAIL_ONE_SIDED_SCHEDULED_TRIGGER
+      } else {
+        set result FAIL_BOTH_BOARDS_MISSED_SCHEDULED_TRIGGER
+      }
+      break
+    }
+    if {!$trigger_seen && $now_ticks >= $target_plus_two} {
+      set result FAIL_BOTH_BOARDS_MISSED_SCHEDULED_TRIGGER
+      break
+    }
+    incr capture_sample
+    after $::s6b_live_capture_gap_ms
+  }
+  if {$result eq ""} { set result INCONCLUSIVE_RUNTIME_STATE_CHANGED }
+  s6b_live_emit_result $result capture
+}
+
 proc s6b_run {} {
   set master_hardware ""
   set slave_hardware ""
@@ -954,6 +1400,8 @@ proc s6b_run {} {
 
 if {$::s6b_mode eq "LATE_TAIL"} {
   s6a_late_tail_run
+} elseif {$::s6b_mode eq "LIVE_SESSION"} {
+  s6b_live_session_run
 } else {
   s6b_run
 }

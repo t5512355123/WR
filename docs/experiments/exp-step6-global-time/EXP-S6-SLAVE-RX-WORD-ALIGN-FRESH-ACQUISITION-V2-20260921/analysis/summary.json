@@ -8,7 +8,7 @@
   "transport_errors": 0,
   "reset_changes": 0,
   "local_ready_pass": true,
-  "classification": "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT",
+  "classification": "INCONCLUSIVE_COUNTER_BASELINE",
   "word_align_acquisition": "INCONCLUSIVE",
   "recovered_rx_clock_activity": "PRESENT",
   "eightbtenb_error_delta_seen": true,

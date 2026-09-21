@@ -91,3 +91,11 @@ def test_first_sync_loss_history_classifies_early_loss_after_full_window():
     result = analyze_text("\n".join(rows))
     assert result["classification"] == "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS"
     assert result["observation_window_complete"] is True
+
+
+def test_counter_baseline_precedes_short_window_classification():
+    row = sample(0, good=True).replace(
+        "STOP_CANDIDATE=NONE", "STOP_CANDIDATE=INCONCLUSIVE_COUNTER_BASELINE"
+    )
+    result = analyze_text(row)
+    assert result["classification"] == "INCONCLUSIVE_COUNTER_BASELINE"

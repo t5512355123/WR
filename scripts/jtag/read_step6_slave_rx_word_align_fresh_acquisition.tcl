@@ -21,7 +21,7 @@ package require ::quartus::insystem_source_probe
 
 set ::trial_id "S6-SLAVE-RX-WORD-ALIGN-FRESH-ACQUISITION"
 set ::board_filter ""
-set ::sample_limit 100
+set ::sample_limit 200
 set ::gap_ms 100
 set ::mode "word-align"
 set ::max_duration_ms 10000

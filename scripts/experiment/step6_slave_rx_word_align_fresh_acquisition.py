@@ -131,21 +131,28 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
         classification = "PASS_WORD_ALIGN_ACQUISITION"
     else:
         candidate = stop_candidates[-1] if stop_candidates else "INCONCLUSIVE_MAX_CAPTURE"
-        sync_seen = any(integer(row, "SYNC_SEEN", 0) == 1 for row in rows)
-        pattern_seen = any(integer(row, "PATTERN_SEEN", 0) == 1 for row in rows)
-        error_seen = any(integer(row, "ERROR_SEEN", 0) == 1 for row in rows)
-        first_sync_loss = integer(rows[0], "FIRST_SYNC_LOSS_COUNT", 0) or 0
-        if first_sync_loss > 0 or candidate == "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS":
-            preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS"
-            classification = (preliminary_failure_class
-                              if observation_window_complete
-                              else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
-        elif not sync_seen and not pattern_seen and error_seen:
-            preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS"
-            classification = (preliminary_failure_class
-                              if observation_window_complete
-                              else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
-        elif candidate in {
+        # A counter-baseline failure is an observer/data-quality failure.  It
+        # takes precedence over the secondary short-window interpretation and
+        # over any preliminary PHY hypothesis; otherwise an early stop could
+        # be mislabeled as a formal word-align result.
+        if candidate == "INCONCLUSIVE_COUNTER_BASELINE":
+            classification = candidate
+        else:
+            sync_seen = any(integer(row, "SYNC_SEEN", 0) == 1 for row in rows)
+            pattern_seen = any(integer(row, "PATTERN_SEEN", 0) == 1 for row in rows)
+            error_seen = any(integer(row, "ERROR_SEEN", 0) == 1 for row in rows)
+            first_sync_loss = integer(rows[0], "FIRST_SYNC_LOSS_COUNT", 0) or 0
+            if first_sync_loss > 0 or candidate == "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS":
+                preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS"
+                classification = (preliminary_failure_class
+                                  if observation_window_complete
+                                  else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
+            elif not sync_seen and not pattern_seen and error_seen:
+                preliminary_failure_class = "FAIL_RX_WORD_ALIGNMENT_NEVER_ACQUIRED_WITH_8B10B_ERRORS"
+                classification = (preliminary_failure_class
+                                  if observation_window_complete
+                                  else "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT")
+            elif candidate in {
             "FAIL_SLAVE_PHY_LOCAL_READY",
             "FAIL_RX_CDR_OR_RECOVERED_CLOCK_REGRESSION",
             "FAIL_RX_WORD_ALIGNMENT_EARLY_LOSS_WITH_8B10B_ERRORS",
@@ -155,14 +162,14 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
             "INCONCLUSIVE_RESET",
             "INCONCLUSIVE_SAFETY_DEADLINE",
             "INCONCLUSIVE_SAMPLE_CAP",
-        }:
-            classification = (candidate if candidate != "INCONCLUSIVE_SAMPLE_CAP" else "INCONCLUSIVE_SAMPLE_CAP")
-        elif not local_ready:
-            classification = "FAIL_SLAVE_PHY_LOCAL_READY"
-        elif not observation_window_complete:
-            classification = "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT"
-        else:
-            classification = "INCONCLUSIVE_MAX_CAPTURE"
+            }:
+                classification = candidate
+            elif not local_ready:
+                classification = "FAIL_SLAVE_PHY_LOCAL_READY"
+            elif not observation_window_complete:
+                classification = "INCONCLUSIVE_OBSERVATION_WINDOW_SHORT"
+            else:
+                classification = "INCONCLUSIVE_MAX_CAPTURE"
 
     error_delta_keys = (
         "ENC_ERR_DELTA", "DISPERR_DELTA", "ERRDETECT_DELTA",
@@ -175,7 +182,7 @@ def analyze_word_align(rows: list[dict[str, Any]], source: str) -> dict[str, Any
     activity_values = [integer(row, "RX_CLOCK_ACTIVITY") for row in rows]
     activity_values = [value for value in activity_values if value is not None and value >= 0]
     return {
-        "format": "step6-slave-rx-word-align-fresh-acquisition-v2",
+        "format": "step6-slave-rx-word-align-fresh-acquisition-v3",
         "mode": "word-align",
         "source": source,
         "board": rows[0].get("BOARD", "UNKNOWN") if rows else "UNKNOWN",

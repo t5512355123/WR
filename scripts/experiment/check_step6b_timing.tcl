@@ -177,7 +177,10 @@ proc s6b_check_group {name from to use_clock refclk report_prefix} {
   set matched_to [s6b_collection_count $to]
   s6b_report [format "STEP6B_ENDPOINTS name=%s matched_from=%d matched_to=%d" \
     $name $matched_from $matched_to]
-  if {$matched_from == 0 || $matched_to == 0} {
+  # P5-P9 intentionally use the public refclk as the launch domain rather
+  # than a source-register collection.  Only explicit-register groups need
+  # a non-empty matched_from endpoint collection.
+  if {$matched_to == 0 || (!$use_clock && $matched_from == 0)} {
     s6b_mark_failure "${name}_endpoint_match_empty" NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED
     return
   }

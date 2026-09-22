@@ -82,6 +82,22 @@ proc s5_send_vuart {hardware_name command label} {
   return $ok
 }
 
+proc s5_collect_valid {hardware_name role sample elapsed_ms} {
+  # A complete frame contains several shadow groups.  Under a busy WR
+  # session one group can be stale even though the dashboard's short read is
+  # usable.  Retry only the passive capture; never retry the VUART write.
+  set last {}
+  for {set attempt 0} {$attempt < 5} {incr attempt} {
+    set last [wf_collect $hardware_name $role $sample $elapsed_ms]
+    if {$last ne ""} {
+      array set row $last
+      if {$row(READ_VALID) == 1} { return $last }
+    }
+    if {$attempt < 4} { after 75 }
+  }
+  return $last
+}
+
 proc s5_emit_state {board role sample elapsed snapshot} {
   if {$snapshot eq ""} {
     s5_emit S5_PHASE_REARM_SAMPLE [list BOARD $board ROLE $role SAMPLE $sample \
@@ -132,8 +148,8 @@ proc s5_run {} {
   set gate_begin_ms [clock milliseconds]
   for {set sample 0} {$sample < $::s5_preflight_samples} {incr sample} {
     set elapsed [expr {[clock milliseconds] - $gate_begin_ms}]
-    set master [wf_collect $master_hardware MASTER $sample $elapsed]
-    set slave [wf_collect $slave_hardware SLAVE $sample $elapsed]
+    set master [s5_collect_valid $master_hardware MASTER $sample $elapsed]
+    set slave [s5_collect_valid $slave_hardware SLAVE $sample $elapsed]
     if {$master eq "" || $slave eq ""} {
       set gate_all 0
       set gate_transport 1
@@ -220,8 +236,8 @@ proc s5_run {} {
   set terminal_seen 0
   while {[clock milliseconds] <= $deadline_ms} {
     set elapsed [expr {[clock milliseconds] - $begin_ms}]
-    set slave [wf_collect $slave_hardware SLAVE $sample $elapsed]
-    set master [wf_collect $master_hardware MASTER $sample $elapsed]
+    set slave [s5_collect_valid $slave_hardware SLAVE $sample $elapsed]
+    set master [s5_collect_valid $master_hardware MASTER $sample $elapsed]
     if {$slave eq "" || $master eq ""} {
       set transport_failure 1
       s5_emit S5_PHASE_REARM_SAMPLE_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed READ_VALID 0]

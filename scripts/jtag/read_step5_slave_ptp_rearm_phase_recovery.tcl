@@ -52,8 +52,11 @@ proc s5_emit {prefix pairs} {
 proc s5_gate_precondition {snapshot role} {
   if {$snapshot eq ""} { return 0 }
   array set s $snapshot
-  if {$s(READ_VALID) != 1 || $s(CAPTURE_HEALTHY) != 1 ||
-      $s(RESET_CHANGED) != 0 || $s(LINK_HEALTHY) != 1} {
+  # This gate intentionally validates only fields required before the VUART
+  # action.  The full shadow frame may contain an unrelated stale group while
+  # link/PTP status is coherent; that case remains visible as READ_VALID=0.
+  if {$s(CAPTURE_HEALTHY) != 1 || $s(RESET_CHANGED) != 0 ||
+      $s(LINK_HEALTHY) != 1} {
     return 0
   }
   if {$role eq "SLAVE"} {
@@ -65,6 +68,16 @@ proc s5_gate_precondition {snapshot role} {
   # validated image the legal Master value is 1, not the Slave value 3.  The
   # recovery gate only needs the stable Master PTP state and link health.
   return [expr {$s(PTP_STATE) == 6}]
+}
+
+proc s5_collect_gate {hardware_name role sample elapsed_ms} {
+  set last {}
+  for {set attempt 0} {$attempt < 5} {incr attempt} {
+    set last [wf_collect $hardware_name $role $sample $elapsed_ms]
+    if {[s5_gate_precondition $last $role]} { return $last }
+    if {$attempt < 4} { after 75 }
+  }
+  return $last
 }
 
 proc s5_send_vuart {hardware_name command label} {
@@ -148,8 +161,8 @@ proc s5_run {} {
   set gate_begin_ms [clock milliseconds]
   for {set sample 0} {$sample < $::s5_preflight_samples} {incr sample} {
     set elapsed [expr {[clock milliseconds] - $gate_begin_ms}]
-    set master [s5_collect_valid $master_hardware MASTER $sample $elapsed]
-    set slave [s5_collect_valid $slave_hardware SLAVE $sample $elapsed]
+    set master [s5_collect_gate $master_hardware MASTER $sample $elapsed]
+    set slave [s5_collect_gate $slave_hardware SLAVE $sample $elapsed]
     if {$master eq "" || $slave eq ""} {
       set gate_all 0
       set gate_transport 1
@@ -166,8 +179,10 @@ proc s5_run {} {
       if {$m(READ_VALID) != 1 || $s(READ_VALID) != 1} { set gate_transport 1 }
       set gate_all [expr {$gate_all && $master_good && $slave_good &&
         !$m(RESET_CHANGED) && !$s(RESET_CHANGED)}]
+      set complete_frame [expr {$m(READ_VALID) == 1 && $s(READ_VALID) == 1}]
       s5_emit S5_PHASE_REARM_GATE_PAIR [list SAMPLE $sample ELAPSED_MS $elapsed \
-        READ_VALID 1 MASTER_PRECONDITION $master_good SLAVE_PRECONDITION $slave_good \
+        READ_VALID $complete_frame ESSENTIAL_GATE 1 \
+        MASTER_PRECONDITION $master_good SLAVE_PRECONDITION $slave_good \
         MASTER_READ_VALID $m(READ_VALID) MASTER_CAPTURE_HEALTHY $m(CAPTURE_HEALTHY) \
         MASTER_LINK_HEALTHY $m(LINK_HEALTHY) MASTER_RESET_CHANGED $m(RESET_CHANGED) \
         MASTER_PTP_STATE $m(PTP_STATE) SLAVE_READ_VALID $s(READ_VALID) \

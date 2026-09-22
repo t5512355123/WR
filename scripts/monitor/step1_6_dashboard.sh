@@ -79,14 +79,14 @@ format_board() {
     "${field[HelperLock]:-N/A}" "${field[MainFreq]:-N/A}" "${field[MainPhase]:-N/A}"
   printf '| %-28s MainLock=%s  PSTAT=%s             |\n' "" \
     "${field[MainLock]:-N/A}" "${field[PSTAT]:-N/A}"
-  printf '| %-28s %s                         |\n' "Global-Time reason" "$global_reason"
+  printf '| %-28s %-27s |\n' "Global-Time reason" "$global_reason"
   printf '| %-28s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
     "${field[SNAPSHOT_VALID]:-N/A}" "${field[SNAPSHOT_STABLE]:-N/A}" \
     "${field[SNAPSHOT_COUNT]:-N/A}"
-  printf '| %-28s CR=%s EN=%s ESCR=%s           |\n' "PPS registers" \
-    "${field[PPS_CR]:-N/A}" "${field[PPS_CR_ENABLE]:-N/A}" "${field[PPS_ESCR]:-N/A}"
-  printf '| %-28s TM=%s PPS=%s                  |\n' "PPS register validity" \
-    "${field[ESCR_TM_VALID]:-N/A}" "${field[ESCR_PPS_VALID]:-N/A}"
+  printf '| %-28s %-27s |\n' "PPS registers" \
+    "CR=${field[PPS_CR]:-N/A} EN=${field[PPS_CR_ENABLE]:-N/A} ESCR=${field[PPS_ESCR]:-N/A}"
+  printf '| %-28s %-27s |\n' "PPS register validity" \
+    "TM=${field[ESCR_TM_VALID]:-N/A} PPS=${field[ESCR_PPS_VALID]:-N/A}"
   printf '| %-28s %-27s |\n' "Step5 result" "${field[Step5Result]:-N/A}"
   printf '%s\n' '+------------------------------------------------------------+'
 }
@@ -106,12 +106,12 @@ format_global_time_summary() {
           "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
       tai='--'
       cycles='--'
-      printf '%-8s %-16s TAI=%-12s CYCLES=%-12s WAITING (%s/%s)\n' \
-        "$role" "$board" "$tai" "$cycles" \
-        "TIME_VALID=$time_valid" "PPS_VALID=$pps_valid"
+      printf '  %-7s (%s)\n' "$role" "$board"
+      printf '    TAI=%-12s CYCLES=%-12s WAITING (%s, %s)\n' \
+        "$tai" "$cycles" "TIME_VALID=$time_valid" "PPS_VALID=$pps_valid"
     else
-      printf '%-8s %-16s TAI=%-12s CYCLES=%-12s VALID\n' \
-        "$role" "$board" "$tai" "$cycles"
+      printf '  %-7s (%s)\n' "$role" "$board"
+      printf '    TAI=%-12s CYCLES=%-12s VALID\n' "$tai" "$cycles"
     fi
   done
   printf '%s\n' '------------------------------------------------------------'

@@ -323,6 +323,16 @@ proc merge_status {current candidate} {
   return $current
 }
 
+# Step 3 has informational sub-observations by design: the last WR message
+# may be a later protocol stage and a single WRS_IDLE read may be a harmless
+# sampling point.  Those INFO records must not downgrade an otherwise
+# source-valid gate.  Real WARN/INVALID/FAIL candidates still use the normal
+# severity aggregation and therefore still block Step 4B.
+proc merge_step3_gate {current candidate} {
+  if {$candidate eq "INFO"} { return $current }
+  return [merge_status $current $candidate]
+}
+
 proc status_text {status} {
   switch -- $status {
     PASS { return "pass" }
@@ -1171,8 +1181,8 @@ proc analyze_board {board} {
     set parent_cal [bit32 $parse 26]
     set fc_status [exact_status $fc 1]
     set best_status [exact_status $best 0]
-    set step3 [merge_status $step3 $fc_status]
-    set step3 [merge_status $step3 $best_status]
+    set step3 [merge_step3_gate $step3 $fc_status]
+    set step3 [merge_step3_gate $step3 $best_status]
     print_signal $fc_status "Foreign Master" WDIAGS_FOREIGN_META [display_value $fc] "1" ""
     print_signal $best_status "Best Foreign Index" WDIAGS_FOREIGN_META [display_value $best] "0" ""
     print_signal INFO "Parent Metadata" WDIAGS_FOREIGN_META \
@@ -1188,7 +1198,7 @@ proc analyze_board {board} {
         set current INFO
       } else {
         set current [exact_status $value 1]
-        if {$symbol ne "parentWrModeOn"} { set step3 [merge_status $step3 $current] }
+        if {$symbol ne "parentWrModeOn"} { set step3 [merge_step3_gate $step3 $current] }
       }
       print_signal $current $chinese $symbol [display_value $value] "1" \
         "WDIAGS_PARSE_META 的 source-backed parent flag。"
@@ -1201,8 +1211,8 @@ proc analyze_board {board} {
     set tx_count [field32 $tx_signal 0 16]
     set rx_ok [wr_signal_status $rx_id $rx_count 0x1001]
     set tx_ok [wr_signal_status $tx_id $tx_count 0x1000]
-    set step3 [merge_status $step3 $rx_ok]
-    set step3 [merge_status $step3 $tx_ok]
+    set step3 [merge_step3_gate $step3 $rx_ok]
+    set step3 [merge_step3_gate $step3 $tx_ok]
     if {$rx_id < 0} { set rx_id_display "TIMEOUT" } else { set rx_id_display [format "0x%04X" $rx_id] }
     if {$tx_id < 0} { set tx_id_display "TIMEOUT" } else { set tx_id_display [format "0x%04X" $tx_id] }
     print_signal $rx_ok "WR RX Message" WR_RX_SIGNAL_DEBUG \
@@ -1244,12 +1254,12 @@ proc analyze_board {board} {
     } else {
       set state_ok [expr {$state >= 1 && $state <= 8 ? "PASS" : "WARN"}]
     }
-    if {!$post_step3_timeout} { set step3 [merge_status $step3 $state_ok] }
+    if {!$post_step3_timeout} { set step3 [merge_step3_gate $step3 $state_ok] }
     print_signal $state_ok "WR State" WDIAGS_TEMP \
       [format "%s next=%s%s" [wr_state_name $state] [wr_state_name $next_state] \
         [expr {$post_step3_timeout ? " POST_STEP3_TIMEOUT" : ($state_inconsistent ? " READ_INCONSISTENT" : "")}]] \
       [expr {$post_step3_timeout ? "NA" : "WRS_S_LOCK=2"}] ""
-    set step3 [merge_status $step3 $lock_status]
+    set step3 [merge_step3_gate $step3 $lock_status]
     print_signal $lock_status "WR lock enable 次數" LOCK_ENABLE \
       [display_value $lock_enable] "> 0" \
       "locking_enable() 已被呼叫的 read-only counter；不等於 SoftPLL 已 lock。"

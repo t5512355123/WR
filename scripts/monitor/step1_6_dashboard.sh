@@ -97,6 +97,8 @@ format_board() {
   printf '| %-28s MainLock=%s  PSTAT=%s             |\n' "" \
     "${field[MainLock]:-N/A}" "${field[PSTAT]:-N/A}"
   printf '| %-28s %-27s |\n' "Global-Time reason" "$global_reason"
+  printf '| %-28s TIME_VALID=%s PPS_VALID=%s     |\n' "Global-Time validity" \
+    "$time_valid" "$pps_valid"
   printf '| %-28s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
     "${field[SNAPSHOT_VALID]:-N/A}" "${field[SNAPSHOT_STABLE]:-N/A}" \
     "${field[SNAPSHOT_COUNT]:-N/A}"

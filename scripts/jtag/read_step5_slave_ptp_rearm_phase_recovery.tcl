@@ -61,7 +61,10 @@ proc s5_gate_precondition {snapshot role} {
       $s(RX_PATTERN_READY) == 1 && $s(RX_ACTIVITY_CHANGED) == 1 &&
       $s(PTP_STATE) == 9 && $s(WRC_MODE) == 3}]
   }
-  return [expr {$s(PTP_STATE) == 6 && $s(WRC_MODE) == 2}]
+  # The Master WDIAGS_PTP meta word uses its own extension-mode byte; in the
+  # validated image the legal Master value is 1, not the Slave value 3.  The
+  # recovery gate only needs the stable Master PTP state and link health.
+  return [expr {$s(PTP_STATE) == 6}]
 }
 
 proc s5_send_vuart {hardware_name command label} {

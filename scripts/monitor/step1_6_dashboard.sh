@@ -16,6 +16,12 @@ INTERVAL_SECONDS=${INTERVAL_SECONDS:-10}
 OBS_GAP_MS=${OBS_GAP_MS:-2000}
 ONCE=${ONCE:-0}
 CLEAR_SCREEN=${CLEAR_SCREEN:-1}
+# When non-zero, a one-shot/read cycle waits for every visible board to expose
+# a coherent, valid Global-Time snapshot before printing the final dashboard.
+# This is deliberately a read-only presentation gate; it does not reset,
+# program, or write to either FPGA.
+WAIT_FOR_GLOBAL_TIME_SECONDS=${WAIT_FOR_GLOBAL_TIME_SECONDS:-0}
+WAIT_FOR_GLOBAL_TIME_POLL_SECONDS=${WAIT_FOR_GLOBAL_TIME_POLL_SECONDS:-5}
 
 test -x "$QUARTUS_STP"
 case "$INTERVAL_SECONDS" in
@@ -24,6 +30,17 @@ esac
 case "$OBS_GAP_MS" in
   ''|*[!0-9]*) echo "OBS_GAP_MS must be a non-negative integer" >&2; exit 2 ;;
 esac
+case "$WAIT_FOR_GLOBAL_TIME_SECONDS" in
+  ''|*[!0-9]*) echo "WAIT_FOR_GLOBAL_TIME_SECONDS must be a non-negative integer" >&2; exit 2 ;;
+esac
+case "$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS" in
+  ''|*[!0-9]*) echo "WAIT_FOR_GLOBAL_TIME_POLL_SECONDS must be a non-negative integer" >&2; exit 2 ;;
+esac
+if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ] &&
+   [ "$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS" -eq 0 ]; then
+  echo "WAIT_FOR_GLOBAL_TIME_POLL_SECONDS must be > 0 when waiting is enabled" >&2
+  exit 2
+fi
 
 field_from_line() {
   local key="$1"
@@ -117,17 +134,61 @@ format_global_time_summary() {
   printf '%s\n' '------------------------------------------------------------'
 }
 
+all_boards_have_valid_global_time() {
+  local line time_valid pps_valid snapshot_valid snapshot_stable tai cycles
+  local board_count=0
+  for line in "$@"; do
+    board_count=$((board_count + 1))
+    time_valid=$(field_from_line TIME_VALID "$line")
+    pps_valid=$(field_from_line PPS_VALID "$line")
+    snapshot_valid=$(field_from_line SNAPSHOT_VALID "$line")
+    snapshot_stable=$(field_from_line SNAPSHOT_STABLE "$line")
+    tai=$(field_from_line TAI "$line")
+    cycles=$(field_from_line CYCLES "$line")
+    if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
+          "$snapshot_valid" != "1" || "$snapshot_stable" != "1" ||
+          "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
+      return 1
+    fi
+  done
+  [[ "$board_count" -gt 0 ]]
+}
+
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/wr-step1-6-dashboard.XXXXXX")
 trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
 
 while :; do
-  cycle_start=$(date +%s)
-  raw="$TMP_DIR/capture.log"
-  set +e
-  "$QUARTUS_STP" -t "$ROOT/scripts/jtag/read_step1_6_dashboard.tcl" \
-    "$OBS_GAP_MS" >"$raw" 2>&1
-  quartus_rc=$?
-  set -e
+  wait_deadline=0
+  if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ]; then
+    wait_deadline=$(( $(date +%s) + WAIT_FOR_GLOBAL_TIME_SECONDS ))
+  fi
+
+  while :; do
+    cycle_start=$(date +%s)
+    raw="$TMP_DIR/capture.log"
+    set +e
+    "$QUARTUS_STP" -t "$ROOT/scripts/jtag/read_step1_6_dashboard.tcl" \
+      "$OBS_GAP_MS" >"$raw" 2>&1
+    quartus_rc=$?
+    set -e
+
+    board_lines=()
+    while IFS= read -r line; do
+      board_lines+=("$line")
+    done < <(grep '^DASHBOARD_BOARD ' "$raw" || true)
+
+    if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -eq 0 ] ||
+       [ "$quartus_rc" -ne 0 ] ||
+       all_boards_have_valid_global_time "${board_lines[@]}" ||
+       [ "$(date +%s)" -ge "$wait_deadline" ]; then
+      break
+    fi
+
+    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-valid-snapshots\n' \
+      "$(( $(date +%s) - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS) ))" \
+      "$WAIT_FOR_GLOBAL_TIME_SECONDS" "${#board_lines[@]}" >&2
+    sleep "$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS"
+  done
 
   if [ "$CLEAR_SCREEN" = "1" ] && [ -t 1 ]; then
     printf '\033[2J\033[H'
@@ -135,11 +196,6 @@ while :; do
   printf 'White Rabbit Step 1-6 dashboard  %s  (read-only)\n' "$(date -Is)"
   printf 'Sampling interval: %ss; per-board comparison window: %sms\n\n' \
     "$INTERVAL_SECONDS" "$OBS_GAP_MS"
-  board_lines=()
-  while IFS= read -r line; do
-    board_lines+=("$line")
-  done < <(grep '^DASHBOARD_BOARD ' "$raw" || true)
-
   if [ "${#board_lines[@]}" -gt 0 ]; then
     for line in "${board_lines[@]}"; do
       format_board "$line"
@@ -154,6 +210,12 @@ while :; do
   if [ "$ONCE" = "1" ]; then
     if [ "$quartus_rc" -ne 0 ]; then
       exit "$quartus_rc"
+    fi
+    if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ] &&
+       ! all_boards_have_valid_global_time "${board_lines[@]}"; then
+      printf 'DASHBOARD_GLOBAL_TIME_WAIT_TIMEOUT seconds=%s\n' \
+        "$WAIT_FOR_GLOBAL_TIME_SECONDS"
+      exit 3
     fi
     exit 0
   fi

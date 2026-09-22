@@ -114,11 +114,25 @@ proc dashboard_emit_board {board hardware_name global_sample} {
   set status_rx_ready [bit64_low $status_raw 6]
   set status_tx_ready [bit64_low $status_raw 7]
 
+  # These existing WR PPS registers explain why Global Time may be unavailable
+  # even when the timing link itself is already up.  Keep them read-only and
+  # expose the source-level validity bits in the dashboard output.
+  set pps_cr_raw [get_snap $board after pps_cr]
+  set pps_escr_raw [get_snap $board after pps_escr]
+  set pps_cr_word [word32 $pps_cr_raw]
+  set pps_escr_word [word32 $pps_escr_raw]
+  set pps_cr_enable [expr {$pps_cr_word < 0 ? -1 : ($pps_cr_word & 1)}]
+  set escr_pps_valid [expr {$pps_escr_word < 0 ? -1 : (($pps_escr_word >> 2) & 1)}]
+  set escr_tm_valid [expr {$pps_escr_word < 0 ? -1 : (($pps_escr_word >> 3) & 1)}]
+  set pps_cr_display [expr {$pps_cr_word < 0 ? [display_value $pps_cr_raw] : [format "0x%08X" $pps_cr_word]}]
+  set pps_escr_display [expr {$pps_escr_word < 0 ? [display_value $pps_escr_raw] : [format "0x%08X" $pps_escr_word]}]
+
   set global_valid [dict get $global_sample valid]
   set global_stable 0
   set global_time_valid 0
   set global_pps_valid 0
   set global_snapshot_valid 0
+  set global_snapshot_count 0
   set tai "INVALID"
   set cycles "INVALID"
   if {$global_valid} {
@@ -126,20 +140,25 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set global_time_valid [dict get $global_sample time_valid]
     set global_pps_valid [dict get $global_sample pps_valid]
     set global_snapshot_valid [dict get $global_sample snapshot_valid]
+    set global_snapshot_count [dict get $global_sample sequence]
     set tai [dict get $global_sample tai]
     set cycles [dict get $global_sample cycles]
   }
-  set step6 [expr {$global_valid && $global_stable &&
-                   $global_time_valid && $global_pps_valid &&
-                   $global_snapshot_valid && $status_link_ok &&
-                   $status_tm_link ? "PASS" : "INFO"}]
+  set step6 [expr {$global_valid && $global_stable == 1 &&
+                   $global_time_valid == 1 && $global_pps_valid == 1 &&
+                   $global_snapshot_valid == 1 && $status_link_ok == 1 &&
+                   $status_tm_link == 1 && $status_time_valid == 1 &&
+                   $status_pps_valid == 1 ? "PASS" : "INFO"}]
 
   set board_label [dashboard_board_label $hardware_name]
-  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s | Link=%s TM=%s RX=%s TX=%s TIME_VALID=%s PPS_VALID=%s | TAI=%s CYCLES=%s | Step5Result=%s" \
+  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \
       $board_label $role $step1 $step2 $step3 $step4 $step5 $step6 \
       $helper_lock $main_freq $main_phase $main_locked $pstat_lock \
       $status_link_ok $status_tm_link $status_rx_ready $status_tx_ready \
-      $global_time_valid $global_pps_valid $tai $cycles $step5_result]
+      $status_time_valid $status_pps_valid $global_time_valid $global_pps_valid \
+      $global_snapshot_valid $global_stable $global_snapshot_count \
+      $tai $cycles $pps_cr_display $pps_cr_enable $pps_escr_display \
+      $escr_tm_valid $escr_pps_valid $step5_result]
 }
 
 puts [format "DASHBOARD_CONFIG observation_gap_ms=%d reference_clock_hz=125000000 read_only=1" \

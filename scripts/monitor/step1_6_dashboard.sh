@@ -25,6 +25,98 @@ case "$OBS_GAP_MS" in
   ''|*[!0-9]*) echo "OBS_GAP_MS must be a non-negative integer" >&2; exit 2 ;;
 esac
 
+field_from_line() {
+  local key="$1"
+  local line="$2"
+  local token
+  for token in $line; do
+    if [[ "$token" == "$key="* ]]; then
+      printf '%s' "${token#*=}"
+      return 0
+    fi
+  done
+  printf 'N/A'
+}
+
+format_board() {
+  local line="$1"
+  local -A field=()
+  local token key value
+  for token in ${line#DASHBOARD_BOARD }; do
+    [[ "$token" == "|" ]] && continue
+    key="${token%%=*}"
+    value="${token#*=}"
+    field["$key"]="$value"
+  done
+
+  local board="${field[board]:-N/A}"
+  local role="${field[role]:-UNKNOWN}"
+  local time_valid="${field[TIME_VALID]:-0}"
+  local pps_valid="${field[PPS_VALID]:-0}"
+  local snapshot_valid="${field[SNAPSHOT_VALID]:-0}"
+  local snapshot_stable="${field[SNAPSHOT_STABLE]:-0}"
+  local global_state="WAITING"
+  local global_reason="TIME_VALID=${time_valid}, PPS_VALID=${pps_valid}"
+  if [[ "$time_valid" == "1" && "$pps_valid" == "1" &&
+        "$snapshot_valid" == "1" && "$snapshot_stable" == "1" ]]; then
+    global_state="VALID"
+    global_reason="PPS snapshot valid and stable"
+  fi
+
+  printf '\n+------------------------------------------------------------------+\n'
+  printf '| %-8s %-55s |\n' "$role" "$board"
+  printf '+------------------------------------------------------------------+\n'
+  printf '| %-34s %-30s |\n' "Step 1  PHY / Link" "${field[Step1]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step 2  Endpoint / PTP" "${field[Step2]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step 3  WR Handshake" "${field[Step3]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step 4  SoftPLL Startup" "${field[Step4]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step 5  Closed-loop Lock" "${field[Step5]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step 6  Global Time" "$global_state"
+  printf '+------------------------------------------------------------------+\n'
+  printf '| %-34s Link=%s  TM=%s  RX=%s  TX=%s |\n' "Link health" \
+    "${field[Link]:-N/A}" "${field[TM]:-N/A}" "${field[RX]:-N/A}" "${field[TX]:-N/A}"
+  printf '| %-34s Helper=%s  MainFreq=%s  MainPhase=%s |\n' "Lock signals" \
+    "${field[HelperLock]:-N/A}" "${field[MainFreq]:-N/A}" "${field[MainPhase]:-N/A}"
+  printf '| %-34s MainLock=%s  PSTAT=%s             |\n' "" \
+    "${field[MainLock]:-N/A}" "${field[PSTAT]:-N/A}"
+  printf '| %-34s %s                         |\n' "Global-Time reason" "$global_reason"
+  printf '| %-34s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
+    "${field[SNAPSHOT_VALID]:-N/A}" "${field[SNAPSHOT_STABLE]:-N/A}" \
+    "${field[SNAPSHOT_COUNT]:-N/A}"
+  printf '| %-34s CR=%s EN=%s ESCR=%s           |\n' "PPS registers" \
+    "${field[PPS_CR]:-N/A}" "${field[PPS_CR_ENABLE]:-N/A}" "${field[PPS_ESCR]:-N/A}"
+  printf '| %-34s TM=%s PPS=%s                  |\n' "PPS register validity" \
+    "${field[ESCR_TM_VALID]:-N/A}" "${field[ESCR_PPS_VALID]:-N/A}"
+  printf '| %-34s %-30s |\n' "Step5 result" "${field[Step5Result]:-N/A}"
+  printf '+------------------------------------------------------------------+\n'
+}
+
+format_global_time_summary() {
+  local line board role tai cycles time_valid pps_valid
+  printf '\nGlobal Time summary (125 MHz reference; 1 cycle = 8 ns)\n'
+  printf '------------------------------------------------------------------\n'
+  for line in "$@"; do
+    board=$(field_from_line board "$line")
+    role=$(field_from_line role "$line")
+    tai=$(field_from_line TAI "$line")
+    cycles=$(field_from_line CYCLES "$line")
+    time_valid=$(field_from_line TIME_VALID "$line")
+    pps_valid=$(field_from_line PPS_VALID "$line")
+    if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
+          "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
+      tai='--'
+      cycles='--'
+      printf '%-8s %-16s TAI=%-12s CYCLES=%-12s WAITING (%s/%s)\n' \
+        "$role" "$board" "$tai" "$cycles" \
+        "TIME_VALID=$time_valid" "PPS_VALID=$pps_valid"
+    else
+      printf '%-8s %-16s TAI=%-12s CYCLES=%-12s VALID\n' \
+        "$role" "$board" "$tai" "$cycles"
+    fi
+  done
+  printf '------------------------------------------------------------------\n'
+}
+
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/wr-step1-6-dashboard.XXXXXX")
 trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
 
@@ -43,8 +135,17 @@ while :; do
   printf 'White Rabbit Step 1-6 dashboard  %s  (read-only)\n' "$(date -Is)"
   printf 'Sampling interval: %ss; per-board comparison window: %sms\n\n' \
     "$INTERVAL_SECONDS" "$OBS_GAP_MS"
-  if grep -q '^DASHBOARD_' "$raw"; then
-    grep '^DASHBOARD_' "$raw"
+  board_lines=()
+  while IFS= read -r line; do
+    board_lines+=("$line")
+  done < <(grep '^DASHBOARD_BOARD ' "$raw" || true)
+
+  if [ "${#board_lines[@]}" -gt 0 ]; then
+    for line in "${board_lines[@]}"; do
+      format_board "$line"
+    done
+    format_global_time_summary "${board_lines[@]}"
+    printf 'Dashboard read complete.\n'
   else
     printf 'DASHBOARD_ERROR quartus_stp_rc=%s\n' "$quartus_rc"
     tail -20 "$raw"

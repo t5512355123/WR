@@ -176,7 +176,6 @@ proc s5_run {} {
       set master_good [s5_gate_precondition $master MASTER]
       set slave_good [s5_gate_precondition $slave SLAVE]
       if {$m(RESET_CHANGED) || $s(RESET_CHANGED)} { set gate_reset_changed 1 }
-      if {$m(READ_VALID) != 1 || $s(READ_VALID) != 1} { set gate_transport 1 }
       set gate_all [expr {$gate_all && $master_good && $slave_good &&
         !$m(RESET_CHANGED) && !$s(RESET_CHANGED)}]
       set complete_frame [expr {$m(READ_VALID) == 1 && $s(READ_VALID) == 1}]

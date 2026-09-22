@@ -27,6 +27,44 @@ void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 	}
 }
 
+/*
+ * A Slave can transiently miss the hardware WR lock even though the WR
+ * parent is still present and the rest of the PTP session is healthy.  The
+ * historical terminal-fallback path below was correct for a real handshake
+ * failure, but it also discarded the parent context for this recoverable
+ * S_LOCK timeout.  That left the board in ordinary PTP mode until an
+ * explicit "ptp stop/start" command was issued, which also prevented the
+ * WR global-time generator from becoming valid again.
+ *
+ * Re-enter the normal state-machine restart path only for that narrow case.
+ * This preserves the existing terminal fallback for every other failure and
+ * does not touch the SoftPLL control path.
+ */
+static int wr_auto_rearm_slave_after_s_lock_timeout(struct pp_instance *ppi,
+		uint8_t reason)
+{
+	struct wr_dsport *wrp = WR_DSPOR(ppi);
+
+	if (reason != WR_FAIL_REASON_WR_S_LOCK_TIMEOUT ||
+		ppi->state != PPS_SLAVE ||
+		wrp->wrMode != WR_SLAVE ||
+		!wrp->parentIsWRnode ||
+		!(wrp->parentWrConfig == WR_MASTER ||
+			wrp->parentWrConfig == WR_M_AND_S))
+		return 0;
+
+	pp_diag(ppi, ext, 1,
+		"Recoverable WR S_LOCK timeout: re-arm Slave WR handshake\n");
+
+	/* Keep the parent context and use the same transition as a servo restart. */
+	wrp->next_state = WRS_IDLE;
+	wr_reset_process(ppi, WR_SLAVE);
+	wr_servo_reset(ppi);
+	ppi->next_state = PPS_UNCALIBRATED;
+	pdstate_enable_extension(ppi);
+	return 1;
+}
+
 /* The handshake failed: go master or slave in normal PTP mode */
 void wr_handshake_fail_reason(struct pp_instance *ppi, uint8_t reason)
 {
@@ -37,6 +75,9 @@ void wr_handshake_fail_reason(struct pp_instance *ppi, uint8_t reason)
 	wrpc_wr_last_fail_role = (uint8_t)wrp->wrMode;
 	wrpc_wr_last_fail_reason = reason;
 	wrpc_wr_last_fail_tics = timer_get_tics();
+
+	if (wr_auto_rearm_slave_after_s_lock_timeout(ppi, reason))
+		return;
 
 	pp_diag(ppi, ext, 1, "Handshake failure: now non-wr %s\n",
 		wrp->wrMode == WR_MASTER ? "master" : "slave");

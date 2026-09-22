@@ -118,18 +118,22 @@ proc s5_emit_state {board role sample elapsed snapshot} {
     return
   }
   array set s $snapshot
+  set derived_terminal 0
+  if {[info exists s(WR_FAILURE_REASON)] && [info exists s(EXT_STATE)] &&
+      $s(WR_FAILURE_REASON) > 0 && $s(EXT_STATE) == 2} {
+    set derived_terminal 1
+  }
   s5_emit S5_PHASE_REARM_SAMPLE [list BOARD $board ROLE $role SAMPLE $sample \
     ELAPSED_MS $elapsed READ_VALID $s(READ_VALID) CAPTURE_HEALTHY $s(CAPTURE_HEALTHY) \
     RESET_CHANGED $s(RESET_CHANGED) LINK_HEALTHY $s(LINK_HEALTHY) \
     PTP_STATE $s(PTP_STATE) PD_STATE $s(PD_STATE) EXT_STATE $s(EXT_STATE) \
     WRC_MODE $s(WRC_MODE) WR_STATE_VALUE $s(WR_STATE_VALUE) \
-    TERMINAL $s(TERMINAL) WR_FAILURE_REASON $s(WR_FAILURE_REASON) \
+    DERIVED_TERMINAL $derived_terminal WR_FAILURE_REASON $s(WR_FAILURE_REASON) \
     SPLL_SEQ_STATE $s(SPLL_SEQ_STATE) HELPER_LOCKED $s(HELPER_LOCKED) \
     MAIN_ENABLED $s(MAIN_ENABLED) MAIN_FREQ_LOCKED $s(MAIN_FREQ_LOCKED) \
     MAIN_PHASE_LOCKED $s(MAIN_PHASE_LOCKED) MAIN_LOCKED $s(MAIN_LOCKED) \
     PSTAT_LOCKED $s(PSTAT_LOCKED) STATUS_TIME_VALID $s(STATUS_TIME_VALID) \
-    STATUS_PPS_VALID $s(STATUS_PPS_VALID) PHASE_UPDATES $s(PHASE_UPDATES) \
-    TOTAL_UPDATES $s(TOTAL_UPDATES)]
+    STATUS_PPS_VALID $s(STATUS_PPS_VALID)]
 }
 
 proc s5_run {} {
@@ -262,7 +266,10 @@ proc s5_run {} {
     s5_emit_state $master_hardware MASTER $sample $elapsed $master
     s5_emit_state $slave_hardware SLAVE $sample $elapsed $slave
     if {$m(RESET_CHANGED) || $s(RESET_CHANGED)} { set reset_changed 1 }
-    if {$m(TERMINAL) || $s(TERMINAL)} { set terminal_seen 1 }
+    if {([info exists m(WR_FAILURE_REASON)] && $m(WR_FAILURE_REASON) > 0) ||
+        ([info exists s(WR_FAILURE_REASON)] && $s(WR_FAILURE_REASON) > 0)} {
+      set terminal_seen 1
+    }
     if {$s(HELPER_LOCKED) == 1 && $s(MAIN_FREQ_LOCKED) == 1 &&
         $s(MAIN_PHASE_LOCKED) == 1 && $s(MAIN_LOCKED) == 1 &&
         $s(PSTAT_LOCKED) == 1} {

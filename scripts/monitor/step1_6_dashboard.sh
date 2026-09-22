@@ -63,38 +63,38 @@ format_board() {
     global_reason="PPS snapshot valid and stable"
   fi
 
-  printf '\n+------------------------------------------------------------------+\n'
-  printf '| %-8s %-55s |\n' "$role" "$board"
-  printf '+------------------------------------------------------------------+\n'
-  printf '| %-34s %-30s |\n' "Step 1  PHY / Link" "${field[Step1]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step 2  Endpoint / PTP" "${field[Step2]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step 3  WR Handshake" "${field[Step3]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step 4  SoftPLL Startup" "${field[Step4]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step 5  Closed-loop Lock" "${field[Step5]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step 6  Global Time" "$global_state"
-  printf '+------------------------------------------------------------------+\n'
-  printf '| %-34s Link=%s  TM=%s  RX=%s  TX=%s |\n' "Link health" \
+  printf '%s\n' '+------------------------------------------------------------+'
+  printf '| %-8s %-47s |\n' "$role" "$board"
+  printf '%s\n' '+------------------------------------------------------------+'
+  printf '| %-28s %-27s |\n' "Step 1  PHY / Link" "${field[Step1]:-N/A}"
+  printf '| %-28s %-27s |\n' "Step 2  Endpoint / PTP" "${field[Step2]:-N/A}"
+  printf '| %-28s %-27s |\n' "Step 3  WR Handshake" "${field[Step3]:-N/A}"
+  printf '| %-28s %-27s |\n' "Step 4  SoftPLL Startup" "${field[Step4]:-N/A}"
+  printf '| %-28s %-27s |\n' "Step 5  Closed-loop Lock" "${field[Step5]:-N/A}"
+  printf '| %-28s %-27s |\n' "Step 6  Global Time" "$global_state"
+  printf '%s\n' '+------------------------------------------------------------+'
+  printf '| %-28s Link=%s  TM=%s  RX=%s  TX=%s |\n' "Link health" \
     "${field[Link]:-N/A}" "${field[TM]:-N/A}" "${field[RX]:-N/A}" "${field[TX]:-N/A}"
-  printf '| %-34s Helper=%s  MainFreq=%s  MainPhase=%s |\n' "Lock signals" \
+  printf '| %-28s Helper=%s  MainFreq=%s  MainPhase=%s |\n' "Lock signals" \
     "${field[HelperLock]:-N/A}" "${field[MainFreq]:-N/A}" "${field[MainPhase]:-N/A}"
-  printf '| %-34s MainLock=%s  PSTAT=%s             |\n' "" \
+  printf '| %-28s MainLock=%s  PSTAT=%s             |\n' "" \
     "${field[MainLock]:-N/A}" "${field[PSTAT]:-N/A}"
-  printf '| %-34s %s                         |\n' "Global-Time reason" "$global_reason"
-  printf '| %-34s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
+  printf '| %-28s %s                         |\n' "Global-Time reason" "$global_reason"
+  printf '| %-28s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
     "${field[SNAPSHOT_VALID]:-N/A}" "${field[SNAPSHOT_STABLE]:-N/A}" \
     "${field[SNAPSHOT_COUNT]:-N/A}"
-  printf '| %-34s CR=%s EN=%s ESCR=%s           |\n' "PPS registers" \
+  printf '| %-28s CR=%s EN=%s ESCR=%s           |\n' "PPS registers" \
     "${field[PPS_CR]:-N/A}" "${field[PPS_CR_ENABLE]:-N/A}" "${field[PPS_ESCR]:-N/A}"
-  printf '| %-34s TM=%s PPS=%s                  |\n' "PPS register validity" \
+  printf '| %-28s TM=%s PPS=%s                  |\n' "PPS register validity" \
     "${field[ESCR_TM_VALID]:-N/A}" "${field[ESCR_PPS_VALID]:-N/A}"
-  printf '| %-34s %-30s |\n' "Step5 result" "${field[Step5Result]:-N/A}"
-  printf '+------------------------------------------------------------------+\n'
+  printf '| %-28s %-27s |\n' "Step5 result" "${field[Step5Result]:-N/A}"
+  printf '%s\n' '+------------------------------------------------------------+'
 }
 
 format_global_time_summary() {
   local line board role tai cycles time_valid pps_valid
   printf '\nGlobal Time summary (125 MHz reference; 1 cycle = 8 ns)\n'
-  printf '------------------------------------------------------------------\n'
+  printf '%s\n' '------------------------------------------------------------'
   for line in "$@"; do
     board=$(field_from_line board "$line")
     role=$(field_from_line role "$line")
@@ -114,7 +114,7 @@ format_global_time_summary() {
         "$role" "$board" "$tai" "$cycles"
     fi
   done
-  printf '------------------------------------------------------------------\n'
+  printf '%s\n' '------------------------------------------------------------'
 }
 
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/wr-step1-6-dashboard.XXXXXX")

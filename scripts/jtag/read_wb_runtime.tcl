@@ -574,6 +574,21 @@ proc signal_name {message_id} {
   return "UNKNOWN"
 }
 
+# The WR RX/TX debug words are last-observed signaling records, not a
+# latched "first handshake" event.  After a healthy Slave has progressed,
+# the records legitimately contain CALIBRATED/WR_MODE_ON (or another
+# source-defined WR message) instead of the earlier LOCK/SLAVE_PRESENT
+# message.  Treat a known WR message with a positive count as observational
+# evidence, not as a handshake failure.  Unknown messages and zero counts
+# remain warnings so a real protocol anomaly is still visible.
+proc wr_signal_status {message_id count expected_id} {
+  if {$message_id < 0 || $count < 0} { return INVALID }
+  if {$count == 0} { return WARN }
+  if {$message_id == $expected_id} { return PASS }
+  if {$message_id >= 0x1000 && $message_id <= 0x1005} { return INFO }
+  return WARN
+}
+
 proc mac_from_registers {mach macl} {
   set hi [word32 $mach]
   set lo [word32 $macl]
@@ -1184,26 +1199,18 @@ proc analyze_board {board} {
     set rx_count [field32 $rx_signal 0 16]
     set tx_id [field32 $tx_signal 16 16]
     set tx_count [field32 $tx_signal 0 16]
-    if {$rx_count < 0 || $rx_id < 0} {
-      set rx_ok INVALID
-    } else {
-      set rx_ok [expr {$rx_count > 0 && $rx_id == 0x1001 ? "PASS" : "WARN"}]
-    }
-    if {$tx_count < 0 || $tx_id < 0} {
-      set tx_ok INVALID
-    } else {
-      set tx_ok [expr {$tx_count > 0 && $tx_id == 0x1000 ? "PASS" : "WARN"}]
-    }
+    set rx_ok [wr_signal_status $rx_id $rx_count 0x1001]
+    set tx_ok [wr_signal_status $tx_id $tx_count 0x1000]
     set step3 [merge_status $step3 $rx_ok]
     set step3 [merge_status $step3 $tx_ok]
     if {$rx_id < 0} { set rx_id_display "TIMEOUT" } else { set rx_id_display [format "0x%04X" $rx_id] }
     if {$tx_id < 0} { set tx_id_display "TIMEOUT" } else { set tx_id_display [format "0x%04X" $tx_id] }
     print_signal $rx_ok "WR RX Message" WR_RX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $rx_id] [display_value $rx_count]] \
-      "LOCK 0x1001,count>0" ""
+      "LOCK 0x1001 or known WR signal 0x1000..0x1005,count>0" ""
     print_signal $tx_ok "WR TX Message" WR_TX_SIGNAL_DEBUG \
       [format "%s count=%s" [signal_name $tx_id] [display_value $tx_count]] \
-      "SLAVE_PRESENT 0x1000,count>0" ""
+      "SLAVE_PRESENT 0x1000 or known WR signal 0x1000..0x1005,count>0" ""
     # Keep the mailbox text for field32().  Converting to an integer first
     # would make field32() parse the decimal representation as hexadecimal.
     set failure_raw [get_snap $board $after wr_failure]
@@ -1227,8 +1234,12 @@ proc analyze_board {board} {
         set state_ok INFO
         set post_step3_timeout 1
       } else {
-        set state_ok INVALID
-        set state_inconsistent 1
+        # WRS_IDLE is a valid source-defined diagnostic observation when the
+        # record is sampled after the handshake has progressed.  A single
+        # mailbox read cannot prove that the WR session is broken; focused
+        # repeated sampling owns that distinction.  Keep it informational so
+        # a later valid WR message is not promoted to a Step 3 failure.
+        set state_ok INFO
       }
     } else {
       set state_ok [expr {$state >= 1 && $state <= 8 ? "PASS" : "WARN"}]

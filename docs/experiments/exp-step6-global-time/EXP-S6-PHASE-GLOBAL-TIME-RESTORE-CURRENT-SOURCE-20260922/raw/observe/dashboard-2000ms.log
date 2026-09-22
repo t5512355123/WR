@@ -1,0 +1,174 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Sep 22 13:40:40 2026
+Info: Command: quartus_stp -t /home/b10504072/pain-worktrees/step6-global-time-current/scripts/jtag/read_step1_6_dashboard.tcl 2000
+Info: Quartus(args): 2000
+DASHBOARD_CONFIG observation_gap_ms=2000 reference_clock_hz=125000000 read_only=1
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:01/02:00:22:33:44:01
+[pass] WDIAGS_MODE              結果: 2 MASTER/2 MASTER
+[pass] WDIAGS_PTP               結果: 6 MASTER (raw=01014106)/6 MASTER
+[pass] WDIAGS_PTP_RX            結果: Δ=3/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=5/Δ>0
+[pass] WDIAGS_TX                結果: Δ=9/Δ>0
+[pass] WDIAGS_RX                結果: Δ=6/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 pass
+
+## [Step 3] WR Parent / Signaling
+Step 3 NA
+
+## [Step 4A] Master SoftPLL Event Chain
+[pass] DMTD_REF_ACCEPT_EVENT    結果: Δ=11636/Δ>=0
+[pass] DMTD_FB_ACCEPT_EVENT     結果: Δ=11904/Δ>=0
+[pass] DMTD_ACCEPT              結果: Δ=23540/Δ>0
+[pass] SPLL_TAG_VALID_COUNT     結果: Δ=11905/Δ>0
+[pass] SPLL_TRR_WRITE_COUNT     結果: Δ=11906/Δ>0
+[pass] WRPC_SPLL_TRR_POP_COUNT  結果: Δ=12008/Δ>0
+[pass] WDIAGS_IRQ_COUNT         結果: Δ=12008/Δ>0
+[pass] WDIAGS_HELPER_UPDATE_COUNT 結果: Δ=11621/Δ>0
+[pass] BOOT_GENERATION          結果: Δ=0/Δ=0
+[pass] CPU_RESET_COUNT          結果: Δ=0/Δ=0
+[pass] WR_CORE_RESET_COUNT      結果: Δ=0/Δ=0
+[pass] SI_CONFIG_DROP_COUNT     結果: Δ=0/Δ=0
+STEP4A_MASTER_EVENT_CHAIN = PASS
+Step 4 pass
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+Step 5 NA (Step5 closed-loop gate is for Slave)
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         pass
+Step 3 WR Handshake           NA
+Step 4 Step4A Master Event Chain pass
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+DASHBOARD_BOARD board=DE5_1-11.1 role=MASTER | Step1=PASS Step2=PASS Step3=INFO Step4=PASS Step5=INFO Step6=PASS | HelperLock=NA MainFreq=NA MainPhase=NA MainLock=NA PSTAT=NA | Link=1 TM=1 RX=1 TX=1 STATUS_TIME_VALID=1 STATUS_PPS_VALID=1 TIME_VALID=1 PPS_VALID=1 SNAPSHOT_VALID=1 SNAPSHOT_STABLE=1 SNAPSHOT_COUNT=28 | TAI=27 CYCLES=124999999 | PPS_CR=20000006 PPS_CR_ENABLE=0 PPS_ESCR=12 ESCR_TM_VALID=1 ESCR_PPS_VALID=1 | Step5Result=NOT_APPLICABLE_MASTER
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 1/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[pass] EP_MAC_H/EP_MAC_L        結果: 02:00:22:33:44:02/02:00:22:33:44:02
+[pass] WDIAGS_MODE              結果: 3 SLAVE/3 SLAVE
+[info] WDIAGS_PTP               結果: 8 UNCALIBRATED (raw=00004108)/NA
+[pass] WDIAGS_PTP_RX            結果: Δ=7/Δ>0
+[pass] WDIAGS_PTP_TX            結果: Δ=2/Δ>0
+[pass] WDIAGS_TX                結果: Δ=6/Δ>0
+[pass] WDIAGS_RX                結果: Δ=12/Δ>0
+[pass] WDIAGS_RXERR             結果: Δ=0/Δ=0
+Step 2 NA
+
+## [Step 3] WR Parent / Signaling
+[pass] WDIAGS_FOREIGN_META      結果: 1/1
+[pass] WDIAGS_FOREIGN_META      結果: 0/0
+[info] WDIAGS_FOREIGN_META      結果: detection=0 config=3/NA
+[pass] parentIsWRnode           結果: 1/1
+[info] parentWrModeOn           結果: 0/NA
+[error] parentCalibrated         結果: 0/1
+[pass] WR_RX_SIGNAL_DEBUG       結果: LOCK count=1/LOCK 0x1001,count>0
+[pass] WR_TX_SIGNAL_DEBUG       結果: SLAVE_PRESENT count=1/SLAVE_PRESENT 0x1000,count>0
+[pass] WDIAGS_TEMP              結果: WRS_S_LOCK next=WRS_S_LOCK/WRS_S_LOCK=2
+[pass] LOCK_ENABLE              結果: 1/> 0
+Step 3 NA
+
+## [Step 4B] Slave SoftPLL Startup
+[info] STEP4B_UPSTREAM_GATE     結果: BLOCKED/NA
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP2
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+Step 4B BLOCKED (upstream prerequisite)
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         NA
+Step 3 WR Handshake           NA
+Step 4 Step4B Slave SoftPLL Startup blocked
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+============================================================
+DASHBOARD_BOARD board=DE5_1-11.2 role=SLAVE | Step1=PASS Step2=INFO Step3=INVALID Step4=INFO Step5=INFO Step6=INFO | HelperLock=0 MainFreq=0 MainPhase=0 MainLock=0 PSTAT=0 | Link=1 TM=1 RX=1 TX=1 STATUS_TIME_VALID=0 STATUS_PPS_VALID=0 TIME_VALID=0 PPS_VALID=0 SNAPSHOT_VALID=0 SNAPSHOT_STABLE=1 SNAPSHOT_COUNT=0 | TAI=0 CYCLES=0 | PPS_CR=20000002 PPS_CR_ENABLE=0 PPS_ESCR=0 ESCR_TM_VALID=0 ESCR_PPS_VALID=0 | Step5Result=UPSTREAM_NOT_READY
+DASHBOARD_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/pain-worktrees/step6-global-time-current/scripts/jtag/read_step1_6_dashboard.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 776 megabytes
+    Info: Processing ended: Tue Sep 22 13:40:49 2026
+    Info: Elapsed time: 00:00:09
+    Info: Total CPU time (on all processors): 00:00:00

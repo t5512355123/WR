@@ -71,6 +71,14 @@ pre-archive baseline and the other nine are versioned at the paths above.
 
 The active Pain checkout, `snap`, and `share` were not touched.
 
+An additional eight exact backup directories were audited on 2026-09-24:
+the four `step4b-remote-raw-backup-*` directories, three `WDIAGS-*-raw-backup-*`
+directories, and `WR_local_log_backup_20260828`. Their 65 regular files
+(3,675,034 bytes) all matched blobs already present in the fetched
+`origin/feat/file_cleanup` tree. There were no symlinks, special files, SOF, or
+MIF files. The eight duplicate directories were then removed; their contents
+remain recoverable from Git.
+
 Milestone SOFs are outside this audit and must remain retained with their
 matching hashes and provenance.
 
@@ -94,8 +102,16 @@ NESTED_WORKTREE_DIRECTORIES_EXCLUDED             = 15
 
 The 22 unique copies and their seven distinct content hashes are preserved
 under `exp-step5-softpll-lock/EXP-S5-FROZEN-FIT-SOURCE-OBSERVER-ARCHIVE-20260924/`;
-the existing frozen-fit A/B report remains the result record. The 15 nested
-worktrees are separate registered checkouts and are not included in the
-regular-file cleanup or counted as safely removable by this audit. The seven
-tracked deletions in the old checkout are recoverable from Git and are kept
-in a local stash before branch synchronization.
+the existing frozen-fit A/B report remains the result record. The other 468
+copies were already present in Git at the same or an alternate path. After
+verifying all 490 files against the fetched `origin/feat/file_cleanup` tree,
+the duplicate working copies were removed from the old checkout. The 15
+nested worktrees were deliberately left untouched for a separate audit.
+
+The old checkout's seven tracked deletions were saved in a new local stash
+(`preserve pre-cleanup root tracked deletions 20260924`); the two pre-existing
+stashes were retained. The primary `/home/b10504072/04_WR` checkout was then
+switched to `feat/file_cleanup` at `b769ea1a30665b2b32624b52a0e0a9d8cff04511`,
+which matches `origin/feat/file_cleanup`. The staged/uncommitted contents of
+the remaining registered worktrees are still under audit and have not been
+removed.

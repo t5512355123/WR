@@ -73,3 +73,29 @@ The active Pain checkout, `snap`, and `share` were not touched.
 
 Milestone SOFs are outside this audit and must remain retained with their
 matching hashes and provenance.
+
+## Old `/04_WR` checkout untracked-file audit
+
+Pain's primary checkout was still at `f847f4e74c5b16389c9848d4fe2592a9873a6b5c`
+on `exp/step5-softpll-lock`. Its 505 untracked status entries consisted of
+490 regular files and 15 registered nested-worktree directories. The 490
+regular files were compared by exact Git blob identity against the
+`feat/file_cleanup` tree; after the source archive above was added, every
+file's contents are represented in the branch:
+
+```text
+EXACT_CONTENTS_ALREADY_TRACKED_AT_OTHER_PATHS = 468
+  same relative path                             = 376
+  alternate tracked path                        = 92
+UNIQUE_FILE_COPIES_NOW_ARCHIVED                 = 22
+DISTINCT_NEW_CONTENT_BLOBS                      = 7
+NESTED_WORKTREE_DIRECTORIES_EXCLUDED             = 15
+```
+
+The 22 unique copies and their seven distinct content hashes are preserved
+under `exp-step5-softpll-lock/EXP-S5-FROZEN-FIT-SOURCE-OBSERVER-ARCHIVE-20260924/`;
+the existing frozen-fit A/B report remains the result record. The 15 nested
+worktrees are separate registered checkouts and are not included in the
+regular-file cleanup or counted as safely removable by this audit. The seven
+tracked deletions in the old checkout are recoverable from Git and are kept
+in a local stash before branch synchronization.

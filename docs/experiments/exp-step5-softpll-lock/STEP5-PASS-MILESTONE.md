@@ -39,6 +39,15 @@ TIMING_CLOSED             = NO  # independent implementation status
 | Slave WNS | `-0.361 ns` |
 | Functional window | `300321 ms` |
 
+Pain 保留的可複現 milestone SOF 位於：
+
+```text
+/home/b10504072/04_WR/artifacts/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/DE5a_wr_master_jtag.sof
+/home/b10504072/04_WR/artifacts/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/DE5a_wr_slave_jtag.sof
+```
+
+兩檔 SHA-256 已在上表列出，並與 Pain 副本逐一核對。
+
 完整 provenance、programmer output、preflight、raw observer log、checksum 與
 offline analysis 位於
 [`EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。

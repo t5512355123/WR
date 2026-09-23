@@ -20,6 +20,24 @@ TIMING_CLOSED                = NO (separate implementation status)
 Step6 的 functional scope 與物理輸出邊緣量測界線見
 [`docs/experiments/exp-step6-global-time/STEP6-PASS-MILESTONE.md`](docs/experiments/exp-step6-global-time/STEP6-PASS-MILESTONE.md)。
 
+### 21:30 Step1 link-down capture 的 SOF 身分
+
+該次燒錄指令使用 `/home/b10504072/step6-wr-rearm-fb0d038b/` 下的中間
+SOF（Master SHA-256 `45a671b75bacfc98859e97006098a59c3fed460a5186884439e41a0bec75de8f`；
+Slave `db8ec57f4b53b784585f83880774e5eb2a11069cbd8d3ef921eed4e1270de6a6`），
+不是下列最終 Step6 milestone pair。中間映像早於
+`fbf22f24` 的 endpoint link-down bounded-retry 修正；後續 84/84 board frames
+均觀察到 Step1 PASS。該次儀表板也曾將 link-down 時保留的 Master time
+snapshot 顯示為 Step6 VALID，之後已修正為受 Step1 gate 約束。
+
+目前應燒錄的 Step6 pair 是 `artifacts/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/`
+中的 Master `6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845`
+與 Slave `4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca`，
+依已驗證順序先 Slave、後 Master。舊命令為 Master→Slave；目前沒有單獨的
+燒錄順序 A/B，因此把順序差異記為注意事項，不宣稱是已證明的唯一根因。
+完整身分比對與診斷見
+[`EXP-S6-ENDPOINT-LINK-AUTO-RECOVERY-20260923/REPORT.md`](docs/experiments/exp-step6-global-time/EXP-S6-ENDPOINT-LINK-AUTO-RECOVERY-20260923/REPORT.md)。
+
 較早建立的 Step5 baseline 仍保留其原始報告與 provenance：
 [`docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
 

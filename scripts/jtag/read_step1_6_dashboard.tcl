@@ -144,7 +144,8 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set tai [dict get $global_sample tai]
     set cycles [dict get $global_sample cycles]
   }
-  set step6 [expr {$global_valid && $global_stable == 1 &&
+  set step6 [expr {$step1 eq "PASS" &&
+                   $global_valid && $global_stable == 1 &&
                    $global_time_valid == 1 && $global_pps_valid == 1 &&
                    $global_snapshot_valid == 1 && $status_link_ok == 1 &&
                    $status_tm_link == 1 && $status_time_valid == 1 &&

@@ -40,10 +40,11 @@ Add a bounded-backoff endpoint recovery in `wrc_main.c`:
 
 ## Dashboard correction
 
-Use the Tcl reader's `Step6` gate result in the display and wait condition.
+Require both the Tcl reader's Step 1 and Step 6 gate results in the display
+and wait condition; the Tcl Step 6 result itself also requires Step 1 PASS.
 Retained, coherent TAI/cycle snapshot data may still be shown, but it must be
-labelled as snapshot data when Step 6 has not passed. In particular, link-down
-Master holdover must not render as a Step 6 PASS.
+labelled as unqualified snapshot data when either gate has not passed. In
+particular, link-down Master holdover must not render as a Step 6 PASS.
 
 ## Verification contract
 

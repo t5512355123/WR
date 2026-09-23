@@ -15,10 +15,10 @@ ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD = ROOT / "scripts" / "monitor" / "step1_6_dashboard.sh"
 
 
-def dashboard_line(step6: str, link: int, tm: int) -> str:
+def dashboard_line(step6: str, link: int, tm: int, step1: str = "PASS") -> str:
     return (
         "DASHBOARD_BOARD board=DE5_1-11.1 role=MASTER | "
-        "Step1=FAIL Step2=INVALID Step3=INFO Step4=INFO Step5=INFO "
+        f"Step1={step1} Step2=INVALID Step3=INFO Step4=INFO Step5=INFO "
         f"Step6={step6} | HelperLock=NA MainFreq=NA MainPhase=NA "
         "MainLock=NA PSTAT=NA | "
         f"Link={link} TM={tm} RX=1 TX=1 STATUS_TIME_VALID=1 "
@@ -62,7 +62,7 @@ class DashboardGateTest(unittest.TestCase):
             )
 
     def test_valid_snapshot_does_not_pass_step6_when_link_is_down(self) -> None:
-        result = self.run_dashboard(dashboard_line("INFO", 0, 0))
+        result = self.run_dashboard(dashboard_line("INFO", 0, 0, step1="FAIL"))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Step 6  Global Time", result.stdout)
         self.assertIn("LINK DOWN", result.stdout)
@@ -70,17 +70,25 @@ class DashboardGateTest(unittest.TestCase):
         self.assertIn("SNAPSHOT VALID; Step6=INFO Link=0 TM=0", result.stdout)
 
     def test_wait_gate_does_not_accept_retained_snapshot_without_step6_pass(self) -> None:
-        result = self.run_dashboard(dashboard_line("INFO", 0, 0), wait_seconds=1)
+        result = self.run_dashboard(
+            dashboard_line("INFO", 0, 0, step1="FAIL"), wait_seconds=1
+        )
         self.assertEqual(result.returncode, 3, result.stdout + result.stderr)
         self.assertIn("DASHBOARD_GLOBAL_TIME_WAIT_TIMEOUT seconds=1", result.stdout)
-        self.assertIn("reason=awaiting-step6-gate", result.stderr)
+        self.assertIn("reason=awaiting-step1-step6-gate", result.stderr)
 
     def test_linked_valid_snapshot_renders_as_pass(self) -> None:
         result = self.run_dashboard(dashboard_line("PASS", 1, 1))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Step 6  Global Time", result.stdout)
         self.assertIn("VALID", result.stdout)
-        self.assertIn("CYCLES=124999999 VALID", result.stdout)
+        self.assertRegex(result.stdout, r"CYCLES=124999999\s+VALID")
+
+    def test_step6_pass_is_rejected_when_step1_fails(self) -> None:
+        result = self.run_dashboard(dashboard_line("PASS", 1, 1, step1="FAIL"))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("STEP1 BLOCKED", result.stdout)
+        self.assertIn("SNAPSHOT VALID; Step1=FAIL Step6=PASS Link=1 TM=1", result.stdout)
 
 
 if __name__ == "__main__":

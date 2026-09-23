@@ -259,3 +259,47 @@ empty-only check. A final remote inventory confirmed exactly six SOFs remain,
 the only registered worktree is the primary checkout, and all explicitly
 listed home-level backup names are absent. The separate `archive/` source/
 history collection and required project source directories remain untouched.
+
+## 2026-09-24 follow-up: laptop SOF inventory and Step4B recovery
+
+A full Laptop SOF inventory found 21 images: the two-image Step6 pair already
+retained as canonical on Pain and 19 additional images. Reviewing the
+experiment reports showed that the 2026-09-15 F4B arbitration control pair
+is a valid, source-proven Step4B gate-pass build: both boards were clean-built
+and programmed, the settled retry reported Step4B PASS, and the report explicitly
+keeps Step5 as incomplete. Its exact images are therefore retained as the
+Step4B artifact, not as a Step5 pass:
+
+| Board | Canonical path | SHA-256 |
+| --- | --- | --- |
+| Master | `artifacts/EXP-STEP4B-F4B-ARBITRATION-CONTROL-20260915/DE5a_wr_master_jtag.sof` | `ae017c25ca628f7c7d35636d27079f85e8f5543aa8f712e122f984f5a6932400` |
+| Slave | `artifacts/EXP-STEP4B-F4B-ARBITRATION-CONTROL-20260915/DE5a_wr_slave_jtag.sof` | `ec4be4bd6390ce2cbe3c603c99b337fb501d60da37e58c2cf2b5bfca1de5f092` |
+
+The original Step4B SOF pair from the 2026-08-29 repeat experiment remains
+absent and its exact identity is not claimed to be restored. The 2026-09-15
+pair is a separately validated Step4B image set. It was restored to the
+canonical artifact directory on both Laptop and Pain and re-hashed after
+copy. The Step4B rebuild-identity report records this distinction.
+
+The other Laptop-only SOFs were classified from their reports: Step4 event
+and runtime-context builds did not pass Step4; the Step2/3 regression build
+was not programmed; the WDIAGS mapping self-test passed only its mapping
+contract; the mixed-candidate F4B image was provenance-contaminated for
+Step5; the slave-only candidate was blocked upstream; and the TX-comma image
+did not pass its Step6A gate. Their reports and raw measurements remain
+intact. Their exact binary hashes and original paths are recorded in
+`laptop-nonmilestone-sof-prune-manifest.tsv`; duplicate copies of the selected
+Step4B pair are recorded as deduplications to the canonical artifact paths.
+
+Pain's current full SOF inventory was rechecked after restoring the Step4B
+control pair: exactly eight images remain, comprising Step1, Step4B, Step5,
+and Step6 Master/Slave pairs. The Laptop now also has all eight canonical
+images, with the Step1 and Step5 pairs copied from Pain and their SHA-256
+values verified. It still has the 19 additional paths listed in
+`laptop-nonmilestone-sof-prune-manifest.tsv` (17 non-milestone files and two
+old-path copies of the selected Step4B pair). The shell safety layer refused
+the requested local delete operation, so no local files were removed in this
+follow-up; the laptop-only cleanup remains pending. The experiment reports,
+source, raw measurements, and non-SOF research data remain intact. The
+2026-08-29 Step4B identity audit still applies to that older pair; this
+follow-up does not rewrite its hashes.

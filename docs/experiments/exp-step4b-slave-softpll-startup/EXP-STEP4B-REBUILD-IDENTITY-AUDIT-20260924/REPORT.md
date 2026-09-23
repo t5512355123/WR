@@ -89,3 +89,23 @@ SHA-256 checked against the remote copies:
 | build_jtag_slave.log | 91e8afae074a1b240683fd350042f2f93fc76b73aebb5464ebb2a179bb4fccf9 |
 | master-build_hashes.sha256 | e3eed3e02e705f7dbf65cb5128c5e37696505cfb984ea729214705f37349b4c3 |
 | slave-build_hashes.sha256 | 3c4048c053f9770a0a6a24661d3b821ab9efa28bd91756d2918f88625dbfc440 |
+
+## 2026-09-24 separate Step4B artifact found
+
+The identity result above remains unchanged: the 2026-08-29 historical SOF
+hashes were not reproduced, and the compile-only outputs here were not
+programmed. A separate experiment report,
+`docs/experiments/exp-step5-softpll-lock/EXP-S5-F4B-ARBITRATION-CONTROL-20260915/REPORT.md`,
+records a later clean Master/Slave control build and programming with a
+settled `STEP4B_RESULT = PASS`. That experiment did not complete Step5. Its
+distinct image pair is:
+
+| Board | Source commit | SOF SHA-256 |
+| --- | --- | --- |
+| Master | `a1980bff30231376a3182486fd786d906876c2d4` | `ae017c25ca628f7c7d35636d27079f85e8f5543aa8f712e122f984f5a6932400` |
+| Slave | `a1980bff30231376a3182486fd786d906876c2d4` | `ec4be4bd6390ce2cbe3c603c99b337fb501d60da37e58c2cf2b5bfca1de5f092` |
+
+The pair is preserved at
+`artifacts/EXP-STEP4B-F4B-ARBITRATION-CONTROL-20260915/` on Laptop and Pain.
+This is a later validated Step4B artifact, not a byte-identical replacement
+for the missing 2026-08-29 files and not a Step5 milestone.

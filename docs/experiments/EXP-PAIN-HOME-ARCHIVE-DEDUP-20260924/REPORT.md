@@ -238,3 +238,20 @@ top-level copies can be removed: all 124 original file contents will remain
 represented either by the existing feature-branch blobs or by the new raw
 archive. The separate `archive/` source/history collection (1,185 files,
 about 16 MB) is not a duplicate backup and remains untouched.
+
+## Archive-directory cleanup verification
+
+Pain pulled commit `a5fb503a` before the final archive audit. All 124 files in
+the 17 listed top-level pre-pull/archive directories were rechecked against
+the current Git tree: 107 were exact blobs already versioned and all 17 unique
+files matched their newly archived copies by SHA-256, Git blob ID, and byte
+count. There were no symlinks, special files, SOF, or MIF files in these
+directories. The 17 exact directories were then removed; the 17 unique files
+(7,563,442 bytes) remain in `raw/unique-preserved/`, and no unique research
+data was lost.
+
+The empty nested `/home/b10504072/04_WR/04_WR/` contains only an
+`artifacts/EXP-WRPC-STEP5-HPLL-BOOTSTRAP-3072-REVERSE-20260909/` directory
+chain and no files or links. It remains pending a final empty-directory
+cleanup; all other top-level entries are project source, reports, canonical
+artifacts, or the separate `archive/` source/history collection.

@@ -206,3 +206,16 @@ The user-requested `/home/b10504072/snap` (144 KB) contains only
 snapd-desktop-integration-generated user-directory settings and caches;
 `/home/b10504072/share` (192 KB) contains only libpng manual pages. Neither
 contains research data. These exact folders are included in the cleanup scope.
+
+## Cleanup completion check
+
+On Pain, every one of the 145 manifest entries was re-hashed immediately
+before removal and matched its recorded SHA-256. All 145 noncanonical SOFs
+were removed; a fresh full-tree inventory found exactly the six canonical
+Step1, Step5, and Step6 SOFs listed above, each still matching its expected
+hash. The 28 secondary worktrees were removed after the source-reachability
+and dirty-file checks; the main checkout is the only registered worktree.
+The exact `/home/b10504072/snap` and `/home/b10504072/share` directories are
+absent. Pain's `feat/file_cleanup` HEAD and `origin/feat/file_cleanup` both
+equal `704409e75a678821f6bf5dc2b6934fb38215fe06`, and the tracked working tree
+is clean.

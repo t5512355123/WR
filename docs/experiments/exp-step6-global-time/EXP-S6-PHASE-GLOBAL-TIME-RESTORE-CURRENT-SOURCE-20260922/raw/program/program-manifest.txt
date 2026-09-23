@@ -1,0 +1,6 @@
+2026-09-22T13:40:15+08:00
+slave_cable=DE5 [1-11.2]
+master_cable=DE5 [1-11.1]
+e9cd76852c4fa01534dd66b35b28befb329acab2bc68f254ac6023aee377430e  /home/b10504072/pain-worktrees/step6-global-time-current/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+73149c537e66038c01a7c7c0af4b8e3d8205cd35ec268e20108f0fd30f194164  /home/b10504072/pain-worktrees/step6-global-time-current/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+JTAG_F4L_SCHEDULE_OBSERVABILITY_PROGRAM=PASS

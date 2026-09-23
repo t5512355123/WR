@@ -1,0 +1,2 @@
+WRPC slave MIF: /home/b10504072/pain-worktrees/EXP-S5-HELPER-STARTUP-RAIL-DIAGNOSTIC-LANE0-20260919/build/firmware/slave/wrc.mif
+Slave Quartus build passed: /home/b10504072/pain-worktrees/EXP-S5-HELPER-STARTUP-RAIL-DIAGNOSTIC-LANE0-20260919/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)

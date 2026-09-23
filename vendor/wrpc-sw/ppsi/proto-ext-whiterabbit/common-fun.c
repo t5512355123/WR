@@ -30,11 +30,13 @@ void wr_reset_process(struct pp_instance *ppi, wr_role_t role) {
 /*
  * A Slave can transiently miss the hardware WR lock even though the WR
  * parent is still present and the rest of the PTP session is healthy.  The
- * historical terminal-fallback path below was correct for a real handshake
- * failure, but it also discarded the parent context for this recoverable
- * S_LOCK timeout.  That left the board in ordinary PTP mode until an
- * explicit "ptp stop/start" command was issued, which also prevented the
- * WR global-time generator from becoming valid again.
+ * S_LOCK timeout may be raised while the PTP state is still UNCALIBRATED,
+ * before the state machine promotes it to SLAVE.  The historical
+ * terminal-fallback path below was correct for a real handshake failure,
+ * but it also discarded the parent context for this recoverable S_LOCK
+ * timeout.  That left the board in ordinary PTP mode until an explicit
+ * "ptp stop/start" command was issued, which also prevented the WR
+ * global-time generator from becoming valid again.
  *
  * Re-enter the normal state-machine restart path only for that narrow case.
  * This preserves the existing terminal fallback for every other failure and
@@ -46,7 +48,8 @@ static int wr_auto_rearm_slave_after_s_lock_timeout(struct pp_instance *ppi,
 	struct wr_dsport *wrp = WR_DSPOR(ppi);
 
 	if (reason != WR_FAIL_REASON_WR_S_LOCK_TIMEOUT ||
-		ppi->state != PPS_SLAVE ||
+		(ppi->state != PPS_SLAVE &&
+			ppi->state != PPS_UNCALIBRATED) ||
 		wrp->wrMode != WR_SLAVE ||
 		!wrp->parentIsWRnode ||
 		!(wrp->parentWrConfig == WR_MASTER ||

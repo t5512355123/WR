@@ -162,3 +162,47 @@ Step6 Master/Slave
 4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca.
 The two Step5 copies in the first worktree are retained in their canonical
 artifact folder; the other ten generated images are not milestone images.
+
+## 2026-09-24 follow-up: retained images and remaining Pain scratch
+
+The synced checkout was re-audited at `5783a0f2`. The 151 regular SOF files
+under `/home/b10504072/04_WR` total about 5.55 GB. Exact SHA-256 comparison
+against the documented Step1, Step5 300-second PASS, and latest Step6 artifacts
+found only these six canonical images:
+
+| Milestone | Canonical files |
+| --- | --- |
+| Step1 | `artifacts/EXP-BASELINE-RS422/master.sof` (`9238740e35f2b48915d1fa7ee6d2dca9d443438f197f1226720dde9dd5e1892b`); `slave.sof` (`44251d6911c021e0d6fb12083034ec870a7d06a4374e435d27caa5e9efb36f15`) |
+| Step5, 300-second functional PASS | `artifacts/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/DE5a_wr_master_jtag.sof` (`a2945df48fe86038fdff138f4b6368a777fa3df13f98ac9620fb30baa1ee0129`); paired Slave SOF SHA-256 `7462d94a521f52e7660295a6873de5141658fbf5392d90a4d4ade7d4e5f36f50` |
+| Step6, S_LOCK restart fix | `artifacts/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/DE5a_wr_master_jtag.sof` (`6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845`); paired Slave SOF SHA-256 `4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca` |
+
+The other 145 SOF files are noncanonical diagnostics/rebuild outputs; their
+pre-clean SHA-256 and relative paths are preserved in
+`nonmilestone-sof-prune-manifest.tsv`. The historical Step4B SOFs
+(`94244a9e...` Master and `83a6ae95...` Slave) are absent from Pain. The
+source-matched rebuild also differs byte-for-byte, so it is not substituted or
+labelled as the validated Step4B milestone.
+
+The exact standalone MIF hashes recorded by the Step4B and Step5 milestones
+were searched under Pain's home and not found. The canonical Step1 MIFs remain
+at `artifacts/EXP-BASELINE-RS422/{master,slave}.mif` with SHA-256
+`0d7e79f0a33d82b5afaf850e19c169bb88ea479a58029f9c19b60de561ccb5f2` and
+`9a9c23628ef235c6cb24376c039120bf06b2dac5d213374fc591e6f5992d1c19`.
+Step6 MIFs remain beside the Step6 SOFs with SHA-256
+`00cf52190ae60392fce14fcb23ffac6adcb82b3a9ca4de5d1e968d21e3c68681` and
+`066761f51af3cc279923bd1e349b33d2d311faa7d2fa23e43745d9a1da3ca33c`.
+Step5 SOFs embed the firmware image; no claim is made that the separately
+recorded Step5 MIF files are currently retained.
+
+The remaining 28 secondary linked worktrees were rechecked: 27 are clean; the
+single modified `task-diags.c` file has blob
+`1cfbd9216cba78e0958b46fb781a99fe8a9fe44b`, already present in commit
+`61b9aa8c2a374ec5f400b0a143b12b2ba0bbec25`, which is an ancestor of
+`origin/feat/file_cleanup`. All 28 HEADs are reachable from that branch and
+no Quartus/JTAG process was active. They can be removed without losing
+versioned source or unique uncommitted source.
+
+The user-requested `/home/b10504072/snap` (144 KB) contains only
+snapd-desktop-integration-generated user-directory settings and caches;
+`/home/b10504072/share` (192 KB) contains only libpng manual pages. Neither
+contains research data. These exact folders are included in the cleanup scope.

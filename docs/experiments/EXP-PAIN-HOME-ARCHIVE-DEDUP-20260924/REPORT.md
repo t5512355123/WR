@@ -61,12 +61,15 @@ source SHA-256 remains verifiable.
 
 ## Cleanup status
 
-The recovered records and this audit are being committed before any source
-archive deletion. After the pushed commit is verified in the Pain GitHub
-checkout, the twelve exact source directories may be removed because their
-272 duplicate contents are already versioned and their nine unique contents
-are then versioned at the paths above. The active Pain checkout, `snap`, and
-`share` are outside this cleanup scope.
+The recovered records and this audit were pushed to GitHub and verified in
+Pain's clean GitHub checkout at commit
+`a1444f1e005501e93276604ec24e7250f08fd203` before cleanup. On 2026-09-24, all
+twelve exact source directories in the table were revalidated and removed:
+281 files total, with no symlinks, special files, SOF, or MIF. Their contents
+remain recoverable from Git: 272 were exact duplicates already tracked at the
+pre-archive baseline and the other nine are versioned at the paths above.
+
+The active Pain checkout, `snap`, and `share` were not touched.
 
 Milestone SOFs are outside this audit and must remain retained with their
 matching hashes and provenance.

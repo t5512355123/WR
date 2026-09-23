@@ -64,6 +64,18 @@ the rebuild as a validated milestone.
 
 STEP4B_PASS = NOT_REASSESSED_BY_THIS_COMPILE_ONLY_AUDIT
 
+## 2026-09-24 retention follow-up
+
+After the Pain cleanup, the full Laptop `04_WR` workspace was inventoried for
+SOF/MIF files (21 SOFs and 6 MIFs); none matched the historical Step4B SOF or
+MIF hashes listed above. A full Pain-home MIF hash search also found no exact
+historical Step4B or Step5 milestone MIF. The Step4B validated runtime report
+and raw logs remain preserved, but its exact historical binary pair is not
+currently retained. The non-identical rebuild in this report is not promoted
+to a replacement milestone and was not programmed. The latest Step6 capture
+separately records Step4 startup PASS in the same run that passes Step5 and
+Step6; this does not restore the missing historical Step4B artifact identity.
+
 ## Retained evidence
 
 The six files in raw/build/ were copied from the Pain rebuild worktree and

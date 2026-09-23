@@ -179,9 +179,10 @@ found only these six canonical images:
 The other 145 SOF files are noncanonical diagnostics/rebuild outputs; their
 pre-clean SHA-256 and relative paths are preserved in
 `nonmilestone-sof-prune-manifest.tsv`. The historical Step4B SOFs
-(`94244a9e...` Master and `83a6ae95...` Slave) are absent from Pain. The
-source-matched rebuild also differs byte-for-byte, so it is not substituted or
-labelled as the validated Step4B milestone.
+(`94244a9e...` Master and `83a6ae95...` Slave) are absent from Pain and from
+the full Laptop `04_WR` SOF inventory. The source-matched rebuild also differs
+byte-for-byte, so it is not substituted or labelled as the validated Step4B
+milestone; details are recorded in the Step4B identity-audit report.
 
 The exact standalone MIF hashes recorded by the Step4B and Step5 milestones
 were searched under Pain's home and not found. The canonical Step1 MIFs remain

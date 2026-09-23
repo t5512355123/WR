@@ -1,0 +1,287 @@
+{
+  "all_groups_pass": false,
+  "classification": "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED",
+  "format": "step6b-timing-query-boundary-correction-v1",
+  "group_status": {
+    "arm_meta_to_sync": {
+      "master": true,
+      "slave": true
+    },
+    "arm_sync_to_prev": {
+      "master": true,
+      "slave": true
+    },
+    "refclk_to_actual_cycles": {
+      "master": false,
+      "slave": false
+    },
+    "refclk_to_actual_tai": {
+      "master": false,
+      "slave": false
+    },
+    "refclk_to_armed": {
+      "master": false,
+      "slave": false
+    },
+    "refclk_to_fire_count": {
+      "master": false,
+      "slave": false
+    },
+    "refclk_to_fired": {
+      "master": false,
+      "slave": false
+    },
+    "target_meta_to_sync": {
+      "master": true,
+      "slave": true
+    },
+    "target_sync_to_latched": {
+      "master": true,
+      "slave": true
+    }
+  },
+  "master_result": "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED",
+  "missing_roles": [],
+  "reports": {
+    "master": {
+      "errors": [],
+      "path": "/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/master_step6b_timing.txt",
+      "paths": {
+        "arm_meta_to_sync::hold": {
+          "count": "1",
+          "from": "node_20965",
+          "from_clock": "clock_3",
+          "name": "arm_meta_to_sync",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.047",
+          "status": "PASS",
+          "to": "node_7490",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "arm_meta_to_sync::setup": {
+          "count": "1",
+          "from": "node_20965",
+          "from_clock": "clock_3",
+          "name": "arm_meta_to_sync",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "7.571",
+          "status": "PASS",
+          "to": "node_7490",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "arm_sync_to_prev::hold": {
+          "count": "1",
+          "from": "node_7490",
+          "from_clock": "clock_3",
+          "name": "arm_sync_to_prev",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.212",
+          "status": "PASS",
+          "to": "node_8551",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "arm_sync_to_prev::setup": {
+          "count": "1",
+          "from": "node_7490",
+          "from_clock": "clock_3",
+          "name": "arm_sync_to_prev",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "7.3",
+          "status": "PASS",
+          "to": "node_8551",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "target_meta_to_sync::hold": {
+          "count": "40",
+          "from": "node_28013",
+          "from_clock": "clock_3",
+          "name": "target_meta_to_sync",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.047",
+          "status": "PASS",
+          "to": "node_21986",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "target_meta_to_sync::setup": {
+          "count": "40",
+          "from": "node_28041",
+          "from_clock": "clock_3",
+          "name": "target_meta_to_sync",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "6.662",
+          "status": "PASS",
+          "to": "node_22106",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "target_sync_to_latched::hold": {
+          "count": "40",
+          "from": "node_21944",
+          "from_clock": "clock_3",
+          "name": "target_sync_to_latched",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.126",
+          "status": "PASS",
+          "to": "node_8405",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "target_sync_to_latched::setup": {
+          "count": "40",
+          "from": "node_21860",
+          "from_clock": "clock_3",
+          "name": "target_sync_to_latched",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "6.863",
+          "status": "PASS",
+          "to": "node_8349",
+          "to_clock": "clock_3",
+          "type": "setup"
+        }
+      },
+      "result": "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED"
+    },
+    "slave": {
+      "errors": [],
+      "path": "/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/slave_step6b_timing.txt",
+      "paths": {
+        "arm_meta_to_sync::hold": {
+          "count": "1",
+          "from": "node_19088",
+          "from_clock": "clock_3",
+          "name": "arm_meta_to_sync",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.086",
+          "status": "PASS",
+          "to": "node_6629",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "arm_meta_to_sync::setup": {
+          "count": "1",
+          "from": "node_19088",
+          "from_clock": "clock_3",
+          "name": "arm_meta_to_sync",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "7.503",
+          "status": "PASS",
+          "to": "node_6629",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "arm_sync_to_prev::hold": {
+          "count": "1",
+          "from": "node_6629",
+          "from_clock": "clock_3",
+          "name": "arm_sync_to_prev",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.491",
+          "status": "PASS",
+          "to": "node_6623",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "arm_sync_to_prev::setup": {
+          "count": "1",
+          "from": "node_6629",
+          "from_clock": "clock_3",
+          "name": "arm_sync_to_prev",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "7.002",
+          "status": "PASS",
+          "to": "node_6623",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "target_meta_to_sync::hold": {
+          "count": "40",
+          "from": "node_27832",
+          "from_clock": "clock_3",
+          "name": "target_meta_to_sync",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.049",
+          "status": "PASS",
+          "to": "node_18753",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "target_meta_to_sync::setup": {
+          "count": "40",
+          "from": "node_27891",
+          "from_clock": "clock_3",
+          "name": "target_meta_to_sync",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "7.246",
+          "status": "PASS",
+          "to": "node_18965",
+          "to_clock": "clock_3",
+          "type": "setup"
+        },
+        "target_sync_to_latched::hold": {
+          "count": "40",
+          "from": "node_18702",
+          "from_clock": "clock_3",
+          "name": "target_sync_to_latched",
+          "path_type": "hold",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "0.153",
+          "status": "PASS",
+          "to": "node_6365",
+          "to_clock": "clock_3",
+          "type": "hold"
+        },
+        "target_sync_to_latched::setup": {
+          "count": "40",
+          "from": "node_18595",
+          "from_clock": "clock_3",
+          "name": "target_sync_to_latched",
+          "path_type": "setup",
+          "query_from_clock": "qsfp_ref_125m",
+          "query_to_clock": "qsfp_ref_125m",
+          "slack_ns": "6.558",
+          "status": "PASS",
+          "to": "node_6282",
+          "to_clock": "clock_3",
+          "type": "setup"
+        }
+      },
+      "result": "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED"
+    }
+  },
+  "slave_result": "NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED",
+  "verdict": "INCONCLUSIVE"
+}

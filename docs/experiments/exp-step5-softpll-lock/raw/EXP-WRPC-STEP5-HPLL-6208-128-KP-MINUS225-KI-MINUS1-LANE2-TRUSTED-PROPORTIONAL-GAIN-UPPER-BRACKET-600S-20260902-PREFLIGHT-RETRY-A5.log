@@ -1,0 +1,532 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep  2 00:59:38 2026
+Info: Command: quartus_stp -t scripts/jtag/read_wb_runtime.tcl --raw
+Info: Quartus(args): --raw
+RAW mailbox completion toggle wb_sync_toggle=0
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[pass] core_tm_link_up          結果: 1/1
+[pass] core_link_ok             結果: 1/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 1/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 pass
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[info] ROLE_ROUTING             結果: fixture=MASTER observed=UNKNOWN/NA
+[info] EP_MAC_H/EP_MAC_L        結果: JTAG read inconsistent/NA
+[error] WDIAGS_MODE              結果: TIMEOUT UNKNOWN/2 MASTER
+[error] WDIAGS_PTP               結果: TIMEOUT UNKNOWN (raw=JTAG read inconsistent)/6 MASTER
+[info] WDIAGS_PTP_RX            結果: Δ=TIMEOUT/NA
+RAW WDIAGS_PTP_RX            before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_PTP_TX            結果: Δ=TIMEOUT/NA
+RAW WDIAGS_PTP_TX            before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_TX                結果: Δ=TIMEOUT/NA
+RAW WDIAGS_TX                before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_RX                結果: Δ=TIMEOUT/NA
+RAW WDIAGS_RX                before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_RXERR             結果: Δ=TIMEOUT/NA
+RAW WDIAGS_RXERR             before=INVALID after=INVALID delta=TIMEOUT
+Step 2 NA
+
+## [Step 3] WR Parent / Signaling
+Step 3 NA
+
+## [Step 4A] Master SoftPLL Event Chain
+[info] DMTD_REF_ACCEPT_EVENT    結果: Δ=TIMEOUT/NA
+RAW DMTD_REF_ACCEPT_EVENT    before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] DMTD_FB_ACCEPT_EVENT     結果: Δ=TIMEOUT/NA
+RAW DMTD_FB_ACCEPT_EVENT     before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] DMTD_ACCEPT              結果: Δ=JTAG read inconsistent/Δ>0
+[info] SPLL_TAG_VALID_COUNT     結果: Δ=TIMEOUT/NA
+RAW SPLL_TAG_VALID_COUNT     before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] SPLL_TRR_WRITE_COUNT     結果: Δ=TIMEOUT/NA
+RAW SPLL_TRR_WRITE_COUNT     before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] WRPC_SPLL_TRR_POP_COUNT  結果: Δ=TIMEOUT/NA
+RAW WRPC_SPLL_TRR_POP_COUNT  before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] WDIAGS_IRQ_COUNT         結果: Δ=TIMEOUT/NA
+RAW WDIAGS_IRQ_COUNT         before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] WDIAGS_HELPER_UPDATE_COUNT 結果: Δ=TIMEOUT/NA
+RAW WDIAGS_HELPER_UPDATE_COUNT before=TIMEOUT after=TIMEOUT delta=TIMEOUT
+[info] BOOT_GENERATION          結果: Δ=TIMEOUT/NA
+RAW BOOT_GENERATION          before=INVALID after=INVALID delta=TIMEOUT
+[info] CPU_RESET_COUNT          結果: Δ=TIMEOUT/NA
+RAW CPU_RESET_COUNT          before=INVALID after=INVALID delta=TIMEOUT
+[info] WR_CORE_RESET_COUNT      結果: Δ=TIMEOUT/NA
+RAW WR_CORE_RESET_COUNT      before=INVALID after=INVALID delta=TIMEOUT
+[info] SI_CONFIG_DROP_COUNT     結果: Δ=TIMEOUT/NA
+RAW SI_CONFIG_DROP_COUNT     before=INVALID after=INVALID delta=TIMEOUT
+STEP4A_MASTER_EVENT_CHAIN = INVALID
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+Step 5 NA (Step5 closed-loop gate is for Slave)
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.1]
+============================================================
+Step 1 PHY / Link             pass
+Step 2 Endpoint / PTP         NA
+Step 3 WR Handshake           NA
+Step 4 Step4A Master Event Chain NA
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+STEP1_REGRESSION = PASS
+STEP2_REGRESSION = INVALID
+STEP3_REGRESSION = PASS
+STEP4A_RESULT = INVALID
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+FAILURE_CLASSIFICATION = JTAG/DASHBOARD_MEASUREMENT_FAILURE
+============================================================
+
+================ RAW_SNAPSHOT ================
+RAW_SNAPSHOT board=DE5 [1-11.1] label=before
+  status           = 000102C126B582CF
+  cpu              = TIMEOUT
+  marker           = TIMEOUT
+  store            = TIMEOUT
+  store_count      = TIMEOUT
+  exception        = TIMEOUT
+  clock            = TIMEOUT
+  boot_generation  = INVALID
+  cpu_reset_count  = INVALID
+  wr_core_reset_count = INVALID
+  si_config_drop_count = INVALID
+  pps_cr           = TIMEOUT
+  pps_escr         = TIMEOUT
+  ep_mach          = INVALID
+  ep_macl          = INVALID
+  ep_dsr           = TIMEOUT
+  ptp              = INVALID
+  ptp_rx           = INVALID
+  ptp_tx           = INVALID
+  ptp_meta         = INVALID
+  tx               = INVALID
+  rx               = INVALID
+  rxerr            = INVALID
+  ptp_types        = TIMEOUT
+  foreign_meta     = INVALID
+  filter_meta      = TIMEOUT
+  parse_meta       = INVALID
+  wr_rx_signal     = INVALID
+  wr_tx_signal     = INVALID
+  wr_failure       = INVALID
+  wr_state         = INVALID
+  wr_reject        = INVALID
+  pstat            = INVALID
+  sstat            = TIMEOUT
+  sec_h            = TIMEOUT
+  sec_l            = TIMEOUT
+  ns               = TIMEOUT
+  lock_enable      = INVALID
+  lock_result      = INVALID
+  lock_polls       = INVALID
+  lock_unlocked    = INVALID
+  lock_calibration_fail = INVALID
+  spll_state       = INVALID
+  spll_ocer        = INVALID
+  spll_rcer        = INVALID
+  spll_occr        = INVALID
+  spll_trr_csr     = TIMEOUT
+  spll_dac_hpll    = TIMEOUT
+  spll_dac_main    = TIMEOUT
+  spll_helper_state = INVALID
+  spll_helper_limits = INVALID
+  spll_main_state  = INVALID
+  spll_main_limits = INVALID
+  spll_main_phase_limits = INVALID
+  spll_state_visit_mask = TIMEOUT
+  spll_state_transitions = TIMEOUT
+  spll_last_state  = TIMEOUT
+  spll_init_count  = TIMEOUT
+  dmtd_ref         = TIMEOUT
+  dmtd_fb          = TIMEOUT
+  dmtd_ref_high_qual_abort = TIMEOUT
+  dmtd_fb_high_qual_abort = TIMEOUT
+  tag_valid        = TIMEOUT
+  trr_write        = TIMEOUT
+  irq              = TIMEOUT
+  helper_update    = TIMEOUT
+  spll_helper_error = TIMEOUT
+  spll_helper_output = TIMEOUT
+  eic_isr          = TIMEOUT
+  current_tics     = TIMEOUT
+RAW_SNAPSHOT board=DE5 [1-11.1] label=after
+  status           = 000102C3264282CF
+  cpu              = TIMEOUT
+  marker           = TIMEOUT
+  store            = TIMEOUT
+  store_count      = TIMEOUT
+  exception        = TIMEOUT
+  clock            = TIMEOUT
+  boot_generation  = INVALID
+  cpu_reset_count  = INVALID
+  wr_core_reset_count = INVALID
+  si_config_drop_count = INVALID
+  pps_cr           = TIMEOUT
+  pps_escr         = TIMEOUT
+  ep_mach          = INVALID
+  ep_macl          = INVALID
+  ep_dsr           = TIMEOUT
+  ptp              = INVALID
+  ptp_rx           = INVALID
+  ptp_tx           = INVALID
+  ptp_meta         = INVALID
+  tx               = INVALID
+  rx               = INVALID
+  rxerr            = INVALID
+  ptp_types        = TIMEOUT
+  foreign_meta     = INVALID
+  filter_meta      = TIMEOUT
+  parse_meta       = INVALID
+  wr_rx_signal     = INVALID
+  wr_tx_signal     = INVALID
+  wr_failure       = INVALID
+  wr_state         = INVALID
+  wr_reject        = INVALID
+  pstat            = INVALID
+  sstat            = TIMEOUT
+  sec_h            = TIMEOUT
+  sec_l            = TIMEOUT
+  ns               = TIMEOUT
+  lock_enable      = INVALID
+  lock_result      = INVALID
+  lock_polls       = INVALID
+  lock_unlocked    = INVALID
+  lock_calibration_fail = INVALID
+  spll_state       = INVALID
+  spll_ocer        = INVALID
+  spll_rcer        = INVALID
+  spll_occr        = INVALID
+  spll_trr_csr     = TIMEOUT
+  spll_dac_hpll    = TIMEOUT
+  spll_dac_main    = TIMEOUT
+  spll_helper_state = INVALID
+  spll_helper_limits = INVALID
+  spll_main_state  = INVALID
+  spll_main_limits = INVALID
+  spll_main_phase_limits = INVALID
+  spll_state_visit_mask = TIMEOUT
+  spll_state_transitions = TIMEOUT
+  spll_last_state  = TIMEOUT
+  spll_init_count  = TIMEOUT
+  dmtd_ref         = TIMEOUT
+  dmtd_fb          = TIMEOUT
+  dmtd_ref_high_qual_abort = TIMEOUT
+  dmtd_fb_high_qual_abort = TIMEOUT
+  tag_valid        = TIMEOUT
+  trr_write        = TIMEOUT
+  irq              = TIMEOUT
+  helper_update    = TIMEOUT
+  spll_helper_error = TIMEOUT
+  spll_helper_output = TIMEOUT
+  eic_isr          = TIMEOUT
+  current_tics     = TIMEOUT
+RAW mailbox completion toggle wb_sync_toggle=0
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+
+## [Step 1] PHY / 光纖 Link
+[pass] si_config_done           結果: 1/1
+[pass] wr_ready                 結果: 1/1
+[error] core_tm_link_up          結果: 0/1
+[error] core_link_ok             結果: 0/1
+[pass] wr_rx_ready              結果: 1/1
+[pass] wr_tx_ready              結果: 1/1
+[pass] core_phy_rst             結果: 0/0
+[pass] si_id_error              結果: 0/0
+[pass] wr_rx_enc_err            結果: 0/0
+[pass] wr_tx_enc_err            結果: 0/0
+[pass] CPU_RESET_n              結果: 1/1
+[pass] wr_rx_locked_to_data     結果: 1/1
+[info] wr_rx_locked_to_ref      結果: 0/NA
+[info] MOD_PRS_n                結果: 0/NA
+[info] INTERRUPT_n              結果: 1/NA
+Step 1 error
+
+## [Step 2] Endpoint / MiniNIC / PTP
+[info] ROLE_ROUTING             結果: fixture=SLAVE observed=UNKNOWN/NA
+[info] EP_MAC_H/EP_MAC_L        結果: JTAG read inconsistent/NA
+[error] WDIAGS_MODE              結果: TIMEOUT UNKNOWN/3 SLAVE
+[error] WDIAGS_PTP               結果: TIMEOUT UNKNOWN (raw=JTAG read inconsistent)/9 SLAVE
+[info] WDIAGS_PTP_RX            結果: Δ=TIMEOUT/NA
+RAW WDIAGS_PTP_RX            before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_PTP_TX            結果: Δ=TIMEOUT/NA
+RAW WDIAGS_PTP_TX            before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_TX                結果: Δ=TIMEOUT/NA
+RAW WDIAGS_TX                before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_RX                結果: Δ=TIMEOUT/NA
+RAW WDIAGS_RX                before=INVALID after=INVALID delta=TIMEOUT
+[info] WDIAGS_RXERR             結果: Δ=TIMEOUT/NA
+RAW WDIAGS_RXERR             before=INVALID after=INVALID delta=TIMEOUT
+Step 2 NA
+
+## [Step 3] WR Parent / Signaling
+[error] WDIAGS_FOREIGN_META      結果: TIMEOUT/1
+[error] WDIAGS_FOREIGN_META      結果: TIMEOUT/0
+[info] WDIAGS_FOREIGN_META      結果: detection=TIMEOUT config=TIMEOUT/NA
+[error] parentIsWRnode           結果: TIMEOUT/1
+[error] parentWrModeOn           結果: TIMEOUT/1
+[error] parentCalibrated         結果: TIMEOUT/1
+[info] WR_RX_SIGNAL_DEBUG       結果: UNKNOWN count=TIMEOUT/NA
+[info] WR_TX_SIGNAL_DEBUG       結果: UNKNOWN count=TIMEOUT/NA
+[info] WDIAGS_TEMP              結果: UNKNOWN next=UNKNOWN/NA
+[error] LOCK_ENABLE              結果: TIMEOUT/> 0
+Step 3 NA
+
+## [Step 4B] Slave SoftPLL Startup
+[info] STEP4B_UPSTREAM_GATE     結果: BLOCKED/NA
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP1
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+Step 4B BLOCKED (upstream prerequisite)
+Step 4 NA
+
+## [Step 5] Closed-loop Lock
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+Step 5 NA
+
+## [Step 6] Global Time
+Step 6 NA
+
+============================================================
+White Rabbit Runtime 診斷：DE5 [1-11.2]
+============================================================
+Step 1 PHY / Link             error
+Step 2 Endpoint / PTP         NA
+Step 3 WR Handshake           NA
+Step 4 Step4B Slave SoftPLL Startup blocked
+Step 5 Closed-loop Lock       NA
+Step 6 Global Time            NA
+STEP1_REGRESSION = FAIL
+STEP2_REGRESSION = INVALID
+STEP3_REGRESSION = INVALID
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP1
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+FAILURE_CLASSIFICATION = JTAG/DASHBOARD_MEASUREMENT_FAILURE
+============================================================
+
+================ RAW_SNAPSHOT ================
+RAW_SNAPSHOT board=DE5 [1-11.2] label=before
+  status           = 000168E1363C82E3
+  cpu              = TIMEOUT
+  marker           = TIMEOUT
+  store            = TIMEOUT
+  store_count      = TIMEOUT
+  exception        = TIMEOUT
+  clock            = TIMEOUT
+  boot_generation  = INVALID
+  cpu_reset_count  = INVALID
+  wr_core_reset_count = INVALID
+  si_config_drop_count = INVALID
+  pps_cr           = TIMEOUT
+  pps_escr         = TIMEOUT
+  ep_mach          = INVALID
+  ep_macl          = INVALID
+  ep_dsr           = TIMEOUT
+  ptp              = INVALID
+  ptp_rx           = INVALID
+  ptp_tx           = INVALID
+  ptp_meta         = INVALID
+  tx               = INVALID
+  rx               = INVALID
+  rxerr            = INVALID
+  ptp_types        = TIMEOUT
+  foreign_meta     = INVALID
+  filter_meta      = TIMEOUT
+  parse_meta       = INVALID
+  wr_rx_signal     = INVALID
+  wr_tx_signal     = INVALID
+  wr_failure       = INVALID
+  wr_state         = INVALID
+  wr_reject        = INVALID
+  pstat            = INVALID
+  sstat            = TIMEOUT
+  sec_h            = TIMEOUT
+  sec_l            = TIMEOUT
+  ns               = TIMEOUT
+  lock_enable      = INVALID
+  lock_result      = INVALID
+  lock_polls       = INVALID
+  lock_unlocked    = INVALID
+  lock_calibration_fail = INVALID
+  spll_state       = INVALID
+  spll_ocer        = INVALID
+  spll_rcer        = INVALID
+  spll_occr        = INVALID
+  spll_trr_csr     = TIMEOUT
+  spll_dac_hpll    = TIMEOUT
+  spll_dac_main    = TIMEOUT
+  spll_helper_state = INVALID
+  spll_helper_limits = INVALID
+  spll_main_state  = INVALID
+  spll_main_limits = INVALID
+  spll_main_phase_limits = INVALID
+  spll_state_visit_mask = TIMEOUT
+  spll_state_transitions = TIMEOUT
+  spll_last_state  = TIMEOUT
+  spll_init_count  = TIMEOUT
+  dmtd_ref         = TIMEOUT
+  dmtd_fb          = TIMEOUT
+  dmtd_ref_high_qual_abort = TIMEOUT
+  dmtd_fb_high_qual_abort = TIMEOUT
+  tag_valid        = TIMEOUT
+  trr_write        = TIMEOUT
+  irq              = TIMEOUT
+  helper_update    = TIMEOUT
+  spll_helper_error = TIMEOUT
+  spll_helper_output = TIMEOUT
+  eic_isr          = TIMEOUT
+  current_tics     = TIMEOUT
+RAW_SNAPSHOT board=DE5 [1-11.2] label=after
+  status           = 000108E1361C82E3
+  cpu              = TIMEOUT
+  marker           = TIMEOUT
+  store            = TIMEOUT
+  store_count      = TIMEOUT
+  exception        = TIMEOUT
+  clock            = TIMEOUT
+  boot_generation  = INVALID
+  cpu_reset_count  = INVALID
+  wr_core_reset_count = INVALID
+  si_config_drop_count = INVALID
+  pps_cr           = TIMEOUT
+  pps_escr         = TIMEOUT
+  ep_mach          = INVALID
+  ep_macl          = INVALID
+  ep_dsr           = TIMEOUT
+  ptp              = INVALID
+  ptp_rx           = INVALID
+  ptp_tx           = INVALID
+  ptp_meta         = INVALID
+  tx               = INVALID
+  rx               = INVALID
+  rxerr            = INVALID
+  ptp_types        = TIMEOUT
+  foreign_meta     = INVALID
+  filter_meta      = TIMEOUT
+  parse_meta       = INVALID
+  wr_rx_signal     = INVALID
+  wr_tx_signal     = INVALID
+  wr_failure       = INVALID
+  wr_state         = INVALID
+  wr_reject        = INVALID
+  pstat            = INVALID
+  sstat            = TIMEOUT
+  sec_h            = TIMEOUT
+  sec_l            = TIMEOUT
+  ns               = TIMEOUT
+  lock_enable      = INVALID
+  lock_result      = INVALID
+  lock_polls       = INVALID
+  lock_unlocked    = INVALID
+  lock_calibration_fail = INVALID
+  spll_state       = INVALID
+  spll_ocer        = INVALID
+  spll_rcer        = INVALID
+  spll_occr        = INVALID
+  spll_trr_csr     = TIMEOUT
+  spll_dac_hpll    = TIMEOUT
+  spll_dac_main    = TIMEOUT
+  spll_helper_state = INVALID
+  spll_helper_limits = INVALID
+  spll_main_state  = INVALID
+  spll_main_limits = INVALID
+  spll_main_phase_limits = INVALID
+  spll_state_visit_mask = TIMEOUT
+  spll_state_transitions = TIMEOUT
+  spll_last_state  = TIMEOUT
+  spll_init_count  = TIMEOUT
+  dmtd_ref         = TIMEOUT
+  dmtd_fb          = TIMEOUT
+  dmtd_ref_high_qual_abort = TIMEOUT
+  dmtd_fb_high_qual_abort = TIMEOUT
+  tag_valid        = TIMEOUT
+  trr_write        = TIMEOUT
+  irq              = TIMEOUT
+  helper_update    = TIMEOUT
+  spll_helper_error = TIMEOUT
+  spll_helper_output = TIMEOUT
+  eic_isr          = TIMEOUT
+  current_tics     = TIMEOUT
+
+============================================================
+JTAG/WB transport health summary
+============================================================
+WB_TRANSPORT_PROTOCOL = PRELOAD_THEN_TOGGLE_COMMIT
+WB_REQUEST_COUNT = 0
+PRELOAD_COUNT = 904
+COMMIT_COUNT = 0
+WB_PROBE_READ_COUNT = 0
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 0
+STABLE_RESPONSE_WRONG_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+TIMEOUT_COUNT = 904
+INVALID_COUNT = 0
+STALE_A5A5_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+PRELOAD_PROTOCOL_RUNTIME_REVALIDATION = FAIL
+JTAG_WB_DIAGNOSTIC_PATH = NOT_TRUSTED
+============================================================
+
+============================================================
+STEP4A_RESULT = INVALID
+STEP4B_ALLOWED = NO
+STEP4B_RESULT = BLOCKED_BY_STEP1
+STEP4B_FIRST_INACTIVE_BOUNDARY = UPSTREAM_PREREQUISITE
+STEP5_RESULT = NOT_APPLICABLE_MASTER
+STEP5_FIRST_INACTIVE_BOUNDARY = SLAVE_ONLY
+STEP5_RESULT = UPSTREAM_NOT_READY
+STEP5_FIRST_INACTIVE_BOUNDARY = UPSTREAM_STEP4B
+============================================================
+Info (23030): Evaluation of Tcl script scripts/jtag/read_wb_runtime.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 776 megabytes
+    Info: Processing ended: Wed Sep  2 00:59:49 2026
+    Info: Elapsed time: 00:00:11
+    Info: Total CPU time (on all processors): 00:00:00

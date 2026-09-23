@@ -1,0 +1,23 @@
+STEP6B_TIMING_PROJECT=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qpf
+STEP6B_TIMING_REVISION=DE5a_wr_master_jtag
+STEP6B_TIMING_CLOCK=qsfp_ref_125m
+STEP6B_TIMING_QUERY_API=get_path_info_-slack
+STEP6B_TIMING_SOURCE_DOMAIN=qsfp_ref_125m
+STEP6B_ENDPOINTS name=target_meta_to_sync matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_meta_to_sync type=setup status=PASS count=40 slack_ns=6.662 from=node_28041 to=node_22106 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_meta_to_sync type=hold status=PASS count=40 slack_ns=0.047 from=node_28013 to=node_21986 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=target_sync_to_latched matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_sync_to_latched type=setup status=PASS count=40 slack_ns=6.863 from=node_21860 to=node_8349 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_sync_to_latched type=hold status=PASS count=40 slack_ns=0.126 from=node_21944 to=node_8405 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=arm_meta_to_sync matched_from=1 matched_to=1
+STEP6B_TIMING_PATH name=arm_meta_to_sync type=setup status=PASS count=1 slack_ns=7.571 from=node_20965 to=node_7490 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=arm_meta_to_sync type=hold status=PASS count=1 slack_ns=0.047 from=node_20965 to=node_7490 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=arm_sync_to_prev matched_from=1 matched_to=1
+STEP6B_TIMING_PATH name=arm_sync_to_prev type=setup status=PASS count=1 slack_ns=7.3 from=node_7490 to=node_8551 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=arm_sync_to_prev type=hold status=PASS count=1 slack_ns=0.212 from=node_7490 to=node_8551 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=refclk_to_armed matched_from=0 matched_to=1
+STEP6B_ENDPOINTS name=refclk_to_fired matched_from=0 matched_to=1
+STEP6B_ENDPOINTS name=refclk_to_fire_count matched_from=0 matched_to=16
+STEP6B_ENDPOINTS name=refclk_to_actual_tai matched_from=0 matched_to=114
+STEP6B_ENDPOINTS name=refclk_to_actual_cycles matched_from=0 matched_to=103
+STEP6B_TIMING_RESULT=NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED REASON=refclk_to_armed_endpoint_match_empty

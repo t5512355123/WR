@@ -1,0 +1,62 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep  2 01:09:30 2026
+Info: Command: quartus_stp -t scripts/jtag/read_jtag_wb_preload_then_toggle_commit.tcl 5
+Info: Quartus(args): 5
+JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_START board=DE5 [1-11.2] device=@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD) iterations=5
+STATIC_SIGNATURE addr=0x00100124 expected=0x02000200
+BOARD_ID addr=0x00100128 expected=0x22334402
+DMTD_REF addr=0x00100298 DMTD_FB addr=0x0010029C
+
+JTAG_WB_PRELOAD_THEN_TOGGLE_COMMIT_AUDIT_SUMMARY
+ITERATIONS = 5
+TOTAL_WB_REQUESTS = 0
+TOTAL_PROBE_READS = 1
+STATIC_SIGNATURE_MISMATCH = 0
+BOARD_ID_MISMATCH = 0
+STALE_A5A5_COUNT = 0
+TIMEOUT_COUNT = 100
+INVALID_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 0
+DMTD_REF_DECREASE_COUNT = 0
+DMTD_FB_DECREASE_COUNT = 0
+DMTD_REF_TRIPLE_VALID = 0
+DMTD_FB_TRIPLE_VALID = 0
+INITIAL_COMPLETION_UNSTABLE_COUNT = 0
+INITIAL_DATA_WRONG_BUT_STABILIZED_CORRECT_COUNT = 0
+STABLE_RESPONSE_WRONG_COUNT = 0
+PROBE_STABILIZATION_TIMEOUT_COUNT = 0
+PROBE_2WAY_MATCH_COUNT = 0
+PROBE_3WAY_MATCH_COUNT = 0
+STABLE_TRANSACTION_COUNT = 0
+UNSTABLE_TRANSACTION_COUNT = 0
+PRELOAD_COUNT = 100
+COMMIT_COUNT = 0
+PRELOAD_UNEXPECTED_TRIGGER_COUNT = 0
+STATIC_SEQUENCE_VALID = 0
+ADDRESS_SEQUENCE_VALID = 0
+FIRST_ERROR = NONE
+PRELOAD_THEN_TOGGLE_COMMIT = FAIL
+REQUEST_BUNDLE_CAPTURE_RACE = NOT_CONFIRMED
+JTAG_WB_READ_PATH_WITH_PRELOAD_PROTOCOL = FAIL
+Info (23030): Evaluation of Tcl script scripts/jtag/read_jtag_wb_preload_then_toggle_commit.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Wed Sep  2 01:09:30 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00

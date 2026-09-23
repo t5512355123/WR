@@ -1,0 +1,4 @@
+e7e7e3d0ea038bf8383b6ed895e73519c0669384d19e90aa6259728418515852  /tmp/wr-step5-cold-powercycle-20260913/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+372dae523f45befc87817ff0376fa5becca7177b83f3ef61cbd78209d6cd47d9  /tmp/wr-step5-cold-powercycle-20260913/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+c9901390296832ed3ad197b4b86fddc9ef8b3db200c87176f6477c15fcf3c63d  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/master/wrc.mif
+2567e223b4c8985b6af254d147e08b46b77edb2f199fc24a5b1642e3dda95c19  /tmp/wr-step5-cold-powercycle-20260913/build/firmware/slave/wrc.mif

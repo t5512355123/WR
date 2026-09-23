@@ -1,0 +1,10 @@
+2026-09-17T08:01:22+08:00
+--- SOF files ---
+output_files_slave_portb/DE5a_wr_slave_portb.sof
+output_files_master_portb/DE5a_wr_master_portb.sof
+--- SHA256 ---
+12ee92dd41294424bf0cf9a419034cbcce5d0dae007e020795e7014e43211bf5  output_files_slave_portb/DE5a_wr_slave_portb.sof
+56d12c68f093d0d05bef6b4a779d20be09ff2efec22186348b3f8f484ce97c01  output_files_master_portb/DE5a_wr_master_portb.sof
+--- sizes ---
+output_files_slave_portb/DE5a_wr_slave_portb.sof 36823995 bytes 2026-09-17 07:51:57.223487066 +0800
+output_files_master_portb/DE5a_wr_master_portb.sof 36809107 bytes 2026-09-17 08:00:34.512486960 +0800

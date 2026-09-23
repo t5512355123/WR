@@ -1,0 +1,185 @@
+STEP6B_TIMING_PROJECT=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qpf
+STEP6B_TIMING_REVISION=DE5a_wr_master_jtag
+STEP6B_TIMING_CLOCK=qsfp_ref_125m
+STEP6B_TIMING_QUERY_API=get_path_info_-slack
+STEP6B_TIMING_SOURCE_DOMAIN=qsfp_ref_125m
+STEP6B_ENDPOINTS name=target_meta_to_sync matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_meta_to_sync type=setup status=PASS count=40 slack_ns=6.662 from=node_28041 to=node_22106 from_clock=clock_3 to_clock=clock_3 path_type=setup error=
+STEP6B_TIMING_PATH name=target_meta_to_sync type=hold status=PASS count=40 slack_ns=0.047 from=node_28013 to=node_21986 from_clock=clock_3 to_clock=clock_3 path_type=hold error=
+STEP6B_REPORT_TIMING_ERROR mode=-setup file=/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/master_step6b_timing.txt.target_meta_to_sync.setup.rpt error=Illegal value for -detail option: full. Specify one of the following values: summary, path_only, path_and_clock, full_path
+---------------------------------------------------------------------------
+
+Usage: report_timing [-h] [-help] [-long_help] [-append] [-detail <summary|path_only|path_and_clock|full_path>] [-fall_from <names>] [-fall_from_clock <names>] [-fall_through <names>] [-fall_to <names>] [-fall_to_clock <names>] [-false_path] [-file <name>] [-from <names>] [-from_clock <names>] [-hold] [-less_than_slack <slack limit>] [-multi_corner] [-npaths <number>] [-nworst <number>] [-pairs_only] [-panel_name <name>] [-recovery] [-removal] [-rise_from <names>] [-rise_from_clock <names>] [-rise_through <names>] [-rise_to <names>] [-rise_to_clock <names>] [-setup] [-show_routing] [-stdout] [-through <names>] [-to <names>] [-to_clock <names>]
+
+        -h: Quick usage
+        -help: Short help
+        -long_help: Long help with examples and possible return values
+
+        -append: If output is sent to a file, this option appends the result to that file.  Otherwise, the file will be overwritten. This option is not supported for HTML files.
+        -detail <summary|path_only|path_and_clock|full_path>: Option to determine how much detail should be shown in the path report
+        -fall_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -fall_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -fall_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -fall_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -fall_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -false_path: Report only paths that are cut by a false path assignment
+        -file <name>: Sends the results to an ASCII or HTML file. Depending on the extension
+        -from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -hold: Option to report clock hold paths
+        -less_than_slack <slack limit>: Limit the paths reported to those with slack values less than the specified limit.
+        -multi_corner: When set, running this command with the -panel option will create a folder containing versions of this report for multiple operating conditions. This option has no effect when used with the -stdout or -file options.
+        -npaths <number>: Specifies the number of paths to report (default=1, or the same value as nworst, if nworst is specified.  Value of 0 causes all paths to be reported but be wary that this may be slow)
+        -nworst <number>: Specifies the maximum number of paths to report for each endpoint.  If unspecified, there is no limit.  If nworst is specified, but npaths is not, npaths defaults to the same value as nworst
+        -pairs_only: When set, paths with the same start and end points are considered equivalent.  Only the worst case path for each unique combination is displayed.
+        -panel_name <name>: Sends the results to the panel and specifies the name of the new panel
+        -recovery: Option to report recovery paths
+        -removal: Option to report removal paths
+        -rise_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -rise_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -rise_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -rise_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -rise_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -setup: Option to report clock setup paths
+        -show_routing: Option to display detailed routing in the path
+        -stdout: Send output to stdout, via messages.  You only need to use this option if you have selected another output format, such as a file, and would also like to receive messages.
+        -through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+
+---------------------------------------------------------------------------
+
+STEP6B_REPORT_TIMING_ERROR mode=-hold file=/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/master_step6b_timing.txt.target_meta_to_sync.hold.rpt error=Illegal value for -detail option: full. Specify one of the following values: summary, path_only, path_and_clock, full_path
+---------------------------------------------------------------------------
+
+Usage: report_timing [-h] [-help] [-long_help] [-append] [-detail <summary|path_only|path_and_clock|full_path>] [-fall_from <names>] [-fall_from_clock <names>] [-fall_through <names>] [-fall_to <names>] [-fall_to_clock <names>] [-false_path] [-file <name>] [-from <names>] [-from_clock <names>] [-hold] [-less_than_slack <slack limit>] [-multi_corner] [-npaths <number>] [-nworst <number>] [-pairs_only] [-panel_name <name>] [-recovery] [-removal] [-rise_from <names>] [-rise_from_clock <names>] [-rise_through <names>] [-rise_to <names>] [-rise_to_clock <names>] [-setup] [-show_routing] [-stdout] [-through <names>] [-to <names>] [-to_clock <names>]
+
+        -h: Quick usage
+        -help: Short help
+        -long_help: Long help with examples and possible return values
+
+        -append: If output is sent to a file, this option appends the result to that file.  Otherwise, the file will be overwritten. This option is not supported for HTML files.
+        -detail <summary|path_only|path_and_clock|full_path>: Option to determine how much detail should be shown in the path report
+        -fall_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -fall_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -fall_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -fall_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -fall_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -false_path: Report only paths that are cut by a false path assignment
+        -file <name>: Sends the results to an ASCII or HTML file. Depending on the extension
+        -from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -hold: Option to report clock hold paths
+        -less_than_slack <slack limit>: Limit the paths reported to those with slack values less than the specified limit.
+        -multi_corner: When set, running this command with the -panel option will create a folder containing versions of this report for multiple operating conditions. This option has no effect when used with the -stdout or -file options.
+        -npaths <number>: Specifies the number of paths to report (default=1, or the same value as nworst, if nworst is specified.  Value of 0 causes all paths to be reported but be wary that this may be slow)
+        -nworst <number>: Specifies the maximum number of paths to report for each endpoint.  If unspecified, there is no limit.  If nworst is specified, but npaths is not, npaths defaults to the same value as nworst
+        -pairs_only: When set, paths with the same start and end points are considered equivalent.  Only the worst case path for each unique combination is displayed.
+        -panel_name <name>: Sends the results to the panel and specifies the name of the new panel
+        -recovery: Option to report recovery paths
+        -removal: Option to report removal paths
+        -rise_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -rise_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -rise_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -rise_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -rise_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -setup: Option to report clock setup paths
+        -show_routing: Option to display detailed routing in the path
+        -stdout: Send output to stdout, via messages.  You only need to use this option if you have selected another output format, such as a file, and would also like to receive messages.
+        -through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+
+---------------------------------------------------------------------------
+
+STEP6B_ENDPOINTS name=target_sync_to_latched matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_sync_to_latched type=setup status=PASS count=40 slack_ns=6.863 from=node_21860 to=node_8349 from_clock=clock_3 to_clock=clock_3 path_type=setup error=
+STEP6B_TIMING_PATH name=target_sync_to_latched type=hold status=PASS count=40 slack_ns=0.126 from=node_21944 to=node_8405 from_clock=clock_3 to_clock=clock_3 path_type=hold error=
+STEP6B_REPORT_TIMING_ERROR mode=-setup file=/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/master_step6b_timing.txt.target_sync_to_latched.setup.rpt error=Illegal value for -detail option: full. Specify one of the following values: summary, path_only, path_and_clock, full_path
+---------------------------------------------------------------------------
+
+Usage: report_timing [-h] [-help] [-long_help] [-append] [-detail <summary|path_only|path_and_clock|full_path>] [-fall_from <names>] [-fall_from_clock <names>] [-fall_through <names>] [-fall_to <names>] [-fall_to_clock <names>] [-false_path] [-file <name>] [-from <names>] [-from_clock <names>] [-hold] [-less_than_slack <slack limit>] [-multi_corner] [-npaths <number>] [-nworst <number>] [-pairs_only] [-panel_name <name>] [-recovery] [-removal] [-rise_from <names>] [-rise_from_clock <names>] [-rise_through <names>] [-rise_to <names>] [-rise_to_clock <names>] [-setup] [-show_routing] [-stdout] [-through <names>] [-to <names>] [-to_clock <names>]
+
+        -h: Quick usage
+        -help: Short help
+        -long_help: Long help with examples and possible return values
+
+        -append: If output is sent to a file, this option appends the result to that file.  Otherwise, the file will be overwritten. This option is not supported for HTML files.
+        -detail <summary|path_only|path_and_clock|full_path>: Option to determine how much detail should be shown in the path report
+        -fall_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -fall_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -fall_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -fall_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -fall_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -false_path: Report only paths that are cut by a false path assignment
+        -file <name>: Sends the results to an ASCII or HTML file. Depending on the extension
+        -from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -hold: Option to report clock hold paths
+        -less_than_slack <slack limit>: Limit the paths reported to those with slack values less than the specified limit.
+        -multi_corner: When set, running this command with the -panel option will create a folder containing versions of this report for multiple operating conditions. This option has no effect when used with the -stdout or -file options.
+        -npaths <number>: Specifies the number of paths to report (default=1, or the same value as nworst, if nworst is specified.  Value of 0 causes all paths to be reported but be wary that this may be slow)
+        -nworst <number>: Specifies the maximum number of paths to report for each endpoint.  If unspecified, there is no limit.  If nworst is specified, but npaths is not, npaths defaults to the same value as nworst
+        -pairs_only: When set, paths with the same start and end points are considered equivalent.  Only the worst case path for each unique combination is displayed.
+        -panel_name <name>: Sends the results to the panel and specifies the name of the new panel
+        -recovery: Option to report recovery paths
+        -removal: Option to report removal paths
+        -rise_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -rise_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -rise_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -rise_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -rise_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -setup: Option to report clock setup paths
+        -show_routing: Option to display detailed routing in the path
+        -stdout: Send output to stdout, via messages.  You only need to use this option if you have selected another output format, such as a file, and would also like to receive messages.
+        -through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+
+---------------------------------------------------------------------------
+
+STEP6B_REPORT_TIMING_ERROR mode=-hold file=/home/b10504072/04_WR/pain-worktrees/step6-global-time/docs/experiments/exp-step6-global-time/EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/raw/timing/master_step6b_timing.txt.target_sync_to_latched.hold.rpt error=Illegal value for -detail option: full. Specify one of the following values: summary, path_only, path_and_clock, full_path
+---------------------------------------------------------------------------
+
+Usage: report_timing [-h] [-help] [-long_help] [-append] [-detail <summary|path_only|path_and_clock|full_path>] [-fall_from <names>] [-fall_from_clock <names>] [-fall_through <names>] [-fall_to <names>] [-fall_to_clock <names>] [-false_path] [-file <name>] [-from <names>] [-from_clock <names>] [-hold] [-less_than_slack <slack limit>] [-multi_corner] [-npaths <number>] [-nworst <number>] [-pairs_only] [-panel_name <name>] [-recovery] [-removal] [-rise_from <names>] [-rise_from_clock <names>] [-rise_through <names>] [-rise_to <names>] [-rise_to_clock <names>] [-setup] [-show_routing] [-stdout] [-through <names>] [-to <names>] [-to_clock <names>]
+
+        -h: Quick usage
+        -help: Short help
+        -long_help: Long help with examples and possible return values
+
+        -append: If output is sent to a file, this option appends the result to that file.  Otherwise, the file will be overwritten. This option is not supported for HTML files.
+        -detail <summary|path_only|path_and_clock|full_path>: Option to determine how much detail should be shown in the path report
+        -fall_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -fall_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -fall_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -fall_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -fall_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -false_path: Report only paths that are cut by a false path assignment
+        -file <name>: Sends the results to an ASCII or HTML file. Depending on the extension
+        -from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -hold: Option to report clock hold paths
+        -less_than_slack <slack limit>: Limit the paths reported to those with slack values less than the specified limit.
+        -multi_corner: When set, running this command with the -panel option will create a folder containing versions of this report for multiple operating conditions. This option has no effect when used with the -stdout or -file options.
+        -npaths <number>: Specifies the number of paths to report (default=1, or the same value as nworst, if nworst is specified.  Value of 0 causes all paths to be reported but be wary that this may be slow)
+        -nworst <number>: Specifies the maximum number of paths to report for each endpoint.  If unspecified, there is no limit.  If nworst is specified, but npaths is not, npaths defaults to the same value as nworst
+        -pairs_only: When set, paths with the same start and end points are considered equivalent.  Only the worst case path for each unique combination is displayed.
+        -panel_name <name>: Sends the results to the panel and specifies the name of the new panel
+        -recovery: Option to report recovery paths
+        -removal: Option to report removal paths
+        -rise_from <names>: Valid sources (string patterns are matched using Tcl string matching)
+        -rise_from_clock <names>: Valid source clocks (string patterns are matched using Tcl string matching)
+        -rise_through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -rise_to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -rise_to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+        -setup: Option to report clock setup paths
+        -show_routing: Option to display detailed routing in the path
+        -stdout: Send output to stdout, via messages.  You only need to use this option if you have selected another output format, such as a file, and would also like to receive messages.
+        -through <names>: Valid through nodes (string patterns are matched using Tcl string matching)
+        -to <names>: Valid destinations (string patterns are matched using Tcl string matching)
+        -to_clock <names>: Valid destination clocks (string patterns are matched using Tcl string matching)
+
+---------------------------------------------------------------------------
+
+STEP6B_TIMING_QUERY_ERROR=invalid command name "get_object_name"
+STEP6B_TIMING_RESULT=NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED REASON=target_meta_to_sync_setup_not_proven

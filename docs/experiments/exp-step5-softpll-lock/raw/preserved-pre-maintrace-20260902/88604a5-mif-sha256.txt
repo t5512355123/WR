@@ -1,0 +1,2 @@
+63f55795f9d8a8bdef1ea266a026c6ed89f72e9e72ff6b95f28c2d05daa63cf9  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/build/firmware/master/wrc.mif
+ce485d0b0073367dab8195eeea7afeab794540dd721c2fa2e6b4458712b007a5  artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-run-20260902/build/firmware/slave/wrc.mif

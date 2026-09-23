@@ -1,0 +1,1 @@
+6c8124b35bc2f6496b12c704891615ff63be305bdbb68c490041366c4589e018  quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof

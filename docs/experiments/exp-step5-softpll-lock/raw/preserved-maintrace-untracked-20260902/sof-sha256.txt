@@ -1,0 +1,2 @@
+23bfdc100fa2b61aff3096754ebd99d61c1e1c1728be99cd5515204415c7dd0d  /home/b10504072/04_WR/artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof
+04c7cb7ecca19be16eb9de022891a9c0143b2c6b62ce364d80db4e56508217fc  /home/b10504072/04_WR/artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

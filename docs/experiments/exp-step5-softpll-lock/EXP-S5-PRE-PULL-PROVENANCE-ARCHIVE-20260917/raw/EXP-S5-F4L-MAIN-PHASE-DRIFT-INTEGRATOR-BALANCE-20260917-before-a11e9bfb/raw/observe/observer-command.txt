@@ -1,0 +1,1 @@
+observer_command=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp -t scripts/jtag/read_step5_main_frequency_prelock_observability.tcl 100 2000 "" 120000 130000 f4l

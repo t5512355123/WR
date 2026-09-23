@@ -25,6 +25,11 @@ Step6A Global-Time validity/same-PPS consistency 與 Step6B 內部雙板排程�
 [`exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)
 與 [`exp-step6-global-time/STEP6-PASS-MILESTONE.md`](exp-step6-global-time/STEP6-PASS-MILESTONE.md)。
 
+Pain 舊 checkout 的 Step5/Step6 pre-pull 保全資料已整併到下列歷史 provenance 封存目錄；這些封存檔只保存原始紀錄與 hash，不新增 milestone PASS：
+
+- [`EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917`](exp-step5-softpll-lock/EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917/REPORT.md)
+- [`EXP-S6-PRE-PULL-PROVENANCE-ARCHIVE-20260922`](exp-step6-global-time/EXP-S6-PRE-PULL-PROVENANCE-ARCHIVE-20260922/REPORT.md)
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

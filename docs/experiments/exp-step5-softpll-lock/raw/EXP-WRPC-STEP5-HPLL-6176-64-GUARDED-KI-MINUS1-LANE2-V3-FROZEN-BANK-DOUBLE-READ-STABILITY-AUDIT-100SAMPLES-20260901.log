@@ -1,0 +1,28 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Sep  1 15:58:22 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step5_helper_pi_state_rail_audit.tcl 100 100 1-11.2
+Info: Quartus(args): 100 100 1-11.2
+STEP5_GUARDED_HELPER_DYNAMICS_CONFIG samples=100 gap_ms=100 board_filter=1-11.2 experiment=EXP-WRPC-STEP5-HPLL-6176-64-GUARDED-KI-MINUS1-LANE2-V3-FROZEN-BANK-DOUBLE-READ-STABILITY-AUDIT-100SAMPLES-20260901 read_only=1 snapshot_transport=serialized_request_in_band_epoch_v3_double_read double_read=pass_a_pass_b_same_request bootstrap_steps=6176 code_per_physical_step=64 kp=-150 ki=-1 threshold=200 lock_samples=10000 fresh_reset_required=1
+STEP5_PI_AUDIT_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step5_helper_pi_state_rail_audit.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Tue Sep  1 15:58:23 2026
+    Info: Elapsed time: 00:00:01
+    Info: Total CPU time (on all processors): 00:00:00

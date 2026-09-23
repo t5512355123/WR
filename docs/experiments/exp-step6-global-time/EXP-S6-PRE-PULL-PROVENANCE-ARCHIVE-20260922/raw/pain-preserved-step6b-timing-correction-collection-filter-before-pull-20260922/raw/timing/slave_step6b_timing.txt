@@ -1,0 +1,13 @@
+STEP6B_TIMING_PROJECT=/home/b10504072/04_WR/pain-worktrees/step6-global-time/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qpf
+STEP6B_TIMING_REVISION=DE5a_wr_slave_jtag
+STEP6B_TIMING_CLOCK=qsfp_ref_125m
+STEP6B_TIMING_QUERY_API=get_path_info_-slack
+STEP6B_TIMING_SOURCE_DOMAIN=qsfp_ref_125m
+STEP6B_ENDPOINTS name=target_meta_to_sync matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_meta_to_sync type=setup status=PASS count=40 slack_ns=7.246 from=node_27891 to=node_18965 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_meta_to_sync type=hold status=PASS count=40 slack_ns=0.049 from=node_27832 to=node_18753 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_ENDPOINTS name=target_sync_to_latched matched_from=40 matched_to=40
+STEP6B_TIMING_PATH name=target_sync_to_latched type=setup status=PASS count=40 slack_ns=6.558 from=node_18595 to=node_6282 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=setup error=
+STEP6B_TIMING_PATH name=target_sync_to_latched type=hold status=PASS count=40 slack_ns=0.153 from=node_18702 to=node_6365 from_clock=clock_3 to_clock=clock_3 query_from_clock=qsfp_ref_125m query_to_clock=qsfp_ref_125m path_type=hold error=
+STEP6B_TIMING_QUERY_ERROR=invalid command name "get_object_name"
+STEP6B_TIMING_RESULT=NOT_RUN_STEP6B_TIMING_BOUNDARY_UNRESOLVED REASON=TIMEQUEST_ERROR

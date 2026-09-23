@@ -1,0 +1,76 @@
+Info: *******************************************************************
+Info: Running Quartus Prime Signal Tap
+    Info: Version 21.3.0 Build 170 09/23/2021 SC Pro Edition
+    Info: Copyright (C) 2021  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and any partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel FPGA IP License Agreement, or other applicable license
+    Info: agreement, including, without limitation, that your use is for
+    Info: the sole purpose of programming logic devices manufactured by
+    Info: Intel and sold by Intel or its authorized distributors.  Please
+    Info: refer to the applicable agreement for further details, at
+    Info: https://fpgasoftware.intel.com/eula.
+    Info: Processing started: Tue Sep  1 02:15:54 2026
+    Info: System process ID: 2120042
+Info: Command: quartus_stp -t scripts/jtag/probe_pi_snapshot_read_pipeline.tcl "DE5 [1-11.2]"
+Info: Quartus(args): {DE5 [1-11.2]}
+PI_PIPELINE_PROBE board=DE5 [1-11.2] old_ack=100 request_seq=4097
+SNAPSHOT_ACKED board=DE5 [1-11.2] round=1 seq=4097
+READ_TWICE ACK_SEQ                  addr=0x00100B28 first=00001001 second=00001001 equal=1
+READ_TWICE TRACE_EPOCH              addr=0x00100B58 first=002B3A4A second=002B3A4A equal=1
+READ_TWICE I_NEW_LO                 addr=0x00100B7C first=02B9B219 second=02B9B219 equal=1
+READ_TWICE I_NEW_HI                 addr=0x00100B80 first=00000000 second=00000000 equal=1
+READ_TWICE INTEGRATOR_AFTER_LO      addr=0x00100B84 first=02B9B219 second=02B9B219 equal=1
+READ_TWICE INTEGRATOR_AFTER_HI      addr=0x00100B88 first=00000000 second=00000000 equal=1
+READ_TWICE PROP_TERM_LO             addr=0x00100B8C first=FFFC758E second=FFFC758E equal=1
+READ_TWICE PROP_TERM_HI             addr=0x00100B90 first=FFFFFFFF second=FFFFFFFF equal=1
+READ_TWICE X                        addr=0x00100BB0 first=0000060B second=0000060B equal=1
+READ_TWICE KP                       addr=0x00100BB4 first=FFFFFF6A second=FFFFFF6A equal=1
+READ_TWICE KI                       addr=0x00100BB8 first=FFFFFFFF second=FFFFFFFF equal=1
+READ_TWICE BIAS                     addr=0x00100BC0 first=00000005 second=00000005 equal=1
+READ_TWICE FREQ_ERROR               addr=0x00100BCC first=FFFFFFF4 second=FFFFFFF4 equal=1
+READ_TWICE MAGIC                    addr=0x00100BDC first=00000001 second=00000001 equal=1
+READ_TWICE ACK_COUNT                addr=0x00100B30 first=00000064 second=00000064 equal=1
+SNAPSHOT_ACKED board=DE5 [1-11.2] round=2 seq=4098
+READ_TWICE ACK_SEQ                  addr=0x00100B28 first=00001002 second=00001002 equal=1
+READ_TWICE TRACE_EPOCH              addr=0x00100B58 first=002B433E second=002B433E equal=1
+READ_TWICE I_NEW_LO                 addr=0x00100B7C first=02AA15C5 second=02AA15C5 equal=1
+READ_TWICE I_NEW_HI                 addr=0x00100B80 first=00000000 second=00000000 equal=1
+READ_TWICE INTEGRATOR_AFTER_LO      addr=0x00100B84 first=02AA15C5 second=02AA15C5 equal=1
+READ_TWICE INTEGRATOR_AFTER_HI      addr=0x00100B88 first=00000000 second=00000000 equal=1
+READ_TWICE PROP_TERM_LO             addr=0x00100B8C first=FFFFC5FE second=FFFFC5FE equal=1
+READ_TWICE PROP_TERM_HI             addr=0x00100B90 first=FFFFFFFF second=FFFFFFFF equal=1
+READ_TWICE X                        addr=0x00100BB0 first=00000063 second=00000063 equal=1
+READ_TWICE KP                       addr=0x00100BB4 first=FFFFFF6A second=FFFFFF6A equal=1
+READ_TWICE KI                       addr=0x00100BB8 first=FFFFFFFF second=FFFFFFFF equal=1
+READ_TWICE BIAS                     addr=0x00100BC0 first=00000005 second=00000005 equal=1
+READ_TWICE FREQ_ERROR               addr=0x00100BCC first=FFFFFFFE second=FFFFFFFE equal=1
+READ_TWICE MAGIC                    addr=0x00100BDC first=00000001 second=00000001 equal=1
+READ_TWICE ACK_COUNT                addr=0x00100B30 first=00000065 second=00000065 equal=1
+SNAPSHOT_ACKED board=DE5 [1-11.2] round=3 seq=4099
+READ_TWICE ACK_SEQ                  addr=0x00100B28 first=00001003 second=00001003 equal=1
+READ_TWICE TRACE_EPOCH              addr=0x00100B58 first=002B4C2A second=002B4C2A equal=1
+READ_TWICE I_NEW_LO                 addr=0x00100B7C first=02B6C292 second=02B6C292 equal=1
+READ_TWICE I_NEW_HI                 addr=0x00100B80 first=00000000 second=00000000 equal=1
+READ_TWICE INTEGRATOR_AFTER_LO      addr=0x00100B84 first=02B6C292 second=02B6C292 equal=1
+READ_TWICE INTEGRATOR_AFTER_HI      addr=0x00100B88 first=00000000 second=00000000 equal=1
+READ_TWICE PROP_TERM_LO             addr=0x00100B8C first=00034C56 second=00034C56 equal=1
+READ_TWICE PROP_TERM_HI             addr=0x00100B90 first=00000000 second=00000000 equal=1
+READ_TWICE X                        addr=0x00100BB0 first=FFFFFA5F second=FFFFFA5F equal=1
+READ_TWICE KP                       addr=0x00100BB4 first=FFFFFF6A second=FFFFFF6A equal=1
+READ_TWICE KI                       addr=0x00100BB8 first=FFFFFFFF second=FFFFFFFF equal=1
+READ_TWICE BIAS                     addr=0x00100BC0 first=00000005 second=00000005 equal=1
+READ_TWICE FREQ_ERROR               addr=0x00100BCC first=FFFFFFFD second=FFFFFFFD equal=1
+READ_TWICE MAGIC                    addr=0x00100BDC first=00000001 second=00000001 equal=1
+READ_TWICE ACK_COUNT                addr=0x00100B30 first=00000066 second=00000066 equal=1
+Info (23030): Evaluation of Tcl script scripts/jtag/probe_pi_snapshot_read_pipeline.tcl was successful
+Info: Quartus Prime Signal Tap was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 677 megabytes
+    Info: Processing ended: Tue Sep  1 02:15:55 2026
+    Info: Elapsed time: 00:00:01
+    Info: System process ID: 2120042

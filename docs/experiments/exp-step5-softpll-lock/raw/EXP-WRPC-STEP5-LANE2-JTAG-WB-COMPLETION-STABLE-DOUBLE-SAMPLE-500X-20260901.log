@@ -1,0 +1,58 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Sep  1 17:15:50 2026
+Info: Command: quartus_stp -t scripts/jtag/read_jtag_wb_completion_stable_double_sample.tcl 500 "DE5 [1-11.2]"
+Info: Quartus(args): 500 {DE5 [1-11.2]}
+JTAG_WB_COMPLETION_STABLE_AUDIT_START board=DE5 [1-11.2] device=@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD) iterations=500
+STATIC_SIGNATURE addr=0x00100124 expected=0x02000200
+BOARD_ID addr=0x00100128 expected=0x22334402
+DMTD_REF addr=0x00100298 DMTD_FB addr=0x0010029C
+
+JTAG_WB_COMPLETION_STABLE_AUDIT_SUMMARY
+ITERATIONS = 500
+TOTAL_WB_REQUESTS = 10000
+TOTAL_PROBE_READS = 40001
+STATIC_SIGNATURE_MISMATCH = 42
+BOARD_ID_MISMATCH = 50
+STALE_A5A5_COUNT = 0
+TIMEOUT_COUNT = 0
+INVALID_COUNT = 0
+ADDRESS_CROSS_CONTAMINATION_COUNT = 51
+DMTD_REF_DECREASE_COUNT = 5
+DMTD_FB_DECREASE_COUNT = 0
+DMTD_REF_TRIPLE_VALID = 495
+DMTD_FB_TRIPLE_VALID = 500
+INITIAL_COMPLETION_UNSTABLE_COUNT = 0
+INITIAL_DATA_WRONG_BUT_STABILIZED_CORRECT_COUNT = 0
+STABLE_RESPONSE_WRONG_COUNT = 92
+PROBE_STABILIZATION_TIMEOUT_COUNT = 0
+PROBE_2WAY_MATCH_COUNT = 10000
+PROBE_3WAY_MATCH_COUNT = 10000
+STABLE_TRANSACTION_COUNT = 10000
+UNSTABLE_TRANSACTION_COUNT = 0
+STATIC_SEQUENCE_VALID = 457
+ADDRESS_SEQUENCE_VALID = 458
+FIRST_ERROR = iteration=5 requested=STATIC_B expected=22334402 observed=0000000000000000 classification=STABLE_RESPONSE_WRONG
+JTAG_WB_TRANSACTION_PATH = FAIL
+JTAG_PROBE_OR_MAILBOX_STABILITY = FAIL
+Info (23030): Evaluation of Tcl script scripts/jtag/read_jtag_wb_completion_stable_double_sample.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Tue Sep  1 17:17:17 2026
+    Info: Elapsed time: 00:01:27
+    Info: Total CPU time (on all processors): 00:00:07

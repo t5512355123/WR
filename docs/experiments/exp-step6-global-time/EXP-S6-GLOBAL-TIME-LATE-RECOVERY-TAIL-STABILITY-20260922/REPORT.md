@@ -110,6 +110,16 @@ analysis/summary.json
   SHA256=76F95CE99C03310E83F4508D5E91D3EBD4B752D1D5B3CEDCA9B33B4C351A2451
 ```
 
+The Pain home-directory archive audit also recovered a distinct supplemental
+capture at `raw/observe/late_recovery_tail_pre_pull.log`:
+
+```text
+SHA256=7372cf01fce4da4685366dc519941165f5e17d395bca0fb7428ae7e06bef7b47
+```
+
+This file is retained separately and is not substituted for the canonical
+`late_recovery_tail.log`; the formal PASS criteria and verdict are unchanged.
+
 ## Boundary and next action
 
 Step6A-1 Global-Time recovery is now a functional PASS. This experiment did

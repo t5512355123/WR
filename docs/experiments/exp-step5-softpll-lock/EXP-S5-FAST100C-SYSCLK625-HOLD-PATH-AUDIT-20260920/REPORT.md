@@ -140,3 +140,11 @@ ownership classified
 Stop this experiment here. Overall Step5 remains `NO` because complete
 timing closure is not achieved; the next action must be selected from this
 mixed production/DMTD hold evidence, not improvised in this experiment.
+
+## Supplemental pre-pull archive
+
+The Pain home-directory archive audit recovered an additional historical
+`raw/pre-pull-raw-20260920/file-sha256.txt`. It is retained separately from
+this audit's canonical `raw/artifact-sha256.txt`; it does not replace any
+captured evidence, change the path classification, or alter this report's
+verdict.

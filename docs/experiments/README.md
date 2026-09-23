@@ -34,6 +34,14 @@ Pain 舊 checkout 的 Step5/Step6 pre-pull 保全資料已整併到下列歷史 
 - [`EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917`](exp-step5-softpll-lock/EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917/REPORT.md)
 - [`EXP-S6-PRE-PULL-PROVENANCE-ARCHIVE-20260922`](exp-step6-global-time/EXP-S6-PRE-PULL-PROVENANCE-ARCHIVE-20260922/REPORT.md)
 
+2026-09-24 Pain home-directory archive de-duplication recovered nine
+previously untracked unique records and identified 272 exact content
+duplicates already tracked in Git. Supplemental captures were kept separate
+from canonical records where their bytes differ. Cleanup scope and per-file
+hashes are recorded in
+[`EXP-PAIN-HOME-ARCHIVE-DEDUP-20260924`](EXP-PAIN-HOME-ARCHIVE-DEDUP-20260924/REPORT.md);
+milestone SOF/MIF files were not part of this cleanup.
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

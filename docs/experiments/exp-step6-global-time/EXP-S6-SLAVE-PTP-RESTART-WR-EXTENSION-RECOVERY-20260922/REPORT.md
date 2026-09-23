@@ -118,6 +118,17 @@ analysis/summary.json
   SHA256=65E84C4CA71B832F65CC1109B6EE009FDDC233431553E0247DAF0CCB4F2C8304
 ```
 
+The Pain home-directory archive audit also recovered a distinct supplemental
+capture at `raw/observe/ptp_restart_recovery_pre_pull.log`:
+
+```text
+SHA256=2eb570a979fef7b4d88e6338db24f815b296071281ba1378f1024f317dd2b5ca
+```
+
+This file is explicitly a pre-pull supplemental record. It is not substituted
+for `ptp_restart_recovery.log` and does not change the transient-failure
+verdict above.
+
 ## Boundary and next action
 
 This experiment establishes that one Slave-only PTP restart can re-arm the WR

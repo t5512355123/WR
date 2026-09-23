@@ -155,3 +155,12 @@ Step5 remains NO until every timing corner, exception, and constraint-coverage
 boundary is closed. Stop here; do not add another exception, edit the
 `wr_core_dmtd_62m496` clock, fix `qsfp_ref_125m`, program, or power-cycle in
 this experiment.
+
+## Supplemental pre-pull archive
+
+During the 2026-09-24 Pain home-directory archive audit, five supplemental
+pre-pull files were recovered into `raw/pre-pull-raw-20260920/`: Master and
+Slave STA summaries, Master and Slave fit summaries, and
+`file-sha256.txt`. These are preserved as a separate historical capture;
+they are not substituted for the fresh-build evidence listed above and do
+not change this experiment's verdict or timing interpretation.

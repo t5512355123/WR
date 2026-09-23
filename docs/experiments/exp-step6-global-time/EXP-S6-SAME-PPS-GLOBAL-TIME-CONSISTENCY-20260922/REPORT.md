@@ -167,3 +167,13 @@ CB671277C166A7639D1BAA68E430847A33E739B46D7CAF50FDC517241D3778B3
 raw/program/stop.txt
 0B34047ACE11335A1B61DF0A7DC895E0A5891AF4F154F90F684DC3C5C41E4798
 ```
+
+The Pain home-directory archive audit recovered a distinct supplemental
+pre-pull capture at `raw/observe/same_pps_consistency_pre_pull.log`:
+
+```text
+SHA256=274b5068267c3c19afe411b9626dd431f76272be5496ce4e349374855dccb30e
+```
+
+It is retained separately from the canonical normalized observer log above;
+it does not replace that evidence or change the formal PASS verdict.

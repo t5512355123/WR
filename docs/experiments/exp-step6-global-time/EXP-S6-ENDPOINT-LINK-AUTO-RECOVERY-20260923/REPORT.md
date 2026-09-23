@@ -61,3 +61,40 @@ and are identified in the Step 6 pass-milestone report.
 - `raw/slave-tmvalid-attribution.log`
 - `raw/stability-420s.log`
 - `raw/prior-build-sof-manifest.sha256`
+
+## Retrospective identification of the 2026-09-23 21:30 failure capture
+
+The user-shared terminal commands programmed SOFs from
+`/home/b10504072/step6-wr-rearm-fb0d038b/`. The prior-build manifest in this
+experiment binds that worktree's intermediate images to:
+
+```text
+Master = 45a671b75bacfc98859e97006098a59c3fed460a5186884439e41a0bec75de8f
+Slave  = db8ec57f4b53b784585f83880774e5eb2a11069cbd8d3ef921eed4e1270de6a6
+```
+
+Those images came from source commit `fb0d038bd4bbe5ffc37fcc4d5e441ede039bf5ca`;
+they are not the final retained Step6 pair. The later commit
+`fbf22f24` (`fix: retry persistent DE5a endpoint link failures`) added bounded
+firmware endpoint re-initialization in `vendor/wrpc-sw/wrc_main.c`. A separate
+dashboard correction then stopped treating a retained Master time snapshot as
+Step6 PASS while Step1 link was down. The subsequent Step6 re-arm fixes were
+included in source commit `74dc28862653d306e0450cf437ba6d3a230d979d`.
+
+The later endpoint-recovery capture reports Step1 PASS in all 84 board frames;
+the final Step6 report records Step1 through Step6 passing with the retained
+`6521eb...` Master / `4775de...` Slave images. This shows the 21:30 output did
+not test the final endpoint-retry image and explains its `Link=0` plus stale
+Master `TIME_VALID` display. The evidence supports a firmware/startup recovery
+issue rather than a fiber fault; it does not establish that a physical link
+could never fail for another reason.
+
+The pasted command order was Master then Slave, whereas the successful final
+Step6 report used Slave then Master. No controlled order-only A/B is present,
+so the order difference is recorded as a caution, not as a separately proven
+root cause. For the retained final pair, use the order in its report.
+
+The source lineage is confirmed in Git: `fbf22f24681d0851140036d8f59e0a1bedc38e8f`
+is an ancestor of the current `feat/file_cleanup` HEAD, and contains the
+bounded retry shown above. The final Step6 source commit
+`74dc28862653d306e0450cf437ba6d3a230d979d` is also in that branch's history.

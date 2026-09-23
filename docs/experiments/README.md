@@ -42,6 +42,11 @@ hashes are recorded in
 [`EXP-PAIN-HOME-ARCHIVE-DEDUP-20260924`](EXP-PAIN-HOME-ARCHIVE-DEDUP-20260924/REPORT.md);
 milestone SOF/MIF files were not part of this cleanup.
 
+Pain's older Step5 checkout also contained frozen-fit source snapshots and
+observer scripts absent from the tracked archive. Byte-identical duplicates
+were deduplicated and the source/observer files were preserved with hashes in
+[`EXP-S5-FROZEN-FIT-SOURCE-OBSERVER-ARCHIVE-20260924`](exp-step5-softpll-lock/EXP-S5-FROZEN-FIT-SOURCE-OBSERVER-ARCHIVE-20260924/REPORT.md).
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

@@ -216,9 +216,10 @@ Step1, Step5, and Step6 SOFs listed above, each still matching its expected
 hash. The 28 secondary worktrees were removed after the source-reachability
 and dirty-file checks; the main checkout is the only registered worktree.
 The exact `/home/b10504072/snap` and `/home/b10504072/share` directories are
-absent. Pain's `feat/file_cleanup` HEAD and `origin/feat/file_cleanup` both
-equal `704409e75a678821f6bf5dc2b6934fb38215fe06`, and the tracked working tree
-is clean.
+absent. At this checkpoint Pain's `feat/file_cleanup` HEAD and
+`origin/feat/file_cleanup` both equalled
+`704409e75a678821f6bf5dc2b6934fb38215fe06`, and the tracked working tree was
+clean; later report commits and syncs are recorded below.
 
 ## 2026-09-24 follow-up: preserved unique raw evidence
 
@@ -232,9 +233,9 @@ Pain original; SHA-256 and byte count are recorded in
 pre-reseat WR-link observations, the Step6 ext-disable observation, Master
 Quartus build reports for the TX-comma investigation, and Step6B timing logs.
 
-These archive directories contain no SOF or MIF files and no symlinks. After
-the new archive and manifest are pushed and verified on Pain, the old
-top-level copies can be removed: all 124 original file contents will remain
+These archive directories contained no SOF or MIF files and no symlinks. The
+new raw archive and manifest were pushed and verified on Pain before the old
+top-level copies were removed. All 124 original file contents remain
 represented either by the existing feature-branch blobs or by the new raw
 archive. The separate `archive/` source/history collection (1,185 files,
 about 16 MB) is not a duplicate backup and remains untouched.
@@ -250,8 +251,10 @@ directories. The 17 exact directories were then removed; the 17 unique files
 (7,563,442 bytes) remain in `raw/unique-preserved/`, and no unique research
 data was lost.
 
-The empty nested `/home/b10504072/04_WR/04_WR/` contains only an
+The empty nested `/home/b10504072/04_WR/04_WR/` contained only an
 `artifacts/EXP-WRPC-STEP5-HPLL-BOOTSTRAP-3072-REVERSE-20260909/` directory
-chain and no files or links. It remains pending a final empty-directory
-cleanup; all other top-level entries are project source, reports, canonical
-artifacts, or the separate `archive/` source/history collection.
+chain and no files or links; the chain was removed with `rmdir` after the
+empty-only check. A final remote inventory confirmed exactly six SOFs remain,
+the only registered worktree is the primary checkout, and all explicitly
+listed home-level backup names are absent. The separate `archive/` source/
+history collection and required project source directories remain untouched.

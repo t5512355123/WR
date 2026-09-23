@@ -219,3 +219,22 @@ The exact `/home/b10504072/snap` and `/home/b10504072/share` directories are
 absent. Pain's `feat/file_cleanup` HEAD and `origin/feat/file_cleanup` both
 equal `704409e75a678821f6bf5dc2b6934fb38215fe06`, and the tracked working tree
 is clean.
+
+## 2026-09-24 follow-up: preserved unique raw evidence
+
+A content-level audit covered 17 top-level `pain-preserve*`/pre-pull
+directories (124 regular files, no symlinks). Of those files, 107 have exact
+Git blob matches in the synced feature branch; the other 17 unique files
+(total 7,563,442 bytes) were copied byte-for-byte
+under `raw/unique-preserved/`. Each archived file's Git blob ID matches its
+Pain original; SHA-256 and byte count are recorded in
+`preserved-unique-raw-manifest.tsv`. The preserved set includes the unique
+pre-reseat WR-link observations, the Step6 ext-disable observation, Master
+Quartus build reports for the TX-comma investigation, and Step6B timing logs.
+
+These archive directories contain no SOF or MIF files and no symlinks. After
+the new archive and manifest are pushed and verified on Pain, the old
+top-level copies can be removed: all 124 original file contents will remain
+represented either by the existing feature-branch blobs or by the new raw
+archive. The separate `archive/` source/history collection (1,185 files,
+about 16 MB) is not a duplicate backup and remains untouched.

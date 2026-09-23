@@ -115,3 +115,50 @@ switched to `feat/file_cleanup` at `b769ea1a30665b2b32624b52a0e0a9d8cff04511`,
 which matches `origin/feat/file_cleanup`. The staged/uncommitted contents of
 the remaining registered worktrees are still under audit and have not been
 removed.
+
+## 2026-09-24 follow-up: /04_WR/pain-worktrees
+
+The seven linked worktrees immediately below
+/home/b10504072/04_WR/pain-worktrees/ were re-audited against the synced
+origin/feat/file_cleanup at 4a06256c472ab6c4d243f6b60284a6924b0d68eb.
+Every worktree HEAD is an ancestor of that branch, and no active remote
+process referenced these exact paths at the time of the audit.
+
+| Worktree | HEAD | Status entries |
+| --- | --- | ---: |
+| EXP-S5-300S-KI1-20260920 | 26e138fdc0bfc8426704b397141d563cf4d580a2 | 5 |
+| f4l-lane0-c4095e75 | c4095e7535d1e179e5aef88d2c8ee61130275a88 | 0 |
+| main-latest | 2813081678afa380356c60e4e3dcd17843b258c2 | 0 |
+| qsfpa-f4h-exact-898b041 | 898b041afa2fcd6ca48a84eb7326eebc419ac4a3 | 14 |
+| qsfpa-lane0-restore-ef3223ad | ef3223adb0fa226f9e412e179c1d963ce11f4574 | 0 |
+| qsfpb-startup-gate-5ef4dc15 | 5ef4dc156ba6d1b11017285bf4c4fd366255afaa | 11 |
+| step6-global-time | cee492a4960933b5084a34b8dd256211af5d8bfa | 51 |
+| **Total** |  | **81** |
+
+All 81 modified/untracked file contents in the four non-clean worktrees were
+compared by Git blob ID against the current feature-branch tree. All 81 had an
+exact tracked-content match, with zero unique blobs. The tracked source and
+research data in all seven worktrees therefore remain recoverable from GitHub.
+
+Their twelve generated SOFs were separately SHA-256 checked:
+
+| Worktree | Master SOF SHA-256 | Slave SOF SHA-256 | Classification |
+| --- | --- | --- | --- |
+| EXP-S5-300S-KI1-20260920 | a2945df48fe86038fdff138f4b6368a777fa3df13f98ac9620fb30baa1ee0129 | 7462d94a521f52e7660295a6873de5141658fbf5392d90a4d4ade7d4e5f36f50 | Exact duplicate of the retained Step5 milestone pair |
+| f4l-lane0-c4095e75 | a5c6af94b658340bd0ebe39a8c178358ed322f468cb27331d6b23bd1c7752dba | 17c527a68a58377ee4efab2961fe2ea6bb593d0e78b4f741d0a01af6132f5e8a | Non-milestone build |
+| qsfpa-f4h-exact-898b041 | f40eeb1046381fcfd186618a4f66a0cbe6571fa449f5e4fc525b679a064b5532 | 1a3201d001355944d74fc4191317f79711ec9389c2f4410e93e727be9e881750 | Non-milestone build |
+| qsfpa-lane0-restore-ef3223ad | 9fec958572546984e26571511034d5661c41720772b25f0188d559b9aecba5a0 | 7b0dfae8408b9fc45e22c2bfc841d384a7e16a6adb68f72f7f0b4079a6daa63c | Non-milestone build |
+| qsfpb-startup-gate-5ef4dc15 | eb82c7ee30bb8e9d8f8c3dca84667f47525760a02a9fccf30bb2e38a059dd7a8 | d87775cd6ce0de2250a3b0ef9a7e22c7c338cb162dd3b607640a0dffe978e269 | Alternate-port diagnostic, not a Step1/5/6 milestone |
+| step6-global-time | 1cc55bfd9f90dda061fb39f626d49473a7bbb6f6e5deb5803e81627865af76c5 | 66360fe362983ab1a45eb19111ab7e731580b95878293ccf9532487e51462151 | Non-milestone predecessor build; current Step6 pair retained elsewhere |
+
+For this comparison, the retained milestone hashes are Step1 Master/Slave
+9238740e35f2b48915d1fa7ee6d2dca9d443438f197f1226720dde9dd5e1892b /
+44251d6911c021e0d6fb12083034ec870a7d06a4374e435d27caa5e9efb36f15,
+Step5 Master/Slave
+a2945df48fe86038fdff138f4b6368a777fa3df13f98ac9620fb30baa1ee0129 /
+7462d94a521f52e7660295a6873de5141658fbf5392d90a4d4ade7d4e5f36f50, and
+Step6 Master/Slave
+6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845 /
+4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca.
+The two Step5 copies in the first worktree are retained in their canonical
+artifact folder; the other ten generated images are not milestone images.

@@ -1,0 +1,6 @@
+GIT_COMMIT=bfd9046ee4674346daaabc8f980c0c1bc5d2301b
+## HEAD (no branch)
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+MASTER_BUILD_RC=1

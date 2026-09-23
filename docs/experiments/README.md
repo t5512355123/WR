@@ -25,6 +25,10 @@ Step6A Global-Time validity/same-PPS consistency 與 Step6B 內部雙板排程�
 [`exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)
 與 [`exp-step6-global-time/STEP6-PASS-MILESTONE.md`](exp-step6-global-time/STEP6-PASS-MILESTONE.md)。
 
+Step4 D0 mismatch 早期原始證據已從 Pain 備份去重並歸檔；被排除的中間 SOF/MIF
+僅保留雜湊與 provenance，不作為任何 milestone PASS 證據。詳見
+[`EXP-WRPC-STEP4-D0-MISMATCH-HISTORICAL-ARCHIVE-20260823-24.md`](exp-step4-softpll-enable/EXP-WRPC-STEP4-D0-MISMATCH-HISTORICAL-ARCHIVE-20260823-24.md)。
+
 Pain 舊 checkout 的 Step5/Step6 pre-pull 保全資料已整併到下列歷史 provenance 封存目錄；這些封存檔只保存原始紀錄與 hash，不新增 milestone PASS：
 
 - [`EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917`](exp-step5-softpll-lock/EXP-S5-PRE-PULL-PROVENANCE-ARCHIVE-20260917/REPORT.md)

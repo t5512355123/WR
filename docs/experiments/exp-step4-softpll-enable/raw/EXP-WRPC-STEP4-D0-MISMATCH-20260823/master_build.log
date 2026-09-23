@@ -1,0 +1,81 @@
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_source_gen:wider_source_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 536
+Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd Line: 670
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(129): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 129
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(267): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 267
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(269): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 269
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(271): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 271
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(284): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 284
+Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(285): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 285
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(132): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 132
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(314): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 314
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(316): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 316
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(318): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 318
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(336): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 336
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(337): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 337
+Warning (10296): VHDL warning at xwr_core.vhd(350): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 350
+Warning (10296): VHDL warning at xwr_core.vhd(481): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 481
+Warning (10296): VHDL warning at xwr_core.vhd(482): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 482
+Warning (10296): VHDL warning at xwr_core.vhd(483): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 483
+Warning (10296): VHDL warning at xwr_core.vhd(509): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 509
+Warning (10296): VHDL warning at xwr_core.vhd(510): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 510
+Info (12128): Elaborating entity "wr_core" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 307
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(132): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 132
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(314): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 314
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(316): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 316
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(318): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 318
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(336): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 336
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(337): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 337
+Warning (10036): Verilog HDL or VHDL warning at wr_core.vhd(377): object "rst_wrc_n" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 377
+Warning (10036): Verilog HDL or VHDL warning at wr_core.vhd(505): object "spll_out_locked" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 505
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(718): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 718
+Warning (10296): VHDL warning at wr_core.vhd(718): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 718
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(720): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 720
+Warning (10296): VHDL warning at wr_core.vhd(720): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 720
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_core.vhd(729): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 729
+Warning (10445): VHDL Subtype or Type Declaration warning at wrc_periph.vhd(104): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 104
+Warning (10445): VHDL Subtype or Type Declaration warning at wrc_periph.vhd(105): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 105
+Warning (10296): VHDL warning at wr_core.vhd(956): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 956
+Warning (10296): VHDL warning at wr_core.vhd(957): ignored assignment of value to null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 957
+Info (12128): Elaborating entity "xwr_pps_gen" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 616
+Info (12128): Elaborating entity "wr_pps_gen" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN|wr_pps_gen:WRAPPED_PPSGEN" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/xwr_pps_gen.vhd Line: 126
+Warning (10036): Verilog HDL or VHDL warning at wr_pps_gen.vhd(165): object "ppsg_escr_sync_load" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 165
+Warning (10036): Verilog HDL or VHDL warning at wr_pps_gen.vhd(167): object "ppsg_escr_sync_out" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 167
+Warning (10036): Verilog HDL or VHDL warning at wr_pps_gen.vhd(206): object "pps_in_refclk" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 206
+Info (12128): Elaborating entity "wb_slave_adapter" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN|wr_pps_gen:WRAPPED_PPSGEN|wb_slave_adapter:U_Adapter" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 216
+Info (12128): Elaborating entity "gc_sync" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN|wr_pps_gen:WRAPPED_PPSGEN|gc_sync:U_Sync_Link_OK" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 250
+Info (12128): Elaborating entity "pps_gen_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN|wr_pps_gen:WRAPPED_PPSGEN|pps_gen_wb:Uwb_slave" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/wr_pps_gen.vhd Line: 470
+Warning (10036): Verilog HDL or VHDL warning at pps_gen_wb.vhd(160): object "bwsel_reg" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd Line: 160
+Warning (10036): Verilog HDL or VHDL warning at pps_gen_wb.vhd(163): object "wr_int" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd Line: 163
+Warning (10036): Verilog HDL or VHDL warning at pps_gen_wb.vhd(164): object "rd_int" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd Line: 164
+Warning (10036): Verilog HDL or VHDL warning at pps_gen_wb.vhd(165): object "allones" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd Line: 165
+Warning (10036): Verilog HDL or VHDL warning at pps_gen_wb.vhd(166): object "allzeros" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_pps_gen/pps_gen_wb.vhd Line: 166
+Info (12128): Elaborating entity "xwr_softpll_ng" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 655
+Info (12128): Elaborating entity "wr_softpll_ng" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 150
+Warning (10445): VHDL Subtype or Type Declaration warning at wr_softpll_ng.vhd(597): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 597
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(326): object "diag_dmtd_ref_seen" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 326
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(327): object "diag_dmtd_fb_seen" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 327
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(367): object "dmtd_ref_stab_count" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 367
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(368): object "dmtd_fb_stab_count" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 368
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(381): object "dmtd_ref_low_abort_count" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 381
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(383): object "dmtd_fb_low_abort_count" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 383
+Warning (10036): Verilog HDL or VHDL warning at wr_softpll_ng.vhd(437): object "trr_wr_full" assigned a value but never read File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 437
+Error (10344): VHDL expression error at wr_softpll_ng.vhd(782): expression has 64 elements, but must have 32 elements File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 782
+Error (10346): VHDL error at wr_softpll_ng.vhd(747): formal port or parameter "diag_dmtd_d0_sample_mismatch_count_i" must have actual or default value File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 747
+Error (12152): Can't elaborate user hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll" File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 150
+Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.map.smsg
+Error: Quartus Prime Analysis & Synthesis was unsuccessful. 3 errors, 137 warnings
+    Error: Peak virtual memory: 1234 megabytes
+    Error: Processing ended: Sun Aug 23 23:54:00 2026
+    Error: Elapsed time: 00:00:11
+    Error: Total CPU time (on all processors): 00:00:16
+Error (293001): Quartus Prime Full Compilation was unsuccessful. 5 errors, 137 warnings
+Error: Flow compile (for project /home/b10504072/04_WR/quartus/jtag_runtime_diag/DE5a_wr_master_jtag) was not successful
+Error: ERROR: Error(s) found while running an executable. See report file(s) for error message(s). Message log indicates which executable was run last.
+
+Error (23031): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl unsuccessful
+Error: Quartus Prime Shell was unsuccessful. 12 errors, 137 warnings
+    Error: Peak virtual memory: 775 megabytes
+    Error: Processing ended: Sun Aug 23 23:54:00 2026
+    Error: Elapsed time: 00:00:11
+    Error: Total CPU time (on all processors): 00:00:16

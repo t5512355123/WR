@@ -59,8 +59,16 @@ static int wr_auto_rearm_slave_after_s_lock_timeout(struct pp_instance *ppi,
 	pp_diag(ppi, ext, 1,
 		"Recoverable WR S_LOCK timeout: re-arm Slave WR handshake\n");
 
-	/* Keep the parent context and use the same transition as a servo restart. */
-	wrp->next_state = WRS_IDLE;
+	/*
+	 * A PPS_SLAVE -> PPS_UNCALIBRATED transition is handled by wr_state_change(),
+	 * which advances WRS_IDLE to WRS_PRESENT.  If the timeout happens while
+	 * already PPS_UNCALIBRATED, that transition hook does not run; restart the
+	 * Slave handshake explicitly or the extension can remain idle forever.
+	 */
+	if (ppi->state == PPS_UNCALIBRATED)
+		wrp->next_state = WRS_PRESENT;
+	else
+		wrp->next_state = WRS_IDLE;
 	wr_reset_process(ppi, WR_SLAVE);
 	wr_servo_reset(ppi);
 	ppi->next_state = PPS_UNCALIBRATED;

@@ -15,6 +15,18 @@ class SLockUncalibratedRearmGateTests(unittest.TestCase):
             source,
         )
 
+    def test_uncalibrated_rearm_enters_present_without_state_change_hook(self):
+        source = SOURCE.read_text(encoding="utf-8").split(
+            "static int wr_auto_rearm_slave_after_s_lock_timeout", 1
+        )[1].split("/* The handshake failed:", 1)[0]
+        self.assertIn(
+            "if (ppi->state == PPS_UNCALIBRATED)\n"
+            "\t\twrp->next_state = WRS_PRESENT;\n"
+            "\telse\n"
+            "\t\twrp->next_state = WRS_IDLE;",
+            source,
+        )
+
     def test_rearm_remains_limited_to_slave_s_lock_with_wr_parent(self):
         source = SOURCE.read_text(encoding="utf-8").split(
             "static int wr_auto_rearm_slave_after_s_lock_timeout", 1

@@ -87,6 +87,14 @@ RESET_OR_LINK_CHANGE = 0
 The live observer itself reports `MASTER_PROGRAM=0`, `SLAVE_PROGRAM=0`,
 `PTP_RESTART=0`, and `POWER_CYCLE=0`.
 
+The first attempt to launch the live-session observer failed before producing a
+capture: the shell's command-not-found handler raised `ModuleNotFoundError`.
+That diagnostic is retained as
+`raw/observe/step6b-live-session-74dc2886-20260924-command-not-found.log` and
+is not used as runtime evidence. The subsequent `*-pathfixed.log` is the valid
+capture used for the Step6B verdict. The failed launch did not run the reader or
+issue JTAG writes.
+
 ## Build and programming provenance
 
 ```text
@@ -125,6 +133,7 @@ closure.
 - `raw/observe/same-pps-consistency.log`
 - `raw/observe/step6b-preflight-74dc2886.log`
 - `raw/observe/step6b-live-session-74dc2886-20260924-pathfixed.log`
+- `raw/observe/step6b-live-session-74dc2886-20260924-command-not-found.log` (observer launch failure; no capture)
 - `raw/program/programming-summary.md`
 - `analysis/step6b-live-session-summary.json`
 

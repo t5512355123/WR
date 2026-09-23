@@ -1,0 +1,8 @@
+# Intermediate endpoint-recovery SOFs from source commit fb0d038b.
+# Binary images are intentionally excluded; only the reproducibility hashes are retained.
+45a671b75bacfc98859e97006098a59c3fed460a5186884439e41a0bec75de8f  DE5a_wr_master_jtag-fb0d038b.sof  36818596 bytes
+db8ec57f4b53b784585f83880774e5eb2a11069cbd8d3ef921eed4e1270de6a6  DE5a_wr_slave_jtag-fb0d038b.sof  36831150 bytes
+
+# Current reproducible Step 6 milestone images (retained separately):
+6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845  DE5a_wr_master_jtag.sof
+4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca  DE5a_wr_slave_jtag.sof

@@ -17,7 +17,8 @@ ALREADY_VERSIONED_DUPLICATES_SKIPPED = 122
 
 Every recovered file was copied byte-for-byte and its source/destination Git
 blob IDs were checked. `MANIFEST.tsv` records the original Pain worktree,
-source commit, relative source path, destination path, SHA-256, and byte count.
+source commit, source kind (`file` or `git-diff`), source path/operation,
+destination path, SHA-256, and byte count.
 The skipped files had exact content matches already present elsewhere in the
 fetched `feat/file_cleanup` tree; no unique contents were skipped.
 
@@ -29,7 +30,8 @@ their original capture-directory names.
 
 The additional Main-trace publication-throttle patch is archived at
 `docs/experiments/exp-step5-softpll-lock/raw/EXP-WRPC-STEP5-HPLL-6208-16-FROZEN-FIT-88604A5-MAIN-TRACE-2S-PUBLICATION-MAIN-FREQUENCY-PRELOCK-OBSERVABILITY-600S-20260902/maintrace-publish-throttle-worktree.patch`.
-It is an unapplied worktree diff based on commit
+It is the output of `git diff --binary -- vendor/wrpc-sw/lib/task-diags.c`,
+an unapplied worktree diff based on commit
 `88604a5ca174fd3b36b0a8eb435ec1773dd061a3`; it is retained for provenance
 and is not asserted to be part of the current firmware image.
 

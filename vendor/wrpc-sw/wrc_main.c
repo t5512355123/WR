@@ -277,11 +277,61 @@ static int is_link_up(void)
 	return link_status == NETIF_LINK_UP;
 }
 
+#define ENDPOINT_LINK_RECOVERY_INITIAL_DELAY_S 30
+#define ENDPOINT_LINK_RECOVERY_SLAVE_STAGGER_S 15
+#define ENDPOINT_LINK_RECOVERY_MAX_BACKOFF_S 300
+
+static void wrc_endpoint_link_recovery_update(int link_up)
+{
+	static int down_timer_armed;
+	static uint32_t next_recovery_tics;
+	static uint32_t retry_interval_s = ENDPOINT_LINK_RECOVERY_INITIAL_DELAY_S;
+	static unsigned int retry_count;
+	uint32_t now;
+	uint32_t delay_s;
+
+	now = timer_get_tics();
+	if (link_up) {
+		down_timer_armed = 0;
+		retry_interval_s = ENDPOINT_LINK_RECOVERY_INITIAL_DELAY_S;
+		retry_count = 0;
+		return;
+	}
+
+	if (!down_timer_armed) {
+		delay_s = retry_interval_s;
+		if (wrc_ptp_get_mode() == WRC_MODE_SLAVE)
+			delay_s += ENDPOINT_LINK_RECOVERY_SLAVE_STAGGER_S;
+		next_recovery_tics = now + delay_s * TICS_PER_SECOND;
+		down_timer_armed = 1;
+		return;
+	}
+
+	/* Signed subtraction keeps the deadline check valid across timer wrap. */
+	if ((int32_t)(now - next_recovery_tics) < 0)
+		return;
+
+	retry_count++;
+	wrc_verbose("Endpoint link down; restarting PHY (attempt %u)\n",
+		    retry_count);
+	ep_enable(&wrc_endpoint_dev, 1, 1);
+
+	if (retry_interval_s < ENDPOINT_LINK_RECOVERY_MAX_BACKOFF_S / 2)
+		retry_interval_s *= 2;
+	else
+		retry_interval_s = ENDPOINT_LINK_RECOVERY_MAX_BACKOFF_S;
+	delay_s = retry_interval_s;
+	if (wrc_ptp_get_mode() == WRC_MODE_SLAVE)
+		delay_s += ENDPOINT_LINK_RECOVERY_SLAVE_STAGGER_S;
+	next_recovery_tics = timer_get_tics() + delay_s * TICS_PER_SECOND;
+}
+
 static int wrc_check_link(void)
 {
 	static int prev_state = 0;
 	int state = ep_link_up( &wrc_endpoint_dev, NULL);
 	int rv = 0;
+	wrc_endpoint_link_recovery_update(state);
 
 	if (!prev_state && state) {
 		wrc_verbose("Link up.\n");

@@ -72,12 +72,21 @@ format_board() {
   local pps_valid="${field[PPS_VALID]:-0}"
   local snapshot_valid="${field[SNAPSHOT_VALID]:-0}"
   local snapshot_stable="${field[SNAPSHOT_STABLE]:-0}"
+  local step6_gate="${field[Step6]:-INFO}"
+  local link="${field[Link]:-0}"
+  local tm="${field[TM]:-0}"
   local global_state="WAITING"
   local global_reason="TIME_VALID=${time_valid}, PPS_VALID=${pps_valid}"
-  if [[ "$time_valid" == "1" && "$pps_valid" == "1" &&
-        "$snapshot_valid" == "1" && "$snapshot_stable" == "1" ]]; then
+  if [[ "$step6_gate" == "PASS" ]]; then
     global_state="VALID"
-    global_reason="PPS snapshot valid and stable"
+    global_reason="PPS snapshot valid; Step6 gate passed"
+  elif [[ "$link" != "1" || "$tm" != "1" ]]; then
+    global_state="LINK DOWN"
+    global_reason="WR link gate failed (Link=${link}, TM=${tm})"
+  elif [[ "$time_valid" == "1" && "$pps_valid" == "1" &&
+          "$snapshot_valid" == "1" && "$snapshot_stable" == "1" ]]; then
+    global_state="NOT QUALIFIED"
+    global_reason="snapshot valid; Step6 gate=${step6_gate}"
   fi
 
   printf '%s\n' '+------------------------------------------------------------+'
@@ -111,7 +120,8 @@ format_board() {
 }
 
 format_global_time_summary() {
-  local line board role tai cycles time_valid pps_valid
+  local line board role tai cycles time_valid pps_valid snapshot_valid snapshot_stable
+  local step6_gate link tm
   printf '\nGlobal Time summary (125 MHz reference; 1 cycle = 8 ns)\n'
   printf '%s\n' '------------------------------------------------------------'
   for line in "$@"; do
@@ -121,13 +131,23 @@ format_global_time_summary() {
     cycles=$(field_from_line CYCLES "$line")
     time_valid=$(field_from_line TIME_VALID "$line")
     pps_valid=$(field_from_line PPS_VALID "$line")
+    snapshot_valid=$(field_from_line SNAPSHOT_VALID "$line")
+    snapshot_stable=$(field_from_line SNAPSHOT_STABLE "$line")
+    step6_gate=$(field_from_line Step6 "$line")
+    link=$(field_from_line Link "$line")
+    tm=$(field_from_line TM "$line")
     if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
+          "$snapshot_valid" != "1" || "$snapshot_stable" != "1" ||
           "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
       tai='--'
       cycles='--'
       printf '  %-7s (%s)\n' "$role" "$board"
       printf '    TAI=%-12s CYCLES=%-12s WAITING (%s, %s)\n' \
         "$tai" "$cycles" "TIME_VALID=$time_valid" "PPS_VALID=$pps_valid"
+    elif [[ "$step6_gate" != "PASS" ]]; then
+      printf '  %-7s (%s)\n' "$role" "$board"
+      printf '    TAI=%-12s CYCLES=%-12s SNAPSHOT VALID; Step6=%s Link=%s TM=%s\n' \
+        "$tai" "$cycles" "$step6_gate" "$link" "$tm"
     else
       printf '  %-7s (%s)\n' "$role" "$board"
       printf '    TAI=%-12s CYCLES=%-12s VALID\n' "$tai" "$cycles"
@@ -137,7 +157,7 @@ format_global_time_summary() {
 }
 
 all_boards_have_valid_global_time() {
-  local line time_valid pps_valid snapshot_valid snapshot_stable tai cycles
+  local line time_valid pps_valid snapshot_valid snapshot_stable tai cycles step6_gate
   local board_count=0
   for line in "$@"; do
     board_count=$((board_count + 1))
@@ -147,9 +167,11 @@ all_boards_have_valid_global_time() {
     snapshot_stable=$(field_from_line SNAPSHOT_STABLE "$line")
     tai=$(field_from_line TAI "$line")
     cycles=$(field_from_line CYCLES "$line")
+    step6_gate=$(field_from_line Step6 "$line")
     if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
           "$snapshot_valid" != "1" || "$snapshot_stable" != "1" ||
-          "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
+          "$tai" == "INVALID" || "$cycles" == "INVALID" ||
+          "$step6_gate" != "PASS" ]]; then
       return 1
     fi
   done
@@ -186,7 +208,7 @@ while :; do
       break
     fi
 
-    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-valid-snapshots\n' \
+    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-step6-gate\n' \
       "$(( $(date +%s) - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS) ))" \
       "$WAIT_FOR_GLOBAL_TIME_SECONDS" "${#board_lines[@]}" >&2
     sleep "$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS"

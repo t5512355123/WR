@@ -1,6 +1,27 @@
 # DE5a White Rabbit 目前狀態
 
-## 目前 Step5 functional milestone 狀態（2026-09-20）
+## 目前 Step5 / Step6 functional milestone 狀態（2026-09-24）
+
+最新 `feat/file_cleanup` commit `74dc28862653d306e0450cf437ba6d3a230d979d`
+在 Pain 編譯、燒錄後，重新確認 Step5 五個直接 lock flags 連續維持 340 秒，
+並在同一 session 完成 Step6A 與 Step6B 數位觸發驗證：
+
+```text
+STEP5_FIVE_DIRECT_LOCKS_300S = PASS (35 consecutive samples / 340 s)
+STEP6A_GLOBAL_TIME           = PASS
+STEP6A_SAME_PPS              = PASS (5 exact common labels; max delta 0 ticks)
+STEP6B_DIGITAL_TRIGGER       = PASS (both fired once at TAI 1133 / cycle 62500000)
+STEP6_PHYSICAL_EDGE_SKEW     = NOT_EVALUATED
+TIMING_CLOSED                = NO (separate implementation status)
+```
+
+完整證據與 SOF/MIF provenance：
+[`docs/experiments/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](docs/experiments/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)。
+Step6 的 functional scope 與物理輸出邊緣量測界線見
+[`docs/experiments/exp-step6-global-time/STEP6-PASS-MILESTONE.md`](docs/experiments/exp-step6-global-time/STEP6-PASS-MILESTONE.md)。
+
+較早建立的 Step5 baseline 仍保留其原始報告與 provenance：
+[`docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
 
 最新的 `threshold20 + phase-Ki1` 版本已在同一個有效 WR session 完成
 300.321 秒唯讀觀測，四項 functional gate 全部維持成立：
@@ -1342,16 +1363,16 @@ Step 2/3 focused regression 均 PASS；Slave 仍保留 `STATE_EVIDENCE=READ_INCO
 
 | Step | 目標 | 狀態 | 證據或缺口 |
 |---:|---|---|---|
-| 1 | QSFP/Native PHY | **PASS** | status probe 顯示 link、PHY ready、RX/TX ready、RX lock-to-data 正常，encoding error 為 0 |
-| 2 | Endpoint/MiniNIC/PTP | **PASS（30/30 accepted samples）** | 雙板唯一 MAC、MODE/PTP role、MiniNIC/PTP counters 與 RXERR 均符合 gate |
-| 3 | WR Parent/Signaling | **PASS（30/30 accepted samples）** | foreign master、parent flags、`SLAVE_PRESENT`、`LOCK`、`LOCK_ENABLE` 均有 source-backed 證據；另記錄 post-stage timeout |
-| 4 | SoftPLL Enable | **NOT PASS / DMTD_EVENT_GENERATION BLOCKER** | 唯讀 30 點 lock/events series 顯示 DMTD event 與下游 tag/TRR/IRQ/helper 沒有 sustained delta；尚未修改功能行為 |
-| 5 | DDMTD/SoftPLL/Si5340 closed loop | **NOT DONE** | 尚未要求或驗證 SoftPLL lock、DCO correction 或 SI5340 closed loop |
-| 6 | Global Time/execute_at(T) | **NOT DONE** | 尚未實作或驗證依共同 Global Time 在指定 `T` 啟動 accelerator |
+| 1 | QSFP/Native PHY | **PASS** | 2026-09-24 current two-board dashboard: Link/TM/RX/TX ready and RX lock-to-data valid |
+| 2 | Endpoint/MiniNIC/PTP | **PASS** | 2026-09-24 current two-board dashboard and healthy paired Step6 observers |
+| 3 | WR Parent/Signaling | **PASS (Slave role)** | Slave WR handshake PASS; Master INFO is its expected reference role |
+| 4 | SoftPLL Startup | **PASS** | Both current dashboard entries PASS; Slave PLL sequencer reaches ready state |
+| 5 | Closed-loop Lock | **PASS (340 s)** | Five direct Slave lock flags remained asserted in 35 consecutive samples |
+| 6 | Global Time / scheduled execution | **PASS (digital functional)** | Five same-PPS labels match exactly; both boards fire once at the same target; physical output-edge skew is not evaluated |
 
 ## 當前邊界
 
-`POST_STEP3_LOCK_STAGE=TIMEOUT` 是 Step 3 之後的觀測結果，不是 Step 3 gate 失敗。`PSTAT.locked=0`、`time_valid=0` 與後續 SoftPLL event 不活躍仍屬 Step 4/5 範圍；未經下一個明確指令，不修改 SoftPLL 演算法、PI gain、lock threshold、DDMTD polarity、DCO gain 或 SI5340 control 行為。
+Step1–Step6 的數位功能 gate 已有可追溯 PASS 證據。Step6 PASS 僅指 Global Time validity、同 PPS label 一致及內部 scheduled-trigger 功能；未量測實體 output-pin edge skew。Quartus `TIMING_CLOSED=NO` 獨立記錄，不改寫 Step5 functional verdict，也不等同 Step6 物理邊緣量測結果。
 
 ## 2026-08-21 Step 4 focused 唯讀分類
 

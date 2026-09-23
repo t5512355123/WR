@@ -29,3 +29,6 @@
 *.a binary
 *.o binary
 *.so binary
+
+# 實驗工具輸出是 checksum-sensitive 的 raw evidence，保留原始位元組與換行。
+docs/experiments/**/*.log -text

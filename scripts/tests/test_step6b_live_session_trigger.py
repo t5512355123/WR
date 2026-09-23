@@ -24,6 +24,7 @@ def test_formal_pass_requires_exact_source_write_sequence() -> None:
     result = MODULE.analyze_text(PASS)
     assert result["classification"] == "PASS_DIGITAL_SCHEDULED_DUAL_BOARD_TRIGGER"
     assert result["verdict"] == "PASS"
+    assert result["step6b_postfit_timing"] == "NOT_EVALUATED"
     assert result["source_write_counts"] == {
         "master_target": 1,
         "slave_target": 1,

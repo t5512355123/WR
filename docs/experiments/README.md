@@ -15,6 +15,16 @@ milestone 的必要條件，但仍須如實記錄為獨立的 implementation sta
 該報告保留四項 lock 的逐週期統計、raw checksum 與 F4L page-accounting
 caveat；timing closure 仍獨立追蹤，不會回寫成這個 functional gate 的必要條件。
 
+## Step6 目前 functional milestone
+
+Step6A Global-Time validity/same-PPS consistency 與 Step6B 內部雙板排程觸發
+已通過數位功能 gate。最新 run 在兩板相同 `(TAI=1133, cycles=62500000)`
+記錄到一次 fire，並有 3 組健康 post-fire samples。這是 8 ns resolution
+內部時間標籤一致，不是外部 output-pin skew 的實體量測；該項仍為
+`NOT_EVALUATED`。完整證據見
+[`exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)
+與 [`exp-step6-global-time/STEP6-PASS-MILESTONE.md`](exp-step6-global-time/STEP6-PASS-MILESTONE.md)。
+
 每個實驗都要有一份 Markdown 紀錄與一個 artifact 資料夾。紀錄必須填入精確的 Git commit、branch、原始碼、韌體、Quartus 參數、SOF/MIF hash、燒錄結果、JTAG 原始輸出與證據支持的結論。
 
 ## 資料夾規則

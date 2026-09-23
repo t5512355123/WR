@@ -36,6 +36,13 @@ Step5 不要求 Quartus timing closure 全部為 0；本次 Master WNS=-0.289 ns
 Slave WNS=-0.361 ns，timing closure 是獨立的後續工作，詳見
 [`docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md`](docs/experiments/exp-step5-softpll-lock/STEP5-PASS-MILESTONE.md)。
 
+Step6 的 Global-Time validity、same-PPS consistency 與雙板內部 scheduled
+trigger 已通過數位功能驗證：兩板在共同目標 `(TAI=1133, cycle=62500000)`
+各觸發一次，內部時間標籤一致。這不代表已量到外部 SMA/GPIO 實體邊緣偏差；
+物理 edge skew 仍標記為 `NOT_EVALUATED`。最新 Step5/6 runtime evidence 與
+精確 SOF/MIF provenance 見
+[`docs/experiments/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](docs/experiments/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)。
+
 ## 在 pain 上建置
 
 ```sh

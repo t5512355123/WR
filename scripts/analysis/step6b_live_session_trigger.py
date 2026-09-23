@@ -142,7 +142,10 @@ def analyze_text(text: str) -> dict[str, Any]:
         "classification": classification,
         "verdict": verdict,
         "step6a_requalification": "PASS" if formal_pass else "NOT_PASS",
-        "step6b_postfit_timing": "PASS",
+        # The live-session capture proves functional firing only.  A timing
+        # result must come from the separate post-fit timing report, not this
+        # observer's success path.
+        "step6b_postfit_timing": "NOT_EVALUATED",
         "step6b_1": "PASS" if formal_pass else "NOT_PASS",
         "step6b_physical_edge": "NOT_EVALUATED",
         "observer_result": result,

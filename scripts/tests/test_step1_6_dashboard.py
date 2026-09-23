@@ -67,7 +67,9 @@ class DashboardGateTest(unittest.TestCase):
         self.assertIn("Step 6  Global Time", result.stdout)
         self.assertIn("LINK DOWN", result.stdout)
         self.assertIn("WR link gate failed (Link=0, TM=0)", result.stdout)
-        self.assertIn("SNAPSHOT VALID; Step6=INFO Link=0 TM=0", result.stdout)
+        self.assertIn(
+            "SNAPSHOT VALID; Step1=FAIL Step6=INFO Link=0 TM=0", result.stdout
+        )
 
     def test_wait_gate_does_not_accept_retained_snapshot_without_step6_pass(self) -> None:
         result = self.run_dashboard(

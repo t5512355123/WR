@@ -5,8 +5,8 @@ records belong under the relevant `stepX/EXP-.../` directory and should keep
 their plan, report, raw build/program/observation evidence, analysis, and
 checksums together when those materials exist.
 
-`step1/`, `step2/`, and `step3/` contain the independent milestone
-reproductions already completed. `step4/` through `step6/` are the next
+`step1/` through `step4/` contain the independent milestone
+reproductions already completed. `step5/` and `step6/` are the next
 research checkpoints. `legacy/` contains historical records imported from
 the former `docs/experiments/` tree; their internal grouping is retained so
 their evidence and relative links remain intact. Those records describe the

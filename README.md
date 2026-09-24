@@ -40,9 +40,9 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Step 1 PHY/link, Step 2 Endpoint/MiniNIC/PTP, and Step 3 WR parent/signaling handshake have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 3 PASS is limited to handshake acceptance; it does not claim SoftPLL lock or valid global time. Earlier Step 5 / Step 6 functional experiment evidence exists, but their independent frozen-source milestone reproductions are still pending. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
+Step 1 PHY/link, Step 2 Endpoint/MiniNIC/PTP, Step 3 WR parent/signaling handshake, and Step 4 SoftPLL startup have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 4 proves startup/event processing, not Step 5 lock or timing closure. Step 5 and Step 6 independent frozen-source milestone reproductions are pending; earlier functional experiment evidence is not a substitute. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
 
-## Reproduce the current validated Step 2 checkpoint
+## Reproduce the validated Step 2 checkpoint
 
 Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware toolchain are used by the validated milestone. On Pain, set the Quartus executables and toolchain `PATH`, then run from the repository root:
 
@@ -72,6 +72,24 @@ Slave, using the wrappers in
 `artifacts/milestones/step3_wr_handshake/source/scripts/program/`. See the
 [Step 3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)
 for the exact verification boundary and limitations.
+
+## Reproduce the validated Step 4 SoftPLL-startup checkpoint
+
+The exact Step 4 SOFs rebuilt from the frozen source and programmed on
+2026-09-24 are:
+
+- Master: [`artifacts/milestones/step4_softpll_startup/master.sof`](artifacts/milestones/step4_softpll_startup/master.sof)
+- Slave: [`artifacts/milestones/step4_softpll_startup/slave.sof`](artifacts/milestones/step4_softpll_startup/slave.sof)
+
+Their SHA-256 hashes are recorded in the milestone `SHA256SUMS` and
+`MILESTONES.md`. The independent source snapshot is
+`artifacts/milestones/step4_softpll_startup/source/`. Rebuild both projects
+from that directory with the wrappers documented in its README. The validated
+programming order was Master, wait approximately 45 seconds, then Slave. Use
+the acceptance procedure and known limitations in the
+[Step 4 milestone README](artifacts/milestones/step4_softpll_startup/README.md)
+and the
+[Step 4 reproduction report](experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md).
 
 ## Current development source, build, and programming
 

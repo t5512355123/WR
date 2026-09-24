@@ -1,0 +1,5 @@
+1d9ecab9f10f9c8943816b59f578f5aac12d4d8ec281491b41be7716398bb030  /home/b10504072/04_WR/artifacts/milestones/step4_softpll_startup/source/build/firmware/slave/wrc.elf
+eed7b101a611e14d22576ecdbf6756bcdcd9227d1e36da14a679aa4a87d28264  /home/b10504072/04_WR/artifacts/milestones/step4_softpll_startup/source/build/firmware/slave/wrc.bin
+60d2b3e7f282535722d250ce1cf579487001bcc748c98fe549b5a440033ce9e9  /home/b10504072/04_WR/artifacts/milestones/step4_softpll_startup/source/build/firmware/slave/wrc.mif
+29554c93f4616b47412e49c14f8b27f6f9214cddaeca4c3e5626962960573855  /home/b10504072/04_WR/artifacts/milestones/step4_softpll_startup/source/firmware/configs/de5a_slave_defconfig
+aa27da642729ae2d9e626410f2dc007c20aaeda7cf32a8df8eb4e2854a8fcf79  /home/b10504072/04_WR/artifacts/milestones/step4_softpll_startup/source/firmware/configs/de5a_slave_identity.h

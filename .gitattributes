@@ -39,3 +39,5 @@ SHA256SUMS -text
 # Frozen milestone snapshots are byte-preserving packages. Do not let
 # core.autocrlf rewrite generated Qsys/QIP metadata or their source manifests.
 artifacts/milestones/**/source/** -text -eol
+# Candidate frozen source packages inside experiments are also byte-preserving.
+experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/source/** -text -eol

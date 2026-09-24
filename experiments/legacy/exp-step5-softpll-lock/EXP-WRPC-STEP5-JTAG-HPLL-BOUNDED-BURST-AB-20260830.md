@@ -129,5 +129,4 @@ STEP5_FIRST_INACTIVE_BOUNDARY = HELPER_LOCK
 - [JTAG bounded-burst raw log](raw/EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830/jtag-hpll-bounded-burst-ab.log)
 - [runtime dashboard raw log](raw/EXP-WRPC-STEP5-JTAG-HPLL-BOUNDED-BURST-AB-20260830/dashboard-after.log)
 - [bounded-burst reader](../../../scripts/jtag/read_step5_jtag_hpll_bounded_burst_ab.tcl)
-- [controller RTL](../../../quartus/jtag_runtime_diag/si5340a_controller_dco.v)
-
+- [controller RTL at the experiment source commit](https://github.com/t5512355123/WR/blob/48fb047ee91b958af00ebb00f2b49c49602e1081/quartus/jtag_runtime_diag/si5340a_controller_dco.v)

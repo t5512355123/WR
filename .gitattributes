@@ -35,3 +35,7 @@
 *.sha256 -text
 SHA256SUMS -text
 /experiments/repository-cleanup/EXP-REPO-ARTIFACTS-CONSOLIDATION-20260924/analysis/*.tsv -text
+
+# Frozen milestone snapshots are byte-preserving packages. Do not let
+# core.autocrlf rewrite generated Qsys/QIP metadata or their source manifests.
+artifacts/milestones/**/source/** -text -eol

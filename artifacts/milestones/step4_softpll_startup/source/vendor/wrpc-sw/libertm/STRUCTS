@@ -1,0 +1,22 @@
+libertm.h:struct ertm_lib_version
+libertm.h:struct ertm_error_codes
+libertm.h:struct ertm_temperatures
+libertm.h:struct ertm_voltages
+
+private.h:struct ertm_status
+    private.h:struct ertm_state
+    private.h:struct ertm_connection
+
+libertm.h:struct ertm_nco_reset
+libertm.h:struct ertm_nco_status
+    ../boards/ertm14/board-state.h:struct ertm14_nco_reset
+
+libertm.h:struct ertm_board_info
+    ../boards/ertm14/board-state.h:struct ertm14_version_info
+    libertm.h:struct ertm_device_metadata
+	../boards/ertm14/board-state.h:struct ertm14_device_metadata
+
+libertm.h:struct ertm_sync_states
+
+libertm.h:struct ertm_wr_status
+    ../include/hw/wrc_diags_regs.h:PACKED struct WRC_DIAGS_WB

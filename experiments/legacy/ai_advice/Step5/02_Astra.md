@@ -678,7 +678,7 @@ Step5到現在的進展是真實的：事件鏈、DCO介面、page/mask、方向
 
 以下路徑皆相對專案根目錄；E3–E6為本次重算的四輪。其他歷史資料可由實驗名在同目錄定位。
 
-快速開啟：[最近一次實驗報告](<../碩士班研究資料/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-TRUE-BASELINE-REVALIDATION-KP-MINUS150-3388-COOLDOWN0-20260912/REPORT.md>)、[有RMS誤植的Ki/4報告](<../碩士班研究資料/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-HELPER-FRACTIONAL-KI-QUARTER-KP-MINUS150-3388-20260912/REPORT.md>)、[有時間誤植的baseline報告](<../碩士班研究資料/04_WR/docs/experiments/exp-step5-softpll-lock/EXP-WRPC-STEP5-TRUE-BASELINE-ACCOUNTING-FIX-3388-KP-MINUS150-COOLDOWN0-20260912/REPORT.md>)、[現行observer](<../碩士班研究資料/04_WR/scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl>)、[DCO仲裁程式](<../碩士班研究資料/04_WR/quartus/jtag_runtime_diag/si5340a_controller_dco.v>)、[lock detector](<../碩士班研究資料/04_WR/vendor/wrpc-sw/softpll/spll_common.c>)。
+以下連結已更新為本次 repository layout 的相對路徑；本檔屬歷史建議，source file 後續可能已演進。快速開啟：[最近一次實驗報告](../../exp-step5-softpll-lock/EXP-WRPC-STEP5-TRUE-BASELINE-REVALIDATION-KP-MINUS150-3388-COOLDOWN0-20260912/REPORT.md)、[有 RMS 誤植的 Ki/4 報告](../../exp-step5-softpll-lock/EXP-WRPC-STEP5-HELPER-FRACTIONAL-KI-QUARTER-KP-MINUS150-3388-20260912/REPORT.md)、[有時間誤植的 baseline 報告](../../exp-step5-softpll-lock/EXP-WRPC-STEP5-TRUE-BASELINE-ACCOUNTING-FIX-3388-KP-MINUS150-COOLDOWN0-20260912/REPORT.md)、[observer](../../../../scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl)、[DCO 仲裁程式](../../../../quartus/si5340a_controller_dco.v)、[lock detector](../../../../vendor/wrpc-sw/softpll/spll_common.c)。
 
 | 代號 | 檔案／用途 |
 | --- | --- |

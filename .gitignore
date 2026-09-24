@@ -54,6 +54,10 @@ Thumbs.db
 *.swo
 __pycache__/
 
-# Experiment outputs are retained on pain under 04_WR/artifacts/EXP-*/.
-# GitHub stores the reproducible source, scripts and metadata templates only.
+# Legacy local-only bundles are not canonical artifacts. Experiment evidence
+# belongs under experiments/ and is intentionally tracked there.
 artifacts/EXP-*/
+
+# Rebuilt milestone bitstreams are release artifacts and must be versioned.
+!artifacts/milestones/**/master.sof
+!artifacts/milestones/**/slave.sof

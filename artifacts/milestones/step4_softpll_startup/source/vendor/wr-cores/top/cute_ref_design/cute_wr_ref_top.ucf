@@ -1,0 +1,163 @@
+config vccaux  = 3.3;
+
+# bank 0
+#net "clk1_m2c_p" loc = b3;net "clk1_m2c_p" iostandard = lvds_33;
+#net "clk1_m2c_n" loc = a3;net "clk1_m2c_n" iostandard = lvds_33;
+#net "la03_p" loc = e6;net "la03_p" iostandard = lvds_33;
+#net "la03_n" loc = f7;net "la03_n" iostandard = lvds_33;
+#net "la01_cc_p" loc = g8;net "la01_cc_p" iostandard = lvds_33;
+#net "la01_cc_n" loc = e8;net "la01_cc_n" iostandard = lvds_33;
+#net "la20_p" loc = g9;net "la20_p" iostandard = lvds_33;
+#net "la20_n" loc = g11;net "la20_n" iostandard = lvds_33;
+#net "la30_p" loc = c15;net "la30_p" iostandard = lvds_33;
+#net "la30_n" loc = a15;net "la30_n" iostandard = lvds_33;
+#net "la29_p" loc = b16;net "la29_p" iostandard = lvds_33;
+#net "la29_n" loc = a16;net "la29_n" iostandard = lvds_33;
+#net "la24_p" loc = e14;net "la24_p" iostandard = lvds_33;
+#net "la24_n" loc = d15;net "la24_n" iostandard = lvds_33;
+net "clk_125m_pllref_p_i" loc = f12;
+net "clk_125m_pllref_p_i" iostandard = lvds_33;
+net "clk_125m_pllref_n_i" loc = e12;
+net "clk_125m_pllref_n_i" iostandard = lvds_33;
+
+# bank 1
+net "pps_out" loc = c18;net "pps_out" iostandard = lvcmos33;
+net "usr_led1" loc = e18;net "usr_led1" iostandard = lvcmos33;
+net "usr_led2" loc = d17;net "usr_led2" iostandard = lvcmos33;
+
+#net "sfp1_tx_los" loc = f18;net "sfp1_tx_los" iostandard = lvcmos33;
+#net "sfp1_tx_fault" loc = h16;net "sfp1_tx_fault" iostandard = lvcmos33;
+#net "sfp1_det" loc = g16;net "sfp1_det" iostandard = lvcmos33;
+#net "sfp1_scl" loc = g18;net "sfp1_scl" iostandard = lvcmos33;
+#net "sfp1_sda" loc = h17;net "sfp1_sda" iostandard = lvcmos33;
+#net "sfp1_tx_disable" loc = h18;net "sfp1_tx_disable" iostandard = lvcmos33;
+net "eeprom_sda" loc = j18;net "eeprom_sda" iostandard = lvcmos33;
+net "eeprom_scl" loc = k17;net "eeprom_scl" iostandard = lvcmos33;
+
+#net "la32_p" loc = p17;net "la32_p" iostandard = lvds_33;
+#net "la32_n" loc = p18;net "la32_n" iostandard = lvds_33;
+#net "la33_p" loc = t17;net "la33_p" iostandard = lvds_33;
+#net "la33_n" loc = t18;net "la33_n" iostandard = lvds_33;
+#net "la31_p" loc = u17;net "la31_p" iostandard = lvds_33;
+#net "la31_n" loc = u18;net "la31_n" iostandard = lvds_33;
+# bank 2
+net "flash_sclk_o" loc = r15;net "flash_sclk_o" iostandard = lvcmos33;
+net "flash_ncs_o" loc = v3;net "flash_ncs_o" iostandard = lvcmos33;
+net "flash_mosi_o" loc = t13;net "flash_mosi_o" iostandard = lvcmos33;
+net "flash_miso_i" loc = r13;net "flash_miso_i" iostandard = lvcmos33;
+
+#net "la28_p" loc = u16;net "la28_p" iostandard = lvds_33;
+#net "la28_n" loc = v16;net "la28_n" iostandard = lvds_33;
+#net "la25_p" loc = u15;net "la25_p" iostandard = lvds_33;
+#net "la25_n" loc = v15;net "la25_n" iostandard = lvds_33;
+#net "la26_p" loc = t14;net "la26_p" iostandard = lvds_33;
+#net "la26_n" loc = v14;net "la26_n" iostandard = lvds_33;
+#net "la21_p" loc = u13;net "la21_p" iostandard = lvds_33;
+#net "la21_n" loc = v13;net "la21_n" iostandard = lvds_33;
+#net "la27_p" loc = m11;net "la27_p" iostandard = lvds_33;
+#net "la27_n" loc = n11;net "la27_n" iostandard = lvds_33;
+#net "la18_cc_p" loc = r11;net "la18_cc_p" iostandard = lvds_33;
+#net "la18_cc_n" loc = t11;net "la18_cc_n" iostandard = lvds_33;
+#net "la22_p" loc = t12;net "la22_p" iostandard = lvds_33;
+#net "la22_n" loc = v12;net "la22_n" iostandard = lvds_33;
+#net "la23_p" loc = n10;net "la23_p" iostandard = lvds_33;
+#net "la23_n" loc = p11;net "la23_n" iostandard = lvds_33;
+#net "la14_p" loc = m10;net "la14_p" iostandard = lvds_33;
+#net "la14_n" loc = n9;net "la14_n" iostandard = lvds_33;
+#net "la15_p" loc = u11;net "la15_p" iostandard = lvds_33;
+#net "la15_n" loc = v11;net "la15_n" iostandard = lvds_33;
+#net "la19_p" loc = r10;net "la19_p" iostandard = lvds_33;
+#net "la19_n" loc = t10;net "la19_n" iostandard = lvds_33;
+#net "la07_p" loc = u10;net "la07_p" iostandard = lvds_33;
+#net "la07_n" loc = v10;net "la07_n" iostandard = lvds_33;
+#net "la16_p" loc = r8;net "la16_p" iostandard = lvds_33;
+#net "la16_n" loc = t8;net "la16_n" iostandard = lvds_33;
+#net "la13_p" loc = t9;net "la13_p" iostandard = lvds_33;
+#net "la13_n" loc = v9;net "la13_n" iostandard = lvds_33;
+#net "la17_cc_p" loc = m8;net "la17_cc_p" iostandard = lvds_33;
+#net "la17_cc_n" loc = n8;net "la17_cc_n" iostandard = lvds_33;
+#net "la04_p" loc = t8;net "la04_p" iostandard = lvds_33;
+#net "la04_n" loc = v8;net "la04_n" iostandard = lvds_33;
+#net "la02_p" loc = u7;net "la02_p" iostandard = lvds_33;
+#net "la02_n" loc = v7;net "la02_n" iostandard = lvds_33;
+#net "la00_cc_p" loc = n7;net "la00_cc_p" iostandard = lvds_33;
+#net "la00_cc_n" loc = p8;net "la00_cc_n" iostandard = lvds_33;
+#net "la09_p" loc = t6;net "la09_p" iostandard = lvds_33;
+#net "la09_n" loc = v6;net "la09_n" iostandard = lvds_33;
+#net "la11_p" loc = r7;net "la11_p" iostandard = lvds_33;
+#net "la11_n" loc = t7;net "la11_n" iostandard = lvds_33;
+#net "la12_p" loc = n6;net "la12_p" iostandard = lvds_33;
+#net "la12_n" loc = p7;net "la12_n" iostandard = lvds_33;
+#net "la10_p" loc = r5;net "la10_p" iostandard = lvds_33;
+#net "la10_n" loc = t5;net "la10_n" iostandard = lvds_33;
+#net "clk0_m2c_p" loc = u5;net "clk0_m2c_p" iostandard = lvds_33;
+#net "clk0_m2c_n" loc = v5;net "clk0_m2c_n" iostandard = lvds_33;
+#net "la08_p" loc = r3;net "la08_p" iostandard = lvds_33;
+#net "la08_n" loc = t3;net "la08_n" iostandard = lvds_33;
+#net "la06_p" loc = t4;net "la06_p" iostandard = lvds_33;
+#net "la06_n" loc = v4;net "la06_n" iostandard = lvds_33;
+#net "la05_p" loc = n5;net "la05_p" iostandard = lvds_33;
+#net "la05_n" loc = p6;net "la05_n" iostandard = lvds_33;
+# bank 3
+net "clk20m_vcxo_i" loc = h1;net "clk20m_vcxo_i" iostandard = lvcmos33;
+net "usr_button" loc = h3;net "usr_button" iostandard = lvcmos33;
+net "one_wire" loc = h2;net "one_wire" iostandard = lvcmos33;
+net "uart_rx" loc = j1;net "uart_rx" iostandard = lvcmos33;
+net "uart_tx" loc = j3;net "uart_tx" iostandard = lvcmos33;
+
+net "plldac_din" loc = c1;net "plldac_din" iostandard = lvcmos33;
+net "plldac_clr_n" loc = e1;net "plldac_clr_n" iostandard = lvcmos33;
+net "plldac_sclk" loc = c2;net "plldac_sclk" iostandard = lvcmos33;
+net "plldac_sync_n" loc = d1;net "plldac_sync_n" iostandard = lvcmos33;
+net "plldac_load_n" loc = d2;net "plldac_load_n" iostandard = lvcmos33;
+
+net "sfp1_led" loc = g3;net "sfp1_led" iostandard = lvcmos33;
+net "sfp0_led" loc = k4;net "sfp0_led" iostandard = lvcmos33;
+net "sfp0_los" loc = g1;net "sfp0_los" iostandard = lvcmos33;
+net "sfp0_det" loc = f3;net "sfp0_det" iostandard = lvcmos33;
+net "sfp0_scl" loc = f1;net "sfp0_scl" iostandard = lvcmos33;
+net "sfp0_sda" loc = e4;net "sfp0_sda" iostandard = lvcmos33;
+net "sfp0_tx_fault" loc = d3;net "sfp0_tx_fault" iostandard = lvcmos33;
+net "sfp0_tx_disable" loc = e3;net "sfp0_tx_disable" iostandard = lvcmos33;
+
+# bank gtp
+net "sfp0_ref_clk_n" loc = c9;net "sfp0_ref_clk_n" iostandard = lvcmos33;
+net "sfp0_ref_clk_p" loc = d9;net "sfp0_ref_clk_p" iostandard = lvcmos33;
+net "sfp0_rx_n" loc = c7;
+net "sfp0_rx_p" loc = d7;
+net "sfp0_tx_n" loc = a6;
+net "sfp0_tx_p" loc = b6;
+
+#net "sfp1_ref_clk_n" loc = e10;net "sfp1_ref_clk_n" iostandard = lvcmos33;
+#net "sfp1_ref_clk_p" loc = f10;net "sfp1_ref_clk_p" iostandard = lvcmos33;
+#net "sfp1_rx_n" loc = c13;
+#net "sfp1_rx_p" loc = d13;
+#net "sfp1_tx_n" loc = a14;
+#net "sfp1_tx_p" loc = b14;
+#net "mgtrx0_n" loc = c5;
+#net "mgtrx0_p" loc = d5;
+#net "mgttx0_n" loc = a4;
+#net "mgttx0_p" loc = b4;
+#---------------------------------------------------------------------------------------------
+# clock period information 
+#---------------------------------------------------------------------------------------------
+NET "clk20m_vcxo_i" TNM_NET = clk20m_vcxo_i;
+TIMESPEC TS_clk20m_vcxo_i = PERIOD "clk20m_vcxo_i" 50 ns HIGH 50%;
+NET "clk_125m_pllref_p_i" TNM_NET = clk_125m_pllref_p_i;
+TIMESPEC TS_clk_125m_pllref_p_i = PERIOD "clk_125m_pllref_p_i" 8 ns HIGH 50%;
+NET "clk_125m_pllref_n_i" TNM_NET = clk_125m_pllref_n_i;
+TIMESPEC TS_clk_125m_pllref_n_i = PERIOD "clk_125m_pllref_n_i" 8 ns HIGH 50%;
+NET "sfp0_ref_clk_p" TNM_NET = sfp0_ref_clk_p;
+TIMESPEC TS_sfp0_ref_clk_p = PERIOD "sfp0_ref_clk_p" 8 ns HIGH 50%;
+NET "sfp0_ref_clk_n" TNM_NET = sfp0_ref_clk_n;
+TIMESPEC TS_sfp0_ref_clk_n = PERIOD "sfp0_ref_clk_n" 8 ns HIGH 50%;
+NET "u_wr_core/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch*_gtp_clkout_int<1>" TNM_NET = u_wr_core/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch*_gtp_clkout_int<1>;
+TIMESPEC TS_u_wr_core_cmp_xwrc_platform_gen_phy_spartan6_cmp_gtp_ch_gtp_clkout_int_1_ = PERIOD "u_wr_core/cmp_xwrc_platform/gen_phy_spartan6.cmp_gtp/ch*_gtp_clkout_int<1>" 8 ns HIGH 50%;
+
+inst "pps_out" iob = force;
+net "pps_out" drive = 24 | slew = fast;
+#cute-wr-dp V2.1
+#net "ext_clk"  loc = f2;net "ext_clk" iostandard = lvcmos33;
+#cute-wr-dp V2.2
+net "ext_clk"  loc = k3;net "ext_clk" iostandard = lvcmos33;
+net "ext_clk" drive = 24 | slew = fast;

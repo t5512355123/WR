@@ -76,12 +76,37 @@ with Git Bash on `PATH`. An initial Windows invocation without Git Bash could
 not execute the shell-backed dashboard tests; rerunning with the repository's
 Git Bash resolved that host-environment issue. No functional test failed.
 
+## Follow-up repository audit
+
+At worktree HEAD `f0d9f71a7ab8ca5f2e93df478c9bea1ea4ad5c93`, the project-authored
+Markdown link audit checked 761 files and 380 local links with zero broken
+targets. It intentionally skipped 109 Markdown files copied from vendored
+upstream trees, including frozen-source copies. Running with
+`--include-vendor-markdown` checks all 870 files and reports 95 broken links;
+they are upstream README references to omitted documentation, images, or
+unneeded modules, not project-owned paths. Windows absolute workstation links
+in archived advice are treated as historical/external references rather than
+repo-relative paths. The Step5 advice links affected by the directory
+migration were updated to resolve inside this repository.
+
+The `.gitignore` now explicitly permits `artifacts/milestones/**/master.sof`
+and `slave.sof`; `git check-ignore --no-index` confirmed the Step4 release
+paths are not ignored. No production RTL, firmware, or Quartus build input was
+changed by this follow-up.
+
+The Step4 candidate package was rechecked: 3,184 historical source blobs match
+the selected source commit, with zero mismatches; all 3,191 files covered by
+the relocatable `SOURCE_SHA256SUMS` manifest verified from the source root.
+The full repository test suite passed 61 tests. No Quartus build or FPGA
+programming has yet been performed for Step4.
+
 ## Next action
 
-Finish the root documentation/path audit, run repository tests, review the
-staged changes without staging unrelated user edits, then commit and push this
-cleanup on `feat/file_cleanup`. Only after repository correctness is confirmed
-should independent Step1 milestone validation proceed.
+Review and commit only task-owned changes, then push the cleanup plus the
+clearly pending Step4 frozen-source candidate on `feat/file_cleanup`. Pain must
+pull that exact commit before the canonical JTAG clean-build check and Step4
+candidate build/program/validation. Do not mark Step4 PASS until fresh hardware
+acceptance evidence is recorded.
 
 ## Evidence
 

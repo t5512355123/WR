@@ -1,0 +1,10 @@
+# SPDX-License-Identifier: CC0-1.0
+#
+# SPDX-FileCopyrightText: 2019 CERN
+
+Makefile.specific
+*.mod*
+*.ko
+*.cmd
+Module.symvers
+modules.order

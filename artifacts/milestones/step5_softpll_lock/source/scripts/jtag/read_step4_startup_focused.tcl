@@ -1,0 +1,1166 @@
+# Step 4 SoftPLL startup focused read-only diagnostic.
+#
+# This script samples bounded register groups. It does not write
+# WDIAGS_CTRL/DATA_SNAPSHOT, read TRR_R0, or write any SoftPLL/WR control
+# register. A mailbox timeout is recorded for the affected field/group and
+# does not abort the remaining read-only groups.
+#
+# Usage:
+#   quartus_stp -t read_step4_startup_focused.tcl ?samples? ?gap_ms? ?group?
+#
+# group: lock, events, mapping, low_abort, or all (default).  The default is 30 samples at 100 ms.
+# All addresses below are already used by the repository's Step 4 scripts and
+# jtag_register_map.md; the low_abort group uses read-side diagnostic aliases
+# and does not introduce a functional control map. The LOW_SAMPLE counters use
+# otherwise undefined read bits in ECCR/OCCR while preserving their writes.
+
+package require ::quartus::insystem_source_probe
+
+set samples 30
+set gap_ms 100
+set group all
+set raw_mode 0
+if {[llength $argv] >= 1} { set samples [expr {int([lindex $argv 0])}] }
+if {[llength $argv] >= 2} { set gap_ms [expr {int([lindex $argv 1])}] }
+if {[llength $argv] >= 3} { set group [lindex $argv 2] }
+if {[lsearch -exact $argv --raw] >= 0} { set raw_mode 1 }
+if {$samples <= 0 || $gap_ms < 0} {
+  error "samples must be > 0 and gap_ms must be >= 0"
+}
+if {[lsearch -exact {lock events mapping low_abort all} $group] < 0} {
+  error "group must be lock, events, mapping, low_abort, or all"
+}
+
+set ::wb_toggle 0
+set ::max_read_attempts 5
+array set ::series {}
+
+proc is_u32 {value} {
+  return [regexp {^[0-9A-Fa-f]{1,8}$} $value]
+}
+
+proc word32 {value} {
+  if {![is_u32 $value]} { return -1 }
+  scan $value %x word
+  return [expr {$word & 0xffffffff}]
+}
+
+proc is_u64 {value} {
+  return [regexp {^[0-9A-Fa-f]{16}$} $value]
+}
+
+proc word64 {value} {
+  if {![is_u64 $value]} { return -1 }
+  set result 0
+  foreach digit [split [string toupper $value] ""] {
+    scan $digit %x nibble
+    set result [expr {$result * 16 + $nibble}]
+  }
+  return $result
+}
+
+proc stale_word {value} {
+  set word [word32 $value]
+  if {$word < 0} { return 0 }
+  return [expr {(($word >> 16) & 0xffff) == 0xA5A5}]
+}
+
+proc wb_sync_toggle {} {
+  if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+    set ::wb_toggle 0
+    return 0
+  }
+  if {![regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
+    set ::wb_toggle 0
+    return 0
+  }
+  scan $value %x word
+  set ::wb_toggle [expr {(($word >> 35) & 1)}]
+  return 1
+}
+
+proc wb_read_once {addr} {
+  set ::wb_toggle [expr {$::wb_toggle ^ 1}]
+  set command [expr {$::wb_toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [format %024X $command] -value_in_hex
+  }]} {
+    return TIMEOUT
+  }
+  after 5
+  for {set n 0} {$n < 100} {incr n} {
+    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
+      return TIMEOUT
+    }
+    if {[regexp {^[0-9A-Fa-f]{1,16}$} $value]} {
+      scan $value %x word
+      set done_toggle [expr {(($word >> 35) & 1)}]
+      set active [expr {(($word >> 36) & 1)}]
+      if {$done_toggle == $::wb_toggle && $active == 0} {
+        return [format %08X [expr {$word & 0xffffffff}]]
+      }
+    }
+    after 1
+  }
+  return TIMEOUT
+}
+
+proc register_valid {addr value} {
+  set word [word32 $value]
+  if {$word < 0 || [stale_word $value]} { return 0 }
+
+  # These are the source-defined packed fields that can be validated without
+  # assuming a transient runtime state.
+  switch -- [format "0x%08X" [expr {$addr & 0xffffffff}]] {
+    0x00100A8C {
+      # wrpc_wr_lock_last_result: 0=locked, 1=unlocked, 2=T24P failure;
+      # bit 8 is spll_check_lock(0).
+      set result [expr {$word & 0xff}]
+      set spll_locked [expr {($word >> 8) & 1}]
+      return [expr {$result <= 2 && $spll_locked <= 1}]
+    }
+    0x00100AA0 {
+      # low byte sequence, next byte align state, high byte SoftPLL mode,
+      # top byte de-lock count.  The accepted enum ranges come from
+      # softpll_export.h.
+      set sequence [expr {$word & 0xff}]
+      set align [expr {($word >> 8) & 0xff}]
+      set mode [expr {($word >> 16) & 0xff}]
+      return [expr {$sequence <= 10 && $align <= 10 && $mode <= 3}]
+    }
+    0x00100A0C {
+      # WDIAGS_PSTAT: bit 0 link and bit 1 spll_check_lock(0).
+      return [expr {($word & 0xfffffffc) == 0}]
+    }
+    0x00100A10 {
+      set ptp_state [expr {$word & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9}]
+    }
+    0x00100A5C {
+      set ptp_state [expr {$word & 0xff}]
+      set mode [expr {($word >> 24) & 0xff}]
+      return [expr {$ptp_state >= 1 && $ptp_state <= 9 &&
+                    ($mode == 2 || $mode == 3)}]
+    }
+  }
+  # Hardware control/status and all monotonic counters are accepted as any
+  # non-stale 32-bit word. Their semantic activity is decided from a series.
+  return 1
+}
+
+proc wb_read_validated {addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read_once $addr]
+    if {[register_valid $addr $value]} { return $value }
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
+  }
+  return INVALID
+}
+
+proc wb_read_u64_consistent {lo_addr hi_addr} {
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set hi1 [wb_read_validated $hi_addr]
+    set lo [wb_read_validated $lo_addr]
+    set hi2 [wb_read_validated $hi_addr]
+    if {[is_u32 $hi1] && [is_u32 $lo] && [is_u32 $hi2] && $hi1 eq $hi2} {
+      return [string toupper "$hi2$lo"]
+    }
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
+  }
+  return INVALID
+}
+
+proc wb_read_u64_non_decreasing {lo_addr hi_addr previous} {
+  # Stable-hit counters are free-running 64-bit diagnostics. During the short
+  # observation window they cannot legitimately wrap or decrease. Reject a
+  # lower snapshot so a mailbox tear such as an all-zero read is retried rather
+  # than being accepted as a real counter value.
+  set previous_word -1
+  if {[is_u64 $previous]} {
+    set previous_word [word64 $previous]
+  }
+  for {set attempt 1} {$attempt <= $::max_read_attempts} {incr attempt} {
+    set value [wb_read_u64_consistent $lo_addr $hi_addr]
+    if {[is_u64 $value]} {
+      set current_word [word64 $value]
+      if {$previous_word < 0 || $current_word >= $previous_word} {
+        return $value
+      }
+    }
+    if {$attempt < $::max_read_attempts} {
+      catch {wb_sync_toggle}
+      after 2
+    }
+  }
+  return INVALID
+}
+
+proc series_delta {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  if {$b < $a} { return DECREASED_OR_RESET }
+  return [expr {$b - $a}]
+}
+
+proc series_delta_mod32 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0xffffffff}]
+}
+
+proc series_delta_mod27 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0x07ffffff}]
+}
+
+proc series_delta_mod16 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {($b - $a) & 0xffff}]
+}
+
+proc series_delta_mod64 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word64 $first]
+  set b [word64 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  set modulus 18446744073709551616
+  return [expr {($b - $a + $modulus) % $modulus}]
+}
+
+proc init_series {board label} {
+  foreach field {valid invalid timeout decrease first last previous delta hist first_ms last_ms \
+                 wait_stable_ref_bucket_max wait_stable_fb_bucket_max \
+                 wait_stable_ref_samples wait_stable_fb_samples} {
+    set ::series($board,$label,$field) 0
+  }
+  set ::series($board,$label,first) ""
+  set ::series($board,$label,last) ""
+  set ::series($board,$label,previous) -1
+  set ::series($board,$label,first_ms) ""
+  set ::series($board,$label,last_ms) ""
+}
+
+proc add_series_sample {board label sample value} {
+  if {$value eq "TIMEOUT"} {
+    incr ::series($board,$label,timeout)
+    incr ::series($board,$label,invalid)
+    return
+  }
+  if {$value eq "INVALID"} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+
+  set word [word32 $value]
+  if {$word < 0} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+  incr ::series($board,$label,valid)
+  if {$::series($board,$label,first) eq ""} {
+    set ::series($board,$label,first) $value
+  }
+  set ::series($board,$label,last) $value
+  if {$::series($board,$label,previous) >= 0 &&
+      $word < $::series($board,$label,previous)} {
+    set ::series($board,$label,decrease) 1
+  }
+  set ::series($board,$label,previous) $word
+  if {$label eq "SPLL_DMTD_STATE"} {
+    # SPLL_DMTD_STATE is an existing packed, read-only snapshot.  Its
+    # source-backed fields are ref_state [1:0], fb_state [3:2], ref bucket
+    # [17:10], and fb bucket [25:18].  This is only a sampled coarse proxy;
+    # it is not the full functional stab_cntr and does not feed hardware.
+    set ref_state [expr {$word & 0x3}]
+    set fb_state [expr {($word >> 2) & 0x3}]
+    set ref_bucket [expr {($word >> 10) & 0xff}]
+    set fb_bucket [expr {($word >> 18) & 0xff}]
+    if {$ref_state == 0} {
+      incr ::series($board,$label,wait_stable_ref_samples)
+      if {$ref_bucket > $::series($board,$label,wait_stable_ref_bucket_max)} {
+        set ::series($board,$label,wait_stable_ref_bucket_max) $ref_bucket
+      }
+    }
+    if {$fb_state == 0} {
+      incr ::series($board,$label,wait_stable_fb_samples)
+      if {$fb_bucket > $::series($board,$label,wait_stable_fb_bucket_max)} {
+        set ::series($board,$label,wait_stable_fb_bucket_max) $fb_bucket
+      }
+    }
+  }
+  if {$::raw_mode} {
+    puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
+          $board $label $sample $value]
+  }
+}
+
+proc add_series_sample64 {board label sample value} {
+  if {$value eq "TIMEOUT"} {
+    incr ::series($board,$label,timeout)
+    incr ::series($board,$label,invalid)
+    return
+  }
+  if {$value eq "INVALID"} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+
+  set word [word64 $value]
+  if {$word < 0} {
+    incr ::series($board,$label,invalid)
+    return
+  }
+  incr ::series($board,$label,valid)
+  if {$::series($board,$label,first) eq ""} {
+    set ::series($board,$label,first) $value
+  }
+  set ::series($board,$label,last) $value
+  if {$::series($board,$label,previous) >= 0 &&
+      $word < $::series($board,$label,previous)} {
+    set ::series($board,$label,decrease) 1
+  }
+  set ::series($board,$label,previous) $word
+  if {$::raw_mode} {
+    puts [format "STEP4_RAW board=%s register=%s sample=%03d value=%s" \
+          $board $label $sample $value]
+  }
+}
+
+proc add_timed_series_sample {board label sample value timestamp_ms} {
+  set valid_before $::series($board,$label,valid)
+  add_series_sample $board $label $sample $value
+  if {$::series($board,$label,valid) > $valid_before} {
+    if {$::series($board,$label,first_ms) eq ""} {
+      set ::series($board,$label,first_ms) $timestamp_ms
+    }
+    set ::series($board,$label,last_ms) $timestamp_ms
+  }
+}
+
+proc add_timed_series_sample64 {board label sample value timestamp_ms} {
+  set valid_before $::series($board,$label,valid)
+  add_series_sample64 $board $label $sample $value
+  if {$::series($board,$label,valid) > $valid_before} {
+    if {$::series($board,$label,first_ms) eq ""} {
+      set ::series($board,$label,first_ms) $timestamp_ms
+    }
+    set ::series($board,$label,last_ms) $timestamp_ms
+  }
+}
+
+proc finish_series {board label} {
+  set valid $::series($board,$label,valid)
+  set invalid $::series($board,$label,invalid)
+  set first $::series($board,$label,first)
+  set last $::series($board,$label,last)
+  if {$label eq "DMTD_REF_WAIT_STABLE0_LOW_SAMPLE"} {
+    set delta [series_delta_mod27 $first $last $invalid]
+  } elseif {$label eq "DMTD_FB_WAIT_STABLE0_LOW_SAMPLE"} {
+    set delta [series_delta_mod16 $first $last $invalid]
+  } elseif {$label eq "DMTD_REF_HIGH_QUAL_ABORT_COUNT" || $label eq "DMTD_FB_HIGH_QUAL_ABORT_COUNT" ||
+      $label eq "DMTD_REF_ATOMIC_GOT_EDGE_ENTRY" || $label eq "DMTD_FB_ATOMIC_GOT_EDGE_ENTRY" ||
+      $label eq "NATIVE_REF_SAMPLED" || $label eq "NATIVE_FB_SAMPLED" ||
+      $label eq "NATIVE_REF_ACCEPT" || $label eq "NATIVE_FB_ACCEPT"} {
+    # These source-defined 32-bit diagnostics are free-running counters.
+    # A decrease is an expected wrap, not a functional reset.
+    set delta [series_delta_mod32 $first $last $invalid]
+  } else {
+    set delta [series_delta $first $last $invalid]
+  }
+  set ::series($board,$label,delta) $delta
+  set ::series($board,$label,hist) none
+
+  puts [format "STEP4_SERIES board=%s register=%s samples=%d valid=%d timeout=%d invalid=%d decrease=%d first=%s last=%s delta=%s" \
+        $board $label $::samples $valid \
+        $::series($board,$label,timeout) $invalid \
+        $::series($board,$label,decrease) $first $last $delta]
+}
+
+proc finish_series64 {board label} {
+  set valid $::series($board,$label,valid)
+  set invalid $::series($board,$label,invalid)
+  set first $::series($board,$label,first)
+  set last $::series($board,$label,last)
+  set delta [series_delta_mod64 $first $last $invalid]
+  set ::series($board,$label,delta) $delta
+  set ::series($board,$label,hist) none
+
+  puts [format "STEP4_SERIES64 board=%s register=%s samples=%d valid=%d timeout=%d invalid=%d decrease=%d first=%s last=%s delta=%s delta_mode=MODULO64" \
+        $board $label $::samples $valid \
+        $::series($board,$label,timeout) $invalid \
+        $::series($board,$label,decrease) $first $last $delta]
+}
+
+proc read_group {board group_name items} {
+  foreach item $items {
+    init_series $board [lindex $item 0]
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      if {[catch {set value [wb_read_validated $addr]}]} {
+        set value TIMEOUT
+        puts [format "STEP4_READ_EXCEPTION board=%s group=%s register=%s sample=%03d" \
+              $board $group_name $label $sample]
+      }
+      add_series_sample $board $label $sample $value
+    }
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  set group_result VALID
+  foreach item $items {
+    set label [lindex $item 0]
+    finish_series $board $label
+    if {$::series($board,$label,timeout) > 0} {
+      if {$::series($board,$label,valid) > 0} {
+        set group_result PARTIAL
+      } else {
+        set group_result TIMEOUT
+      }
+    } elseif {$::series($board,$label,invalid) > 0} {
+      set group_result PARTIAL
+      if {$::series($board,$label,valid) == 0} { set group_result INVALID }
+    }
+  }
+  puts [format "STEP4_GROUP board=%s group=%s result=%s" \
+        $board $group_name $group_result]
+}
+
+proc read_d0_stable_group {board} {
+  foreach label {DMTD_NATIVE_EDGE_COUNT64 \
+                 DEGLITCH_THRESHOLD \
+                 WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
+                 DMTD_REF_WAIT_STABLE0_LOW_SAMPLE DMTD_FB_WAIT_STABLE0_LOW_SAMPLE \
+                 REF_D0_STABLE_HIT_COUNT64 REF_D0_TRANSITION_COUNT64 \
+                 DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_REF_ATOMIC_GOT_EDGE_ENTRY \
+                 NATIVE_REF_SAMPLED NATIVE_REF_ACCEPT \
+                 FB_D0_STABLE_HIT_COUNT64 FB_D0_TRANSITION_COUNT64 \
+                 DMTD_FB_HIGH_QUAL_ABORT_COUNT DMTD_FB_ATOMIC_GOT_EDGE_ENTRY \
+                 NATIVE_FB_SAMPLED NATIVE_FB_ACCEPT} {
+    init_series $board $label
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    set value [wb_read_u64_consistent 0x001002F8 0x001002FC]
+    add_timed_series_sample64 $board DMTD_NATIVE_EDGE_COUNT64 $sample $value \
+      [clock milliseconds]
+
+    # spll_wb_slave.vhd defines only bits [15:0] at 0x00100248.
+    # The upper half is intentionally undefined, so discard it before
+    # series comparison instead of treating a changing upper half as a
+    # changing threshold.
+    set threshold_raw [wb_read_validated 0x00100248]
+    set threshold_word [word32 $threshold_raw]
+    if {$threshold_word >= 0} {
+      set value [format %08X [expr {$threshold_word & 0xffff}]]
+    } else {
+      set value INVALID
+    }
+    add_timed_series_sample $board DEGLITCH_THRESHOLD $sample $value \
+      [clock milliseconds]
+
+    # The hand-maintained spll_wb_slave.vhd exposes the functional
+    # WAIT_STABLE_0 maximum through read-only upper-bit aliases:
+    # 0x00100274[31:16] = REF max stab_cntr and
+    # 0x00100278[31:18] = saturating 14-bit FB max stab_cntr.
+    set value [packed16_field [wb_read_validated 0x00100274]]
+    add_timed_series_sample $board WAIT_STABLE0_REF_MAX_STAB $sample $value \
+      [clock milliseconds]
+    set fb_max_raw [wb_read_validated 0x00100278]
+    if {$fb_max_raw eq "TIMEOUT" || $fb_max_raw eq "INVALID"} {
+      set value $fb_max_raw
+    } else {
+      set fb_max_word [word32 $fb_max_raw]
+      if {$fb_max_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($fb_max_word >> 18) & 0x3fff}]]
+      }
+    }
+    add_timed_series_sample $board WAIT_STABLE0_FB_MAX_STAB $sample $value \
+      [clock milliseconds]
+
+    # spll_wb_slave.vhd preserves the ECCR/OCCR functional fields and uses
+    # otherwise undefined read bits for the diagnostic counters:
+    # ECCR[30:4] = REF counter[26:0]; OCCR[7:0] = FB[7:0],
+    # OCCR[31:24] = FB[15:8].
+    set ref_low_raw [wb_read_validated 0x00100204]
+    if {$ref_low_raw eq "TIMEOUT" || $ref_low_raw eq "INVALID"} {
+      set value $ref_low_raw
+    } else {
+      set ref_low_word [word32 $ref_low_raw]
+      if {$ref_low_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($ref_low_word >> 4) & 0x07ffffff}]]
+      }
+    }
+    add_timed_series_sample $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE $sample $value \
+      [clock milliseconds]
+
+    set fb_low_raw [wb_read_validated 0x00100220]
+    if {$fb_low_raw eq "TIMEOUT" || $fb_low_raw eq "INVALID"} {
+      set value $fb_low_raw
+    } else {
+      set fb_low_word [word32 $fb_low_raw]
+      if {$fb_low_word < 0} {
+        set value INVALID
+      } else {
+        set value [format "%08X" [expr {($fb_low_word & 0xff) | (($fb_low_word >> 16) & 0xff00)}]]
+      }
+    }
+    add_timed_series_sample $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE $sample $value \
+      [clock milliseconds]
+    set previous [series_value $board REF_D0_STABLE_HIT_COUNT64 last]
+    set value [wb_read_u64_non_decreasing 0x00100240 0x00100244 $previous]
+    add_timed_series_sample64 $board REF_D0_STABLE_HIT_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x00100250 0x00100254]
+    add_timed_series_sample64 $board REF_D0_TRANSITION_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100234]
+    add_timed_series_sample $board NATIVE_REF_SAMPLED $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x0010022C]
+    add_timed_series_sample $board NATIVE_REF_ACCEPT $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x001002A0]
+    add_timed_series_sample $board DMTD_REF_HIGH_QUAL_ABORT_COUNT $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x001002F0]
+    add_timed_series_sample $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY $sample $value \
+      [clock milliseconds]
+
+    set previous [series_value $board FB_D0_STABLE_HIT_COUNT64 last]
+    set value [wb_read_u64_non_decreasing 0x0010024C 0x00100258 $previous]
+    add_timed_series_sample64 $board FB_D0_STABLE_HIT_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_u64_consistent 0x00100260 0x00100264]
+    add_timed_series_sample64 $board FB_D0_TRANSITION_COUNT64 $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100238]
+    add_timed_series_sample $board NATIVE_FB_SAMPLED $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x00100230]
+    add_timed_series_sample $board NATIVE_FB_ACCEPT $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x001002A4]
+    add_timed_series_sample $board DMTD_FB_HIGH_QUAL_ABORT_COUNT $sample $value \
+      [clock milliseconds]
+    set value [wb_read_validated 0x001002F4]
+    add_timed_series_sample $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY $sample $value \
+      [clock milliseconds]
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  finish_series64 $board DMTD_NATIVE_EDGE_COUNT64
+  finish_series $board DEGLITCH_THRESHOLD
+  finish_series $board WAIT_STABLE0_REF_MAX_STAB
+  finish_series $board WAIT_STABLE0_FB_MAX_STAB
+  finish_series $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE
+  finish_series $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE
+  finish_series64 $board REF_D0_STABLE_HIT_COUNT64
+  finish_series64 $board REF_D0_TRANSITION_COUNT64
+  finish_series $board DMTD_REF_HIGH_QUAL_ABORT_COUNT
+  finish_series $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY
+  finish_series $board NATIVE_REF_SAMPLED
+  finish_series $board NATIVE_REF_ACCEPT
+  finish_series64 $board FB_D0_STABLE_HIT_COUNT64
+  finish_series64 $board FB_D0_TRANSITION_COUNT64
+  finish_series $board DMTD_FB_HIGH_QUAL_ABORT_COUNT
+  finish_series $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY
+  finish_series $board NATIVE_FB_SAMPLED
+  finish_series $board NATIVE_FB_ACCEPT
+
+  set result VALID
+  set fields {}
+  set dmtd_delta [series_value $board DMTD_NATIVE_EDGE_COUNT64 delta]
+  set dmtd_first_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 first_ms]
+  set dmtd_last_ms [series_value $board DMTD_NATIVE_EDGE_COUNT64 last_ms]
+  set dmtd_elapsed_ms NA
+  set dmtd_frequency_hz NA
+  if {[string is wideinteger -strict $dmtd_delta] &&
+      [string is wideinteger -strict $dmtd_first_ms] &&
+      [string is wideinteger -strict $dmtd_last_ms] &&
+      $dmtd_last_ms > $dmtd_first_ms && $dmtd_delta > 0} {
+    set dmtd_elapsed_ms [expr {$dmtd_last_ms - $dmtd_first_ms}]
+    set dmtd_frequency_hz [format "%.3f" \
+      [expr {double($dmtd_delta) * 1000.0 / double($dmtd_elapsed_ms)}]]
+  } else {
+    set result INVALID
+  }
+
+  set threshold_word [word32 [series_value $board DEGLITCH_THRESHOLD last]]
+  set threshold_delta [series_value $board DEGLITCH_THRESHOLD delta]
+  set threshold NA
+  set hit_length NA
+  if {$threshold_word >= 0 &&
+      [string is wideinteger -strict $threshold_delta] &&
+      $threshold_delta == 0} {
+    set threshold [expr {$threshold_word & 0xffff}]
+    set hit_length [expr {$threshold + 1}]
+  } else {
+    set result INVALID
+  }
+
+  foreach side {REF FB} {
+    set hit_label ${side}_D0_STABLE_HIT_COUNT64
+    set d0_label ${side}_D0_TRANSITION_COUNT64
+    set sampled_label NATIVE_${side}_SAMPLED
+    set accept_label NATIVE_${side}_ACCEPT
+    set hit_delta [series_value $board $hit_label delta]
+    set d0_delta [series_value $board $d0_label delta]
+    set sampled_delta [series_value $board $sampled_label delta]
+    set accept_delta [series_value $board $accept_label delta]
+    set sampled_to_dmtd_ratio NA
+    set d0_to_dmtd_ratio NA
+    set sampled_to_d0_ratio NA
+    set hit_per_million_d0 NA
+    if {[string is wideinteger -strict $hit_delta] &&
+        [string is wideinteger -strict $d0_delta] &&
+        [string is wideinteger -strict $sampled_delta] &&
+        [string is wideinteger -strict $accept_delta] &&
+        [string is wideinteger -strict $dmtd_delta] && $dmtd_delta > 0} {
+        set sampled_to_dmtd_ratio [format "%.9f" \
+          [expr {double($sampled_delta) / double($dmtd_delta)}]]
+        set d0_to_dmtd_ratio [format "%.9f" \
+          [expr {double($d0_delta) / double($dmtd_delta)}]]
+        if {$d0_delta > 0} {
+          set sampled_to_d0_ratio [format "%.9f" \
+            [expr {double($sampled_delta) / double($d0_delta)}]]
+          set hit_per_million_d0 [format "%.6f" \
+            [expr {double($hit_delta) * 1000000.0 / double($d0_delta)}]]
+        }
+    } else {
+      set result INVALID
+    }
+    lappend fields [format "%s_hit_delta=%s %s_hit_per_million_d0=%s %s_d0_delta=%s %s_d0_to_dmtd_ratio=%s %s_sampled_delta=%s %s_sampled_to_dmtd_ratio=%s %s_sampled_to_d0_ratio=%s %s_accept_delta=%s" \
+      [string tolower $side] $hit_delta \
+      [string tolower $side] $hit_per_million_d0 \
+      [string tolower $side] $d0_delta \
+      [string tolower $side] $d0_to_dmtd_ratio \
+      [string tolower $side] $sampled_delta \
+      [string tolower $side] $sampled_to_dmtd_ratio \
+      [string tolower $side] $sampled_to_d0_ratio \
+      [string tolower $side] $accept_delta]
+  }
+  puts [format "STEP4_DMTD_CLOCK board=%s dmtd_native_delta=%s dmtd_elapsed_ms=%s dmtd_frequency_hz=%s result=%s" \
+        $board $dmtd_delta $dmtd_elapsed_ms $dmtd_frequency_hz $result]
+  set ref_max [word32 [series_value $board WAIT_STABLE0_REF_MAX_STAB last]]
+  set fb_max [word32 [series_value $board WAIT_STABLE0_FB_MAX_STAB last]]
+  if {$ref_max >= 0 && $fb_max >= 0} {
+    set ref_max [expr {$ref_max & 0xffff}]
+    set fb_max [expr {$fb_max & 0x3fff}]
+  } else {
+    set ref_max INVALID
+    set fb_max INVALID
+  }
+  puts [format "STEP4_D0_STABLE_THRESHOLD board=%s threshold=%s threshold_delta=%s hit_length=%s wait_stable0_ref_max=%s wait_stable0_fb_max=%s %s %s result=%s counter_cdc=GRAY2_HI_LO_HI" \
+        $board $threshold $threshold_delta $hit_length $ref_max $fb_max \
+        [lindex $fields 0] [lindex $fields 1] $result]
+  if {$ref_max ne "INVALID" && $fb_max ne "INVALID" && $threshold ne "NA"} {
+    puts [format "STEP4_WAIT_STABLE0_MAX_STAB board=%s ref_max=%d fb_max=%d threshold=%d ref_ge=%d fb_ge=%d source=functional_stab_cntr_state_gated" \
+          $board $ref_max $fb_max $threshold \
+          [expr {$ref_max >= $threshold}] [expr {$fb_max >= $threshold}]]
+  } else {
+    puts [format "STEP4_WAIT_STABLE0_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST source=functional_stab_cntr_state_gated" $board]
+  }
+}
+
+proc series_value {board label field} {
+  if {[info exists ::series($board,$label,$field)]} {
+    return $::series($board,$label,$field)
+  }
+  return ""
+}
+
+proc packed16_delta {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {(($b >> 16) - ($a >> 16)) & 0xffff}]
+}
+
+proc packed16_field {value} {
+  if {$value eq "TIMEOUT" || $value eq "INVALID"} { return $value }
+  set word [word32 $value]
+  if {$word < 0} { return INVALID }
+  return [format "%08X" [expr {($word >> 16) & 0xffff}]]
+}
+
+proc series_delta_mod16 {first last invalid} {
+  if {$invalid > 0 || $first eq "" || $last eq ""} { return INVALID }
+  set a [word32 $first]
+  set b [word32 $last]
+  if {$a < 0 || $b < 0} { return INVALID }
+  return [expr {(($b & 0xffff) - ($a & 0xffff)) & 0xffff}]
+}
+
+proc read_mapping_group {board} {
+  # This group intentionally reads only existing source-backed diagnostic
+  # addresses. QUAL_REACHED_8 is unpacked before the series bookkeeping so
+  # unrelated low readback bits cannot be mistaken for a counter decrease.
+  # No snapshot/control register is written.
+  # 0xF0/0xF4 are the atomic same-process WAIT_EDGE -> GOT_EDGE aliases.
+  set items {
+    {REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING 0x001002F0 word32}
+    {REF_QUAL8_MAPPING 0x00100268 packed16}
+    {REF_ACCEPT_MAPPING 0x0010022C word32}
+    {FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING 0x001002F4 word32}
+    {FB_QUAL8_MAPPING 0x0010026C packed16}
+    {FB_ACCEPT_MAPPING 0x00100230 word32}
+  }
+  foreach item $items {
+    init_series $board [lindex $item 0]
+  }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    set values {}
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      set kind [lindex $item 2]
+      set raw_value [wb_read_validated $addr]
+      if {$kind eq "packed16"} {
+        set value [packed16_field $raw_value]
+      } else {
+        set value $raw_value
+      }
+      add_series_sample $board $label $sample $value
+      if {$::raw_mode && $kind eq "packed16"} {
+        puts [format "STEP4_MAPPING_RAW board=%s sample=%03d register=%s raw=%s field31_16=%s" \
+              $board $sample $label $raw_value $value]
+      }
+      lappend values [format "%s=%s" $label $value]
+    }
+    puts [format "STEP4_MAPPING_SAMPLE board=%s sample=%03d %s" \
+          $board $sample [join $values " "]]
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  foreach item $items {
+    finish_series $board [lindex $item 0]
+  }
+
+  set ref_got [series_delta_mod32 $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,REF_ATOMIC_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set ref_qual [series_delta_mod16 $::series($board,REF_QUAL8_MAPPING,first) \
+      $::series($board,REF_QUAL8_MAPPING,last) \
+      $::series($board,REF_QUAL8_MAPPING,invalid)]
+  set ref_accept [series_delta_mod32 $::series($board,REF_ACCEPT_MAPPING,first) \
+      $::series($board,REF_ACCEPT_MAPPING,last) \
+      $::series($board,REF_ACCEPT_MAPPING,invalid)]
+  set fb_got [series_delta_mod32 $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,first) \
+      $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,last) \
+      $::series($board,FB_ATOMIC_GOT_EDGE_ENTRY_MAPPING,invalid)]
+  set fb_qual [series_delta_mod16 $::series($board,FB_QUAL8_MAPPING,first) \
+      $::series($board,FB_QUAL8_MAPPING,last) \
+      $::series($board,FB_QUAL8_MAPPING,invalid)]
+  set fb_accept [series_delta_mod32 $::series($board,FB_ACCEPT_MAPPING,first) \
+      $::series($board,FB_ACCEPT_MAPPING,last) \
+      $::series($board,FB_ACCEPT_MAPPING,invalid)]
+  puts [format "STEP4_MAPPING_SUMMARY board=%s ref_got_edge_delta=%s ref_qual8_field_delta=%s ref_accept_delta=%s fb_got_edge_delta=%s fb_qual8_field_delta=%s fb_accept_delta=%s" \
+        $board $ref_got $ref_qual $ref_accept $fb_got $fb_qual $fb_accept]
+}
+
+proc delta_positive {board label} {
+  set delta [series_value $board $label delta]
+  if {[string is integer -strict $delta]} { return [expr {$delta > 0}] }
+  return 0
+}
+
+proc read_low_abort_group {board} {
+  # The counters already exist in dmtd_with_deglitcher.  The current
+  # read-only aliases expose their low 16 bits in undefined readback fields:
+  # DEGLITCH_THR[31:16] for REF and OCER[31:16] for FB.  No write is issued.
+  set items {
+    {LOW_QUAL_ABORT_REF 0x00100248}
+    {LOW_QUAL_ABORT_FB 0x00100228}
+  }
+  foreach item $items { init_series $board [lindex $item 0] }
+
+  for {set sample 1} {$sample <= $::samples} {incr sample} {
+    foreach item $items {
+      set label [lindex $item 0]
+      set addr [lindex $item 1]
+      set raw_value [wb_read_validated $addr]
+      set value [packed16_field $raw_value]
+      add_series_sample $board $label $sample $value
+      if {$::raw_mode} {
+        puts [format "STEP4_LOW_ABORT_RAW board=%s sample=%03d register=%s raw=%s field31_16=%s" \
+              $board $sample $label $raw_value $value]
+      }
+    }
+    if {$sample < $::samples && $::gap_ms > 0} { after $::gap_ms }
+  }
+
+  set ref_invalid $::series($board,LOW_QUAL_ABORT_REF,invalid)
+  set fb_invalid $::series($board,LOW_QUAL_ABORT_FB,invalid)
+  set ref_delta [series_delta_mod16 \
+      $::series($board,LOW_QUAL_ABORT_REF,first) \
+      $::series($board,LOW_QUAL_ABORT_REF,last) $ref_invalid]
+  set fb_delta [series_delta_mod16 \
+      $::series($board,LOW_QUAL_ABORT_FB,first) \
+      $::series($board,LOW_QUAL_ABORT_FB,last) $fb_invalid]
+  set ::series($board,LOW_QUAL_ABORT_REF,delta) $ref_delta
+  set ::series($board,LOW_QUAL_ABORT_FB,delta) $fb_delta
+  set result VALID
+  if {$ref_invalid > 0 || $fb_invalid > 0} { set result MEASUREMENT_INVALID_RETEST }
+  set ref_activity MEASUREMENT_INVALID_RETEST
+  set fb_activity MEASUREMENT_INVALID_RETEST
+  if {[string is integer -strict $ref_delta]} {
+    if {$ref_delta > 0} {
+      set ref_activity ACTIVITY_PRESENT
+    } else {
+      set ref_activity NO_ACTIVITY_IN_WINDOW
+    }
+  }
+  if {[string is integer -strict $fb_delta]} {
+    if {$fb_delta > 0} {
+      set fb_activity ACTIVITY_PRESENT
+    } else {
+      set fb_activity NO_ACTIVITY_IN_WINDOW
+    }
+  }
+  puts [format "STEP4_LOW_QUAL_ABORT board=%s samples=%d ref_delta=%s ref_activity=%s fb_delta=%s fb_activity=%s ref_valid=%d fb_valid=%d result=%s source=existing_dbg_low_qual_abort_count" \
+        $board $::samples $ref_delta $ref_activity $fb_delta $fb_activity \
+        $::series($board,LOW_QUAL_ABORT_REF,valid) \
+        $::series($board,LOW_QUAL_ABORT_FB,valid) $result]
+}
+
+proc has_invalid {board labels} {
+  foreach label $labels {
+    if {[series_value $board $label invalid] > 0} { return 1 }
+  }
+  return 0
+}
+
+proc print_lock_classification {board} {
+  if {[has_invalid $board {WR_LOCK_RESULT WR_LOCK_POLL_COUNT \
+                           WR_LOCK_UNLOCKED_COUNT WR_LOCK_CALIB_FAIL_COUNT \
+                           WR_LOCK_ENABLE_COUNT SPLL_STATE PSTAT_LOCKED}]} {
+    puts [format "STEP4_LOCK_CLASS board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+    return
+  }
+
+  set result_word [word32 [series_value $board WR_LOCK_RESULT last]]
+  set result_code [expr {$result_word & 0xff}]
+  set unlocked_delta [series_value $board WR_LOCK_UNLOCKED_COUNT delta]
+  set calib_delta [series_value $board WR_LOCK_CALIB_FAIL_COUNT delta]
+  set pstat_last [word32 [series_value $board PSTAT_LOCKED last]]
+  set pstat_locked [expr {($pstat_last >> 1) & 1}]
+
+  if {$result_code == 2 || [string is integer -strict $calib_delta] && $calib_delta > 0} {
+    puts [format "STEP4_LOCK_CLASS board=%s result=T24P_CALIBRATION_FAIL result_code=%d calib_fail_delta=%s" \
+          $board $result_code $calib_delta]
+  } elseif {$result_code == 1} {
+    puts [format "STEP4_LOCK_CLASS board=%s result=SPLL_UNLOCKED result_code=%d unlocked_delta=%s pstat_locked=%d" \
+          $board $result_code $unlocked_delta $pstat_locked]
+  } elseif {$result_code == 0 && $pstat_locked == 1} {
+    puts [format "STEP4_LOCK_CLASS board=%s result=LOCKED result_code=%d pstat_locked=%d" \
+          $board $result_code $pstat_locked]
+  } else {
+    puts [format "STEP4_LOCK_CLASS board=%s result=TRANSITIONAL_OR_INCONSISTENT result_code=%d pstat_locked=%d" \
+          $board $result_code $pstat_locked]
+  }
+}
+
+proc print_event_boundary {board} {
+  set labels {DMTD_REF_EVENTS DMTD_FB_EVENTS TAG_PENDING_COUNT \
+              TAG_PENDING_REF_COUNT TAG_PENDING_FB_COUNT TAG_GRANT_COUNT \
+              TAG_VALID_COUNT TRR_WRITE_COUNT TRR_POP_COUNT IRQ_COUNT HELPER_UPDATE_COUNT \
+              STATE_TRANSITION_COUNT DMTD_REF_SAMPLED DMTD_FB_SAMPLED \
+              DMTD_REF_ACCEPT DMTD_FB_ACCEPT \
+               DMTD_HIGH_QUAL_MAX_STAB DMTD_D0_LOW_RUN_MAX \
+               WAIT_STABLE0_REF_MAX_STAB WAIT_STABLE0_FB_MAX_STAB \
+               DMTD_REF_HIGH_QUAL_ABORT_COUNT DMTD_FB_HIGH_QUAL_ABORT_COUNT \
+               DMTD_REF_ATOMIC_GOT_EDGE_ENTRY DMTD_FB_ATOMIC_GOT_EDGE_ENTRY \
+               DMTD_REF_QUAL_REACHED_8 DMTD_FB_QUAL_REACHED_8 \
+               SPLL_DMTD_STATE}
+  if {[has_invalid $board $labels]} {
+    puts [format "STEP4_EVENT_BOUNDARY board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+    return
+  }
+
+  set max_stab_word [word32 [series_value $board DMTD_HIGH_QUAL_MAX_STAB last]]
+  set dmtd_active [expr {[delta_positive $board DMTD_REF_EVENTS] || \
+                          [delta_positive $board DMTD_FB_EVENTS]}]
+  # Full sampled/accept counters remain the authoritative boundary evidence.
+  set sampled_active [expr {[delta_positive $board DMTD_REF_SAMPLED] || \
+                            [delta_positive $board DMTD_FB_SAMPLED]}]
+  set accept_active [expr {[delta_positive $board DMTD_REF_ACCEPT] || \
+                           [delta_positive $board DMTD_FB_ACCEPT]}]
+  set high_qual_abort_active [expr {[delta_positive $board DMTD_REF_HIGH_QUAL_ABORT_COUNT] || \
+                                    [delta_positive $board DMTD_FB_HIGH_QUAL_ABORT_COUNT]}]
+  set got_edge_entry_active [expr {[delta_positive $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY] || \
+                                   [delta_positive $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY]}]
+  set qualification_progress_active [expr {[delta_positive $board DMTD_REF_QUAL_REACHED_8] || \
+                                           [delta_positive $board DMTD_FB_QUAL_REACHED_8]}]
+  set pending_active [expr {[delta_positive $board TAG_PENDING_COUNT] || \
+                             [delta_positive $board TAG_PENDING_REF_COUNT] || \
+                             [delta_positive $board TAG_PENDING_FB_COUNT]}]
+  set grant_active [delta_positive $board TAG_GRANT_COUNT]
+  set tag_active [delta_positive $board TAG_VALID_COUNT]
+  set trr_active [delta_positive $board TRR_WRITE_COUNT]
+  set trr_pop_active [delta_positive $board TRR_POP_COUNT]
+  set irq_active [delta_positive $board IRQ_COUNT]
+  set state_active [delta_positive $board STATE_TRANSITION_COUNT]
+   set helper_active [delta_positive $board HELPER_UPDATE_COUNT]
+
+   if {$max_stab_word >= 0} {
+     puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s ref_max_before_abort=%d fb_max_before_abort=%d" \
+           $board [expr {$max_stab_word & 0xffff}] [expr {($max_stab_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_HIGH_QUAL_MAX_STAB board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+   set d0_low_run_word [word32 [series_value $board DMTD_D0_LOW_RUN_MAX last]]
+   if {$d0_low_run_word >= 0} {
+     puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s ref_max_d0_low_run=%d fb_max_d0_low_run=%d" \
+           $board [expr {$d0_low_run_word & 0xffff}] [expr {($d0_low_run_word >> 16) & 0xffff}]]
+   } else {
+     puts [format "STEP4_INPUT_D0_LOW_RUN_MAX board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+   # This compares the existing sampler-domain diagnostic with the
+   # source-defined threshold.  It is not a replacement for the functional
+   # clk_sampled/stab_cntr predicate in dmtd_with_deglitcher.vhd.
+   set threshold_last [word32 [series_value $board DEGLITCH_THRESHOLD last]]
+   if {$d0_low_run_word >= 0 && $threshold_last >= 0} {
+     set threshold_value [expr {$threshold_last & 0xffff}]
+     set ref_low_run [expr {$d0_low_run_word & 0xffff}]
+     set fb_low_run [expr {($d0_low_run_word >> 16) & 0xffff}]
+     puts [format "STEP4_INPUT_D0_LOW_RUN_VS_THRESHOLD board=%s threshold=%d ref=%d fb=%d ref_ge=%d fb_ge=%d domain=clk_i_d0" \
+           $board $threshold_value $ref_low_run $fb_low_run \
+           [expr {$ref_low_run >= $threshold_value}] \
+           [expr {$fb_low_run >= $threshold_value}]]
+   } else {
+     puts [format "STEP4_INPUT_D0_LOW_RUN_VS_THRESHOLD board=%s result=MEASUREMENT_INVALID_RETEST" $board]
+   }
+
+  set dmtd_state_value [series_value $board SPLL_DMTD_STATE last]
+  set dmtd_state_word [word32 $dmtd_state_value]
+  set got_edge_active 0
+  set high_abort_seen_active 0
+  if {$dmtd_state_word >= 0} {
+    set ref_state [expr {$dmtd_state_word & 0x3}]
+    set fb_state [expr {($dmtd_state_word >> 2) & 0x3}]
+    set ref_bucket [expr {($dmtd_state_word >> 10) & 0xff}]
+    set fb_bucket [expr {($dmtd_state_word >> 18) & 0xff}]
+    set ref_reached [expr {($dmtd_state_word >> 26) & 1}]
+    set fb_reached [expr {($dmtd_state_word >> 27) & 1}]
+    set ref_high_abort_seen [expr {($dmtd_state_word >> 31) & 1}]
+    set fb_high_abort_seen [expr {($dmtd_state_word >> 30) & 1}]
+    set ref_got_edge [expr {($dmtd_state_word >> 28) & 1}]
+    set fb_got_edge [expr {($dmtd_state_word >> 29) & 1}]
+    set got_edge_active [expr {$ref_got_edge || $fb_got_edge}]
+    set high_abort_seen_active [expr {$ref_high_abort_seen || $fb_high_abort_seen}]
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=%d fb_state=%d ref_stab_bucket=%d fb_stab_bucket=%d ref_threshold_reached=%d fb_threshold_reached=%d ref_high_abort_seen=%d fb_high_abort_seen=%d ref_got_edge_seen=%d fb_got_edge_seen=%d" \
+          $board $ref_state $fb_state $ref_bucket $fb_bucket $ref_reached $fb_reached $ref_high_abort_seen $fb_high_abort_seen $ref_got_edge $fb_got_edge]
+    puts [format "STEP4_WAIT_STABLE0_BUCKET_MAX board=%s ref_max=%d fb_max=%d ref_samples=%d fb_samples=%d source=SPLL_DMTD_STATE_bucket_coarse_proxy" \
+          $board \
+          [series_value $board SPLL_DMTD_STATE wait_stable_ref_bucket_max] \
+          [series_value $board SPLL_DMTD_STATE wait_stable_fb_bucket_max] \
+          [series_value $board SPLL_DMTD_STATE wait_stable_ref_samples] \
+           [series_value $board SPLL_DMTD_STATE wait_stable_fb_samples]]
+    puts [format "STEP4_WAIT_STABLE0_LOW_SAMPLE board=%s ref_delta=%s fb_delta=%s ref_first=%s ref_last=%s fb_first=%s fb_last=%s source=ECCR_0x00100204_OCCR_0x00100220" \
+          $board \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE delta] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE delta] \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE first] \
+          [series_value $board DMTD_REF_WAIT_STABLE0_LOW_SAMPLE last] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE first] \
+          [series_value $board DMTD_FB_WAIT_STABLE0_LOW_SAMPLE last]]
+
+    # Source-backed interpretation from dmtd_with_deglitcher.vhd:
+    # a sticky high-abort bit is set when a GOT_EDGE HIGH qualification
+    # attempt sees clk_sampled='0' before reaching the threshold.  This is
+    # evidence of the abort condition, not an absolute abort count.
+    set ref_cause "NOT_SEEN"
+    set fb_cause "NOT_SEEN"
+    if {$ref_high_abort_seen} {
+      set ref_cause "GOT_EDGE_HIGH_ABORT(clk_sampled=0)"
+    }
+    if {$fb_high_abort_seen} {
+      set fb_cause "GOT_EDGE_HIGH_ABORT(clk_sampled=0)"
+    }
+    puts [format "STEP4_QUALIFICATION_ABORT_CAUSE board=%s ref=%s fb=%s evidence=SPLL_DMTD_STATE_STICKY" \
+          $board $ref_cause $fb_cause]
+  } else {
+    set ref_state NA
+    set fb_state NA
+    set ref_bucket NA
+    set fb_bucket NA
+    set ref_reached NA
+    set fb_reached NA
+    puts [format "STEP4_DEGLITCH_STATE board=%s ref_state=NA fb_state=NA ref_stab_bucket=NA fb_stab_bucket=NA ref_threshold_reached=NA fb_threshold_reached=NA ref_high_abort_seen=NA fb_high_abort_seen=NA ref_got_edge_seen=NA fb_got_edge_seen=NA" $board]
+    puts [format "STEP4_WAIT_STABLE0_BUCKET_MAX board=%s result=MEASUREMENT_INVALID_RETEST source=SPLL_DMTD_STATE_bucket_coarse_proxy" $board]
+    puts [format "STEP4_QUALIFICATION_ABORT_CAUSE board=%s result=MEASUREMENT_INVALID_RETEST evidence=SPLL_DMTD_STATE_STICKY" $board]
+  }
+
+  if {$high_abort_seen_active && !$qualification_progress_active && !$accept_active} {
+    set boundary "QUALIFICATION_ABORT_AFTER_GOT_EDGE"
+  } elseif {$got_edge_active && !$qualification_progress_active && !$accept_active} {
+    set boundary "GOT_EDGE_TO_QUALIFICATION_PROGRESS"
+  } elseif {$qualification_progress_active && !$accept_active} {
+    set boundary "QUALIFICATION_PROGRESS_TO_DEGLITCH_ACCEPT"
+  } elseif {!$dmtd_active && !$sampled_active && !$accept_active && !$high_qual_abort_active && !$got_edge_entry_active} {
+    set boundary "DMTD_SAMPLED_OR_DEGLITCH"
+  } elseif {!$sampled_active} {
+    set boundary "DMTD_SAMPLED_TRANSITION"
+  } elseif {!$high_qual_abort_active} {
+    set boundary "DMTD_SAMPLED_TRANSITION_TO_GOT_EDGE_ENTRY"
+  } elseif {!$accept_active} {
+    set boundary "DMTD_QUALIFICATION_ENTRY_TO_DEGLITCH_ACCEPT"
+  } elseif {!$dmtd_active} {
+    set boundary "DMTD_ACCEPT_TO_SYS_EVENT"
+  } elseif {!$pending_active} {
+    set boundary "DMTD_TO_TAG_REQUEST"
+  } elseif {!$grant_active} {
+    set boundary "TAG_ARBITRATION_GRANT"
+  } elseif {!$tag_active && !$trr_active} {
+    set boundary "TAG_GRANT_TO_TAG_VALID_TRR"
+  } elseif {$trr_active && !$irq_active} {
+    set boundary "TRR_TO_IRQ"
+  } elseif {$irq_active && !$state_active} {
+    set boundary "IRQ_TO_SEQUENCER"
+  } elseif {$state_active && !$helper_active} {
+    set boundary "SEQUENCER_TO_HELPER_UPDATE"
+  } else {
+    set boundary "HELPER_UPDATE_ACTIVE"
+  }
+
+  puts [format "STEP4_DMTD_BOUNDARY board=%s sampled_ref=%s pre_accept_ref=%s accept_ref=%s sampled_fb=%s pre_accept_fb=%s accept_fb=%s" \
+        $board [series_value $board DMTD_REF_SAMPLED delta] \
+        [series_value $board DMTD_REF_HIGH_QUAL_ABORT_COUNT delta] \
+        [series_value $board DMTD_REF_ACCEPT delta] \
+        [series_value $board DMTD_FB_SAMPLED delta] \
+        [series_value $board DMTD_FB_HIGH_QUAL_ABORT_COUNT delta] \
+        [series_value $board DMTD_FB_ACCEPT delta]]
+  puts [format "STEP4_HIGH_QUAL_ABORT board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_HIGH_QUAL_ABORT_COUNT delta] \
+        [series_value $board DMTD_FB_HIGH_QUAL_ABORT_COUNT delta]]
+  puts [format "STEP4_GOT_EDGE_ENTRY board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_ATOMIC_GOT_EDGE_ENTRY delta] \
+        [series_value $board DMTD_FB_ATOMIC_GOT_EDGE_ENTRY delta]]
+  puts [format "STEP4_QUALIFICATION_PROGRESS board=%s ref=%s fb=%s" \
+        $board [series_value $board DMTD_REF_QUAL_REACHED_8 delta] \
+        [series_value $board DMTD_FB_QUAL_REACHED_8 delta]]
+  puts [format "STEP4_EVENT_ACTIVITY board=%s dmtd=%d pending=%d grant=%d tag_valid=%d trr_write=%d trr_pop=%d irq=%d state_transition=%d helper_update=%d" \
+        $board $dmtd_active $pending_active $grant_active $tag_active \
+        $trr_active $trr_pop_active $irq_active $state_active $helper_active]
+  puts [format "STEP4_EVENT_BOUNDARY board=%s result=%s" $board $boundary]
+}
+
+proc read_lock_group {board} {
+  set items {
+    {WR_FAILURE_DEBUG 0x00100A6C}
+    {WR_LOCK_RESULT 0x00100A8C}
+    {WR_LOCK_POLL_COUNT 0x00100A90}
+    {WR_LOCK_UNLOCKED_COUNT 0x00100A94}
+    {WR_LOCK_CALIB_FAIL_COUNT 0x00100A98}
+    {WR_LOCK_ENABLE_COUNT 0x00100A9C}
+    {SPLL_STATE 0x00100AA0}
+    {PSTAT_LOCKED 0x00100A0C}
+  }
+  read_group $board LOCK $items
+  print_lock_classification $board
+}
+
+proc read_event_group {board} {
+  set boundary_items {
+    {SPLL_MODE_SEQUENCE 0x00100AA0}
+    {RCER 0x00100224}
+    {OCER 0x00100228}
+    {DMTD_REF_EVENTS 0x00100298}
+    {DMTD_FB_EVENTS 0x0010029C}
+    {DMTD_REF_ACCEPT 0x0010022C}
+    {DMTD_FB_ACCEPT 0x00100230}
+    {DMTD_REF_SAMPLED 0x00100234}
+    {DMTD_FB_SAMPLED 0x00100238}
+    {DMTD_HIGH_QUAL_MAX_STAB 0x0010023C}
+    {DMTD_D0_LOW_RUN_MAX 0x0010025C}
+    {DMTD_REF_HIGH_QUAL_ABORT_COUNT 0x001002A0}
+    {DMTD_FB_HIGH_QUAL_ABORT_COUNT 0x001002A4}
+    {DMTD_REF_ATOMIC_GOT_EDGE_ENTRY 0x001002F0}
+    {DMTD_FB_ATOMIC_GOT_EDGE_ENTRY 0x001002F4}
+    {DMTD_REF_QUAL_REACHED_8 0x00100268}
+    {DMTD_FB_QUAL_REACHED_8 0x0010026C}
+    {SPLL_DMTD_STATE 0x001002DC}
+  }
+  set arbitration_items {
+    {TAG_PENDING_COUNT 0x001002A8}
+    {TAG_PENDING_REF_COUNT 0x001002C4}
+    {TAG_PENDING_FB_COUNT 0x001002C8}
+    {TAG_GRANT_COUNT 0x001002AC}
+    {TAG_VALID_COUNT 0x00100284}
+    {TRR_WRITE_COUNT 0x00100288}
+  }
+  set downstream_items {
+    {IRQ_COUNT 0x00100AEC}
+    {HELPER_UPDATE_COUNT 0x00100B18}
+    {TRR_POP_COUNT 0x00100B54}
+    {STATE_TRANSITION_COUNT 0x00100AE4}
+  }
+  set timing_items {
+    {CURRENT_TICS 0x001002B0}
+    {DMTD_REF_LAST_TICS 0x001002B4}
+    {DMTD_FB_LAST_TICS 0x001002B8}
+    {TAG_REF_LAST_TICS 0x001002BC}
+    {TAG_FB_LAST_TICS 0x001002C0}
+    {TAG_PENDING_LAST_TICS 0x001002CC}
+    {TAG_GRANT_LAST_TICS 0x001002D0}
+    {TAG_VALID_LAST_TICS 0x001002D4}
+    {TRR_WRITE_LAST_TICS 0x001002D8}
+  }
+  read_group $board DMTD_BOUNDARY $boundary_items
+  read_d0_stable_group $board
+  read_group $board TAG_ARBITRATION $arbitration_items
+  read_group $board DOWNSTREAM $downstream_items
+  read_group $board EVENT_TIMING $timing_items
+  print_event_boundary $board
+}
+
+proc run_board {hardware_name device_name} {
+  puts [format "=== STEP4_FOCUSED_BOARD %s ===" $hardware_name]
+  start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
+  wb_sync_toggle
+  if {$::group eq "lock" || $::group eq "all"} { read_lock_group $hardware_name }
+  if {$::group eq "events" || $::group eq "all"} { read_event_group $hardware_name }
+  if {$::group eq "mapping" || $::group eq "all"} { read_mapping_group $hardware_name }
+  if {$::group eq "low_abort" || $::group eq "all"} { read_low_abort_group $hardware_name }
+  catch { end_insystem_source_probe }
+}
+
+puts [format "STEP4_FOCUSED_CONFIG samples=%d gap_ms=%d group=%s retries=%d trr_r0_read=disabled" \
+      $samples $gap_ms $group $::max_read_attempts]
+foreach hardware_name [get_hardware_names] {
+  set device_names [get_device_names -hardware_name $hardware_name]
+  if {[llength $device_names] == 0} { continue }
+  if {[catch {run_board $hardware_name [lindex $device_names 0]} message]} {
+    puts [format "STEP4_FOCUSED_ERROR board=%s message=%s" $hardware_name $message]
+    catch { end_insystem_source_probe }
+  }
+}
+puts STEP4_FOCUSED_DONE

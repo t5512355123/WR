@@ -46,7 +46,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Step 1 PHY/link, Step 2 Endpoint/MiniNIC/PTP, Step 3 WR parent/signaling handshake, and Step 4 SoftPLL startup have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 4 proves startup/event processing, not Step 5 lock or timing closure. Step 5 and Step 6 independent frozen-source milestone reproductions are pending; earlier functional experiment evidence is not a substitute. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
+Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 5 reproduced Helper/HPLL, Main frequency, Main phase, and PSTAT locks across a 300291 ms fresh-data span in a 301253 ms session; timing closure remains NO and is not part of its functional gate. Step 6 frozen-source reproduction is pending, and physical SMA/output edge-skew is not evaluated. Authoritative hashes and evidence are in [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md).
 
 ## Reproduce the validated Step 2 checkpoint
 
@@ -96,6 +96,27 @@ the acceptance procedure and known limitations in the
 [Step 4 milestone README](artifacts/milestones/step4_softpll_startup/README.md)
 and the
 [Step 4 reproduction report](experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md).
+
+## Reproduce the validated Step 5 full-lock checkpoint
+
+The exact Step 5 SOFs rebuilt and validated on 2026-09-24 are:
+
+- Master: [artifacts/milestones/step5_softpll_lock/master.sof](artifacts/milestones/step5_softpll_lock/master.sof), SHA-256 f72501285cef7f6a892b9334e7de93a5a86f8aff7311417f577c14acfd213a30.
+- Slave: [artifacts/milestones/step5_softpll_lock/slave.sof](artifacts/milestones/step5_softpll_lock/slave.sof), SHA-256 d4efd77c91ddc96cd6444e3f47cadf529a4f19da4c9f6b0876ce00557d63ca20.
+
+The independent frozen build source is artifacts/milestones/step5_softpll_lock/source/. On Pain, with the recorded Quartus and RISC-V toolchains on PATH:
+
+```sh
+cd artifacts/milestones/step5_softpll_lock/source
+bash scripts/build/build_firmware.sh master
+bash scripts/build/build_master.sh
+bash scripts/build/build_firmware.sh slave
+bash scripts/build/build_slave.sh
+CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
+CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+```
+
+The validated program order was Master, wait at least 90 seconds, then Slave; wait at least 120 seconds after both before read-only preflight. The 300-second F4L invocation and full acceptance evidence are in the [Step 5 reproduction report](experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md). The [Step 5 milestone README](artifacts/milestones/step5_softpll_lock/README.md) records the exact acceptance boundary and caveats.
 
 ## Current development source, build, and programming
 

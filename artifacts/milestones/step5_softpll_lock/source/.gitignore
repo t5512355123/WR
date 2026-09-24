@@ -1,0 +1,13 @@
+/build/
+/quartus/output_files_master_jtag/
+/quartus/output_files_slave_jtag/
+/quartus/db/
+/quartus/incremental_db/
+__pycache__/
+*.pyc
+*.qws
+*.qdf
+*.rpt
+*.summary
+*.sof
+*.pof

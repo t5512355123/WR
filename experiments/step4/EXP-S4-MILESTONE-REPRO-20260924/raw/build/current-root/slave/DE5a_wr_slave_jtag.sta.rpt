@@ -1,0 +1,1285 @@
+TimeQuest Timing Analyzer report for DE5a_wr_slave_jtag
+Thu Sep 24 18:04:57 2026
+Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. TimeQuest Timing Analyzer Summary
+  3. Parallel Compilation
+  4. SDC File List
+  5. Clocks
+  6. Slow 900mV 100C Model Fmax Summary
+  7. Timing Closure Recommendations
+  8. Slow 900mV 100C Model Setup Summary
+  9. Slow 900mV 100C Model Hold Summary
+ 10. Slow 900mV 100C Model Recovery Summary
+ 11. Slow 900mV 100C Model Removal Summary
+ 12. Slow 900mV 100C Model Minimum Pulse Width Summary
+ 13. Slow 900mV 100C Model Metastability Summary
+ 14. Slow 900mV 0C Model Fmax Summary
+ 15. Slow 900mV 0C Model Setup Summary
+ 16. Slow 900mV 0C Model Hold Summary
+ 17. Slow 900mV 0C Model Recovery Summary
+ 18. Slow 900mV 0C Model Removal Summary
+ 19. Slow 900mV 0C Model Minimum Pulse Width Summary
+ 20. Slow 900mV 0C Model Metastability Summary
+ 21. Fast 900mV 100C Model Setup Summary
+ 22. Fast 900mV 100C Model Hold Summary
+ 23. Fast 900mV 100C Model Recovery Summary
+ 24. Fast 900mV 100C Model Removal Summary
+ 25. Fast 900mV 100C Model Minimum Pulse Width Summary
+ 26. Fast 900mV 100C Model Metastability Summary
+ 27. Fast 900mV 0C Model Setup Summary
+ 28. Fast 900mV 0C Model Hold Summary
+ 29. Fast 900mV 0C Model Recovery Summary
+ 30. Fast 900mV 0C Model Removal Summary
+ 31. Fast 900mV 0C Model Minimum Pulse Width Summary
+ 32. Fast 900mV 0C Model Metastability Summary
+ 33. Multicorner Timing Analysis Summary
+ 34. Board Trace Model Assignments
+ 35. Input Transition Times
+ 36. Signal Integrity Metrics (Slow 900mv 100c Model)
+ 37. Signal Integrity Metrics (Fast 900mv 0c Model)
+ 38. Setup Transfers
+ 39. Hold Transfers
+ 40. Recovery Transfers
+ 41. Removal Transfers
+ 42. Unconstrained Paths Summary
+ 43. Clock Status Summary
+ 44. Unconstrained Input Ports
+ 45. Unconstrained Output Ports
+ 46. Unconstrained Input Ports
+ 47. Unconstrained Output Ports
+ 48. TimeQuest Timing Analyzer Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel MegaCore Function License Agreement, or other 
+applicable license agreement, including, without limitation, 
+that your use is for the sole purpose of programming logic 
+devices manufactured by Intel and sold by Intel or its 
+authorized distributors.  Please refer to the applicable 
+agreement for further details.
+
+
+
++---------------------------------------------------------------------------------+
+; TimeQuest Timing Analyzer Summary                                               ;
++-----------------------+---------------------------------------------------------+
+; Quartus Prime Version ; Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
+; Timing Analyzer       ; TimeQuest Spectra-Q                                     ;
+; Revision Name         ; DE5a_wr_slave_jtag                                      ;
+; Device Family         ; Arria 10                                                ;
+; Device Name           ; 10AX115N2F45E1SG                                        ;
+; Timing Models         ; Final                                                   ;
+; Delay Model           ; Combined                                                ;
+; Rise/Fall Delays      ; Enabled                                                 ;
++-----------------------+---------------------------------------------------------+
+
+
++------------------------------------------+
+; Parallel Compilation                     ;
++----------------------------+-------------+
+; Processors                 ; Number      ;
++----------------------------+-------------+
+; Number detected on machine ; 28          ;
+; Maximum allowed            ; 16          ;
+;                            ;             ;
+; Average used               ; 1.48        ;
+; Maximum used               ; 16          ;
+;                            ;             ;
+; Usage by Processor         ; % Time Used ;
+;     Processor 1            ; 100.0%      ;
+;     Processor 2            ;   3.2%      ;
+;     Processor 3            ;   3.2%      ;
+;     Processor 4            ;   3.2%      ;
+;     Processor 5            ;   3.2%      ;
+;     Processor 6            ;   3.2%      ;
+;     Processor 7            ;   3.2%      ;
+;     Processor 8            ;   3.2%      ;
+;     Processor 9            ;   3.2%      ;
+;     Processor 10           ;   3.2%      ;
+;     Processor 11           ;   3.2%      ;
+;     Processor 12           ;   3.2%      ;
+;     Processor 13           ;   3.2%      ;
+;     Processor 14           ;   3.2%      ;
+;     Processor 15           ;   3.2%      ;
+;     Processor 16           ;   3.2%      ;
++----------------------------+-------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; SDC File List                                                                                                                                                                                          ;
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
+; SDC File Path                                                                                                                                                      ; Status ; Read at                  ;
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
+; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc ; OK     ; Thu Sep 24 18:04:53 2026 ;
+; DE5a_wr_slave_jtag.sdc                                                                                                                                             ; OK     ; Thu Sep 24 18:04:53 2026 ;
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
+
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Clocks                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
++----------------------------------------------------------------------------------+-----------+--------+-----------+-------+--------+------------+-----------+-------------+-------+--------+-----------+------------+----------+----------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Clock Name                                                                       ; Type      ; Period ; Frequency ; Rise  ; Fall   ; Duty Cycle ; Divide by ; Multiply by ; Phase ; Offset ; Edge List ; Edge Shift ; Inverted ; Master                                                                           ; Source                                                                                                                                                                                                                                                                   ; Targets                                                                                                                                                                                                                                                                  ;
++----------------------------------------------------------------------------------+-----------+--------+-----------+-------+--------+------------+-----------+-------------+-------+--------+-----------+------------+----------+----------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; altera_reserved_tck                                                              ; Base      ; 33.333 ; 30.0 MHz  ; 0.000 ; 16.666 ;            ;           ;             ;       ;        ;           ;            ;          ;                                                                                  ;                                                                                                                                                                                                                                                                          ; { altera_reserved_tck }                                                                                                                                                                                                                                                  ;
+; clk_50m                                                                          ; Base      ; 20.000 ; 50.0 MHz  ; 0.000 ; 10.000 ;            ;           ;             ;       ;        ;           ;            ;          ;                                                                                  ;                                                                                                                                                                                                                                                                          ; { CLK_50_B2J }                                                                                                                                                                                                                                                           ;
+; qsfp_dmtd_124m992                                                                ; Base      ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ;            ;           ;             ;       ;        ;           ;            ;          ;                                                                                  ;                                                                                                                                                                                                                                                                          ; { QSFPB_REFCLK_p }                                                                                                                                                                                                                                                       ;
+; qsfp_ref_125m                                                                    ; Base      ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ;            ;           ;             ;       ;        ;           ;            ;          ;                                                                                  ;                                                                                                                                                                                                                                                                          ; { QSFPA_REFCLK_p }                                                                                                                                                                                                                                                       ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; Generated ; 16.000 ; 62.5 MHz  ; 0.000 ; 8.000  ; 50.00      ; 12        ; 15          ;       ;        ;           ;            ; false    ; clk_50m                                                                          ; u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]                                                                                                                                                                                                       ; { u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0] }                                                                                                                                                                                                   ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; Generated ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ; 50.00      ; 1         ; 1           ;       ;        ;           ;            ; false    ; qsfp_ref_125m                                                                    ; QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk                                                                                                                                                                                                                        ; { u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk }                                       ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; Generated ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ; 50.00      ; 1         ; 1           ;       ;        ;           ;            ; false    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk         ; { u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out } ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; Generated ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ; 50.00      ; 1         ; 1           ;       ;        ;           ;            ; false    ; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1] ; { u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv }                             ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; Generated ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ; 50.00      ; 1         ; 1           ;       ;        ;           ;            ; false    ; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in                                                                                                 ; { u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0] }                      ;
+; ~ALTERA_CLKUSR~                                                                  ; Base      ; 8.000  ; 125.0 MHz ; 0.000 ; 4.000  ;            ;           ;             ;       ;        ;           ;            ;          ;                                                                                  ;                                                                                                                                                                                                                                                                          ; { ~ALTERA_CLKUSR~~ibuf|o }                                                                                                                                                                                                                                               ;
++----------------------------------------------------------------------------------+-----------+--------+-----------+-------+--------+------------+-----------+-------------+-------+--------+-----------+------------+----------+----------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Fmax Summary                                                                                                                              ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+; Fmax       ; Restricted Fmax ; Clock Name                                                                      ; Note                                           ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+; 63.45 MHz  ; 63.45 MHz       ; altera_reserved_tck                                                             ;                                                ;
+; 106.27 MHz ; 106.27 MHz      ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ;                                                ;
+; 137.29 MHz ; 137.29 MHz      ; clk_50m                                                                         ;                                                ;
+; 185.67 MHz ; 185.67 MHz      ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout ;                                                ;
+; 194.55 MHz ; 194.55 MHz      ; qsfp_ref_125m                                                                   ;                                                ;
+; 740.19 MHz ; 645.16 MHz      ; ~ALTERA_CLKUSR~                                                                 ; limit due to minimum period restriction (tmin) ;
+; 744.05 MHz ; 645.16 MHz      ; qsfp_dmtd_124m992                                                               ; limit due to minimum period restriction (tmin) ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
+
+
+----------------------------------
+; Timing Closure Recommendations ;
+----------------------------------
+HTML report is unavailable in plain text report export.
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Setup Summary                                                                       ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; -0.659 ; -1.140        ;
+; clk_50m                                                                          ; 0.104  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 1.211  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.080  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.393  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 6.649  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 6.656  ; 0.000         ;
+; altera_reserved_tck                                                              ; 8.786  ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Hold Summary                                                                       ;
++----------------------------------------------------------------------------------+-------+---------------+
+; Clock                                                                            ; Slack ; End Point TNS ;
++----------------------------------------------------------------------------------+-------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.035 ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.044 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.046 ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.049 ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.067 ; 0.000         ;
+; clk_50m                                                                          ; 0.074 ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 0.124 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.842 ; 0.000         ;
++----------------------------------------------------------------------------------+-------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Recovery Summary                                                                    ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.650  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.211  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 4.784  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.151  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 14.814 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 16.394 ; 0.000         ;
+; altera_reserved_tck                                                              ; 29.084 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Removal Summary                                                                     ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.216  ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.368  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.384  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.405  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.417  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 10.219 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 12.753 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 100C Model Minimum Pulse Width Summary                                                         ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; qsfp_ref_125m                                                                    ; 3.626  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 3.659  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 3.705  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 3.739  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 3.873  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; 3.904  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 3.941  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 7.610  ; 0.000         ;
+; clk_50m                                                                          ; 9.916  ; 0.000         ;
+; altera_reserved_tck                                                              ; 16.575 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
+-----------------------------------------------
+; Slow 900mV 100C Model Metastability Summary ;
+-----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 1209
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 7.351 ns
+
+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Fmax Summary                                                                                                                                ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+; Fmax       ; Restricted Fmax ; Clock Name                                                                      ; Note                                           ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+; 67.11 MHz  ; 67.11 MHz       ; altera_reserved_tck                                                             ;                                                ;
+; 113.92 MHz ; 113.92 MHz      ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ;                                                ;
+; 144.61 MHz ; 144.61 MHz      ; clk_50m                                                                         ;                                                ;
+; 204.33 MHz ; 204.33 MHz      ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout ;                                                ;
+; 208.29 MHz ; 208.29 MHz      ; qsfp_ref_125m                                                                   ;                                                ;
+; 766.87 MHz ; 645.16 MHz      ; qsfp_dmtd_124m992                                                               ; limit due to minimum period restriction (tmin) ;
+; 794.28 MHz ; 645.16 MHz      ; ~ALTERA_CLKUSR~                                                                 ; limit due to minimum period restriction (tmin) ;
++------------+-----------------+---------------------------------------------------------------------------------+------------------------------------------------+
+This panel reports FMAX for every clock in the design, regardless of the user-specified clock periods.  FMAX is only computed for paths where the source and destination registers or ports are driven by the same clock.  Paths of different clocks, including generated clocks, are ignored.  For paths between a clock and its inversion, FMAX is computed as if the rising and falling edges are scaled along with FMAX, such that the duty cycle (in terms of a percentage) is maintained. Altera recommends that you always use clock constraints and other slack reports for sign-off analysis.
+
+
++----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Setup Summary                                                                        ;
++----------------------------------------------------------------------------------+-------+---------------+
+; Clock                                                                            ; Slack ; End Point TNS ;
++----------------------------------------------------------------------------------+-------+---------------+
+; clk_50m                                                                          ; 0.090 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.549 ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 1.248 ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.261 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.515 ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 6.696 ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 6.741 ; 0.000         ;
+; altera_reserved_tck                                                              ; 9.216 ; 0.000         ;
++----------------------------------------------------------------------------------+-------+---------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Hold Summary                                                                         ;
++----------------------------------------------------------------------------------+-------+---------------+
+; Clock                                                                            ; Slack ; End Point TNS ;
++----------------------------------------------------------------------------------+-------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.036 ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.042 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.042 ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.046 ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.065 ; 0.000         ;
+; clk_50m                                                                          ; 0.067 ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 0.092 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.734 ; 0.000         ;
++----------------------------------------------------------------------------------+-------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Recovery Summary                                                                      ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 1.253  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.386  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 4.863  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.144  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 14.718 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 16.551 ; 0.000         ;
+; altera_reserved_tck                                                              ; 29.108 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Removal Summary                                                                       ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; -0.264 ; -1.035        ;
+; altera_reserved_tck                                                              ; 0.354  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.389  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.391  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.398  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 9.794  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 12.726 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Slow 900mV 0C Model Minimum Pulse Width Summary                                                           ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; qsfp_ref_125m                                                                    ; 3.596  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 3.679  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 3.684  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 3.693  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 3.855  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; 3.888  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 3.917  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 7.590  ; 0.000         ;
+; clk_50m                                                                          ; 9.848  ; 0.000         ;
+; altera_reserved_tck                                                              ; 16.514 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
+---------------------------------------------
+; Slow 900mV 0C Model Metastability Summary ;
+---------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 1209
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 7.399 ns
+
+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 100C Model Setup Summary                                                                       ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; -0.130 ; -0.130        ;
+; clk_50m                                                                          ; 1.381  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 1.747  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.616  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 3.735  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.002  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 7.152  ; 0.000         ;
+; altera_reserved_tck                                                              ; 10.636 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 100C Model Hold Summary                                                                       ;
++----------------------------------------------------------------------------------+-------+---------------+
+; Clock                                                                            ; Slack ; End Point TNS ;
++----------------------------------------------------------------------------------+-------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.013 ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.018 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.020 ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.022 ; 0.000         ;
+; clk_50m                                                                          ; 0.023 ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.025 ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 0.067 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.319 ; 0.000         ;
++----------------------------------------------------------------------------------+-------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 100C Model Recovery Summary                                                                    ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.716  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 3.008  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 5.422  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.443  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 16.573 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 16.756 ; 0.000         ;
+; altera_reserved_tck                                                              ; 29.995 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 100C Model Removal Summary                                                                     ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.221  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.230  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.250  ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.278  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.486  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 10.930 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 11.822 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 100C Model Minimum Pulse Width Summary                                                         ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; qsfp_ref_125m                                                                    ; 3.667  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 3.681  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 3.831  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 3.861  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 3.941  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; 3.955  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 3.957  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 7.617  ; 0.000         ;
+; clk_50m                                                                          ; 9.870  ; 0.000         ;
+; altera_reserved_tck                                                              ; 16.492 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
+-----------------------------------------------
+; Fast 900mV 100C Model Metastability Summary ;
+-----------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 1209
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 7.560 ns
+
+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 0C Model Setup Summary                                                                         ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; clk_50m                                                                          ; 1.663  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 1.896  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 2.081  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 2.871  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 4.257  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.162  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 7.253  ; 0.000         ;
+; altera_reserved_tck                                                              ; 11.635 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 0C Model Hold Summary                                                                         ;
++----------------------------------------------------------------------------------+-------+---------------+
+; Clock                                                                            ; Slack ; End Point TNS ;
++----------------------------------------------------------------------------------+-------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.008 ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.014 ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.015 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.016 ; 0.000         ;
+; clk_50m                                                                          ; 0.021 ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.024 ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 0.068 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 1.959 ; 0.000         ;
++----------------------------------------------------------------------------------+-------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 0C Model Recovery Summary                                                                      ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 2.556  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 3.199  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 5.688  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 7.484  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 16.953 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 17.716 ; 0.000         ;
+; altera_reserved_tck                                                              ; 30.536 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 0C Model Removal Summary                                                                       ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.194  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 0.202  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 0.203  ; 0.000         ;
+; altera_reserved_tck                                                              ; 0.235  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 0.406  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 10.387 ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 11.493 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
++-----------------------------------------------------------------------------------------------------------+
+; Fast 900mV 0C Model Minimum Pulse Width Summary                                                           ;
++----------------------------------------------------------------------------------+--------+---------------+
+; Clock                                                                            ; Slack  ; End Point TNS ;
++----------------------------------------------------------------------------------+--------+---------------+
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 3.691  ; 0.000         ;
+; qsfp_ref_125m                                                                    ; 3.696  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 3.844  ; 0.000         ;
+; ~ALTERA_CLKUSR~                                                                  ; 3.900  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 3.941  ; 0.000         ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; 3.956  ; 0.000         ;
+; qsfp_dmtd_124m992                                                                ; 3.978  ; 0.000         ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 7.672  ; 0.000         ;
+; clk_50m                                                                          ; 9.914  ; 0.000         ;
+; altera_reserved_tck                                                              ; 16.507 ; 0.000         ;
++----------------------------------------------------------------------------------+--------+---------------+
+
+
+---------------------------------------------
+; Fast 900mV 0C Model Metastability Summary ;
+---------------------------------------------
+The design MTBF is not calculated because there are no specified synchronizers in the design.
+Number of Synchronizer Chains Found: 1209
+Shortest Synchronizer Chain: 2 Registers
+Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+Worst Case Available Settling Time: 7.635 ns
+
+
+
+
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+; Multicorner Timing Analysis Summary                                                                                                           ;
++-----------------------------------------------------------------------------------+--------+-------+----------+---------+---------------------+
+; Clock                                                                             ; Setup  ; Hold  ; Recovery ; Removal ; Minimum Pulse Width ;
++-----------------------------------------------------------------------------------+--------+-------+----------+---------+---------------------+
+; Worst-case Slack                                                                  ; -0.659 ; 0.008 ; 0.650    ; -0.264  ; 3.596               ;
+;  altera_reserved_tck                                                              ; 8.786  ; 0.015 ; 29.084   ; 0.235   ; 16.492              ;
+;  clk_50m                                                                          ; 0.090  ; 0.021 ; N/A      ; N/A     ; 9.848               ;
+;  qsfp_dmtd_124m992                                                                ; 6.656  ; 0.067 ; N/A      ; N/A     ; 3.917               ;
+;  qsfp_ref_125m                                                                    ; 2.080  ; 0.014 ; 2.211    ; 0.203   ; 3.596               ;
+;  u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 1.211  ; 0.008 ; 4.784    ; 0.194   ; 7.590               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; N/A    ; N/A   ; N/A      ; N/A     ; 3.888               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; -0.659 ; 0.016 ; 0.650    ; -0.264  ; 3.659               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; N/A    ; N/A   ; 16.394   ; 9.794   ; 3.855               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2.393  ; 1.959 ; 14.718   ; 11.493  ; 3.693               ;
+;  ~ALTERA_CLKUSR~                                                                  ; 6.649  ; 0.024 ; 7.144    ; 0.202   ; 3.684               ;
+; Design-wide TNS                                                                   ; -1.14  ; 0.0   ; 0.0      ; -1.035  ; 0.0                 ;
+;  altera_reserved_tck                                                              ; 0.000  ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
+;  clk_50m                                                                          ; 0.000  ; 0.000 ; N/A      ; N/A     ; 0.000               ;
+;  qsfp_dmtd_124m992                                                                ; 0.000  ; 0.000 ; N/A      ; N/A     ; 0.000               ;
+;  qsfp_ref_125m                                                                    ; 0.000  ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
+;  u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 0.000  ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; N/A    ; N/A   ; N/A      ; N/A     ; 0.000               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; -1.140 ; 0.000 ; 0.000    ; -1.035  ; 0.000               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; N/A    ; N/A   ; 0.000    ; 0.000   ; 0.000               ;
+;  u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 0.000  ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
+;  ~ALTERA_CLKUSR~                                                                  ; 0.000  ; 0.000 ; 0.000    ; 0.000   ; 0.000               ;
++-----------------------------------------------------------------------------------+--------+-------+----------+---------+---------------------+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Board Trace Model Assignments                                                                                                                                                                                                                                                                                                                                                                                          ;
++---------------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+; Pin                 ; I/O Standard ; Near Tline Length ; Near Tline L per Length ; Near Tline C per Length ; Near Series R ; Near Differential R ; Near Pull-up R ; Near Pull-down R ; Near C ; Far Tline Length ; Far Tline L per Length ; Far Tline C per Length ; Far Series R ; Far Pull-up R ; Far Pull-down R ; Far C ; Termination Voltage ; Far Differential R ; EBD File Name ; EBD Signal Name ; EBD Far-end ;
++---------------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+; LED_BRACKET[2]      ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED_BRACKET[3]      ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_RST_n         ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; SI5340A_RST_n       ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED[1]              ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED[2]              ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED[3]              ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_LP_MODE       ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED_BRACKET[1]      ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; SMA_CLKOUT          ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_MOD_SEL_n     ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_TX_p[3]       ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; SI5340A_OE_n        ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; RS422_DE            ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; RS422_RE_n          ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED[0]              ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; LED_BRACKET[0]      ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; SI5340A_I2C_SCL     ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; RS422_DOUT          ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_SCL           ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; QSFPA_SDA           ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; SI5340A_I2C_SDA     ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
+; altera_reserved_tdo ; 1.8 V        ; 0 in              ; 0 H/in                  ; 0 F/in                  ; short         ; -                   ; open           ; open             ; open   ; 0 in             ; 0 H/in                 ; 0 F/in                 ; short        ; open          ; open            ; open  ; 0 V                 ; -                  ; n/a           ; n/a             ; n/a         ;
++---------------------+--------------+-------------------+-------------------------+-------------------------+---------------+---------------------+----------------+------------------+--------+------------------+------------------------+------------------------+--------------+---------------+-----------------+-------+---------------------+--------------------+---------------+-----------------+-------------+
+
+
++--------------------------------------------------------------------------+
+; Input Transition Times                                                   ;
++-----------------------+--------------+-----------------+-----------------+
+; Pin                   ; I/O Standard ; 10-90 Rise Time ; 90-10 Fall Time ;
++-----------------------+--------------+-----------------+-----------------+
+; BUTTON[3]             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_RX_p[3]         ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; SI5340A_INTR          ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_SCL             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_SDA             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; SI5340A_I2C_SDA       ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; CPU_RESET_n           ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_REFCLK_p        ; LVDS         ; 1440 ps         ; 1440 ps         ;
+; CLK_50_B2J            ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; BUTTON[0]             ; 1.2 V        ; 960 ps          ; 960 ps          ;
+; QSFPA_MOD_PRS_n       ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; BUTTON[2]             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; BUTTON[1]             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPB_REFCLK_p        ; LVDS         ; 1440 ps         ; 1440 ps         ;
+; RS422_DIN             ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_INTERRUPT_n     ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; altera_reserved_tms   ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; altera_reserved_tck   ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; altera_reserved_tdi   ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; altera_reserved_ntrst ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; ~ALTERA_DATA0~        ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; ~ALTERA_CLKUSR~       ; 1.8 V        ; 1440 ps         ; 1440 ps         ;
+; QSFPA_REFCLK_p(n)     ; LVDS         ; 1440 ps         ; 1440 ps         ;
+; QSFPB_REFCLK_p(n)     ; LVDS         ; 1440 ps         ; 1440 ps         ;
++-----------------------+--------------+-----------------+-----------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Slow 900mv 100c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin                 ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; LED_BRACKET[2]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED_BRACKET[3]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_RST_n         ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; SI5340A_RST_n       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED[1]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED[2]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED[3]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_LP_MODE       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED_BRACKET[1]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; SMA_CLKOUT          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_MOD_SEL_n     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_TX_p[3]       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; SI5340A_OE_n        ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; RS422_DE            ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; RS422_RE_n          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED[0]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; LED_BRACKET[0]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; SI5340A_I2C_SCL     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; RS422_DOUT          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_SCL           ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; QSFPA_SDA           ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; SI5340A_I2C_SDA     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 6.67e-06 V                   ; 1.71 V              ; -0.0611 V           ; 0.1 V                                ; 0.207 V                              ; 2.32e-10 s                  ; 1.5e-10 s                   ; No                         ; No                         ; 1.66 V                      ; 6.67e-06 V                  ; 1.71 V             ; -0.0611 V          ; 0.1 V                               ; 0.207 V                             ; 2.32e-10 s                 ; 1.5e-10 s                  ; No                        ; No                        ;
+; altera_reserved_tdo ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.66 V                       ; 5.57e-06 V                   ; 1.73 V              ; -0.0846 V           ; 0.161 V                              ; 0.154 V                              ; 1.38e-10 s                  ; 1.34e-10 s                  ; No                         ; No                         ; 1.66 V                      ; 5.57e-06 V                  ; 1.73 V             ; -0.0846 V          ; 0.161 V                             ; 0.154 V                             ; 1.38e-10 s                 ; 1.34e-10 s                 ; No                        ; No                        ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Signal Integrity Metrics (Fast 900mv 0c Model)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; Pin                 ; I/O Standard ; Board Delay on Rise ; Board Delay on Fall ; Steady State Voh at FPGA Pin ; Steady State Vol at FPGA Pin ; Voh Max at FPGA Pin ; Vol Min at FPGA Pin ; Ringback Voltage on Rise at FPGA Pin ; Ringback Voltage on Fall at FPGA Pin ; 10-90 Rise Time at FPGA Pin ; 90-10 Fall Time at FPGA Pin ; Monotonic Rise at FPGA Pin ; Monotonic Fall at FPGA Pin ; Steady State Voh at Far-end ; Steady State Vol at Far-end ; Voh Max at Far-end ; Vol Min at Far-end ; Ringback Voltage on Rise at Far-end ; Ringback Voltage on Fall at Far-end ; 10-90 Rise Time at Far-end ; 90-10 Fall Time at Far-end ; Monotonic Rise at Far-end ; Monotonic Fall at Far-end ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+; LED_BRACKET[2]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED_BRACKET[3]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_RST_n         ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; SI5340A_RST_n       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED[1]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED[2]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED[3]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_LP_MODE       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED_BRACKET[1]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; SMA_CLKOUT          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_MOD_SEL_n     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_TX_p[3]       ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; SI5340A_OE_n        ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; RS422_DE            ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; RS422_RE_n          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED[0]              ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; LED_BRACKET[0]      ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; SI5340A_I2C_SCL     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; RS422_DOUT          ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_SCL           ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; QSFPA_SDA           ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; SI5340A_I2C_SDA     ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 3.2e-07 V                    ; 2 V                 ; -0.181 V            ; 0.163 V                              ; 0.18 V                               ; 1.29e-10 s                  ; 1.22e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 3.2e-07 V                   ; 2 V                ; -0.181 V           ; 0.163 V                             ; 0.18 V                              ; 1.29e-10 s                 ; 1.22e-10 s                 ; No                        ; No                        ;
+; altera_reserved_tdo ; 1.8 V        ; 0 s                 ; 0 s                 ; 1.89 V                       ; 2.67e-07 V                   ; 2.04 V              ; -0.174 V            ; 0.277 V                              ; 0.146 V                              ; 5.32e-11 s                  ; 1.16e-10 s                  ; No                         ; No                         ; 1.89 V                      ; 2.67e-07 V                  ; 2.04 V             ; -0.174 V           ; 0.277 V                             ; 0.146 V                             ; 5.32e-11 s                 ; 1.16e-10 s                 ; No                        ; No                        ;
++---------------------+--------------+---------------------+---------------------+------------------------------+------------------------------+---------------------+---------------------+--------------------------------------+--------------------------------------+-----------------------------+-----------------------------+----------------------------+----------------------------+-----------------------------+-----------------------------+--------------------+--------------------+-------------------------------------+-------------------------------------+----------------------------+----------------------------+---------------------------+---------------------------+
+
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Setup Transfers                                                                                                                                                                                                   ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+; From Clock                                                                       ; To Clock                                                                         ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+; altera_reserved_tck                                                              ; altera_reserved_tck                                                              ; 104943     ; 0        ; 1535     ; 0        ;
+; clk_50m                                                                          ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; altera_reserved_tck                                                              ; clk_50m                                                                          ; false path ; 0        ; 0        ; 0        ;
+; clk_50m                                                                          ; clk_50m                                                                          ; 1437755    ; 0        ; 0        ; 0        ;
+; qsfp_dmtd_124m992                                                                ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; clk_50m                                                                          ; 10399      ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_dmtd_124m992                                                                ; qsfp_dmtd_124m992                                                                ; 110        ; 0        ; 0        ; 0        ;
+; altera_reserved_tck                                                              ; qsfp_ref_125m                                                                    ; false path ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; qsfp_ref_125m                                                                    ; 38903      ; 0        ; 21       ; 24       ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; qsfp_ref_125m                                                                    ; 1026       ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; qsfp_ref_125m                                                                    ; 2          ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; qsfp_ref_125m                                                                    ; 3          ; 0        ; 3        ; 0        ;
+; altera_reserved_tck                                                              ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; false path ; 0        ; 0        ; 0        ;
+; clk_50m                                                                          ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 17         ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 178        ; 4        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 8948001    ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 840        ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 4          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 40         ; 8        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 97         ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 32084      ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 654        ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 9          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; ~ALTERA_CLKUSR~                                                                  ; 2          ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                  ; ~ALTERA_CLKUSR~                                                                  ; 86         ; 0        ; 0        ; 0        ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Hold Transfers                                                                                                                                                                                                    ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+; From Clock                                                                       ; To Clock                                                                         ; RR Paths   ; FR Paths ; RF Paths ; FF Paths ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+; altera_reserved_tck                                                              ; altera_reserved_tck                                                              ; 104943     ; 0        ; 1535     ; 0        ;
+; clk_50m                                                                          ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; altera_reserved_tck                                                              ; false path ; 0        ; 0        ; 0        ;
+; altera_reserved_tck                                                              ; clk_50m                                                                          ; false path ; 0        ; 0        ; 0        ;
+; clk_50m                                                                          ; clk_50m                                                                          ; 1437755    ; 0        ; 0        ; 0        ;
+; qsfp_dmtd_124m992                                                                ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; clk_50m                                                                          ; 10399      ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; clk_50m                                                                          ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_dmtd_124m992                                                                ; qsfp_dmtd_124m992                                                                ; 110        ; 0        ; 0        ; 0        ;
+; altera_reserved_tck                                                              ; qsfp_ref_125m                                                                    ; false path ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; qsfp_ref_125m                                                                    ; 38903      ; 0        ; 21       ; 24       ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; qsfp_ref_125m                                                                    ; 1026       ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; qsfp_ref_125m                                                                    ; 2          ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; qsfp_ref_125m                                                                    ; 3          ; 0        ; 3        ; 0        ;
+; altera_reserved_tck                                                              ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; false path ; 0        ; 0        ; 0        ;
+; clk_50m                                                                          ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 17         ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 178        ; 4        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 8948001    ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 840        ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 4          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 40         ; 8        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 97         ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 32084      ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 654        ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 1          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 9          ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                    ; ~ALTERA_CLKUSR~                                                                  ; 2          ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                  ; ~ALTERA_CLKUSR~                                                                  ; 86         ; 0        ; 0        ; 0        ;
++----------------------------------------------------------------------------------+----------------------------------------------------------------------------------+------------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Recovery Transfers                                                                                                                                                                                             ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+; From Clock                                                                      ; To Clock                                                                         ; RR Paths ; FR Paths ; RF Paths ; FF Paths ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+; altera_reserved_tck                                                             ; altera_reserved_tck                                                              ; 5272     ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; qsfp_ref_125m                                                                    ; 115      ; 0        ; 8        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; qsfp_ref_125m                                                                    ; 220      ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 30       ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 2922     ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 4        ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 10       ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 19       ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 2        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 1        ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 4        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; ~ALTERA_CLKUSR~                                                                  ; 14       ; 0        ; 0        ; 0        ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Removal Transfers                                                                                                                                                                                              ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+; From Clock                                                                      ; To Clock                                                                         ; RR Paths ; FR Paths ; RF Paths ; FF Paths ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+; altera_reserved_tck                                                             ; altera_reserved_tck                                                              ; 5272     ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; qsfp_ref_125m                                                                    ; 115      ; 0        ; 8        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; qsfp_ref_125m                                                                    ; 220      ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 30       ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; 2922     ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 4        ; 0        ; 0        ; 0        ;
+; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                  ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 10       ; 0        ; 0        ; 0        ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; 19       ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 2        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; 1        ; 0        ; 0        ; 0        ;
+; qsfp_ref_125m                                                                   ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 4        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; 2        ; 0        ; 0        ; 0        ;
+; ~ALTERA_CLKUSR~                                                                 ; ~ALTERA_CLKUSR~                                                                  ; 14       ; 0        ; 0        ; 0        ;
++---------------------------------------------------------------------------------+----------------------------------------------------------------------------------+----------+----------+----------+----------+
+Entries labeled "false path" only account for clock-to-clock false paths and not path-based false paths. As a result, actual path counts may be lower than reported.
+
+
++------------------------------------------------+
+; Unconstrained Paths Summary                    ;
++---------------------------------+-------+------+
+; Property                        ; Setup ; Hold ;
++---------------------------------+-------+------+
+; Illegal Clocks                  ; 0     ; 0    ;
+; Unconstrained Clocks            ; 6     ; 6    ;
+; Unconstrained Input Ports       ; 13    ; 13   ;
+; Unconstrained Input Port Paths  ; 3020  ; 3020 ;
+; Unconstrained Output Ports      ; 18    ; 18   ;
+; Unconstrained Output Port Paths ; 80    ; 80   ;
++---------------------------------+-------+------+
+
+
++-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Clock Status Summary                                                                                                                                                                                                                                                                                                                                                                ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+-----------+---------------+
+; Target                                                                                                                                                                                                                                                               ; Clock                                                                            ; Type      ; Status        ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+-----------+---------------+
+; CLK_50_B2J                                                                                                                                                                                                                                                           ; clk_50m                                                                          ; Base      ; Constrained   ;
+; CPU_RESET_n                                                                                                                                                                                                                                                          ;                                                                                  ; Base      ; Unconstrained ;
+; QSFPA_REFCLK_p                                                                                                                                                                                                                                                       ; qsfp_ref_125m                                                                    ; Base      ; Constrained   ;
+; QSFPB_REFCLK_p                                                                                                                                                                                                                                                       ; qsfp_dmtd_124m992                                                                ; Base      ; Constrained   ;
+; altera_reserved_tck                                                                                                                                                                                                                                                  ; altera_reserved_tck                                                              ; Base      ; Constrained   ;
+; clk_dmtd_62m496                                                                                                                                                                                                                                                      ;                                                                                  ; Base      ; Unconstrained ;
+; si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]                                                                                                                                                                                 ;                                                                                  ; Base      ; Unconstrained ;
+; si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk                                                                                                                                                                              ;                                                                                  ; Base      ; Unconstrained ;
+; u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]                                                                                                                                                                                                   ; u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk                   ; Generated ; Constrained   ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout  ; Generated ; Constrained   ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv                             ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk ; Generated ; Constrained   ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]                      ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk ; Generated ; Constrained   ;
+; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk                                       ; u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk    ; Generated ; Constrained   ;
+; xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in                                                                              ;                                                                                  ; Base      ; Unconstrained ;
+; xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in                                                                                  ;                                                                                  ; Base      ; Unconstrained ;
+; ~ALTERA_CLKUSR~~ibuf|o                                                                                                                                                                                                                                               ; ~ALTERA_CLKUSR~                                                                  ; Base      ; Constrained   ;
++----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+----------------------------------------------------------------------------------+-----------+---------------+
+
+
++--------------------------------------------------------------------------------------------------------------+
+; Unconstrained Input Ports                                                                                    ;
++-----------------------+--------------------------------------------------------------------------------------+
+; Input Port            ; Comment                                                                              ;
++-----------------------+--------------------------------------------------------------------------------------+
+; BUTTON[0]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; BUTTON[1]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; BUTTON[2]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; CPU_RESET_n           ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_INTERRUPT_n     ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_MOD_PRS_n       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SCL             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SDA             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; RS422_DIN             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SDA       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_ntrst ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tdi   ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tms   ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
++-----------------------+--------------------------------------------------------------------------------------+
+
+
++-------------------------------------------------------------------------------------------------------------+
+; Unconstrained Output Ports                                                                                  ;
++---------------------+---------------------------------------------------------------------------------------+
+; Output Port         ; Comment                                                                               ;
++---------------------+---------------------------------------------------------------------------------------+
+; LED[0]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[1]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[2]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[3]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[0]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[1]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[2]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[3]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_LP_MODE       ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_RST_n         ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SCL           ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SDA           ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; RS422_DOUT          ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SCL     ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SDA     ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_RST_n       ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SMA_CLKOUT          ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tdo ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
++---------------------+---------------------------------------------------------------------------------------+
+
+
++--------------------------------------------------------------------------------------------------------------+
+; Unconstrained Input Ports                                                                                    ;
++-----------------------+--------------------------------------------------------------------------------------+
+; Input Port            ; Comment                                                                              ;
++-----------------------+--------------------------------------------------------------------------------------+
+; BUTTON[0]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; BUTTON[1]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; BUTTON[2]             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; CPU_RESET_n           ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_INTERRUPT_n     ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_MOD_PRS_n       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SCL             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SDA             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; RS422_DIN             ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SDA       ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_ntrst ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tdi   ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tms   ; No input delay, min/max delays, false-path exceptions, or max skew assignments found ;
++-----------------------+--------------------------------------------------------------------------------------+
+
+
++-------------------------------------------------------------------------------------------------------------+
+; Unconstrained Output Ports                                                                                  ;
++---------------------+---------------------------------------------------------------------------------------+
+; Output Port         ; Comment                                                                               ;
++---------------------+---------------------------------------------------------------------------------------+
+; LED[0]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[1]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[2]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED[3]              ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[0]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[1]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[2]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; LED_BRACKET[3]      ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_LP_MODE       ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_RST_n         ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SCL           ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; QSFPA_SDA           ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; RS422_DOUT          ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SCL     ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_I2C_SDA     ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SI5340A_RST_n       ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; SMA_CLKOUT          ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
+; altera_reserved_tdo ; No output delay, min/max delays, false-path exceptions, or max skew assignments found ;
++---------------------+---------------------------------------------------------------------------------------+
+
+
++------------------------------------+
+; TimeQuest Timing Analyzer Messages ;
++------------------------------------+
+Info: *******************************************************************
+Info: Running Quartus Prime TimeQuest Timing Analyzer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Processing started: Thu Sep 24 18:04:43 2026
+Info: Command: quartus_sta DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+Info: qsta_default_script.tcl version: #1
+Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
+Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
+Info (21076): Core supply voltage operating condition is not set. Assuming a default value of '0.9V'.
+Info (21076): High junction temperature operating condition is not set. Assuming a default value of '100'.
+Info (21076): Low junction temperature operating condition is not set. Assuming a default value of '0'.
+Info (332164): Evaluating HDL-embedded SDC commands
+    Info (332165): Entity alt_sld_fab_altera_a10_xcvr_reset_sequencer_170_a3bys7a
+        Info (332166): if { [get_collection_size [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o]] > 0 } { create_clock -name ~ALTERA_CLKUSR~ -period 8 [get_pins -compatibility_mode -nowarn ~ALTERA_CLKUSR~~ibuf|o] }
+    Info (332165): Entity alt_xcvr_resync
+        Info (332166): set regs [get_registers -nowarn *alt_xcvr_resync*sync_r[0]]; if {[llength [query_collection -report -all $regs]] > 0} {set_false_path -to $regs}
+    Info (332165): Entity sld_hub
+        Info (332166): create_clock -name altera_reserved_tck [get_ports {altera_reserved_tck}] -period 30MHz   
+        Info (332166): if { [string equal quartus_fit $::TimeQuestInfo(nameofexecutable)] } { set_max_delay -to [get_ports { altera_reserved_tdo } ] 0 }
+        Info (332166): set_clock_groups -asynchronous -group {altera_reserved_tck}
+Info (332104): Reading SDC File: '../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc'
+Info (332104): Reading SDC File: 'DE5a_wr_slave_jtag.sdc'
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (114001): Time value "8.000512 ns" truncated to "8.000 ns"
+Warning (332174): Ignored filter at DE5a_wr_slave_jtag.sdc(4): *|clk_dmtd_62m496 could not be matched with a register File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.sdc Line: 4
+Critical Warning (332049): Ignored create_generated_clock at DE5a_wr_slave_jtag.sdc(4): Argument <targets> is an empty collection File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.sdc Line: 4
+    Info (332050): create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}] File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.sdc Line: 4
+Info (332110): Deriving PLL clocks
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pcs_pma_interface.inst_twentynm_hssi_rx_pcs_pma_interface|pma_rx_pma_clk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pcs|gen_twentynm_hssi_rx_pld_pcs_interface.inst_twentynm_hssi_rx_pld_pcs_interface|pld_pcs_rx_clk_out}
+    Info (332110): create_generated_clock -source {QSFPA_REFCLK_p~inputFITTER_INSERTEDCLKENA0|outclk} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_xcvr_avmm|avmm_atom_insts[0].twentynm_hssi_avmm_if_inst|avmmclk}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|xcvr_atx_pll_a10_0|a10_xcvr_atx_pll_inst|twentynm_hssi_pma_lc_refclk_select_mux_inst|lvpecl_in} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_tx_cgb.inst_twentynm_hssi_pma_tx_cgb|cpulse_out_bus[0]}
+    Info (332110): create_generated_clock -source {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_cdr_refclk_select_mux.inst_twentynm_hssi_pma_cdr_refclk_select_mux|ref_iqclk[1]} -duty_cycle 50.00 -name {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk} {u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|g_xcvr_native_insts[0].twentynm_xcvr_native_inst|twentynm_xcvr_native_inst|inst_twentynm_pma|gen_twentynm_hssi_pma_rx_deser.inst_twentynm_hssi_pma_rx_deser|clkdiv}
+    Info (332110): create_generated_clock -source {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|refclk[0]} -divide_by 12 -multiply_by 15 -duty_cycle 50.00 -name {u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk} {u_sys_clk_625|u_altpll|auto_generated|generic_pll1~IOPLL|outclk[0]}
+Info (332151): Clock uncertainty is not calculated until you update the timing netlist.
+Warning (332060): Node: clk_dmtd_62m496 was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dbg_wait_stable0_low_sample_count[0] is being clocked by clk_dmtd_62m496
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6] was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|start_clk_control is being clocked by si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider|clk_cnt[6]
+Warning (332060): Node: si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|i2c_state[2] is being clocked by si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus|system_clk
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_gray[9] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_ref_dmtds:0:DMTD_REF|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Register xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|dbg_post_div_edge_count[63] is being clocked by xwr_core:u_xwr_core|wr_core:WRPC|xwr_softpll_ng:U_SOFTPLL|wr_softpll_ng:U_Wrapped_Softpll|dmtd_with_deglitcher:\gen_feedback_dmtds:0:DMTD_FB|dmtd_sampler:\gen_builtin:U_Sampler|clk_in
+Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found without an associated clock assignment.
+    Info (13166): Latch si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge|in_delay_reg[1]~1 is being clocked by CPU_RESET_n
+Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
+Info: Found TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
+Info: Analyzing Slow 900mV 100C Model
+Critical Warning (332148): Timing requirements not met
+    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the TimeQuest Timing Analyzer.
+Info (332146): Worst-case setup slack is -0.659
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):    -0.659              -1.140 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.104               0.000 clk_50m 
+    Info (332119):     1.211               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     2.080               0.000 qsfp_ref_125m 
+    Info (332119):     2.393               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     6.649               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     6.656               0.000 qsfp_dmtd_124m992 
+    Info (332119):     8.786               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.035
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.035               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.044               0.000 altera_reserved_tck 
+    Info (332119):     0.046               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.049               0.000 qsfp_ref_125m 
+    Info (332119):     0.067               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.074               0.000 clk_50m 
+    Info (332119):     0.124               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.842               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 0.650
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.650               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     2.211               0.000 qsfp_ref_125m 
+    Info (332119):     4.784               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.151               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    14.814               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.394               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    29.084               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.216
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.216               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.368               0.000 altera_reserved_tck 
+    Info (332119):     0.384               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.405               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.417               0.000 qsfp_ref_125m 
+    Info (332119):    10.219               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    12.753               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.626
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.626               0.000 qsfp_ref_125m 
+    Info (332119):     3.659               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.705               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     3.739               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.873               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):     3.904               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
+    Info (332119):     3.941               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.610               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.916               0.000 clk_50m 
+    Info (332119):    16.575               0.000 altera_reserved_tck 
+Info (332114): Report Metastability: Found 1209 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 1209
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 7.351 ns
+    Info (332114): 
+Info: Analyzing Slow 900mV 0C Model
+Info (332146): Worst-case setup slack is 0.090
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.090               0.000 clk_50m 
+    Info (332119):     0.549               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     1.248               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     2.261               0.000 qsfp_ref_125m 
+    Info (332119):     2.515               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     6.696               0.000 qsfp_dmtd_124m992 
+    Info (332119):     6.741               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     9.216               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.036
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.036               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.042               0.000 altera_reserved_tck 
+    Info (332119):     0.042               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.046               0.000 qsfp_ref_125m 
+    Info (332119):     0.065               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.067               0.000 clk_50m 
+    Info (332119):     0.092               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.734               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 1.253
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     1.253               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     2.386               0.000 qsfp_ref_125m 
+    Info (332119):     4.863               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.144               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    14.718               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.551               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    29.108               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is -0.264
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):    -0.264              -1.035 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.354               0.000 altera_reserved_tck 
+    Info (332119):     0.389               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.391               0.000 qsfp_ref_125m 
+    Info (332119):     0.398               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     9.794               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    12.726               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.596
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.596               0.000 qsfp_ref_125m 
+    Info (332119):     3.679               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.684               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.693               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     3.855               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):     3.888               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
+    Info (332119):     3.917               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.590               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.848               0.000 clk_50m 
+    Info (332119):    16.514               0.000 altera_reserved_tck 
+Info (332114): Report Metastability: Found 1209 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 1209
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 7.399 ns
+    Info (332114): 
+Info: Analyzing Fast 900mV 100C Model
+Info (332146): Worst-case setup slack is -0.130
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):    -0.130              -0.130 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     1.381               0.000 clk_50m 
+    Info (332119):     1.747               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     2.616               0.000 qsfp_ref_125m 
+    Info (332119):     3.735               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     7.002               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     7.152               0.000 qsfp_dmtd_124m992 
+    Info (332119):    10.636               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.013
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.013               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.018               0.000 altera_reserved_tck 
+    Info (332119):     0.020               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.022               0.000 qsfp_ref_125m 
+    Info (332119):     0.023               0.000 clk_50m 
+    Info (332119):     0.025               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.067               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.319               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 0.716
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.716               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.008               0.000 qsfp_ref_125m 
+    Info (332119):     5.422               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.443               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    16.573               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.756               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    29.995               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.221
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.221               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.230               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.250               0.000 qsfp_ref_125m 
+    Info (332119):     0.278               0.000 altera_reserved_tck 
+    Info (332119):     0.486               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):    10.930               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    11.822               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.667
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.667               0.000 qsfp_ref_125m 
+    Info (332119):     3.681               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.831               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     3.861               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.941               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):     3.955               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
+    Info (332119):     3.957               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.617               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.870               0.000 clk_50m 
+    Info (332119):    16.492               0.000 altera_reserved_tck 
+Info (332114): Report Metastability: Found 1209 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 1209
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 7.560 ns
+    Info (332114): 
+Info: Analyzing Fast 900mV 0C Model
+Info (332146): Worst-case setup slack is 1.663
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     1.663               0.000 clk_50m 
+    Info (332119):     1.896               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     2.081               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     2.871               0.000 qsfp_ref_125m 
+    Info (332119):     4.257               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     7.162               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     7.253               0.000 qsfp_dmtd_124m992 
+    Info (332119):    11.635               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.008
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.008               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.014               0.000 qsfp_ref_125m 
+    Info (332119):     0.015               0.000 altera_reserved_tck 
+    Info (332119):     0.016               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.021               0.000 clk_50m 
+    Info (332119):     0.024               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.068               0.000 qsfp_dmtd_124m992 
+    Info (332119):     1.959               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 2.556
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     2.556               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.199               0.000 qsfp_ref_125m 
+    Info (332119):     5.688               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.484               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    16.953               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    17.716               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    30.536               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.194
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     0.194               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.202               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.203               0.000 qsfp_ref_125m 
+    Info (332119):     0.235               0.000 altera_reserved_tck 
+    Info (332119):     0.406               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):    10.387               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    11.493               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.691
+    Info (332119):     Slack       End Point TNS Clock 
+    Info (332119): ========= =================== =====================
+    Info (332119):     3.691               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.696               0.000 qsfp_ref_125m 
+    Info (332119):     3.844               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     3.900               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.941               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):     3.956               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
+    Info (332119):     3.978               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.672               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.914               0.000 clk_50m 
+    Info (332119):    16.507               0.000 altera_reserved_tck 
+Info (332114): Report Metastability: Found 1209 synchronizer chains.
+    Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
+    Info (332114): Number of Synchronizer Chains Found: 1209
+    Info (332114): Shortest Synchronizer Chain: 2 Registers
+    Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
+    Info (332114): Worst Case Available Settling Time: 7.635 ns
+    Info (332114): 
+Info (332102): Design is not fully constrained for setup requirements
+Info (332102): Design is not fully constrained for hold requirements
+Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
+    Info: Peak virtual memory: 4574 megabytes
+    Info: Processing ended: Thu Sep 24 18:04:57 2026
+    Info: Elapsed time: 00:00:14
+    Info: Total CPU time (on all processors): 00:00:53
+
+

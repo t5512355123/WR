@@ -6,13 +6,17 @@ and matching offline test from `47d9a394e53eda31476c82de2a85ad82573494ed`, which
 300-second observer contract without changing firmware or RTL.
 
 The old repository paths were relocated into the current layout. Only QSF and
-top-level VHDL relative paths were changed; `SOURCE_MANIFEST.tsv` records each
-historical Git blob, package path, transformation, and packaged SHA-256.
-`../analysis/package_step5_source.py` verifies the source identity.
+top-level VHDL relative paths were changed in historical source. A separate
+build wrapper pins the firmware's embedded Git-description metadata to the
+frozen source commit; it does not modify firmware or RTL. `SOURCE_MANIFEST.tsv`
+records each historical Git blob, package path, transformation, and packaged
+SHA-256. `../analysis/package_step5_source.py` verifies the source identity.
 
 The JTAG build/program wrappers were copied byte-for-byte from the validated
 Step 4 frozen package and are explicitly tooling, not Step 5 historical source.
-Build products are generated under this package's ignored `build/` and
+Use `scripts/build/build_firmware.sh master|slave` to retain the historical
+source-version marker in firmware built from this standalone package. Build
+products are generated under this package's ignored `build/` and
 `quartus/output_files_*_jtag/` directories.
 
 This is a candidate only. It becomes a formal Step 5 milestone only after

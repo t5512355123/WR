@@ -43,12 +43,17 @@ rewritten or dropped.
 
 - The Step 5 candidate source is assembled from Git blobs at the exact
   historical source commit above.
-- Only repository-layout path relocations are allowed in QSF/top-level VHDL.
+- Historical QSF/top-level VHDL receive only repository-layout path
+  relocations. A separately identified build wrapper pins the upstream
+  firmware's embedded Git-description metadata to the frozen source commit;
+  it does not modify firmware, RTL, or controller behavior.
 - The observer Tcl and its matching offline test are taken from the later
   observer-only commit above; no firmware or hardware-control source is taken
   from that commit.
-- Build/program wrappers are copied byte-for-byte from the already validated
-  Step 4 frozen package and are used only as reproduction tooling.
+- Quartus build/program wrappers are copied byte-for-byte from the already
+  validated Step 4 frozen package. The firmware wrapper is Step 5
+  reproduction tooling used only to make the source identity independent of
+  the enclosing Git checkout.
 - The candidate source is not a formal milestone until this experiment passes
   every compile, program, and runtime criterion.
 

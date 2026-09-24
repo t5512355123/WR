@@ -12,6 +12,7 @@ from pathlib import Path
 
 SOURCE_COMMIT = "26e138fdc0bfc8426704b397141d563cf4d580a2"
 OBSERVER_COMMIT = "47d9a394e53eda31476c82de2a85ad82573494ed"
+PINNED_SOURCE_GIT_VERSION = "master-diagnostic-baseline-20260817-1175-g26e138fd"
 REPO_ROOT = Path(__file__).resolve().parents[4]
 EXPERIMENT = Path(__file__).resolve().parents[1]
 SOURCE_ROOT = EXPERIMENT / "source"
@@ -40,6 +41,29 @@ BUILD_WRAPPERS = (
     "scripts/program/program_slave.sh",
 )
 OVERRIDE_OLD_COMMIT_PATHS = set(OBSERVER_OVERLAYS)
+FIRMWARE_BUILD_WRAPPER = b"""#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
+ROLE=${1:-}
+case "$ROLE" in
+  master|slave) ;;
+  *) echo "usage: $0 master|slave" >&2; exit 2 ;;
+esac
+
+VERSION=$(tr -d '\\r\\n' < "$ROOT/SOURCE_GIT_VERSION.txt")
+test -n "$VERSION"
+# The source package can live inside a different repository checkout. Pin the
+# two upstream Git-description variables so generated firmware reflects the
+# frozen source origin, not the parent checkout's current HEAD.
+export MAKEFLAGS="GIT_VER=$VERSION PPSI_VERSION=$VERSION"
+bash "$ROOT/firmware/scripts/build_${ROLE}_firmware.sh"
+"""
+GENERATED_TOOLING = {
+    "SOURCE_GIT_VERSION.txt": "frozen-source-git-description",
+    "scripts/build/build_firmware.sh": "build-wrapper-pins-firmware-metadata",
+}
 
 
 def git(*args: str, data: bytes | None = None) -> bytes:
@@ -195,6 +219,11 @@ def make_package() -> None:
         sha256 = write_file(relative, raw)
         wrapper_rows.append(("step4-frozen-package", relative, "-", relative, "reproduction-tooling-byte-copy", sha256))
 
+    version_sha = write_file("SOURCE_GIT_VERSION.txt", (PINNED_SOURCE_GIT_VERSION + "\n").encode("ascii"))
+    wrapper_rows.append(("step5-reproduction-tooling", "historical-source-git-description", "-", "SOURCE_GIT_VERSION.txt", GENERATED_TOOLING["SOURCE_GIT_VERSION.txt"], version_sha))
+    wrapper_sha = write_file("scripts/build/build_firmware.sh", FIRMWARE_BUILD_WRAPPER)
+    wrapper_rows.append(("step5-reproduction-tooling", "analysis/package_step5_source.py", "-", "scripts/build/build_firmware.sh", GENERATED_TOOLING["scripts/build/build_firmware.sh"], wrapper_sha))
+
     write_file("SOURCE_ORIGIN_COMMIT.txt", (SOURCE_COMMIT + "\n").encode("ascii"))
     write_file("OBSERVER_CONTRACT_COMMIT.txt", (OBSERVER_COMMIT + "\n").encode("ascii"))
     write_file(
@@ -209,13 +238,18 @@ and matching offline test from `{OBSERVER_COMMIT}`, which corrected the
 300-second observer contract without changing firmware or RTL.
 
 The old repository paths were relocated into the current layout. Only QSF and
-top-level VHDL relative paths were changed; `SOURCE_MANIFEST.tsv` records each
-historical Git blob, package path, transformation, and packaged SHA-256.
+top-level VHDL relative paths were changed in historical source. A separate
+build wrapper pins the firmware's embedded Git-description metadata to the
+frozen source commit; it does not modify firmware or RTL. `SOURCE_MANIFEST.tsv`
+records each historical Git blob, package path, transformation, and packaged
+SHA-256.
 `../analysis/package_step5_source.py` verifies the source identity.
 
 The JTAG build/program wrappers were copied byte-for-byte from the validated
 Step 4 frozen package and are explicitly tooling, not Step 5 historical source.
-Build products are generated under this package's ignored `build/` and
+Use `scripts/build/build_firmware.sh master|slave` to retain the historical
+source-version marker during a standalone firmware build. Build products are
+generated under this package's ignored `build/` and
 `quartus/output_files_*_jtag/` directories.
 
 This is a candidate only. It becomes a formal Step 5 milestone only after
@@ -253,6 +287,30 @@ def read_manifest() -> list[dict[str, str]]:
     return [dict(zip(header, line.split("\t"), strict=True)) for line in lines[1:]]
 
 
+def refresh_generated_tooling_rows() -> None:
+    manifest_path = SOURCE_ROOT / "SOURCE_MANIFEST.tsv"
+    rows = [row for row in read_manifest() if row["package_path"] not in GENERATED_TOOLING]
+    for package_path, transformation in GENERATED_TOOLING.items():
+        data = (SOURCE_ROOT / package_path).read_bytes()
+        rows.append(
+            {
+                "origin_commit": "step5-reproduction-tooling",
+                "origin_path": "historical-source-git-description" if package_path == "SOURCE_GIT_VERSION.txt" else "analysis/package_step5_source.py",
+                "git_blob": "-",
+                "package_path": package_path,
+                "transformation": transformation,
+                "sha256": hashlib.sha256(data).hexdigest(),
+            }
+        )
+    rows.sort(key=lambda row: (row["package_path"], row["origin_commit"]))
+    header = "origin_commit\torigin_path\tgit_blob\tpackage_path\ttransformation\tsha256\n"
+    content = header + "".join(
+        "\t".join(row[key] for key in ("origin_commit", "origin_path", "git_blob", "package_path", "transformation", "sha256")) + "\n"
+        for row in rows
+    )
+    manifest_path.write_text(content, encoding="utf-8", newline="\n")
+
+
 def is_generated_path(path: Path) -> bool:
     relative = path.relative_to(SOURCE_ROOT)
     parts = relative.parts
@@ -269,6 +327,15 @@ def is_generated_path(path: Path) -> bool:
 
 def verify_package() -> int:
     failures: list[str] = []
+    version_marker = SOURCE_ROOT / "SOURCE_GIT_VERSION.txt"
+    firmware_wrapper = SOURCE_ROOT / "scripts" / "build" / "build_firmware.sh"
+    historical_description = git("describe", "--always", SOURCE_COMMIT).decode("ascii").strip()
+    if historical_description != PINNED_SOURCE_GIT_VERSION:
+        failures.append(f"pinned Git description mismatch: {historical_description}")
+    if not version_marker.is_file() or version_marker.read_text(encoding="ascii").strip() != PINNED_SOURCE_GIT_VERSION:
+        failures.append("frozen firmware Git-description marker mismatch")
+    if not firmware_wrapper.is_file() or firmware_wrapper.read_bytes() != FIRMWARE_BUILD_WRAPPER:
+        failures.append("frozen firmware build wrapper differs from the audited recipe")
     rows = read_manifest()
     historical_checked = 0
     tooling_checked = 0
@@ -334,6 +401,7 @@ def main() -> int:
     if len(sys.argv) > 1 and sys.argv[1] == "--verify":
         return verify_package()
     if len(sys.argv) > 1 and sys.argv[1] == "--refresh-hashes":
+        refresh_generated_tooling_rows()
         write_hashes()
         return verify_package()
     make_package()

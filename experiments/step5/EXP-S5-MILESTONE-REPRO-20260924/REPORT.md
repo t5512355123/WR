@@ -4,8 +4,10 @@
 
 ```text
 STEP5_MILESTONE_REPRODUCTION = IN_PROGRESS
-FROZEN_SOURCE_PACKAGE        = NOT_YET_VERIFIED
-MASTER_CLEAN_BUILD           = NOT_RUN
+FROZEN_SOURCE_PACKAGE        = PASS (3190 historical Git blobs)
+OFFLINE_TESTS                = PASS (11/11)
+MASTER_INITIAL_COMPILE       = PASS_BUT_REJECTED_WRONG_EMBEDDED_VERSION
+MASTER_CLEAN_BUILD           = REBUILD_REQUIRED
 SLAVE_CLEAN_BUILD            = NOT_RUN
 MASTER_PROGRAM               = NOT_RUN
 SLAVE_PROGRAM                = NOT_RUN
@@ -37,6 +39,26 @@ of four repeated page-accounting rows will remain visible in the final report.
 The package contains only path-relocated build inputs, the observer-only
 overlay, and explicitly identified reproduction tooling. Build products are
 not source inputs.
+
+## Source identity issue found before programming
+
+The first Master full compilation completed successfully, but its generated
+firmware MIF did not match the historical MIF hash. The source and firmware
+configuration blobs were independently verified as exact; the cause was the
+upstream WRPC Makefile's `git describe` version fields resolving through the
+candidate package's parent checkout. The compiled firmware contained
+`master-diagnostic-baseline-20260817-1359-g59317b4d`, while the frozen Step 5
+source commit resolves to
+`master-diagnostic-baseline-20260817-1175-g26e138fd`.
+
+The initial Master SOF was **not programmed**. Its full build log, firmware
+log, build identity, generated MIF, and BIN are preserved under
+`raw/build/attempt-unpinned/`. A separate Step 5 build wrapper now pins only
+the upstream build-version variables to the frozen source description; it
+does not modify firmware source, RTL, or control behavior. The package and
+both boards must be rebuilt before programming. Historical MIF hashes remain
+the pre-program gate for this correction; any residual difference must be
+explained before proceeding.
 
 ## Build, program, runtime
 

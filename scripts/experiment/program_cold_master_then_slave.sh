@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# HISTORICAL REPLAY ONLY. This helper requires the exact old frozen-fit SOFs
+# and fails closed if they are absent. Do not substitute current or milestone
+# images; this is not a canonical build/program entry point.
 # Invoke only after the user confirms both boards were physically power-cycled.
 # This runner preserves the exact frozen-fit images and records each operation.
 set -euo pipefail

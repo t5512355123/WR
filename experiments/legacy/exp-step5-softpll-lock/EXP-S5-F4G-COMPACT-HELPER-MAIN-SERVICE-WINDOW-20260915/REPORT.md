@@ -88,8 +88,8 @@ merge_approved=NO
 ```
 
 The complete raw log is [observer.log](raw/attempt-3708d85-f4g-jtag-runtime/observer.log),
-and the transferred archive is
-[attempt-3708d85-f4g-jtag-runtime.tgz](raw/attempt-3708d85-f4g-jtag-runtime.tgz).
+and the extracted transfer contents are in
+[raw/attempt-3708d85-f4g-jtag-runtime/](raw/attempt-3708d85-f4g-jtag-runtime/).
 
 ## Observed evidence
 

@@ -3,7 +3,9 @@
 - Branch: `feat/file_cleanup`.
 - Canonical hardware path: two DE5a boards using the JTAG projects
   `DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`; QSFP-A lane 0 is the fixed
-  White Rabbit link. Legacy/non-JTAG projects are not current development paths.
+  White Rabbit link. The RS422-named top-level pins are only the WRPC physical-
+  UART console sideband; JTAG is the only current FPGA build/program and
+  milestone diagnostic workflow.
 - Step 1 PHY/link: **PASS**, independently rebuilt, programmed, and runtime-
   validated from frozen source.
 - Step 2 Endpoint/MiniNIC/PTP: **PASS**, independently rebuilt, programmed,
@@ -22,10 +24,12 @@
 Current source layout: canonical JTAG projects are flattened under `quartus/`,
 generated Quartus inputs are under `quartus_generated/`, SI5340 RTL is under
 `quartus/si5340_controller/`, and tests are consolidated under
-`scripts/tests/`. Historical experiment/document migration and the full stale-
-reference audit remain in progress.
+`scripts/tests/`. The canonical-path and stale-reference audit is complete.
+Three retained replay helpers are explicitly historical: two Step5 wrappers
+fail closed because their exact SOFs are absent, and one Step6 rebuild wrapper
+is pinned to its historical source commit. Details are in the repository-
+cleanup experiment report.
 
-Next target: complete remaining repository cleanup and stale-reference
-validation, then independently reproduce Step 5 from its own frozen source.
-Do not substitute a later-Step SOF for an earlier milestone. See
+Next target: independently reproduce Step 5 from its own frozen source. Do
+not substitute a later-Step SOF for an earlier milestone. See
 [`MILESTONES.md`](MILESTONES.md) for hashes and evidence paths.

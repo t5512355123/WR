@@ -54,6 +54,9 @@ if [ "$source_head" != "$SOURCE_COMMIT" ] || [ -n "$source_dirty" ]; then
 fi
 
 MASTER_PROJECT_DIR="$SOURCE_TREE/quartus/jtag_runtime_diag"
+# This nested project path is correct for SOURCE_COMMIT (before the current
+# repository flattening). The detached worktree is intentional; do not rewrite
+# this path to the current root-level quartus/ layout.
 MASTER_SOF="$MASTER_PROJECT_DIR/output_files_master_jtag/DE5a_wr_master_jtag.sof"
 MASTER_MIF="$SOURCE_TREE/build/firmware/master/wrc.mif"
 {

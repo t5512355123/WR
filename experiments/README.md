@@ -13,6 +13,12 @@ their evidence and relative links remain intact. Those records describe the
 source state at the time of each experiment and are not instructions for the
 current design.
 
+Some historical reports refer to transfer archives as they existed when the
+experiment was collected. Exact duplicate archives may be removed only after
+every regular member is SHA-256 matched to a tracked extracted file; unique
+members and archives remain. The archive/member-to-retained-file audit is
+[`legacy-archive-dedup.tsv`](repository-cleanup/EXP-REPO-ARTIFACTS-CONSOLIDATION-20260924/analysis/legacy-archive-dedup.tsv).
+
 The current development source is at the repository root under `quartus/`,
 `quartus_generated/`, `firmware/`, `vendor/`, and `scripts/`. A later-Step image
 must never be used to claim an earlier-Step milestone.

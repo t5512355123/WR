@@ -97,16 +97,78 @@ changed by this follow-up.
 The Step4 candidate package was rechecked: 3,184 historical source blobs match
 the selected source commit, with zero mismatches; all 3,191 files covered by
 the relocatable `SOURCE_SHA256SUMS` manifest verified from the source root.
-The full repository test suite passed 61 tests. No Quartus build or FPGA
-programming has yet been performed for Step4.
+The full repository test suite passed 61 tests. At that point, no Quartus build
+or FPGA programming had yet been performed for Step4; the later Step4 build,
+program, and runtime reproduction is recorded in
+[`experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md`](../../step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md).
 
-## Next action
+## Verified legacy archive deduplication
 
-Review and commit only task-owned changes, then push the cleanup plus the
-clearly pending Step4 frozen-source candidate on `feat/file_cleanup`. Pain must
-pull that exact commit before the canonical JTAG clean-build check and Step4
-candidate build/program/validation. Do not mark Step4 PASS until fresh hardware
-acceptance evidence is recorded.
+The post-Step4 audit rechecked all 61 tracked transfer archives under
+`experiments/legacy/`, including every regular member's basename, byte count,
+and SHA-256. It matched 588 members from 48 archives to already tracked
+extracted evidence; the 48 archive hashes and all 588 member-to-file matches
+are recorded in
+[`analysis/legacy-archive-dedup.tsv`](analysis/legacy-archive-dedup.tsv).
+Fourteen adjacent checksum sidecars were also verified against their archives
+before removal. The 48 archives plus those 14 sidecars were unlinked by the
+fail-closed `analysis/prune_verified_legacy_archives.py`; no extracted evidence
+was removed.
+
+Thirteen archives remain. Eleven contain 81 members not otherwise extracted
+and tracked. Two additional F4B archives are retained because each contains a
+unique Master/Slave SOF pair whose extracted local copies are ignored and are
+not present as tracked files elsewhere. They were not treated as duplicates.
+The remaining 13 archives and all extracted evidence are present after the
+cleanup. Archive/member hashes and retained paths are recorded for all 717
+regular members in the TSV.
+
+Markdown links that formerly targeted removed archives or sidecars now point
+to the extracted raw directory or the audit table. The Markdown link checker
+reported 762 authored files, 386 local links, and zero broken links. The
+historical report text remains evidence of what was collected at the time; the
+legacy evidence policy in `experiments/README.md` explains the later verified
+deduplication.
+
+## Canonical-path and stale-reference closure
+
+The final tracked-tree audit found all 19 required current project, build,
+program, test, experiment, and artifact entry paths present. The following
+obsolete paths have zero tracked files: `CHANGELOG.md`, `docs/architecture/`,
+`docs/bringup/`, `docs/migration/`, `docs/reports/`, `docs/experiments/`,
+`quartus/rs422_uart_diag/`, `quartus/jtag_runtime_diag_portb/`, nested
+`quartus/jtag_runtime_diag/`, root `generated/`, root `tests/`, and
+`rtl/clock/si5340_controller/`. The canonical SI5340 RTL is under
+`quartus/si5340_controller/`. Root build/program interfaces are the single
+JTAG wrappers in `scripts/build/` and `scripts/program/`.
+
+Thirteen historical archives remain, all under `experiments/legacy/`; none
+remain outside that directory. `artifacts/` contains no non-milestone
+evidence files. The authored-Markdown link audit checked 762 files and 388
+local links with zero broken targets.
+
+The only remaining references to retired source/image paths are intentional
+and now labelled in the scripts themselves:
+
+- Two Step5 cold/warm historical replay helpers point to the old frozen-fit
+  stage. Those exact SOFs are absent from this checkout; each helper checks
+  both files and exact SHA-256 values before any privilege check, output
+  creation, or programming, then exits without hardware action if unavailable.
+- The Step6 Master-last rebuild helper creates a clean detached worktree at
+  historical source commit `ec1f25e8`. Its nested `quartus/jtag_runtime_diag/`
+  path belongs to that commit's tree and must not be rewritten to the current
+  flattened layout.
+
+These are not active build/program interfaces or unresolved current-source
+references. Regression tests pass (61 tests), and `git diff --check` is clean.
+
+## Current next action
+
+The Step4 milestone is PASS, with its build/program/runtime evidence in
+`experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/`. Repository cleanup and
+the canonical-path/stale-reference audit are complete. Next, independently
+reproduce Step5 from its own frozen source. Do not substitute a later-Step SOF
+for an earlier milestone.
 
 ## Evidence
 
@@ -114,3 +176,6 @@ acceptance evidence is recorded.
 - `analysis/untracked-artifact-audit.tsv`
 - `analysis/audit_artifacts.py`
 - `analysis/prune_verified_duplicate_artifacts.py`
+- `analysis/audit_legacy_archives.py`
+- `analysis/legacy-archive-dedup.tsv`
+- `analysis/prune_verified_legacy_archives.py`

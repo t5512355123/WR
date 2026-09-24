@@ -13,6 +13,8 @@ SOF hashes are provenance; they do not replace reproduction evidence.
 | 5 | SoftPLL full lock | **NOT REPRODUCED** (historical functional evidence exists) | `artifacts/milestones/step5_softpll_lock/` (pending) | Historical reference: `26e138fdc0bfc8426704b397141d563cf4d580a2` | Historical: `a2945df48fe86038fdff138f4b6368a777fa3df13f98ac9620fb30baa1ee0129` | Historical: `7462d94a521f52e7660295a6873de5141658fbf5392d90a4d4ade7d4e5f36f50` | [`experiments/legacy/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/`](experiments/legacy/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/) | Reproduction must freshly build/program and prove all required lock signals continuously for ≥300 s; timing closure is separate. |
 | 6 | Global time / dual-board scheduled trigger | **NOT REPRODUCED** (historical digital evidence exists) | `artifacts/milestones/step6_global_time/` (pending) | Historical reference: `74dc28862653d306e0450cf437ba6d3a230d979d` | Historical: `6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845` | Historical: `4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca` | [`experiments/legacy/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/`](experiments/legacy/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/) | Digital trigger evidence does not establish physical SMA/output-pin edge skew; that remains `NOT_EVALUATED`. |
 
-Current next target: complete the remaining repository cleanup and stale-
-reference audit, then independently reproduce Step 5 from its own frozen
-source. Do not use a later Step image to satisfy an earlier milestone.
+Current next target: independently reproduce Step 5 from its own frozen
+source. The canonical-path/stale-reference audit is complete; the retained
+historical replay helpers and their fail-closed/pinned behavior are described
+in the repository-cleanup experiment report. Do not use a later Step image to
+satisfy an earlier milestone.

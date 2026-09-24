@@ -212,7 +212,8 @@ FREQUENCY → PHASE：4 次
 
 Pain 原始資料與執行紀錄保留於
 [raw/attempt-a67fee3-f4i-jtag-runtime](raw/attempt-a67fee3-f4i-jtag-runtime)。
-封存檔為 [archive.tgz](raw/attempt-a67fee3-f4i-jtag-runtime/archive.tgz)。
+封存檔解出的 raw files 位於
+[raw/attempt-a67fee3-f4i-jtag-runtime/](raw/attempt-a67fee3-f4i-jtag-runtime/)。
 
 ```text
 FORMAL_LOG_SHA256  = c2da4c61c931c0e021ee4b872471c26c0256905b637e9bd7f78ae800fec3d5f

@@ -93,8 +93,8 @@ MERGE_APPROVED = NO
 
 ## Raw evidence
 
-- [raw archive](raw/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC5120-20260908-UPSTREAM-REGRESSION.tar.gz)
-- [archive SHA-256](raw/EXP-WRPC-STEP5-STATIC-COARSE-BRACKET-FDEC5120-20260908-UPSTREAM-REGRESSION.tar.gz.sha256)
+- [extracted raw evidence](raw/)
+- [archive hash and member verification](../../../repository-cleanup/EXP-REPO-ARTIFACTS-CONSOLIDATION-20260924/analysis/legacy-archive-dedup.tsv)
 - [initial preflight 1](raw/preflight-1.log)
 - [initial preflight 2](raw/preflight-2.log)
 - [delayed preflight 3](raw/preflight-3.log)

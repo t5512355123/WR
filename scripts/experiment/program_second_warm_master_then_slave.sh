@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# HISTORICAL REPLAY ONLY. This helper requires the exact old frozen-fit SOFs
+# and fails closed if they are absent. Do not substitute current or milestone
+# images; this is not a canonical build/program entry point.
 # Run once from the preserved failed first post-cold configuration.
 # Do not power-cycle, rebuild, change MIFs, or manipulate cables first.
 set -euo pipefail

@@ -146,7 +146,7 @@ MAIN_SERVICE_PROGRESS_WITHOUT_PHASE_LOCK
 Pain 原始資料與執行紀錄完整保留於
 [raw/attempt-898b041-f4h-jtag-runtime](raw/attempt-898b041-f4h-jtag-runtime)，
 壓縮封存為
-[attempt-898b041-f4h-jtag-runtime.tgz](raw/attempt-898b041-f4h-jtag-runtime.tgz)。
+[attempt-898b041-f4h-jtag-runtime/](raw/attempt-898b041-f4h-jtag-runtime/)。
 
 ```text
 OBSERVER_LOG_SHA256 = ecda10c94009513d27129f06217b51c600990f663680a4d87ab9b559809b7f84
@@ -169,4 +169,3 @@ F4H 已完成它的 source-validity 診斷目的，但沒有達成 Step 5。下�
 可信 PHY gate 下的 Main phase path 做新的單一假設驗證；在沒有新的控制變因、
 明確 replay 證據與 fresh-program reproducibility 之前，不調參、不放寬 gate、
 不 merge 到 main。
-

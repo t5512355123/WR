@@ -31,6 +31,12 @@ The diagram is a functional overview, not a pin-level schematic. Each board runs
 
 The current design uses the Arria 10 White Rabbit PHY and its required generated IP inputs. Master and Slave are separate JTAG Quartus projects with the top-level entities shown below. On Pain, the board cables are `DE5 [1-11.1]` for Master and `DE5 [1-11.2]` for Slave. Runtime status and Wishbone-register observation use the JTAG scripts under `scripts/jtag/`; the Step 1–6 dashboard is read-only.
 
+The RS422-named pins in the JTAG top-level are retained only as the board's
+WRPC physical-UART console sideband. They do not define a second White Rabbit
+architecture or a build/program/diagnostic workflow; all current FPGA project
+builds/programming and all milestone acceptance/diagnostic observations use
+JTAG. The UART sideband may be used only as the WRPC text console.
+
 Canonical Quartus top-level entities:
 
 ```text
@@ -97,8 +103,9 @@ The canonical JTAG projects are flattened directly under `quartus/`. The
 Quartus-generated PHY/IP inputs required by the build are under
 `quartus_generated/`, and the SI5340 controller RTL is under
 `quartus/si5340_controller/`. Current development uses only
-`DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`; the obsolete RS422 and QSFP-B
-diagnostic projects are not current build options.
+`DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`. The RS422 UART sideband is not
+an alternate project or management path; the QSFP-B reference-clock input is
+not the inter-board White Rabbit packet link.
 
 Use Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware
 toolchain recorded in the experiment provenance. From the repository root on

@@ -1,0 +1,26 @@
+Step 3 historical source vs. frozen Step 2 build-input origin
+============================================================
+
+Command:
+  git diff --stat 054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00 fb8c926cfe37b82e86300117181a6ac01e1889e2
+
+Output:
+  STATUS.md                                          |  25 ++--
+  docs/MERGE_READINESS.md                            | 144 ++++++++-------------
+  docs/experiments/exp-restore-c88cc05-baseline/EXP-WRPC-STEP2-DCO-RESTORE-20260819.md | 95 ++++++++++++--
+  3 files changed, 146 insertions(+), 118 deletions(-)
+
+Command:
+  git diff --name-status 054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00 fb8c926cfe37b82e86300117181a6ac01e1889e2
+
+Output:
+  M STATUS.md
+  M docs/MERGE_READINESS.md
+  M docs/experiments/exp-restore-c88cc05-baseline/EXP-WRPC-STEP2-DCO-RESTORE-20260819.md
+
+Interpretation:
+  No Quartus, generated-IP, firmware, vendor, or script build input changed
+  between the two commits. The Step 3 frozen package therefore preserves the
+  historical Step 3 build inputs while retaining the independently verified
+  path relocations used by the Step 2 clean rebuild. This comparison does not
+  claim that the old Step 3 SOF bytes are identical to the new rebuild.

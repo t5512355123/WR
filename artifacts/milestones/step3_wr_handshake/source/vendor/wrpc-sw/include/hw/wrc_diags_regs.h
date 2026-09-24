@@ -1,0 +1,236 @@
+#ifndef __CHEBY__WRC_DIAGS__H__
+#define __CHEBY__WRC_DIAGS__H__
+#define WRC_DIAGS_SIZE 140 /* 0x8c */
+
+/* Version register */
+#define WRC_DIAGS_VER 0x0UL
+#define WRC_DIAGS_VER_ID_MASK 0xffffffffUL
+#define WRC_DIAGS_VER_ID_SHIFT 0
+
+/* Ctrl */
+#define WRC_DIAGS_CTRL 0x4UL
+#define WRC_DIAGS_CTRL_DATA_VALID 0x1UL
+#define WRC_DIAGS_CTRL_DATA_SNAPSHOT 0x100UL
+
+/* WRPC Diag: servo status */
+#define WRC_DIAGS_WDIAG_SSTAT 0x8UL
+#define WRC_DIAGS_WDIAG_SSTAT_WR_MODE 0x1UL
+#define WRC_DIAGS_WDIAG_SSTAT_SERVOSTATE_MASK 0xf00UL
+#define WRC_DIAGS_WDIAG_SSTAT_SERVOSTATE_SHIFT 8
+
+/* WRPC Diag: Port status */
+#define WRC_DIAGS_WDIAG_PSTAT 0xcUL
+#define WRC_DIAGS_WDIAG_PSTAT_LINK 0x1UL
+#define WRC_DIAGS_WDIAG_PSTAT_LOCKED 0x2UL
+
+/* WRPC Diag: PTP state */
+#define WRC_DIAGS_WDIAG_PTPSTAT 0x10UL
+#define WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_MASK 0xffUL
+#define WRC_DIAGS_WDIAG_PTPSTAT_PTPSTATE_SHIFT 0
+
+/* WRPC Diag: AUX state */
+#define WRC_DIAGS_WDIAG_ASTAT 0x14UL
+#define WRC_DIAGS_WDIAG_ASTAT_AUX_MASK 0xffUL
+#define WRC_DIAGS_WDIAG_ASTAT_AUX_SHIFT 0
+
+/* WRPC Diag: Tx PTP Frame cnts */
+#define WRC_DIAGS_WDIAG_TXFCNT 0x18UL
+
+/* WRPC Diag: Rx PTP Frame cnts */
+#define WRC_DIAGS_WDIAG_RXFCNT 0x1cUL
+
+/* WRPC Diag:local time [msb of s] */
+#define WRC_DIAGS_WDIAG_SEC_MSB 0x20UL
+
+/* WRPC Diag: local time [lsb of s] */
+#define WRC_DIAGS_WDIAG_SEC_LSB 0x24UL
+
+/* WRPC Diag: local time [ns] */
+#define WRC_DIAGS_WDIAG_NS 0x28UL
+
+/* WRPC Diag: Round trip (mu) [msb of ps] */
+#define WRC_DIAGS_WDIAG_MU_MSB 0x2cUL
+
+/* WRPC Diag: Round trip (mu) [lsb of ps] */
+#define WRC_DIAGS_WDIAG_MU_LSB 0x30UL
+
+/* WRPC Diag: Master-slave delay (dms) [msb of ps] */
+#define WRC_DIAGS_WDIAG_DMS_MSB 0x34UL
+
+/* WRPC Diag: Master-slave delay (dms) [lsb of ps] */
+#define WRC_DIAGS_WDIAG_DMS_LSB 0x38UL
+
+/* WRPC Diag: Total link asymmetry [ps] */
+#define WRC_DIAGS_WDIAG_ASYM 0x3cUL
+
+/* WRPC Diag: Clock offset (cko) [ps] */
+#define WRC_DIAGS_WDIAG_CKO 0x40UL
+
+/* WRPC Diag: Phase setpoint (setp) [ps] */
+#define WRC_DIAGS_WDIAG_SETP 0x44UL
+
+/* WRPC Diag: Update counter (ucnt) */
+#define WRC_DIAGS_WDIAG_UCNT 0x48UL
+
+/* WRPC Diag: Board temperature [C degree] */
+#define WRC_DIAGS_WDIAG_TEMP 0x4cUL
+
+/* WRPC Diag: Aux0 detailed clock status */
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT 0x50UL
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_PHASE_MASK 0xffffffUL
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_PHASE_SHIFT 0
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_MODE_MASK 0x3000000UL
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_MODE_SHIFT 24
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_ENABLED 0x4000000UL
+#define WRC_DIAGS_WDIAG_AUX0_DETAIL_STAT_LOCKED 0x8000000UL
+
+/* WRPC Diag: Aux1 detailed clock status */
+#define WRC_DIAGS_WDIAG_AUX1_DETAIL_STAT 0x54UL
+
+/* WRPC Diag: Aux2 detailed clock status */
+#define WRC_DIAGS_WDIAG_AUX2_DETAIL_STAT 0x58UL
+
+/* WRPC Diag: Aux3 detailed clock status */
+#define WRC_DIAGS_WDIAG_AUX3_DETAIL_STAT 0x5cUL
+
+/* WRPC Diag: RX Error count */
+#define WRC_DIAGS_WDIAG_RX_ERR_CNT 0x60UL
+
+/* WRPC Diag: Servo Up Timestamp (MSB) */
+#define WRC_DIAGS_WDIAG_SERVO_UPTIME_MSB 0x64UL
+
+/* WRPC Diag: Servo Up Timestamp (LSB) */
+#define WRC_DIAGS_WDIAG_SERVO_UPTIME_LSB 0x68UL
+
+/* WRPC Diag: Servo restart count */
+#define WRC_DIAGS_WDIAG_SERVO_RESTART_COUNT 0x6cUL
+
+/* WRPC Diag: Transceiver bitslide */
+#define WRC_DIAGS_WDIAG_BITSLIDE 0x70UL
+
+/* WRPC Diag: delta_Rx_M parameter from the link delay model */
+#define WRC_DIAGS_WDIAG_DELTA_RX_M 0x74UL
+
+/* WRPC Diag: delta_Rx_S parameter from the link delay model */
+#define WRC_DIAGS_WDIAG_DELTA_RX_S 0x78UL
+
+/* WRPC Diag: delta_Tx_M parameter from the link delay model */
+#define WRC_DIAGS_WDIAG_DELTA_TX_M 0x7cUL
+
+/* WRPC Diag: delta_Tx_S parameter from the link delay model */
+#define WRC_DIAGS_WDIAG_DELTA_TX_S 0x80UL
+
+/* WRPC Diag: SoftPLL Helper DAC value (HY) */
+#define WRC_DIAGS_WDIAG_SPLL_HY 0x84UL
+
+/* WRPC Diag: SoftPLL Main DAC value (MY) */
+#define WRC_DIAGS_WDIAG_SPLL_MY 0x88UL
+
+struct wrc_diags {
+  /* [0x0]: REG (rw) Version register */
+  uint32_t VER;
+
+  /* [0x4]: REG (rw) Ctrl */
+  uint32_t CTRL;
+
+  /* [0x8]: REG (ro) WRPC Diag: servo status */
+  uint32_t WDIAG_SSTAT;
+
+  /* [0xc]: REG (ro) WRPC Diag: Port status */
+  uint32_t WDIAG_PSTAT;
+
+  /* [0x10]: REG (ro) WRPC Diag: PTP state */
+  uint32_t WDIAG_PTPSTAT;
+
+  /* [0x14]: REG (ro) WRPC Diag: AUX state */
+  uint32_t WDIAG_ASTAT;
+
+  /* [0x18]: REG (ro) WRPC Diag: Tx PTP Frame cnts */
+  uint32_t WDIAG_TXFCNT;
+
+  /* [0x1c]: REG (ro) WRPC Diag: Rx PTP Frame cnts */
+  uint32_t WDIAG_RXFCNT;
+
+  /* [0x20]: REG (ro) WRPC Diag:local time [msb of s] */
+  uint32_t WDIAG_SEC_MSB;
+
+  /* [0x24]: REG (ro) WRPC Diag: local time [lsb of s] */
+  uint32_t WDIAG_SEC_LSB;
+
+  /* [0x28]: REG (ro) WRPC Diag: local time [ns] */
+  uint32_t WDIAG_NS;
+
+  /* [0x2c]: REG (ro) WRPC Diag: Round trip (mu) [msb of ps] */
+  uint32_t WDIAG_MU_MSB;
+
+  /* [0x30]: REG (ro) WRPC Diag: Round trip (mu) [lsb of ps] */
+  uint32_t WDIAG_MU_LSB;
+
+  /* [0x34]: REG (ro) WRPC Diag: Master-slave delay (dms) [msb of ps] */
+  uint32_t WDIAG_DMS_MSB;
+
+  /* [0x38]: REG (ro) WRPC Diag: Master-slave delay (dms) [lsb of ps] */
+  uint32_t WDIAG_DMS_LSB;
+
+  /* [0x3c]: REG (ro) WRPC Diag: Total link asymmetry [ps] */
+  uint32_t WDIAG_ASYM;
+
+  /* [0x40]: REG (ro) WRPC Diag: Clock offset (cko) [ps] */
+  uint32_t WDIAG_CKO;
+
+  /* [0x44]: REG (ro) WRPC Diag: Phase setpoint (setp) [ps] */
+  uint32_t WDIAG_SETP;
+
+  /* [0x48]: REG (ro) WRPC Diag: Update counter (ucnt) */
+  uint32_t WDIAG_UCNT;
+
+  /* [0x4c]: REG (ro) WRPC Diag: Board temperature [C degree] */
+  uint32_t WDIAG_TEMP;
+
+  /* [0x50]: REG (ro) WRPC Diag: Aux0 detailed clock status */
+  uint32_t WDIAG_AUX0_DETAIL_STAT;
+
+  /* [0x54]: REG (ro) WRPC Diag: Aux1 detailed clock status */
+  uint32_t WDIAG_AUX1_DETAIL_STAT;
+
+  /* [0x58]: REG (ro) WRPC Diag: Aux2 detailed clock status */
+  uint32_t WDIAG_AUX2_DETAIL_STAT;
+
+  /* [0x5c]: REG (ro) WRPC Diag: Aux3 detailed clock status */
+  uint32_t WDIAG_AUX3_DETAIL_STAT;
+
+  /* [0x60]: REG (ro) WRPC Diag: RX Error count */
+  uint32_t WDIAG_RX_ERR_CNT;
+
+  /* [0x64]: REG (ro) WRPC Diag: Servo Up Timestamp (MSB) */
+  uint32_t WDIAG_SERVO_UPTIME_MSB;
+
+  /* [0x68]: REG (ro) WRPC Diag: Servo Up Timestamp (LSB) */
+  uint32_t WDIAG_SERVO_UPTIME_LSB;
+
+  /* [0x6c]: REG (ro) WRPC Diag: Servo restart count */
+  uint32_t WDIAG_SERVO_RESTART_COUNT;
+
+  /* [0x70]: REG (ro) WRPC Diag: Transceiver bitslide */
+  uint32_t WDIAG_BITSLIDE;
+
+  /* [0x74]: REG (ro) WRPC Diag: delta_Rx_M parameter from the link delay model */
+  uint32_t WDIAG_DELTA_RX_M;
+
+  /* [0x78]: REG (ro) WRPC Diag: delta_Rx_S parameter from the link delay model */
+  uint32_t WDIAG_DELTA_RX_S;
+
+  /* [0x7c]: REG (ro) WRPC Diag: delta_Tx_M parameter from the link delay model */
+  uint32_t WDIAG_DELTA_TX_M;
+
+  /* [0x80]: REG (ro) WRPC Diag: delta_Tx_S parameter from the link delay model */
+  uint32_t WDIAG_DELTA_TX_S;
+
+  /* [0x84]: REG (ro) WRPC Diag: SoftPLL Helper DAC value (HY) */
+  uint32_t WDIAG_SPLL_HY;
+
+  /* [0x88]: REG (ro) WRPC Diag: SoftPLL Main DAC value (MY) */
+  uint32_t WDIAG_SPLL_MY;
+};
+
+#endif /* __CHEBY__WRC_DIAGS__H__ */

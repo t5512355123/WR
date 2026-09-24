@@ -38,7 +38,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Step 1 PHY/link and Step 2 Endpoint/MiniNIC/PTP have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 3 is the next reproduction target. Earlier Step 5 / Step 6 functional experiment evidence exists, but their independent frozen-source milestone reproductions are still pending. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
+Step 1 PHY/link and Step 2 Endpoint/MiniNIC/PTP have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 3 WR handshake is currently being reproduced from a separate frozen candidate; it is not PASS until its own clean build, dual-board programming, and runtime validation complete. Earlier Step 5 / Step 6 functional experiment evidence exists, but their independent frozen-source milestone reproductions are still pending. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
 
 ## Reproduce the current validated Step 2 checkpoint
 

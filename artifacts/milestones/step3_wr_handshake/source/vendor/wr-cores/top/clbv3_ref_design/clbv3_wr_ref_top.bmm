@@ -1,0 +1,48 @@
+/* FILE : clbv3_wr_ref_top.bmm
+*  Define a BRAM map for the CPU memory.
+*  Note: *THE RAMLOOP ORDER WITHIN A BUS BLOCK IS VERY IMPORTANT!!!*
+*
+* Address space CPU memory
+* g_dpram_size = 131072/4 = 32768
+* This size is in 32 bit words => byte size = 4 * 32768 = 131072 bytes
+*
+****************************************************************************************/
+
+ADDRESS_SPACE wrpc_cpu_memory COMBINED [0x00000000:0x0001FFFF]
+  ADDRESS_RANGE RAMB32
+    BUS_BLOCK
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_7 [31:31] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_6 [30:30] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_5 [29:29] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_4 [28:28] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_3 [27:27] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_2 [26:26] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_1 [25:25] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram0_reg_0_0 [24:24] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_7 [23:23] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_6 [22:22] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_5 [21:21] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_4 [20:20] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_3 [19:19] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_2 [18:18] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_1 [17:17] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram1_reg_0_0 [16:16] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_7 [15:15] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_6 [14:14] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_5 [13:13] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_4 [12:12] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_3 [11:11] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_2 [10:10] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_1 [9:9] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram2_reg_0_0 [8:8] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_7 [7:7] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_6 [6:6] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_5 [5:5] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_4 [4:4] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_3 [3:3] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_2 [2:2] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_1 [1:1] [0:32767];
+      cmp_xwrc_board_clbv3/cmp_board_common/cmp_xwr_core/WRPC/U_CPU/U_iram/gen_splitram.U_RAM_SPLIT/ram3_reg_0_0 [0:0] [0:32767];
+    END_BUS_BLOCK;
+  END_ADDRESS_RANGE;
+END_ADDRESS_SPACE;

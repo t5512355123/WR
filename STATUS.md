@@ -8,7 +8,9 @@
   runtime-validated from its frozen source.
 - Step 2 Endpoint/MiniNIC/PTP: **PASS**, independently clean-built, programmed,
   and runtime-validated from its frozen source.
-- Step 3 WR handshake: **NOT REPRODUCED** as an independent frozen milestone.
+- Step 3 WR handshake: **IN PROGRESS — NOT YET PASS**. An audited frozen
+  candidate and reproduction plan are prepared; clean build/program/runtime
+  validation is pending.
 - Step 4 SoftPLL startup: **NOT REPRODUCED** as an independent frozen
   milestone.
 - Step 5 SoftPLL lock: historical 300-second functional evidence exists, but
@@ -17,7 +19,7 @@
   exists, but its independent frozen-source reproduction is **PENDING**.
 - Physical SMA/output edge-skew measurement: **NOT EVALUATED**.
 
-Current next target: Step 3, using its own audited historical JTAG source and
+Current target: finish Step 3 using its own audited historical JTAG source and
 acceptance criteria. Do not substitute a later-Step SOF for an earlier
 milestone. See [`MILESTONES.md`](MILESTONES.md) for hashes and evidence paths.
 

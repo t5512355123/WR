@@ -34,3 +34,4 @@
 *.log -text
 *.sha256 -text
 SHA256SUMS -text
+/experiments/repository-cleanup/EXP-REPO-ARTIFACTS-CONSOLIDATION-20260924/analysis/*.tsv -text

@@ -7,7 +7,7 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 EXP_ID=${1:?usage: run_step6_slave_rx_word_align_fresh_acquisition_v3.sh EXP-ID}
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
 QUARTUS_PGM=${QUARTUS_PGM:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm}
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 SLAVE_CABLE=${SLAVE_CABLE:-DE5 [1-11.2]}

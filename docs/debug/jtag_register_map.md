@@ -6,9 +6,9 @@
 
 文件的 source of truth 是目前 branch 內的：
 
-- `quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd`
-- `quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd`
-- `quartus/jtag_runtime_diag/wr_jtag_wb_mailbox.vhd`
+- `quartus/DE5a_wr_master_jtag.vhd`
+- `quartus/DE5a_wr_slave_jtag.vhd`
+- `quartus/wr_jtag_wb_mailbox.vhd`
 - `scripts/jtag/read_wb_runtime.tcl`
 - `vendor/wrpc-sw/lib/task-diags.c`
 - `vendor/wrpc-sw/dev/wdiags.c`

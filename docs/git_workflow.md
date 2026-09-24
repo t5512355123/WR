@@ -14,7 +14,7 @@ pain 的工作 clone 用於 Quartus 17 與韌體建置：
 
 `/home/b10504072/04_WR`
 
-舊專案與歷史建置資料已移至 `/home/b10504072/04_White_Rabbit_backups/` 保存，不是正式原始碼 checkout。SOF、MIF 與建置證據則保留在 pain `/home/b10504072/04_WR/artifacts/`。
+舊專案與歷史建置資料已移至 `/home/b10504072/04_White_Rabbit_backups/` 保存，不是正式原始碼 checkout。新實驗證據記錄在 repository 的 `experiments/`；只有已正式通過獨立驗證的 frozen milestone SOF 保存在 `artifacts/milestones/`。
 
 ## 分支規則
 
@@ -26,12 +26,12 @@ pain 的工作 clone 用於 Quartus 17 與韌體建置：
 ## 一般變更流程
 
 1. 從乾淨的本機 `main` 或明確命名的實驗分支開始。
-2. 進行一項範圍清楚的變更，並在 `docs/experiments/` 記錄原因。
+2. 進行一項範圍清楚的變更，並在 `experiments/stepX/EXP-.../` 記錄原因。
 3. 使用 repository script 在 pain 建置韌體與 Quartus project。
-4. 將輸出收集到新的 `artifacts/EXP-<id>/` 資料夾。
+4. 將輸出收集到新的 `experiments/stepX/EXP-<id>/raw/` 資料夾。
 5. 燒錄板卡前，記錄精確 Git commit、QSF/SDC/MIF/SOF hash、Quartus 版本與執行期結果。
 6. 將 commit push 到 GitHub，再讓 pain clone fast-forward 到相同 commit。
-7. 只燒錄實驗紀錄指定的 SOF。舊 SOF 與 log 保留在原本的 artifact 資料夾。
+7. 只燒錄實驗紀錄指定的 SOF。歷史 SOF 與 log 保留在對應的 legacy experiment evidence 中；不可將其誤作 current milestone。
 
 ## 建置身份
 

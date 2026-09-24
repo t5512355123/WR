@@ -13,7 +13,7 @@ if [ "$#" -lt 1 ]; then
 fi
 EXP_ID="$1"
 SOURCE_COMMIT=ec1f25e81e0eb8c2caee796d13a225eaae81e5f2
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
 QUARTUS_PGM=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 PYTHON=python3

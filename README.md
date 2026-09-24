@@ -27,7 +27,9 @@ flowchart LR
   SPPS --> SSMA[SMA_CLKOUT]
 ```
 
-The diagram is a functional overview, not a pin-level schematic. Each board runs the White Rabbit core and WRPC firmware; the Master and Slave roles use unique endpoint identities. QSFP-A lane 0 is the fixed inter-board WR data path. The DMTD / SoftPLL and SI5340/DCO form the local clock-control path. PPS is available at `SMA_CLKOUT`. JTAG Wishbone scripts are the runtime observability interface.
+The diagram is a functional overview, not a pin-level schematic. Each board runs the White Rabbit core and WRPC firmware; the Master and Slave roles use unique endpoint identities. QSFP-A lane 0 is the fixed inter-board WR Ethernet data path. The local reference clock feeds DMTD; SoftPLL uses DMTD phase measurements to control the SI5340-based DCO. The WR core's PPS output is routed to `SMA_CLKOUT`. A healthy PHY/link indication alone does not prove valid PTP time, PPS, SoftPLL lock, or global-time agreement.
+
+The current design uses the Arria 10 White Rabbit PHY and its required generated IP inputs. Master and Slave are separate JTAG Quartus projects with the top-level entities shown below. On Pain, the board cables are `DE5 [1-11.1]` for Master and `DE5 [1-11.2]` for Slave. Runtime status and Wishbone-register observation use the JTAG scripts under `scripts/jtag/`; the Step 1–6 dashboard is read-only.
 
 Canonical Quartus top-level entities:
 
@@ -71,7 +73,7 @@ Slave, using the wrappers in
 [Step 3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)
 for the exact verification boundary and limitations.
 
-## Current development source and build
+## Current development source, build, and programming
 
 The canonical JTAG projects are flattened directly under `quartus/`. The
 Quartus-generated PHY/IP inputs required by the build are under
@@ -80,12 +82,22 @@ Quartus-generated PHY/IP inputs required by the build are under
 `DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`; the obsolete RS422 and QSFP-B
 diagnostic projects are not current build options.
 
-On Pain, from the repository root, build firmware and the matching Quartus
-image for each board, then program the JTAG cable for that board:
+Use Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware
+toolchain recorded in the experiment provenance. From the repository root on
+Pain, build firmware, then clean-compile each canonical Quartus project:
 
 ```sh
-bash scripts/pain/pain_build_master.sh
-bash scripts/pain/pain_build_slave.sh
+bash firmware/scripts/build_master_firmware.sh
+bash scripts/build/build_master.sh
+bash firmware/scripts/build_slave_firmware.sh
+bash scripts/build/build_slave.sh
+```
+
+`QUARTUS_BIN` may be set to the installed Quartus `bin` directory; the default
+is `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`. Then program the matching JTAG
+images (use the programming order required by the experiment or milestone):
+
+```sh
 CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
 CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
@@ -103,6 +115,13 @@ source snapshot under that directory's `source/`. For example, the Step 3
 handshake pair is `artifacts/milestones/step3_wr_handshake/master.sof` and
 `slave.sof`.
 
+Run the live, read-only dashboard from the repository root with
+`bash scripts/monitor/step1_6_dashboard.sh`. It samples every 10 seconds by
+default. `WAIT_FOR_GLOBAL_TIME_SECONDS` is an optional maximum wait for all
+visible boards to satisfy the Step 1 and Step 6 gates; it is not a required
+fixed delay. On timeout, the observer prints each board's pending step, link,
+lock, time-valid, PPS-valid, and snapshot state.
+
 ## Source and evidence policy
 
 - Current development source is `quartus/`, `quartus_generated/`,
@@ -111,6 +130,8 @@ handshake pair is `artifacts/milestones/step3_wr_handshake/master.sof` and
   source. Do not edit it for ordinary development.
 - `experiments/stepX/EXP-.../` stores experiment plans, raw build/program
   evidence, runtime captures, analysis, reports, and checksums.
+- `experiments/legacy/` retains imported historical reports under their
+  original group layout; they are evidence, not current design instructions.
 - A milestone is PASS only after its own frozen source is clean-built,
   programmed on both DE5a boards, and passes that step's runtime criteria.
   Never use a later-step SOF to stand in for an earlier checkpoint.

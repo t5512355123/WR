@@ -15,7 +15,7 @@ fi
 EXP_ID="$1"
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 PYTHON=python3
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
 CAPTURE="$EXP_DIR/raw/observe/fallback_liveness.log"
 
 mkdir -p "$EXP_DIR/raw/observe" "$EXP_DIR/raw/program" "$EXP_DIR/analysis"

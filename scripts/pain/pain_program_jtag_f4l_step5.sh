@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 EXP_ID=${1:?usage: pain_program_jtag_f4l_step5.sh EXP-ID}
-EXP_DIR="$ROOT/docs/experiments/exp-step5-softpll-lock/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step5/$EXP_ID"
 QUARTUS_PGM=${QUARTUS_PGM:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm}
 SLAVE_CABLE=${SLAVE_CABLE:-DE5 [1-11.2]}
 MASTER_CABLE=${MASTER_CABLE:-DE5 [1-11.1]}

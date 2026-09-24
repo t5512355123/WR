@@ -9,12 +9,18 @@ fi
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repo=$(cd "$script_dir/../.." && pwd)
 raw=$2
-stage="$repo/artifacts/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/quartus/jtag_runtime_diag"
+stage="$repo/experiments/legacy/exp-step5-softpll-lock/exp-step5-frozen-fit-20260902/staging-88604a5-maintrace-run-20260902/quartus/jtag_runtime_diag"
 master="$stage/output_files_master_jtag/DE5a_wr_master_jtag.sof"
 slave="$stage/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
 pgm=/mnt/ds1515/opt/intelFPGA_pro/21.3/quartus/bin/quartus_pgm
 stp=/mnt/ds1515/opt/intelFPGA_pro/21.3/quartus/bin/quartus_stp
-[[ -x $pgm && -x $stp && -f $master && -f $slave ]]
+if [[ ! -f $master || ! -f $slave ]]; then
+  printf 'Historical frozen-fit SOF pair is not present in this checkout; no programming performed.\n' >&2
+  printf 'Required Master SHA256: 23bfdc100fa2b61aff3096754ebd99d61c1e1c1728be99cd5515204415c7dd0d\n' >&2
+  printf 'Required Slave SHA256:  04c7cb7ecca19be16eb9de022891a9c0143b2c6b62ce364d80db4e56508217fc\n' >&2
+  exit 3
+fi
+[[ -x $pgm && -x $stp ]]
 [[ $(sha256sum "$master" | cut -d ' ' -f1) == 23bfdc100fa2b61aff3096754ebd99d61c1e1c1728be99cd5515204415c7dd0d ]]
 [[ $(sha256sum "$slave" | cut -d ' ' -f1) == 04c7cb7ecca19be16eb9de022891a9c0143b2c6b62ce364d80db4e56508217fc ]]
 sudo -n -v

@@ -5,7 +5,7 @@
 目前 Step5 functional milestone 已依專案新判定成立：同一 coherent observer
 window 連續 300.321 秒同時看到 HPLL/Helper、Main frequency、Main phase 與
 `PSTAT.locked`。精確版本與 raw evidence 見
-[`docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
+[`experiments/legacy/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md`](../experiments/legacy/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/REPORT.md)。
 
 `TIMING_CLOSED=NO` 仍須保留在 release 說明；它不再阻止 functional Step5
 milestone。這一節只補充目前狀態，下面原有的 Step2 merge readiness 是歷史
@@ -52,7 +52,7 @@ TIMING_CLOSED           = NO (not a functional gate)
 - `read_wb_runtime.tcl` blob SHA-1：`dae2d85faebb479d57a1732b71d0a997147dd289`
 - `read_wb_timeseries_session.tcl` blob SHA-1：`2fd15298b748be97ca0e2811fa9e7afd28dedf36`
 
-完整燒錄輸出、compile log 與 JTAG raw log 位於 `docs/experiments/exp-restore-c88cc05-baseline/EXP-WRPC-STEP2-DCO-RESTORE-20260819.md` 所列的 pain artifact 路徑。
+完整燒錄輸出、compile log 與 JTAG raw log 位於 [`experiments/legacy/exp-restore-c88cc05-baseline/EXP-WRPC-STEP2-DCO-RESTORE-20260819.md`](../experiments/legacy/exp-restore-c88cc05-baseline/EXP-WRPC-STEP2-DCO-RESTORE-20260819.md) 所列的 Pain artifact 路徑。
 
 ## Step 2 acceptance
 

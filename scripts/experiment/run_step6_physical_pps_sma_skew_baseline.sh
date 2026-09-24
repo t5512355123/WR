@@ -20,7 +20,7 @@ esac
 
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 PYTHON=python3
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
 RAW_DIR="$EXP_DIR/raw/$PHASE"
 CAPTURE="$RAW_DIR/gate.log"
 SUMMARY="$EXP_DIR/analysis/${PHASE}-gate.json"

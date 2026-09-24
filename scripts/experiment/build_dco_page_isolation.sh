@@ -2,7 +2,7 @@
 # Run after laptop commit/push and pain pull. Never edit sources on pain.
 set -euo pipefail
 repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
-run="$repo/artifacts/EXP-WRPC-DCO-PAGE-ISOLATION-20260907"
+run="$repo/experiments/legacy/exp-step5-softpll-lock/EXP-WRPC-DCO-PAGE-ISOLATION-20260907"
 mkdir "$run"
 commit=$(git -C "$repo" rev-parse HEAD)
 printf 'SOURCE_COMMIT=%s\nSTARTED=%s\n' "$commit" "$(date -Is)" > "$run/identity.txt"

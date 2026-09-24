@@ -10,7 +10,7 @@ set -o pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 EXP_ID=${1:?usage: run_step6_master_last_exact_image_recovery_attribution.sh EXP-ID}
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
 QUARTUS_PGM=${QUARTUS_PGM:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm}
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 PYTHON=${PYTHON:-python3}

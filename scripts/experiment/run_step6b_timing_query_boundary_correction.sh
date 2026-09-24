@@ -10,8 +10,8 @@ QUARTUS_BIN=${QUARTUS_BIN:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin}
 QUARTUS_STA="$QUARTUS_BIN/quartus_sta"
 PYTHON=${PYTHON:-python3}
 EXP_ID=${1:-EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922}
-EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
-PREV_DIR="$ROOT/docs/experiments/exp-step6-global-time/EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922"
+EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
+PREV_DIR="$ROOT/experiments/legacy/exp-step6-global-time/EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922"
 TIMING_DIR="$EXP_DIR/raw/timing"
 
 mkdir -p "$TIMING_DIR" "$EXP_DIR/raw" "$EXP_DIR/analysis"

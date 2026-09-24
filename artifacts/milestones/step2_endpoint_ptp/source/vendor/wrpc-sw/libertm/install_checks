@@ -1,0 +1,32 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(readlink -f $(dirname "${BASH_SOURCE[0]}"))
+SERIAL_LINE=/dev/ttyUSB2
+
+# override default serial line if need be
+if [ x"$1" != x"" ] ; then
+	SERIAL_LINE="$1"
+fi
+
+# ensure existence of the serial line
+if ! [ -c "$SERIAL_LINE" ] ; then
+	echo "serial device $SERIAL_LINE not present, exiting" >&2
+	exit 1
+fi
+
+# ensure permissions on the serial line
+[ -r "$SERIAL_LINE" -a -w "$SERIAL_LINE" ] || chmod 777 "$SERIAL_LINE"
+
+# wrc.bin embedded firmware loading
+PYVENV=/user/dcobas/ertm14/py
+WRPC_SW=/user/dcobas/ertm14/devel/wrpc-sw
+BOOTLOADER=$WRPC_SW/tools/uart-bootloader/usb-bootloader.py
+SPEED=921600
+WRC_BIN=$WRPC_SW/wrc.bin
+CU_BIN=/user/dcobas/bin/cu
+
+# load wrc.bin firmware
+$PYVENV/bin/python3 $BOOTLOADER -b default -s $SPEED -p $SERIAL_LINE $WRC_BIN
+# watch boot develop, then exit cu serial interface
+(sleep 20 && echo '.') | $CU_BIN -l $SERIAL_LINE -s $SPEED -E ''
+

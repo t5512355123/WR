@@ -1,0 +1,6 @@
+QSF_ENTITY role=MASTER entity=DE5a_wr_master_jtag expected=DE5a_wr_master_jtag
+QSF_AUDIT role=MASTER file_assignments=277
+QSF_ENTITY role=SLAVE entity=DE5a_wr_slave_jtag expected=DE5a_wr_slave_jtag
+QSF_AUDIT role=SLAVE file_assignments=277
+QSF_AUDIT_BY_TYPE QIP_FILE=6 SDC_FILE=2 VERILOG_FILE=50 VHDL_FILE=496
+QSF_AUDIT_TOTAL file_assignments=554 missing=0

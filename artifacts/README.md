@@ -1,7 +1,16 @@
-# 實驗產物
+# Artifacts
 
-實驗 artifact 保留在 pain 建置伺服器，不放在 GitHub 原始碼 repository。pain 的 active checkout 將它們放在：
+`artifacts/milestones/stepX_*` contains promoted, frozen Step checkpoints.
+Each milestone keeps its human-readable README, freshly built Master/Slave
+SOFs, a top-level checksum file, and a complete independently buildable
+`source/` snapshot with its own `SHA256SUMS`.
 
-`/home/b10504072/04_WR/artifacts/EXP-<id>/`
+An artifact is promoted only after its own source has been clean-built,
+programmed on both DE5a boards, and passed that Step's runtime acceptance.
+Historical reports or a later Step's image are not substitutes.
 
-每個實驗資料夾應包含 `metadata.md`、精確的 SOF/MIF、相關 Quartus report、編譯 log，以及 probe/燒錄證據。GitHub repository 只保留本 README 與 metadata template，讓每個實驗都使用相同的紀錄格式。
+Experiment raw logs, build/program provenance, and analysis belong under
+`experiments/stepX/EXP-.../`, not in the milestone directory. Quartus databases
+and disposable build outputs are not archived as milestone source.
+
+See [`MILESTONES.md`](../MILESTONES.md) for the authoritative Step 1–6 index.

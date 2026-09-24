@@ -1,0 +1,37 @@
+STEP2_BUILD_PREFLIGHT
+2026-09-24T11:44:02+08:00
+pain
+947afd975924ffe32e3ffa9a180230bdc6e36751
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+riscv64-unknown-elf-gcc () 9.3.0
+GNU ld () 2.34
+703c8fc403700ca0033afc6cd659710d7ea7688321df727854a7dcb26b4a83c1  quartus/DE5a_wr_master_jtag.qsf
+43b73bcc03d03307a64b794706e6daf59ad3ad4a727aaf058603146a29876ce3  quartus/DE5a_wr_slave_jtag.qsf
+1) DE5 [1-11.1]
+2) DE5 [1-11.2]
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Sep 24 11:44:03 2026
+Info: Command: quartus_pgm -l
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 407 megabytes
+    Info: Processing ended: Thu Sep 24 11:44:03 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00

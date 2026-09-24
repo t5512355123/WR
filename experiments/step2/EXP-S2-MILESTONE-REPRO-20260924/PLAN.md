@@ -91,8 +91,6 @@ All build, program, and observation outputs go under this experiment's
 build, successful programming of both boards, and the full runtime acceptance
 above all pass.
 
-Until then:
-
-```text
-STEP2_MILESTONE = CANDIDATE_NOT_VALIDATED
-```
+The final verdict and promotion decision are recorded in `REPORT.md`. This
+plan remains the acceptance contract; invalid/retried frames are retained but
+never counted as accepted evidence.

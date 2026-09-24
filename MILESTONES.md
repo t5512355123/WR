@@ -1,0 +1,17 @@
+# White Rabbit milestone index
+
+Only a frozen source that has been clean-built, programmed, and runtime-
+validated on both DE5a boards is marked `PASS` here. Historical reports and
+SOF hashes are provenance; they do not replace reproduction evidence.
+
+| Step | Goal | Status | Canonical milestone path | Source commit | Master SOF SHA-256 | Slave SOF SHA-256 | Experiment evidence | Known limitations |
+|---:|---|---|---|---|---|---|---|---|
+| 1 | PHY / link | **PASS** | [`artifacts/milestones/step1_phy_link/`](artifacts/milestones/step1_phy_link/) | `b8d4c3d0526f0c2ca282600ef06648dd9f0af595` | `f2e2136e8159ba9135313536f1a641c0865dbf36f267e06ef7826e0363f8c07e` | `15997ca2dd2ea2597d7f25af5522afc0144219769450824c0a7e31526cd44112` | [`experiments/step1/EXP-S1-MILESTONE-REPRO-20260924/`](experiments/step1/EXP-S1-MILESTONE-REPRO-20260924/) | Does not claim endpoint/PTP or later-step behavior. |
+| 2 | Endpoint / MiniNIC / PTP | **PASS** | [`artifacts/milestones/step2_endpoint_ptp/`](artifacts/milestones/step2_endpoint_ptp/) | `054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00` | `891ba2ca901cf307edc92223f1115387895b64f20441d8c4adeb3994179548ee` | `fd4339f4d324d9b63cf60c3fb7e627abe6d6a3ff4f7f2e1df558f764ad5a270c` | [`experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/`](experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/) | Master time series had 20/30 accepted consistent rows; timing closure is not claimed or required. |
+| 3 | WR parent / signaling handshake | **NOT REPRODUCED** | `artifacts/milestones/step3_wr_handshake/` (pending) | Not selected | — | — | Historical candidate: `docs/experiments/exp-step3-wr-handshake/EXP-WRPC-STEP3-FRESH-HEAD-20260819.md` | Must prove parent data, `SLAVE_PRESENT`, `LOCK`, and WR locking entry without requiring SoftPLL lock. |
+| 4 | SoftPLL startup | **NOT REPRODUCED** | `artifacts/milestones/step4_softpll_startup/` (pending) | Not selected | — | — | Historical candidates under `docs/experiments/exp-step4-softpll-enable/` | Must prove startup/event chain; full Step 5 lock is not a Step 4 gate. |
+| 5 | SoftPLL full lock | **NOT REPRODUCED** (historical functional evidence exists) | `artifacts/milestones/step5_softpll_lock/` (pending) | Historical reference: `26e138fdc0bfc8426704b397141d563cf4d580a2` | Historical: `a2945df48fe86038fdff138f4b6368a777fa3df13f98ac9620fb30baa1ee0129` | Historical: `7462d94a521f52e7660295a6873de5141658fbf5392d90a4d4ade7d4e5f36f50` | `docs/experiments/exp-step5-softpll-lock/EXP-S5-MAIN-FREQ-THRESH20-PHASE-KI1-F4L-STABILITY-300S-20260920/` | Reproduction must freshly build/program and prove all required lock signals continuously for ≥300 s; timing closure is separate. |
+| 6 | Global time / dual-board scheduled trigger | **NOT REPRODUCED** (historical digital evidence exists) | `artifacts/milestones/step6_global_time/` (pending) | Historical reference: `74dc28862653d306e0450cf437ba6d3a230d979d` | Historical: `6521eb861051ce2fbe283269169992ecb88e093d734012a97500682d74329845` | Historical: `4775de6007af90e2049bcff573fa4173d843c4d84d25b88490c89a8635adc5ca` | `docs/experiments/exp-step6-global-time/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/` | Digital trigger evidence does not establish physical SMA/output-pin edge skew; that remains `NOT_EVALUATED`. |
+
+Current next target: independently reproduce Step 3 from its own frozen JTAG
+source. Do not use a later Step image to satisfy an earlier milestone.

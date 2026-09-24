@@ -63,7 +63,7 @@ JTAG capture are still pending on Pain.
 
 The reconstructed source snapshot contains 3,118 files in
 `candidate_source/SHA256SUMS`; that source-manifest SHA-256 is
-`690d79858232726492e906b8268aa279f3aa56174a4ce527dfe506815fd833ce`.
+`971d863f6171d2f6c496b197f84dc774e2d56d7495f874db2c815f0c00f5a96b`.
 
 ## Step1 acceptance contract
 

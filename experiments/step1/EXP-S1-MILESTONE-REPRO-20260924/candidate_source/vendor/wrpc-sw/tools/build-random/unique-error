@@ -1,0 +1,16 @@
+#!/bin/bash
+
+declare -A err
+
+
+for n in ko-build*; do
+    test -d $n || continue
+    file=$n/build
+    S=$(grep -wi error $file | sort | md5sum | awk '{print $1}')
+    err[$S]=$n
+done
+for n in ${err[*]}; do
+    echo "############################ $n"
+    file=$n/build
+    $HOW
+done

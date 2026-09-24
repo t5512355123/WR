@@ -43,6 +43,11 @@ bash scripts/build/build_slave.sh
 The build wrappers run Quartus clean/full compiles. They require both
 firmware-generated MIF files before Quartus compilation.
 
+The frozen snapshot preserves historical source bytes, including CRLF from the
+Windows checkout. Firmware builders normalize Kconfig and defconfig line
+endings only inside their disposable WRPC build workspaces; the frozen source
+tree is not modified by this compatibility step.
+
 ## Program and observe
 
 The historical Step 4B reproduction programmed Master, waited approximately

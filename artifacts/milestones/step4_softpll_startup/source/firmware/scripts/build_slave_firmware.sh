@@ -23,6 +23,11 @@ cp "$IDENTITY" "$WORK/boards/generic/de5a-identity.h"
 # Keep the build independent of executable-bit loss during source transfer.
 find "$WORK" -type f -name '*.sh' -exec chmod +x {} +
 
+# The frozen snapshot preserves the historical Windows checkout bytes. Normalize
+# Kconfig inputs only in this disposable build copy for Linux's Kconfig parser.
+find "$WORK" -type f \( -name 'Kconfig' -o -name 'Kconfig.*' -o -name '*_defconfig' \) \
+  -exec sed -i 's/\r$//' {} +
+
 # Use pain's compatible RV64 GNU tools through private RV32 command aliases.
 TOOLBIN="$WORK/.toolchain"
 mkdir -p "$TOOLBIN"

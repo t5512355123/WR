@@ -24,6 +24,11 @@ cp "$IDENTITY" "$WORK/boards/generic/de5a-identity.h"
 # WRPC makefiles execute these helper scripts during Kconfig generation.
 find "$WORK" -type f -name '*.sh' -exec chmod +x {} +
 
+# The frozen snapshot preserves the historical Windows checkout bytes. Normalize
+# Kconfig inputs only in this disposable build copy for Linux's Kconfig parser.
+find "$WORK" -type f \( -name 'Kconfig' -o -name 'Kconfig.*' -o -name '*_defconfig' \) \
+  -exec sed -i 's/\r$//' {} +
+
 # pain provides a RISC-V 64-bit GNU toolchain whose compiler accepts the
 # firmware's RV32IM/ilp32 flags. Provide private RV32 tool aliases only for
 # this build workspace; the vendored source is not changed.

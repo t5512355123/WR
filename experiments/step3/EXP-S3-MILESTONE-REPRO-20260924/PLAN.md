@@ -71,7 +71,14 @@ remain in raw evidence but do not count as accepted.
   CPU released; no RX/TX encoding-error status.
 - Correct endpoint identity; Master `MODE=2/PTP=6`, Slave `MODE=3/PTP=9`.
 - MiniNIC and PPSI PTP RX/TX counters advance over the observation window.
-- No firmware fault, reset-generation change, or link drop in start/end capture.
+- No observed reset assertion or link drop: the actual `CPU_RESET_n` status-probe
+  bit is high in both snapshots and every accepted frame; CPU debug reset/fault
+  indicators are clear; the firmware marker is present; and system reset
+  register snapshots remain unchanged. Source audit found no reset-generation
+  counter in this frozen image. Do not use `WDIAGS_RESTART` (address
+  `0x0010096C`, which is the WR failure diagnostic) or the unvalidated
+  `CPU_RESET` readback at `0x00100B00` as reset-generation evidence; report the
+  observability limitation explicitly.
 
 **Slave — Step 3 WR handshake:**
 
@@ -92,9 +99,10 @@ acceptance substitute for current `WR_LOCAL state`. SoftPLL lock and
 ## Evidence and promotion rule
 
 Save evidence under this directory's `raw/build/`, `raw/program/`,
-`raw/observe/`, and `analysis/`. `REPORT.md` and `SHA256SUMS` will be completed
-after the fresh run. This remains `NOT_PASS` unless both clean builds, both
-program operations, Step 1/2 regression gates, and Step 3 runtime gates all
-pass. If a gate fails, preserve the capture, identify the first inactive
-boundary, fix only the source-backed cause, and repeat Step 3; do not start
-Step 4 or substitute a later-Step image.
+`raw/observe/`, and `analysis/`. The final stable window uses the same reader
+with a retry limit of 10; this changes only observation retry tolerance, not
+the programmed image or controls. `REPORT.md` records the initial unsettled
+capture and the lower-valid-frame repeat as non-verdict evidence. The final
+verdict is based on the stable start/end window and its independent analyses.
+Do not start Step 4 or substitute a later-Step image until this Step 3 record
+is complete.

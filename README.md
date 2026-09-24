@@ -38,7 +38,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Step 1 PHY/link and Step 2 Endpoint/MiniNIC/PTP have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 3 WR handshake is currently being reproduced from a separate frozen candidate; it is not PASS until its own clean build, dual-board programming, and runtime validation complete. Earlier Step 5 / Step 6 functional experiment evidence exists, but their independent frozen-source milestone reproductions are still pending. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
+Step 1 PHY/link, Step 2 Endpoint/MiniNIC/PTP, and Step 3 WR parent/signaling handshake have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 3 PASS is limited to handshake acceptance; it does not claim SoftPLL lock or valid global time. Earlier Step 5 / Step 6 functional experiment evidence exists, but their independent frozen-source milestone reproductions are still pending. The authoritative status, source/SOF hashes, and evidence links are in [`STATUS.md`](STATUS.md) and [`MILESTONES.md`](MILESTONES.md).
 
 ## Reproduce the current validated Step 2 checkpoint
 
@@ -53,6 +53,23 @@ JTAG_CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
 
 The programming wrappers use the freshly built JTAG images in that frozen source directory. The validated order for this Step 2 reproduction was Master then Slave. Build success alone is not runtime validation; use the acceptance procedure in the milestone README and experiment report.
+
+## Reproduce the validated Step 3 checkpoint
+
+The exact Step 3 SOF files programmed and validated on 2026-09-24 are:
+
+- Master: [`artifacts/milestones/step3_wr_handshake/master.sof`](artifacts/milestones/step3_wr_handshake/master.sof)
+- Slave: [`artifacts/milestones/step3_wr_handshake/slave.sof`](artifacts/milestones/step3_wr_handshake/slave.sof)
+
+On Pain, the independent build outputs are under
+`artifacts/milestones/step3_wr_handshake/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof`
+and
+`artifacts/milestones/step3_wr_handshake/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`.
+Their SHA-256 hashes match the two files above. Program Master first, then
+Slave, using the wrappers in
+`artifacts/milestones/step3_wr_handshake/source/scripts/program/`. See the
+[Step 3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)
+for the exact verification boundary and limitations.
 
 ## Source and evidence layout
 

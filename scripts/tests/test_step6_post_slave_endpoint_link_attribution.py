@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "scripts" / "experiment" / "step6_post_slave_endpoint_link_attribution.py"
 SPEC = importlib.util.spec_from_file_location("step6_endpoint", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)

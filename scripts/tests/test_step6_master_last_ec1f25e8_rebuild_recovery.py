@@ -4,7 +4,7 @@ import importlib.util
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "scripts" / "analysis" / "step6_master_last_ec1f25e8_rebuild_recovery.py"
 SPEC = importlib.util.spec_from_file_location("step6_rebuild", MODULE_PATH)
 assert SPEC and SPEC.loader
@@ -109,4 +109,3 @@ if __name__ == "__main__":
     test_up_baseline_without_drop_is_not_pass()
     test_failed_baseline_stops_before_recovery()
     print("STEP6_EC1F25E8_REBUILD_OFFLINE_TESTS=PASS")
-

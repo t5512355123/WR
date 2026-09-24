@@ -21,12 +21,12 @@ TIMING_DIR="$EXP_DIR/raw/timing"
 PROGRAM_DIR="$EXP_DIR/raw/program"
 OBSERVE_DIR="$EXP_DIR/raw/observe"
 ANALYSIS_DIR="$EXP_DIR/analysis"
-MASTER_PROJECT="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qpf"
-SLAVE_PROJECT="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qpf"
+MASTER_PROJECT="$ROOT/quartus/DE5a_wr_master_jtag.qpf"
+SLAVE_PROJECT="$ROOT/quartus/DE5a_wr_slave_jtag.qpf"
 MASTER_REVISION=DE5a_wr_master_jtag
 SLAVE_REVISION=DE5a_wr_slave_jtag
-MASTER_SOF="$ROOT/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof"
-SLAVE_SOF="$ROOT/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
+MASTER_SOF="$ROOT/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof"
+SLAVE_SOF="$ROOT/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
 MASTER_MIF="$ROOT/build/firmware/master/wrc.mif"
 SLAVE_MIF="$ROOT/build/firmware/slave/wrc.mif"
 PREV_BUILD_DIR="$ROOT/docs/experiments/exp-step6-global-time/EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-20260922/raw/build"
@@ -80,12 +80,12 @@ printf 'MASTER_PROGRAM_COUNT=0\nSLAVE_PROGRAM_COUNT=0\nPOWER_CYCLE=0\n' \
   "$QUARTUS_BIN/quartus_sh" --version 2>&1 || true
   echo "QUARTUS_VERSION_END"
   for file in \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd" \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd" \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf" \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf" \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc" \
-    "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc" \
+    "$ROOT/quartus/DE5a_wr_master_jtag.vhd" \
+    "$ROOT/quartus/DE5a_wr_slave_jtag.vhd" \
+    "$ROOT/quartus/DE5a_wr_master_jtag.qsf" \
+    "$ROOT/quartus/DE5a_wr_slave_jtag.qsf" \
+    "$ROOT/quartus/DE5a_wr_master_jtag.sdc" \
+    "$ROOT/quartus/DE5a_wr_slave_jtag.sdc" \
     "$MASTER_MIF" "$SLAVE_MIF"; do
     if [ -f "$file" ]; then sha256sum "$file"; else echo "MISSING $file"; fi
   done
@@ -126,12 +126,12 @@ expected_source_commit=$(sed -n 's/^GIT_HEAD=//p' "$PREV_BUILD_DIR/source_identi
   echo "POSTFIT_TIMING_PROOF=PASS_STEP6B_POSTFIT_TIMING_PROVEN"
   echo "FILE HASH EXPECTED ACTUAL MATCH"
   for spec in \
-    "DE5a_wr_master_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd" \
-    "DE5a_wr_slave_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd" \
-    "DE5a_wr_master_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf" \
-    "DE5a_wr_slave_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf" \
-    "DE5a_wr_master_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc" \
-    "DE5a_wr_slave_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc"; do
+    "DE5a_wr_master_jtag.vhd|$ROOT/quartus/DE5a_wr_master_jtag.vhd" \
+    "DE5a_wr_slave_jtag.vhd|$ROOT/quartus/DE5a_wr_slave_jtag.vhd" \
+    "DE5a_wr_master_jtag.qsf|$ROOT/quartus/DE5a_wr_master_jtag.qsf" \
+    "DE5a_wr_slave_jtag.qsf|$ROOT/quartus/DE5a_wr_slave_jtag.qsf" \
+    "DE5a_wr_master_jtag.sdc|$ROOT/quartus/DE5a_wr_master_jtag.sdc" \
+    "DE5a_wr_slave_jtag.sdc|$ROOT/quartus/DE5a_wr_slave_jtag.sdc"; do
     base=${spec%%|*}
     file=${spec#*|}
     expected=$(expected_file_hash "$base")

@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 
 
 SCRIPT = (
@@ -11,6 +12,15 @@ TCL = (
     / "jtag"
     / "read_step6b_digital_scheduled_dual_board_trigger.tcl"
 )
+
+
+def _tcl_proc_body(text: str, proc_name: str) -> str:
+    """Return one Tcl proc without accidentally including later procedures."""
+    start = re.search(rf"(?m)^proc\s+{re.escape(proc_name)}\s+", text)
+    assert start is not None, f"missing Tcl procedure: {proc_name}"
+    next_proc = re.search(r"(?m)^proc\s+", text[start.end() :])
+    end = start.end() + next_proc.start() if next_proc else len(text)
+    return text[start.start() : end]
 
 
 def test_late_tail_runner_is_read_only() -> None:
@@ -26,8 +36,7 @@ def test_late_tail_runner_is_read_only() -> None:
 def test_late_tail_mode_has_no_write_or_restart_path() -> None:
     text = TCL.read_text(encoding="utf-8")
     assert "__S6A_LATE_TAIL__" in text
-    assert "proc s6a_late_tail_run" in text
-    late_tail = text.split("proc s6a_late_tail_run", 1)[1].split("proc s6b_run", 1)[0]
+    late_tail = _tcl_proc_body(text, "s6a_late_tail_run")
     assert "s6b_write_source" not in late_tail
     assert "s6b_restart_slave_ptp" not in late_tail
     assert "S6A_TAIL_RESULT" in late_tail

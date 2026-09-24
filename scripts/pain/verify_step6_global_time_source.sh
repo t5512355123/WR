@@ -5,10 +5,10 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 
 EXPECTED_COMMIT=${1:-}
-MASTER_VHDL="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd"
-SLAVE_VHDL="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd"
-MASTER_SDC="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc"
-SLAVE_SDC="$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc"
+MASTER_VHDL="$ROOT/quartus/DE5a_wr_master_jtag.vhd"
+SLAVE_VHDL="$ROOT/quartus/DE5a_wr_slave_jtag.vhd"
+MASTER_SDC="$ROOT/quartus/DE5a_wr_master_jtag.sdc"
+SLAVE_SDC="$ROOT/quartus/DE5a_wr_slave_jtag.sdc"
 
 test -s "$MASTER_VHDL"
 test -s "$SLAVE_VHDL"

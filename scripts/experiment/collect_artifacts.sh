@@ -14,11 +14,11 @@ for role in master slave; do
     test -f "$source_file" && cp -f "$source_file" "$DEST/${role}.$ext"
   done
 done
-test -f "$ROOT/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof" && \
-  cp -f "$ROOT/quartus/rs422_uart_diag/output_files_master_rs422/DE5a_wr_master_rs422.sof" "$DEST/master.sof"
-test -f "$ROOT/quartus/rs422_uart_diag/output_files_slave_rs422/DE5a_wr_slave_rs422.sof" && \
-  cp -f "$ROOT/quartus/rs422_uart_diag/output_files_slave_rs422/DE5a_wr_slave_rs422.sof" "$DEST/slave.sof"
-find "$ROOT/quartus/rs422_uart_diag" -maxdepth 3 -type f \( -name '*.sof' -o -name '*.rpt' -o -name '*.summary' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
+test -f "$ROOT/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" && \
+  cp -f "$ROOT/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" "$DEST/master.sof"
+test -f "$ROOT/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" && \
+  cp -f "$ROOT/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" "$DEST/slave.sof"
+find "$ROOT/quartus" -maxdepth 2 -type f \( -name '*.sof' -o -name '*.rpt' -o -name '*.summary' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
 {
   echo "experiment=$ID"
   echo "date=$(date -Is)"

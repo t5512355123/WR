@@ -16,11 +16,11 @@ grep -q 'PAGE_CONTRACT_TEST=PASS expected_fixed=1' "$run/simulation.log"
 export JOBS=8
 bash "$stage/firmware/scripts/build_master_firmware.sh" > "$run/firmware-master.log" 2>&1
 bash "$stage/firmware/scripts/build_slave_firmware.sh" > "$run/firmware-slave.log" 2>&1
-bash "$stage/scripts/build/build_jtag_master.sh" > "$run/compile-master.log" 2>&1
-bash "$stage/scripts/build/build_jtag_slave.sh" > "$run/compile-slave.log" 2>&1
-cp "$stage/build/build_info_jtag_master.txt" "$stage/build/build_info_jtag_slave.txt" "$run/"
-sha256sum "$stage/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
-  "$stage/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" > "$run/sof-sha256.txt"
+bash "$stage/scripts/build/build_master.sh" > "$run/compile-master.log" 2>&1
+bash "$stage/scripts/build/build_slave.sh" > "$run/compile-slave.log" 2>&1
+cp "$stage/build/build_info_master.txt" "$stage/build/build_info_slave.txt" "$run/"
+sha256sum "$stage/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
+  "$stage/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" > "$run/sof-sha256.txt"
 printf 'BUILD_COMPLETED=%s\n' "$(date -Is)" >> "$run/identity.txt"
 printf 'BUILD_SUCCESS run=%s\n' "$run"
 # Programming is deliberately separate: inspect simulation/build/timing first.

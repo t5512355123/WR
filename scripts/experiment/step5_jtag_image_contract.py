@@ -16,48 +16,48 @@ from typing import Any
 
 REQUIRED_FILES = (
     (
-        "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf",
+        "quartus/DE5a_wr_master_jtag.qsf",
         "VHDL_FILE wr_jtag_wb_mailbox.vhd",
         "Master JTAG QSF includes the mailbox source",
     ),
     (
-        "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf",
+        "quartus/DE5a_wr_slave_jtag.qsf",
         "VHDL_FILE wr_jtag_wb_mailbox.vhd",
         "Slave JTAG QSF includes the mailbox source",
     ),
     (
-        "quartus/jtag_runtime_diag/wr_jtag_wb_mailbox.vhd",
+        "quartus/wr_jtag_wb_mailbox.vhd",
         "sld_instance_index      => 1",
         "Mailbox is pinned to source/probe instance 1",
     ),
     (
-        "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd",
+        "quartus/DE5a_wr_master_jtag.vhd",
         "u_jtag_wb_mailbox",
         "Master top instantiates the mailbox",
     ),
     (
-        "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+        "quartus/DE5a_wr_slave_jtag.vhd",
         "u_jtag_wb_mailbox",
         "Slave top instantiates the mailbox",
     ),
     (
-        "scripts/build/build_jtag_master.sh",
-        'PROJECT_DIR="$ROOT/quartus/jtag_runtime_diag"',
+        "scripts/build/build_master.sh",
+        'PROJECT_DIR="$ROOT/quartus"',
         "Master build selects the JTAG runtime project",
     ),
     (
-        "scripts/build/build_jtag_slave.sh",
-        'PROJECT_DIR="$ROOT/quartus/jtag_runtime_diag"',
+        "scripts/build/build_slave.sh",
+        'PROJECT_DIR="$ROOT/quartus"',
         "Slave build selects the JTAG runtime project",
     ),
     (
-        "scripts/program/program_jtag_master.sh",
-        "jtag_runtime_diag/output_files_master_jtag",
+        "scripts/program/program_master.sh",
+        "quartus/output_files_master_jtag",
         "Master programmer selects the JTAG runtime SOF",
     ),
     (
-        "scripts/program/program_jtag_slave.sh",
-        "jtag_runtime_diag/output_files_slave_jtag",
+        "scripts/program/program_slave.sh",
+        "quartus/output_files_slave_jtag",
         "Slave programmer selects the JTAG runtime SOF",
     ),
 )
@@ -119,4 +119,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

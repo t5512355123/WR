@@ -76,10 +76,10 @@ def test_sequential_boards_without_shared_tai_are_inconclusive() -> None:
 
 
 def test_source_contract_is_observation_only_and_step6b_is_absent() -> None:
-    master = (ROOT / "quartus" / "jtag_runtime_diag" / "DE5a_wr_master_jtag.vhd").read_text(
+    master = (ROOT / "quartus" / "DE5a_wr_master_jtag.vhd").read_text(
         encoding="utf-8"
     )
-    slave = (ROOT / "quartus" / "jtag_runtime_diag" / "DE5a_wr_slave_jtag.vhd").read_text(
+    slave = (ROOT / "quartus" / "DE5a_wr_slave_jtag.vhd").read_text(
         encoding="utf-8"
     )
     for source in (master, slave):

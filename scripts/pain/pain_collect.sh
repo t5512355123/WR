@@ -8,7 +8,7 @@ mkdir -p "$DEST"
 for f in "$ROOT"/build/build_info_*.txt "$ROOT"/build/build_*_compile.log "$ROOT"/build/build_*.log; do
   test -f "$f" && cp -f "$f" "$DEST/"
 done
-find "$ROOT/quartus/rs422_uart_diag" -maxdepth 3 -type f \( -name '*.sof' -o -name '*.rpt' -o -name '*.summary' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
+find "$ROOT/quartus" -maxdepth 2 -type f \( -name '*.sof' -o -name '*.rpt' -o -name '*.summary' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
 find "$ROOT/build/firmware" -type f \( -name '*.mif' -o -name '*.elf' -o -name '*.bin' -o -name '*sha256*' \) -exec cp -f {} "$DEST/" \; 2>/dev/null || true
 {
   echo "experiment=$ID"

@@ -48,8 +48,8 @@ Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware toolchai
 cd artifacts/milestones/step2_endpoint_ptp/source
 bash scripts/build/build_master.sh
 bash scripts/build/build_slave.sh
-JTAG_CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
-JTAG_CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
+CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
 
 The programming wrappers use the freshly built JTAG images in that frozen source directory. The validated order for this Step 2 reproduction was Master then Slave. Build success alone is not runtime validation; use the acceptance procedure in the milestone README and experiment report.
@@ -71,13 +71,64 @@ Slave, using the wrappers in
 [Step 3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)
 for the exact verification boundary and limitations.
 
-## Source and evidence layout
+## Current development source and build
 
-The repository-wide source cleanup is in progress. The present working tree still has the JTAG projects nested under `quartus/jtag_runtime_diag/`, generated Quartus inputs under `generated/`, and the SI5340 controller under `rtl/clock/si5340_controller/`; these locations will be consolidated after the current milestone sequence. Do not use legacy/non-JTAG project paths for current development.
+The canonical JTAG projects are flattened directly under `quartus/`. The
+Quartus-generated PHY/IP inputs required by the build are under
+`quartus_generated/`, and the SI5340 controller RTL is under
+`quartus/si5340_controller/`. Current development uses only
+`DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`; the obsolete RS422 and QSFP-B
+diagnostic projects are not current build options.
 
-- `artifacts/milestones/stepX_*/source/` is a frozen, self-contained historical checkpoint. Do not edit it for ordinary development.
-- `experiments/stepX/EXP-.../` stores each experiment's plan, raw build/program logs, runtime captures, analysis, report, and checksums.
-- `firmware/`, `vendor/`, and `scripts/` are version-controlled inputs or tools; disposable Quartus databases and build outputs are not milestone source.
+On Pain, from the repository root, build firmware and the matching Quartus
+image for each board, then program the JTAG cable for that board:
+
+```sh
+bash scripts/pain/pain_build_master.sh
+bash scripts/pain/pain_build_slave.sh
+CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
+CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+```
+
+The freshly built current-development SOFs are:
+
+```text
+Master: quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
+Slave:  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+```
+
+These are not frozen milestone binaries. For a validated checkpoint, use the
+paired SOFs in `artifacts/milestones/stepX_*/` and the matching independent
+source snapshot under that directory's `source/`. For example, the Step 3
+handshake pair is `artifacts/milestones/step3_wr_handshake/master.sof` and
+`slave.sof`.
+
+## Source and evidence policy
+
+- Current development source is `quartus/`, `quartus_generated/`,
+  `firmware/`, `vendor/`, and `scripts/`.
+- `artifacts/milestones/stepX_*/source/` is frozen, self-contained historical
+  source. Do not edit it for ordinary development.
+- `experiments/stepX/EXP-.../` stores experiment plans, raw build/program
+  evidence, runtime captures, analysis, reports, and checksums.
+- A milestone is PASS only after its own frozen source is clean-built,
+  programmed on both DE5a boards, and passes that step's runtime criteria.
+  Never use a later-step SOF to stand in for an earlier checkpoint.
+- Record historical and rebuilt SOF hashes separately. Build success alone is
+  not runtime validation; report timing closure separately from functional
+  status.
+
+Repository directories:
+
+| Path | Purpose |
+|---|---|
+| `quartus/` | Current Master/Slave JTAG projects and project-owned RTL. |
+| `quartus_generated/` | Version-controlled Quartus/Qsys generated PHY/IP build inputs. |
+| `firmware/` | Master/Slave WRPC firmware configuration and build scripts. |
+| `vendor/` | Pinned White Rabbit RTL and firmware dependencies. |
+| `scripts/` | Build, program, JTAG, monitoring, analysis, and test tools. |
+| `experiments/` | Step-indexed research records and raw evidence. |
+| `artifacts/milestones/` | Frozen, independently reproducible step checkpoints. |
 
 Every milestone has its own source snapshot and is marked PASS only after that snapshot is clean-built, programmed on both DE5a boards, and passes its own runtime acceptance criteria. Never use a later-Step SOF to stand in for an earlier milestone. Historical SOF hash mismatches are recorded, not hidden. Timing closure is reported separately and is not silently inferred from functional PASS.
 

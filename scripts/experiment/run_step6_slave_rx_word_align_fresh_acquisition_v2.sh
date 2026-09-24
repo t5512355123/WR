@@ -11,7 +11,7 @@ EXP_DIR="$ROOT/docs/experiments/exp-step6-global-time/$EXP_ID"
 QUARTUS_PGM=${QUARTUS_PGM:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pgm}
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 SLAVE_CABLE=${SLAVE_CABLE:-DE5 [1-11.2]}
-SLAVE_SOF="$ROOT/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
+SLAVE_SOF="$ROOT/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
 EXPECTED_SOF_SHA256=7fefa7afae8bd2070276c94cd5caac73a0f3748139c609c6f4ab423a3680773e
 
 mkdir -p "$EXP_DIR/raw/program" "$EXP_DIR/raw/word-align"

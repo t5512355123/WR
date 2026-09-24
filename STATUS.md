@@ -21,12 +21,14 @@
   exists, but its independent frozen-source reproduction is **PENDING**.
 - Physical SMA/output edge-skew measurement: **NOT EVALUATED**.
 
-Current target: independently reproduce Step 4 using its own frozen JTAG source
-and acceptance criteria. Do not substitute a later-Step SOF for an earlier
-milestone. See [`MILESTONES.md`](MILESTONES.md) for hashes and evidence paths.
+Current source layout: canonical JTAG projects are flattened under `quartus/`,
+generated Quartus inputs are under `quartus_generated/`, SI5340 RTL is under
+`quartus/si5340_controller/`, and tests are consolidated under
+`scripts/tests/`. Historical experiment/document migration and the full stale-
+reference audit remain in progress.
 
-The repository-wide path/documentation cleanup is still in progress. Frozen
-sources under `artifacts/milestones/` are for reproduction and comparison, not
-for ordinary development. The current canonical JTAG design remains the only
-intended implementation; the eventual cleanup will consolidate its source
-paths and build/program interface.
+Next target: finish repository correctness and verify a clean build of the
+canonical JTAG source, then independently reproduce Step 4 using its own
+frozen source and acceptance criteria. Do not substitute a later-Step SOF for
+an earlier milestone. See [`MILESTONES.md`](MILESTONES.md) for hashes and
+evidence paths.

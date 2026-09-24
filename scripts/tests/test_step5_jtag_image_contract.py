@@ -23,7 +23,7 @@ def test_current_jtag_image_contract_passes() -> None:
 def test_missing_mailbox_contract_is_rejected() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
-        qsf = root / "quartus" / "jtag_runtime_diag"
+        qsf = root / "quartus"
         qsf.mkdir(parents=True)
         (qsf / "DE5a_wr_master_jtag.qsf").write_text(
             "set_global_assignment -name VHDL_FILE DE5a_wr_master_jtag.vhd\n",
@@ -39,4 +39,3 @@ def test_contract_audit_is_offline_only() -> None:
     assert result["hardware_inspected"] is False
     assert result["production_c_or_rtl_modified"] is False
     assert result["step5_pass"] is False
-

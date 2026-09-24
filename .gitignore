@@ -36,7 +36,7 @@ simulation/
 *.smsg
 
 # 正式實驗的原始證據需保留並提交至 GitHub。
-!docs/experiments/**/*.log
+!experiments/**/*.log
 
 # Generated files inside the vendored WRPC source tree
 vendor/wrpc-sw/wrc.*

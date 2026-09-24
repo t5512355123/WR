@@ -4,14 +4,14 @@ repo=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 out=$(mktemp -d "$repo/build/dco-liveness.XXXXXX")
 cd "$out"
 sources=( "$repo/scripts/experiment/tb_dco_liveness.sv" \
-  "$repo/quartus/jtag_runtime_diag/si5340a_controller_dco.v" \
-  "$repo/quartus/jtag_runtime_diag/i2c_bus_controller_dco.v" \
-  "$repo/quartus/jtag_runtime_diag/si5340a_i2c_reg_controller_dco.v" \
-  "$repo/rtl/clock/si5340_controller/initial_config.v" \
-  "$repo/rtl/clock/si5340_controller/clock_divider.v" \
-  "$repo/rtl/clock/si5340_controller/edge_detector.v" \
-  "$repo/rtl/clock/si5340_controller/si5340a_clk_frq_sel_gen.v" \
-  "$repo/rtl/clock/si5340_controller/si5340a_freq_prameter_selector.v" )
+  "$repo/quartus/si5340a_controller_dco.v" \
+  "$repo/quartus/i2c_bus_controller_dco.v" \
+  "$repo/quartus/si5340a_i2c_reg_controller_dco.v" \
+  "$repo/quartus/si5340_controller/initial_config.v" \
+  "$repo/quartus/si5340_controller/clock_divider.v" \
+  "$repo/quartus/si5340_controller/edge_detector.v" \
+  "$repo/quartus/si5340_controller/si5340a_clk_frq_sel_gen.v" \
+  "$repo/quartus/si5340_controller/si5340a_freq_prameter_selector.v" )
 
 if [[ -n ${IVERILOG_ROOT:-} ]]; then
   "$IVERILOG_ROOT/usr/bin/iverilog" -B "$IVERILOG_ROOT/usr/lib/x86_64-linux-gnu/ivl" \

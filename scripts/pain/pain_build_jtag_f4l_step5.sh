@@ -57,7 +57,7 @@ run_logged "$EXP_DIR/raw/build/firmware-master-build.log" \
         "$ROOT/scripts/jtag/read_step5_main_frequency_prelock_observability.tcl"
 } | tee "$EXP_DIR/raw/build/firmware-image-manifest.txt"
 
-pushd "$ROOT/quartus/jtag_runtime_diag" >/dev/null
+pushd "$ROOT/quartus" >/dev/null
 run_logged "$EXP_DIR/raw/build/quartus_slave_jtag_compile.log" \
     "$QUARTUS_SH" --flow compile DE5a_wr_slave_jtag
 run_logged "$EXP_DIR/raw/build/quartus_master_jtag_compile.log" \

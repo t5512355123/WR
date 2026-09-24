@@ -21,10 +21,10 @@ SOURCE_FILES = [
     "vendor/wrpc-sw/softpll/softpll_ng.c",
     "vendor/wrpc-sw/lib/task-diags.c",
     "vendor/wrpc-sw/dev/wdiags.c",
-    "quartus/jtag_runtime_diag/si5340a_controller_dco.v",
-    "quartus/jtag_runtime_diag/i2c_bus_controller_dco.v",
-    "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd",
-    "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd",
+    "quartus/si5340a_controller_dco.v",
+    "quartus/i2c_bus_controller_dco.v",
+    "quartus/DE5a_wr_master_jtag.vhd",
+    "quartus/DE5a_wr_slave_jtag.vhd",
     "scripts/jtag/read_step5_coherent_closed_loop_trajectory_audit.tcl",
 ]
 
@@ -150,8 +150,8 @@ def source_hashes() -> Dict[str, Optional[str]]:
 
 def build_artifact_manifest() -> Dict[str, Any]:
     artifacts = {
-        "master_sof": "quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof",
-        "slave_sof": "quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof",
+        "master_sof": "quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof",
+        "slave_sof": "quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof",
     }
     return {
         name: {"path": path, "sha256_if_present": sha256_file(ROOT / path)}
@@ -183,10 +183,10 @@ def make_manifest(source_commit: Optional[str]) -> Dict[str, Any]:
             "helper": helper,
             "main": main,
             "slave_top_level": top_level_settings(
-                "quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd", "slave"
+                "quartus/DE5a_wr_slave_jtag.vhd", "slave"
             ),
             "master_top_level": top_level_settings(
-                "quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd", "master"
+                "quartus/DE5a_wr_master_jtag.vhd", "master"
             ),
         },
         "observer": {

@@ -4,13 +4,13 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT=$(cd "$SCRIPT_DIR/../.." && pwd)
 QUARTUS_BIN=${QUARTUS_BIN:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin}
-PROJECT_DIR="$ROOT/quartus/rs422_uart_diag"
-PROJECT=DE5a_wr_slave_rs422
+PROJECT_DIR="$ROOT/quartus"
+PROJECT=DE5a_wr_slave_jtag
 MIF="$ROOT/build/firmware/slave/wrc.mif"
 LOG="$ROOT/build/quartus_slave_compile.log"
-SOF="$PROJECT_DIR/output_files_slave_rs422/$PROJECT.sof"
-FIT_SUMMARY="$PROJECT_DIR/output_files_slave_rs422/$PROJECT.fit.summary"
-STA_RPT="$PROJECT_DIR/output_files_slave_rs422/$PROJECT.sta.rpt"
+SOF="$PROJECT_DIR/output_files_slave_jtag/$PROJECT.sof"
+FIT_SUMMARY="$PROJECT_DIR/output_files_slave_jtag/$PROJECT.fit.summary"
+STA_RPT="$PROJECT_DIR/output_files_slave_jtag/$PROJECT.sta.rpt"
 
 test -x "$QUARTUS_BIN/quartus_sh"
 test -f "$PROJECT_DIR/$PROJECT.qpf"
@@ -26,8 +26,10 @@ rm -f "$LOG"
   echo "GIT_BRANCH=$(git -C "$ROOT" branch --show-current 2>/dev/null || echo unknown)"
   "$QUARTUS_BIN/quartus_sh" --version 2>&1 | head -3
   sha256sum "$PROJECT_DIR/$PROJECT.qsf" "$PROJECT_DIR/$PROJECT.sdc" "$MIF"
-  echo "=== QUARTUS COMPILE ==="
+  echo "=== QUARTUS CLEAN ==="
   cd "$PROJECT_DIR"
+  "$QUARTUS_BIN/quartus_sh" --clean "$PROJECT.qpf"
+  echo "=== QUARTUS COMPILE ==="
   "$QUARTUS_BIN/quartus_sh" --flow compile "$PROJECT.qpf"
 ) > "$LOG" 2>&1 || { tail -80 "$LOG"; exit 1; }
 

@@ -15,7 +15,7 @@ QUARTUS_PGM=${QUARTUS_PGM:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_pg
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 PYTHON=${PYTHON:-python3}
 MASTER_CABLE=${MASTER_CABLE:-DE5 [1-11.1]}
-MASTER_SOF=${MASTER_SOF:-$ROOT/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof}
+MASTER_SOF=${MASTER_SOF:-$ROOT/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof}
 EXPECTED_MASTER_SOF_SHA256=568f08c974064bdd3e82f68e3f1ecb0ff6c8a2a8e5705bdcc15b5941d33173a3
 
 mkdir -p "$EXP_DIR/raw/preflight" "$EXP_DIR/raw/program" \

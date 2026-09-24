@@ -64,12 +64,12 @@ RUN_HEAD=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo UNKNOWN)
   echo "EXPECTED_BUILD_RECORD=$EXPECTED_BUILD"
   echo "FILE HASH EXPECTED ACTUAL MATCH"
   for spec in \
-    "DE5a_wr_master_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.vhd" \
-    "DE5a_wr_slave_jtag.vhd|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.vhd" \
-    "DE5a_wr_master_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qsf" \
-    "DE5a_wr_slave_jtag.qsf|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qsf" \
-    "DE5a_wr_master_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.sdc" \
-    "DE5a_wr_slave_jtag.sdc|$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.sdc"; do
+    "DE5a_wr_master_jtag.vhd|$ROOT/quartus/DE5a_wr_master_jtag.vhd" \
+    "DE5a_wr_slave_jtag.vhd|$ROOT/quartus/DE5a_wr_slave_jtag.vhd" \
+    "DE5a_wr_master_jtag.qsf|$ROOT/quartus/DE5a_wr_master_jtag.qsf" \
+    "DE5a_wr_slave_jtag.qsf|$ROOT/quartus/DE5a_wr_slave_jtag.qsf" \
+    "DE5a_wr_master_jtag.sdc|$ROOT/quartus/DE5a_wr_master_jtag.sdc" \
+    "DE5a_wr_slave_jtag.sdc|$ROOT/quartus/DE5a_wr_slave_jtag.sdc"; do
     base=${spec%%|*}
     file=${spec#*|}
     expected=$(expected_file_hash "$base")
@@ -82,8 +82,8 @@ RUN_HEAD=$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo UNKNOWN)
   for spec in \
     "MASTER_MIF_SHA256|$ROOT/build/firmware/master/wrc.mif|MASTER_MIF_SHA256" \
     "SLAVE_MIF_SHA256|$ROOT/build/firmware/slave/wrc.mif|SLAVE_MIF_SHA256" \
-    "MASTER_SOF_SHA256|$ROOT/quartus/jtag_runtime_diag/output_files_master_jtag/DE5a_wr_master_jtag.sof|MASTER_SOF_SHA256" \
-    "SLAVE_SOF_SHA256|$ROOT/quartus/jtag_runtime_diag/output_files_slave_jtag/DE5a_wr_slave_jtag.sof|SLAVE_SOF_SHA256"; do
+    "MASTER_SOF_SHA256|$ROOT/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof|MASTER_SOF_SHA256" \
+    "SLAVE_SOF_SHA256|$ROOT/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof|SLAVE_SOF_SHA256"; do
     IFS='|' read -r label file key <<< "$spec"
     expected=$(expected_result_hash "$key")
     actual=$(actual_hash "$file")
@@ -105,12 +105,12 @@ fi
 
 set +e
 "$QUARTUS_STA" -t "$ROOT/scripts/experiment/check_step6b_timing.tcl" \
-  "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_slave_jtag.qpf" \
+  "$ROOT/quartus/DE5a_wr_slave_jtag.qpf" \
   DE5a_wr_slave_jtag "$TIMING_DIR/slave_step6b_timing.txt" \
   > "$TIMING_DIR/slave_quartus_sta.log" 2>&1
 slave_rc=$?
 "$QUARTUS_STA" -t "$ROOT/scripts/experiment/check_step6b_timing.tcl" \
-  "$ROOT/quartus/jtag_runtime_diag/DE5a_wr_master_jtag.qpf" \
+  "$ROOT/quartus/DE5a_wr_master_jtag.qpf" \
   DE5a_wr_master_jtag "$TIMING_DIR/master_step6b_timing.txt" \
   > "$TIMING_DIR/master_quartus_sta.log" 2>&1
 master_rc=$?

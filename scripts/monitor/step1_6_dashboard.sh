@@ -184,6 +184,42 @@ all_boards_have_valid_global_time() {
   [[ "$board_count" -gt 0 ]]
 }
 
+global_time_wait_pending() {
+  local line board role step1_gate step2_gate step3_gate step4_gate step5_gate
+  local step5_result step6_gate link tm time_valid pps_valid snapshot_valid
+  local snapshot_stable tai cycles
+  local -a pending=()
+  for line in "$@"; do
+    if all_boards_have_valid_global_time "$line"; then
+      continue
+    fi
+    board=$(field_from_line board "$line")
+    role=$(field_from_line role "$line")
+    step1_gate=$(field_from_line Step1 "$line")
+    step2_gate=$(field_from_line Step2 "$line")
+    step3_gate=$(field_from_line Step3 "$line")
+    step4_gate=$(field_from_line Step4 "$line")
+    step5_gate=$(field_from_line Step5 "$line")
+    step5_result=$(field_from_line Step5Result "$line")
+    step6_gate=$(field_from_line Step6 "$line")
+    link=$(field_from_line Link "$line")
+    tm=$(field_from_line TM "$line")
+    time_valid=$(field_from_line TIME_VALID "$line")
+    pps_valid=$(field_from_line PPS_VALID "$line")
+    snapshot_valid=$(field_from_line SNAPSHOT_VALID "$line")
+    snapshot_stable=$(field_from_line SNAPSHOT_STABLE "$line")
+    tai=$(field_from_line TAI "$line")
+    cycles=$(field_from_line CYCLES "$line")
+    pending+=("${board}/${role}[S1=${step1_gate},S2=${step2_gate},S3=${step3_gate},S4=${step4_gate},S5=${step5_gate}/${step5_result},S6=${step6_gate},Link=${link},TM=${tm},TIME_VALID=${time_valid},PPS_VALID=${pps_valid},Snapshot=${snapshot_valid}/${snapshot_stable},TAI=${tai},Cycles=${cycles}]")
+  done
+  if [ "${#pending[@]}" -eq 0 ]; then
+    printf '%s' 'no-board-frames'
+  else
+    local IFS=';'
+    printf '%s' "${pending[*]}"
+  fi
+}
+
 TMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/wr-step1-6-dashboard.XXXXXX")
 trap 'rm -rf "$TMP_DIR"' EXIT INT TERM
 
@@ -207,17 +243,37 @@ while :; do
       board_lines+=("$line")
     done < <(grep '^DASHBOARD_BOARD ' "$raw" || true)
 
-    if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -eq 0 ] ||
-       [ "$quartus_rc" -ne 0 ] ||
-       all_boards_have_valid_global_time "${board_lines[@]}" ||
-       [ "$(date +%s)" -ge "$wait_deadline" ]; then
+    global_time_valid=0
+    if all_boards_have_valid_global_time "${board_lines[@]}"; then
+      global_time_valid=1
+    fi
+    now=$(date +%s)
+    if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ] &&
+       [ "$quartus_rc" -eq 0 ] &&
+       [ "$global_time_valid" -eq 0 ] &&
+       [ "$now" -ge "$wait_deadline" ]; then
+      elapsed=$((now - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS)))
+      printf 'GLOBAL_TIME_WAIT_TIMEOUT elapsed=%ss/%ss boards=%s reason=awaiting-step1-step6-gate pending=%s\n' \
+        "$elapsed" "$WAIT_FOR_GLOBAL_TIME_SECONDS" \
+        "${#board_lines[@]}" "$(global_time_wait_pending "${board_lines[@]}")" >&2
       break
     fi
 
-    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-step1-step6-gate\n' \
+    if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -eq 0 ] ||
+       [ "$quartus_rc" -ne 0 ] ||
+       [ "$global_time_valid" -eq 1 ] ||
+       [ "$now" -ge "$wait_deadline" ]; then
+      break
+    fi
+
+    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-step1-step6-gate pending=%s\n' \
       "$(( $(date +%s) - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS) ))" \
-      "$WAIT_FOR_GLOBAL_TIME_SECONDS" "${#board_lines[@]}" >&2
-    sleep "$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS"
+      "$WAIT_FOR_GLOBAL_TIME_SECONDS" "${#board_lines[@]}" \
+      "$(global_time_wait_pending "${board_lines[@]}")" >&2
+    remaining=$((wait_deadline - $(date +%s)))
+    sleep_for=$WAIT_FOR_GLOBAL_TIME_POLL_SECONDS
+    if [ "$remaining" -lt "$sleep_for" ]; then sleep_for=$remaining; fi
+    if [ "$sleep_for" -gt 0 ]; then sleep "$sleep_for"; fi
   done
 
   if [ "$CLEAR_SCREEN" = "1" ] && [ -t 1 ]; then

@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "scripts" / "analysis" / "step6_master_tx_comma_attribution.py"
 SPEC = importlib.util.spec_from_file_location("step6_comma", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)

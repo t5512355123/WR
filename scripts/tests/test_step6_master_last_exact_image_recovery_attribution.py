@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 MODULE_PATH = ROOT / "scripts" / "analysis" / "step6_master_last_exact_image_recovery_attribution.py"
 SPEC = importlib.util.spec_from_file_location("step6_master_last", MODULE_PATH)
 MODULE = importlib.util.module_from_spec(SPEC)

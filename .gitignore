@@ -61,3 +61,7 @@ artifacts/EXP-*/
 # Rebuilt milestone bitstreams are release artifacts and must be versioned.
 !artifacts/milestones/**/master.sof
 !artifacts/milestones/**/slave.sof
+
+# A historical source snapshot may contain a tracked upstream log that is
+# part of its recorded source tree; preserve such files inside frozen sources.
+!artifacts/milestones/**/source/**/*.log

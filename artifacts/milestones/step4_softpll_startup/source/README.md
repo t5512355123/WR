@@ -12,19 +12,23 @@ the Step 4 acceptance described in the milestone README.
 - `quartus_generated/work_wrphy_full/`: the historical generated PHY/IP input
   tree, relocated from `generated/work_wrphy_full/`.
 - `quartus/si5340_controller/`: the SI5340 controller RTL used by the two QSFs.
-- `firmware/`, `vendor/`, and `scripts/jtag/`: copied from the historical
-  source commit without functional edits.
+- `firmware/configs/`, `vendor/`, and `scripts/jtag/`: historical firmware
+  configuration, implementation, and runtime reader inputs.
 - `scripts/build/` and `scripts/program/`: the repository's JTAG-only
   reproducible build/program wrappers, adjusted for this package's root and
   carrying the source-origin marker in their build identity output.
+- The three `firmware/scripts/build_*_firmware.sh` orchestration wrappers use
+  `bash` explicitly and normalize Kconfig/defconfig line endings only in the
+  disposable Linux build workspace. They do not modify firmware source bytes.
 
 The two QSF files and two top-level VHDL files contain only the relative-path
 relocations needed by this layout. `experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/analysis/verify_frozen_source.py`
-normalizes those path changes and verifies every historical source file
-against its Git blob. The source files and wrappers are covered by
-`SOURCE_SHA256SUMS`; the verifier reports wrapper files separately because
-they are build/program infrastructure, not part of the historical hardware
-source commit. Verify package integrity from this directory with:
+normalizes those path changes and verifies historical HDL, firmware, vendor,
+and JTAG reader source files against their Git blobs. The three firmware build
+orchestration wrappers are reported separately because they are reproduction
+infrastructure, not firmware inputs. Every file, including wrappers, is
+covered by `SOURCE_SHA256SUMS`. Verify package integrity from this directory
+with:
 
 ```sh
 sha256sum -c SOURCE_SHA256SUMS

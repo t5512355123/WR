@@ -12,6 +12,11 @@ from pathlib import Path
 COMMIT = "a1980bff30231376a3182486fd786d906876c2d4"
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SOURCE_ROOT = REPO_ROOT / "artifacts" / "milestones" / "step4_softpll_startup" / "source"
+BUILD_WRAPPERS = {
+    "firmware/scripts/build_all_firmware.sh",
+    "firmware/scripts/build_master_firmware.sh",
+    "firmware/scripts/build_slave_firmware.sh",
+}
 
 
 def mapped_path(old: str) -> Path | None:
@@ -72,6 +77,7 @@ def main() -> int:
 
     checked = 0
     filter_fallbacks = 0
+    build_wrappers: list[tuple[str, str, str]] = []
     failures: list[str] = []
     for record in result.stdout.split(b"\0"):
         if not record:
@@ -88,6 +94,10 @@ def main() -> int:
             continue
         if not destination.is_file():
             failures.append(f"missing snapshot file {destination}")
+            continue
+        if old_path in BUILD_WRAPPERS:
+            current_sha256 = hashlib.sha256(destination.read_bytes()).hexdigest()
+            build_wrappers.append((old_path, expected_blob, current_sha256))
             continue
         normalized = reverse_path_relocation(old_path, destination.read_bytes())
         actual = git_blob_sha(normalized)
@@ -116,6 +126,12 @@ def main() -> int:
     print(f"HISTORICAL_SOURCE_FILES_CHECKED={checked}")
     print(f"HISTORICAL_SOURCE_MISMATCHES={len(failures)}")
     print(f"GIT_FILTER_FALLBACKS={filter_fallbacks}")
+    print(f"BUILD_WRAPPER_FILES_CHECKED={len(build_wrappers)}")
+    for path, historical_blob, current_sha256 in build_wrappers:
+        print(
+            f"BUILD_WRAPPER={path} HISTORICAL_GIT_BLOB={historical_blob} "
+            f"CURRENT_SHA256={current_sha256}"
+        )
     for failure in failures[:50]:
         print(f"FAIL: {failure}")
     print("FROZEN_SOURCE_IDENTITY=" + ("PASS" if checked and not failures else "FAIL"))

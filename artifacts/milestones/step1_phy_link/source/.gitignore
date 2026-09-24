@@ -1,0 +1,11 @@
+# Rebuildable firmware and Quartus outputs; milestone binaries are copied to
+# the official milestone root only after hardware acceptance passes.
+/build/
+/quartus/db/
+/quartus/incremental_db/
+/quartus/output_files_master_jtag/
+/quartus/output_files_slave_jtag/
+/quartus/*.qws
+__pycache__/
+*.py[cod]
+!vendor/wr-cores/ip_cores/etherbone-core/api/labview/LabVIEW/LV2009/lvEtherbone/test/myEtherbone.log

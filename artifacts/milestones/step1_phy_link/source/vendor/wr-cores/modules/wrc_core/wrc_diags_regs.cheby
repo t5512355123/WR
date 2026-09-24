@@ -1,0 +1,301 @@
+memory-map:
+  name: wrc_diags
+  description: WR Core Diagnostics
+  comment: Diagnostics information accessible via WR
+  bus: wb-32-be
+  x-wbgen:
+    hdl_entity: wrc_diags_wb
+    version: 1
+  schema-version:
+    core: 2.0.0
+    x-conversions: 1.0.0
+    x-driver-edge: 1.0.0
+    x-enums: 1.0.0
+    x-fesa: 2.0.0
+    x-gena: 2.0.0
+    x-hdl: 1.0.0
+    x-map-info: 1.0.0
+    x-wbgen: 1.0.0
+  children:
+  - reg:
+      name: VER
+      description: Version register
+      width: 32
+      access: rw
+      address: 0x0
+      children:
+      - field:
+          name: ID
+          description: Version identifier
+          range: 31-0
+          preset: 0x1
+          x-wbgen:
+            access_bus: READ_WRITE
+            access_dev: READ_ONLY
+            type: SLV
+  - reg:
+      name: CTRL
+      description: Ctrl
+      width: 32
+      access: rw
+      address: 0x4
+      children:
+      - field:
+          name: DATA_VALID
+          description: WR DIAG data valid
+          comment: '0: valid\n                     1:transcient'
+          range: 0
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: BIT
+      - field:
+          name: DATA_SNAPSHOT
+          description: WR DIAG data snapshot
+          comment: '1: snapshot data (data in registers will not change aveter VALID becomes true)'
+          range: 8
+          x-wbgen:
+            access_bus: READ_WRITE
+            access_dev: READ_ONLY
+            type: BIT
+  - reg:
+      name: WDIAG_SSTAT
+      description: 'WRPC Diag: servo status'
+      width: 32
+      access: ro
+      address: 0x8
+      children:
+      - field:
+          name: wr_mode
+          description: WR valid
+          comment: '0: not valid\n                     1:valid'
+          range: 0
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: BIT
+      - field:
+          name: servostate
+          description: Servo State
+          comment: '0: Uninitialized\n                     1: SYNC_NSEC\n                     2: SYNC_TAI\n                     3: SYNC_PHASE\n                     4: TRACK_PHASE\n                     5: WAIT_OFFSET_STABLE'
+          range: 11-8
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: SLV
+  - reg:
+      name: WDIAG_PSTAT
+      description: 'WRPC Diag: Port status'
+      width: 32
+      access: ro
+      address: 0xc
+      children:
+      - field:
+          name: link
+          description: Link Status
+          comment: '0: link down\n                     1: link up'
+          range: 0
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: BIT
+      - field:
+          name: locked
+          description: PLL Locked
+          comment: '0: not locked\n                     1: locked'
+          range: 1
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: BIT
+  - reg:
+      name: WDIAG_PTPSTAT
+      description: 'WRPC Diag: PTP state'
+      width: 32
+      access: ro
+      address: 0x10
+      children:
+      - field:
+          name: ptpstate
+          description: PTP State
+          comment: '0: NONE\n                     1: PPS_INITIALIZING\n                     2: PPS_FAULTY\n                     3: disabled\n                     4: PPS_LISTENING\n                     5: PPS_PRE_MASTER\n                     6: PPS_MASTER\n                     7: PPS_PASSIVE\n                     8: PPS_UNCALIBRATED\n                     9: PPS_SLAVE\n                     100-116: WR STATES\n                     see: ppsi/proto-ext-whiterabbit/wr-constants.h\n                          ppsi/include/ppsi/ieee1588_types.h'
+          range: 7-0
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: SLV
+  - reg:
+      name: WDIAG_ASTAT
+      description: 'WRPC Diag: AUX state'
+      width: 32
+      access: ro
+      address: 0x14
+      children:
+      - field:
+          name: aux
+          description: AUX channel
+          comment: 'A vector of bits, one bit per channel\n                     0: not valid\n                     1:valid'
+          range: 7-0
+          x-wbgen:
+            access_bus: READ_ONLY
+            access_dev: WRITE_ONLY
+            type: SLV
+  - reg:
+      name: WDIAG_TXFCNT
+      description: 'WRPC Diag: Tx PTP Frame cnts'
+      comment: Number of transmitted PTP Frames
+      width: 32
+      access: ro
+      address: 0x18
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_RXFCNT
+      description: 'WRPC Diag: Rx PTP Frame cnts'
+      comment: Number of received PTP Frames
+      width: 32
+      access: ro
+      address: 0x1c
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_SEC_MSB
+      description: 'WRPC Diag:local time [msb of s]'
+      comment: Local Time expressed in seconds since epoch (TAI)
+      width: 32
+      access: ro
+      address: 0x20
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_SEC_LSB
+      description: 'WRPC Diag: local time [lsb of s]'
+      comment: Local Time expressed in seconds since epoch (TAI)
+      width: 32
+      access: ro
+      address: 0x24
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_NS
+      description: 'WRPC Diag: local time [ns]'
+      comment: Nanoseconds part of the Local Time expressed in seconds since epoch (TAI)
+      width: 32
+      access: ro
+      address: 0x28
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_MU_MSB
+      description: 'WRPC Diag: Round trip (mu) [msb of ps]'
+      width: 32
+      access: ro
+      address: 0x2c
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_MU_LSB
+      description: 'WRPC Diag: Round trip (mu) [lsb of ps]'
+      width: 32
+      access: ro
+      address: 0x30
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_DMS_MSB
+      description: 'WRPC Diag: Master-slave delay (dms) [msb of ps]'
+      width: 32
+      access: ro
+      address: 0x34
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_DMS_LSB
+      description: 'WRPC Diag: Master-slave delay (dms) [lsb of ps]'
+      width: 32
+      access: ro
+      address: 0x38
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_ASYM
+      description: 'WRPC Diag: Total link asymmetry [ps]'
+      width: 32
+      access: ro
+      address: 0x3c
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_CKO
+      description: 'WRPC Diag: Clock offset (cko) [ps]'
+      width: 32
+      access: ro
+      address: 0x40
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_SETP
+      description: 'WRPC Diag: Phase setpoint (setp) [ps]'
+      width: 32
+      access: ro
+      address: 0x44
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_UCNT
+      description: 'WRPC Diag: Update counter (ucnt)'
+      width: 32
+      access: ro
+      address: 0x48
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV
+  - reg:
+      name: WDIAG_TEMP
+      description: 'WRPC Diag: Board temperature [C degree]'
+      width: 32
+      access: ro
+      address: 0x4c
+      x-wbgen:
+        access_bus: READ_ONLY
+        access_dev: WRITE_ONLY
+        field_description: Data
+        type: SLV

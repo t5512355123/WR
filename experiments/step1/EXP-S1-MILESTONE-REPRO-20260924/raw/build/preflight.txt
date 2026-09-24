@@ -1,0 +1,9 @@
+2026-09-24T10:26:56+08:00
+pain
+PAIN_REPOSITORY_HEAD=0d21ae848f4e767dffc487ed0b318768f63bc1d8
+## feat/file_cleanup
+?? experiments/step1/EXP-S1-MILESTONE-REPRO-20260924/raw/
+Quartus Prime Shell
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+971d863f6171d2f6c496b197f84dc774e2d56d7495f874db2c815f0c00f5a96b  candidate_source/SHA256SUMS

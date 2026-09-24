@@ -1,0 +1,4 @@
+STEP1_CAPTURE_SUMMARY sample_lines=720 malformed=0 read_failures=0
+STEP1_BOARD role=MASTER board='DE5 [1-11.1]' verdict=PASS samples=360 duration_ms=36684 gate_drops=[PHY_READY:0,TM_LINK_UP:0,CORE_LINK_OK:0,RX_READY:0,TX_READY:0,CPU_RESET_N:0,RX_LOCKED_TO_DATA:0] transient_error_samples=0 max_consecutive_error_samples=0
+STEP1_BOARD role=SLAVE board='DE5 [1-11.2]' verdict=PASS samples=360 duration_ms=36676 gate_drops=[PHY_READY:0,TM_LINK_UP:0,CORE_LINK_OK:0,RX_READY:0,TX_READY:0,CPU_RESET_N:0,RX_LOCKED_TO_DATA:0] transient_error_samples=0 max_consecutive_error_samples=0
+STEP1_OVERALL=PASS

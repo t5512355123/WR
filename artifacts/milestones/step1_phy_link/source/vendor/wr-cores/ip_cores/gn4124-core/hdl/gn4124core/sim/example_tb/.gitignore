@@ -1,0 +1,6 @@
+work/
+NullFile
+Makefile
+modelsim.ini
+transcript*
+*.wlf

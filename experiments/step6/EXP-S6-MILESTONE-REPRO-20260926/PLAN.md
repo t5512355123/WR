@@ -70,10 +70,24 @@ WR servo setpoint. The other three were sparse target-transition observations
 This indicates that the internal SoftPLL phase-shift state usually catches up
 to its requested target; it does not prove electrical clock-phase movement.
 
-Next, extend the same read-only F4L frame with its existing update ID, branch /
-flags, phase/frequency error, PI input, and PI output fields. Keep the current
-image and session, preserve the publication-epoch guard and servo-counter
-bracket, and make no production changes. Use that capture to distinguish a
-Main SoftPLL phase-loop response issue from a remaining WR timestamp/offset
-path issue. Step 6A/6B remain unpassed until their independent acceptance gates
-pass.
+The subsequent read-only F4L PI-response capture is complete. It collected 199
+rows, 193 counter-stable rows, and 110 adjacent servo-update pairs, with no
+counter conflicts, reset changes, Wishbone timeouts, or invalid reads. All 15
+joined F4L rows were Main phase-branch rows with the phase detector called,
+in-band and locked before/after, and a DAC write; none were clamped or VCO
+frozen. `TIME_VALID` remained 0 and no coherent CKO sample entered the 60 ps
+gate. This rules out a missing Main phase-branch invocation in the sampled
+interval, but does not prove electrical output-phase movement.
+
+A further read-only capture added the already-published raw round-trip delay
+(`MU`), corrected one-way delay (`DMS`), and asymmetry (`ASYM`) to the guarded
+servo observation. It is summarized in the reproduction report. Both captures
+remain descriptive: the current image/session is unchanged, and Step 6A/6B
+remain unpassed until their independent acceptance gates pass.
+
+Source audit located read-only SNMP GETs for the four WR fixed-latency values
+(`delta_txm`, `delta_rxm`, `delta_txs`, `delta_rxs`) in picoseconds. No DE5
+management IP is evidenced in the experiment records, so no guessed-address
+query or LAN scan is allowed. Next, verify the JTAG VUART path for the
+side-effect-free firmware command `ip get`, capture the active board address,
+and only then attempt bounded SNMP GETs if reachability is established.

@@ -269,20 +269,144 @@ Raw capture SHA-256:
 Analysis output:
 `analysis/slave-servo-f4l-phase-current-v1-20260927-summary.json`.
 
-The next read-only diagnostic will add existing F4L `update_id`, branch/flags,
-branch error, frequency error, PI input, and PI output to the same sparse
-publication-coherent frame. Preserve the servo-counter bracket, do not claim
-the cross-domain groups are atomic, and do not change or reprogram production
-logic. This should separate an internal Main SoftPLL loop-response issue from
-a WR timestamp/offset-path issue.
+The planned F4L branch/PI capture and a subsequent timestamp-delay input
+capture are now complete; findings follow.
+
+### Main SoftPLL PI-response follow-up (2026-09-27)
+
+The read-only F4L extension ran on the already-programmed Slave image/session.
+The observer/analyzer source was pushed through commit
+`861381610f44800db66746df2bfaf8749c5c961f`; no FPGA build, programming,
+reset, or register write occurred for this capture. A 12-second smoke passed
+with 20 rows, 19 coherent rows, 10 adjacent update pairs, three valid F4L
+frames, and zero timeout/invalid/reset events. The 120-second capture reported:
+
+```text
+SAMPLE_ROWS                         = 199
+READS_VALID                         = 199
+COUNTER_STABLE_ROWS                 = 193
+ADJACENT_UPDATE_PAIRS               = 110
+SKIPPED_SERVO_UPDATES               = 3
+SAME_COUNTER_PAYLOAD_CONFLICTS      = 0
+F4L_FRAMES_VALID                    = 23
+F4L_SERVO_COUNTER_MATCHES           = 15
+COHERENT_SAME-UPDATE-COMPARISONS    = 15
+MAIN_PHASE_BRANCH / DETECTOR CALLS  = 15 / 15
+PHASE_IN_BAND / LOCKED_BEFORE/AFTER = 15 / 15 / 15
+DAC_WRITES / CLAMPED / VCO_FROZEN   = 15 / 0 / 0
+CKO_PS                              = -3548 .. +2488
+COHERENT_ROWS_ABS_CKO_LT_60PS       = 0 / 193
+TIME_VALID                          = 0 / 199
+RESET_CHANGED                       = 0
+WISHBONE_TIMEOUTS / INVALID_READS   = 0 / 0
+```
+
+The Main phase-control branch was active in every joined F4L row; the capture
+does not support “the Main phase branch never runs” as the cause of the
+Slave's inactive Global Time. It also does not prove that the physical output
+clock followed the requested phase. Internal phase-shift current tracking and
+PI/DAC publication are telemetry, not an electrical phase measurement.
+
+Raw capture SHA-256:
+
+```text
+53f6559f5ad324200d7a6cc2a4a679c508c4865e757217129340ae04533432cb
+```
+
+Smoke capture SHA-256:
+
+```text
+2f75f1c62090260a6bddf312bd0c2397889073d4097d2d06bdacb8a0be0309dd
+```
+
+Analysis output: `analysis/slave-servo-f4l-pi-response-v1-20260927-summary.json`.
+
+### Servo timestamp-delay input follow-up (2026-09-27)
+
+The next read-only observer extension added existing `MU`, `DMS`, and `ASYM`
+diagnostics to the servo-counter-bracketed sample and retained sparse,
+publication-coherent F4L fields. It ran on the same programmed Slave session;
+no build, programming, reset, or register write occurred. The 12-second smoke
+completed with 18 rows, 15 coherent rows, nine adjacent update pairs, three
+valid F4L frames, and zero timeout/invalid/reset events. The 120-second capture
+produced:
+
+```text
+SAMPLE_ROWS                         = 181
+READS_VALID                         = 181
+COUNTER_STABLE_ROWS                 = 158
+ADJACENT_UPDATE_PAIRS               = 100
+SKIPPED_SERVO_UPDATES               = 7
+SAME_COUNTER_PAYLOAD_CONFLICTS      = 0
+SETPOINT_OFFSET_MATCHES             = 10 / 91 tests
+POST_ACTION_OFFSET_SAMPLES          = 9
+F4L_FRAMES_VALID                    = 23
+F4L_SERVO_COUNTER_MATCHES           = 21
+COHERENT F4L/SERVO ROWS             = 20
+MAIN PHASE BRANCH / DETECTOR / IN-BAND / LOCKED = 20 / 20 / 20 / 20
+DAC_WRITES / CLAMPED / VCO_FROZEN   = 20 / 0 / 0
+MU_RAW_RTT_PS                       = 360019 .. 368653
+DMS_CORRECTED_ONE_WAY_PS            = 176009 .. 180326
+ASYM_PS                             = 0 (all 158 coherent rows)
+DMS - ((MU >> 1) + ASYM)            = -4000 ps (158 / 158 rows)
+INFERRED T1_MINUS_T2_PS             = -180218 .. -175978
+CKO_PS                              = -3704 .. +2417
+COHERENT_ROWS_ABS_CKO_LT_60PS       = 0 / 158
+TIME_VALID                          = 0 / 181
+RESET_CHANGED                       = 0
+WISHBONE_TIMEOUTS / INVALID_READS   = 0 / 0
+```
+
+The constant -4000 ps difference is not, by itself, evidence of a bad
+calculation: source audit shows `MU` is formed from raw timestamp values,
+while `DMS` is the corrected one-way delay after timestamp calibration. The
+capture establishes that the corrected delay inputs are stable over this
+window. The inferred `T1-T2` term is -180.218 to -175.978 ns, while `CKO`
+itself is -3.704 to +2.417 ns and remains well outside the `<60 ps` gate. It
+does not establish whether the calibration values are correct or a causal
+relation between cross-domain snapshots; the separate telemetry groups are
+not atomic.
+
+Source audit found existing SNMP GET objects for the four fixed latency
+values. The MIB defines them as read-only `Integer32`; `snmp.c` returns
+`pp_time_to_picos()` values when the WR extension is active. Their numeric
+OIDs are:
+
+```text
+delta_txm  wrpcPtpDeltaTxM  1.3.6.1.4.1.96.101.1.5.14.0
+delta_rxm  wrpcPtpDeltaRxM  1.3.6.1.4.1.96.101.1.5.15.0
+delta_txs  wrpcPtpDeltaTxS  1.3.6.1.4.1.96.101.1.5.16.0
+delta_rxs  wrpcPtpDeltaRxS  1.3.6.1.4.1.96.101.1.5.17.0
+```
+
+No DE5 management IP is identified in the current Step6 experiment records
+examined. The IP literal `192.168.0.112` found there is documented as the
+Pain/NFS server, not a board; generic vendor Etherbone example addresses are
+not board evidence. No SNMP request has therefore been sent to an assumed or
+guessed address.
+
+Raw capture SHA-256:
+
+```text
+ece2c72da8865c38b187d71946ca8704fcb3259e70fd0211e9ee12ef9485d6b8
+```
+
+Smoke capture SHA-256:
+
+```text
+01f6730d7dfbd2f473872a5dab40dc085b1ad03929c4d31ea8c8a3a653e4c127
+```
+
+Analysis output: `analysis/slave-servo-delay-input-v1-20260927-summary.json`.
 
 ## Verification and retained evidence
 
 The frozen-source verifier reported `SOURCE_PACKAGE=PASS` with 3,214 manifest
 rows and zero missing or mismatched entries. The dashboard offline suite
-passed all 8 tests, the shell syntax check passed, `git diff --check` passed,
-and all 39 raw-file entries in `SHA256SUMS` verify. Build, programmer, dashboard,
-and JTAG observer logs are retained under `raw/`.
+passed all 8 tests; the Step6 servo-pair analysis suite passed all 6 tests;
+the shell syntax and `git diff --check` passed. All 43 raw-file entries in
+`SHA256SUMS` verify, including the four new smoke/full observer logs. Build,
+programmer, dashboard, and JTAG observer logs are retained under `raw/`.
 
 The current dashboard overlay edits are host-side only. They add the source-
 mapped WR servo state and signed phase offset to the Slave panel, correct the
@@ -293,11 +417,12 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-The next action is to extend the sparse read-only F4L capture with existing
-Main branch/error/PI fields and update identity, then repeat against the same
-programmed image without reset or reprogram. Keep the publication-epoch and
-servo-counter guards; do not treat these separate telemetry groups as atomic.
-Do not change the production servo until this distinguishes Main loop response
-from the WR timestamp/offset path. Keep Step 6A/Step 6B marked not passed until
-the Slave PTP servo produces valid stable snapshots and the same-PPS and
-scheduled-trigger gates are independently reproduced.
+Read the Slave's active IP using the existing read-only `ip get` firmware
+command over the JTAG virtual-UART path, after confirming the exact transport
+and reply-capture method. Then, only if that runtime address and SNMP
+reachability are verified, issue bounded SNMP GETs for the four OIDs above on
+both boards and correlate them with `MU`/`DMS`/`ASYM`. Do not scan the LAN or
+guess an address. Keep production controls unchanged. Step 6A/Step 6B remain
+not passed until the Slave produces valid stable Global-Time snapshots, the
+same-PPS gate passes, and the scheduled-trigger gate is independently
+reproduced.

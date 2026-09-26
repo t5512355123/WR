@@ -9,9 +9,8 @@ RUNNER = (
 )
 PLAN = (
     Path(__file__).parents[2]
-    / "docs"
     / "experiments"
-    / "exp-step6-global-time"
+    / "step6"
     / "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-LIVE-SESSION-20260922"
     / "PLAN.md"
 )

@@ -165,8 +165,17 @@ Run the live, read-only dashboard from the repository root with
 `bash scripts/monitor/step1_6_dashboard.sh`. It samples every 10 seconds by
 default. `WAIT_FOR_GLOBAL_TIME_SECONDS` is an optional maximum wait for all
 visible boards to satisfy the Step 1 and Step 6 gates; it is not a required
-fixed delay. On timeout, the observer prints each board's pending step, link,
-lock, time-valid, PPS-valid, and snapshot state.
+fixed delay. Its default is `0`, so a live dashboard displays the current
+state immediately. A value such as `120` is a host-side maximum selected by
+the caller—not an FPGA timeout and not a mandatory 120-second delay. If that
+maximum expires, the result is `INCOMPLETE`, not a hardware-failure verdict;
+the dashboard still prints the latest state. Continuous monitoring always
+shows each sample immediately and ignores this optional wait; use `ONCE=1`
+when deliberately requesting a one-shot readiness gate. On an invalid Slave
+Global-Time gate, the panel also shows the WR PTP servo state and signed phase
+offset. In `WAIT_OFFSET_STABLE`, the firmware withholds timing output until the offset is
+below its source-defined 60 ps threshold; Step 5 SoftPLL lock bits alone do
+not satisfy that separate Step 6 prerequisite.
 
 ## Source and evidence policy
 

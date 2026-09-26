@@ -45,9 +45,8 @@ def test_late_tail_mode_has_no_write_or_restart_path() -> None:
 def test_plan_forbids_programming_and_recovery_writes() -> None:
     plan = (
         Path(__file__).parents[2]
-        / "docs"
         / "experiments"
-        / "exp-step6-global-time"
+        / "step6"
         / "EXP-S6A-ACTIVE-EXTENSION-LATE-GLOBAL-TIME-TAIL-20260922"
         / "PLAN.md"
     ).read_text(encoding="utf-8")

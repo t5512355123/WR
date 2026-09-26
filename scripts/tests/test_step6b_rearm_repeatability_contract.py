@@ -6,9 +6,8 @@ TCL = ROOT / "scripts" / "jtag" / "read_step6b_rearm_repeatability.tcl"
 RUNNER = ROOT / "scripts" / "experiment" / "run_step6b_rearm_repeatability.sh"
 PLAN = (
     ROOT
-    / "docs"
     / "experiments"
-    / "exp-step6-global-time"
+    / "step6"
     / "EXP-S6B-DIGITAL-SCHEDULED-DUAL-BOARD-TRIGGER-REARM-REPEATABILITY-20260922"
     / "PLAN.md"
 )

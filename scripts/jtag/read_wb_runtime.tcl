@@ -852,6 +852,10 @@ proc collect_snapshot {board label} {
   put_snap $board $label wr_reject [wb_read_validated 0x00100A50]
   put_snap $board $label pstat [wb_read_validated 0x00100A0C]
   put_snap $board $label sstat [wb_read 0x00100A08]
+  # Source-mapped signed WRH clock offset used by the PTP servo's
+  # WAIT_OFFSET_STABLE gate (also read at 0x00100A40 by the Step 6
+  # attribution observer).
+  put_snap $board $label cko [wb_read 0x00100A40]
   put_snap $board $label sec_h [wb_read 0x00100A20]
   put_snap $board $label sec_l [wb_read 0x00100A24]
   put_snap $board $label ns [wb_read 0x00100A28]

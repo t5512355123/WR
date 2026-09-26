@@ -77,6 +77,27 @@ proc dashboard_lock_value {board label field low width} {
   return $value
 }
 
+proc dashboard_wr_servo_state_name {state} {
+  switch -- $state {
+    0 { return UNINITIALIZED }
+    1 { return SYNC_TAI }
+    2 { return SYNC_NSEC }
+    3 { return SYNC_PHASE }
+    4 { return TRACK_PHASE }
+    5 { return WAIT_OFFSET_STABLE }
+  }
+  return INVALID
+}
+
+proc dashboard_signed32 {raw} {
+  set value [word32 $raw]
+  if {$value < 0} { return INVALID }
+  if {$value >= 2147483648} {
+    return [expr {$value - 4294967296}]
+  }
+  return $value
+}
+
 proc dashboard_emit_board {board hardware_name global_sample} {
   set status_raw [get_snap $board after status]
   set role [expr {[string match "*1-11.1*" $hardware_name] ? "MASTER" : \
@@ -98,6 +119,8 @@ proc dashboard_emit_board {board hardware_name global_sample} {
   set main_freq "NA"
   set main_phase "NA"
   set pstat_lock "NA"
+  set wr_servo_state "NA"
+  set wr_servo_offset_ps "NA"
   if {$role eq "SLAVE"} {
     set helper_lock [dashboard_lock_value $board after spll_helper_state 0 1]
     set main_enabled [dashboard_lock_value $board after spll_main_state 0 1]
@@ -105,6 +128,9 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set main_freq [dashboard_lock_value $board after spll_main_state 2 1]
     set main_phase [dashboard_lock_value $board after spll_main_state 3 1]
     set pstat_lock [bit32 [get_snap $board after pstat] 1]
+    set servo_state_value [dashboard_lock_value $board after sstat 8 4]
+    set wr_servo_state [dashboard_wr_servo_state_name $servo_state_value]
+    set wr_servo_offset_ps [dashboard_signed32 [get_snap $board after cko]]
   }
 
   set status_time_valid [bit64_low $status_raw 4]
@@ -152,9 +178,10 @@ proc dashboard_emit_board {board hardware_name global_sample} {
                    $status_pps_valid == 1 ? "PASS" : "INFO"}]
 
   set board_label [dashboard_board_label $hardware_name]
-  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \
+  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s WR_SERVO_STATE=%s WR_SERVO_OFFSET_PS=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \
       $board_label $role $step1 $step2 $step3 $step4 $step5 $step6 \
       $helper_lock $main_freq $main_phase $main_locked $pstat_lock \
+      $wr_servo_state $wr_servo_offset_ps \
       $status_link_ok $status_tm_link $status_rx_ready $status_tx_ready \
       $status_time_valid $status_pps_valid $global_time_valid $global_pps_valid \
       $global_snapshot_valid $global_stable $global_snapshot_count \

@@ -42,6 +42,15 @@ if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ] &&
   exit 2
 fi
 
+# Continuous monitoring is for showing the current state, not gating it.
+# Restrict the optional readiness wait to explicit one-shot checks so an
+# inherited WAIT_FOR_GLOBAL_TIME_SECONDS cannot hide the live dashboard.
+if [ "$ONCE" != "1" ] && [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ]; then
+  printf 'DASHBOARD_NOTE live sampling is immediate; ignoring host-side wait=%ss (use ONCE=1 for a one-shot readiness gate)\n' \
+    "$WAIT_FOR_GLOBAL_TIME_SECONDS" >&2
+  WAIT_FOR_GLOBAL_TIME_SECONDS=0
+fi
+
 field_from_line() {
   local key="$1"
   local line="$2"
@@ -76,8 +85,18 @@ format_board() {
   local step6_gate="${field[Step6]:-INFO}"
   local link="${field[Link]:-0}"
   local tm="${field[TM]:-0}"
+  local wr_servo_state="${field[WR_SERVO_STATE]:-N/A}"
+  local wr_servo_offset_ps="${field[WR_SERVO_OFFSET_PS]:-N/A}"
+  local wr_servo_offset_display="$wr_servo_offset_ps ps"
   local global_state="WAITING"
   local global_reason="TIME_VALID=${time_valid}, PPS_VALID=${pps_valid}"
+  if [[ "$wr_servo_state" == "WAIT_OFFSET_STABLE" &&
+        "$wr_servo_offset_ps" =~ ^-?[0-9]+$ ]]; then
+    wr_servo_offset_display="${wr_servo_offset_ps} ps (target <60 ps)"
+    if [[ "$time_valid" != "1" ]]; then
+      global_reason="PTP servo offset not yet <60 ps"
+    fi
+  fi
   if [[ "$step1_gate" == "PASS" && "$step6_gate" == "PASS" ]]; then
     global_state="VALID"
     global_reason="PPS snapshot valid; Step6 gate passed"
@@ -110,6 +129,8 @@ format_board() {
   printf '| %-28s MainLock=%s  PSTAT=%s             |\n' "" \
     "${field[MainLock]:-N/A}" "${field[PSTAT]:-N/A}"
   printf '| %-28s %-27s |\n' "Global-Time reason" "$global_reason"
+  printf '| %-28s %-27s |\n' "WR PTP servo state" "$wr_servo_state"
+  printf '| %-28s %-27s |\n' "WR phase offset" "$wr_servo_offset_display"
   printf '| %-28s TIME_VALID=%s PPS_VALID=%s     |\n' "Global-Time validity" \
     "$time_valid" "$pps_valid"
   printf '| %-28s snapshot=%s stable=%s count=%s |\n' "Snapshot" \
@@ -253,7 +274,7 @@ while :; do
        [ "$global_time_valid" -eq 0 ] &&
        [ "$now" -ge "$wait_deadline" ]; then
       elapsed=$((now - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS)))
-      printf 'GLOBAL_TIME_WAIT_TIMEOUT elapsed=%ss/%ss boards=%s reason=awaiting-step1-step6-gate pending=%s\n' \
+      printf 'GLOBAL_TIME_WAIT_INCOMPLETE elapsed=%ss/%ss boards=%s reason=host-side-max pending=%s\n' \
         "$elapsed" "$WAIT_FOR_GLOBAL_TIME_SECONDS" \
         "${#board_lines[@]}" "$(global_time_wait_pending "${board_lines[@]}")" >&2
       break
@@ -266,7 +287,7 @@ while :; do
       break
     fi
 
-    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=awaiting-step1-step6-gate pending=%s\n' \
+    printf 'GLOBAL_TIME_WAIT elapsed=%ss/%ss boards=%s reason=host-side-max pending=%s\n' \
       "$(( $(date +%s) - (wait_deadline - WAIT_FOR_GLOBAL_TIME_SECONDS) ))" \
       "$WAIT_FOR_GLOBAL_TIME_SECONDS" "${#board_lines[@]}" \
       "$(global_time_wait_pending "${board_lines[@]}")" >&2
@@ -299,7 +320,7 @@ while :; do
     fi
     if [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ] &&
        ! all_boards_have_valid_global_time "${board_lines[@]}"; then
-      printf 'DASHBOARD_GLOBAL_TIME_WAIT_TIMEOUT seconds=%s\n' \
+      printf 'DASHBOARD_GLOBAL_TIME_WAIT_INCOMPLETE seconds=%s scope=host-only; hardware state is shown above\n' \
         "$WAIT_FOR_GLOBAL_TIME_SECONDS"
       exit 3
     fi

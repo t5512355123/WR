@@ -42,7 +42,7 @@ class ServoPhasePairAnalysisTests(unittest.TestCase):
         self.assertIn("read_only=1 wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertNotIn("wb_write ", source)
 
-    def test_delay_identity_and_inferred_timestamp_difference_are_reported(self) -> None:
+    def test_raw_and_corrected_delay_and_inferred_timestamp_are_reported(self) -> None:
         rows = [
             "S6_SERVO_PAIR_SAMPLE board=slave sample=0 READS_VALID=1 UCNT_AFTER=00000001 UCNT_BRACKET_STABLE=1 COHERENT=1 SERVO_STATE=5 MU_HI=00000000 MU_LO=000186A0 DMS_HI=00000000 DMS_LO=0000C738 ASYM_PS=1000 CKO_PS=400 SETP_PS=10 STATUS_TIME_VALID=0 RESET_CHANGED=0",
             "S6_SERVO_PAIR_SAMPLE board=slave sample=1 READS_VALID=1 UCNT_AFTER=00000002 UCNT_BRACKET_STABLE=1 COHERENT=1 SERVO_STATE=5 MU_HI=00000000 MU_LO=000186A0 DMS_HI=00000000 DMS_LO=0000C738 ASYM_PS=1000 CKO_PS=350 SETP_PS=20 STATUS_TIME_VALID=0 RESET_CHANGED=0",
@@ -53,8 +53,8 @@ class ServoPhasePairAnalysisTests(unittest.TestCase):
             path.write_text("\n".join(rows) + "\n", encoding="utf-8")
             result = ANALYZER.summarize(path)
 
-        self.assertEqual(result["dms_identity_rows"], 3)
-        self.assertEqual(result["dms_identity_error_values_ps"], [0, 0, 2])
+        self.assertEqual(result["dms_vs_raw_mean_rows"], 3)
+        self.assertEqual(result["dms_vs_raw_mean_values_ps"], [0, 0, 2])
         self.assertEqual(result["inferred_t1_minus_t2_rows"], 3)
         self.assertEqual(result["inferred_t1_minus_t2_min_ps"], -51152)
         self.assertEqual(result["inferred_t1_minus_t2_max_ps"], -50600)

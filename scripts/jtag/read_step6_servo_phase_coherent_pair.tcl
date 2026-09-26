@@ -209,6 +209,9 @@ proc s6_servo_reset_signature {entry reset} {
 
 proc s6_servo_capture {hardware_name sample elapsed_ms} {
   set ucnt_before [wb_read 0x00100A48]
+  # Source map: MU is rawDelayMM from raw PTP timestamps; DMS is the
+  # corrected delayMS used by the WR servo; ASYM is portDS delay asymmetry.
+  # These are separate firmware shadow words, not an atomic register frame.
   set mu_hi [wb_read 0x00100A2C]
   set mu_lo [wb_read 0x00100A30]
   set dms_hi [wb_read 0x00100A34]

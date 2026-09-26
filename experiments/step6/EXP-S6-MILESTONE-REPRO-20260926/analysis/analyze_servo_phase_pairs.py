@@ -82,7 +82,7 @@ def summarize(path: Path) -> dict[str, object]:
     mu_values: list[int] = []
     dms_values: list[int] = []
     asym_values: list[int] = []
-    dms_identity_errors: list[int] = []
+    dms_vs_raw_mean_deltas: list[int] = []
     inferred_timestamp_deltas: list[int] = []
     for row in coherent:
         mu = hex_u64_fields(row, "MU_HI", "MU_LO")
@@ -94,8 +94,9 @@ def summarize(path: Path) -> dict[str, object]:
             mu_values.append(mu)
             dms_values.append(dms)
             asym_values.append(asym)
-            # Source arithmetic uses delayMM_ps >> 1 before adding asymmetry.
-            dms_identity_errors.append(dms - ((mu >> 1) + asym))
+            # MU is rawDelayMM; DMS is corrected delayMS. Their difference
+            # includes timestamp-calibration effects and is not an identity.
+            dms_vs_raw_mean_deltas.append(dms - ((mu >> 1) + asym))
             if cko is not None:
                 # Source equation: CKO = (t1 - t2) + DMS. This inferred
                 # timestamp difference is descriptive, not an atomic pair.
@@ -259,10 +260,10 @@ def summarize(path: Path) -> dict[str, object]:
         "dms_ps_max": max(dms_values) if dms_values else None,
         "asym_ps_min": min(asym_values) if asym_values else None,
         "asym_ps_max": max(asym_values) if asym_values else None,
-        "dms_identity_rows": len(dms_identity_errors),
-        "dms_identity_error_min_ps": min(dms_identity_errors) if dms_identity_errors else None,
-        "dms_identity_error_max_ps": max(dms_identity_errors) if dms_identity_errors else None,
-        "dms_identity_error_values_ps": dms_identity_errors,
+        "dms_vs_raw_mean_rows": len(dms_vs_raw_mean_deltas),
+        "dms_vs_raw_mean_min_ps": min(dms_vs_raw_mean_deltas) if dms_vs_raw_mean_deltas else None,
+        "dms_vs_raw_mean_max_ps": max(dms_vs_raw_mean_deltas) if dms_vs_raw_mean_deltas else None,
+        "dms_vs_raw_mean_values_ps": dms_vs_raw_mean_deltas,
         "inferred_t1_minus_t2_rows": len(inferred_timestamp_deltas),
         "inferred_t1_minus_t2_min_ps": min(inferred_timestamp_deltas) if inferred_timestamp_deltas else None,
         "inferred_t1_minus_t2_max_ps": max(inferred_timestamp_deltas) if inferred_timestamp_deltas else None,

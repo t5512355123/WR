@@ -2388,7 +2388,7 @@ a7d6c71252dfe7cbff199516fcee34a7b5c7a7f4a7467d337592b692d4a94744  vendor/wrpc-sw
 054a945b8eef1d5a6d4d27e67c051bf87bbb2872031055eb8d05251d75f0b27c  vendor/wrpc-sw/dev/rxts_calibrator.c
 a4720c7653401ac06e9c5957046b847c362ef29417d4507a64d8363ae5a37366  vendor/wrpc-sw/dev/sdbfs.c
 efbbc7f501b027e5782eecfc2b66be674f0482a3594be458bf8fd95a769ddec6  vendor/wrpc-sw/dev/sensors.c
-2c617c94326973f81b264b460ca300ea938d739ba04a0e39496d1d2e092e3a04  vendor/wrpc-sw/dev/sfp.c
+b730099d8e9a4be15984800d94c809aad7f94284bf27f868a94277dbea07c772  vendor/wrpc-sw/dev/sfp.c
 fc5c60facd44d552dfa4b569741f04a7137c9ac50cf436d74a053490fa9fac5a  vendor/wrpc-sw/dev/si57x.c
 414231ce2dccf764232f88fe3c1092d003cdea8476256f626a910bb84b48c855  vendor/wrpc-sw/dev/simple_uart.c
 c476e9a94ee2252b13ff9beea25dd6593f3bc77aadb9d8b80b567605f6b01961  vendor/wrpc-sw/dev/spi_flash.c
@@ -2536,7 +2536,7 @@ fe524c74f2ad031327e02600f41cd7193f6c014f96d93bb8ad86d8db9bbe9fce  vendor/wrpc-sw
 84f38a7ded26d9cc1dea205de802d5018dfdddb4cb255916bb2799d7b133b850  vendor/wrpc-sw/include/revision.h
 c5dff462ff3ef7626a1a2332e50214d8b4372b867f8cfe269d1748b655ace5e3  vendor/wrpc-sw/include/sdb.h
 e720c7106cbb65ba7bd9acb3c095f632475afbf7b120e4dda44766c0ef7224b6  vendor/wrpc-sw/include/sensors.h
-5fab9b9f1ec73eeade5dfb7298ce552d20004831b0aed0041376c9cef5a42024  vendor/wrpc-sw/include/sfp.h
+9b5fc5ec8f750f18e7f1bb44e5a7791c1d85fac5918c538799c98b646b495ae7  vendor/wrpc-sw/include/sfp.h
 e6fac5c08c7d7b0b0eec252bd72293d38efd9acbc64604f9abac646fcba913d4  vendor/wrpc-sw/include/shell.h
 f5ca2578978a19e693fe286bfaef39b549fca4e1c8b0d8c28e19e18cb5ae4dc7  vendor/wrpc-sw/include/spll_defs.h
 b38d1d258176494234ce5c46ad9d4b9b0eadb97f5843a7ebf412296b9e59221e  vendor/wrpc-sw/include/std/inttypes.h
@@ -3048,7 +3048,7 @@ aa17b901580ff7c028d3f15baf0aacb3be3261b3dd2b7c4efda188f872a6365a  vendor/wrpc-sw
 9bcdf719c5249e4a894c73c7b4a90260275e9f90fc11db1a2e51d7751b088bb3  vendor/wrpc-sw/shell/cmd_ptrack.c
 50abeca491897367b3bb9c7270d9e28fc488a84ee4c1cd48c3f99ed729717bbd  vendor/wrpc-sw/shell/cmd_refresh.c
 07043d22117f5749f2d8cec11da981a99a8c0148dfc56c8afa7ebfa134beacbb  vendor/wrpc-sw/shell/cmd_sdb.c
-8d78990bd566e02f77b829b3ca76fe42ae679b5f4b72cfbd56274e8ad035be75  vendor/wrpc-sw/shell/cmd_sfp.c
+5ef7c573ab82c6039af89b8d498b74a83729ff220eb4003b0be183abe576fb47  vendor/wrpc-sw/shell/cmd_sfp.c
 c7c61a30520df9cb9d0bcd267ad1aaceffa83d8bbaf45a7d622a2a670a4f12b2  vendor/wrpc-sw/shell/cmd_sleep.c
 0fe2f9c5308d39e3ac3d2757b1245c50cc945b6d0569ebea81c00c4e5833c6ff  vendor/wrpc-sw/shell/cmd_stat.c
 a0524a93bc5a7fe1c8c70eac8af64c1b427c1bc476f6f3fd4429bd3f7ae25ab2  vendor/wrpc-sw/shell/cmd_time.c

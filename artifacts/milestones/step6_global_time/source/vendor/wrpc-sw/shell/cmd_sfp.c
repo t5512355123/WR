@@ -104,6 +104,20 @@ static void print_cached_sfp_params(void)
 		  sfp_info.sfp_in_db, sfp_info.sfp_params.pn,
 		  sfp_info.sfp_params.alpha, (int)sfp_info.sfp_params.dTx,
 		  (int)sfp_info.sfp_params.dRx);
+	if (sfp_info.sfp_header->id == SFP_ID_SFF8636_QSFP
+	    || sfp_info.sfp_header->id == SFP_ID_SFF8636_QSFP28) {
+		pp_printf("QSFP_CACHED_LOWER id=%02x format=SFF-8636 serial_id=upper_page_00\n",
+			  sfp_info.sfp_header->id);
+		memset(&lookup, 0, sizeof(lookup));
+		memcpy(lookup.pn, sfp_info.sfp_params.pn, SFP_PN_LEN);
+		lookup_status = storage_match_sfp(&lookup);
+		lookup_result = lookup_status > 0 ? "MATCH" :
+				lookup_status == 0 ? "NO_MATCH" : "ERROR";
+		pp_printf("QSFP_READONLY_DB_LOOKUP result=%s rc=%d pn=%.16s alpha=%Ld dTx=%d dRx=%d\n",
+			  lookup_result, lookup_status, lookup.pn, lookup.alpha,
+			  (int)lookup.dTx, (int)lookup.dRx);
+		return;
+	}
 	pp_printf("SFP_CACHED_HEADER pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d\n",
 		  sfp_info.sfp_header->vendor_pn,
 		  base_sum, header_bytes[63], base_sum == header_bytes[63],
@@ -124,37 +138,95 @@ static void print_cached_sfp_params(void)
 		  (int)lookup.dTx, (int)lookup.dRx);
 }
 
+static void print_raw_bytes(const char *label, const uint8_t *bytes,
+			    uint32_t size)
+{
+	uint32_t i;
+
+	for (i = 0; i < size; i += 16) {
+		uint32_t j;
+		pp_printf("%s %02x:", label, (unsigned int)i);
+		for (j = 0; j < 16 && i + j < size; ++j)
+			pp_printf(" %02x", bytes[i + j]);
+		pp_printf("\n");
+	}
+}
+
 /* Explicitly requested live EEPROM read. Data stays in this observer's local
  * buffer; the active cached header and calibration fields are not touched. */
 static void print_live_sfp_header(void)
 {
-	uint8_t header[sizeof(struct shw_sfp_header)];
-	struct shw_sfp_header *live_header =
-		(struct shw_sfp_header *)header;
-	uint32_t ack_mask = 0;
+	uint8_t lower[sizeof(struct shw_sfp_header)];
+	uint8_t upper[SFP_QSFP_SERIAL_ID_SIZE];
+	uint8_t page_select = 0xff;
+	uint32_t lower_ack = 0, page_ack = 0, upper_ack = 0;
 	uint8_t base_sum, ext_sum;
-	int ret, i;
+	struct s_sfpinfo lookup;
+	int ret, page_ret, upper_ret, lookup_status;
+	const char *lookup_result;
 
-	ret = sfp_read_header_diagnostic(header, &ack_mask);
+	ret = sfp_read_header_diagnostic(lower, &lower_ack);
 	pp_printf("SFP_LIVE_READ rc=%d ack_mask=%02x expected=07\n",
-		  ret, (unsigned int)ack_mask);
+		  ret, (unsigned int)lower_ack);
 	if (ret)
 		return;
 
-	base_sum = cached_sfp_checksum(header, 0, 63);
-	ext_sum = cached_sfp_checksum(header, 64, 95);
-	pp_printf("SFP_LIVE_HEADER pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d cached_equal=%d\n",
-		  live_header->vendor_pn,
-		  base_sum, header[63], base_sum == header[63],
-		  ext_sum, header[95], ext_sum == header[95],
-		  memcmp(header, sfp_info.sfp_header, sizeof(header)) == 0);
+	if (lower[0] == SFP_ID_SFF8636_QSFP
+	    || lower[0] == SFP_ID_SFF8636_QSFP28) {
+		page_ret = sfp_read_eeprom_diagnostic(SFP_QSFP_PAGE_SELECT,
+						      &page_select, 1, &page_ack);
+		pp_printf("QSFP_LIVE_PAGE_SELECT rc=%d value=%02x ack_mask=%02x expected=07\n",
+			  page_ret, page_select, (unsigned int)page_ack);
+		if (page_ret || page_select != 0) {
+			print_raw_bytes("QSFP_LIVE_LOWER_RAW", lower, sizeof(lower));
+			return;
+		}
 
-	for (i = 0; i < (int)sizeof(header); i += 16) {
-		int j;
-		pp_printf("SFP_LIVE_RAW %02x:", i);
-		for (j = 0; j < 16 && i + j < (int)sizeof(header); ++j)
-			pp_printf(" %02x", header[i + j]);
-		pp_printf("\n");
+		upper_ret = sfp_read_eeprom_diagnostic(SFP_QSFP_SERIAL_ID_START,
+						       upper,
+						       SFP_QSFP_SERIAL_ID_SIZE,
+						       &upper_ack);
+		pp_printf("QSFP_LIVE_SERIAL_READ rc=%d ack_mask=%02x expected=07\n",
+			  upper_ret, (unsigned int)upper_ack);
+		if (upper_ret) {
+			print_raw_bytes("QSFP_LIVE_LOWER_RAW", lower, sizeof(lower));
+			return;
+		}
+
+		base_sum = cached_sfp_checksum(upper, 0, 63);
+		ext_sum = cached_sfp_checksum(upper, 64, 95);
+		pp_printf("QSFP_LIVE_SERIAL id_lower=%02x id_upper=%02x pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d\n",
+			  lower[0], upper[0], &upper[SFP_QSFP_VENDOR_PN_OFFSET],
+			  base_sum, upper[63],
+			  upper[0] == lower[0] && base_sum == upper[63],
+			  ext_sum, upper[95], ext_sum == upper[95]);
+		if (upper[0] == lower[0] && base_sum == upper[63]
+		    && ext_sum == upper[95]) {
+			memset(&lookup, 0, sizeof(lookup));
+			memcpy(lookup.pn, &upper[SFP_QSFP_VENDOR_PN_OFFSET],
+			       SFP_PN_LEN);
+			lookup_status = storage_match_sfp(&lookup);
+			lookup_result = lookup_status > 0 ? "MATCH" :
+					lookup_status == 0 ? "NO_MATCH" : "ERROR";
+			pp_printf("QSFP_LIVE_DB_LOOKUP result=%s rc=%d pn=%.16s alpha=%Ld dTx=%d dRx=%d\n",
+				  lookup_result, lookup_status, lookup.pn,
+				  lookup.alpha, (int)lookup.dTx, (int)lookup.dRx);
+		} else {
+			pp_printf("QSFP_LIVE_DB_LOOKUP skipped=invalid_serial_id\n");
+		}
+		print_raw_bytes("QSFP_LIVE_LOWER_RAW", lower, sizeof(lower));
+		print_raw_bytes("QSFP_LIVE_SERIAL_RAW", upper, sizeof(upper));
+	} else {
+		struct shw_sfp_header *live_header =
+			(struct shw_sfp_header *)lower;
+		base_sum = cached_sfp_checksum(lower, 0, 63);
+		ext_sum = cached_sfp_checksum(lower, 64, 95);
+		pp_printf("SFP_LIVE_HEADER id=%02x pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d cached_equal=%d\n",
+			  live_header->id, live_header->vendor_pn,
+			  base_sum, lower[63], base_sum == lower[63],
+			  ext_sum, lower[95], ext_sum == lower[95],
+			  memcmp(lower, sfp_info.sfp_header, sizeof(lower)) == 0);
+		print_raw_bytes("SFP_LIVE_RAW", lower, sizeof(lower));
 	}
 }
 

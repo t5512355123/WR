@@ -118,13 +118,18 @@ class Step6IpVuartObserverTests(unittest.TestCase):
                   / "vendor" / "wrpc-sw" / "dev" / "sfp.c").read_text(encoding="utf-8")
         header = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
                   / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c").read_text(encoding="utf-8")
-        reader = source.split("int sfp_read_header_diagnostic", 1)[1].split(
-            "static void sfp_read_i2c", 1)[0]
+        reader = source.split("static int sfp_read_i2c_checked", 1)[1].split(
+            "int sfp_read_eeprom_diagnostic", 1)[0]
         self.assertIn("sfp_read_header_diagnostic", source)
         self.assertEqual(reader.count("bb_i2c_put_byte(dev,"), 3)
         self.assertEqual(reader.count("< 0)"), 3)
-        self.assertIn("memcmp(header, sfp_info.sfp_header", header)
-        self.assertIn('"SFP_LIVE_RAW %02x:"', header)
+        self.assertIn("SFF-8636 serial identification", source)
+        self.assertIn("SFP_QSFP_PAGE_SELECT", source)
+        self.assertIn("SFP_QSFP_SERIAL_ID_START", source)
+        self.assertIn("SFP_QSFP_VENDOR_PN_OFFSET", source)
+        self.assertIn("memcmp(lower, sfp_info.sfp_header", header)
+        self.assertIn('print_raw_bytes("QSFP_LIVE_SERIAL_RAW"', header)
+        self.assertIn("QSFP_LIVE_DB_LOOKUP skipped=invalid_serial_id", header)
         self.assertNotIn("sfp_info.sfp_params.", header.split(
             "static void print_live_sfp_header(void)", 1)[1].split(
             "static const char * const sfp_cmds", 1)[0])

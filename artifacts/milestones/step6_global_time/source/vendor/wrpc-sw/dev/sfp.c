@@ -41,44 +41,59 @@ static int sfp_present(void)
 	return !gen_gpio_in(&pin_sysc_sfp1_det);
 }
 
-int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask)
+static int sfp_read_i2c_checked(int addr, int start, uint8_t *buffer,
+				int size, uint32_t *ack_mask)
 {
 	const struct i2c_bus *dev = &dev_i2c_sfp1;
 	uint32_t ack = 0;
 	unsigned int i;
 	int ret = -EIO;
 
-	if (!header || !ack_mask)
+	if (!buffer || size <= 0 || start < 0 || start + size > 256)
 		return -EINVAL;
-	*ack_mask = 0;
-	if (!sfp_present())
-		return -ENODEV;
 
-	/* Keep this probe independent from the normal cached-header reader:
-	 * one standards-shaped random-read transaction, with every host-written
-	 * address/offset ACK checked before accepting any bytes. */
+	/* One random-read transaction. Check all three host-written bytes before
+	 * accepting data, and keep the EEPROM/page contents read-only. */
 	bb_i2c_init(dev);
 	bb_i2c_start(dev);
-	if (bb_i2c_put_byte(dev, I2C_SFP_ADDRESS << 1) < 0)
+	if (bb_i2c_put_byte(dev, addr << 1) < 0)
 		goto out;
 	ack |= 1u << 0;
-	if (bb_i2c_put_byte(dev, 0) < 0)
+	if (bb_i2c_put_byte(dev, start) < 0)
 		goto out;
 	ack |= 1u << 1;
 	bb_i2c_repeat_start(dev);
-	if (bb_i2c_put_byte(dev, (I2C_SFP_ADDRESS << 1) | BB_I2C_WRITE) < 0)
+	if (bb_i2c_put_byte(dev, (addr << 1) | BB_I2C_WRITE) < 0)
 		goto out;
 	ack |= 1u << 2;
 
-	for (i = 0; i < sizeof(struct shw_sfp_header); ++i)
-		bb_i2c_get_byte(dev, &header[i],
-				i == sizeof(struct shw_sfp_header) - 1);
+	for (i = 0; i < (unsigned int)size; ++i)
+		bb_i2c_get_byte(dev, &buffer[i], i == (unsigned int)size - 1);
 	ret = 0;
 
 out:
 	bb_i2c_stop(dev);
-	*ack_mask = ack;
+	if (ack_mask)
+		*ack_mask = ack;
 	return ret;
+}
+
+int sfp_read_eeprom_diagnostic(uint8_t start, uint8_t *buffer,
+			       uint32_t size, uint32_t *ack_mask)
+{
+	if (!buffer || !ack_mask || !size || size > 256u - start)
+		return -EINVAL;
+	*ack_mask = 0;
+	if (!sfp_present())
+		return -ENODEV;
+	return sfp_read_i2c_checked(I2C_SFP_ADDRESS, start, buffer,
+				    (int)size, ack_mask);
+}
+
+int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask)
+{
+	return sfp_read_eeprom_diagnostic(0, header,
+					  sizeof(struct shw_sfp_header), ack_mask);
 }
 
 static void sfp_read_i2c(int addr, uint8_t *mem, int start, int size)
@@ -145,38 +160,79 @@ int sfp_dom_update(void)
 
 int sfp_match(int force)
 {
+	struct s_sfpinfo matched;
+	uint8_t qsfp_page_select;
+	uint8_t qsfp_serial_id[SFP_QSFP_SERIAL_ID_SIZE];
+	int ret;
+	int match_result;
+
 	if (!force && !sfp_present()) {
 		return -ENODEV;
 	}
 
-	/* Read sfp header info from SFP */
-	sfp_read_i2c(I2C_SFP_ADDRESS, (uint8_t *)&sfp_header, 0,
-		     sizeof(struct shw_sfp_header));
-
-	if (verify_checksum((uint8_t *)&sfp_header, 0, 63)
-	    || verify_checksum((uint8_t *)&sfp_header, 64, 95)) {
-		/* Print error */
-		pp_printf("Wrong SFP checksum %s\n", "");
-		return -EIO;
+	ret = sfp_read_i2c_checked(I2C_SFP_ADDRESS, 0,
+				   (uint8_t *)&sfp_header, sizeof(sfp_header), NULL);
+	if (ret < 0) {
+		pp_printf("SFP/QSFP EEPROM read failed (%d)\n", ret);
+		return ret;
 	}
 
-	if (HAS_SFP_DOM
+	memset(&matched, 0, sizeof(matched));
+	if (sfp_header.id == SFP_ID_SFF8472) {
+		if (verify_checksum((uint8_t *)&sfp_header, 0, 63)
+		    || verify_checksum((uint8_t *)&sfp_header, 64, 95)) {
+			pp_printf("Wrong SFP checksum\n");
+			return -EIO;
+		}
+		memcpy(matched.pn, sfp_header.vendor_pn, SFP_PN_LEN);
+	} else if (sfp_header.id == SFP_ID_SFF8636_QSFP
+		   || sfp_header.id == SFP_ID_SFF8636_QSFP28) {
+		/* SFF-8636 serial identification is in Upper Page 00h, bytes
+		 * 128-223. Never change the module's page-select register here:
+		 * use the page only when it is already set to 00h. */
+		ret = sfp_read_i2c_checked(I2C_SFP_ADDRESS,
+					   SFP_QSFP_PAGE_SELECT,
+					   &qsfp_page_select, 1, NULL);
+		if (ret < 0 || qsfp_page_select != 0) {
+			pp_printf("QSFP page select unavailable (rc=%d page=%02x)\n",
+				  ret, ret < 0 ? 0xff : qsfp_page_select);
+			return ret < 0 ? ret : -EAGAIN;
+		}
+		ret = sfp_read_i2c_checked(I2C_SFP_ADDRESS,
+					   SFP_QSFP_SERIAL_ID_START,
+					   qsfp_serial_id,
+					   SFP_QSFP_SERIAL_ID_SIZE, NULL);
+		if (ret < 0 || qsfp_serial_id[0] != sfp_header.id
+		    || verify_checksum(qsfp_serial_id, 0, 63)
+		    || verify_checksum(qsfp_serial_id, 64, 95)) {
+			pp_printf("Wrong QSFP SFF-8636 serial-ID checksum/read\n");
+			return ret < 0 ? ret : -EIO;
+		}
+		/* Page 00h bytes 168-183 are the 16-byte vendor part number. */
+		memcpy(matched.pn,
+		       &qsfp_serial_id[SFP_QSFP_VENDOR_PN_OFFSET], SFP_PN_LEN);
+	} else {
+		pp_printf("Unsupported transceiver identifier %02x\n", sfp_header.id);
+		return -ENOTSUP;
+	}
+
+	match_result = storage_match_sfp(&matched);
+	if (match_result <= 0) {
+		sfp_info.sfp_in_db = SFP_NOT_MATCHED;
+		memcpy(sfp_info.sfp_params.pn, matched.pn, SFP_PN_LEN);
+		return match_result < 0 ? -EIO : -ENXIO;
+	}
+
+	sfp_info.sfp_params = matched;
+	sfp_info.sfp_in_db = SFP_MATCHED;
+
+	if (sfp_header.id == SFP_ID_SFF8472 && HAS_SFP_DOM
 	    && sfp_header.diagnostic_monitoring_type & SFP_DIAG_IMPLEMENTED) {
-		/* Read sfp DOM info from SFP only if DOM supported */
+		/* DOM reads are only defined by the current implementation for SFP. */
 		sfp_read_i2c(I2C_SFP_DOM_ADDRESS, (uint8_t *)&sfp_dom, 0,
 			     sizeof(struct shw_sfp_dom));
-		if (verify_checksum((uint8_t *)&sfp_dom, 0, 95)) {
-			pp_printf("Wrong SFP checksum %s\n", "DOM");
-		}
+		if (verify_checksum((uint8_t *)&sfp_dom, 0, 95))
+			pp_printf("Wrong SFP checksum DOM\n");
 	}
-
-	memcpy(sfp_info.sfp_params.pn, sfp_info.sfp_header->vendor_pn,
-	       SFP_PN_LEN);
-	if (storage_match_sfp(&sfp_info.sfp_params) == 0) {
-		sfp_info.sfp_in_db = SFP_NOT_MATCHED;
-		return -ENXIO;
-	}
-
-	sfp_info.sfp_in_db = SFP_MATCHED;
 	return 0;
 }

@@ -11,16 +11,23 @@ canonical layout. The only source transformations are the QSF relative-path
 and top-level firmware-MIF path relocations recorded per file in
 `SOURCE_MANIFEST.tsv`.
 
-The 2026-09-27 reproduction also carries a narrowly scoped firmware observer
-overlay in `vendor/wrpc-sw/shell/cmd_sfp.c`. `sfp params` reports the cached
-SFP header checksum and active calibration values, then checks the SFP database
-using a local copy only. The explicit `sfp params live` query performs a
-read-only random read of the EEPROM header into a local buffer, checks all
-three I2C address/offset ACKs, and compares the fresh bytes/checksums against
-the cached header. Neither query calls `sfp_match()`, modifies global
-calibration state, or writes I2C/EEPROM/SDBFS. This diagnostic variant does not
-change PLL/PTP control semantics and is not itself a Step 6 PASS image; the
-overlay is explicitly identified in `SOURCE_MANIFEST.tsv`.
+The 2026-09-27 reproduction carries a narrowly scoped firmware change and
+observer overlay in `vendor/wrpc-sw/dev/sfp.c` and
+`vendor/wrpc-sw/shell/cmd_sfp.c`. Startup matching retains SFF-8472 handling
+for SFP identifier `0x03`; QSFP+ / QSFP28 identifiers `0x0D` / `0x11` use the
+SFF-8636 Upper Page 00h serial-ID fields. The QSFP path requires page select
+00h, validates CC_BASE and CC_EXT at the standard offsets, then looks up the
+actual 16-byte module part number in the existing calibration database. It
+does not write the module page selector, EEPROM, or SDBFS. Database misses and
+I2C/checksum errors do not load guessed calibration values.
+
+`sfp params` reports the active calibration and cached identifier. The
+explicit `sfp params live` query reads the lower page, page-select byte, and
+Upper Page 00h into local buffers; it reports ACKs, raw bytes, checksums, and a
+read-only local-copy database lookup. It does not call `sfp_match()` or modify
+active calibration. This firmware change does not adjust PLL/PTP control
+parameters and is not itself a Step 6 PASS image; every overlay is identified
+in `SOURCE_MANIFEST.tsv`.
 
 Build on Pain from this directory using Quartus Prime Standard 17.0 and the
 configured RISC-V toolchain:

@@ -10,7 +10,8 @@ from pathlib import Path
 
 
 SAMPLE_PREFIX = "S6_SERVO_PAIR_SAMPLE "
-FIELD_RE = re.compile(r"\b([A-Z][A-Z0-9_]*)=([^\s]+)")
+F4L_PREFIX = "S6_F4L_PHASE_SAMPLE "
+FIELD_RE = re.compile(r"\b([A-Za-z][A-Za-z0-9_]*)=([^\s]+)")
 
 
 def parse_rows(path: Path) -> list[dict[str, str]]:
@@ -18,6 +19,15 @@ def parse_rows(path: Path) -> list[dict[str, str]]:
     with path.open("r", encoding="utf-8", errors="replace") as stream:
         for line in stream:
             if line.startswith(SAMPLE_PREFIX):
+                rows.append(dict(FIELD_RE.findall(line)))
+    return rows
+
+
+def parse_f4l_rows(path: Path) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    with path.open("r", encoding="utf-8", errors="replace") as stream:
+        for line in stream:
+            if line.startswith(F4L_PREFIX):
                 rows.append(dict(FIELD_RE.findall(line)))
     return rows
 
@@ -49,6 +59,7 @@ def signed32_delta(new_value: int, old_value: int) -> int:
 
 def summarize(path: Path) -> dict[str, object]:
     rows = parse_rows(path)
+    f4l_rows = parse_f4l_rows(path)
     coherent = [
         row
         for row in rows
@@ -107,6 +118,36 @@ def summarize(path: Path) -> dict[str, object]:
     valid = [row for row in rows if row.get("READS_VALID") == "1"]
     time_valid = [row for row in rows if row.get("STATUS_TIME_VALID") == "1"]
     reset_changed = [row for row in rows if row.get("RESET_CHANGED") == "1"]
+    valid_f4l = [row for row in f4l_rows if row.get("FRAME_VALID") == "1"]
+    same_servo_update = [
+        row
+        for row in valid_f4l
+        if row.get("SERVO_UPDATE_MATCH") == "1"
+        and row.get("SERVO_UCNT_BEFORE") == row.get("SERVO_UCNT_AFTER")
+        and row.get("SERVO_UCNT_AFTER") == row.get("PAIR_UCNT")
+    ]
+    servo_by_sample = {row.get("sample"): row for row in rows}
+    f4l_setpoint_deltas: list[int] = []
+    for f4l_row in same_servo_update:
+        servo_row = servo_by_sample.get(f4l_row.get("sample"))
+        if not servo_row or servo_row.get("COHERENT") != "1":
+            continue
+        if hex_field(f4l_row, "PAIR_UCNT") != hex_field(servo_row, "UCNT_AFTER"):
+            continue
+        current_ps = int_field(f4l_row, "PHASE_SHIFT_CURRENT_PS")
+        setpoint_ps = int_field(servo_row, "SETP_PS")
+        if current_ps is not None and setpoint_ps is not None:
+            f4l_setpoint_deltas.append(current_ps - setpoint_ps)
+    f4l_current_ps = [
+        value
+        for row in valid_f4l
+        if (value := int_field(row, "PHASE_SHIFT_CURRENT_PS")) is not None
+    ]
+    f4l_current_units = [
+        value
+        for row in valid_f4l
+        if (value := int_field(row, "PHASE_SHIFT_CURRENT_UNITS")) is not None
+    ]
 
     if len(coherent) < 3:
         verdict = "INCONCLUSIVE_TOO_FEW_COUNTER_STABLE_ROWS"
@@ -132,10 +173,20 @@ def summarize(path: Path) -> dict[str, object]:
         "cko_abs_lt_60ps_rows": sum(abs(value) < 60 for value in cko_values),
         "time_valid_rows": len(time_valid),
         "reset_changed_rows": len(reset_changed),
+        "f4l_phase_samples": len(f4l_rows),
+        "f4l_phase_frames_valid": len(valid_f4l),
+        "f4l_same_servo_update_matches": len(same_servo_update),
+        "f4l_current_setpoint_comparison_rows": len(f4l_setpoint_deltas),
+        "f4l_current_minus_setpoint_ps": f4l_setpoint_deltas,
+        "f4l_phase_current_units_min": min(f4l_current_units) if f4l_current_units else None,
+        "f4l_phase_current_units_max": max(f4l_current_units) if f4l_current_units else None,
+        "f4l_phase_current_ps_min": min(f4l_current_ps) if f4l_current_ps else None,
+        "f4l_phase_current_ps_max": max(f4l_current_ps) if f4l_current_ps else None,
         "verdict": verdict,
         "scope_note": (
-            "Counter-stable diagnostic pairs only; descriptive servo evidence, "
-            "not Step 6A or Step 6 milestone acceptance."
+            "F4L frames are publication-coherent; an equal servo update counter "
+            "is only a temporal association, not an atomic cross-domain pair. "
+            "Descriptive evidence, not Step 6A or Step 6 acceptance."
         ),
     }
 

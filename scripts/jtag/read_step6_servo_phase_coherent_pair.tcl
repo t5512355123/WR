@@ -35,6 +35,8 @@ set ::s6_servo_coherent 0
 set ::s6_servo_pair_valid 0
 set ::s6_servo_post_action 0
 set ::s6_servo_payload_conflicts 0
+set ::s6_servo_f4l_valid 0
+set ::s6_servo_f4l_same_servo_update 0
 set ::s6_servo_reset_stop 0
 set ::s6_servo_board_count 0
 
@@ -65,6 +67,85 @@ proc s6_servo_state_name {state} {
     5 { return WAIT_OFFSET_STABLE }
     default { return UNKNOWN }
   }
+}
+
+proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
+  set host_start_ms [clock milliseconds]
+  set servo_ucnt_before [wb_read 0x00100A48]
+  set frame_valid 0
+  set epoch_before_raw "NA"
+  set epoch_after_raw "NA"
+  set magic_raw "NA"
+  set version_page_raw "NA"
+  set source_epoch_raw "NA"
+  set phase_current_raw "NA"
+  set phase_current_units "NA"
+  set phase_current_ps "NA"
+  set version -1
+  set page -1
+  set attempts 0
+
+  # This is a sparse subset of the existing 34-word F4L publication. Word 12
+  # is phase_shift_current; the publication epoch/header guard this read.
+  # The servo update counter is a separate correlation bracket, not an atomic
+  # cross-domain timestamp.
+  for {set attempt 1} {$attempt <= 3} {incr attempt} {
+    set attempts $attempt
+    set epoch_before_raw [wb_read 0x00100B58]
+    set magic_raw [wb_read 0x00100B5C]
+    set version_page_raw [wb_read 0x00100B60]
+    set source_epoch_raw [wb_read 0x00100B64]
+    set phase_current_raw [wb_read 0x00100B88]
+    set epoch_after_raw [wb_read 0x00100B58]
+
+    set epoch_before [word32 $epoch_before_raw]
+    set epoch_after [word32 $epoch_after_raw]
+    set magic [word32 $magic_raw]
+    set version_page [word32 $version_page_raw]
+    set source_epoch [word32 $source_epoch_raw]
+    set phase_current_word [word32 $phase_current_raw]
+    if {$version_page >= 0} {
+      set version [expr {$version_page & 0xff}]
+      set page [expr {($version_page >> 8) & 0xff}]
+    }
+    if {[is_hex $epoch_before_raw] && [is_hex $epoch_after_raw] &&
+        [is_hex $magic_raw] && [is_hex $version_page_raw] &&
+        [is_hex $source_epoch_raw] && [is_hex $phase_current_raw] &&
+        $epoch_before >= 0 && $epoch_after == $epoch_before &&
+        !($epoch_after & 1) && $magic == 0x46344c31 &&
+        $version == 1 && $page >= 0 && $page < 3 &&
+        $source_epoch > 0 && !($source_epoch & 1) &&
+        $phase_current_word >= 0} {
+      set frame_valid 1
+      set phase_current_units [s6_servo_signed32 $phase_current_raw]
+      # DE5a uses the source-defined 8 ns reference period, HPLL_N=14, and
+      # DMTD divide-by-two. Preserve raw units too; this derived ps value is
+      # for comparison only and is not an atomic pairing with the WR servo.
+      set phase_current_ps [expr {($phase_current_units * 2 * 8000) >> 14}]
+      set epoch_before_raw [format %08X $epoch_before]
+      set epoch_after_raw [format %08X $epoch_after]
+      set source_epoch_raw [format %08X $source_epoch]
+      break
+    }
+    after 2
+  }
+
+  set servo_ucnt_after [wb_read 0x00100A48]
+  set servo_before [word32 $servo_ucnt_before]
+  set servo_after [word32 $servo_ucnt_after]
+  set same_servo_update [expr {
+    $frame_valid && [is_hex $servo_ucnt_before] &&
+    [is_hex $servo_ucnt_after] && $servo_before >= 0 &&
+    $servo_before == $servo_after && $servo_after == $pair_ucnt ? 1 : 0}]
+  if {$frame_valid} { incr ::s6_servo_f4l_valid }
+  if {$same_servo_update} { incr ::s6_servo_f4l_same_servo_update }
+
+  puts [format "S6_F4L_PHASE_SAMPLE board=%s sample=%04d host_elapsed_ms=%d host_start_ms=%d host_end_ms=%d FRAME_VALID=%d F4L_PUBLICATION_EPOCH_BEFORE=%s F4L_PUBLICATION_EPOCH_AFTER=%s F4L_MAGIC=%s F4L_VERSION=%d F4L_PAGE=%d F4L_SOURCE_EPOCH=%s PHASE_SHIFT_CURRENT_RAW=%s PHASE_SHIFT_CURRENT_UNITS=%s PHASE_SHIFT_CURRENT_PS=%s F4L_READ_ATTEMPTS=%d SERVO_UCNT_BEFORE=%s SERVO_UCNT_AFTER=%s SERVO_UPDATE_MATCH=%d PAIR_UCNT=%s" \
+    $hardware_name $sample $elapsed_ms $host_start_ms [clock milliseconds] \
+    $frame_valid $epoch_before_raw $epoch_after_raw $magic_raw $version $page \
+    $source_epoch_raw $phase_current_raw $phase_current_units $phase_current_ps \
+    $attempts $servo_ucnt_before $servo_ucnt_after $same_servo_update $pair_ucnt]
+  flush stdout
 }
 
 proc s6_servo_reset_signature {entry reset} {
@@ -207,6 +288,12 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
     $status_link $status_time_valid $status_pps_valid $escr_tm_valid \
     $escr_pps_valid $ptp_state $boot $cpu_reset $wr_reset $si_drop $reset_changed]
   flush stdout
+
+  if {![info exists ::s6_servo_f4l_last_ms($hardware_name)] ||
+      $elapsed_ms - $::s6_servo_f4l_last_ms($hardware_name) >= 5000} {
+    set ::s6_servo_f4l_last_ms($hardware_name) $elapsed_ms
+    s6_f4l_phase_current_read $hardware_name $sample $elapsed_ms $u1
+  }
   return $reset_changed
 }
 
@@ -251,9 +338,10 @@ foreach hardware_name [get_hardware_names] {
   catch { end_insystem_source_probe }
 }
 
-puts [format "S6_SERVO_PAIR_SUMMARY boards=%d coherent_rows=%d adjacent_update_pairs=%d software_setpoint_offset_matches=%d post_action_offset_samples=%d same_counter_payload_conflicts=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
+puts [format "S6_SERVO_PAIR_SUMMARY boards=%d coherent_rows=%d adjacent_update_pairs=%d software_setpoint_offset_matches=%d post_action_offset_samples=%d same_counter_payload_conflicts=%d f4l_phase_frames_valid=%d f4l_phase_same_servo_update=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
   $::s6_servo_board_count $::s6_servo_coherent $::s6_servo_pair_valid \
   $::s6_servo_matched $::s6_servo_post_action $::s6_servo_payload_conflicts \
+  $::s6_servo_f4l_valid $::s6_servo_f4l_same_servo_update \
   $::s6_servo_reset_stop \
   $::wb_timeout_count $::wb_invalid_count]
 puts "S6_SERVO_PAIR_DONE"

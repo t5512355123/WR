@@ -11,13 +11,16 @@ canonical layout. The only source transformations are the QSF relative-path
 and top-level firmware-MIF path relocations recorded per file in
 `SOURCE_MANIFEST.tsv`.
 
-The 2026-09-27 reproduction also carries a narrowly scoped, read-only firmware
-observer overlay in `vendor/wrpc-sw/shell/cmd_sfp.c` (`sfp params`). It reports
-the cached SFP header checksum and active calibration values, then checks the
-SFP database using a local copy only. It does not call `sfp_match()`, modify
-global calibration state, or write I2C/EEPROM/SDBFS. This diagnostic variant
-does not change PLL/PTP control semantics and is not itself a Step 6 PASS
-image; the overlay is explicitly identified in `SOURCE_MANIFEST.tsv`.
+The 2026-09-27 reproduction also carries a narrowly scoped firmware observer
+overlay in `vendor/wrpc-sw/shell/cmd_sfp.c`. `sfp params` reports the cached
+SFP header checksum and active calibration values, then checks the SFP database
+using a local copy only. The explicit `sfp params live` query performs a
+read-only random read of the EEPROM header into a local buffer, checks all
+three I2C address/offset ACKs, and compares the fresh bytes/checksums against
+the cached header. Neither query calls `sfp_match()`, modifies global
+calibration state, or writes I2C/EEPROM/SDBFS. This diagnostic variant does not
+change PLL/PTP control semantics and is not itself a Step 6 PASS image; the
+overlay is explicitly identified in `SOURCE_MANIFEST.tsv`.
 
 Build on Pain from this directory using Quartus Prime Standard 17.0 and the
 configured RISC-V toolchain:

@@ -26,11 +26,13 @@ class Step6IpVuartObserverTests(unittest.TestCase):
     def test_calibration_mode_uses_only_fixed_read_only_commands(self):
         self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
                       self.observer)
-        self.assertIn('error "query_mode must be ip, calibration, or sfp_params"', self.observer)
+        self.assertIn('error "query_mode must be ip, calibration, sfp_params, or sfp_live"', self.observer)
         self.assertNotIn('"sfp match"', self.observer)
 
     def test_sfp_params_mode_sends_only_the_read_only_snapshot_command(self):
         self.assertIn('sfp_params { set read_only_queries [list "sfp params"] }',
+                      self.observer)
+        self.assertIn('sfp_live { set read_only_queries [list "sfp params live"] }',
                       self.observer)
         self.assertNotIn('sfp_params { set read_only_queries [list "sfp match"] }',
                          self.observer)
@@ -110,6 +112,22 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertNotIn("storage_sfpdb_erase", observer)
         self.assertNotIn("bb_i2c_put_byte", observer)
         self.assertNotRegex(observer, r"sfp_info\.sfp_params\.[A-Za-z_]+\s*=")
+
+    def test_live_sfp_read_is_explicit_local_and_checks_address_acks(self):
+        source = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+                  / "vendor" / "wrpc-sw" / "dev" / "sfp.c").read_text(encoding="utf-8")
+        header = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+                  / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c").read_text(encoding="utf-8")
+        reader = source.split("int sfp_read_header_diagnostic", 1)[1].split(
+            "static void sfp_read_i2c", 1)[0]
+        self.assertIn("sfp_read_header_diagnostic", source)
+        self.assertEqual(reader.count("bb_i2c_put_byte(dev,"), 3)
+        self.assertEqual(reader.count("< 0)"), 3)
+        self.assertIn("memcmp(header, sfp_info.sfp_header", header)
+        self.assertIn('"SFP_LIVE_RAW %02x:"', header)
+        self.assertNotIn("sfp_info.sfp_params.", header.split(
+            "static void print_live_sfp_header(void)", 1)[1].split(
+            "static const char * const sfp_cmds", 1)[0])
 
 
 if __name__ == "__main__":

@@ -41,6 +41,47 @@ static int sfp_present(void)
 	return !gen_gpio_in(&pin_sysc_sfp1_det);
 }
 
+int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask)
+{
+	const struct i2c_bus *dev = &dev_i2c_sfp1;
+	uint32_t ack = 0;
+	uint8_t data;
+	unsigned int i;
+	int ret = -EIO;
+
+	if (!header || !ack_mask)
+		return -EINVAL;
+	*ack_mask = 0;
+	if (!sfp_present())
+		return -ENODEV;
+
+	/* Keep this probe independent from the normal cached-header reader:
+	 * one standards-shaped random-read transaction, with every host-written
+	 * address/offset ACK checked before accepting any bytes. */
+	bb_i2c_init(dev);
+	bb_i2c_start(dev);
+	if (bb_i2c_put_byte(dev, I2C_SFP_ADDRESS << 1) < 0)
+		goto out;
+	ack |= 1u << 0;
+	if (bb_i2c_put_byte(dev, 0) < 0)
+		goto out;
+	ack |= 1u << 1;
+	bb_i2c_repeat_start(dev);
+	if (bb_i2c_put_byte(dev, (I2C_SFP_ADDRESS << 1) | BB_I2C_WRITE) < 0)
+		goto out;
+	ack |= 1u << 2;
+
+	for (i = 0; i < sizeof(struct shw_sfp_header); ++i)
+		bb_i2c_get_byte(dev, &header[i],
+				i == sizeof(struct shw_sfp_header) - 1);
+	ret = 0;
+
+out:
+	bb_i2c_stop(dev);
+	*ack_mask = ack;
+	return ret;
+}
+
 static void sfp_read_i2c(int addr, uint8_t *mem, int start, int size)
 {
 	const struct i2c_bus *dev = &dev_i2c_sfp1;

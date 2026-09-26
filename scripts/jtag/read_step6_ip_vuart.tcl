@@ -1,7 +1,8 @@
 # Read the current WRPC IPv4 address through JTAG's existing virtual-UART
 # Wishbone path. By default this sends only the firmware command `ip get` to
 # the Slave board. An optional `calibration` mode sends the fixed read-only
-# commands `delays` and `sfp show`; `sfp_params` sends only `sfp params`.
+# commands `delays` and `sfp show`; `sfp_params` reads cached SFP state, while
+# `sfp_live` also performs a read-only local-buffer EEPROM header probe.
 # It never runs `sfp match`, which can update
 # live calibration state. No mode changes network configuration, resets
 # hardware, or writes PTP control.
@@ -11,7 +12,7 @@
 # It then reads the firmware response from the host-side VUART RX FIFO.
 #
 # Usage:
-#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration|sfp_params?
+#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration|sfp_params|sfp_live?
 
 package require ::quartus::insystem_source_probe
 
@@ -29,8 +30,9 @@ if {$stable_ms <= 0 || $timeout_ms <= 0} {
 switch -- $query_mode {
   ip { set read_only_queries [list "ip get"] }
   calibration { set read_only_queries [list "delays" "sfp show"] }
-  sfp_params { set read_only_queries [list "sfp params"] }
-  default { error "query_mode must be ip, calibration, or sfp_params" }
+    sfp_params { set read_only_queries [list "sfp params"] }
+    sfp_live { set read_only_queries [list "sfp params live"] }
+    default { error "query_mode must be ip, calibration, sfp_params, or sfp_live" }
 }
 
 array set ::wb_toggle {}

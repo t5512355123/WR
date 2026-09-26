@@ -124,6 +124,40 @@ static void print_cached_sfp_params(void)
 		  (int)lookup.dTx, (int)lookup.dRx);
 }
 
+/* Explicitly requested live EEPROM read. Data stays in this observer's local
+ * buffer; the active cached header and calibration fields are not touched. */
+static void print_live_sfp_header(void)
+{
+	uint8_t header[sizeof(struct shw_sfp_header)];
+	struct shw_sfp_header *live_header =
+		(struct shw_sfp_header *)header;
+	uint32_t ack_mask = 0;
+	uint8_t base_sum, ext_sum;
+	int ret, i;
+
+	ret = sfp_read_header_diagnostic(header, &ack_mask);
+	pp_printf("SFP_LIVE_READ rc=%d ack_mask=%02x expected=07\n",
+		  ret, (unsigned int)ack_mask);
+	if (ret)
+		return;
+
+	base_sum = cached_sfp_checksum(header, 0, 63);
+	ext_sum = cached_sfp_checksum(header, 64, 95);
+	pp_printf("SFP_LIVE_HEADER pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d cached_equal=%d\n",
+		  live_header->vendor_pn,
+		  base_sum, header[63], base_sum == header[63],
+		  ext_sum, header[95], ext_sum == header[95],
+		  memcmp(header, sfp_info.sfp_header, sizeof(header)) == 0);
+
+	for (i = 0; i < (int)sizeof(header); i += 16) {
+		int j;
+		pp_printf("SFP_LIVE_RAW %02x:", i);
+		for (j = 0; j < 16 && i + j < (int)sizeof(header); ++j)
+			pp_printf(" %02x", header[i + j]);
+		pp_printf("\n");
+	}
+}
+
 static const char * const sfp_cmds[] =
 {
 	 [0] = "erase",
@@ -245,6 +279,8 @@ static int cmd_sfp(const char *args[])
 		return 0;
 	case 5:
 		print_cached_sfp_params();
+		if (args[1] && !strcmp(args[1], "live"))
+			print_live_sfp_header();
 		return 0;
 #ifdef CONFIG_CMD_SFP_INFO
 	case 6:

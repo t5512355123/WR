@@ -50,6 +50,10 @@ extern struct sfp_info sfp_info;
 /* Match plugged SFP with a DB entry */
 int sfp_match(int force);
 
+/* Read-only live header diagnostic. The caller supplies storage for one
+ * shw_sfp_header; this does not update the cached header or calibration. */
+int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask);
+
 /* update dom data */
 int sfp_dom_update(void);
 

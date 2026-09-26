@@ -15,6 +15,7 @@
  * add <product_number> <delta_tx> <delta_rx> <alpha> - adds an SFP to
  *                      the database, with given alpha/delta_rx/delta_tx values
  * show - shows the SFP database
+ * params - prints cached calibration state and performs a read-only lookup
  * match - detects the transceiver type and tries to get calibration parameters
  *         from DB for a detected SFP
  * erase - cleans the SFP database
@@ -70,6 +71,59 @@ static void print_info(void)
 }
 #endif /* CONFIG_CMD_SFP_INFO */
 
+static uint8_t cached_sfp_checksum(const uint8_t *bytes, int first, int checksum)
+{
+	int i;
+	uint16_t sum = 0;
+
+	for (i = first; i < checksum; ++i)
+		sum += bytes[i];
+	return sum & 0xff;
+}
+
+/* This observer only reads the state populated during normal startup. It
+ * never calls sfp_match() or changes the active calibration parameters. */
+static void print_cached_sfp_params(void)
+{
+	const uint8_t *header_bytes;
+	uint8_t base_sum, ext_sum;
+	struct s_sfpinfo lookup;
+	int lookup_status;
+	const char *lookup_result;
+
+	if (!sfp_info.sfp_header) {
+		pp_printf("SFP_PARAMS unavailable=no_cached_header\n");
+		return;
+	}
+
+	header_bytes = (const uint8_t *)sfp_info.sfp_header;
+	base_sum = cached_sfp_checksum(header_bytes, 0, 63);
+	ext_sum = cached_sfp_checksum(header_bytes, 64, 95);
+
+	pp_printf("SFP_ACTIVE_CAL db_flag=%d pn=%.16s alpha=%Ld dTx=%d dRx=%d\n",
+		  sfp_info.sfp_in_db, sfp_info.sfp_params.pn,
+		  sfp_info.sfp_params.alpha, (int)sfp_info.sfp_params.dTx,
+		  (int)sfp_info.sfp_params.dRx);
+	pp_printf("SFP_CACHED_HEADER pn=%.16s base_calc=%02x base_stored=%02x base_valid=%d ext_calc=%02x ext_stored=%02x ext_valid=%d\n",
+		  sfp_info.sfp_header->vendor_pn,
+		  base_sum, header_bytes[63], base_sum == header_bytes[63],
+		  ext_sum, header_bytes[95], ext_sum == header_bytes[95]);
+
+	if (base_sum != header_bytes[63] || ext_sum != header_bytes[95]) {
+		pp_printf("SFP_READONLY_DB_LOOKUP skipped=bad_cached_header\n");
+		return;
+	}
+
+	memset(&lookup, 0, sizeof(lookup));
+	memcpy(lookup.pn, sfp_info.sfp_header->vendor_pn, SFP_PN_LEN);
+	lookup_status = storage_match_sfp(&lookup);
+	lookup_result = lookup_status > 0 ? "MATCH" :
+			lookup_status == 0 ? "NO_MATCH" : "ERROR";
+	pp_printf("SFP_READONLY_DB_LOOKUP result=%s rc=%d pn=%.16s alpha=%Ld dTx=%d dRx=%d\n",
+		  lookup_result, lookup_status, lookup.pn, lookup.alpha,
+		  (int)lookup.dTx, (int)lookup.dRx);
+}
+
 static const char * const sfp_cmds[] =
 {
 	 [0] = "erase",
@@ -77,8 +131,9 @@ static const char * const sfp_cmds[] =
 	 [2] = "show",
 	 [3] = "match",
 	 [4] = "ena",
+	 [5] = "params",
 #ifdef CONFIG_CMD_SFP_INFO
-	 [5] = "info",
+	 [6] = "info",
 #endif
 };
 
@@ -188,8 +243,11 @@ static int cmd_sfp(const char *args[])
 			return -1;
 		ep_sfp_enable(&wrc_endpoint_dev, atoi(args[1]));
 		return 0;
-#ifdef CONFIG_CMD_SFP_INFO
 	case 5:
+		print_cached_sfp_params();
+		return 0;
+#ifdef CONFIG_CMD_SFP_INFO
+	case 6:
 		/* DOM data is updated periodically by a task */
 		print_info();
 		return 0;

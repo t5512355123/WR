@@ -1,7 +1,8 @@
 # Read the current WRPC IPv4 address through JTAG's existing virtual-UART
 # Wishbone path. By default this sends only the firmware command `ip get` to
 # the Slave board. An optional `calibration` mode sends the fixed read-only
-# commands `delays` and `sfp show`. It never runs `sfp match`, which can update
+# commands `delays` and `sfp show`; `sfp_params` sends only `sfp params`.
+# It never runs `sfp match`, which can update
 # live calibration state. No mode changes network configuration, resets
 # hardware, or writes PTP control.
 #
@@ -10,7 +11,7 @@
 # It then reads the firmware response from the host-side VUART RX FIFO.
 #
 # Usage:
-#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration?
+#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration|sfp_params?
 
 package require ::quartus::insystem_source_probe
 
@@ -28,7 +29,8 @@ if {$stable_ms <= 0 || $timeout_ms <= 0} {
 switch -- $query_mode {
   ip { set read_only_queries [list "ip get"] }
   calibration { set read_only_queries [list "delays" "sfp show"] }
-  default { error "query_mode must be ip or calibration" }
+  sfp_params { set read_only_queries [list "sfp params"] }
+  default { error "query_mode must be ip, calibration, or sfp_params" }
 }
 
 array set ::wb_toggle {}
@@ -250,7 +252,7 @@ foreach hardware_name [get_hardware_names] {
   set found 1
   set devices [get_device_names -hardware_name $hardware_name]
   if {[llength $devices] == 0} {
-    puts [format "STEP6_IP_GET_SKIP board=%s reason=no_device" $hardware_name]
+    puts [format "STEP6_VUART_SKIP board=%s reason=no_device" $hardware_name]
     continue
   }
   set device_name [lindex $devices 0]
@@ -273,11 +275,11 @@ foreach hardware_name [get_hardware_names] {
       after $poll_ms
     }
     if {!$ready} {
-      puts [format "STEP6_IP_GET_SKIP board=%s reason=shell_not_stably_ready elapsed_ms=%d gate_details={%s}" \
+      puts [format "STEP6_VUART_SKIP board=%s reason=shell_not_stably_ready elapsed_ms=%d gate_details={%s}" \
         $hardware_name [expr {[clock milliseconds] - $start_ms}] \
         $::gate_debug($hardware_name)]
     } else {
-      puts [format "STEP6_IP_GET_GATE_PASS board=%s gate_details={%s}" \
+      puts [format "STEP6_VUART_GATE_PASS board=%s gate_details={%s}" \
         $hardware_name $::gate_debug($hardware_name)]
       set pre_entry [word64 [probe_word 26]]
       set pre_corr5 [word64 [probe_word 33]]
@@ -286,11 +288,11 @@ foreach hardware_name [get_hardware_names] {
       }
       set pre_generation [expr {($pre_entry >> 32) & 0x7f}]
       set pre_cpu_reset [expr {($pre_corr5 >> 27) & 1}]
-      puts [format "STEP6_IP_GET_PREFLIGHT board=%s boot_generation=%d cpu_reset=%d" \
+      puts [format "STEP6_VUART_PREFLIGHT board=%s boot_generation=%d cpu_reset=%d" \
         $hardware_name $pre_generation $pre_cpu_reset]
 
       lassign [read_uart_available $hardware_name 1024] pre_status pre_hex pre_text
-      puts [format "STEP6_IP_GET_PREEXISTING board=%s status=%s bytes=%d hex=%s text=%s" \
+      puts [format "STEP6_VUART_PREEXISTING board=%s status=%s bytes=%d hex=%s text=%s" \
         $hardware_name $pre_status [expr {[string length $pre_hex] / 2}] $pre_hex \
         [escaped_text $pre_text]]
       if {$pre_status ne "OK"} { error "VUART pre-drain failed: $pre_status" }
@@ -336,7 +338,7 @@ foreach hardware_name [get_hardware_names] {
         $pre_generation $post_generation $pre_cpu_reset $post_cpu_reset $reset_changed]
     }
   } error_message]} {
-    puts [format "STEP6_IP_GET_ERROR board=%s message=%s" $hardware_name $error_message]
+    puts [format "STEP6_VUART_ERROR board=%s message=%s" $hardware_name $error_message]
   }
   catch {end_insystem_source_probe}
 }

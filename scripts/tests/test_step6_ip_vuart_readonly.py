@@ -26,8 +26,14 @@ class Step6IpVuartObserverTests(unittest.TestCase):
     def test_calibration_mode_uses_only_fixed_read_only_commands(self):
         self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
                       self.observer)
-        self.assertIn('error "query_mode must be ip or calibration"', self.observer)
+        self.assertIn('error "query_mode must be ip, calibration, or sfp_params"', self.observer)
         self.assertNotIn('"sfp match"', self.observer)
+
+    def test_sfp_params_mode_sends_only_the_read_only_snapshot_command(self):
+        self.assertIn('sfp_params { set read_only_queries [list "sfp params"] }',
+                      self.observer)
+        self.assertNotIn('sfp_params { set read_only_queries [list "sfp match"] }',
+                         self.observer)
 
     def test_output_is_read_from_host_vuart_rx_fifo(self):
         self.assertIn("0x00100514", self.observer)
@@ -78,6 +84,24 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertIn('"delays"', ll)
         self.assertIn('pp_printf("tx: %i   rx: %i\\n"', ll)
         self.assertIn('storage_get_sfp(&sfp, SFP_GET, i)', sfp)
+
+    def test_firmware_sfp_params_observer_only_reads_cached_and_local_state(self):
+        sfp_path = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+                    / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c")
+        sfp = sfp_path.read_text(encoding="utf-8")
+        observer = sfp.split("static void print_cached_sfp_params(void)", 1)[1]
+        observer = observer.split("static const char * const sfp_cmds", 1)[0]
+        observer = re.sub(r"/\*.*?\*/|//[^\n]*", "", observer, flags=re.DOTALL)
+        self.assertRegex(sfp, r'\[5\]\s*=\s*"params"')
+        self.assertRegex(sfp, r"case 5:\s*print_cached_sfp_params\(\);")
+        self.assertIn("storage_match_sfp(&lookup)", observer)
+        self.assertIn("SFP_CACHED_HEADER", observer)
+        self.assertIn("SFP_ACTIVE_CAL", observer)
+        self.assertNotIn("sfp_match(", observer)
+        self.assertNotIn("storage_get_sfp", observer)
+        self.assertNotIn("storage_sfpdb_erase", observer)
+        self.assertNotIn("bb_i2c_put_byte", observer)
+        self.assertNotRegex(observer, r"sfp_info\.sfp_params\.[A-Za-z_]+\s*=")
 
 
 if __name__ == "__main__":

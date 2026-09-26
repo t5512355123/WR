@@ -467,18 +467,22 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-Add one passive `sfp params` firmware-shell observer to the frozen Step6
-source. It will report the already-cached SFP header checksum sums/status,
-cached part number, active `alpha/dTx/dRx` fields, and a separate database
-lookup return code/values obtained using only a local copy. It must not call
-`sfp_match()`, modify global calibration fields, write I2C/EEPROM/SDBFS, or
-change any PTP/servo control state. Run its offline/source checks, push the
-source change, then pull and build/program the diagnostic Slave image on Pain
-under the existing board/firmware gate. Capture the output once through the
-stable VUART observer, then stop and classify the result before any
-calibration or control change. This will distinguish “checksum rejected and
-defaults active” from “valid SFP header but calibration lookup unavailable”
-without guessing an IP or perturbing the production servo. Step 6A/Step 6B
-remain not passed until the Slave produces valid stable Global-Time snapshots,
-the same-PPS gate passes, and the scheduled-trigger gate is independently
-reproduced.
+The diagnostic `sfp params` command is now implemented in the frozen-source
+package and explicitly classified as a read-only observer overlay in its
+source manifest. It reports cached header checksums, the active
+`alpha/dTx/dRx` values, and a separate calibration-database lookup result
+using a local copy. It does not call `sfp_match()`, alter global calibration,
+write I2C/EEPROM/SDBFS, or change PTP/servo control state. The host VUART
+observer now has an `sfp_params` mode that sends only this command. Offline
+VUART tests pass 10/10, and the source package's 3,219 checksums and 3,214
+source-manifest mappings verify with zero errors.
+
+Next, push these source/observer changes, pull them into a clean Pain
+worktree, and independently build Master firmware/Quartus and Slave
+firmware/Quartus from `artifacts/milestones/step6_global_time/source/`.
+Program only the diagnostic Slave image to preserve the running Master; run
+the stable VUART observer once in `sfp_params` mode, retain the complete
+build/program/query logs, and classify the output before considering any
+calibration change. Step 6A/Step 6B remain not passed until the Slave produces
+valid stable Global-Time snapshots, the same-PPS gate passes, and the
+scheduled-trigger gate is independently reproduced.

@@ -417,12 +417,14 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-Read the Slave's active IP using the existing read-only `ip get` firmware
-command over the JTAG virtual-UART path, after confirming the exact transport
-and reply-capture method. Then, only if that runtime address and SNMP
-reachability are verified, issue bounded SNMP GETs for the four OIDs above on
-both boards and correlate them with `MU`/`DMS`/`ASYM`. Do not scan the LAN or
-guess an address. Keep production controls unchanged. Step 6A/Step 6B remain
-not passed until the Slave produces valid stable Global-Time snapshots, the
-same-PPS gate passes, and the scheduled-trigger gate is independently
+Push and run `scripts/jtag/read_step6_ip_vuart.tcl` on Pain against only the
+Slave. It waits for stable shell readiness, preserves any pre-existing VUART
+output in its log, sends exactly the side-effect-free firmware command `ip
+get`, and captures the reply from the host VUART RX FIFO. This is an observer
+utility change only; no FPGA build/program is needed. If the board reports an
+IP and SNMP reachability is verified, issue bounded GETs for the four OIDs
+above on both boards and correlate them with `MU`/`DMS`/`ASYM`. Do not scan the
+LAN or guess an address. Keep production controls unchanged. Step 6A/Step 6B
+remain not passed until the Slave produces valid stable Global-Time snapshots,
+the same-PPS gate passes, and the scheduled-trigger gate is independently
 reproduced.

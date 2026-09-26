@@ -89,5 +89,7 @@ Source audit located read-only SNMP GETs for the four WR fixed-latency values
 (`delta_txm`, `delta_rxm`, `delta_txs`, `delta_rxs`) in picoseconds. No DE5
 management IP is evidenced in the experiment records, so no guessed-address
 query or LAN scan is allowed. Next, verify the JTAG VUART path for the
-side-effect-free firmware command `ip get`, capture the active board address,
-and only then attempt bounded SNMP GETs if reachability is established.
+side-effect-free firmware command `ip get`; the guarded observer is now at
+`scripts/jtag/read_step6_ip_vuart.tcl`. Push it, run it on Pain against only the
+Slave, retain its raw reply, then issue bounded SNMP GETs only if the reported
+board address and reachability are established.

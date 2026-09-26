@@ -399,13 +399,63 @@ Smoke capture SHA-256:
 
 Analysis output: `analysis/slave-servo-delay-input-v1-20260927-summary.json`.
 
+### Extended dashboard and SFP calibration boundary (2026-09-27)
+
+The read-only Slave dashboard was extended to a 900-second host timeout. It
+yielded 90 complete samples from `2026-09-27T03:17:42+08:00` through
+`2026-09-27T03:32:31+08:00` (889 seconds); the 91st sample header was partial
+when the external timeout terminated the reader. Across the 90 complete
+Slave panels:
+
+```text
+LINK/TM/RX/TX all healthy             = 90 / 90
+HELPER/MAIN_FREQ/MAIN_PHASE/MAIN/PSTAT = 90 / 90 all asserted
+TIME_VALID                            = 0 / 90
+PPS_VALID                             = 0 / 90
+WRH_WAIT_OFFSET_STABLE                = 82 / 90
+WRH_SYNC_PHASE                        = 8 / 90
+signed phase offset                   = -3693 .. +2429 ps
+```
+
+The run therefore rules out merely waiting a few more minutes as the immediate
+fix: Step 5 locks stayed asserted, but the Slave did not enter the source
+`<60 ps` phase-stability gate during this 889-second interval. The final
+reader termination (`quartus_stp_rc=143`, missing temporary capture file) is
+an external-timeout cleanup artifact; the 90 complete panels above remain
+parseable and are the bounded evidence used here.
+
+The already-run VUART `ip get` query reported the board as `in training`; no
+board management address was established, so no SNMP request was sent. The
+read-only `delays` command is not present in this firmware. `sfp show` returned
+`SFP database error (-1)` / command error `-14`; this command queries the
+separate SDBFS SFP calibration database and did not reveal active calibration
+values.
+
+The pre-existing startup VUART capture contains two `Wrong SFP checksum`
+messages. Source audit confirms `sfp_match()` reads the EEPROM header and
+returns `-EIO` on either base or extended checksum failure before copying the
+part number or calling `storage_match_sfp()`. `sfp_info.sfp_params` is
+statically initialized with `alpha=0`; its other fields are zero-initialized.
+Thus failed checksum validation can leave the active calibration at defaults.
+This is a concrete diagnostic lead, not yet proof that the SFP read path or
+calibration is the cause of the observed phase residual; the cached header,
+active parameters, and database-open status have not yet been exposed
+read-only on the running image.
+
+There is a second source-level ambiguity: after a valid header,
+`sfp_match()` treats only `storage_match_sfp() == 0` as “not matched”. A
+negative SDBFS/storage error is not propagated and falls through to
+`SFP_MATCHED` without proving that calibration fields were loaded. Therefore
+the numeric `sfp_in_db` flag alone is insufficient; the diagnostic needs the
+separate lookup return code and returned values on a local copy.
+
 ## Verification and retained evidence
 
 The frozen-source verifier reported `SOURCE_PACKAGE=PASS` with 3,214 manifest
 rows and zero missing or mismatched entries. The dashboard offline suite
 passed all 8 tests; the Step6 servo-pair analysis suite passed all 6 tests;
-the shell syntax and `git diff --check` passed. All 43 raw-file entries in
-`SHA256SUMS` verify, including the four new smoke/full observer logs. Build,
+the shell syntax and `git diff --check` passed. All 51 raw-file entries in
+`SHA256SUMS` verify, including the eight VUART/dashboard follow-up captures. Build,
 programmer, dashboard, and JTAG observer logs are retained under `raw/`.
 
 The current dashboard overlay edits are host-side only. They add the source-
@@ -417,14 +467,18 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-Push and run `scripts/jtag/read_step6_ip_vuart.tcl` on Pain against only the
-Slave. It waits for stable shell readiness, preserves any pre-existing VUART
-output in its log, sends exactly the side-effect-free firmware command `ip
-get`, and captures the reply from the host VUART RX FIFO. This is an observer
-utility change only; no FPGA build/program is needed. If the board reports an
-IP and SNMP reachability is verified, issue bounded GETs for the four OIDs
-above on both boards and correlate them with `MU`/`DMS`/`ASYM`. Do not scan the
-LAN or guess an address. Keep production controls unchanged. Step 6A/Step 6B
+Add one passive `sfp params` firmware-shell observer to the frozen Step6
+source. It will report the already-cached SFP header checksum sums/status,
+cached part number, active `alpha/dTx/dRx` fields, and a separate database
+lookup return code/values obtained using only a local copy. It must not call
+`sfp_match()`, modify global calibration fields, write I2C/EEPROM/SDBFS, or
+change any PTP/servo control state. Run its offline/source checks, push the
+source change, then pull and build/program the diagnostic Slave image on Pain
+under the existing board/firmware gate. Capture the output once through the
+stable VUART observer, then stop and classify the result before any
+calibration or control change. This will distinguish “checksum rejected and
+defaults active” from “valid SFP header but calibration lookup unavailable”
+without guessing an IP or perturbing the production servo. Step 6A/Step 6B
 remain not passed until the Slave produces valid stable Global-Time snapshots,
 the same-PPS gate passes, and the scheduled-trigger gate is independently
 reproduced.

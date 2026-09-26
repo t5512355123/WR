@@ -1,0 +1,50 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Sep 27 03:03:40 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_ip_vuart.tcl 1500 12000 calibration
+Info: Quartus(args): 1500 12000 calibration
+STEP6_VUART_CONFIG stable_ms=1500 timeout_ms=12000 board_filter=SLAVE query_mode=calibration read_only_firmware_commands=1
+STEP6_IP_GET_GATE_PASS board=DE5 [1-11.2] gate_details={failed=NONE armed=1 cpu_reset=0 marker_mask=0xF boot_generation=1 astat_generation=1 command_stage=0 uart_input_pending=0 entry=4295076764 corr5=117440512 corr7=12888796176 astat=67092480 uart_status=0}
+STEP6_IP_GET_PREFLIGHT board=DE5 [1-11.2] boot_generation=1 cpu_reset=0
+STEP6_IP_GET_PREEXISTING board=DE5 [1-11.2] status=OK bytes=0 hex= text=
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=00 byte=0x64 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=01 byte=0x65 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=02 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=03 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=04 byte=0x79 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=05 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=delays index=06 byte=0x0A result=OK
+STEP6_VUART_QUERY_RESULT board=DE5 [1-11.2] command=delays status=OK reply_bytes=69 reply_hex=1B5B3140641B5B3140651B5B31406C1B5B3140611B5B3140791B5B3140730D0A556E7265636F676E697A656420636F6D6D616E64202264656C617973222E0D0A7772632320 reply_text=\x1B[1@d\x1B[1@e\x1B[1@l\x1B[1@a\x1B[1@y\x1B[1@s\x0D\x0AUnrecognized command "delays".\x0D\x0Awrc# 
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=00 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=01 byte=0x66 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=02 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=03 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=04 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=05 byte=0x68 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=06 byte=0x6F result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=07 byte=0x77 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp show index=08 byte=0x0A result=OK
+STEP6_VUART_QUERY_RESULT board=DE5 [1-11.2] command=sfp show status=OK reply_bytes=98 reply_hex=1B5B3140731B5B3140661B5B3140701B5B3140201B5B3140731B5B3140681B5B31406F1B5B3140770D0A534650206461746162617365206572726F7220282D31290D0A436F6D6D616E642022736670223A206572726F72202D31340D0A7772632320 reply_text=\x1B[1@s\x1B[1@f\x1B[1@p\x1B[1@ \x1B[1@s\x1B[1@h\x1B[1@o\x1B[1@w\x0D\x0ASFP database error (-1)\x0D\x0ACommand "sfp": error -14\x0D\x0Awrc# 
+STEP6_VUART_POSTFLIGHT board=DE5 [1-11.2] boot_generation_before=1 boot_generation_after=1 cpu_reset_before=0 cpu_reset_after=0 reset_changed=0
+STEP6_VUART_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_ip_vuart.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sun Sep 27 03:03:43 2026
+    Info: Elapsed time: 00:00:03
+    Info: Total CPU time (on all processors): 00:00:00

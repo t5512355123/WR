@@ -41,3 +41,11 @@ a819bf922670b2c0e1f0157a4d2415e98b3e8a8c83c5f56b19d435d942882f18  raw/program/sl
 53f6559f5ad324200d7a6cc2a4a679c508c4865e757217129340ae04533432cb  raw/observe/slave-servo-f4l-pi-response-v1-20260927.log
 01f6730d7dfbd2f473872a5dab40dc085b1ad03929c4d31ea8c8a3a653e4c127  raw/observe/slave-servo-delay-input-smoke-20260927.log
 ece2c72da8865c38b187d71946ca8704fcb3259e70fd0211e9ee12ef9485d6b8  raw/observe/slave-servo-delay-input-v1-20260927.log
+8d4e2b3b9a350ff6ec9c6310f6654c5cb677037341cf5b03571fca56372950f4  raw/observe/post-ip-get-dashboard-20260927.log
+388f757e3db8d4385f055064379b8467509034873b010de909eff693aec3b016  raw/observe/post-ip-vuart-dashboard-20260927.log
+252fa7ec70b3d05664784d020ab344d99928303340e512eb2096eeb154e825ff  raw/observe/slave-global-time-followup-900s-20260927.log
+3edbb17eef7d2188bf66f61d56a526eb49ef288f3c64efd2c74e929157b87df8  raw/observe/slave-ip-vuart-after-runtime-gate-fix-20260927.log
+e756427a83ff3e164867707994f03cc87e2199c982e6903abdca5f411c240afb  raw/observe/slave-ip-vuart-gate-diagnostic-20260927.log
+ec0133c6ee72b75e52b1877b068885ad905254f0c030d38d17e427221eb75be5  raw/observe/slave-ip-vuart-readonly-20260927.log
+77ac9848b708d7816b092aef92e538bb552493ddcd4539597fc13f1613093bc8  raw/observe/slave-servo-global-time-300s-20260927.log
+77072262e0058201a3935875b20956aa1d311aee5e22a4b156354c58882b01ee  raw/observe/slave-sfp-calibration-readonly-20260927.log

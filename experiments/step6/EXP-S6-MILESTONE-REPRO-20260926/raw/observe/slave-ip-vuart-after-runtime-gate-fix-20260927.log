@@ -1,0 +1,39 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Sep 27 02:43:10 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_ip_vuart.tcl 1500 12000
+Info: Quartus(args): 1500 12000
+STEP6_IP_GET_CONFIG stable_ms=1500 timeout_ms=12000 board_filter=SLAVE command=ip_get read_only_firmware_branch=1
+STEP6_IP_GET_GATE_PASS board=DE5 [1-11.2] gate_details={failed=NONE armed=1 cpu_reset=0 marker_mask=0xF boot_generation=1 astat_generation=1 command_stage=0 uart_input_pending=0 entry=4295076764 corr5=91117060096 corr7=12888796176 astat=67092480 uart_status=0}
+STEP6_IP_GET_PREFLIGHT board=DE5 [1-11.2] boot_generation=1 cpu_reset=0
+STEP6_IP_GET_PREEXISTING board=DE5 [1-11.2] status=OK bytes=452 hex=575220436F72653A207374617274696E672075702E2E2E0D0A5050536920666F7220575250432E20436F6D6D6974206D61737465722D646961676E6F737469632D626173656C696E652D32303236303831372D313331382D6737346463323838362C206275696C74206F6E2064657465726D696E69737469630D0A657865637574696E673A20766C616E206F66660D0A63757272656E7420766C616E3A20302028307830290D0A657865637574696E673A207074702073746F700D0A657865637574696E673A206D6F646520736C6176650D0A657865637574696E673A207074702073746172740D0A6C6C6470207570646174650D0A777263232057726F6E672053465020636865636B73756D200D0A6C6C6470207570646174650D0A4552524F523A20736C6176655F68616E646C655F666F6C6C6F7775703A20536C61766520776173206E6F742077616974696E67206120666F6C6C6F77207570206D6573736167650D0A57726F6E672053465020636865636B73756D200D0A4552524F523A20736C6176655F68616E646C655F666F6C6C6F7775703A20536C61766520776173206E6F742077616974696E67206120666F6C6C6F77207570206D6573736167650D0A text=WR Core: starting up...\x0D\x0APPSi for WRPC. Commit master-diagnostic-baseline-20260817-1318-g74dc2886, built on deterministic\x0D\x0Aexecuting: vlan off\x0D\x0Acurrent vlan: 0 (0x0)\x0D\x0Aexecuting: ptp stop\x0D\x0Aexecuting: mode slave\x0D\x0Aexecuting: ptp start\x0D\x0Alldp update\x0D\x0Awrc# Wrong SFP checksum \x0D\x0Alldp update\x0D\x0AERROR: slave_handle_followup: Slave was not waiting a follow up message\x0D\x0AWrong SFP checksum \x0D\x0AERROR: slave_handle_followup: Slave was not waiting a follow up message\x0D\x0A
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=00 byte=0x69 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=01 byte=0x70 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=02 byte=0x20 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=03 byte=0x67 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=04 byte=0x65 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=05 byte=0x74 result=OK
+STEP6_IP_GET_TX board=DE5 [1-11.2] index=06 byte=0x0A result=OK
+STEP6_IP_GET_RESULT board=DE5 [1-11.2] status=OK verdict=NO_ADDRESS ip=UNKNOWN ip_state=UNKNOWN reply_bytes=62 reply_hex=1B5B3140691B5B3140701B5B3140201B5B3140671B5B3140651B5B3140740D0A49502D616464726573733A20696E20747261696E696E670D0A7772632320 reply_text=\x1B[1@i\x1B[1@p\x1B[1@ \x1B[1@g\x1B[1@e\x1B[1@t\x0D\x0AIP-address: in training\x0D\x0Awrc#  boot_generation_before=1 boot_generation_after=1 cpu_reset_before=0 cpu_reset_after=0 reset_changed=0
+STEP6_IP_GET_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_ip_vuart.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 773 megabytes
+    Info: Processing ended: Sun Sep 27 02:43:19 2026
+    Info: Elapsed time: 00:00:09
+    Info: Total CPU time (on all processors): 00:00:00

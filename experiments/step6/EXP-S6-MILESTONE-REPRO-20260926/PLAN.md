@@ -47,12 +47,22 @@ STEP6_MILESTONE             = NOT_PASS
 ```
 
 The immediate Step 6 boundary is Slave `WRH_WAIT_OFFSET_STABLE`: the measured
-offset never entered the firmware's `<60 ps` gate. A 60-sample read-only
-CKO/SETP trace confirmed the offset remains outside the gate, but every trace
-row lacked a coherent diagnostic frame, so correction direction remains
-inconclusive. Do not change production servo controls based on that trace.
+offset never entered the firmware's `<60 ps` gate. The 2026-09-27 coherent
+read-only capture produced 205 valid samples, 194 counter-stable rows, and 104
+adjacent servo-update pairs. No same-counter payload conflicts, Wishbone
+timeouts, reset changes, or `TIME_VALID` samples occurred. The offset remained
+outside `<60 ps` in every coherent row.
 
-The next diagnostic is a read-only observer that brackets CKO/SETP/servo-state
-reads with the existing servo update counter. Keep the already-programmed
-image, avoid reset/reprogram, and do not claim Step 6A or Step 6B until their
-independent acceptance gates pass.
+Eleven source-arithmetic matches were followed by measurable CKO movement. In
+all eleven, the immediate CKO movement sign opposed the measured action offset;
+eight reduced its absolute magnitude and three overshot to a larger absolute
+residual. This does not support a globally reversed correction polarity, but
+does not prove whether the phase shifter reached its requested target or why
+the residual sometimes overshoots. Do not change production servo controls
+based on this capture.
+
+The next diagnostic is a sparse, read-only, publication-coherent read of the
+existing F4L `phase_shift_current` alongside the already source-mapped WR servo
+setpoint/offset. Keep the currently programmed image, do not reset/reprogram,
+and treat the two diagnostic groups as non-atomic. Step 6A/6B remain unpassed
+until their independent acceptance gates pass.

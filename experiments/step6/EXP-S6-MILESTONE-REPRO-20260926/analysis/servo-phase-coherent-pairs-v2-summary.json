@@ -1,0 +1,32 @@
+{
+  "adjacent_update_pairs": 104,
+  "cko_abs_lt_60ps_rows": 0,
+  "cko_ps_max": 2473,
+  "cko_ps_min": -3677,
+  "counter_stable_rows": 194,
+  "post_action_offset_delta_ps": [
+    5491,
+    -1345,
+    -4356,
+    5316,
+    -1231,
+    -4419,
+    5580,
+    -740,
+    -4800,
+    5740,
+    -1450
+  ],
+  "post_action_offset_samples": 11,
+  "reads_valid": 205,
+  "reset_changed_rows": 0,
+  "same_counter_payload_conflicts": 0,
+  "sample_rows": 205,
+  "scope_note": "Counter-stable diagnostic pairs only; descriptive servo evidence, not Step 6A or Step 6 milestone acceptance.",
+  "setpoint_offset_match_tests": 93,
+  "setpoint_offset_matches": 11,
+  "skipped_servo_updates": 5,
+  "source_log": "experiments\\step6\\EXP-S6-MILESTONE-REPRO-20260926\\raw\\observe\\slave-servo-phase-coherent-pairs-v2-20260927.log",
+  "time_valid_rows": 0,
+  "verdict": "DESCRIPTIVE_ONLY_NO_STEP6_PASS_CLAIM"
+}

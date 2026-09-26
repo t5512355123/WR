@@ -1,0 +1,18 @@
+{
+  "log": "raw/observe/slave-postprogram-360s-step5-step6a-tail-20260926.log",
+  "role": "SLAVE",
+  "sample_count": 189,
+  "first_sample": 0,
+  "last_sample": 188,
+  "first_elapsed_ms": 0,
+  "last_elapsed_ms": 359311,
+  "sampled_span_ms": 359311,
+  "valid_five_lock_samples": 189,
+  "lock_or_health_violations": 0,
+  "sample_gaps": [],
+  "reset_signatures": [["00000001", "00000001", "00000001", "00000001"]],
+  "servo_state_counts": {"3": 17, "5": 172},
+  "time_valid_sample_count": 0,
+  "step5_direct_locks_300s": "PASS",
+  "step6a_slave_time_valid": "NOT_PASS"
+}

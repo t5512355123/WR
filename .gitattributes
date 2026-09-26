@@ -45,3 +45,6 @@ artifacts/milestones/**/source/** -whitespace
 artifacts/milestones/step6_global_time/source/vendor/wr-cores/testbench/wr_streamers/streamers-only_basic-transfer/tcl_stacktrace.txt -diff
 # Candidate frozen source packages inside experiments are also byte-preserving.
 experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/source/** -text -eol
+# Quartus/JTAG captures are immutable raw evidence; preserve exact bytes and
+# avoid treating vendor-formatted trailing spaces as source whitespace errors.
+experiments/step6/EXP-S6-MILESTONE-REPRO-20260926/raw/** -text -eol -diff -whitespace

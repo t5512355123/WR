@@ -1,0 +1,26 @@
+{
+  "log": "raw/observe/slave-phase-offset-loop-60x1s.log",
+  "sha256": "89ed6d7b4d0c2061d9a703b9b286010da34a1f04e501f88787dfc6a9e88260a7",
+  "slave_samples": 60,
+  "cko_setp_parsed_samples": 60,
+  "frame_valid_samples": 0,
+  "frame_samples": 60,
+  "servo_state_counts": {"3": 5, "5": 55},
+  "step5_boundary_counts": {"LOCKED_SAMPLE": 60},
+  "step5_locked_sample_count": 60,
+  "time_valid_sample_count": 0,
+  "pps_valid_sample_count": 60,
+  "cko_ps": {
+    "min": -3702,
+    "max": 2518,
+    "median": 1135.0,
+    "within_abs_60_ps": 0
+  },
+  "setp_ps": {
+    "min": -1747,
+    "max": 1888,
+    "distinct_values": [-1747, -1738, -1686, 526, 660, 751, 1702, 1728, 1888],
+    "change_count": 8
+  },
+  "causal_direction_verdict": "INCONCLUSIVE_NONCOHERENT_FRAMES"
+}

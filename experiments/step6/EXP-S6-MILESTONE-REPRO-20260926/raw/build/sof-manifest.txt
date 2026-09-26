@@ -1,0 +1,8 @@
+MASTER_MIF
+00cf52190ae60392fce14fcb23ffac6adcb82b3a9ca4de5d1e968d21e3c68681  /home/b10504072/04_WR/pain-worktrees/step6-milestone-repro-20260926/artifacts/milestones/step6_global_time/source/build/firmware/master/wrc.mif
+SLAVE_MIF
+066761f51af3cc279923bd1e349b33d2d311faa7d2fa23e43745d9a1da3ca33c  /home/b10504072/04_WR/pain-worktrees/step6-milestone-repro-20260926/artifacts/milestones/step6_global_time/source/build/firmware/slave/wrc.mif
+MASTER_SOF
+0780f63d426a1a5deca8fecd56130d7ca343754e6c62c44a8bafd4bee2cc3ae3  /home/b10504072/04_WR/pain-worktrees/step6-milestone-repro-20260926/artifacts/milestones/step6_global_time/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
+SLAVE_SOF
+60de5a1c6ef31f78ec7b4e132504d0f95a87fcc2ef04ce46acc310784a3d6039  /home/b10504072/04_WR/pain-worktrees/step6-milestone-repro-20260926/artifacts/milestones/step6_global_time/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof

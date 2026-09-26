@@ -39,6 +39,14 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertIn("0x00100514", self.observer)
         self.assertIn("(($word >> 8) & 1)", self.observer)
 
+    def test_reply_capture_appends_full_pages_before_continuing(self):
+        capture = self.observer.split("proc capture_vuart_reply", 1)[1].split("\n}\n", 1)[0]
+        self.assertLess(capture.index("append all_hex $chunk_hex"),
+                        capture.index('if {$status eq "LIMIT"}'))
+        self.assertIn('if {$chunk_hex eq ""} { return [list LIMIT $all_hex $all_text] }',
+                      capture)
+        self.assertIn("after 1\n      continue", capture)
+
     def test_observer_gates_command_on_shell_and_vuart_idle(self):
         for token in (
             "post_startup_armed != 1",

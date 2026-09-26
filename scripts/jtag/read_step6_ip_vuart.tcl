@@ -228,18 +228,31 @@ proc capture_vuart_reply {hardware_name timeout_ms} {
   set all_text ""
   while {[clock milliseconds] - $start_ms < $timeout_ms && [string length $all_hex] < 4096} {
     lassign [read_uart_available $hardware_name 256] status chunk_hex chunk_text
-    if {$status eq "TIMEOUT" || $status eq "LIMIT"} {
-      return [list $status $all_hex $all_text]
-    }
     if {$chunk_hex ne ""} {
       append all_hex $chunk_hex
       append all_text $chunk_text
       set last_data_ms [clock milliseconds]
       if {[string first "wrc#" $all_text] >= 0} { break }
-    } elseif {$last_data_ms >= 0 && [clock milliseconds] - $last_data_ms >= 500} {
+    }
+    if {$status eq "TIMEOUT"} {
+      return [list TIMEOUT $all_hex $all_text]
+    }
+    if {$status eq "LIMIT"} {
+      if {$chunk_hex eq ""} { return [list LIMIT $all_hex $all_text] }
+      after 1
+      continue
+    }
+    if {$chunk_hex eq "" && $last_data_ms >= 0 &&
+        [clock milliseconds] - $last_data_ms >= 500} {
       break
     }
     after 20
+  }
+  if {[string length $all_hex] >= 4096} {
+    return [list LIMIT $all_hex $all_text]
+  }
+  if {[clock milliseconds] - $start_ms >= $timeout_ms} {
+    return [list TIMEOUT $all_hex $all_text]
   }
   return [list OK $all_hex $all_text]
 }

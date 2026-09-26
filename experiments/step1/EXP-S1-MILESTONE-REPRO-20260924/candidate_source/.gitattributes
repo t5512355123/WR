@@ -1,9 +1,0 @@
-* text=auto eol=lf
-*.bin binary
-*.elf binary
-*.mif binary
-*.sof binary
-*.pof binary
-*.a binary
-*.o binary
-*.so binary

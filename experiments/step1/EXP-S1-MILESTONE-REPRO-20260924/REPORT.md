@@ -32,11 +32,11 @@ candidate. Their hashes match the migration inventory entries under
 
 ## Frozen candidate source audit
 
-The candidate snapshot was extracted from the selected commit and placed at:
-
-```text
-candidate_source/
-```
+The candidate snapshot was extracted from the selected commit and initially
+placed at `candidate_source/`. The byte-identical authoritative copy is now
+the [Step 1 frozen milestone source](../../../artifacts/milestones/step1_phy_link/source/README.md);
+the experiment-local copy was removed only after the identity audit recorded
+in `analysis/source-deduplication.md`.
 
 It contains 3,107 historical source files (53,861,987 bytes before adding the
 Step1 runner/build wrappers), including the JTAG projects, all six generated
@@ -61,8 +61,8 @@ The local analyzer contract tests pass (5/5). Pain verified all 3,118 source
 manifest entries before building. The copied frozen milestone source was
 verified again on Laptop with 0 hash errors.
 
-The reconstructed source snapshot contains 3,118 files in
-`candidate_source/SHA256SUMS`; that source-manifest SHA-256 is
+The reconstructed source snapshot contains 3,118 files in the frozen source's
+`SHA256SUMS`; that source-manifest SHA-256 is
 `971d863f6171d2f6c496b197f84dc774e2d56d7495f874db2c815f0c00f5a96b`.
 
 ## Build and programming results

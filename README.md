@@ -46,7 +46,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 5 reproduced Helper/HPLL, Main frequency, Main phase, and PSTAT locks across a 300291 ms fresh-data span in a 301253 ms session; timing closure remains NO and is not part of its functional gate. Step 6 frozen-source reproduction is pending, and physical SMA/output edge-skew is not evaluated. Authoritative hashes and evidence are in [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md).
+Steps 1–6 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 5 reproduced all required Slave locks across its 300-second series. Step 6 verified five exact common PPS labels and two repeated dual-board scheduled digital triggers. Timing closure is NO and is not a functional Step 5/6 gate. Physical SMA/output edge-skew is not evaluated; the guarded cached QSFP calibration CLI query also remains inconclusive. Authoritative hashes and evidence are in [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [Step 6 milestone](artifacts/milestones/step6_global_time/README.md).
 
 ## Reproduce the validated Step 2 checkpoint
 
@@ -117,6 +117,37 @@ CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
 
 The validated program order was Master, wait at least 90 seconds, then Slave; wait at least 120 seconds after both before read-only preflight. The 300-second F4L invocation and full acceptance evidence are in the [Step 5 reproduction report](experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md). The [Step 5 milestone README](artifacts/milestones/step5_softpll_lock/README.md) records the exact acceptance boundary and caveats.
+
+## Reproduce the validated Step 6 Global-Time and digital-trigger checkpoint
+
+The exact Step 6 SOFs independently rebuilt and programmed on 2026-09-27 are:
+
+- Master: [artifacts/milestones/step6_global_time/master.sof](artifacts/milestones/step6_global_time/master.sof), SHA-256 `ad16d364eddbdacbf1aab40bd12154da337f757fbec90e2e216c8e08a0f54901`.
+- Slave: [artifacts/milestones/step6_global_time/slave.sof](artifacts/milestones/step6_global_time/slave.sof), SHA-256 `6257952a2aa303b07dcfbd1ca08aa75230af12e412adf176cbbf5a4443bc7450`.
+
+The frozen source is `artifacts/milestones/step6_global_time/source/`. On Pain, build from that directory with the Quartus and RISC-V tools on `PATH`:
+
+```sh
+bash firmware/scripts/build_master_firmware.sh
+bash scripts/build/build_master.sh
+bash firmware/scripts/build_slave_firmware.sh
+bash scripts/build/build_slave.sh
+```
+
+To program the frozen milestone SOFs, from the same `source/` directory use
+Slave first, then Master:
+
+```sh
+SOF=../slave.sof CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+SOF=../master.sof CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
+```
+
+The functional Step 6 reproduction matched five common PPS labels exactly and
+fired the same scheduled digital TAI/cycle on both boards twice. The [Step 6
+milestone README](artifacts/milestones/step6_global_time/README.md) and
+[reproduction report](experiments/step6/EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
+contain the measured gates, commands, hashes, and limitations. This does not
+claim oscilloscope-verified physical output skew.
 
 ## Current development source, build, and programming
 

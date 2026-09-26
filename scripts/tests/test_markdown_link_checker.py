@@ -54,6 +54,14 @@ class MarkdownLinkCheckerTests(unittest.TestCase):
         )
         self.assertFalse(checker.is_vendored_markdown("experiments/step1/REPORT.md"))
 
+    def test_identifies_exact_baseline_blob_markdown_as_archival_payload(self):
+        self.assertTrue(checker.is_preserved_baseline_snapshot(
+            "experiments/legacy/preserved-baseline/objects/abc--REPORT.md"
+        ))
+        self.assertFalse(checker.is_preserved_baseline_snapshot(
+            "experiments/legacy/exp-step5-softpll-lock/REPORT.md"
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

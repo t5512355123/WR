@@ -3,6 +3,12 @@
 Historical source root: commit
 `b8d4c3d0526f0c2ca282600ef06648dd9f0af595`.
 
+The relocated source was initially assembled under the experiment's
+`candidate_source/` staging path. Its current authoritative copy is the
+[Step 1 frozen milestone source](../../../../artifacts/milestones/step1_phy_link/source/README.md).
+See `source-deduplication.md` for the path-by-path SHA-256 comparison made
+before the staging copy was removed.
+
 The candidate keeps the historical Quartus revisions and design content, but
 places the project in a root that can be copied into a frozen milestone
 without relying on sibling directories from the main repository:
@@ -43,6 +49,6 @@ the independent clean builds; a textual path audit alone is not build proof.
 The Windows working tree initially had CRLF endings in 1,098 text files.
 Those files were normalized to LF without changing any other bytes. Candidate
 `.gitattributes` pins auto-detected text files to LF and explicitly protects
-binary build formats. `candidate_source/SHA256SUMS` excludes itself, ignored
+binary build formats. The frozen source's `SHA256SUMS` excludes itself, ignored
 build outputs, and Python bytecode caches, so the source manifest can be
 verified from the Linux Pain checkout as well as Windows.

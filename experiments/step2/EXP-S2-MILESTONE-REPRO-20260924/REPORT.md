@@ -15,10 +15,13 @@ Step 3 WR handshake or any SoftPLL/global-time milestone.
 
 - Historical Step 2 source commit: `054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00`.
 - Historical candidate experiment: `EXP-WRPC-STEP2-DCO-RESTORE-20260819`.
-- The source package in `candidate_source/` keeps the historical JTAG top
-  entities and functional RTL/firmware. Changes for this reproduction were
-  limited to self-contained path relocation, JTAG build/program wrappers, and
-  text line-ending normalization.
+- The source package used for this reproduction kept the historical JTAG top
+  entities and functional RTL/firmware. Changes were limited to self-contained
+  path relocation, JTAG build/program wrappers, and text line-ending
+  normalization. The exact source is now preserved in the
+  [Step 2 frozen milestone source](../../../artifacts/milestones/step2_endpoint_ptp/source/README.md);
+  the experiment-local copy was removed after the comparison in
+  `analysis/source-deduplication.md`.
 - Candidate/frozen source manifest: 3,142 entries;
   `SHA256SUMS` SHA-256
   `ef623b821a089742a5bcadd5886e257d64ce8cef1368feefaa29fb3c4f3d70dc`.

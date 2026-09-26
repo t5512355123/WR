@@ -23,9 +23,13 @@ but does not claim Step 3 WR signaling, SoftPLL lock, or global-time success.
 ## Frozen candidate construction
 
 Use the exact source tree at commit `054d06874dfc4d6be8acd1f60b8cba1e7a4c5b00`.
-Create a self-contained candidate under `candidate_source/`, retaining the
-historical JTAG top-level entities and functional source. Only relocate paths
-needed for independent compilation:
+The completed source is now preserved once at the
+[Step 2 frozen milestone source](../../../artifacts/milestones/step2_endpoint_ptp/source/README.md).
+The former experiment-local `candidate_source/` copy was verified byte-for-byte
+before removal; see `analysis/source-deduplication.md`. Build and program from
+the frozen milestone source rather than recreating a duplicate.
+
+The only required self-contained path relocations are:
 
 ```text
 quartus/jtag_runtime_diag/*             -> quartus/*
@@ -47,7 +51,8 @@ two top-level entities remain `DE5a_wr_master_jtag` and
 1. Push the candidate and this plan to `feat/file_cleanup`.
 2. On Pain, pull that exact commit; verify the candidate manifest and record
    Quartus/toolchain versions and source hashes.
-3. Clean-build firmware and Quartus Master and Slave from `candidate_source/`.
+3. Clean-build firmware and Quartus Master and Slave from
+   `../../../artifacts/milestones/step2_endpoint_ptp/source/`.
    Retain complete logs and fresh SOF/MIF hashes.
 4. Program the fresh Master image to `DE5 [1-11.1]`, then Slave to
    `DE5 [1-11.2]`, matching the historical Step 2 procedure. Record the full

@@ -23,7 +23,13 @@ one read-only F4L session.
 - Pain checkout used for this reproduction: commit 6f1096d7f957beeb2f0c065f7219960bae47bb61 on feat/file_cleanup.
 - The frozen package verifier confirmed 3,190 historical Git blobs and 7 reproduction wrappers. The promoted source snapshot independently checked 3,203 source-index files.
 - Quartus Prime Standard 17.0.0 Build 595; RISC-V toolchain 9.3.0.
-- The candidate package and build/program tooling are under source/. The promoted frozen source is artifacts/milestones/step5_softpll_lock/source/.
+- The candidate package and build/program tooling were staged under `source/`
+  during the reproduction. All 3,207 files were later verified identical by
+  relative path and SHA-256 to the promoted [Step 5 frozen milestone
+  source](../../../artifacts/milestones/step5_softpll_lock/source/README.md).
+  The tracked experiment-local source duplicate was removed after that check;
+  only four ignored bytecode caches remain on disk. Details are in
+  `analysis/source-deduplication.md`.
 
 | Board | QSF SHA-256 | SDC SHA-256 | Rebuilt MIF SHA-256 | Rebuilt SOF SHA-256 | Build |
 |---|---|---|---|---|---|

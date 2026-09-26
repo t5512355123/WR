@@ -163,13 +163,46 @@ and now labelled in the scripts themselves:
 These are not active build/program interfaces or unresolved current-source
 references. Regression tests pass (61 tests), and `git diff --check` is clean.
 
+## Final baseline-to-worktree preservation audit — 2026-09-27
+
+The final per-file audit compares baseline commit
+`62182a94b437a7b0b77630f99ec50f788bc8ab7b` with the current worktree and
+accounts for every deletion/rename record:
+
+```text
+exact retained/moved blobs       = 7428
+intentionally removed non-evidence = 3
+unexplained                      = 0
+```
+
+The 184 exact baseline snapshots in `experiments/legacy/preserved-baseline/`
+include 146 files initially lacking an exact retained copy or verified
+archive mapping and 38 pre-migration snapshots for relocated files whose
+current copies had link/path edits. `MANIFEST.tsv` records each original path,
+Git blob ID, byte count, SHA-256, and retained path. Every manifest copy was
+rehashed before the final audit. The complete row-level result is
+`analysis/preservation-audit.tsv`; its generator uses Git's batch object reader
+and is `analysis/preservation_audit.py`.
+The final authored-Markdown link audit checked 779 Markdown files and 423 local
+links with zero broken targets; it skipped 109 vendored files and 17 exact
+baseline Markdown blob snapshots. The preservation-snapshot exclusion is
+tested in `scripts/tests/test_markdown_link_checker.py`.
+Step 6 regression checks passed 12 VUART unit tests and 27 Global-Time,
+same-PPS, closure, trigger, and re-arm test functions (39 total).
+
+Step 6 has since been independently rebuilt, programmed, and functionally
+reproduced. Its current evidence is in
+[`experiments/step6/EXP-S6-MILESTONE-REPRO-20260927/REPORT.md`](../../step6/EXP-S6-MILESTONE-REPRO-20260927/REPORT.md).
+Physical SMA/output-edge skew and the guarded cached QSFP calibration CLI
+query remain explicitly unevaluated/inconclusive, respectively.
+
 ## Current next action
 
-The Step4 milestone is PASS, with its build/program/runtime evidence in
-`experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/`. Repository cleanup and
-the canonical-path/stale-reference audit are complete. Next, independently
-reproduce Step5 from its own frozen source. Do not substitute a later-Step SOF
-for an earlier milestone.
+The functional Step 6 Global-Time and repeated dual-board digital-trigger
+milestone is PASS. The remaining hardware target, if physical timing is
+required, is external measurement of SMA/output-edge skew; it is not inferred
+from the digital trigger labels. Repository preservation audit:
+`UNEXPLAINED=0`.
 
 ## Evidence
 

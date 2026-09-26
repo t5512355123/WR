@@ -25,21 +25,20 @@ The local pair under `artifacts/EXP-BASELINE-RS422/` is explicitly not this
 candidate: its hashes map to `week02/v01/rs422_uart_diag` in the migration
 manifest. It will not be programmed or used as a JTAG milestone.
 
-## Frozen candidate
+## Frozen candidate and later consolidation
 
-`candidate_source/` is reconstructed from the historical Git tree above. It
-contains the JTAG Quartus project, generated Arria 10 IP, SI5340 controller,
-firmware build inputs, and complete vendored dependencies. It applies path
-relocations required by the self-contained layout and LF-only line-ending
-normalization for cross-platform hashes; hardware logic, firmware logic,
-project/revision names, constraints, and pin assignments are not intentionally
-changed. See
-`analysis/source-relocation.md` and `candidate_source/README.md`.
+The source used during this reproduction was initially staged under
+`candidate_source/`. It contains the JTAG Quartus project, generated Arria 10
+IP, SI5340 controller, firmware inputs, and vendored dependencies; path
+relocations and LF-only line-ending normalization are documented in
+`analysis/source-relocation.md`. The completed, authoritative source is now
+the [Step 1 frozen milestone source](../../../artifacts/milestones/step1_phy_link/source/README.md).
+The former copy was byte-audited against it before deduplication; see
+`analysis/source-deduplication.md`.
 
-This remains a candidate, not a milestone PASS. The official
-`artifacts/milestones/step1_phy_link/` directory and PASS verdict will only be
-created after clean Master/Slave builds, successful programming, and fresh
-two-board acceptance validation.
+This plan predates the milestone's acceptance. Its final build, programming,
+and fresh two-board validation verdict is recorded in `REPORT.md` and
+`MILESTONES.md`.
 
 ## Required validation
 
@@ -56,9 +55,10 @@ JTAG probe manifest. No later-Step image may be substituted.
 
 ## Build and program order
 
-Build each role from `candidate_source/scripts/build/build_master.sh` and
-`build_slave.sh`. Program using the corresponding scripts under
-`candidate_source/scripts/program/`. Historical Step1 procedure programmed
+Build each role from
+`../../../artifacts/milestones/step1_phy_link/source/scripts/build/build_master.sh`
+and `build_slave.sh`. Program using the corresponding scripts under that
+frozen source. Historical Step1 procedure programmed
 Slave before Master; retain that order unless the fresh build/run evidence
 shows that the historical order is not applicable.
 

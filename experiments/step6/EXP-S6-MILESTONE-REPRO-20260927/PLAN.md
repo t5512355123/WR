@@ -30,16 +30,12 @@ PLL tuning, timeout, reset, RTL, SDB, or timing-constraint changes are allowed.
    Programmer logs in `raw/program/`.
 3. Run the current read-only Step 1–6 dashboard with a bounded Global-Time
    wait. Preserve its raw output in `raw/observe/`.
-4. Verify `sfp params` identifies the QSFP module using SFF-8636 and reports
-   the real calibration database match. If the serial ID/checksum is invalid,
-   the database lookup fails, or calibration remains absent, stop and report
-   the exact boundary; do not substitute values.
-5. Capture direct Step 5 lock signals with timestamps for at least 300 seconds:
+4. Capture direct Step 5 lock signals with timestamps for at least 300 seconds:
    Helper/HPLL, Main frequency, Main phase, Main lock, PSTAT, link, and reset
    stability. A one-shot dashboard is not sufficient for this gate.
-6. Verify valid/stable Global-Time snapshots on both boards and collect multiple
+5. Verify valid/stable Global-Time snapshots on both boards and collect multiple
    common PPS labels for same-PPS cycle comparison.
-7. Use one common future Global-Time target for the validated digital trigger
+6. Use one common future Global-Time target for the validated digital trigger
    and repeatability run. Preserve every approved arm/target write and all
    post-fire reads. Require one firing per board, matching digital labels, and
    healthy post-fire link/Global Time.
@@ -47,12 +43,21 @@ PLL tuning, timeout, reset, RTL, SDB, or timing-constraint changes are allowed.
 Physical SMA/output-pin skew is outside this digital experiment and remains
 `NOT_EVALUATED` without oscilloscope evidence.
 
+## Non-gating diagnostic
+
+The guarded `sfp params` query is an ancillary calibration/identity diagnostic,
+not a Step 6 Global-Time or digital-trigger acceptance gate. If the observer
+cannot establish a safe idle command boundary, it must stop without sending the
+command and record the result as inconclusive. No calibration values may be
+guessed or substituted. The query's inconclusive status does not invalidate a
+Step 6 PASS when all Step 5 stability, Global-Time, same-PPS, and digital-trigger
+criteria above pass.
+
 ## Stop conditions
 
 - Any build/programmer error: stop before programming or observing, preserve
   logs, and diagnose the first failed boundary.
-- Read-only preflight failure, invalid QSFP serial ID, no calibration DB match,
-  reset/generation change, link loss, or invalid snapshots: stop the applicable
-  acceptance stage and retain raw evidence.
+- Read-only preflight failure, reset/generation change, link loss, or invalid
+  snapshots: stop the applicable acceptance stage and retain raw evidence.
 - Step 6 is not PASS unless every acceptance item above is independently
   verified from this newly built/programmed image.

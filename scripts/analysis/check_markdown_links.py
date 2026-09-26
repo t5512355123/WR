@@ -87,6 +87,11 @@ def is_vendored_markdown(path: str) -> bool:
     return path.startswith("vendor/") or "/vendor/" in f"/{path}"
 
 
+def is_preserved_baseline_snapshot(path: str) -> bool:
+    """Exact historical blobs are archival payloads, not active Markdown docs."""
+    return path.startswith("experiments/legacy/preserved-baseline/objects/")
+
+
 def path_exists_case_sensitive(target: str, repo_paths: set[str]) -> bool:
     if target == "." or target in repo_paths:
         return True
@@ -125,12 +130,16 @@ def main() -> int:
     args = parser.parse_args()
     all_paths, repo_paths = repository_paths()
     vendor_paths = [path for path in all_paths if is_vendored_markdown(path)]
-    paths = all_paths if args.include_vendor_markdown else [
-        path for path in all_paths if not is_vendored_markdown(path)
+    preserved_paths = [path for path in all_paths if is_preserved_baseline_snapshot(path)]
+    paths = [
+        path for path in all_paths
+        if not is_preserved_baseline_snapshot(path) and
+        (args.include_vendor_markdown or not is_vendored_markdown(path))
     ]
     checked, broken = audit(paths, repo_paths)
     print(f"MARKDOWN_FILES_CHECKED={len(paths)}")
     print(f"VENDORED_MARKDOWN_SKIPPED={0 if args.include_vendor_markdown else len(vendor_paths)}")
+    print(f"PRESERVED_BASELINE_SNAPSHOTS_SKIPPED={len(preserved_paths)}")
     print(f"LOCAL_LINKS_CHECKED={checked}")
     print(f"BROKEN_LOCAL_LINKS={len(broken)}")
     for source, line, raw, normalized in broken:

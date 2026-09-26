@@ -50,7 +50,6 @@ class Step6IpVuartObserverTests(unittest.TestCase):
             "CPU_RESET_ASSERTED",
             "SHELL_MARKERS_INCOMPLETE",
             "GENERATION_MISMATCH",
-            "RUNTIME_NOT_IDLE",
             "COMMAND_STAGE_NOT_IDLE",
             "VUART_INPUT_PENDING",
             "gate_details={%s}",

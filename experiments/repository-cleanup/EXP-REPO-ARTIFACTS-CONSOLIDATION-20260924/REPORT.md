@@ -48,11 +48,12 @@ would have removed whole ignored directories, including unrelated contents.
 
 Post-cleanup checks found zero physical non-milestone files and zero indexed
 non-milestone paths under `artifacts/`. Step1 Master and Slave SOFs are now
-tracked and match their README hashes. The historical Step6 SOF pair remains
-available at:
+tracked and match their README hashes. At the time of this audit, the
+historical Step6 SOF pair was under the legacy path below. The Step6
+promotion later moved it byte-identically to:
 
 ```text
-experiments/legacy/exp-step6-global-time/artifact-import/
+experiments/step6/artifact-import/
   EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/
 ```
 

@@ -55,9 +55,9 @@ source SHA-256 remains verifiable.
 | `experiments/legacy/exp-step5-softpll-lock/EXP-S5-DIAG-ACTIVITY-CDC-CONSTRAINT-FIX-20260920/raw/pre-pull-raw-20260920/fit/DE5a_wr_slave_jtag.fit.summary` | `d823d29ddb80ef79b6f1afd19a07b43fb2fa4fcc75e5f5be4dba6abf24d6dd45` |
 | `experiments/legacy/exp-step5-softpll-lock/EXP-S5-DIAG-ACTIVITY-CDC-CONSTRAINT-FIX-20260920/raw/pre-pull-raw-20260920/file-sha256.txt` | `48ff9a52b0e64a6d98b4b3c01966136eb25bc9479a69bb3a5c50c5af58a0d5cd` |
 | `experiments/legacy/exp-step5-softpll-lock/EXP-S5-FAST100C-SYSCLK625-HOLD-PATH-AUDIT-20260920/raw/pre-pull-raw-20260920/file-sha256.txt` | `55c244e59866e92fd85bb016ff36d3287497781351cc443f53165d9fbd342f11` |
-| `experiments/legacy/exp-step6-global-time/EXP-S6-SLAVE-PTP-RESTART-WR-EXTENSION-RECOVERY-20260922/raw/observe/ptp_restart_recovery_pre_pull.log` | `2eb570a979fef7b4d88e6338db24f815b296071281ba1378f1024f317dd2b5ca` |
-| `experiments/legacy/exp-step6-global-time/EXP-S6-GLOBAL-TIME-LATE-RECOVERY-TAIL-STABILITY-20260922/raw/observe/late_recovery_tail_pre_pull.log` | `7372cf01fce4da4685366dc519941165f5e17d395bca0fb7428ae7e06bef7b47` |
-| `experiments/legacy/exp-step6-global-time/EXP-S6-SAME-PPS-GLOBAL-TIME-CONSISTENCY-20260922/raw/observe/same_pps_consistency_pre_pull.log` | `274b5068267c3c19afe411b9626dd431f76272be5496ce4e349374855dccb30e` |
+| `experiments/step6/EXP-S6-SLAVE-PTP-RESTART-WR-EXTENSION-RECOVERY-20260922/raw/observe/ptp_restart_recovery_pre_pull.log` | `2eb570a979fef7b4d88e6338db24f815b296071281ba1378f1024f317dd2b5ca` |
+| `experiments/step6/EXP-S6-GLOBAL-TIME-LATE-RECOVERY-TAIL-STABILITY-20260922/raw/observe/late_recovery_tail_pre_pull.log` | `7372cf01fce4da4685366dc519941165f5e17d395bca0fb7428ae7e06bef7b47` |
+| `experiments/step6/EXP-S6-SAME-PPS-GLOBAL-TIME-CONSISTENCY-20260922/raw/observe/same_pps_consistency_pre_pull.log` | `274b5068267c3c19afe411b9626dd431f76272be5496ce4e349374855dccb30e` |
 
 ## Cleanup status
 

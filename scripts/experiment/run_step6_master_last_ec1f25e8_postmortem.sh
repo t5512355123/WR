@@ -14,7 +14,7 @@ EXP_ID="$1"
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 PYTHON=python3
 EXP_DIR="$ROOT/experiments/step6/$EXP_ID"
-BASELINE_LOG="$ROOT/experiments/legacy/exp-step6-global-time/EXP-S6-MASTER-LAST-EC1F25E8-REBUILD-RECOVERY-ATTRIBUTION-20260921/raw/baseline/baseline.log"
+BASELINE_LOG="$ROOT/experiments/step6/EXP-S6-MASTER-LAST-EC1F25E8-REBUILD-RECOVERY-ATTRIBUTION-20260921/raw/baseline/baseline.log"
 POSTMORTEM_LOG="$EXP_DIR/raw/current/postmortem.log"
 
 mkdir -p "$EXP_DIR/raw/current" "$EXP_DIR/raw/program" "$EXP_DIR/analysis"

@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any
 
 
-STEP6_ROOT = Path("experiments/legacy/exp-step6-global-time")
+STEP6_ROOT = Path("experiments/step6")
 E = {
     "same_pps": STEP6_ROOT / "EXP-S6-SAME-PPS-GLOBAL-TIME-CONSISTENCY-20260922",
     "late_tail": STEP6_ROOT / "EXP-S6A-ACTIVE-EXTENSION-LATE-GLOBAL-TIME-TAIL-20260922",

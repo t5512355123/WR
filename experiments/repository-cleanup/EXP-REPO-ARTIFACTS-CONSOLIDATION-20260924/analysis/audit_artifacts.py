@@ -81,7 +81,7 @@ def proposed_destination(root: pathlib.Path, source: str) -> str:
     elif group.startswith("EXP-STEP4B"):
         base = "experiments/legacy/exp-step4b-slave-softpll-startup/artifact-import"
     elif group.startswith("EXP-S6-"):
-        base = "experiments/legacy/exp-step6-global-time/artifact-import"
+        base = "experiments/step6/artifact-import"
     elif group.startswith(("EXP-S5-", "EXP-WRPC-STEP5-", "exp-step5-")):
         base = "experiments/legacy/exp-step5-softpll-lock/artifact-import"
     else:

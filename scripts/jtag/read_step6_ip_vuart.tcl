@@ -1,25 +1,34 @@
 # Read the current WRPC IPv4 address through JTAG's existing virtual-UART
-# Wishbone path. This sends exactly one firmware command, `ip get`, to the
-# Slave board. The command's `get` branch only reads and prints the address;
-# this script does not set network configuration, reset hardware, or touch PTP.
+# Wishbone path. By default this sends only the firmware command `ip get` to
+# the Slave board. An optional `calibration` mode sends the fixed read-only
+# commands `delays` and `sfp show`. It never runs `sfp match`, which can update
+# live calibration state. No mode changes network configuration, resets
+# hardware, or writes PTP control.
 #
 # The script drains and logs any pre-existing VUART output before sending the
 # command, so bytes are preserved in the capture rather than silently lost.
 # It then reads the firmware response from the host-side VUART RX FIFO.
 #
 # Usage:
-#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms?
+#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration?
 
 package require ::quartus::insystem_source_probe
 
 set stable_ms 1500
 set timeout_ms 30000
+set query_mode ip
 set poll_ms 100
 set poll_attempts 100
 if {[llength $argv] >= 1} { set stable_ms [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set timeout_ms [expr {int([lindex $argv 1])}] }
+if {[llength $argv] >= 3} { set query_mode [lindex $argv 2] }
 if {$stable_ms <= 0 || $timeout_ms <= 0} {
   error "stable_ms and timeout_ms must be positive"
+}
+switch -- $query_mode {
+  ip { set read_only_queries [list "ip get"] }
+  calibration { set read_only_queries [list "delays" "sfp show"] }
+  default { error "query_mode must be ip or calibration" }
 }
 
 array set ::wb_toggle {}
@@ -188,8 +197,8 @@ proc escaped_text {text} {
   return $escaped
 }
 
-proc send_ip_get {hardware_name} {
-  set command "ip get\n"
+proc send_vuart_command {hardware_name command_name} {
+  set command "${command_name}\n"
   set index 0
   foreach character [split $command ""] {
     scan $character %c byte
@@ -202,15 +211,15 @@ proc send_ip_get {hardware_name} {
     }
     if {!$ready} { return INPUT_FIFO_BUSY }
     set result [wb_write $hardware_name 0x00100510 $byte]
-    puts [format "STEP6_IP_GET_TX board=%s index=%02d byte=0x%02X result=%s" \
-      $hardware_name $index $byte $result]
+    puts [format "STEP6_VUART_TX board=%s command=%s index=%02d byte=0x%02X result=%s" \
+      $hardware_name $command_name $index $byte $result]
     if {$result ne "OK"} { return WRITE_FAILED }
     incr index
   }
   return OK
 }
 
-proc capture_ip_reply {hardware_name timeout_ms} {
+proc capture_vuart_reply {hardware_name timeout_ms} {
   set start_ms [clock milliseconds]
   set last_data_ms -1
   set all_hex ""
@@ -233,8 +242,8 @@ proc capture_ip_reply {hardware_name timeout_ms} {
   return [list OK $all_hex $all_text]
 }
 
-puts [format "STEP6_IP_GET_CONFIG stable_ms=%d timeout_ms=%d board_filter=SLAVE command=ip_get read_only_firmware_branch=1" \
-  $stable_ms $timeout_ms]
+puts [format "STEP6_VUART_CONFIG stable_ms=%d timeout_ms=%d board_filter=SLAVE query_mode=%s read_only_firmware_commands=1" \
+  $stable_ms $timeout_ms $query_mode]
 set found 0
 foreach hardware_name [get_hardware_names] {
   if {![string match "*1-11.2*" $hardware_name]} { continue }
@@ -286,18 +295,29 @@ foreach hardware_name [get_hardware_names] {
         [escaped_text $pre_text]]
       if {$pre_status ne "OK"} { error "VUART pre-drain failed: $pre_status" }
 
-      set send_status [send_ip_get $hardware_name]
-      if {$send_status ne "OK"} { error "ip get stimulus failed: $send_status" }
-      lassign [capture_ip_reply $hardware_name $timeout_ms] reply_status reply_hex reply_text
-      set ip_address UNKNOWN
-      set ip_state UNKNOWN
-      if {[regexp -nocase {IP-address:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*\(([^)]*)\)} \
-            $reply_text -> ip_address ip_state]} {
-        set reply_verdict PASS
-      } elseif {[string first "IP-address: in training" $reply_text] >= 0} {
-        set reply_verdict NO_ADDRESS
-      } else {
-        set reply_verdict INCONCLUSIVE
+      foreach query $read_only_queries {
+        set send_status [send_vuart_command $hardware_name $query]
+        if {$send_status ne "OK"} { error "$query stimulus failed: $send_status" }
+        lassign [capture_vuart_reply $hardware_name $timeout_ms] reply_status reply_hex reply_text
+        if {$query eq "ip get"} {
+          set ip_address UNKNOWN
+          set ip_state UNKNOWN
+          if {[regexp -nocase {IP-address:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)[[:space:]]*\(([^)]*)\)} \
+                $reply_text -> ip_address ip_state]} {
+            set reply_verdict PASS
+          } elseif {[string first "IP-address: in training" $reply_text] >= 0} {
+            set reply_verdict NO_ADDRESS
+          } else {
+            set reply_verdict INCONCLUSIVE
+          }
+          puts [format "STEP6_IP_GET_RESULT board=%s status=%s verdict=%s ip=%s ip_state=%s reply_bytes=%d reply_hex=%s reply_text=%s" \
+            $hardware_name $reply_status $reply_verdict $ip_address $ip_state \
+            [expr {[string length $reply_hex] / 2}] $reply_hex [escaped_text $reply_text]]
+        } else {
+          puts [format "STEP6_VUART_QUERY_RESULT board=%s command=%s status=%s reply_bytes=%d reply_hex=%s reply_text=%s" \
+            $hardware_name $query $reply_status [expr {[string length $reply_hex] / 2}] \
+            $reply_hex [escaped_text $reply_text]]
+        }
       }
       set post_entry [word64 [probe_word 26]]
       set post_corr5 [word64 [probe_word 33]]
@@ -311,9 +331,8 @@ foreach hardware_name [get_hardware_names] {
         set reset_changed [expr {$post_generation != $pre_generation ||
                                  $post_cpu_reset != $pre_cpu_reset}]
       }
-      puts [format "STEP6_IP_GET_RESULT board=%s status=%s verdict=%s ip=%s ip_state=%s reply_bytes=%d reply_hex=%s reply_text=%s boot_generation_before=%s boot_generation_after=%s cpu_reset_before=%s cpu_reset_after=%s reset_changed=%s" \
-        $hardware_name $reply_status $reply_verdict $ip_address $ip_state \
-        [expr {[string length $reply_hex] / 2}] $reply_hex [escaped_text $reply_text] \
+      puts [format "STEP6_VUART_POSTFLIGHT board=%s boot_generation_before=%s boot_generation_after=%s cpu_reset_before=%s cpu_reset_after=%s reset_changed=%s" \
+        $hardware_name \
         $pre_generation $post_generation $pre_cpu_reset $post_cpu_reset $reset_changed]
     }
   } error_message]} {
@@ -321,5 +340,5 @@ foreach hardware_name [get_hardware_names] {
   }
   catch {end_insystem_source_probe}
 }
-if {!$found} { puts "STEP6_IP_GET_SKIP reason=slave_cable_not_found" }
-puts "STEP6_IP_GET_DONE"
+if {!$found} { puts "STEP6_VUART_SKIP reason=slave_cable_not_found" }
+puts "STEP6_VUART_DONE"

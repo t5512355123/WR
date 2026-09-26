@@ -15,13 +15,19 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         cls.ip_command = IP_COMMAND.read_text(encoding="utf-8")
 
     def test_stimulus_is_only_read_only_ip_get_on_slave(self):
-        self.assertIn('set command "ip get\\n"', self.observer)
+        self.assertIn('ip { set read_only_queries [list "ip get"] }', self.observer)
         self.assertIn('string match "*1-11.2*" $hardware_name', self.observer)
         writes = re.findall(
             r"\bwb_write\s+\$hardware_name\s+(0x[0-9A-Fa-f]+)",
             self.observer,
         )
         self.assertEqual(writes, ["0x00100510"])
+
+    def test_calibration_mode_uses_only_fixed_read_only_commands(self):
+        self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
+                      self.observer)
+        self.assertIn('error "query_mode must be ip or calibration"', self.observer)
+        self.assertNotIn('"sfp match"', self.observer)
 
     def test_output_is_read_from_host_vuart_rx_fifo(self):
         self.assertIn("0x00100514", self.observer)
@@ -63,6 +69,15 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertIn("setIP(ip);", self.ip_command)
         self.assertLess(self.ip_command.index('!strcasecmp(args[0], "get")'),
                         self.ip_command.index('!strcasecmp(args[0], "set")'))
+
+    def test_firmware_calibration_queries_do_not_apply_new_values(self):
+        ll = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+              / "vendor" / "wrpc-sw" / "shell" / "cmd_ll.c").read_text(encoding="utf-8")
+        sfp = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+               / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c").read_text(encoding="utf-8")
+        self.assertIn('"delays"', ll)
+        self.assertIn('pp_printf("tx: %i   rx: %i\\n"', ll)
+        self.assertIn('storage_get_sfp(&sfp, SFP_GET, i)', sfp)
 
 
 if __name__ == "__main__":

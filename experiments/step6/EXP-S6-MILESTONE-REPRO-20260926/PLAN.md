@@ -37,7 +37,22 @@ host-side overlay. The dashboard overlay must not alter the hardware source.
 
 ## Current verdict
 
-`STEP6_MILESTONE = NOT_REPRODUCED`
+```text
+FROZEN_SOURCE_BUILD_PROGRAM = PASS
+STEP5_DIRECT_LOCKS_300S     = PASS (189/189 samples; 359.311 s)
+STEP6A_SLAVE_GLOBAL_TIME    = NOT_PASS (TIME_VALID=0 in 0/189 samples)
+STEP6A_SAME_PPS             = NOT_RUN
+STEP6B_DUAL_BOARD_TRIGGER   = NOT_RUN
+STEP6_MILESTONE             = NOT_PASS
+```
 
-Historical Step 6 reports are supporting evidence only. The independent build,
-program, and runtime sequence above is still required.
+The immediate Step 6 boundary is Slave `WRH_WAIT_OFFSET_STABLE`: the measured
+offset never entered the firmware's `<60 ps` gate. A 60-sample read-only
+CKO/SETP trace confirmed the offset remains outside the gate, but every trace
+row lacked a coherent diagnostic frame, so correction direction remains
+inconclusive. Do not change production servo controls based on that trace.
+
+The next diagnostic is a read-only observer that brackets CKO/SETP/servo-state
+reads with the existing servo update counter. Keep the already-programmed
+image, avoid reset/reprogram, and do not claim Step 6A or Step 6B until their
+independent acceptance gates pass.

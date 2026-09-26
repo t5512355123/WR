@@ -34,6 +34,7 @@ set ::s6_servo_matched 0
 set ::s6_servo_coherent 0
 set ::s6_servo_pair_valid 0
 set ::s6_servo_post_action 0
+set ::s6_servo_payload_conflicts 0
 set ::s6_servo_reset_stop 0
 set ::s6_servo_board_count 0
 
@@ -117,6 +118,8 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
     [is_hex $sstat] && [is_hex $cko] && [is_hex $setp] &&
     $u0 >= 0 && $u1 >= 0 && $state_word >= 0}]
   set bracket_stable [expr {$reads_valid && $u0 == $u1 ? 1 : 0}]
+  set payload_stable 1
+  set coherent 0
   set update_delta -1
   set setp_delta "NA"
   set cko_delta "NA"
@@ -126,12 +129,24 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
   set post_action 0
 
   if {$bracket_stable} {
-    incr ::s6_servo_coherent
     if {[info exists ::s6_servo_previous($hardware_name,ucnt)]} {
       set prior_count $::s6_servo_previous($hardware_name,ucnt)
-      set prior_sample $::s6_servo_previous($hardware_name,sample)
       set update_delta [expr {(($u0 - $prior_count) & 0xffffffff)}]
-      if {$sample == $prior_sample + 1 && $update_delta == 1} {
+      if {$update_delta == 0 &&
+          ($state_word != $::s6_servo_previous($hardware_name,state) ||
+           $cko_ps != $::s6_servo_previous($hardware_name,cko) ||
+           $setp_ps != $::s6_servo_previous($hardware_name,setp))} {
+        # The diagnostics payload changed while its published servo-update
+        # identity did not. Reject that row rather than joining two refreshes.
+        set payload_stable 0
+        incr ::s6_servo_payload_conflicts
+      }
+    }
+    set coherent [expr {$reads_valid && $payload_stable ? 1 : 0}]
+    if {$coherent} {
+      incr ::s6_servo_coherent
+      if {[info exists ::s6_servo_previous($hardware_name,ucnt)] &&
+          $update_delta == 1} {
         set pair_valid 1
         incr ::s6_servo_pair_valid
         set setp_delta [s6_servo_signed_delta32 $setp_ps \
@@ -141,8 +156,8 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
 
         # In WRH_SYNC_PHASE the source adds the measured offset to cur_setpoint
         # and calls adjust_phase(); the published state after this operation is
-        # WRH_WAIT_OFFSET_STABLE.  Test that exact source-level arithmetic only
-        # for a single adjacent servo update.
+        # WRH_WAIT_OFFSET_STABLE. This checks that exact arithmetic on a single
+        # update-counter step, not physical actuator direction.
         if {$servo_state == 5} {
           set action_match_error [expr {$setp_delta - $cko_ps}]
           set action_match [expr {abs($action_match_error) <= 1 ? 1 : 0}]
@@ -154,13 +169,19 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
           incr ::s6_servo_post_action
         }
       }
-    }
 
-    set ::s6_servo_previous($hardware_name,ucnt) $u1
-    set ::s6_servo_previous($hardware_name,sample) $sample
-    set ::s6_servo_previous($hardware_name,cko) $cko_ps
-    set ::s6_servo_previous($hardware_name,setp) $setp_ps
-    set ::s6_servo_previous($hardware_name,action_match) $action_match
+      # Keep the previous unique update intact for repeated reads (delta=0).
+      # Advance it only when a new counter value is observed. A skipped update
+      # re-baselines the trace but cannot create a causal pair.
+      if {![info exists ::s6_servo_previous($hardware_name,ucnt)] ||
+          $update_delta != 0} {
+        set ::s6_servo_previous($hardware_name,ucnt) $u1
+        set ::s6_servo_previous($hardware_name,state) $state_word
+        set ::s6_servo_previous($hardware_name,cko) $cko_ps
+        set ::s6_servo_previous($hardware_name,setp) $setp_ps
+        set ::s6_servo_previous($hardware_name,action_match) $action_match
+      }
+    }
   }
 
   lassign [s6_servo_reset_signature $entry $reset] boot cpu_reset wr_reset si_drop
@@ -178,9 +199,9 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
   }
   if {$reset_changed} { set ::s6_servo_reset_stop 1 }
 
-  puts [format "S6_SERVO_PAIR_SAMPLE board=%s sample=%04d elapsed_ms=%d READS_VALID=%d UCNT_BEFORE=%s UCNT_AFTER=%s UCNT_BRACKET_STABLE=%d UPDATE_DELTA=%s PAIR_VALID=%d SERVO_STATE=%s SERVO_STATE_NAME=%s CKO_RAW=%s CKO_PS=%s SETP_RAW=%s SETP_PS=%s SETP_DELTA_PS=%s CKO_DELTA_PS=%s SETPOINT_CKO_MATCH=%s SETPOINT_MINUS_CKO_PS=%s POST_ACTION_RESPONSE=%d STATUS_LINK=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s ESCR_TIME_VALID=%s ESCR_PPS_VALID=%s PTP_STATE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_CHANGED=%d" \
+  puts [format "S6_SERVO_PAIR_SAMPLE board=%s sample=%04d elapsed_ms=%d READS_VALID=%d UCNT_BEFORE=%s UCNT_AFTER=%s UCNT_BRACKET_STABLE=%d UCNT_REPEAT_PAYLOAD_STABLE=%d COHERENT=%d UPDATE_DELTA=%s PAIR_VALID=%d SERVO_STATE=%s SERVO_STATE_NAME=%s CKO_RAW=%s CKO_PS=%s SETP_RAW=%s SETP_PS=%s SETP_DELTA_PS=%s CKO_DELTA_PS=%s SETPOINT_CKO_MATCH=%s SETPOINT_MINUS_CKO_PS=%s POST_ACTION_RESPONSE=%d STATUS_LINK=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s ESCR_TIME_VALID=%s ESCR_PPS_VALID=%s PTP_STATE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_CHANGED=%d" \
     $hardware_name $sample $elapsed_ms $reads_valid $ucnt_before $ucnt_after \
-    $bracket_stable $update_delta $pair_valid $servo_state \
+    $bracket_stable $payload_stable $coherent $update_delta $pair_valid $servo_state \
     [s6_servo_state_name $servo_state] $cko $cko_ps $setp $setp_ps \
     $setp_delta $cko_delta $action_match $action_match_error $post_action \
     $status_link $status_time_valid $status_pps_valid $escr_tm_valid \
@@ -230,9 +251,10 @@ foreach hardware_name [get_hardware_names] {
   catch { end_insystem_source_probe }
 }
 
-puts [format "S6_SERVO_PAIR_SUMMARY boards=%d coherent_rows=%d adjacent_update_pairs=%d software_setpoint_offset_matches=%d post_action_offset_samples=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
+puts [format "S6_SERVO_PAIR_SUMMARY boards=%d coherent_rows=%d adjacent_update_pairs=%d software_setpoint_offset_matches=%d post_action_offset_samples=%d same_counter_payload_conflicts=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
   $::s6_servo_board_count $::s6_servo_coherent $::s6_servo_pair_valid \
-  $::s6_servo_matched $::s6_servo_post_action $::s6_servo_reset_stop \
+  $::s6_servo_matched $::s6_servo_post_action $::s6_servo_payload_conflicts \
+  $::s6_servo_reset_stop \
   $::wb_timeout_count $::wb_invalid_count]
 puts "S6_SERVO_PAIR_DONE"
 flush stdout

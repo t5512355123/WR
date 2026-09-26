@@ -4,7 +4,8 @@
 # deliberately performs no compile, programming, reset, PTP restart, or
 # physical operation.  The only functional writes are exactly six source
 # writes: ARM=0 on both boards, one new target on both boards, and ARM=1 on
-# both boards.
+# both boards. Arguments end with the previous completed target TAI, required
+# so the pre-write gate validates the preceding trigger instead of stale data.
 
 package require ::quartus::insystem_source_probe
 
@@ -24,7 +25,7 @@ set ::s6b_rearm_settle_ms 150
 set ::s6b_rearm_arm_settle_ms 120
 set ::s6b_rearm_capture_gap_ms 300
 set ::s6b_rearm_capture_timeout_ms 40000
-set ::s6b_rearm_previous_target_tai 3433
+set ::s6b_rearm_previous_target_tai -1
 set ::s6b_rearm_target_cycles 62500000
 
 if {[llength $argv] >= 1} { set ::s6b_rearm_trial_id [lindex $argv 0] }
@@ -40,12 +41,16 @@ if {[llength $argv] >= 4} {
 if {[llength $argv] >= 5} {
   set ::s6b_rearm_capture_timeout_ms [expr {int([lindex $argv 4])}]
 }
+if {[llength $argv] >= 6} {
+  set ::s6b_rearm_previous_target_tai [expr {int([lindex $argv 5])}]
+}
 if {$::s6b_rearm_gate_timeout_ms <= 0 ||
     $::s6b_rearm_gate_gap_ms < 0 ||
     $::s6b_rearm_settle_ms < 120 ||
     $::s6b_rearm_arm_settle_ms < 120 ||
     $::s6b_rearm_capture_gap_ms < 200 ||
-    $::s6b_rearm_capture_timeout_ms <= 0} {
+    $::s6b_rearm_capture_timeout_ms <= 0 ||
+    $::s6b_rearm_previous_target_tai < 0} {
   error "invalid Step6B rearm observation timing arguments"
 }
 
@@ -169,12 +174,12 @@ proc s6b_rearm_initial_postfire_ok {snapshot} {
   if {$snapshot eq ""} { return 0 }
   array set row $snapshot
   return [expr {[s6b_live_common_gate_ok $snapshot $row(ROLE)] &&
-      $row(TARGET_TAI_SOURCE) == 3433 &&
+      $row(TARGET_TAI_SOURCE) == $::s6b_rearm_previous_target_tai &&
       $row(STEP6B_ARM_SOURCE) == 1 && $row(STEP6B_ARM_SYNC) == 1 &&
       $row(STEP6B_ARMED) == 0 && $row(STEP6B_FIRED) == 1 &&
       $row(STEP6B_FIRE_COUNT) == 1 &&
-      $row(STEP6B_LATCHED_TAI) == 3433 &&
-      $row(STEP6B_ACTUAL_TAI) == 3433 &&
+      $row(STEP6B_LATCHED_TAI) == $::s6b_rearm_previous_target_tai &&
+      $row(STEP6B_ACTUAL_TAI) == $::s6b_rearm_previous_target_tai &&
       $row(STEP6B_ACTUAL_CYCLES) == 62500000 &&
       $row(STEP6B_ACTUAL_FIRED) == 1 &&
       $row(STEP6B_ACTUAL_ARMED) == 0 &&
@@ -234,11 +239,12 @@ proc s6b_rearm_repeatability_run {} {
   lassign [s6b_rearm_get_boards] master_hardware slave_hardware
   s6b_rearm_init_state
 
-  puts [format "S6B_REARM_CONFIG trial=%s gate_timeout_ms=%d gate_gap_ms=%d settle_ms=%d arm_settle_ms=%d capture_gap_ms=%d capture_timeout_ms=%d PREVIOUS_TARGET_TAI=3433 TARGET_CYCLES=%d MASTER_COMPILE=0 SLAVE_COMPILE=0 FIRMWARE_BUILD=0 MASTER_PROGRAM=0 SLAVE_PROGRAM=0 PTP_RESTART=0 POWER_CYCLE=0 RESET=0" \
+  puts [format "S6B_REARM_CONFIG trial=%s gate_timeout_ms=%d gate_gap_ms=%d settle_ms=%d arm_settle_ms=%d capture_gap_ms=%d capture_timeout_ms=%d PREVIOUS_TARGET_TAI=%d TARGET_CYCLES=%d MASTER_COMPILE=0 SLAVE_COMPILE=0 FIRMWARE_BUILD=0 MASTER_PROGRAM=0 SLAVE_PROGRAM=0 PTP_RESTART=0 POWER_CYCLE=0 RESET=0" \
     $::s6b_rearm_trial_id $::s6b_rearm_gate_timeout_ms \
     $::s6b_rearm_gate_gap_ms $::s6b_rearm_settle_ms \
     $::s6b_rearm_arm_settle_ms $::s6b_rearm_capture_gap_ms \
-    $::s6b_rearm_capture_timeout_ms $::s6b_rearm_target_cycles]
+    $::s6b_rearm_capture_timeout_ms $::s6b_rearm_previous_target_tai \
+    $::s6b_rearm_target_cycles]
   flush stdout
 
   # Phase A: current post-fire session must be intact before any write.
@@ -254,8 +260,8 @@ proc s6b_rearm_repeatability_run {} {
   s6b_emit_board_samples $pre_master $pre_slave S6B_REARM_INITIAL_SAMPLE
   puts [format "S6B_REARM_PRE_GATE_RESULT=%s PAIRS=%d COMMON_TAI_COUNT=%d" \
     $::s6b_rearm_pre_gate_result $pre_pairs $pre_common]
-  puts [format "S6B_REARM_INITIAL_STATE_RESULT=%s EXPECTED_TARGET=3433" \
-    $::s6b_rearm_initial_result]
+  puts [format "S6B_REARM_INITIAL_STATE_RESULT=%s EXPECTED_TARGET=%d" \
+    $::s6b_rearm_initial_result $::s6b_rearm_previous_target_tai]
   flush stdout
   if {!$initial_ok} {
     s6b_rearm_emit_result INCONCLUSIVE_REARM_PRECONDITION_CHANGED pre_gate

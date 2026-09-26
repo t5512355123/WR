@@ -57,6 +57,14 @@ proc s6_servo_signed_delta32 {new_value old_value} {
   return $delta
 }
 
+proc s6_servo_u64_from_words {high_raw low_raw} {
+  if {![is_hex $high_raw] || ![is_hex $low_raw]} { return "NA" }
+  set high [word32 $high_raw]
+  set low [word32 $low_raw]
+  if {$high < 0 || $low < 0} { return "NA" }
+  return [expr {($high << 32) | $low}]
+}
+
 proc s6_servo_state_name {state} {
   switch -- $state {
     0 { return UNINITIALIZED }
@@ -201,6 +209,11 @@ proc s6_servo_reset_signature {entry reset} {
 
 proc s6_servo_capture {hardware_name sample elapsed_ms} {
   set ucnt_before [wb_read 0x00100A48]
+  set mu_hi [wb_read 0x00100A2C]
+  set mu_lo [wb_read 0x00100A30]
+  set dms_hi [wb_read 0x00100A34]
+  set dms_lo [wb_read 0x00100A38]
+  set asym [wb_read 0x00100A3C]
   set sstat [wb_read 0x00100A08]
   set cko [wb_read 0x00100A40]
   set setp [wb_read 0x00100A44]
@@ -217,6 +230,9 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
   set u0 [word32 $ucnt_before]
   set u1 [word32 $ucnt_after]
   set state_word [word32 $sstat]
+  set mu_ps [s6_servo_u64_from_words $mu_hi $mu_lo]
+  set dms_ps [s6_servo_u64_from_words $dms_hi $dms_lo]
+  set asym_ps [s6_servo_signed32 $asym]
   set cko_ps [s6_servo_signed32 $cko]
   set setp_ps [s6_servo_signed32 $setp]
   set status_time_valid [bit64_low $status 4]
@@ -239,6 +255,8 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
 
   set reads_valid [expr {
     [is_hex $ucnt_before] && [is_hex $ucnt_after] &&
+    [is_hex $mu_hi] && [is_hex $mu_lo] &&
+    [is_hex $dms_hi] && [is_hex $dms_lo] && [is_hex $asym] &&
     [is_hex $sstat] && [is_hex $cko] && [is_hex $setp] &&
     $u0 >= 0 && $u1 >= 0 && $state_word >= 0}]
   set bracket_stable [expr {$reads_valid && $u0 == $u1 ? 1 : 0}]
@@ -258,6 +276,9 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
       set update_delta [expr {(($u0 - $prior_count) & 0xffffffff)}]
       if {$update_delta == 0 &&
           ($state_word != $::s6_servo_previous($hardware_name,state) ||
+           $mu_ps ne $::s6_servo_previous($hardware_name,mu) ||
+           $dms_ps ne $::s6_servo_previous($hardware_name,dms) ||
+           $asym_ps ne $::s6_servo_previous($hardware_name,asym) ||
            $cko_ps != $::s6_servo_previous($hardware_name,cko) ||
            $setp_ps != $::s6_servo_previous($hardware_name,setp))} {
         # The diagnostics payload changed while its published servo-update
@@ -301,6 +322,9 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
           $update_delta != 0} {
         set ::s6_servo_previous($hardware_name,ucnt) $u1
         set ::s6_servo_previous($hardware_name,state) $state_word
+        set ::s6_servo_previous($hardware_name,mu) $mu_ps
+        set ::s6_servo_previous($hardware_name,dms) $dms_ps
+        set ::s6_servo_previous($hardware_name,asym) $asym_ps
         set ::s6_servo_previous($hardware_name,cko) $cko_ps
         set ::s6_servo_previous($hardware_name,setp) $setp_ps
         set ::s6_servo_previous($hardware_name,action_match) $action_match
@@ -323,8 +347,9 @@ proc s6_servo_capture {hardware_name sample elapsed_ms} {
   }
   if {$reset_changed} { set ::s6_servo_reset_stop 1 }
 
-  puts [format "S6_SERVO_PAIR_SAMPLE board=%s sample=%04d elapsed_ms=%d READS_VALID=%d UCNT_BEFORE=%s UCNT_AFTER=%s UCNT_BRACKET_STABLE=%d UCNT_REPEAT_PAYLOAD_STABLE=%d COHERENT=%d UPDATE_DELTA=%s PAIR_VALID=%d SERVO_STATE=%s SERVO_STATE_NAME=%s CKO_RAW=%s CKO_PS=%s SETP_RAW=%s SETP_PS=%s SETP_DELTA_PS=%s CKO_DELTA_PS=%s SETPOINT_CKO_MATCH=%s SETPOINT_MINUS_CKO_PS=%s POST_ACTION_RESPONSE=%d STATUS_LINK=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s ESCR_TIME_VALID=%s ESCR_PPS_VALID=%s PTP_STATE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_CHANGED=%d" \
-    $hardware_name $sample $elapsed_ms $reads_valid $ucnt_before $ucnt_after \
+  puts [format "S6_SERVO_PAIR_SAMPLE board=%s sample=%04d elapsed_ms=%d READS_VALID=%d UCNT_BEFORE=%s MU_HI=%s MU_LO=%s MU_PS=%s DMS_HI=%s DMS_LO=%s DMS_PS=%s ASYM_RAW=%s ASYM_PS=%s UCNT_AFTER=%s UCNT_BRACKET_STABLE=%d UCNT_REPEAT_PAYLOAD_STABLE=%d COHERENT=%d UPDATE_DELTA=%s PAIR_VALID=%d SERVO_STATE=%s SERVO_STATE_NAME=%s CKO_RAW=%s CKO_PS=%s SETP_RAW=%s SETP_PS=%s SETP_DELTA_PS=%s CKO_DELTA_PS=%s SETPOINT_CKO_MATCH=%s SETPOINT_MINUS_CKO_PS=%s POST_ACTION_RESPONSE=%d STATUS_LINK=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s ESCR_TIME_VALID=%s ESCR_PPS_VALID=%s PTP_STATE=%s BOOT_GENERATION=%s CPU_RESET=%s WR_CORE_RESET=%s SI_CONFIG_DROP=%s RESET_CHANGED=%d" \
+    $hardware_name $sample $elapsed_ms $reads_valid $ucnt_before $mu_hi $mu_lo \
+    $mu_ps $dms_hi $dms_lo $dms_ps $asym $asym_ps $ucnt_after \
     $bracket_stable $payload_stable $coherent $update_delta $pair_valid $servo_state \
     [s6_servo_state_name $servo_state] $cko $cko_ps $setp $setp_ps \
     $setp_delta $cko_delta $action_match $action_match_error $post_action \

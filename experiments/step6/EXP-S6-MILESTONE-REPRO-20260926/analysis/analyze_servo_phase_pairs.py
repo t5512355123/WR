@@ -52,6 +52,14 @@ def hex_field(row: dict[str, str], key: str) -> int | None:
         return None
 
 
+def hex_u64_fields(row: dict[str, str], high_key: str, low_key: str) -> int | None:
+    high = hex_field(row, high_key)
+    low = hex_field(row, low_key)
+    if high is None or low is None:
+        return None
+    return (high << 32) | low
+
+
 def signed32_delta(new_value: int, old_value: int) -> int:
     delta = (new_value - old_value) & 0xFFFFFFFF
     return delta - 0x100000000 if delta >= 0x80000000 else delta
@@ -71,6 +79,27 @@ def summarize(path: Path) -> dict[str, object]:
         for row in coherent
         if (value := int_field(row, "CKO_PS")) is not None
     ]
+    mu_values: list[int] = []
+    dms_values: list[int] = []
+    asym_values: list[int] = []
+    dms_identity_errors: list[int] = []
+    inferred_timestamp_deltas: list[int] = []
+    for row in coherent:
+        mu = hex_u64_fields(row, "MU_HI", "MU_LO")
+        dms = hex_u64_fields(row, "DMS_HI", "DMS_LO")
+        asym = int_field(row, "ASYM_PS")
+        cko = int_field(row, "CKO_PS")
+        if None not in (mu, dms, asym):
+            assert mu is not None and dms is not None and asym is not None
+            mu_values.append(mu)
+            dms_values.append(dms)
+            asym_values.append(asym)
+            # Source arithmetic uses delayMM_ps >> 1 before adding asymmetry.
+            dms_identity_errors.append(dms - ((mu >> 1) + asym))
+            if cko is not None:
+                # Source equation: CKO = (t1 - t2) + DMS. This inferred
+                # timestamp difference is descriptive, not an atomic pair.
+                inferred_timestamp_deltas.append(cko - dms)
 
     # Reconstruct unique published updates from counter identity so repeated
     # host samples do not erase the preceding action or inflate pair counts.
@@ -224,6 +253,19 @@ def summarize(path: Path) -> dict[str, object]:
         "post_action_offset_delta_ps": post_action_deltas,
         "cko_ps_min": min(cko_values) if cko_values else None,
         "cko_ps_max": max(cko_values) if cko_values else None,
+        "mu_ps_min": min(mu_values) if mu_values else None,
+        "mu_ps_max": max(mu_values) if mu_values else None,
+        "dms_ps_min": min(dms_values) if dms_values else None,
+        "dms_ps_max": max(dms_values) if dms_values else None,
+        "asym_ps_min": min(asym_values) if asym_values else None,
+        "asym_ps_max": max(asym_values) if asym_values else None,
+        "dms_identity_rows": len(dms_identity_errors),
+        "dms_identity_error_min_ps": min(dms_identity_errors) if dms_identity_errors else None,
+        "dms_identity_error_max_ps": max(dms_identity_errors) if dms_identity_errors else None,
+        "dms_identity_error_values_ps": dms_identity_errors,
+        "inferred_t1_minus_t2_rows": len(inferred_timestamp_deltas),
+        "inferred_t1_minus_t2_min_ps": min(inferred_timestamp_deltas) if inferred_timestamp_deltas else None,
+        "inferred_t1_minus_t2_max_ps": max(inferred_timestamp_deltas) if inferred_timestamp_deltas else None,
         "cko_abs_lt_60ps_rows": sum(abs(value) < 60 for value in cko_values),
         "time_valid_rows": len(time_valid),
         "reset_changed_rows": len(reset_changed),

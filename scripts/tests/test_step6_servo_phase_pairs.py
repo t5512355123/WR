@@ -27,6 +27,11 @@ class ServoPhasePairAnalysisTests(unittest.TestCase):
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         reads = [
             "set ucnt_before [wb_read 0x00100A48]",
+            "set mu_hi [wb_read 0x00100A2C]",
+            "set mu_lo [wb_read 0x00100A30]",
+            "set dms_hi [wb_read 0x00100A34]",
+            "set dms_lo [wb_read 0x00100A38]",
+            "set asym [wb_read 0x00100A3C]",
             "set sstat [wb_read 0x00100A08]",
             "set cko [wb_read 0x00100A40]",
             "set setp [wb_read 0x00100A44]",
@@ -36,6 +41,23 @@ class ServoPhasePairAnalysisTests(unittest.TestCase):
         self.assertEqual(positions, sorted(positions))
         self.assertIn("read_only=1 wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertNotIn("wb_write ", source)
+
+    def test_delay_identity_and_inferred_timestamp_difference_are_reported(self) -> None:
+        rows = [
+            "S6_SERVO_PAIR_SAMPLE board=slave sample=0 READS_VALID=1 UCNT_AFTER=00000001 UCNT_BRACKET_STABLE=1 COHERENT=1 SERVO_STATE=5 MU_HI=00000000 MU_LO=000186A0 DMS_HI=00000000 DMS_LO=0000C738 ASYM_PS=1000 CKO_PS=400 SETP_PS=10 STATUS_TIME_VALID=0 RESET_CHANGED=0",
+            "S6_SERVO_PAIR_SAMPLE board=slave sample=1 READS_VALID=1 UCNT_AFTER=00000002 UCNT_BRACKET_STABLE=1 COHERENT=1 SERVO_STATE=5 MU_HI=00000000 MU_LO=000186A0 DMS_HI=00000000 DMS_LO=0000C738 ASYM_PS=1000 CKO_PS=350 SETP_PS=20 STATUS_TIME_VALID=0 RESET_CHANGED=0",
+            "S6_SERVO_PAIR_SAMPLE board=slave sample=2 READS_VALID=1 UCNT_AFTER=00000003 UCNT_BRACKET_STABLE=1 COHERENT=1 SERVO_STATE=5 MU_HI=00000000 MU_LO=000186A0 DMS_HI=00000000 DMS_LO=0000C73A ASYM_PS=1000 CKO_PS=-150 SETP_PS=30 STATUS_TIME_VALID=0 RESET_CHANGED=0",
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "trace.log"
+            path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path)
+
+        self.assertEqual(result["dms_identity_rows"], 3)
+        self.assertEqual(result["dms_identity_error_values_ps"], [0, 0, 2])
+        self.assertEqual(result["inferred_t1_minus_t2_rows"], 3)
+        self.assertEqual(result["inferred_t1_minus_t2_min_ps"], -51152)
+        self.assertEqual(result["inferred_t1_minus_t2_max_ps"], -50600)
 
     def test_sparse_f4l_current_read_has_publication_and_servo_guards(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")

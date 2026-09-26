@@ -132,6 +132,7 @@ def summarize(path: Path) -> dict[str, object]:
             same_servo_update.append(row)
     servo_by_sample = {row.get("sample"): row for row in rows}
     f4l_setpoint_deltas: list[int] = []
+    f4l_joined_rows: list[dict[str, object]] = []
     for f4l_row in same_servo_update:
         servo_row = servo_by_sample.get(f4l_row.get("sample"))
         if not servo_row or servo_row.get("COHERENT") != "1":
@@ -142,8 +143,55 @@ def summarize(path: Path) -> dict[str, object]:
             continue
         current_ps = int_field(f4l_row, "PHASE_SHIFT_CURRENT_PS")
         setpoint_ps = int_field(servo_row, "SETP_PS")
+        branch_id = int_field(f4l_row, "F4L_BRANCH_ID")
+        flags = hex_field(f4l_row, "F4L_FLAGS")
+        clamp_code = int_field(f4l_row, "F4L_CLAMP_CODE")
+        joined = {
+            "sample": f4l_row.get("sample"),
+            "host_elapsed_ms": int_field(f4l_row, "host_elapsed_ms"),
+            "servo_update_count": int_field(f4l_row, "PAIR_UCNT"),
+            "f4l_update_id": hex_field(f4l_row, "F4L_UPDATE_ID"),
+            "branch_id": branch_id,
+            "flags": flags,
+            "clamp_code": clamp_code,
+            "branch_error": int_field(f4l_row, "F4L_BRANCH_ERROR"),
+            "frequency_error": int_field(f4l_row, "F4L_FREQ_ERROR"),
+            "pi_x": int_field(f4l_row, "F4L_PI_X"),
+            "pi_output": int_field(f4l_row, "F4L_PI_OUTPUT"),
+            "phase_shift_current_ps": current_ps,
+            "servo_setpoint_ps": setpoint_ps,
+            "cko_ps": int_field(servo_row, "CKO_PS"),
+            "servo_state": int_field(servo_row, "SERVO_STATE"),
+            "time_valid": int_field(servo_row, "STATUS_TIME_VALID"),
+        }
+        f4l_joined_rows.append(joined)
         if current_ps is not None and setpoint_ps is not None:
             f4l_setpoint_deltas.append(current_ps - setpoint_ps)
+    f4l_phase_rows = [
+        row for row in f4l_joined_rows if row["branch_id"] == 2
+    ]
+    f4l_phase_flags = [
+        flags for row in f4l_phase_rows if (flags := row["flags"]) is not None
+    ]
+    f4l_phase_errors = [
+        value
+        for row in f4l_phase_rows
+        if (value := row["branch_error"]) is not None
+    ]
+    f4l_phase_pi_x = [
+        value for row in f4l_phase_rows if (value := row["pi_x"]) is not None
+    ]
+    f4l_phase_pi_output = [
+        value
+        for row in f4l_phase_rows
+        if (value := row["pi_output"]) is not None
+    ]
+    f4l_branch_counts = {
+        str(branch): sum(row["branch_id"] == branch for row in f4l_joined_rows)
+        for branch in sorted(
+            {row["branch_id"] for row in f4l_joined_rows if row["branch_id"] is not None}
+        )
+    }
     f4l_current_ps = [
         value
         for row in valid_f4l
@@ -182,6 +230,29 @@ def summarize(path: Path) -> dict[str, object]:
         "f4l_phase_samples": len(f4l_rows),
         "f4l_phase_frames_valid": len(valid_f4l),
         "f4l_same_servo_update_matches": len(same_servo_update),
+        "f4l_joined_servo_rows": len(f4l_joined_rows),
+        "f4l_branch_id_counts": f4l_branch_counts,
+        "f4l_phase_branch_rows": len(f4l_phase_rows),
+        "f4l_phase_detector_called_rows": sum(bool(flags & (1 << 5)) for flags in f4l_phase_flags),
+        "f4l_phase_in_band_rows": sum(bool(flags & (1 << 6)) for flags in f4l_phase_flags),
+        "f4l_phase_out_of_band_rows": sum(bool(flags & (1 << 7)) for flags in f4l_phase_flags),
+        "f4l_phase_locked_before_rows": sum(bool(flags & (1 << 3)) for flags in f4l_phase_flags),
+        "f4l_phase_locked_after_rows": sum(bool(flags & (1 << 4)) for flags in f4l_phase_flags),
+        "f4l_dac_write_rows": sum(bool(flags & (1 << 8)) for flags in f4l_phase_flags),
+        "f4l_vco_freeze_rows": sum(bool(flags & (1 << 9)) for flags in f4l_phase_flags),
+        "f4l_clamped_rows": sum(
+            row["clamp_code"] not in (None, 0) for row in f4l_phase_rows
+        ),
+        "f4l_phase_error_min": min(f4l_phase_errors) if f4l_phase_errors else None,
+        "f4l_phase_error_max": max(f4l_phase_errors) if f4l_phase_errors else None,
+        "f4l_phase_error_values": f4l_phase_errors,
+        "f4l_phase_pi_x_min": min(f4l_phase_pi_x) if f4l_phase_pi_x else None,
+        "f4l_phase_pi_x_max": max(f4l_phase_pi_x) if f4l_phase_pi_x else None,
+        "f4l_phase_pi_input_values": f4l_phase_pi_x,
+        "f4l_phase_pi_output_min": min(f4l_phase_pi_output) if f4l_phase_pi_output else None,
+        "f4l_phase_pi_output_max": max(f4l_phase_pi_output) if f4l_phase_pi_output else None,
+        "f4l_phase_pi_output_values": f4l_phase_pi_output,
+        "f4l_joined_rows": f4l_joined_rows,
         "f4l_current_setpoint_comparison_rows": len(f4l_setpoint_deltas),
         "f4l_current_minus_setpoint_ps": f4l_setpoint_deltas,
         "f4l_phase_current_units_min": min(f4l_current_units) if f4l_current_units else None,

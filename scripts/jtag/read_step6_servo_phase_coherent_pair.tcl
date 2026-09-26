@@ -78,15 +78,30 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
   set magic_raw "NA"
   set version_page_raw "NA"
   set source_epoch_raw "NA"
+  set update_id_raw "NA"
+  set branch_flags_raw "NA"
+  set branch_error_raw "NA"
+  set freq_error_raw "NA"
+  set pi_x_raw "NA"
+  set pi_output_raw "NA"
   set phase_current_raw "NA"
+  set update_id -1
+  set branch_id -1
+  set branch_flags -1
+  set clamp_code -1
+  set branch_error "NA"
+  set freq_error "NA"
+  set pi_x "NA"
+  set pi_output "NA"
   set phase_current_units "NA"
   set phase_current_ps "NA"
   set version -1
   set page -1
   set attempts 0
 
-  # This is a sparse subset of the existing 34-word F4L publication. Word 12
-  # is phase_shift_current; the publication epoch/header guard this read.
+  # This is a sparse subset of the existing 34-word F4L publication. Words
+  # 4 and 7-12 expose the update identity, branch/flags, error/PI fields, and
+  # phase_shift_current; the publication epoch/header guard this read.
   # The servo update counter is a separate correlation bracket, not an atomic
   # cross-domain timestamp.
   for {set attempt 1} {$attempt <= 3} {incr attempt} {
@@ -95,6 +110,12 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
     set magic_raw [wb_read 0x00100B5C]
     set version_page_raw [wb_read 0x00100B60]
     set source_epoch_raw [wb_read 0x00100B64]
+    set update_id_raw [wb_read 0x00100B68]
+    set branch_flags_raw [wb_read 0x00100B74]
+    set branch_error_raw [wb_read 0x00100B78]
+    set freq_error_raw [wb_read 0x00100B7C]
+    set pi_x_raw [wb_read 0x00100B80]
+    set pi_output_raw [wb_read 0x00100B84]
     set phase_current_raw [wb_read 0x00100B88]
     set epoch_after_raw [wb_read 0x00100B58]
 
@@ -103,6 +124,8 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
     set magic [word32 $magic_raw]
     set version_page [word32 $version_page_raw]
     set source_epoch [word32 $source_epoch_raw]
+    set update_id [word32 $update_id_raw]
+    set branch_flags [word32 $branch_flags_raw]
     set phase_current_word [word32 $phase_current_raw]
     if {$version_page >= 0} {
       set version [expr {$version_page & 0xff}]
@@ -110,13 +133,24 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
     }
     if {[is_hex $epoch_before_raw] && [is_hex $epoch_after_raw] &&
         [is_hex $magic_raw] && [is_hex $version_page_raw] &&
-        [is_hex $source_epoch_raw] && [is_hex $phase_current_raw] &&
+        [is_hex $source_epoch_raw] && [is_hex $update_id_raw] &&
+        [is_hex $branch_flags_raw] && [is_hex $branch_error_raw] &&
+        [is_hex $freq_error_raw] && [is_hex $pi_x_raw] &&
+        [is_hex $pi_output_raw] && [is_hex $phase_current_raw] &&
         $epoch_before >= 0 && $epoch_after == $epoch_before &&
         !($epoch_after & 1) && $magic == 0x46344c31 &&
         $version == 1 && $page >= 0 && $page < 3 &&
-        $source_epoch > 0 && !($source_epoch & 1) &&
+        $source_epoch > 0 && !($source_epoch & 1) && $update_id >= 0 &&
+        $branch_flags >= 0 &&
         $phase_current_word >= 0} {
       set frame_valid 1
+      set branch_id [expr {$branch_flags & 0xff}]
+      set branch_flags [expr {($branch_flags >> 8) & 0xffff}]
+      set clamp_code [expr {([word32 $branch_flags_raw] >> 24) & 0x3}]
+      set branch_error [s6_servo_signed32 $branch_error_raw]
+      set freq_error [s6_servo_signed32 $freq_error_raw]
+      set pi_x [s6_servo_signed32 $pi_x_raw]
+      set pi_output [s6_servo_signed32 $pi_output_raw]
       set phase_current_units [s6_servo_signed32 $phase_current_raw]
       # DE5a uses the source-defined 8 ns reference period, HPLL_N=14, and
       # DMTD divide-by-two. Preserve raw units too; this derived ps value is
@@ -125,6 +159,12 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
       set epoch_before_raw [format %08X $epoch_before]
       set epoch_after_raw [format %08X $epoch_after]
       set source_epoch_raw [format %08X $source_epoch]
+      set update_id_raw [format %08X $update_id]
+      set branch_flags_raw [format %08X [word32 $branch_flags_raw]]
+      set branch_error_raw [format %08X [word32 $branch_error_raw]]
+      set freq_error_raw [format %08X [word32 $freq_error_raw]]
+      set pi_x_raw [format %08X [word32 $pi_x_raw]]
+      set pi_output_raw [format %08X [word32 $pi_output_raw]]
       break
     }
     after 2
@@ -140,10 +180,13 @@ proc s6_f4l_phase_current_read {hardware_name sample elapsed_ms pair_ucnt} {
   if {$frame_valid} { incr ::s6_servo_f4l_valid }
   if {$same_servo_update} { incr ::s6_servo_f4l_same_servo_update }
 
-  puts [format "S6_F4L_PHASE_SAMPLE board=%s sample=%04d host_elapsed_ms=%d host_start_ms=%d host_end_ms=%d FRAME_VALID=%d F4L_PUBLICATION_EPOCH_BEFORE=%s F4L_PUBLICATION_EPOCH_AFTER=%s F4L_MAGIC=%s F4L_VERSION=%d F4L_PAGE=%d F4L_SOURCE_EPOCH=%s PHASE_SHIFT_CURRENT_RAW=%s PHASE_SHIFT_CURRENT_UNITS=%s PHASE_SHIFT_CURRENT_PS=%s F4L_READ_ATTEMPTS=%d SERVO_UCNT_BEFORE=%s SERVO_UCNT_AFTER=%s SERVO_UPDATE_MATCH=%d PAIR_UCNT=%s" \
+  puts [format "S6_F4L_PHASE_SAMPLE board=%s sample=%04d host_elapsed_ms=%d host_start_ms=%d host_end_ms=%d FRAME_VALID=%d F4L_PUBLICATION_EPOCH_BEFORE=%s F4L_PUBLICATION_EPOCH_AFTER=%s F4L_MAGIC=%s F4L_VERSION=%d F4L_PAGE=%d F4L_SOURCE_EPOCH=%s F4L_UPDATE_ID=%s F4L_BRANCH_FLAGS_RAW=%s F4L_BRANCH_ID=%d F4L_FLAGS=%04X F4L_CLAMP_CODE=%d F4L_BRANCH_ERROR_RAW=%s F4L_BRANCH_ERROR=%s F4L_FREQ_ERROR_RAW=%s F4L_FREQ_ERROR=%s F4L_PI_X_RAW=%s F4L_PI_X=%s F4L_PI_OUTPUT_RAW=%s F4L_PI_OUTPUT=%s PHASE_SHIFT_CURRENT_RAW=%s PHASE_SHIFT_CURRENT_UNITS=%s PHASE_SHIFT_CURRENT_PS=%s F4L_READ_ATTEMPTS=%d SERVO_UCNT_BEFORE=%s SERVO_UCNT_AFTER=%s SERVO_UPDATE_MATCH=%d PAIR_UCNT=%s" \
     $hardware_name $sample $elapsed_ms $host_start_ms [clock milliseconds] \
     $frame_valid $epoch_before_raw $epoch_after_raw $magic_raw $version $page \
-    $source_epoch_raw $phase_current_raw $phase_current_units $phase_current_ps \
+    $source_epoch_raw $update_id_raw $branch_flags_raw $branch_id $branch_flags \
+    $clamp_code $branch_error_raw $branch_error $freq_error_raw $freq_error \
+    $pi_x_raw $pi_x $pi_output_raw $pi_output $phase_current_raw \
+    $phase_current_units $phase_current_ps \
     $attempts $servo_ucnt_before $servo_ucnt_after $same_servo_update $pair_ucnt]
   flush stdout
 }

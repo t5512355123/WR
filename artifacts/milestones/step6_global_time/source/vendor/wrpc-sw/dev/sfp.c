@@ -45,7 +45,6 @@ int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask)
 {
 	const struct i2c_bus *dev = &dev_i2c_sfp1;
 	uint32_t ack = 0;
-	uint8_t data;
 	unsigned int i;
 	int ret = -EIO;
 

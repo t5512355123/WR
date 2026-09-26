@@ -114,35 +114,30 @@ proc wb_write {hardware_name addr data} {
 
 proc stable_shell_ready {hardware_name} {
   set entry [word64 [probe_word 26]]
-  set corr0 [word64 [probe_word 28]]
-  set corr1 [word64 [probe_word 29]]
-  set corr2 [word64 [probe_word 30]]
-  set corr3 [word64 [probe_word 31]]
-  set corr4 [word64 [probe_word 32]]
   set corr5 [word64 [probe_word 33]]
   set corr7 [word64 [probe_word 35]]
   set astat [word32 [wb_read $hardware_name 0x00100A14]]
   set command_stage [word32 [wb_read $hardware_name 0x00100BA0]]
   set uart_status [word32 [wb_read $hardware_name 0x00100500]]
-  set names [list entry corr0 corr1 corr2 corr3 corr4 corr5 corr7 astat command_stage uart_status]
-  set values [list $entry $corr0 $corr1 $corr2 $corr3 $corr4 $corr5 $corr7 \
-                   $astat $command_stage $uart_status]
+  set names [list entry corr5 corr7 astat command_stage uart_status]
+  set values [list $entry $corr5 $corr7 $astat $command_stage $uart_status]
   set invalid_fields {}
   foreach name $names value $values {
     if {$value eq "INVALID" || $value eq "TIMEOUT"} { lappend invalid_fields $name }
   }
   if {[llength $invalid_fields] > 0} {
     set ::gate_debug($hardware_name) [format \
-      "invalid=%s entry=%s corr0=%s corr1=%s corr2=%s corr3=%s corr4=%s corr5=%s corr7=%s astat=%s command_stage=%s uart_status=%s" \
-      [join $invalid_fields ,] $entry $corr0 $corr1 $corr2 $corr3 $corr4 $corr5 \
-      $corr7 $astat $command_stage $uart_status]
+      "invalid=%s entry=%s corr5=%s corr7=%s astat=%s command_stage=%s uart_status=%s" \
+      [join $invalid_fields ,] $entry $corr5 $corr7 $astat $command_stage $uart_status]
     return 0
   }
   set boot_generation [expr {($entry >> 32) & 0x7f}]
   set astat_generation [expr {($astat >> 25) & 0x7f}]
   set marker_mask [expr {($astat >> 21) & 0x0f}]
-  set runtime_idle [expr {$corr0 == 0 && $corr1 == 0 && $corr2 == 0 &&
-                          $corr3 == 0 && $corr4 == 0}]
+  # corr0..corr4 are persistent event-correlation breadcrumbs (DAC load,
+  # runtime start, bus/static completion and reset events), not live busy
+  # flags. A healthy running Step5 board naturally leaves them nonzero; they
+  # must not block this read-only `ip get` query.
   set post_startup_armed [expr {($corr7 >> 33) & 1}]
   set cpu_reset [expr {($corr5 >> 27) & 1}]
   set input_pending [expr {($uart_status >> 1) & 1}]
@@ -151,17 +146,15 @@ proc stable_shell_ready {hardware_name} {
   if {$cpu_reset != 0} { lappend failures CPU_RESET_ASSERTED }
   if {$marker_mask != 0x0f} { lappend failures SHELL_MARKERS_INCOMPLETE }
   if {$boot_generation != $astat_generation} { lappend failures GENERATION_MISMATCH }
-  if {!$runtime_idle} { lappend failures RUNTIME_NOT_IDLE }
   if {$command_stage != 0} { lappend failures COMMAND_STAGE_NOT_IDLE }
   if {$input_pending} { lappend failures VUART_INPUT_PENDING }
   set failure_text [join $failures ,]
   if {$failure_text eq ""} { set failure_text NONE }
   set ::gate_debug($hardware_name) [format \
-    "failed=%s armed=%d cpu_reset=%d marker_mask=0x%X boot_generation=%d astat_generation=%d runtime_idle=%d command_stage=%d uart_input_pending=%d entry=%s corr0=%s corr1=%s corr2=%s corr3=%s corr4=%s corr5=%s corr7=%s astat=%s uart_status=%s" \
+    "failed=%s armed=%d cpu_reset=%d marker_mask=0x%X boot_generation=%d astat_generation=%d command_stage=%d uart_input_pending=%d entry=%s corr5=%s corr7=%s astat=%s uart_status=%s" \
     $failure_text \
     $post_startup_armed $cpu_reset $marker_mask $boot_generation $astat_generation \
-    $runtime_idle $command_stage $input_pending $entry $corr0 $corr1 $corr2 \
-    $corr3 $corr4 $corr5 $corr7 $astat $uart_status]
+    $command_stage $input_pending $entry $corr5 $corr7 $astat $uart_status]
   return [expr {[llength $failures] == 0}]
 }
 

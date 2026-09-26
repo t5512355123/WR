@@ -27,17 +27,21 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertIn("0x00100514", self.observer)
         self.assertIn("(($word >> 8) & 1)", self.observer)
 
-    def test_observer_gates_command_on_shell_and_transport_idle(self):
+    def test_observer_gates_command_on_shell_and_vuart_idle(self):
         for token in (
             "post_startup_armed != 1",
             "cpu_reset != 0",
             "marker_mask != 0x0f",
             "boot_generation != $astat_generation",
-            "!$runtime_idle",
             "command_stage != 0",
             "$input_pending",
         ):
             self.assertIn(token, self.observer)
+
+    def test_persistent_runtime_breadcrumbs_do_not_block_read_only_query(self):
+        self.assertIn("persistent event-correlation breadcrumbs", self.observer)
+        self.assertIn("must not block this read-only `ip get` query", self.observer)
+        self.assertNotIn("RUNTIME_NOT_IDLE", self.observer)
 
     def test_failed_preflight_emits_each_gate_component_for_diagnosis(self):
         for token in (

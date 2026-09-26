@@ -48,10 +48,10 @@ STEP6_MILESTONE             = NOT_PASS
 
 The immediate Step 6 boundary is Slave `WRH_WAIT_OFFSET_STABLE`: the measured
 offset never entered the firmware's `<60 ps` gate. The 2026-09-27 coherent
-read-only capture produced 205 valid samples, 194 counter-stable rows, and 104
-adjacent servo-update pairs. No same-counter payload conflicts, Wishbone
-timeouts, reset changes, or `TIME_VALID` samples occurred. The offset remained
-outside `<60 ps` in every coherent row.
+read-only captures produced 205 samples (the first capture) and 201 samples
+(the F4L follow-up); the latter had 191 counter-stable rows and 99 adjacent
+servo-update pairs. Across both captures there were no same-counter payload
+conflicts, Wishbone timeouts, reset changes, or `TIME_VALID` samples.
 
 Eleven source-arithmetic matches were followed by measurable CKO movement. In
 all eleven, the immediate CKO movement sign opposed the measured action offset;
@@ -61,8 +61,19 @@ does not prove whether the phase shifter reached its requested target or why
 the residual sometimes overshoots. Do not change production servo controls
 based on this capture.
 
-The next diagnostic is a sparse, read-only, publication-coherent read of the
-existing F4L `phase_shift_current` alongside the already source-mapped WR servo
-setpoint/offset. Keep the currently programmed image, do not reset/reprogram,
-and treat the two diagnostic groups as non-atomic. Step 6A/6B remain unpassed
-until their independent acceptance gates pass.
+The sparse F4L follow-up read 23/23 publication-coherent frames; 20 also had a
+matching servo update counter and 18 could be joined to a coherent servo row.
+In 15/18 joins, internal SoftPLL `phase_shift_current` was within 1 ps of the
+WR servo setpoint. The other three were sparse target-transition observations
+(+3236, +386, and -2171 ps). However, the WR phase offset remained outside
+`<60 ps` in all 191 coherent rows and `TIME_VALID` stayed 0 in all 201 rows.
+This indicates that the internal SoftPLL phase-shift state usually catches up
+to its requested target; it does not prove electrical clock-phase movement.
+
+Next, extend the same read-only F4L frame with its existing update ID, branch /
+flags, phase/frequency error, PI input, and PI output fields. Keep the current
+image and session, preserve the publication-epoch guard and servo-counter
+bracket, and make no production changes. Use that capture to distinguish a
+Main SoftPLL phase-loop response issue from a remaining WR timestamp/offset
+path issue. Step 6A/6B remain unpassed until their independent acceptance gates
+pass.

@@ -119,20 +119,26 @@ def summarize(path: Path) -> dict[str, object]:
     time_valid = [row for row in rows if row.get("STATUS_TIME_VALID") == "1"]
     reset_changed = [row for row in rows if row.get("RESET_CHANGED") == "1"]
     valid_f4l = [row for row in f4l_rows if row.get("FRAME_VALID") == "1"]
-    same_servo_update = [
-        row
-        for row in valid_f4l
-        if row.get("SERVO_UPDATE_MATCH") == "1"
-        and row.get("SERVO_UCNT_BEFORE") == row.get("SERVO_UCNT_AFTER")
-        and row.get("SERVO_UCNT_AFTER") == row.get("PAIR_UCNT")
-    ]
+    same_servo_update: list[dict[str, str]] = []
+    for row in valid_f4l:
+        before = hex_field(row, "SERVO_UCNT_BEFORE")
+        after = hex_field(row, "SERVO_UCNT_AFTER")
+        pair = int_field(row, "PAIR_UCNT")
+        if (
+            row.get("SERVO_UPDATE_MATCH") == "1"
+            and before is not None
+            and before == after == pair
+        ):
+            same_servo_update.append(row)
     servo_by_sample = {row.get("sample"): row for row in rows}
     f4l_setpoint_deltas: list[int] = []
     for f4l_row in same_servo_update:
         servo_row = servo_by_sample.get(f4l_row.get("sample"))
         if not servo_row or servo_row.get("COHERENT") != "1":
             continue
-        if hex_field(f4l_row, "PAIR_UCNT") != hex_field(servo_row, "UCNT_AFTER"):
+        # PAIR_UCNT is emitted by Tcl as a decimal integer (the parsed u1),
+        # whereas UCNT_AFTER preserves the raw Wishbone word as hexadecimal.
+        if int_field(f4l_row, "PAIR_UCNT") != hex_field(servo_row, "UCNT_AFTER"):
             continue
         current_ps = int_field(f4l_row, "PHASE_SHIFT_CURRENT_PS")
         setpoint_ps = int_field(servo_row, "SETP_PS")

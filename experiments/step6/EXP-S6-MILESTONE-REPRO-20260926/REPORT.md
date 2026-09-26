@@ -191,10 +191,10 @@ measured action offset. Eight responses reduced the absolute residual; three
 overshot and increased it. Examples include `-3359 -> +2132 ps`, `+2393 ->
 +1048 ps`, and the overshoots `+1210 -> -3146 ps`, `+965 -> -3454 ps`, and
 `+1275 -> -3525 ps`. This is evidence against a globally reversed software
-correction sign. It is not enough to conclude that the phase actuator reached
-its target, because this capture did not include the F4L phase-shifter-current
-publication. Offset remained outside the 60 ps timing-output gate, so
-`TIME_VALID` remained 0.
+correction sign. At the end of this capture it was not enough to conclude that
+the internal SoftPLL phase-shift state reached its target, because F4L current
+was not yet observed. Offset remained outside the 60 ps timing-output gate,
+so `TIME_VALID` remained 0.
 
 Raw capture SHA-256:
 
@@ -202,18 +202,87 @@ Raw capture SHA-256:
 4820735a9d22082f8ca20347636dee5c8fcc40f03986b364812d404c262ca4d5
 ```
 
-The next diagnostic is a sparse publication-coherent read of the existing F4L
-`phase_shift_current`, paired by timestamp with the WR servo setpoint/offset.
-The two telemetry groups must remain explicitly non-atomic. No production
-control change is justified yet.
+The planned next diagnostic at that point was a sparse publication-coherent
+read of the existing F4L `phase_shift_current`; its results are recorded next.
+No production control change is justified by that capture.
+
+### Sparse F4L phase-shift-current follow-up (2026-09-27)
+
+The observer source was pushed in commit `d95a8a266310e79df3278de1239100dd3dd75bb0`
+and run against the already-programmed Slave image for 120 seconds. The Pain
+worktree remained at HEAD `2d7b5a78c8563140dc28c6dc7ceb1c2b9167f1f2`; the observer,
+analyzer, and test files from `d95a8a26` were staged there for this read-only
+run. No FPGA build, programming, reset, or register write occurred.
+
+```text
+SAMPLE_ROWS                         = 201
+READS_VALID                         = 201
+COUNTER_STABLE_ROWS                 = 191
+ADJACENT_UPDATE_PAIRS               = 99
+SKIPPED_SERVO_UPDATES               = 7
+SAME_COUNTER_PAYLOAD_CONFLICTS      = 0
+F4L_FRAMES_VALID                    = 23 / 23
+F4L_SERVO_COUNTER_MATCHES           = 20 / 23
+COHERENT_SAME-UPDATE_COMPARISONS    = 18
+CURRENT_WITHIN_1PS_OF_SETPOINT      = 15 / 18
+TIME_VALID                          = 0 / 201
+PPS_VALID / LINK                    = 201 / 201
+RESET_CHANGED                       = 0
+WISHBONE_TIMEOUTS / INVALID_READS   = 0 / 0
+SERVO_STATE                         = WAIT_OFFSET_STABLE 183 / 201;
+                                      SYNC_PHASE 18 / 201
+```
+
+The derived internal phase-shift current ranged from `-1690` to `+2247 ps`
+(`-1730` to `+2301` raw units). In 15 of 18 timestamp-associated coherent
+rows it was within 1 ps of the firmware servo setpoint. The three larger
+differences (`+3236`, `+386`, and `-2171 ps`) occurred at sparse target-change
+transitions; the next sampled frame in each observed transition had converged
+to within 1 ps. Because sampling is about every 5.4 seconds, this does not
+measure the exact settling time.
+
+The WR offset still ranged outside the source-defined `<60 ps` gate in every
+counter-stable sample (`CKO=-3816..+2511 ps`), and `TIME_VALID` never asserted.
+The read is therefore descriptive and does not pass Step 6A.
+
+Source review bounds what this observation proves: `wrpc_adjust_phase()` calls
+`spll_set_phase_shift()`, which updates the internal `phase_shift_target`; the
+SoftPLL update loop advances `phase_shift_current` toward that target and
+adjusts its internal `adder_ref`. The F4L value is this internal SoftPLL state,
+not a direct electrical measurement of output-clock phase. The result rules
+out a simple failure to accept or internally track most requested setpoints,
+but it does not establish that the main PI/DAC or physical timing path moved
+the clock by the same amount.
+
+The first offline analysis exposed a representation mismatch: `PAIR_UCNT` is
+emitted as decimal by Tcl, while the raw servo counter fields are hexadecimal.
+The analyzer now parses each field in its emitted radix and compares numeric
+counter values; the offline test uses the actual decimal pair-counter format.
+All five `test_step6_servo_phase_pairs.py` tests pass after the correction.
+
+Raw capture SHA-256:
+
+```text
+81079f38eab9832474724e5222cf9c8cba9f883f9209607c25c6cd708b5a5269
+```
+
+Analysis output:
+`analysis/slave-servo-f4l-phase-current-v1-20260927-summary.json`.
+
+The next read-only diagnostic will add existing F4L `update_id`, branch/flags,
+branch error, frequency error, PI input, and PI output to the same sparse
+publication-coherent frame. Preserve the servo-counter bracket, do not claim
+the cross-domain groups are atomic, and do not change or reprogram production
+logic. This should separate an internal Main SoftPLL loop-response issue from
+a WR timestamp/offset-path issue.
 
 ## Verification and retained evidence
 
 The frozen-source verifier reported `SOURCE_PACKAGE=PASS` with 3,214 manifest
 rows and zero missing or mismatched entries. The dashboard offline suite
 passed all 8 tests, the shell syntax check passed, `git diff --check` passed,
-and all 38 raw-file entries in `SHA256SUMS` verify. Build, programmer, dashboard, and
-JTAG observer logs are retained under `raw/`.
+and all 39 raw-file entries in `SHA256SUMS` verify. Build, programmer, dashboard,
+and JTAG observer logs are retained under `raw/`.
 
 The current dashboard overlay edits are host-side only. They add the source-
 mapped WR servo state and signed phase offset to the Slave panel, correct the
@@ -224,10 +293,11 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-The next action is to add a sparse read-only F4L phase-shifter-current sample
-with publication-coherence checks, then repeat the same already-programmed
-image without reset or reprogram. Do not change the production servo until
-the trace distinguishes requested setpoint from actual phase-shifter motion.
-Keep Step 6A/Step 6B marked not passed until the Slave PTP servo produces
-valid stable snapshots and the same-PPS and scheduled-trigger gates are
-independently reproduced.
+The next action is to extend the sparse read-only F4L capture with existing
+Main branch/error/PI fields and update identity, then repeat against the same
+programmed image without reset or reprogram. Keep the publication-epoch and
+servo-counter guards; do not treat these separate telemetry groups as atomic.
+Do not change the production servo until this distinguishes Main loop response
+from the WR timestamp/offset path. Keep Step 6A/Step 6B marked not passed until
+the Slave PTP servo produces valid stable snapshots and the same-PPS and
+scheduled-trigger gates are independently reproduced.

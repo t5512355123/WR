@@ -29,12 +29,27 @@ class Step6IpVuartObserverTests(unittest.TestCase):
 
     def test_observer_gates_command_on_shell_and_transport_idle(self):
         for token in (
-            "post_startup_armed == 1",
-            "cpu_reset == 0",
-            "marker_mask == 0x0f",
-            "runtime_idle",
-            "command_stage == 0",
-            "!$input_pending",
+            "post_startup_armed != 1",
+            "cpu_reset != 0",
+            "marker_mask != 0x0f",
+            "boot_generation != $astat_generation",
+            "!$runtime_idle",
+            "command_stage != 0",
+            "$input_pending",
+        ):
+            self.assertIn(token, self.observer)
+
+    def test_failed_preflight_emits_each_gate_component_for_diagnosis(self):
+        for token in (
+            "failed=%s",
+            "POST_STARTUP_NOT_ARMED",
+            "CPU_RESET_ASSERTED",
+            "SHELL_MARKERS_INCOMPLETE",
+            "GENERATION_MISMATCH",
+            "RUNTIME_NOT_IDLE",
+            "COMMAND_STAGE_NOT_IDLE",
+            "VUART_INPUT_PENDING",
+            "gate_details={%s}",
         ):
             self.assertIn(token, self.observer)
 

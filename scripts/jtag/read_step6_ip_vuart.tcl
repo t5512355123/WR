@@ -23,6 +23,7 @@ if {$stable_ms <= 0 || $timeout_ms <= 0} {
 }
 
 array set ::wb_toggle {}
+array set ::gate_debug {}
 
 proc is_hex {value} {
   return [regexp {^[0-9A-Fa-f]{1,16}$} $value]
@@ -123,9 +124,19 @@ proc stable_shell_ready {hardware_name} {
   set astat [word32 [wb_read $hardware_name 0x00100A14]]
   set command_stage [word32 [wb_read $hardware_name 0x00100BA0]]
   set uart_status [word32 [wb_read $hardware_name 0x00100500]]
-  foreach value [list $entry $corr0 $corr1 $corr2 $corr3 $corr4 $corr5 $corr7 \
-                      $astat $command_stage $uart_status] {
-    if {$value eq "INVALID" || $value eq "TIMEOUT"} { return 0 }
+  set names [list entry corr0 corr1 corr2 corr3 corr4 corr5 corr7 astat command_stage uart_status]
+  set values [list $entry $corr0 $corr1 $corr2 $corr3 $corr4 $corr5 $corr7 \
+                   $astat $command_stage $uart_status]
+  set invalid_fields {}
+  foreach name $names value $values {
+    if {$value eq "INVALID" || $value eq "TIMEOUT"} { lappend invalid_fields $name }
+  }
+  if {[llength $invalid_fields] > 0} {
+    set ::gate_debug($hardware_name) [format \
+      "invalid=%s entry=%s corr0=%s corr1=%s corr2=%s corr3=%s corr4=%s corr5=%s corr7=%s astat=%s command_stage=%s uart_status=%s" \
+      [join $invalid_fields ,] $entry $corr0 $corr1 $corr2 $corr3 $corr4 $corr5 \
+      $corr7 $astat $command_stage $uart_status]
+    return 0
   }
   set boot_generation [expr {($entry >> 32) & 0x7f}]
   set astat_generation [expr {($astat >> 25) & 0x7f}]
@@ -135,9 +146,23 @@ proc stable_shell_ready {hardware_name} {
   set post_startup_armed [expr {($corr7 >> 33) & 1}]
   set cpu_reset [expr {($corr5 >> 27) & 1}]
   set input_pending [expr {($uart_status >> 1) & 1}]
-  return [expr {$post_startup_armed == 1 && $cpu_reset == 0 &&
-                $marker_mask == 0x0f && $boot_generation == $astat_generation &&
-                $runtime_idle && $command_stage == 0 && !$input_pending}]
+  set failures {}
+  if {$post_startup_armed != 1} { lappend failures POST_STARTUP_NOT_ARMED }
+  if {$cpu_reset != 0} { lappend failures CPU_RESET_ASSERTED }
+  if {$marker_mask != 0x0f} { lappend failures SHELL_MARKERS_INCOMPLETE }
+  if {$boot_generation != $astat_generation} { lappend failures GENERATION_MISMATCH }
+  if {!$runtime_idle} { lappend failures RUNTIME_NOT_IDLE }
+  if {$command_stage != 0} { lappend failures COMMAND_STAGE_NOT_IDLE }
+  if {$input_pending} { lappend failures VUART_INPUT_PENDING }
+  set failure_text [join $failures ,]
+  if {$failure_text eq ""} { set failure_text NONE }
+  set ::gate_debug($hardware_name) [format \
+    "failed=%s armed=%d cpu_reset=%d marker_mask=0x%X boot_generation=%d astat_generation=%d runtime_idle=%d command_stage=%d uart_input_pending=%d entry=%s corr0=%s corr1=%s corr2=%s corr3=%s corr4=%s corr5=%s corr7=%s astat=%s uart_status=%s" \
+    $failure_text \
+    $post_startup_armed $cpu_reset $marker_mask $boot_generation $astat_generation \
+    $runtime_idle $command_stage $input_pending $entry $corr0 $corr1 $corr2 \
+    $corr3 $corr4 $corr5 $corr7 $astat $uart_status]
+  return [expr {[llength $failures] == 0}]
 }
 
 proc read_uart_available {hardware_name max_bytes} {
@@ -246,9 +271,12 @@ foreach hardware_name [get_hardware_names] {
       after $poll_ms
     }
     if {!$ready} {
-      puts [format "STEP6_IP_GET_SKIP board=%s reason=shell_not_stably_ready elapsed_ms=%d" \
-        $hardware_name [expr {[clock milliseconds] - $start_ms}]]
+      puts [format "STEP6_IP_GET_SKIP board=%s reason=shell_not_stably_ready elapsed_ms=%d gate_details={%s}" \
+        $hardware_name [expr {[clock milliseconds] - $start_ms}] \
+        $::gate_debug($hardware_name)]
     } else {
+      puts [format "STEP6_IP_GET_GATE_PASS board=%s gate_details={%s}" \
+        $hardware_name $::gate_debug($hardware_name)]
       set pre_entry [word64 [probe_word 26]]
       set pre_corr5 [word64 [probe_word 33]]
       if {$pre_entry eq "INVALID" || $pre_corr5 eq "INVALID"} {

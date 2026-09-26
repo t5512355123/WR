@@ -437,26 +437,98 @@ returns `-EIO` on either base or extended checksum failure before copying the
 part number or calling `storage_match_sfp()`. `sfp_info.sfp_params` is
 statically initialized with `alpha=0`; its other fields are zero-initialized.
 Thus failed checksum validation can leave the active calibration at defaults.
-This is a concrete diagnostic lead, not yet proof that the SFP read path or
-calibration is the cause of the observed phase residual; the cached header,
-active parameters, and database-open status have not yet been exposed
-read-only on the running image.
+The fresh read-only observer below exposed the cached header, active
+parameters, and database-lookup decision directly on the programmed Slave.
 
 There is a second source-level ambiguity: after a valid header,
 `sfp_match()` treats only `storage_match_sfp() == 0` as “not matched”. A
 negative SDBFS/storage error is not propagated and falls through to
 `SFP_MATCHED` without proving that calibration fields were loaded. Therefore
-the numeric `sfp_in_db` flag alone is insufficient; the diagnostic needs the
-separate lookup return code and returned values on a local copy.
+the numeric `sfp_in_db` flag alone is insufficient; the diagnostic reports
+the separate lookup result and returned values on a local copy.
+
+### Fresh observer rebuild and 360-second revalidation (2026-09-27)
+
+The read-only `sfp params` overlay was independently rebuilt on Pain from the
+frozen Step 6 candidate. Both firmware builds and both full Quartus builds
+passed. The repository commit at build time was `2bda249a19408a3f1a7ef21a19b8d668cd733700`;
+the frozen hardware source origin remains `74dc28862653d306e0450cf437ba6d3a230d979d`.
+The new Master and Slave SOFs were:
+
+```text
+Master: artifacts/milestones/step6_global_time/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
+        SHA256=985b110a0be67a6548ad00c49fb621971455738c2c58b8aaf9b222262a8069a5
+Slave:  artifacts/milestones/step6_global_time/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+        SHA256=8882e1b6a0f59d894efb2b136ff9c4923a82df7f8f345c0824a5defa0fbae56f
+```
+
+Only the diagnostic Slave SOF was programmed; the running Master was left
+untouched. Quartus Programmer reported one device configured and zero errors.
+The initial read-only `sfp params` query sent successfully but appeared to
+return no bytes. This exposed a host-reader defect: it returned on a full
+256-byte VUART page before appending that page to the reply. Commit
+`25b834df` fixes the page accumulation; the focused offline suite passed
+11/11, and the retry captured the complete 275-byte response without a reset
+or generation change.
+
+The cached Slave SFP data returned:
+
+```text
+PN=PCAA37-1322-01V0
+BASE checksum calculated/stored = 04 / 48 (invalid)
+EXT  checksum calculated/stored = b0 / 00 (invalid)
+SFP_READONLY_DB_LOOKUP = skipped: bad_cached_header
+SFP_ACTIVE_CAL db_flag=0, PN empty, alpha=0, dTx=0, dRx=0
+```
+
+This directly shows that the running firmware rejected the cached header and
+did not obtain SFP calibration from the database. It does not yet prove
+whether the module EEPROM contains invalid bytes or the bit-banged I2C read
+path supplied bad data: source audit shows `sfp_read_i2c()` ignores the ACK
+return values from `bb_i2c_put_byte()`. No checksum bypass, calibration write,
+EEPROM write, or control-parameter change was made.
+
+An immediate post-program dashboard read (explicitly setting
+`WAIT_FOR_GLOBAL_TIME_SECONDS=0`) showed the Master Global Time valid. On the
+Slave, all five Step 5 lock signals were asserted, but the servo offset was
+`-2569 ps`, outside the source-defined `<60 ps` stability band; the dashboard
+reported `TIME_VALID=0`, `PPS_VALID=0`, and Step 6 `WAITING`.
+
+The subsequent read-only paired tail capture completed 360.584 seconds of
+wall time and contains 180 consecutive Slave samples over 358.685 seconds:
+
+```text
+READ_VALID / LINK_HEALTHY / CAPTURE_HEALTHY = 180 / 180 / 180
+HELPER_LOCKED / MAIN_FREQ_LOCKED            = 180 / 180
+MAIN_PHASE_LOCKED / MAIN_LOCKED / PSTAT     = 180 / 180
+RESET_CHANGED                               = 0 / 180
+sample gaps                                  = 0
+reset signature                              = unchanged (generation/counts = 1)
+Step 5 direct locks for >=300 s              = PASS
+STATUS_TIME_VALID                            = 0 / 180
+snapshot valid / time-valid / PPS-valid      = 0 / 180 each
+SLOCK_TRACE_CALIB_FAILURE                    = 1 / 180
+SLOCK_TRACE_T24P_CALIBRATED                  = 0 / 180
+servo states                                 = 3: 16 samples; 5: 164 samples
+```
+
+Therefore the 300-second Step 5 requirement is reproduced on the freshly
+programmed diagnostic Slave, while Step 6A still fails. The observed 120-second
+wait was not a firmware delay: that one-shot dashboard invocation explicitly
+set `WAIT_FOR_GLOBAL_TIME_SECONDS=120`. The dashboard default is `0`; use
+`ONCE=1 WAIT_FOR_GLOBAL_TIME_SECONDS=0` for an immediate read, or omit the wait
+variable for live monitoring.
 
 ## Verification and retained evidence
 
 The frozen-source verifier reported `SOURCE_PACKAGE=PASS` with 3,214 manifest
 rows and zero missing or mismatched entries. The dashboard offline suite
-passed all 8 tests; the Step6 servo-pair analysis suite passed all 6 tests;
-the shell syntax and `git diff --check` passed. All 51 raw-file entries in
-`SHA256SUMS` verify, including the eight VUART/dashboard follow-up captures. Build,
-programmer, dashboard, and JTAG observer logs are retained under `raw/`.
+passed all 8 tests; the Step6 servo-pair analysis suite passed all 6 tests; the
+updated VUART observer suite passed all 11 tests; shell syntax and
+`git diff --check` passed. All 67 raw-file entries in `SHA256SUMS` verify.
+Build, programmer, dashboard, and JTAG observer logs are retained under
+`raw/`. The 360-second paired-tail analyzer reports Step 5 direct locks PASS
+and Slave Step 6A NOT_PASS.
 
 The current dashboard overlay edits are host-side only. They add the source-
 mapped WR servo state and signed phase offset to the Slave panel, correct the
@@ -467,22 +539,18 @@ not modify the Step 6 hardware image.
 
 ## Next action
 
-The diagnostic `sfp params` command is now implemented in the frozen-source
-package and explicitly classified as a read-only observer overlay in its
-source manifest. It reports cached header checksums, the active
-`alpha/dTx/dRx` values, and a separate calibration-database lookup result
-using a local copy. It does not call `sfp_match()`, alter global calibration,
-write I2C/EEPROM/SDBFS, or change PTP/servo control state. The host VUART
-observer now has an `sfp_params` mode that sends only this command. Offline
-VUART tests pass 10/10, and the source package's 3,219 checksums and 3,214
-source-manifest mappings verify with zero errors.
+Do not bypass the failed SFP checksum or guess calibration values. The next
+experiment should isolate whether the bad cached header comes from the
+module's EEPROM contents or the bit-banged I2C acquisition path. First audit
+SFP-bus ownership and the periodic DOM reader. Then, if the read can be
+serialized safely, add a strictly read-only diagnostic that captures the
+header bytes into a local buffer and records every address/data ACK result; it
+must not assign global calibration fields, call `sfp_match()`, or write SFP
+EEPROM/SDBFS. Compare the fresh bytes and ACKs with the cached header and
+checksums. An ACK failure points to the I2C/read path; successful ACKs with
+the same invalid checksum point to the module contents or address/read
+protocol. Select a repair only after that boundary is known.
 
-Next, push these source/observer changes, pull them into a clean Pain
-worktree, and independently build Master firmware/Quartus and Slave
-firmware/Quartus from `artifacts/milestones/step6_global_time/source/`.
-Program only the diagnostic Slave image to preserve the running Master; run
-the stable VUART observer once in `sfp_params` mode, retain the complete
-build/program/query logs, and classify the output before considering any
-calibration change. Step 6A/Step 6B remain not passed until the Slave produces
-valid stable Global-Time snapshots, the same-PPS gate passes, and the
-scheduled-trigger gate is independently reproduced.
+Step 6A and Step 6B remain not passed until the Slave produces valid stable
+Global-Time snapshots, the same-PPS gate passes, and the scheduled-trigger
+gate is independently reproduced.

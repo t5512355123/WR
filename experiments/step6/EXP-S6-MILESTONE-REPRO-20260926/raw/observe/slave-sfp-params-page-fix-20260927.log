@@ -1,0 +1,44 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Sep 27 04:38:56 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_ip_vuart.tcl 1500 12000 sfp_params
+Info: Quartus(args): 1500 12000 sfp_params
+STEP6_VUART_CONFIG stable_ms=1500 timeout_ms=12000 board_filter=SLAVE query_mode=sfp_params read_only_firmware_commands=1
+STEP6_VUART_GATE_PASS board=DE5 [1-11.2] gate_details={failed=NONE armed=1 cpu_reset=0 marker_mask=0xF boot_generation=1 astat_generation=1 command_stage=0 uart_input_pending=0 entry=4295077132 corr5=117440512 corr7=12888796176 astat=67092480 uart_status=0}
+STEP6_VUART_PREFLIGHT board=DE5 [1-11.2] boot_generation=1 cpu_reset=0
+STEP6_VUART_PREEXISTING board=DE5 [1-11.2] status=OK bytes=19 hex=61636865645F6865616465720D0A7772632320 text=ached_header\x0D\x0Awrc# 
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=00 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=01 byte=0x66 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=02 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=03 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=04 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=05 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=06 byte=0x72 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=07 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=08 byte=0x6D result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=09 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=sfp params index=10 byte=0x0A result=OK
+STEP6_VUART_QUERY_RESULT board=DE5 [1-11.2] command=sfp params status=OK reply_bytes=275 reply_hex=1B5B3140731B5B3140661B5B3140701B5B3140201B5B3140701B5B3140611B5B3140721B5B3140611B5B31406D1B5B3140730D0A5346505F4143544956455F43414C2064625F666C61673D3020706E3D20616C7068613D30206454783D30206452783D300D0A5346505F4341434845445F48454144455220706E3D5043414133372D313332322D3031563020626173655F63616C633D303420626173655F73746F7265643D343820626173655F76616C69643D30206578745F63616C633D6230206578745F73746F7265643D3030206578745F76616C69643D300D0A5346505F524541444F4E4C595F44425F4C4F4F4B555020736B69707065643D6261645F6361636865645F6865616465720D0A7772632320 reply_text=\x1B[1@s\x1B[1@f\x1B[1@p\x1B[1@ \x1B[1@p\x1B[1@a\x1B[1@r\x1B[1@a\x1B[1@m\x1B[1@s\x0D\x0ASFP_ACTIVE_CAL db_flag=0 pn= alpha=0 dTx=0 dRx=0\x0D\x0ASFP_CACHED_HEADER pn=PCAA37-1322-01V0 base_calc=04 base_stored=48 base_valid=0 ext_calc=b0 ext_stored=00 ext_valid=0\x0D\x0ASFP_READONLY_DB_LOOKUP skipped=bad_cached_header\x0D\x0Awrc# 
+STEP6_VUART_POSTFLIGHT board=DE5 [1-11.2] boot_generation_before=1 boot_generation_after=1 cpu_reset_before=0 cpu_reset_after=0 reset_changed=0
+STEP6_VUART_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_ip_vuart.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sun Sep 27 04:39:03 2026
+    Info: Elapsed time: 00:00:07
+    Info: Total CPU time (on all processors): 00:00:00

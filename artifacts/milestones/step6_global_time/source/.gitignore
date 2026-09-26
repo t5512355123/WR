@@ -1,0 +1,9 @@
+/build/
+/quartus/output_files_master_jtag/
+/quartus/output_files_slave_jtag/
+*.qws
+*.qdf
+*.rpt
+*.summary
+*.sof
+*.pof

@@ -39,5 +39,9 @@ SHA256SUMS -text
 # Frozen milestone snapshots are byte-preserving packages. Do not let
 # core.autocrlf rewrite generated Qsys/QIP metadata or their source manifests.
 artifacts/milestones/**/source/** -text -eol
+artifacts/milestones/**/source/** -whitespace
+# Upstream WR-core test fixture is a captured Tcl stacktrace containing literal
+# stash-conflict labels; preserve it byte-for-byte, but do not parse it as a diff.
+artifacts/milestones/step6_global_time/source/vendor/wr-cores/testbench/wr_streamers/streamers-only_basic-transfer/tcl_stacktrace.txt -diff
 # Candidate frozen source packages inside experiments are also byte-preserving.
 experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/source/** -text -eol

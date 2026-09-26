@@ -1,0 +1,23 @@
+files = [
+  "eb_checksum.vhd",
+  "eb_cfg_fifo.vhd",
+  "eb_commit_fifo.vhd",
+  "eb_eth_rx.vhd",
+  "eb_eth_tx.vhd",
+  "eb_ethernet_slave.vhd",
+  "eb_fifo.vhd",
+  "eb_hdr_pkg.vhd",
+  "eb_internals_pkg.vhd",
+  "eb_pass_fifo.vhd",
+  "eb_raw_slave.vhd",
+  "eb_slave_fsm.vhd",
+  "eb_slave_top.vhd",
+  "eb_stream_narrow.vhd",
+  "eb_stream_widen.vhd",
+  "eb_tag_fifo.vhd",
+  "eb_tx_mux.vhd",
+  "eb_wbm_fifo.vhd",
+  "etherbone_pkg.vhd",
+  # obsolete and to be removed:
+  "eb_slave_core.vhd",
+  ]

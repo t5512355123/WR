@@ -1,6 +1,5 @@
 # Quartus and other rebuildable outputs
 build/*
-!build/.gitkeep
 db/
 incremental_db/
 output_files/

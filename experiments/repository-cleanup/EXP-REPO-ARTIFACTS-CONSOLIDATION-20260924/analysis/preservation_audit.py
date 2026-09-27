@@ -270,6 +270,9 @@ def classify(status: str, old_path: str, new_path: str, old_oid: str,
              baseline: dict[str, str], current: dict[str, set[str]],
              blob_paths: dict[str, list[str]], archives: set[str], sidecars: set[str],
              sof_manifest: dict[str, tuple[str, str]]) -> tuple[str, str, str]:
+    if old_path == "build/.gitkeep":
+        return "INTENTIONALLY_REMOVED_NON_EVIDENCE", "scripts/build/build_master.sh; scripts/build/build_slave.sh; .gitignore", "zero-byte build placeholder removed; firmware builders create $ROOT/build and generated build contents remain ignored"
+
     duplicate = verify_source_duplicate(old_path, old_oid, current)
     if duplicate:
         target, evidence = duplicate

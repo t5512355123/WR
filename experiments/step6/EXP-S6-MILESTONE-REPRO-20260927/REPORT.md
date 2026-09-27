@@ -132,5 +132,7 @@ Logs: `raw/observe/sfp_params_readonly.log` and
 - Frozen milestone: `artifacts/milestones/step6_global_time/`.
 - Experiment plan: `PLAN.md`.
 - Raw build/program/observation files: `raw/`.
-- Step 6 dashboard/source tests were run against the current source; results
-  are recorded with the final repository verification.
+- Machine-readable acceptance evidence is summarized in
+  `analysis/acceptance-gates.tsv`. `SHA256SUMS` covers the plan, report,
+  analysis, and raw files; regenerate or verify it with
+  `analysis/write_sha256sums.py`.

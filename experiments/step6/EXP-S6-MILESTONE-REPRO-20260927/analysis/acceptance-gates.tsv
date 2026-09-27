@@ -1,0 +1,14 @@
+gate	result	measured_result	evidence_relative_to_experiment_root
+clean_master_build	PASS	Quartus 17.0 Build 595; source 74dc288; rebuilt SOF SHA256 ad16d364eddbdacbf1aab40bd12154da337f757fbec90e2e216c8e08a0f54901	raw/build/master/
+clean_slave_build	PASS	Quartus 17.0 Build 595; source 74dc288; rebuilt SOF SHA256 6257952a2aa303b07dcfbd1ca08aa75230af12e412adf176cbbf5a4443bc7450	raw/build/slave/
+program_slave_then_master	PASS	One device configured per board; zero errors and warnings	raw/program/program_slave.log; raw/program/program_master.log
+dashboard_after_program	PASS	Both boards link/endpoint up; TIME_VALID=1 and PPS_VALID=1; Slave direct lock fields asserted	raw/observe/dashboard_after_program_wait120.log
+step5_slave_lock_stability_300s	PASS	301/301 valid and locked samples; zero unlocked samples; >=300 requested one-second intervals	raw/observe/step5_300s_timeseries.log
+step6a_global_time_validity	PASS	Both boards valid/stable snapshots; TIME_VALID=1 and PPS_VALID=1	raw/observe/same_pps_after_program.log
+step6a_same_pps_consistency	PASS	5 common TAI labels; 5 exact cycle matches; max delta 0 ticks	raw/observe/same_pps_after_program.log
+step6b_initial_dual_trigger	PASS	Master and Slave each fired once at TAI 3094, cycle 62500000; delta 0 ticks	raw/observe/step6b_live_trigger.log
+step6b_rearm_repeatability	PASS	Both fire counters reached 2 at TAI 3679, cycle 62500000; delta 0 ticks	raw/observe/step6b_rearm_repeatability.log
+post_fire_health	PASS	Three post-fire samples per board; link/Global Time/Slave locks valid; no reset-generation change	raw/observe/step6b_live_trigger.log; raw/observe/step6b_rearm_repeatability.log
+sfp_cached_calibration_cli	INCONCLUSIVE	Shell-idle guard failed twice; no command sent; no calibration database match claimed	raw/observe/sfp_params_readonly.log; raw/observe/sfp_params_readonly_retry.log
+physical_sma_edge_skew	NOT_EVALUATED	No oscilloscope evidence; digital timestamp equality is not physical skew evidence	REPORT.md
+timing_closure	NO_NOT_REQUIRED	Timing closure is not a Step6 functional acceptance gate	REPORT.md

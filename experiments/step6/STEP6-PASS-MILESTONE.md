@@ -1,9 +1,10 @@
 # Historical Step6 digital functional PASS evidence
 
-> This is a summary of the historical functional result, not proof that the
-> current frozen-source milestone has been independently reproduced. The
-> formal Step6 milestone remains pending until its own source snapshot is
-> clean-built, programmed, and revalidated on both DE5a boards.
+> This file records the historical functional result; it is not itself proof
+> of the later frozen-source reproduction. The formal Step6 milestone was
+> independently rebuilt, programmed, and revalidated on 2026-09-27. See
+> [`EXP-S6-MILESTONE-REPRO-20260927/REPORT.md`](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
+> and [`artifacts/milestones/step6_global_time/README.md`](../../artifacts/milestones/step6_global_time/README.md).
 
 ## Status
 
@@ -29,7 +30,7 @@ skew measurement.
 
 ## Exact current evidence
 
-The current Step5-plus-Step6 hardware validation is recorded in
+The historical Step5-plus-Step6 hardware validation is recorded in
 [`EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md`](EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md).
 The exact historical SOF/MIF files are retained in this repository under
 [`artifact-import/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/`](artifact-import/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/)

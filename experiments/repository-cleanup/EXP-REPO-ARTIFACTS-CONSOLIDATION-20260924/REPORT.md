@@ -171,7 +171,7 @@ accounts for every deletion/rename record:
 
 ```text
 exact retained/moved blobs       = 7428
-intentionally removed non-evidence = 3
+intentionally removed non-evidence = 4
 unexplained                      = 0
 ```
 
@@ -180,15 +180,27 @@ include 146 files initially lacking an exact retained copy or verified
 archive mapping and 38 pre-migration snapshots for relocated files whose
 current copies had link/path edits. `MANIFEST.tsv` records each original path,
 Git blob ID, byte count, SHA-256, and retained path. Every manifest copy was
-rehashed before the final audit. The complete row-level result is
-`analysis/preservation-audit.tsv`; its generator uses Git's batch object reader
-and is `analysis/preservation_audit.py`.
-The final authored-Markdown link audit checked 779 Markdown files and 423 local
-links with zero broken targets; it skipped 109 vendored files and 17 exact
-baseline Markdown blob snapshots. The preservation-snapshot exclusion is
+rehashed before the final audit. The final row-level result is
+[`analysis/preservation-audit-final.tsv`](analysis/preservation-audit-final.tsv);
+the earlier `analysis/preservation-audit.tsv` snapshot is retained. Its
+generator uses Git's batch object reader and is
+[`analysis/preservation_audit.py`](analysis/preservation_audit.py).
+The final authored-Markdown link audit checked 780 Markdown files and 436
+local links with zero broken targets; it skipped 109 vendored files and 17
+exact baseline Markdown blob snapshots. The preservation-snapshot exclusion is
 tested in `scripts/tests/test_markdown_link_checker.py`.
-Step 6 regression checks passed 12 VUART unit tests and 27 Global-Time,
-same-PPS, closure, trigger, and re-arm test functions (39 total).
+The full regression suite passed 84 tests. Step 6-specific regression checks
+cover 12 VUART unit tests and 27 Global-Time, same-PPS, closure, trigger, and
+re-arm test functions (39 total).
+
+The Step 6 promotion audit compared the task-start commit
+`c55e32a3b477a6c3bced43a346fdca8e5bece4b0` with the current branch. All 467
+files under the original `experiments/legacy/exp-step6-global-time/` tree are
+accounted for: 466 were moved with exact Git blobs and one link-adjusted file
+has its exact original blob preserved in the baseline archive. No Step 6
+baseline file is unexplained or missing. The row-level report is
+`analysis/step6-promotion-audit.tsv`; its reproducible checker is
+`analysis/audit_step6_promotion.py`.
 
 Step 6 has since been independently rebuilt, programmed, and functionally
 reproduced. Its current evidence is in

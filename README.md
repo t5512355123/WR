@@ -120,6 +120,9 @@ The validated program order was Master, wait at least 90 seconds, then Slave; wa
 
 ## Reproduce the validated Step 6 Global-Time and digital-trigger checkpoint
 
+The current Step 6 research index, including successful and failed runs, is
+[`experiments/step6/README.md`](experiments/step6/README.md).
+
 The exact Step 6 SOFs independently rebuilt and programmed on 2026-09-27 are:
 
 - Master: [artifacts/milestones/step6_global_time/master.sof](artifacts/milestones/step6_global_time/master.sof), SHA-256 `ad16d364eddbdacbf1aab40bd12154da337f757fbec90e2e216c8e08a0f54901`.

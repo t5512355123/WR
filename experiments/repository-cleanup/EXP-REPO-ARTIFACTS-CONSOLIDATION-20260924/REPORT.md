@@ -185,7 +185,7 @@ rehashed before the final audit. The final row-level result is
 the earlier `analysis/preservation-audit.tsv` snapshot is retained. Its
 generator uses Git's batch object reader and is
 [`analysis/preservation_audit.py`](analysis/preservation_audit.py).
-The final authored-Markdown link audit checked 780 Markdown files and 436
+The final authored-Markdown link audit checked 780 Markdown files and 438
 local links with zero broken targets; it skipped 109 vendored files and 17
 exact baseline Markdown blob snapshots. The preservation-snapshot exclusion is
 tested in `scripts/tests/test_markdown_link_checker.py`.

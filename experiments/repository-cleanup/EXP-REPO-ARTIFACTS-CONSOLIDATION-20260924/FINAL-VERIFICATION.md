@@ -31,7 +31,7 @@ current Step 6 research chain.
 - `python -m unittest discover -s scripts/tests`: 84 tests passed. The
   Windows host needed Git for Windows `bin` added to `PATH` so the dashboard's
   Bash-backed integration tests could run.
-- Markdown link audit: 780 project Markdown files and 436 local links checked;
+- Markdown link audit: 780 project Markdown files and 438 local links checked;
   zero broken local links. Vendored Markdown and exact baseline snapshots were
   excluded by the checker’s tested policy.
 - The Step 6 experiment has its own `analysis/acceptance-gates.tsv` and

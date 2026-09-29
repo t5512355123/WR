@@ -86,7 +86,10 @@ def parse_capture(text: str) -> tuple[list[Row], int | None, int]:
         timestamp_match = TIMESTAMP_LINE.match(line)
         if not timestamp_match:
             continue
-        timestamp = datetime.fromisoformat(timestamp_match.group(1).replace("Z", "+00:00"))
+        raw_timestamp = timestamp_match.group(1)
+        # Python versions before 3.11 accept at most six fractional digits.
+        compatible_timestamp = re.sub(r"(\.\d{6})\d+Z$", r"\1Z", raw_timestamp)
+        timestamp = datetime.fromisoformat(compatible_timestamp.replace("Z", "+00:00"))
         body = timestamp_match.group(2)
 
         exit_match = re.search(r"CAPTURE_PROCESS_EXIT=(\d+)", body)

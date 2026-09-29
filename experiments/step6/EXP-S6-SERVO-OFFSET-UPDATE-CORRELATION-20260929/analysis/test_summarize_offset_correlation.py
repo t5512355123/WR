@@ -54,6 +54,7 @@ class CorrelationParserTest(unittest.TestCase):
         self.assertEqual(summary["ucnt_delta_within_row"]["max"], 1)
         self.assertEqual(summary["setp_delta_within_row_ps"]["max"], 20)
         self.assertEqual(summary["dms_delta_within_row_ps"]["max"], 256)
+        self.assertEqual(summary["derived_t1_minus_t2_within_row_delta_ps"]["min"], -3946)
         events = summary["offset_event_correlation"]
         self.assertEqual(events["events_at_or_above_120ps"], 1)
         self.assertEqual(events["events_with_ucnt_change_in_bracket"], 1)
@@ -61,6 +62,8 @@ class CorrelationParserTest(unittest.TestCase):
         self.assertEqual(events["events_with_dms_change_in_bracket"], 1)
         self.assertEqual(events["events_with_both_ucnt_and_dms_change"], 1)
         self.assertEqual(events["events_with_no_ucnt_setp_or_dms_change"], 0)
+        self.assertEqual(events["events_with_derived_t1_minus_t2_change_at_least_120ps"], 1)
+        self.assertEqual(events["top_20_offset_events"][0]["derived_t1_minus_t2_delta_within_row_ps"], -3946)
 
     def test_signed_64_bit_dms_and_capture_result_are_decoded(self):
         a = "2026-09-29T16:00:00.000000000Z"

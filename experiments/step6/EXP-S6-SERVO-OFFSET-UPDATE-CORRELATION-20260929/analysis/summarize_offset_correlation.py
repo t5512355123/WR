@@ -132,6 +132,8 @@ def summarize(
     setp_between: list[int] = []
     dms_within: list[int] = []
     dms_between: list[int] = []
+    phase_term_within: list[int] = []
+    phase_term_between: list[int] = []
     elapsed: list[int] = []
     strict_rows = track_strict_rows = track_boundary_rows = 0
     within_state_changes = between_state_changes = 0
@@ -184,8 +186,16 @@ def summarize(
         dms_within_delta = dms_e - dms_b if dms_b is not None and dms_e is not None else None
         if dms_within_delta is not None:
             dms_within.append(dms_within_delta)
+        phase_term_b = cko_b - dms_b if cko_b is not None and dms_b is not None else None
+        phase_term_e = cko_e - dms_e if cko_e is not None and dms_e is not None else None
+        phase_term_within_delta = (
+            phase_term_e - phase_term_b
+            if phase_term_b is not None and phase_term_e is not None else None
+        )
+        if phase_term_within_delta is not None:
+            phase_term_within.append(phase_term_within_delta)
 
-        cko_cross = ucnt_cross = setp_cross = dms_cross = None
+        cko_cross = ucnt_cross = setp_cross = dms_cross = phase_term_cross = None
         if previous is not None and previous_sample == row.sample - 1:
             if cko_b is not None:
                 cko_cross = cko_b - previous["cko_end"]
@@ -199,6 +209,9 @@ def summarize(
             if dms_b is not None:
                 dms_cross = dms_b - previous["dms_end"]
                 dms_between.append(dms_cross)
+            if phase_term_b is not None:
+                phase_term_cross = phase_term_b - previous["phase_term_end"]
+                phase_term_between.append(phase_term_cross)
 
         if state_b == 4 or state_e == 4:
             track_boundary_rows += 1
@@ -210,6 +223,17 @@ def summarize(
             ucnt_changed = bool((ucnt_within_delta or 0) or (ucnt_cross or 0))
             setp_changed = bool((setp_within_delta or 0) or (setp_cross or 0))
             dms_changed = bool((dms_within_delta or 0) or (dms_cross or 0))
+            phase_term_changed = bool(
+                (phase_term_within_delta or 0) or (phase_term_cross or 0)
+            )
+            large_dms_change = max(
+                abs(value) for value in (dms_within_delta, dms_cross)
+                if value is not None
+            ) >= OFFSET_EVENT_THRESHOLD_PS
+            large_phase_term_change = max(
+                abs(value) for value in (phase_term_within_delta, phase_term_cross)
+                if value is not None
+            ) >= OFFSET_EVENT_THRESHOLD_PS
             correlation_events.append({
                 "sample": row.sample,
                 "state_begin": STATES.get(state_b, str(state_b)) if state_b is not None else None,
@@ -222,13 +246,22 @@ def summarize(
                 "setp_delta_within_row_ps": setp_within_delta,
                 "dms_delta_across_rows_ps": dms_cross,
                 "dms_delta_within_row_ps": dms_within_delta,
+                "derived_t1_minus_t2_delta_across_rows_ps": phase_term_cross,
+                "derived_t1_minus_t2_delta_within_row_ps": phase_term_within_delta,
                 "ucnt_changed_in_bracket": ucnt_changed,
                 "setp_changed_in_bracket": setp_changed,
                 "dms_changed_in_bracket": dms_changed,
+                "derived_t1_minus_t2_changed_in_bracket": phase_term_changed,
+                "dms_changed_by_at_least_120ps": large_dms_change,
+                "derived_t1_minus_t2_changed_by_at_least_120ps": large_phase_term_change,
             })
 
-        if None not in (cko_e, ucnt_e, setp_e, dms_e, state_e):
-            previous = {"cko_end": cko_e, "ucnt_end": ucnt_e, "setp_end": setp_e, "dms_end": dms_e, "state_end": state_e}
+        if None not in (cko_e, ucnt_e, setp_e, dms_e, phase_term_e, state_e):
+            previous = {
+                "cko_end": cko_e, "ucnt_end": ucnt_e, "setp_end": setp_e,
+                "dms_end": dms_e, "phase_term_end": phase_term_e,
+                "state_end": state_e,
+            }
             previous_sample = row.sample
         else:
             previous = None
@@ -252,6 +285,18 @@ def summarize(
         "events_with_ucnt_change_in_bracket": sum(bool(event["ucnt_changed_in_bracket"]) for event in correlation_events),
         "events_with_setp_change_in_bracket": sum(bool(event["setp_changed_in_bracket"]) for event in correlation_events),
         "events_with_dms_change_in_bracket": sum(bool(event["dms_changed_in_bracket"]) for event in correlation_events),
+        "events_with_derived_t1_minus_t2_change_in_bracket": sum(
+            bool(event["derived_t1_minus_t2_changed_in_bracket"])
+            for event in correlation_events
+        ),
+        "events_with_dms_change_at_least_120ps": sum(
+            bool(event["dms_changed_by_at_least_120ps"])
+            for event in correlation_events
+        ),
+        "events_with_derived_t1_minus_t2_change_at_least_120ps": sum(
+            bool(event["derived_t1_minus_t2_changed_by_at_least_120ps"])
+            for event in correlation_events
+        ),
         "events_with_both_ucnt_and_dms_change": sum(
             bool(event["ucnt_changed_in_bracket"] and event["dms_changed_in_bracket"])
             for event in correlation_events
@@ -298,6 +343,8 @@ def summarize(
         "setp_delta_between_rows_ps": stats(setp_between),
         "dms_delta_within_row_ps": stats(dms_within),
         "dms_delta_between_rows_ps": stats(dms_between),
+        "derived_t1_minus_t2_within_row_delta_ps": stats(phase_term_within),
+        "derived_t1_minus_t2_between_rows_delta_ps": stats(phase_term_between),
         "offset_event_correlation": event_association,
         "reader_row_elapsed_us": stats(elapsed),
         "host_output_arrival_interval_ms": stats(arrival_ms),

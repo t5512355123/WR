@@ -30,14 +30,26 @@ do not claim the expanded Step 6 gate unless fresh hardware data qualifies it.
    `DE5 [1-11.1]`, using the milestone wrappers. Preserve complete programmer
    logs under `raw/program/`; require one configured device and zero errors.
 4. Run a one-shot read-only dashboard smoke with a 2000 ms per-board
-   observation window. Save all output under `raw/observe/`. Continue only if
-   both boards are detected, Step 1/link gates pass, the Slave lock signals
-   are readable, and the capture contains no dashboard/JTAG error.
-5. Run the read-only dashboard for at least 300 seconds at a 10-second target
-   cadence with a 2000 ms per-board window and screen clearing disabled. Save
-   the unfiltered output, process exit/timeout status, and start/end times.
-   Do not use the dashboard's host-side Global-Time wait option.
-6. Transfer the raw logs back to the laptop experiment directory, analyze
+   observation window. Save all output under `raw/observe/`. A link-down
+   result immediately after programming is an early-startup observation, not
+   by itself a persistent regression: the historical exact-image reproduction
+   first captured both links up about 20 minutes after the last programmer
+   completed. Stop here only for missing boards, an actual reader/JTAG error,
+   or an identity mismatch.
+5. Run a read-only dashboard startup-settling capture at a 10-second target
+   cadence and 2000 ms per-board window, with screen clearing disabled, for
+   up to 30 minutes from completion of the Master programming operation. Stop
+   earlier only after both boards report healthy Step 1/link, valid/stable
+   Global Time, and all required Slave lock/offset fields are valid for ten
+   consecutive dashboard samples. Preserve the complete log and timestamps.
+   If those readiness conditions are not reached by the 30-minute deadline,
+   stop with `NOT_ESTABLISHED`; do not reprogram or power-cycle.
+6. Only after startup readiness is reached, run the separate read-only
+   dashboard capture for at least 300 seconds at a 10-second target cadence
+   with a 2000 ms per-board window. Save the unfiltered output,
+   process exit/timeout status, and start/end times. Do not use the dashboard's
+   host-side Global-Time wait option.
+7. Transfer the raw logs back to the laptop experiment directory, analyze
    per-board sample counts and time span, verify every record, write the
    verdict, and push the report/evidence to GitHub. Pull that exact result
    commit to Pain and verify identical commit/tree and clean status.
@@ -69,11 +81,13 @@ offset sample is not a 300-second PASS.
 ## Stop conditions
 
 Stop before programming if the checkout, SOF hash, cable identity, or free-JTAG
-preflight does not match. Stop after the short smoke if either link is down,
-the slave lock fields are invalid, a read error occurs, or board/reset identity
-changes. During the long read-only capture, stop and preserve the failure if
-JTAG errors persist or reset/generation changes; do not compensate with a
-reprogram, power cycle, servo adjustment, or a different image in this run.
+preflight does not match. Stop during observation for a missing board, actual
+JTAG/reader failure, or board identity change. A transient startup link-down
+sample is preserved and observed read-only up to the fixed 30-minute deadline;
+it is not treated as PASS or as a persistent failure before that deadline. If
+reset or generation changes, stop and preserve the event. Do not compensate
+with a reprogram, power cycle, servo adjustment, or a different image in this
+run.
 
 ## Safety and data handling
 

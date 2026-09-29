@@ -52,15 +52,13 @@ missing, disagrees with the numeric offset, or has an unknown board role.
 ## Next action
 
 No consultant input is part of the next action. The user directed the
-experiment to proceed directly. Reprogram the exact frozen Step 6 milestone
-SOFs, verify their SHA-256 values before programming, take a short read-only
-dashboard smoke, and only if the two boards remain healthy capture a
-300-second read-only dashboard series. The series must preserve per-sample
-Global-Time snapshot validity/stability, all four Slave Step 5 locks, the
-signed servo offset, and board/reset identity. The expanded Step 6 gate is
-eligible only when the Slave has a valid/stable snapshot and
-`abs(WR_SERVO_OFFSET_PS) < 60`; a 300-second claim additionally requires the
-four Step 5 lock indicators to remain asserted for the complete fresh-data
-window. Do not modify the frozen source or control parameters during this
-re-observation. See the dedicated plan at
+experiment to proceed directly. The exact frozen Step 6 images have now been
+reprogrammed successfully. An initial read-only dashboard about 30 seconds
+after Master programming showed both links down, so the planned 300-second
+gate capture has not started. This is not yet classified as a persistent
+regression: the historical exact-image report's programmer log ended at
+06:17:13, while its first healthy dashboard is timestamped 06:37:33. The
+follow-up plan therefore allows a bounded 30-minute read-only startup-settling
+window, then a separate 300-second capture only if the gates become ready.
+No further programming or control changes are planned in this run. See
 `../EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/PLAN.md`.

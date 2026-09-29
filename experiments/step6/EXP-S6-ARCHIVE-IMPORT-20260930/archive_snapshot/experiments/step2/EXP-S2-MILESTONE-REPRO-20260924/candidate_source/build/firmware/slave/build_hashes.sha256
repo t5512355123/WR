@@ -1,0 +1,5 @@
+85ad2f2028cd0bbab814a579430e73442d303e9be4d2f623850a344752fc27f5  /home/b10504072/04_WR/experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/candidate_source/build/firmware/slave/wrc.elf
+e2324bf4880fc70a55b196dc8cb77996eab84a47d98fa277c9c7065e5164ef54  /home/b10504072/04_WR/experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/candidate_source/build/firmware/slave/wrc.bin
+fd8f66dc8756922df290e56688334d365b8f1e9baded7a75051ab108a39cb902  /home/b10504072/04_WR/experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/candidate_source/build/firmware/slave/wrc.mif
+1e66ef063512fd6cd64d21eafec602ac5d4a520627d46c6f8f6529286b7e0b7e  /home/b10504072/04_WR/experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/candidate_source/firmware/configs/de5a_slave_defconfig
+33ded2dc62811525a395d12a5a396dda1553339119eba2f37c86cf8cf4639d55  /home/b10504072/04_WR/experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/candidate_source/firmware/configs/de5a_slave_identity.h

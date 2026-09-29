@@ -34,6 +34,23 @@ software cache every 100 ms and `DATA_VALID` is cleared during publication.
 The next read-only experiment adds validity and mapping-epoch guards around
 the critical group; see
 [`WDIAGS frame-validity plan`](EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
+
+The follow-on [`UCNT-paired phase-context capture`](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md)
+passed its 15-second smoke and completed a 300-second read-only Slave capture
+(300273 ms, 958 rows). Global Time and all five Step 5 lock fields were valid
+in 958/958 rows. Two independently guarded WDIAGS frames had matching UCNT in
+855/958 rows (89.2%); among those joined rows the servo states were
+`WAIT_OFFSET_STABLE` 765, `SYNC_PHASE` 86, and `TRACK_PHASE` 4. Only 4/855
+trusted joined rows met strict `abs(CKO) < 60 ps`, all at 27 ps in
+`TRACK_PHASE`. This does not establish a sustained in-range interval. The
+frames are joined by published update identity, not simultaneous acquisition,
+so these observations are not causal proof. No production control or image
+was changed; the expanded Step 6 gate remains `NOT ESTABLISHED`.
+
+Legacy archive reconciliation is documented in
+[`EXP-S6-ARCHIVE-IMPORT-20260930`](EXP-S6-ARCHIVE-IMPORT-20260930/REPORT.md).
+It preserves relevant archived text records as a snapshot without overwriting
+newer canonical reports; the archive itself remains read-only.
 In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
@@ -79,6 +96,8 @@ The follow-up smoke contract is recorded in the
 - [Fast SSTAT/CKO capture report](EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/REPORT.md)
 - [Interleaved CKO/DMS capture plan](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/PLAN.md)
 - [Interleaved CKO/DMS capture report](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/REPORT.md)
+- [UCNT-paired phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/PLAN.md)
+- [UCNT-paired phase-context report](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md)
 - [Slave-only microtrace plan](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/PLAN.md)
 - [Slave-only microtrace reader](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/scripts/read_slave_servo_microtrace.tcl)
 - [Slave-only microtrace report](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/REPORT.md)

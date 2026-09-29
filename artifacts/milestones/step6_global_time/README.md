@@ -46,6 +46,16 @@ It sampled Global Time and all five Slave locks high in 434/434 rows, but only
 `NOT_ESTABLISHED`. Stable UCNT/SSTAT framing was present in 382/434 rows.
 This follow-up is read-only and does not change the frozen milestone images.
 
+The later [`UCNT-paired phase-context capture`](../../../experiments/step6/EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md)
+passed a 15-second smoke and completed a 300273 ms read-only capture with 958
+rows. Global Time and all five Slave Step 5 locks were valid in 958/958 rows;
+855/958 rows joined two independently guarded WDIAGS frames on matching UCNT.
+Only 4/855 trusted joined rows met strict `abs(CKO) < 60 ps`, all at 27 ps in
+`TRACK_PHASE`. This does not establish a sustained in-range interval, and the
+sequential frames do not prove causality. The expanded Step 6 result remains
+`NOT ESTABLISHED`; frozen milestone images and production controls were not
+changed.
+
 ## Provenance and frozen files
 
 - Frozen source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.
@@ -118,8 +128,12 @@ with `sha256sum -c SHA256SUMS`.
   point in `TRACK_PHASE`; the next sample 10 seconds later was +1165 ps in
   `WAIT_OFFSET_STABLE`. Only 1/105 valid/stable Slave time samples was strictly
   within (-60,+60) ps, so this is a pointwise crossing and not a sustained
-  expanded Step 6 pass. See
-  [`EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929`](../../../experiments/step6/EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md).
+  expanded Step 6 pass. The newer UCNT-paired 300-second capture also had
+  only 4/855 trusted joined rows strictly in range, all at 27 ps; no sustained
+  interval was established. See
+  [`EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929`](../../../experiments/step6/EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)
+  and the newer
+  [`UCNT-paired phase-context capture`](../../../experiments/step6/EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md).
 - The runtime-trigger observers use target/ARM source writes only. They do not
   compile, program, reset, restart PTP, or change PPS configuration.
 - Source audit of `vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c` confirms
@@ -128,13 +142,13 @@ with `sha256sum -c SHA256SUMS`.
   `TRACK_PHASE` returns to `SYNC_PHASE` above 120 ps and otherwise adjusts
   the phase setpoint by one quarter of the measured offset. This describes the
   control flow but does not explain the measured CKO transitions or prove
-  causality. The next read-only diagnostic should verify the RTL/readback
-  mapping and capture state/action/update boundaries together. A source audit
-  also established that these WDIAGS fields are republished as a software
-  cache every 100 ms and `DATA_VALID` is cleared during refresh. The prior
-  interleaved reader did not bracket that cache epoch; a guarded follow-on
-  smoke/capture is planned in
-  [`EXP-S6-WDIAGS-FRAME-VALIDITY-20260930`](../../../experiments/step6/EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
+  causality. A source audit also established that these WDIAGS fields are
+  republished as a software cache every 100 ms and `DATA_VALID` is cleared
+  during refresh. The follow-on UCNT-paired capture used two separate
+  DATA_VALID/epoch-guarded frames and joined only matching published UCNT
+  values; 855/958 rows qualified. This improves frame validity but does not
+  make the reads simultaneous or prove control causality. See
+  [`EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930`](../../../experiments/step6/EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md).
 
 ## Evidence
 

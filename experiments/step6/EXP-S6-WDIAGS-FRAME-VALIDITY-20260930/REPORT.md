@@ -3,23 +3,28 @@
 ## Current verdict
 
 ```text
-UNALIGNED_MINIMAL_READER_SMOKE = FAIL (10/24 valid WDIAGS frames; 41.7%)
-EPOCH_ALIGNED_READER            = IMPLEMENTED, NOT YET RUN
+UNALIGNED_MINIMAL_READER_SMOKE  = FAIL (10/24 valid WDIAGS frames; 41.7%)
+PREVIOUS_ROW_EPOCH_READER_SMOKE = FAIL (11/23 valid WDIAGS frames; 47.8%)
+PER_ROW_EPOCH_BASELINE_READER   = IMPLEMENTED, NOT YET RUN
 300S_CAPTURE                    = NOT RUN (smoke gate failed)
 STEP6_EXPANDED_ACCEPTANCE       = NOT ESTABLISHED
 ```
 
 The smoke gate requires at least 75% valid diagnostic frames, zero reader
 timeouts/invalid counts, at least 20 rows, and median row duration below
-250 ms. Neither prior smoke met that gate. The latest reader waits for a new
-published diagnostics epoch before reading the minimal `CKO/SSTAT/UCNT`
-payload; it must pass a fresh 15-second smoke before any long capture.
+250 ms. Neither prior smoke met that gate. The first epoch-aligned attempt
+still compared with the previous row's epoch; because rows were about 645 ms
+apart and the publication cadence is 100 ms, that did not ensure a fresh
+transition within the current row. The latest code instead samples a per-row
+baseline and waits for the next epoch transition. It must pass a fresh
+15-second smoke before any long capture.
 
 ## Evidence and sequence
 
-Both captures were read-only observations on Pain, branch `feat/file_cleanup`,
-source revision `6173fa94c7e2578f3589abf515586ea98c9a94f2`. There was no FPGA
-programming, build, reset, or power cycle. No file under
+All three captures were read-only observations on Pain, branch
+`feat/file_cleanup`, using source revisions `6173fa94c7e2578f3589abf515586ea98c9a94f2`
+and `f5eb6df3`. There was no FPGA programming, build, reset, or power cycle.
+No file under
 `/home/b10504072/04_WR_archive_step6_pass/` was accessed.
 
 ### Smoke 1 — broad critical read group
@@ -50,15 +55,33 @@ Raw log: [`smoke_20260929T175921Z.log`](raw/observe/smoke_20260929T175921Z.log)
   framed rows was −3893 to +1975 ps; none met `abs(CKO) < 60 ps`.
 - Analyzer verdict: `SMOKE_FAIL`; no 300-second capture was started.
 
+### Smoke 3 — previous-row epoch baseline
+
+Raw log: [`smoke_20260929T181651Z.log`](raw/observe/smoke_20260929T181651Z.log)
+
+- 23 rows over 15.004 s; no early stop.
+- Individual reads, Global Time, and all five Step 5 lock bits were valid in
+  23/23 rows; no Wishbone timeouts/invalid counters or reset change.
+- Only 11/23 rows had a valid unchanged WDIAGS epoch (47.8%); 12 rows crossed
+  an epoch. Median framed payload duration was 57.761 ms (maximum 58.989 ms),
+  and median row duration was 143.630 ms.
+- The CKO range over 11 valid framed rows was +870 to +2160 ps; none met
+  `abs(CKO) < 60 ps`. Analyzer verdict: `SMOKE_FAIL`; no long capture ran.
+- Diagnosis: the reader compared each candidate epoch with the last accepted
+  row. Since the sample interval was about 645 ms—several 100 ms publication
+  periods—the candidate was usually already different before the current
+  row's wait began. This was not evidence of a just-published frame.
+
 ## Next action
 
-Run one 15-second smoke using the epoch-aligned reader in the current source.
-The reader waits at most 350 ms for a new valid publication epoch, then reads
-only CKO, servo state, and update count and checks the epoch/valid flag again.
-Require at least 20 rows, at least 75% framed rows, zero transport
-timeouts/invalid counts, and median row duration below 250 ms. If any gate
-fails, stop and report it; do not launch the 300-second capture. If the smoke
-passes, run one 300-second read-only capture under the existing stop limits.
+Run one 15-second smoke using the per-row-baseline reader in the current
+source. Each row first reads its current epoch, then waits at most 350 ms for
+the epoch to change, validates DATA_VALID and the inverse pair, reads only
+CKO/servo state/update count, and checks the epoch/valid flag again. Require at
+least 20 rows, at least 75% framed rows, zero transport timeouts/invalid
+counts, and median row duration below 250 ms. If any gate fails, stop and
+report it; do not launch the 300-second capture. If the smoke passes, run one
+300-second read-only capture under the existing stop limits.
 
 This epoch guard improves publication-frame association; it does not make the
 sequential reads atomic or establish servo causality. Step 6 remains

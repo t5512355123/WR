@@ -34,6 +34,7 @@ class InterleavedCaptureTests(unittest.TestCase):
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         capture = source.split("proc s6_i_capture", maxsplit=1)[1].split("puts [format \"S6_INTERLEAVED_CONFIG", maxsplit=1)[0]
         ordered = [
+            "set diag_epoch_wait_baseline_raw [wb_read 0x00100B34]",
             "set candidate_raw [wb_read 0x00100B34]",
             "set ctrl_candidate_raw [wb_read 0x00100A04]",
             "set inverse_candidate_raw [wb_read 0x00100B38]",
@@ -50,9 +51,18 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
         self.assertIn("[normalize_probe64 $snapshot1_after]", source)
         self.assertIn("$reads_valid && $diag_frame_valid && $global_valid", source)
-        self.assertIn("$candidate_epoch != $::s6_interleaved_last_diag_epoch($hardware_name)", capture)
-        self.assertIn("$diag_wait_ms $frame_start_us", source)
-        self.assertIn("set ::s6_interleaved_last_diag_epoch($hardware_name) -1", source)
+        self.assertIn("$candidate_epoch != $diag_epoch_wait_baseline", capture)
+        self.assertIn("DIAG_EPOCH_WAIT_BASELINE=%d", source)
+        self.assertNotIn("last_diag_epoch", source)
+
+    def test_timing_format_has_one_argument_for_each_conversion(self) -> None:
+        source = OBSERVER_PATH.read_text(encoding="utf-8")
+        timing = source.split('puts [format "S6_INTERLEAVED_TIMING ', maxsplit=1)[1]
+        format_string, argument_text = timing.split('" \\\n', maxsplit=1)
+        argument_text = argument_text.split("]\n  puts [format \"S6_INTERLEAVED_SAMPLE", maxsplit=1)[0]
+        conversions = re.findall(r"%[-+0-9.]*[a-zA-Z]", format_string)
+        arguments = re.findall(r"\$[A-Za-z_][A-Za-z0-9_]*", argument_text)
+        self.assertEqual(len(arguments), len(conversions))
 
     def test_sample_format_has_one_argument_for_each_conversion(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")

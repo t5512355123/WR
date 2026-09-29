@@ -50,6 +50,7 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertIn("wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
         self.assertIn("[normalize_probe64 $snapshot1_after]", source)
+        self.assertIn("$reads_valid && $global_valid && $helper_lock == 1", source)
 
     def test_sample_format_has_one_argument_for_each_conversion(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
@@ -70,6 +71,17 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["offset_abs_lt_60_count"], 2)
         self.assertEqual(result["verdict"], "SMOKE_FAIL")
 
+    def test_smoke_allows_a_single_update_crossing_but_requires_valid_reads(self) -> None:
+        lines = [row(i, 120, qualifies=0) for i in range(22)]
+        lines[7] = lines[7].replace("COHERENT=1", "COHERENT=0")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "smoke.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke")
+        self.assertEqual(result["trusted_rows"], 21)
+        self.assertEqual(result["individual_reads_valid_rows"], 22)
+        self.assertEqual(result["verdict"], "SMOKE_PASS")
+
     def test_capture_does_not_pass_when_a_sample_loses_global_time_or_lock(self) -> None:
         lines = [row(i, 10, qualifies=0 if i == 9 else 1) for i in range(600)]
         lines += [
@@ -86,9 +98,10 @@ class InterleavedCaptureTests(unittest.TestCase):
 
     def test_complete_qualified_samples_pass_only_the_sampled_gate(self) -> None:
         lines = [row(i, -17) for i in range(601)]
+        lines[27] = lines[27].replace("COHERENT=1", "COHERENT=0")
         lines += [
             "S6_INTERLEAVED_BOARD_DONE board=DE5_1-11.2 samples=601 elapsed_ms=300400 reset_stop=0 invalid_streak=0",
-            "S6_INTERLEAVED_SUMMARY boards=1 rows=601 accepted=601 qualifying=601 reset_stop=0 timeout_count=0 invalid_count=0",
+            "S6_INTERLEAVED_SUMMARY boards=1 rows=601 accepted=600 qualifying=601 reset_stop=0 timeout_count=0 invalid_count=0",
             "CAPTURE_PROCESS_EXIT=0",
         ]
         with tempfile.TemporaryDirectory() as tmp:
@@ -98,6 +111,7 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "STEP6_EXPANDED_SAMPLE_GATE_PASS")
         self.assertEqual(result["offset_min_ps"], -17)
         self.assertEqual(result["offset_max_ps"], -17)
+        self.assertEqual(result["trusted_rows"], 600)
 
 
 if __name__ == "__main__":

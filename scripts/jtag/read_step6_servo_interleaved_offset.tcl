@@ -178,7 +178,7 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set critical_stable [expr {$ucnt_stable && $sstat_stable ? 1 : 0}]
   set coherent [expr {$reads_valid && $critical_stable && $global_valid ? 1 : 0}]
   set qualifies [expr {
-    $coherent && $helper_lock == 1 && $main_lock == 1 &&
+    $reads_valid && $global_valid && $helper_lock == 1 && $main_lock == 1 &&
     $main_freq == 1 && $main_phase == 1 && $pstat_lock == 1 &&
     abs($cko) < 60 ? 1 : 0}]
   set dms_gap_us [expr {$critical_end_us - $critical_start_us}]

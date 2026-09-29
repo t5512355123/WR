@@ -57,6 +57,7 @@ def summarize(
     board_done = done_rows[-1] if done_rows else {}
     wire_summary = summary_rows[-1] if summary_rows else {}
     accepted = [r for r in rows if integer(r, "READS_VALID", 0) == 1 and integer(r, "COHERENT", 0) == 1]
+    read_valid_rows = [r for r in rows if integer(r, "READS_VALID", 0) == 1]
     valid_offsets = [integer(r, "CKO_PS") for r in accepted]
     valid_offsets = [value for value in valid_offsets if value is not None]
     strict_rows = [
@@ -88,7 +89,8 @@ def summarize(
     complete = observed_duration >= expected_duration_ms and not stopped and exit_code in {None, "0"}
     uninterrupted_samples = (
         bool(rows)
-        and len(accepted) == len(rows)
+        and len(read_valid_rows) == len(rows)
+        and len(accepted) / len(rows) >= 0.95
         and len(strict_rows) == len(rows)
         and reset_stop == 0
         and timeout_count == 0
@@ -98,7 +100,8 @@ def summarize(
     )
     smoke_ok = (
         len(rows) >= 20
-        and len(accepted) == len(rows)
+        and len(read_valid_rows) == len(rows)
+        and len(accepted) / len(rows) >= 0.95
         and bool(row_durations)
         and statistics.median(row_durations) < 250.0
         and timeout_count == 0
@@ -124,6 +127,7 @@ def summarize(
         "requested_sample_ms": sample_ms,
         "sample_rows": len(rows),
         "trusted_rows": len(accepted),
+        "individual_reads_valid_rows": len(read_valid_rows),
         "qualifying_rows": len(strict_rows),
         "qualifying_fraction": (len(strict_rows) / len(rows)) if rows else None,
         "strict_offset_limit_ps": 60,

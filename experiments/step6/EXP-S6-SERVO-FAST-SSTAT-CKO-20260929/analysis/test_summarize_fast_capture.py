@@ -16,6 +16,9 @@ class FastReaderContractTest(unittest.TestCase):
         self.assertIn("set sstat_end [wb_read 0x00100A08]", source)
         self.assertIn("set cko_begin [wb_read 0x00100A40]", source)
         self.assertIn("set cko_end [wb_read 0x00100A40]", source)
+        self.assertIn("$main_freq >= 0 && $main_phase >= 0}]", source)
+        self.assertNotIn("$time_valid_end >= 0", source)
+        self.assertNotIn("|| !$state_valid", source)
         self.assertNotIn("wb_write", source)
         self.assertNotIn("quartus_pgm", source)
 

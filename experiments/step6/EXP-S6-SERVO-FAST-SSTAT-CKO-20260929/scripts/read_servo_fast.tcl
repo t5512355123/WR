@@ -151,15 +151,15 @@ proc read_fast_row {board sample attempt} {
   foreach value $words {
     if {[raw32 $value] < 0} { set data_valid 0 }
   }
-  if {![valid_hex $status_begin 16] || ![valid_hex $status_end 16] ||
-      ![valid_hex $clock_begin 16] || ![valid_hex $clock_end 16] ||
-      !$ctrl_valid || !$state_valid} {
+  if {!$ctrl_valid} {
     set data_valid 0
   }
-  set sample_valid [expr {$data_valid && $spll_locked >= 0 &&
+  # Direct status/clock probes and WR servo-state validity are independent
+  # context. They may be unavailable on Master or during a probe refresh; do
+  # not discard otherwise coherent mailbox lock/offset rows because of them.
+  set sample_valid [expr {$data_valid && $pstat_link >= 0 && $spll_locked >= 0 &&
       $helper_locked >= 0 && $main_enabled >= 0 && $main_locked >= 0 &&
-      $main_freq >= 0 && $main_phase >= 0 && $time_valid_begin >= 0 &&
-      $time_valid_end >= 0 && $pps_valid_begin >= 0 && $pps_valid_end >= 0}]
+      $main_freq >= 0 && $main_phase >= 0}]
 
   puts [format {FAST_SAMPLE board=%s sample=%03d attempt=%d data_valid=%d sample_valid=%d elapsed_us=%d ctrl_valid=%d sstat_valid_begin=%d sstat_valid_end=%d state_begin=%d state_end=%d state_begin_name=%s state_end_name=%s offset_begin_ps=%d offset_end_ps=%d time_valid_begin=%d time_valid_end=%d pps_valid_begin=%d pps_valid_end=%d link_begin=%d link_end=%d pstat_link=%d spll_locked=%d helper_locked=%d main_enabled=%d main_locked=%d main_freq=%d main_phase=%d dms_h=%s dms_l=%s setp=%s ucnt=%s clock_begin=%s clock_end=%s} \
       $board $sample $attempt $data_valid $sample_valid $elapsed_us $ctrl_valid \

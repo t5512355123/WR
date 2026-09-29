@@ -43,6 +43,11 @@ read. No Wishbone target/ARM control, WR setting, PPS setting, or
 `DATA_SNAPSHOT` write is permitted. SSTAT and CKO are read at both ends of each
 row; if SSTAT changes, preserve both states and mark the transition as bounded
 inside that read window rather than flattening it into a stable state.
+Mailbox row validity, servo-state validity, and the direct TIME/PPS/clock probes
+are reported independently. A transiently unavailable direct probe must not
+invalidate an otherwise framed mailbox row; only servo-state-valid rows may
+contribute to state/offset analysis. This keeps Master rows useful for link and
+lock context when its WR servo-state-valid bit is naturally low.
 
 ## Execution
 

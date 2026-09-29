@@ -30,26 +30,17 @@ def row(sample: int, offset: int, qualifies: int = 1, elapsed: int | None = None
 
 
 class InterleavedCaptureTests(unittest.TestCase):
-    def test_observer_places_cko_between_dms_windows_and_ucnt_sstat(self) -> None:
+    def test_observer_frames_minimal_offset_state_update_payload(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         capture = source.split("proc s6_i_capture", maxsplit=1)[1].split("puts [format \"S6_INTERLEAVED_CONFIG", maxsplit=1)[0]
         ordered = [
             "set diag_ctrl_before_raw [wb_read 0x00100A04]",
             "set diag_epoch_before_raw [wb_read 0x00100B34]",
             "set diag_inverse_before_raw [wb_read 0x00100B38]",
-            "set ucnt_before [wb_read 0x00100A48]",
-            "set sstat_before [wb_read 0x00100A08]",
-            "set dms_pre_hi_a [wb_read 0x00100A34]",
-            "set dms_pre_lo [wb_read 0x00100A38]",
-            "set dms_pre_hi_b [wb_read 0x00100A34]",
             "set cko_raw [wb_read 0x00100A40]",
-            "set dms_post_hi_a [wb_read 0x00100A34]",
-            "set dms_post_lo [wb_read 0x00100A38]",
-            "set dms_post_hi_b [wb_read 0x00100A34]",
-            "set sstat_after [wb_read 0x00100A08]",
-            "set ucnt_after [wb_read 0x00100A48]",
+            "set sstat_raw [wb_read 0x00100A08]",
+            "set ucnt_raw [wb_read 0x00100A48]",
             "set diag_epoch_after_raw [wb_read 0x00100B34]",
-            "set diag_inverse_after_raw [wb_read 0x00100B38]",
             "set diag_ctrl_after_raw [wb_read 0x00100A04]",
         ]
         offsets = [capture.index(item) for item in ordered]

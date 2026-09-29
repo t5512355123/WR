@@ -1,11 +1,10 @@
-# Read-only Step 6 Slave servo-offset capture with tightly interleaved CKO/DMS.
+# Read-only Step 6 Slave servo-offset capture with WDIAGS frame validation.
 #
-# Each sample reads DMS high/low immediately before and after CKO, while
-# bracketing the critical group with the source-mapped servo update counter
-# (UCNT) and state (SSTAT). Global-Time and lock fields are read separately
-# and their host-time boundaries are emitted; no cross-domain atomicity is
-# claimed. This script issues mailbox reads only and does not write a target,
-# alter a servo/PPS setting, reset, or program the FPGA.
+# Each sample brackets CKO, servo state (SSTAT), and update count (UCNT) with
+# the read-only WDIAGS valid bit and mapping epoch. Global-Time and lock fields
+# are read separately; no cross-domain atomicity is claimed. This script issues
+# mailbox reads only and does not write a target, alter a servo/PPS setting,
+# reset, or program the FPGA.
 #
 # Usage:
 #   quartus_stp -t read_step6_servo_interleaved_offset.tcl \
@@ -43,15 +42,6 @@ proc s6_i_signed32 {raw} {
   if {$value < 0} { return -1 }
   if {$value >= 0x80000000} { return [expr {$value - 0x100000000}] }
   return $value
-}
-
-proc s6_i_u64_bracketed {high_a low high_b} {
-  if {![is_hex $high_a] || ![is_hex $low] || ![is_hex $high_b]} { return -1 }
-  set h0 [word32 $high_a]
-  set lo [word32 $low]
-  set h1 [word32 $high_b]
-  if {$h0 < 0 || $lo < 0 || $h1 < 0 || $h0 != $h1} { return -1 }
-  return [expr {($h0 << 32) | $lo}]
 }
 
 proc s6_i_snapshot {snapshot0 snapshot1_before snapshot1_after status escr} {
@@ -127,33 +117,18 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set main_phase [expr {$main_word < 0 ? -1 : (($main_word >> 3) & 1)}]
   set pstat_lock [expr {$pstat_word < 0 ? -1 : (($pstat_word >> 1) & 1)}]
 
-  # WDIAGS is a periodically refreshed software cache. DATA_VALID is cleared
-  # while task-diags publishes a frame; the mapping counter/inverse advances
-  # once per refresh in this image. Bracket the critical reads with both so a
-  # refresh crossing cannot be mistaken for one coherent servo observation.
+  # Keep the framed payload minimal: the full WDIAGS refresh is only 100 ms,
+  # so reading DMS/SETP here can span multiple published frames. CKO, SSTAT,
+  # and UCNT are the Step 6 offset/state/update evidence needed in one frame.
   set critical_start_us [s6_i_us]
   set diag_ctrl_before_raw [wb_read 0x00100A04]
   set diag_epoch_before_raw [wb_read 0x00100B34]
   set diag_inverse_before_raw [wb_read 0x00100B38]
-  set ucnt_before [wb_read 0x00100A48]
-  set sstat_before [wb_read 0x00100A08]
-  set dms_pre_start_us [s6_i_us]
-  set dms_pre_hi_a [wb_read 0x00100A34]
-  set dms_pre_lo [wb_read 0x00100A38]
-  set dms_pre_hi_b [wb_read 0x00100A34]
-  set dms_pre_end_us [s6_i_us]
   set cko_raw [wb_read 0x00100A40]
   set cko_host_us [s6_i_us]
-  set dms_post_start_us [s6_i_us]
-  set dms_post_hi_a [wb_read 0x00100A34]
-  set dms_post_lo [wb_read 0x00100A38]
-  set dms_post_hi_b [wb_read 0x00100A34]
-  set dms_post_end_us [s6_i_us]
-  set setp_raw [wb_read 0x00100A44]
-  set sstat_after [wb_read 0x00100A08]
-  set ucnt_after [wb_read 0x00100A48]
+  set sstat_raw [wb_read 0x00100A08]
+  set ucnt_raw [wb_read 0x00100A48]
   set diag_epoch_after_raw [wb_read 0x00100B34]
-  set diag_inverse_after_raw [wb_read 0x00100B38]
   set diag_ctrl_after_raw [wb_read 0x00100A04]
   set critical_end_us [s6_i_us]
 
@@ -161,16 +136,13 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set reset [safe_probe_read 27]
   set row_end_us [s6_i_us]
 
-  set u0 [word32 $ucnt_before]
-  set u1 [word32 $ucnt_after]
-  set ss0 [word32 $sstat_before]
-  set ss1 [word32 $sstat_after]
+  set ucnt [word32 $ucnt_raw]
+  set sstat [word32 $sstat_raw]
   set dc0 [word32 $diag_ctrl_before_raw]
   set dc1 [word32 $diag_ctrl_after_raw]
   set de0_raw [word32 $diag_epoch_before_raw]
   set di0_raw [word32 $diag_inverse_before_raw]
   set de1_raw [word32 $diag_epoch_after_raw]
-  set di1_raw [word32 $diag_inverse_after_raw]
   set diag_valid_before [expr {$dc0 < 0 ? -1 : ($dc0 & 1)}]
   set diag_valid_after [expr {$dc1 < 0 ? -1 : ($dc1 & 1)}]
   set diag_epoch_before [expr {$de0_raw < 0 ? -1 : ($de0_raw & 0xffff)}]
@@ -178,45 +150,33 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set diag_epoch_before_ok [expr {
     $de0_raw >= 0 && $di0_raw >= 0 &&
     ((($de0_raw & 0xffff) ^ ($di0_raw & 0xffff)) == 0xffff) ? 1 : 0}]
-  set diag_epoch_after_ok [expr {
-    $de1_raw >= 0 && $di1_raw >= 0 &&
-    ((($de1_raw & 0xffff) ^ ($di1_raw & 0xffff)) == 0xffff) ? 1 : 0}]
+  set diag_epoch_after_ok [expr {$de1_raw >= 0 ? 1 : 0}]
   set diag_epoch_stable [expr {
     $diag_epoch_before >= 0 && $diag_epoch_before == $diag_epoch_after ? 1 : 0}]
   set diag_frame_valid [expr {
     $diag_valid_before == 1 && $diag_valid_after == 1 &&
     $diag_epoch_before_ok && $diag_epoch_after_ok && $diag_epoch_stable ? 1 : 0}]
   set cko [s6_i_signed32 $cko_raw]
-  set setp [s6_i_signed32 $setp_raw]
-  set dms_pre [s6_i_u64_bracketed $dms_pre_hi_a $dms_pre_lo $dms_pre_hi_b]
-  set dms_post [s6_i_u64_bracketed $dms_post_hi_a $dms_post_lo $dms_post_hi_b]
-  set servo_state [expr {$ss0 < 0 ? -1 : (($ss0 >> 8) & 0xf)}]
-  set sstat_stable [expr {$ss0 >= 0 && $ss0 == $ss1 ? 1 : 0}]
-  set ucnt_stable [expr {$u0 >= 0 && $u0 == $u1 ? 1 : 0}]
+  set servo_state [expr {$sstat < 0 ? -1 : (($sstat >> 8) & 0xf)}]
   set reads_valid [expr {
     [is_hex $status] && [is_hex $live] && [is_hex $time_seq_before] &&
     [is_hex $time_snapshot] && [is_hex $time_seq_after] &&
-    [is_hex $time_escr] && [is_hex $cko_raw] && [is_hex $setp_raw] &&
+    [is_hex $time_escr] && [is_hex $cko_raw] &&
     $dc0 >= 0 && $dc1 >= 0 && $de0_raw >= 0 && $di0_raw >= 0 &&
-    $de1_raw >= 0 && $di1_raw >= 0 &&
+    $de1_raw >= 0 &&
     $helper_word >= 0 && $main_word >= 0 &&
-    $pstat_word >= 0 && $u0 >= 0 && $u1 >= 0 && $ss0 >= 0 && $ss1 >= 0 &&
-    $cko >= -2147483648 && $dms_pre >= 0 && $dms_post >= 0 && $setp >= -2147483648 ? 1 : 0}]
+    $pstat_word >= 0 && $ucnt >= 0 && $sstat >= 0 &&
+    $cko >= -2147483648 ? 1 : 0}]
   lassign [s6_i_snapshot $time_snapshot $time_seq_before $time_seq_after \
     $status $time_escr] tai cycles snapshot_stable snapshot_valid snapshot_count \
     snapshot_time_valid snapshot_pps_valid status_time_valid status_pps_valid \
     escr_time_valid escr_pps_valid global_valid
-  set critical_stable [expr {$ucnt_stable && $sstat_stable ? 1 : 0}]
-  set coherent [expr {
-    $reads_valid && $critical_stable && $diag_frame_valid && $global_valid ? 1 : 0}]
+  set coherent [expr {$reads_valid && $diag_frame_valid && $global_valid ? 1 : 0}]
   set qualifies [expr {
     $reads_valid && $diag_frame_valid && $global_valid &&
     $helper_lock == 1 && $main_lock == 1 &&
     $main_freq == 1 && $main_phase == 1 && $pstat_lock == 1 &&
     abs($cko) < 60 ? 1 : 0}]
-  set dms_gap_us [expr {$critical_end_us - $critical_start_us}]
-  set cko_dms_pre [expr {$dms_pre >= 0 && $cko >= -2147483648 ? $cko - $dms_pre : "NA"}]
-  set cko_dms_post [expr {$dms_post >= 0 && $cko >= -2147483648 ? $cko - $dms_post : "NA"}]
   set row_ms [expr {($row_end_us - $row_start_us) / 1000.0}]
 
   set boot [probe_high_counter_hex $entry]
@@ -255,10 +215,9 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   }
   if {$qualifies} { incr ::s6_interleaved_qualifying }
 
-  puts [format "S6_INTERLEAVED_TIMING board=%s sample=%04d DMS_PRE_START_US=%s DMS_PRE_END_US=%s CKO_HOST_US=%s DMS_POST_START_US=%s DMS_POST_END_US=%s" \
-    $hardware_name $sample $dms_pre_start_us $dms_pre_end_us $cko_host_us \
-    $dms_post_start_us $dms_post_end_us]
-  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s CRITICAL_START_US=%s CKO_HOST_US=%s CRITICAL_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_EPOCH_AFTER_OK=%d DIAG_FRAME_VALID=%d UCNT_BEFORE=%s UCNT_AFTER=%s UCNT_STABLE=%d SSTAT_BEFORE=%s SSTAT_AFTER=%s SERVO_STATE=%d SSTAT_STABLE=%d DMS_PRE_HI_A=%s DMS_PRE_LO=%s DMS_PRE_HI_B=%s DMS_PRE_PS=%s CKO_RAW=%s CKO_PS=%d DMS_POST_HI_A=%s DMS_POST_LO=%s DMS_POST_HI_B=%s DMS_POST_PS=%s SETP_RAW=%s SETP_PS=%d CKO_MINUS_DMS_PRE_PS=%s CKO_MINUS_DMS_POST_PS=%s DMS_CKO_DMS_US=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d" \
+  puts [format "S6_INTERLEAVED_TIMING board=%s sample=%04d FRAME_START_US=%s CKO_HOST_US=%s FRAME_END_US=%s" \
+    $hardware_name $sample $critical_start_us $cko_host_us $critical_end_us]
+  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s CRITICAL_START_US=%s CKO_HOST_US=%s CRITICAL_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
     $critical_start_us $cko_host_us $critical_end_us $row_end_us $reads_valid \
     $coherent $qualifies $tai $cycles $global_valid $snapshot_stable \
@@ -266,12 +225,8 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $escr_time_valid $escr_pps_valid $helper_lock $main_lock $main_freq \
     $main_phase $pstat_lock $diag_valid_before $diag_valid_after \
     $diag_epoch_before $diag_epoch_after $diag_epoch_stable \
-    $diag_epoch_before_ok $diag_epoch_after_ok $diag_frame_valid \
-    $ucnt_before $ucnt_after $ucnt_stable \
-    $sstat_before $sstat_after $servo_state $sstat_stable \
-    $dms_pre_hi_a $dms_pre_lo $dms_pre_hi_b $dms_pre $cko_raw $cko \
-    $dms_post_hi_a $dms_post_lo $dms_post_hi_b $dms_post $setp_raw $setp \
-    $cko_dms_pre $cko_dms_post $dms_gap_us $boot $cpu $wr $si $reset_changed]
+    $diag_epoch_before_ok $diag_frame_valid $ucnt_raw $sstat_raw \
+    $servo_state $cko_raw $cko $boot $cpu $wr $si $reset_changed]
   flush stdout
   return $reset_changed
 }

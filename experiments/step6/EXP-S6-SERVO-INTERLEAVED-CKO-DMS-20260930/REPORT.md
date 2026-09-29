@@ -125,8 +125,8 @@ boundaries, but do not explain why CKO moves by thousands of picoseconds or
 establish that DMS/update-counter changes caused it. This audit also found a
 missing observation guard in the previous reader: it did not bracket the
 critical group with WDIAGS frame-valid and publication-epoch checks. A
-follow-on read-only experiment now adds those checks around CKO/DMS/SETP/SSTAT/
-UCNT and is described in
+follow-on read-only experiment now adds those checks around a minimal
+CKO/SSTAT/UCNT payload and is described in
 [`EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md`](../EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
 Only after a valid smoke should a longer capture be interpreted. No control
 tuning or frozen-image change is justified yet.

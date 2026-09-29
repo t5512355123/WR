@@ -100,10 +100,15 @@ def summarize(
     }
     pre_cko_gaps = []
     post_cko_gaps = []
+    critical_frame_durations = []
     for row in rows:
         timing = timing_by_sample.get(integer(row, "sample"))
         if not timing:
             continue
+        frame_start = integer(timing, "FRAME_START_US")
+        frame_end = integer(timing, "FRAME_END_US")
+        if frame_start is not None and frame_end is not None and frame_end >= frame_start:
+            critical_frame_durations.append(frame_end - frame_start)
         cko_host = integer(timing, "CKO_HOST_US")
         pre_end = integer(timing, "DMS_PRE_END_US")
         post_start = integer(timing, "DMS_POST_START_US")
@@ -184,6 +189,8 @@ def summarize(
         "maximum_cko_after_pre_dms_us": max(pre_cko_gaps) if pre_cko_gaps else None,
         "median_post_dms_start_after_cko_us": statistics.median(post_cko_gaps) if post_cko_gaps else None,
         "maximum_post_dms_start_after_cko_us": max(post_cko_gaps) if post_cko_gaps else None,
+        "median_critical_frame_duration_us": statistics.median(critical_frame_durations) if critical_frame_durations else None,
+        "maximum_critical_frame_duration_us": max(critical_frame_durations) if critical_frame_durations else None,
         "reset_stop": reset_stop,
         "timeout_count": timeout_count,
         "invalid_count": invalid_count,

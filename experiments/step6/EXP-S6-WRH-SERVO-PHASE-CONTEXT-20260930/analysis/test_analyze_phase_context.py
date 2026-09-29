@@ -21,7 +21,9 @@ def row(sample: int, ucnt: int, dms: int, setp: int, cko: int,
         "S6_INTERLEAVED_SAMPLE "
         f"board=DE5_1-11.2 sample={sample:04d} elapsed_ms={sample * 200} "
         "row_ms=190.0 READS_VALID=1 COHERENT=1 DIAG_FRAME_VALID="
-        f"{frame} PHASE_CONTEXT=1 PHASE_CONTEXT_VALID=1 "
+        f"{frame} PHASE_CONTEXT=2 PHASE_CONTEXT_VALID=1 "
+        f"PHASE_CONTEXT_FRAME_VALID={frame} PHASE_CONTEXT_MATCH=1 "
+        f"PHASE_CONTEXT_UCNT=0x{ucnt:08X} "
         f"UCNT=0x{ucnt:08X} SERVO_STATE={state} CKO_PS={cko} "
         f"DMS_PS={dms} SETP_PS={setp} GLOBAL_TIME_VALID=1 "
         "HELPER_LOCK=1 MAIN_LOCK=1 MAIN_FREQ_LOCK=1 "
@@ -32,7 +34,7 @@ def row(sample: int, ucnt: int, dms: int, setp: int, cko: int,
 class PhaseContextTests(unittest.TestCase):
     def test_counts_state_groups_and_only_one_step_counter_pairs(self) -> None:
         lines = [
-            "S6_INTERLEAVED_CONFIG duration_ms=300000 sample_ms=1 board_filter=1-11.2 phase_context=1",
+            "S6_INTERLEAVED_CONFIG duration_ms=300000 sample_ms=1 board_filter=1-11.2 phase_context=2",
             row(0, 1, 1000, 20, 80),
             row(1, 2, 1002, 30, 40, state=4),
             row(2, 2, 1002, 30, 40, state=4),
@@ -57,7 +59,7 @@ class PhaseContextTests(unittest.TestCase):
 
     def test_crossed_frame_is_excluded_from_correlations(self) -> None:
         lines = [
-            "S6_INTERLEAVED_CONFIG duration_ms=300000 phase_context=1",
+            "S6_INTERLEAVED_CONFIG duration_ms=300000 phase_context=2",
             row(0, 1, 1000, 20, 80),
             row(1, 2, 1200, 50, -20, frame=0),
             row(2, 3, 1001, 21, 40),
@@ -71,6 +73,24 @@ class PhaseContextTests(unittest.TestCase):
             result = ANALYZER.summarize(path, mode="capture", expected_duration_ms=300_000)
         self.assertEqual(result["trusted_phase_context_rows"], 2)
         self.assertEqual(result["ucnt_one_step_pairs"], 0)
+
+    def test_context_ucnt_mismatch_excludes_joined_row(self) -> None:
+        lines = [
+            "S6_INTERLEAVED_CONFIG duration_ms=300000 phase_context=2",
+            row(0, 1, 1000, 20, 80),
+            row(1, 2, 1001, 21, 40).replace(
+                "PHASE_CONTEXT_UCNT=0x00000002", "PHASE_CONTEXT_UCNT=0x00000003"
+            ),
+            "S6_INTERLEAVED_BOARD_DONE elapsed_ms=300000 reset_stop=0",
+            "S6_INTERLEAVED_SUMMARY timeout_count=0 invalid_count=0 reset_stop=0",
+            "CAPTURE_PROCESS_EXIT=0",
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ucnt_mismatch.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="capture", expected_duration_ms=300_000)
+        self.assertEqual(result["trusted_phase_context_rows"], 1)
+        self.assertEqual(result["phase_context_update_match_rows"], 1)
 
     def test_observer_reads_phase_context_inside_optional_epoch_guard(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
@@ -89,7 +109,30 @@ class PhaseContextTests(unittest.TestCase):
         offsets = [capture.index(token) for token in ordered]
         self.assertEqual(offsets, sorted(offsets))
         self.assertIn("set phase_context 0", source)
-        self.assertIn("if {$phase_context}", capture)
+        self.assertIn("if {$phase_context == 1}", capture)
+        self.assertNotIn("wb_write ", source)
+
+    def test_separate_context_frame_has_its_own_epoch_and_ucnt_join(self) -> None:
+        source = OBSERVER_PATH.read_text(encoding="utf-8")
+        context = source.split("proc s6_i_read_phase_context_frame", maxsplit=1)[1].split(
+            "proc s6_i_snapshot", maxsplit=1
+        )[0]
+        ordered = [
+            "set baseline_raw [wb_read 0x00100B34]",
+            "set candidate_raw [wb_read 0x00100B34]",
+            "set ctrl_before_raw [wb_read 0x00100A04]",
+            "set inverse_before_raw [wb_read 0x00100B38]",
+            "set context_ucnt_raw [wb_read 0x00100A48]",
+            "set dms_hi_raw [wb_read 0x00100A34]",
+            "set dms_lo_raw [wb_read 0x00100A38]",
+            "set setp_raw [wb_read 0x00100A44]",
+            "set epoch_after_raw [wb_read 0x00100B34]",
+            "set ctrl_after_raw [wb_read 0x00100A04]",
+        ]
+        positions = [context.index(token) for token in ordered]
+        self.assertEqual(positions, sorted(positions))
+        self.assertIn("$phase_context == 2", source)
+        self.assertIn("$core_ucnt_word == $context_ucnt_word", source)
         self.assertNotIn("wb_write ", source)
 
 

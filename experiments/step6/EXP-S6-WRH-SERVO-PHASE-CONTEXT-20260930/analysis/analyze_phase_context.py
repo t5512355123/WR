@@ -34,6 +34,22 @@ def integer(row: dict[str, str], key: str, *, hexadecimal: bool = False) -> int 
         return None
 
 
+def context_frame_valid(row: dict[str, str]) -> bool:
+    mode = integer(row, "PHASE_CONTEXT")
+    frame = integer(row, "PHASE_CONTEXT_FRAME_VALID")
+    match = integer(row, "PHASE_CONTEXT_MATCH")
+    if mode == 1:  # Backward-compatible rows from the same-frame smoke.
+        frame = integer(row, "DIAG_FRAME_VALID") if frame is None else frame
+        match = 1 if match is None else match
+    if mode not in {1, 2} or frame != 1 or match != 1:
+        return False
+    if mode == 2:
+        primary_ucnt = integer(row, "UCNT", hexadecimal=True)
+        context_ucnt = integer(row, "PHASE_CONTEXT_UCNT", hexadecimal=True)
+        return primary_ucnt is not None and primary_ucnt == context_ucnt
+    return True
+
+
 def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> dict:
     text = path.read_text(encoding="utf-8", errors="replace")
     parsed = [fields(line.split(ROW_MARKER, 1)[1])
@@ -51,14 +67,21 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
     read_valid = [row for row in parsed if integer(row, "READS_VALID") == 1]
     framed = [row for row in parsed if integer(row, "DIAG_FRAME_VALID") == 1]
     context_valid = [row for row in parsed
-                      if integer(row, "PHASE_CONTEXT") == 1
-                      and integer(row, "PHASE_CONTEXT_VALID") == 1]
+                     if integer(row, "PHASE_CONTEXT") in {1, 2}
+                     and integer(row, "PHASE_CONTEXT_VALID") == 1]
+    context_frames = [row for row in parsed
+                      if integer(row, "PHASE_CONTEXT_FRAME_VALID") == 1
+                      or (integer(row, "PHASE_CONTEXT") == 1
+                          and integer(row, "PHASE_CONTEXT_FRAME_VALID") is None
+                          and integer(row, "DIAG_FRAME_VALID") == 1)]
+    matched_contexts = [row for row in parsed if context_frame_valid(row)]
     trusted = [row for row in parsed
                if integer(row, "READS_VALID") == 1
                and integer(row, "COHERENT") == 1
                and integer(row, "DIAG_FRAME_VALID") == 1
-               and integer(row, "PHASE_CONTEXT") == 1
+               and integer(row, "PHASE_CONTEXT") in {1, 2}
                and integer(row, "PHASE_CONTEXT_VALID") == 1
+               and context_frame_valid(row)
                and integer(row, "UCNT", hexadecimal=True) is not None
                and integer(row, "SERVO_STATE") is not None
                and integer(row, "CKO_PS") is not None
@@ -159,6 +182,8 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
         "read_valid_rows": len(read_valid),
         "wdiags_frame_valid_rows": len(framed),
         "phase_context_valid_rows": len(context_valid),
+        "phase_context_frame_valid_rows": len(context_frames),
+        "phase_context_update_match_rows": len(matched_contexts),
         "trusted_phase_context_rows": len(trusted),
         "global_time_and_all_five_lock_rows": len(fully_live),
         "strict_abs_cko_lt_60_rows_with_live_gates": len(strict_offset),

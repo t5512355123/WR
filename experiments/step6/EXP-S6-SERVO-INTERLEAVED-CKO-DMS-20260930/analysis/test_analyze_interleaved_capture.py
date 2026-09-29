@@ -50,13 +50,15 @@ class InterleavedCaptureTests(unittest.TestCase):
         offsets = [capture.index(item) for item in ordered]
         self.assertEqual(offsets, sorted(offsets))
         self.assertIn("set phase_context 0", source)
-        self.assertIn("if {$phase_context}", capture)
+        self.assertIn("if {$phase_context == 1}", capture)
         self.assertIn("phase_context=%d", source)
+        self.assertIn("MATCHED_UCNT_SEPARATE_FRAMES", source)
+        self.assertIn("S6_INTERLEAVED_CONTEXT_CONFIG", source)
         self.assertNotIn("wb_write ", source)
         self.assertIn("wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
         self.assertIn("[normalize_probe64 $snapshot1_after]", source)
-        self.assertIn("$reads_valid && $diag_frame_valid && $global_valid", source)
+        self.assertIn("$reads_valid && $diagnostic_frame_match && $global_valid", source)
         self.assertIn("$candidate_epoch != $diag_epoch_wait_baseline", capture)
         self.assertIn("DIAG_EPOCH_WAIT_BASELINE=%d", source)
         self.assertNotIn("last_diag_epoch", source)
@@ -65,7 +67,7 @@ class InterleavedCaptureTests(unittest.TestCase):
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         timing = source.split('puts [format "S6_INTERLEAVED_TIMING ', maxsplit=1)[1]
         format_string, argument_text = timing.split('" \\\n', maxsplit=1)
-        argument_text = argument_text.split("]\n  puts [format \"S6_INTERLEAVED_SAMPLE", maxsplit=1)[0]
+        argument_text = argument_text.split("]\n  puts [format \"S6_INTERLEAVED_CONTEXT_TIMING", maxsplit=1)[0]
         conversions = re.findall(r"%[-+0-9.]*[a-zA-Z]", format_string)
         arguments = re.findall(r"\$[A-Za-z_][A-Za-z0-9_]*", argument_text)
         self.assertEqual(len(arguments), len(conversions))

@@ -57,5 +57,6 @@ reader-only iteration should capture CKO/SSTAT/UCNT and DMS/SETP in separate,
 independently guarded WDIAGS frames, and accept a joined context row only when
 both frames are valid and their published UCNT values match. This preserves
 frame validity while making the non-atomic, update-ID-matched relationship
-explicit. Run another short smoke first; do not start a 300-second capture
-unless it passes.
+explicit. The bounded follow-up is specified in the [UCNT-paired frame
+plan](../EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/PLAN.md). Run
+another short smoke first; do not start a 300-second capture unless it passes.

@@ -66,6 +66,8 @@ the WDIAGS epoch advanced during the enlarged read group; no long capture ran.
 The next reader-only attempt must use separate guarded frames and match their
 published UCNT before joining values. See its
 [smoke report](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/REPORT.md).
+The follow-up smoke contract is recorded in the
+[UCNT-paired phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/PLAN.md).
 
 ## Main evidence
 

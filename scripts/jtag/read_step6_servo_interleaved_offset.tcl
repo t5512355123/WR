@@ -2,14 +2,17 @@
 #
 # Each sample brackets CKO, servo state (SSTAT), and update count (UCNT) with
 # the read-only WDIAGS valid bit and mapping epoch. Optional phase-context mode
-# also reads DMS and SETP inside that same guarded frame. Global-Time and lock
-# fields are read separately; no cross-domain atomicity is claimed. This script
+# can read DMS and SETP in the same frame or a separate UCNT-joined frame.
+# Mode 2 uses a second independently guarded publication frame.
+# Global-Time and lock fields are read separately; no cross-domain atomicity is
+# claimed. This script
 # issues mailbox reads only and does not write a target, alter a servo/PPS
 # setting, reset, or program the FPGA.
 #
 # Usage:
 #   quartus_stp -t read_step6_servo_interleaved_offset.tcl \
-#       ?duration_ms? ?sample_ms? ?board_substring? ?phase_context_0_or_1?
+#       ?duration_ms? ?sample_ms? ?board_substring? ?phase_context_mode?
+#         mode 0=off, 1=same frame, 2=separate guarded frame joined by UCNT
 
 package require ::quartus::insystem_source_probe
 
@@ -21,8 +24,8 @@ if {[llength $argv] >= 1} { set duration_ms [expr {int([lindex $argv 0])}] }
 if {[llength $argv] >= 2} { set sample_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv] >= 3} { set board_filter [lindex $argv 2] }
 if {[llength $argv] >= 4} { set phase_context [expr {int([lindex $argv 3])}] }
-if {$duration_ms <= 0 || $sample_ms <= 0 || $phase_context ni {0 1}} {
-  error "duration_ms and sample_ms must be > 0"
+if {$duration_ms <= 0 || $sample_ms <= 0 || $phase_context ni {0 1 2}} {
+  error "duration_ms and sample_ms must be > 0; phase_context must be 0, 1, or 2"
 }
 
 set ::wb_library_mode 1
@@ -54,6 +57,84 @@ proc s6_i_unsigned64_words {high_raw low_raw} {
   set low [word32 $low_raw]
   if {$high < 0 || $low < 0} { return "NA" }
   return [expr {($high << 32) | $low}]
+}
+
+proc s6_i_read_phase_context_frame {} {
+  set wait_start_ms [clock milliseconds]
+  set wait_ms -1
+  set baseline_raw [wb_read 0x00100B34]
+  set baseline_word [word32 $baseline_raw]
+  set baseline_epoch -1
+  if {$baseline_word >= 0} {
+    set baseline_epoch [expr {$baseline_word & 0xffff}]
+  }
+  set epoch_before -1
+  set epoch_after -1
+  set frame_start_us "NA"
+  set frame_end_us "NA"
+  set frame_valid 0
+  set context_ucnt_raw "TIMEOUT"
+  set dms_hi_raw "TIMEOUT"
+  set dms_lo_raw "TIMEOUT"
+  set setp_raw "TIMEOUT"
+  set dms_ps "NA"
+  set setp_ps "NA"
+  set payload_valid 0
+  set frame_found 0
+
+  while {[clock milliseconds] - $wait_start_ms < 350} {
+    set candidate_raw [wb_read 0x00100B34]
+    set candidate_word [word32 $candidate_raw]
+    if {$candidate_word >= 0} {
+      set candidate_epoch [expr {$candidate_word & 0xffff}]
+      if {$baseline_epoch < 0} {
+        set baseline_epoch $candidate_epoch
+        set baseline_raw $candidate_raw
+      } elseif {$candidate_epoch != $baseline_epoch} {
+        set ctrl_before_raw [wb_read 0x00100A04]
+        set ctrl_before_word [word32 $ctrl_before_raw]
+        set inverse_before_raw [wb_read 0x00100B38]
+        set inverse_before_word [word32 $inverse_before_raw]
+        if {$ctrl_before_word >= 0 && ($ctrl_before_word & 1) &&
+            $inverse_before_word >= 0 &&
+            (($candidate_epoch ^ ($inverse_before_word & 0xffff)) == 0xffff)} {
+          set epoch_before $candidate_epoch
+          set frame_start_us [s6_i_us]
+          set wait_ms [expr {[clock milliseconds] - $wait_start_ms}]
+          set context_ucnt_raw [wb_read 0x00100A48]
+          set dms_hi_raw [wb_read 0x00100A34]
+          set dms_lo_raw [wb_read 0x00100A38]
+          set setp_raw [wb_read 0x00100A44]
+          set dms_ps [s6_i_unsigned64_words $dms_hi_raw $dms_lo_raw]
+          set setp_ps [s6_i_signed32 $setp_raw]
+          set payload_valid [expr {
+            [is_hex $context_ucnt_raw] && [is_hex $dms_hi_raw] &&
+            [is_hex $dms_lo_raw] && [is_hex $setp_raw] && $dms_ps ne "NA" ? 1 : 0}]
+          set epoch_after_raw [wb_read 0x00100B34]
+          set ctrl_after_raw [wb_read 0x00100A04]
+          set frame_end_us [s6_i_us]
+          set epoch_after_word [word32 $epoch_after_raw]
+          set ctrl_after_word [word32 $ctrl_after_raw]
+          if {$epoch_after_word >= 0} {
+            set epoch_after [expr {$epoch_after_word & 0xffff}]
+          }
+          set valid_after [expr {$ctrl_after_word >= 0 ? ($ctrl_after_word & 1) : 0}]
+          set frame_valid [expr {
+            $payload_valid && ($ctrl_before_word & 1) && $valid_after &&
+            $epoch_before >= 0 && $epoch_before == $epoch_after ? 1 : 0}]
+          set frame_found 1
+          break
+        }
+      }
+    }
+    after 1
+  }
+  if {!$frame_found} {
+    set wait_ms [expr {[clock milliseconds] - $wait_start_ms}]
+  }
+  return [list $context_ucnt_raw $dms_hi_raw $dms_lo_raw $setp_raw \
+    $dms_ps $setp_ps $payload_valid $frame_valid $epoch_before $epoch_after \
+    $frame_start_us $frame_end_us $wait_ms]
 }
 
 proc s6_i_snapshot {snapshot0 snapshot1_before snapshot1_after status escr} {
@@ -165,7 +246,15 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set setp_ps "NA"
   set phase_context_start_us "NA"
   set phase_context_end_us "NA"
-  set phase_context_valid 1
+  set phase_context_valid [expr {$phase_context == 0 ? 1 : 0}]
+  set context_ucnt_raw "SKIPPED"
+  set context_frame_valid 0
+  set context_update_match 0
+  set context_epoch_before -1
+  set context_epoch_after -1
+  set context_frame_start_us "NA"
+  set context_frame_end_us "NA"
+  set context_wait_ms -1
   set cko_host_us "NA"
   set frame_start_us "NA"
   set critical_end_us "NA"
@@ -198,7 +287,7 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
             set cko_host_us [s6_i_us]
             set sstat_raw [wb_read 0x00100A08]
             set ucnt_raw [wb_read 0x00100A48]
-            if {$phase_context} {
+            if {$phase_context == 1} {
               set phase_context_start_us [s6_i_us]
               set dms_hi_raw [wb_read 0x00100A34]
               set dms_lo_raw [wb_read 0x00100A38]
@@ -242,6 +331,30 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     set critical_end_us [s6_i_us]
   }
 
+  if {$phase_context == 1} {
+    set context_ucnt_raw $ucnt_raw
+    set context_frame_valid $diag_frame_valid
+    set context_update_match $phase_context_valid
+    set context_epoch_before $diag_epoch_before
+    set context_epoch_after $diag_epoch_after
+    set context_frame_start_us $frame_start_us
+    set context_frame_end_us $critical_end_us
+    set context_wait_ms $diag_wait_ms
+  } elseif {$phase_context == 2 && $frame_found && $diag_frame_valid} {
+    lassign [s6_i_read_phase_context_frame] context_ucnt_raw dms_hi_raw \
+      dms_lo_raw setp_raw dms_ps setp_ps phase_context_valid \
+      context_frame_valid context_epoch_before context_epoch_after \
+      context_frame_start_us context_frame_end_us context_wait_ms
+    set phase_context_start_us $context_frame_start_us
+    set phase_context_end_us $context_frame_end_us
+    set core_ucnt_word [word32 $ucnt_raw]
+    set context_ucnt_word [word32 $context_ucnt_raw]
+    set context_update_match [expr {
+      $core_ucnt_word >= 0 && $core_ucnt_word == $context_ucnt_word ? 1 : 0}]
+  } elseif {$phase_context == 2} {
+    set phase_context_valid 0
+  }
+
   set entry [safe_probe_read 26]
   set reset [safe_probe_read 27]
   set row_end_us [s6_i_us]
@@ -268,9 +381,14 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $status $time_escr] tai cycles snapshot_stable snapshot_valid snapshot_count \
     snapshot_time_valid snapshot_pps_valid status_time_valid status_pps_valid \
     escr_time_valid escr_pps_valid global_valid
-  set coherent [expr {$reads_valid && $diag_frame_valid && $global_valid ? 1 : 0}]
+  set context_frame_match [expr {
+    $phase_context == 0 ||
+    ($context_frame_valid && $context_update_match) ? 1 : 0}]
+  set diagnostic_frame_match [expr {
+    $diag_frame_valid && $context_frame_match ? 1 : 0}]
+  set coherent [expr {$reads_valid && $diagnostic_frame_match && $global_valid ? 1 : 0}]
   set qualifies [expr {
-    $reads_valid && $diag_frame_valid && $global_valid &&
+    $reads_valid && $diagnostic_frame_match && $global_valid &&
     $helper_lock == 1 && $main_lock == 1 &&
     $main_freq == 1 && $main_phase == 1 && $pstat_lock == 1 &&
     abs($cko) < 60 ? 1 : 0}]
@@ -316,7 +434,11 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $hardware_name $sample $critical_start_us $diag_epoch_wait_baseline \
     $frame_start_us $cko_host_us $phase_context_start_us \
     $phase_context_end_us $critical_end_us $diag_wait_ms]
-  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s" \
+  puts [format "S6_INTERLEAVED_CONTEXT_TIMING board=%s sample=%04d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_UCNT=%s" \
+    $hardware_name $sample $context_frame_start_us $context_frame_end_us \
+    $context_wait_ms $context_frame_valid $context_epoch_before \
+    $context_epoch_after $context_ucnt_raw]
+  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
     $critical_start_us $diag_wait_ms $diag_epoch_wait_baseline $frame_start_us \
     $cko_host_us $phase_context_start_us $phase_context_end_us \
@@ -329,15 +451,21 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $diag_epoch_before_ok $diag_frame_valid $ucnt_raw $sstat_raw \
     $servo_state $cko_raw $cko $boot $cpu $wr $si $reset_changed \
     $phase_context $phase_context_valid $dms_hi_raw $dms_lo_raw $dms_ps \
-    $setp_raw $setp_ps]
+    $setp_raw $setp_ps $context_frame_valid $context_update_match \
+    $context_ucnt_raw $context_epoch_before $context_epoch_after \
+    $context_frame_start_us $context_frame_end_us $context_wait_ms]
   flush stdout
   return $reset_changed
 }
 
-puts [format "S6_INTERLEAVED_CONFIG duration_ms=%d sample_ms=%d board_filter=%s phase_context=%d read_only=1 wb_register_writes=0 fpga_program=0 reset=0" \
+set context_join_mode NONE
+if {$phase_context == 1} { set context_join_mode SAME_WDIAGS_FRAME }
+if {$phase_context == 2} { set context_join_mode MATCHED_UCNT_SEPARATE_FRAMES }
+puts [format "S6_INTERLEAVED_CONFIG duration_ms=%d sample_ms=%d board_filter=%s phase_context=%d context_join=mode_specific read_only=1 wb_register_writes=0 fpga_program=0 reset=0" \
   $duration_ms $sample_ms $board_filter $phase_context]
 flush stdout
 
+puts [format "S6_INTERLEAVED_CONTEXT_CONFIG join_mode=%s" $context_join_mode]
 foreach hardware_name [get_hardware_names] {
   if {$board_filter ne "" && [string first $board_filter $hardware_name] < 0} { continue }
   set devices [get_device_names -hardware_name $hardware_name]

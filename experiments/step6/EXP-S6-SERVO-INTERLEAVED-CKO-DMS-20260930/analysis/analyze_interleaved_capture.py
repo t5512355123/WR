@@ -31,6 +31,13 @@ def integer(row: dict[str, str], key: str, default: int | None = None) -> int | 
             return default
 
 
+def hex_integer(row: dict[str, str], key: str) -> int | None:
+    try:
+        return int(row[key], 16)
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
 def summarize(
     path: Path,
     *,
@@ -67,6 +74,30 @@ def summarize(
     ]
     valid_offsets = [integer(r, "CKO_PS") for r in trusted_offset_rows]
     valid_offsets = [value for value in valid_offsets if value is not None]
+    offsets_by_servo_state: dict[int, list[int]] = {}
+    for row in trusted_offset_rows:
+        state = integer(row, "SERVO_STATE")
+        offset = integer(row, "CKO_PS")
+        if state is not None and offset is not None:
+            offsets_by_servo_state.setdefault(state, []).append(offset)
+    servo_state_offset_summary = {
+        str(state): {
+            "rows": len(offsets),
+            "median_offset_ps": statistics.median(offsets),
+            "offset_min_ps": min(offsets),
+            "offset_max_ps": max(offsets),
+            "offset_abs_lt_60_count": sum(abs(offset) < 60 for offset in offsets),
+        }
+        for state, offsets in sorted(offsets_by_servo_state.items())
+    }
+    update_counts = [
+        value for row in trusted_offset_rows
+        if (value := hex_integer(row, "UCNT")) is not None
+    ]
+    update_deltas = [
+        (right - left) & 0xFFFFFFFF
+        for left, right in zip(update_counts, update_counts[1:])
+    ]
     all_lock_rows = [
         r for r in read_valid_rows
         if all(integer(r, key, 0) == 1 for key in (
@@ -186,6 +217,12 @@ def summarize(
         "offset_valid_rows": len(valid_offsets),
         "offset_min_ps": min(valid_offsets) if valid_offsets else None,
         "offset_max_ps": max(valid_offsets) if valid_offsets else None,
+        "servo_state_offset_summary": servo_state_offset_summary,
+        "ucnt_valid_rows": len(update_counts),
+        "ucnt_changed_pairs": sum(delta != 0 for delta in update_deltas),
+        "ucnt_unchanged_pairs": sum(delta == 0 for delta in update_deltas),
+        "ucnt_delta_min": min(update_deltas) if update_deltas else None,
+        "ucnt_delta_max": max(update_deltas) if update_deltas else None,
         "maximum_sample_gap_ms": max(covered_gaps) if covered_gaps else None,
         "median_sample_gap_ms": statistics.median(gaps) if gaps else None,
         "capture_tail_gap_ms": capture_tail_gap,

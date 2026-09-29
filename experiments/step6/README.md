@@ -53,6 +53,15 @@ SFP_CACHED_CALIBRATION_QUERY    = INCONCLUSIVE (guarded; no command sent)
 TIMING_CLOSED                   = NO (not a functional gate)
 ```
 
+The follow-on 1 ms-requested-sleep, 300-second framed capture produced 1,501
+rows, but strict `abs(CKO) < 60 ps` occurred in only 3/1,501 rows. The
+source-defined WRH state was `WAIT_OFFSET_STABLE` in 1,356/1,501 rows and
+`TRACK_PHASE` in 3/1,501. This does not establish why the servo failed to
+remain in track. The next read-only step adds DMS and SETP to the same
+validated WDIAGS row; it does not change servo controls or claim Step 6 pass.
+See the [high-rate report](EXP-S6-WDIAGS-HIGH-RATE-SERVO-20260930/REPORT.md)
+and [phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/PLAN.md).
+
 ## Main evidence
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)

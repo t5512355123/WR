@@ -41,11 +41,17 @@ class InterleavedCaptureTests(unittest.TestCase):
             "set cko_raw [wb_read 0x00100A40]",
             "set sstat_raw [wb_read 0x00100A08]",
             "set ucnt_raw [wb_read 0x00100A48]",
+            "set dms_hi_raw [wb_read 0x00100A34]",
+            "set dms_lo_raw [wb_read 0x00100A38]",
+            "set setp_raw [wb_read 0x00100A44]",
             "set diag_epoch_after_raw [wb_read 0x00100B34]",
             "set diag_ctrl_after_raw [wb_read 0x00100A04]",
         ]
         offsets = [capture.index(item) for item in ordered]
         self.assertEqual(offsets, sorted(offsets))
+        self.assertIn("set phase_context 0", source)
+        self.assertIn("if {$phase_context}", capture)
+        self.assertIn("phase_context=%d", source)
         self.assertNotIn("wb_write ", source)
         self.assertIn("wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
@@ -124,6 +130,23 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["estimated_expected_rows_at_observed_cadence"], 800)
         self.assertEqual(result["capture_tail_gap_ms"], 475)
         self.assertEqual(result["verdict"], "STEP6_EXPANDED_SAMPLE_GATE_PASS")
+
+    def test_capture_summarizes_servo_state_offsets_and_hex_update_count(self) -> None:
+        lines = [
+            row(0, 120).replace("CKO_PS=", "UCNT=00000010 SERVO_STATE=5 CKO_PS="),
+            row(1, 20).replace("CKO_PS=", "UCNT=00000011 SERVO_STATE=5 CKO_PS="),
+            row(2, -10).replace("CKO_PS=", "UCNT=00000011 SERVO_STATE=3 CKO_PS="),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "servo_state.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke")
+        self.assertEqual(result["servo_state_offset_summary"]["5"]["rows"], 2)
+        self.assertEqual(result["servo_state_offset_summary"]["5"]["offset_abs_lt_60_count"], 1)
+        self.assertEqual(result["servo_state_offset_summary"]["3"]["offset_min_ps"], -10)
+        self.assertEqual(result["ucnt_valid_rows"], 3)
+        self.assertEqual(result["ucnt_changed_pairs"], 1)
+        self.assertEqual(result["ucnt_unchanged_pairs"], 1)
 
     def test_invalid_or_crossed_diagnostics_frame_is_not_counted_as_offset_data(self) -> None:
         line = row(0, 15).replace("DIAG_FRAME_VALID=1", "DIAG_FRAME_VALID=0")

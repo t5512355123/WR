@@ -115,6 +115,12 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
         offsets_end = [int_field(row, "offset_end_ps") for row in state_valid]
         offsets_begin = [value for value in offsets_begin if value is not None]
         offsets_end = [value for value in offsets_end if value is not None]
+        offset_deltas = [
+            int_field(row, "offset_end_ps") - int_field(row, "offset_begin_ps")
+            for row in state_valid
+            if int_field(row, "offset_begin_ps") is not None
+            and int_field(row, "offset_end_ps") is not None
+        ]
         states_begin: dict[str, int] = {}
         states_end: dict[str, int] = {}
         within_row_edges: list[dict[str, object]] = []
@@ -163,6 +169,9 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
         result[name] = {
             "sample_rows": len(board_rows),
             "accepted_samples": len(accepted),
+            "failed_attempt_rows": sum(row.accepted == 0 for row in board_rows),
+            "accepted_samples_with_retries": sum((row.retries or 0) > 0 for row in accepted),
+            "max_retries_used": max((row.retries or 0 for row in accepted), default=0),
             "data_valid_samples": sum(int_field(row, "data_valid") == 1 for row in accepted),
             "sample_valid_samples": len(valid),
             "control_framing_valid_samples": sum(int_field(row, "ctrl_valid") == 1 for row in valid),
@@ -212,6 +221,11 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
             "offset_end_min_ps": min(offsets_end) if offsets_end else None,
             "offset_end_max_ps": max(offsets_end) if offsets_end else None,
             "offset_end_median_ps": statistics.median(offsets_end) if offsets_end else None,
+            "within_row_offset_delta_samples": len(offset_deltas),
+            "within_row_offset_delta_min_ps": min(offset_deltas) if offset_deltas else None,
+            "within_row_offset_delta_max_ps": max(offset_deltas) if offset_deltas else None,
+            "within_row_offset_delta_median_ps": statistics.median(offset_deltas) if offset_deltas else None,
+            "within_row_offset_delta_max_abs_ps": max((abs(value) for value in offset_deltas), default=None),
             "both_offsets_strictly_under_60ps_samples": strict_both,
             "dms_distinct_pairs": len({(row.fields.get("dms_h"), row.fields.get("dms_l")) for row in valid}),
             "setp_distinct_values": len({row.fields.get("setp") for row in valid}),

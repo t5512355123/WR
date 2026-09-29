@@ -10,6 +10,8 @@ class FastReaderContractTest(unittest.TestCase):
         source = reader.read_text(encoding="utf-8")
         self.assertEqual(source.count("write_source_data"), 1)
         self.assertIn("0xa5a50000", source)
+        self.assertIn("set pattern [format {^[0-9A-Fa-f]{1,%d}$} $max_digits]", source)
+        self.assertNotIn('regexp "^[0-9A-Fa-f]', source)
         self.assertIn("set sstat_begin [wb_read 0x00100A08]", source)
         self.assertIn("set sstat_end [wb_read 0x00100A08]", source)
         self.assertIn("set cko_begin [wb_read 0x00100A40]", source)

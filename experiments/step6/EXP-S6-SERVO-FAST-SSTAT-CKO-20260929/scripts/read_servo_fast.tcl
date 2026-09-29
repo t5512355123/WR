@@ -15,7 +15,8 @@ if {$samples <= 0 || $max_retries < 0} {
 set ::wb_toggle 0
 
 proc valid_hex {value max_digits} {
-  return [regexp "^[0-9A-Fa-f]{1,${max_digits}}$" $value]
+  set pattern [format {^[0-9A-Fa-f]{1,%d}$} $max_digits]
+  return [regexp $pattern $value]
 }
 
 proc source_probe_word {index} {

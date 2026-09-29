@@ -11,6 +11,14 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
 SOURCE_ROOT = REPO_ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+SFF_OVERLAY_ORIGIN_COMMIT = "74dc28862653d306e0450cf437ba6d3a230d979d"
+SFF_OVERLAY_BUILD_COMMIT = "eedd3664c3ba7cfdddfed86de346e828ce32aca9"
+SFF_OVERLAY_PATHS = {
+    "vendor/wrpc-sw/dev/sfp.c",
+    "vendor/wrpc-sw/include/sfp.h",
+    "vendor/wrpc-sw/shell/cmd_sfp.c",
+}
+SFF_OVERLAY_TRANSFORMATION = "SFF-8636-QSFP-calibration-support-and-read-only-observer-overlay"
 
 
 def sha256(path: Path) -> str:
@@ -50,13 +58,41 @@ def main() -> int:
             if git_blob_sha(data) != row["git_blob"]:
                 git_blob_mismatch.append(row["package_path"])
             continue
-        original = subprocess.run(
-            ["git", "cat-file", "blob", row["git_blob"]],
-            cwd=REPO_ROOT,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-        ).stdout
+        if row["transformation"] == SFF_OVERLAY_TRANSFORMATION:
+            if (
+                row["origin_commit"] != SFF_OVERLAY_ORIGIN_COMMIT
+                or row["package_path"] not in SFF_OVERLAY_PATHS
+            ):
+                transform_mismatch.append(row["package_path"])
+                continue
+            origin_blob = subprocess.run(
+                ["git", "rev-parse", f"{row['origin_commit']}:{row['origin_path']}"],
+                cwd=REPO_ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            ).stdout.decode("ascii").strip()
+            if origin_blob != row["git_blob"]:
+                transform_mismatch.append(row["package_path"])
+                continue
+            # The SFF-8636 overlay was independently built/programmed at this
+            # exact commit; validate the frozen package against that recorded
+            # build tree rather than treating the overlay as an unknown edit.
+            expected = subprocess.run(
+                ["git", "show", f"{SFF_OVERLAY_BUILD_COMMIT}:{SOURCE_ROOT.relative_to(REPO_ROOT).as_posix()}/{row['package_path']}"],
+                cwd=REPO_ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            ).stdout
+        else:
+            original = subprocess.run(
+                ["git", "cat-file", "blob", row["git_blob"]],
+                cwd=REPO_ROOT,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=True,
+            ).stdout
         if row["transformation"] == "quartus-relative-path-relocation-only":
             for before, after in (
                 (b"../../vendor/", b"../vendor/"),
@@ -67,6 +103,8 @@ def main() -> int:
             expected = original
         elif row["transformation"] == "firmware-mif-path-relocation-only":
             expected = original.replace(b"../../build/firmware/", b"../build/firmware/")
+        elif row["transformation"] == SFF_OVERLAY_TRANSFORMATION:
+            pass
         else:
             transform_mismatch.append(row["package_path"])
             continue

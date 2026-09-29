@@ -3,7 +3,7 @@
 ## Verdict
 
 ```text
-SAME_FRAME_PHASE_CONTEXT_SMOKE = FAIL (0/5 accepted coherent rows)
+SAME_FRAME_PHASE_CONTEXT_SMOKE = FAIL (0/10 accepted across two 5-row attempts)
 300S_CAPTURE                   = NOT RUN (smoke stop condition)
 STEP6_EXPANDED_GATE            = NOT ESTABLISHED
 ```
@@ -20,20 +20,30 @@ rows and stopped. No long capture was started and no control was changed.
 - No firmware/RTL, PI/gain, threshold, timeout, PPS, image, reset, or
   power-cycle changes. No build or FPGA programming.
 - Pain archive `/home/b10504072/04_WR_archive_step6_pass/` was not accessed.
-- Raw log: [`smoke_same_frame_guard_20260930.log`](raw/observe/smoke_same_frame_guard_20260930.log)
-- SHA-256: `58b0bfb5440b14c1e14bda86c665d47141c4b082dc72c9f76e1833378a71b96d`
+- Officially captured raw log: [`smoke_same_frame_guard_20260930.log`](raw/observe/smoke_same_frame_guard_20260930.log)
+  - SHA-256: `58b0bfb5440b14c1e14bda86c665d47141c4b082dc72c9f76e1833378a71b96d`
+- Recovered first-run raw log: [`smoke_same_frame_guard_wrapper_first_run_20260930.log`](raw/observe/smoke_same_frame_guard_wrapper_first_run_20260930.log)
+  - SHA-256: `9d31e7a4fa998835bc885a9bab08de6df05eff298a83ad73f712c4f405794f1d`
 
 ## Smoke observations
 
-- Configured duration 15,000 ms, requested delay 1 ms, phase-context mode 1.
-- Quartus/Tcl returned exit 0 after the reader stopped at five consecutive
-  untrusted samples; observed duration was 1,051 ms and row count was 5.
-- Individual reads and DMS/SETP context reads were valid in 5/5 rows.
-- The primary WDIAGS epoch changed between the before/after checks in 5/5
-  rows (`DIAG_FRAME_VALID=0`, `COHERENT=0`); accepted context rows: 0/5.
+- Two 15,000 ms-configured smokes used 1 ms requested delay and
+  `phase_context=1`. Both stopped after five consecutive untrusted samples;
+  each produced 5 rows and 0 accepted coherent rows.
+- The first Quartus run's output was accidentally redirected by the outer
+  shell wrapper to a root-level filename. That log was recovered and
+  preserved. Its Quartus/Tcl footer says the script completed successfully;
+  the wrapper's exit-marker capture was malformed, so this is supplemental
+  evidence rather than the official exit-status record.
+- The second run was captured normally: Quartus/Tcl exit 0, observed duration
+  1,051 ms, five rows, and stop reason `five_consecutive_untrusted_samples`.
+- Individual reads and DMS/SETP context reads were valid in all 10 rows.
+- The primary WDIAGS epoch changed between the before/after checks in all 10
+  rows (`DIAG_FRAME_VALID=0`, `COHERENT=0`); accepted context rows: 0/10.
 - The guarded payload interval was 88.752–92.772 ms. The three added DMS/SETP
-  transactions occupied 33.141–34.578 ms of that interval.
-- Global Time and all five Step 5 lock fields were valid in 5/5 rows. Timeout,
+  transactions occupied 33.141–34.578 ms of that interval in the normally
+  captured attempt.
+- Global Time and all five Step 5 lock fields were valid in 10/10 rows. Timeout,
   invalid-read, reset-change, and reset-stop counts were all zero.
 - DMS and SETP values were returned, but because their enclosing WDIAGS frame
   was rejected, they are diagnostic smoke output only and were excluded from

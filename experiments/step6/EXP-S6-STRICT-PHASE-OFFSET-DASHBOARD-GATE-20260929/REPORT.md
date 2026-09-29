@@ -2,7 +2,7 @@
 
 ## Verdict
 
-`DASHBOARD_GATE_IMPLEMENTED_AND_OFFLINE_TESTED; HARDWARE_REPRODUCTION_NOT_RUN`
+`DASHBOARD_GATE_IMPLEMENTED_AND_OFFLINE_TESTED; LIVE_HARDWARE_GATE_NOT_MET`
 
 The Step 1–6 dashboard now requires the Slave's signed WR phase offset to be a
 valid integer with strict magnitude below 60 ps before that board can report
@@ -31,10 +31,26 @@ missing, disagrees with the numeric offset, or has an unknown board role.
   original Global-Time and digital-trigger scope, but it predates the strict
   phase-offset gate. The separate 2026-09-29 half-gain experiment observed
   -539 ps and did not establish the expanded Step 6 acceptance.
+- A read-only six-sample dashboard observation was performed on Pain at
+  2026-09-29 19:03:14–19:04:24 (+08:00), using the currently programmed
+  half-gain candidate image documented in
+  `EXP-S6-WRH-SERVO-PHASE-HALF-GAIN-20260929`, not the original frozen SOFs.
+  Master reported Step 6 `VALID` in all six samples. Slave remained
+  `WAITING`; `TIME_VALID=0`, `PPS_VALID=0`, snapshot count `0`, and the
+  displayed servo offset ranged from +944 ps to +2555 ps. The sample summary
+  is in `raw/observe/live-offset-samples.tsv`; it is transcribed from the
+  filtered terminal output, not a complete raw dashboard log. Snapshot counts
+  not preserved by that output are marked `NA`. Thus the stricter live
+  hardware gate is not met. This short series is evidence of a non-settled
+  runtime state, not a 300-second stability result or proof of a unique root
+  cause.
+- No FPGA build, programming, reset, or power-cycle was performed for this
+  read-only observation.
 
 ## Next action
 
-Run the updated read-only dashboard against the exact frozen Step 6 image.
-Record a valid/stable Slave snapshot with `abs(WR_SERVO_OFFSET_PS) < 60` and
-retain the existing Global-Time and dual-board-trigger evidence as separate
-gates. Do not infer hardware PASS from these offline tests.
+After reviewing this result with the Step6 advisor, select one next
+source-grounded experiment. Any later hardware PASS must record a valid/stable
+Slave snapshot with `abs(WR_SERVO_OFFSET_PS) < 60`; retain existing
+Global-Time and dual-board-trigger evidence as separate gates. Do not infer
+hardware PASS from these offline tests or this short observation.

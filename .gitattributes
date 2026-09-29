@@ -48,3 +48,4 @@ experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/source/** -text -eol
 # Quartus/JTAG captures are immutable raw evidence; preserve exact bytes and
 # avoid treating vendor-formatted trailing spaces as source whitespace errors.
 experiments/step6/EXP-S6-MILESTONE-REPRO-20260926/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/raw/** -text -eol -diff -whitespace

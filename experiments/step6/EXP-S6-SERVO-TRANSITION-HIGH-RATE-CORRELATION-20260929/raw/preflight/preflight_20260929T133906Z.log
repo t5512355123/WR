@@ -1,0 +1,37 @@
+PREFLIGHT_START_UTC=2026-09-29T13:39:06,849741046+00:00
+PWD=/home/b10504072/04_WR
+BRANCH=feat/file_cleanup
+COMMIT=2c17883fc8fcb9fd0295903fa8b92120a23a83b7
+TREE=504937d84f2d7e94472ea028d71916a10981f327
+STATUS=?? experiments/step6/EXP-S6-SERVO-TRANSITION-HIGH-RATE-CORRELATION-20260929/raw/
+NO_COMPETING_QUARTUS_OR_DASHBOARD_PROCESS
+FROZEN_SOURCE_MANIFEST=PASS
+16c0ec707ee2d020754423261f3f8f460c88e7cb369d762ea291a97c5e576de6  artifacts/milestones/step6_global_time/source/scripts/jtag/read_wb_timeseries_session.tcl
+CAPTURE_WRAPPER_SYNTAX=PASS
+1) DE5 [1-11.1]
+2) DE5 [1-11.2]
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Sep 29 21:39:10 2026
+Info: Command: quartus_pgm -l
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 407 megabytes
+    Info: Processing ended: Tue Sep 29 21:39:10 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+PREFLIGHT_END_UTC=2026-09-29T13:39:10,946544637+00:00

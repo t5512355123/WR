@@ -10,9 +10,11 @@ gates below, the Slave must report a valid/stable Global-Time snapshot while
 `abs(WR_SERVO_OFFSET_PS) < 60`. Retrospective reads of the 2026-09-27
 frozen-image raw dashboards found `-158 ps` after the 300-second Step5 series
 and `+135 ps` in the final post-rearm dashboard. Global Time was valid in both
-captures, but neither offset meets the strict limit. A later 2026-09-29 run on
-a different half-gain image observed `-539 ps` and then larger offsets; it
-also does not qualify the expanded criterion.
+captures, but neither offset meets the strict limit. The exact frozen images
+were re-observed on 2026-09-29: one valid/stable sample reached `-17 ps`, but
+the next 10-second sample was `+1165 ps`; only 1/105 valid-time samples was in
+range, so no stable interval was established. A separate half-gain image run
+observed `-539 ps` and larger offsets; it is not the frozen milestone image.
 
 ## Acceptance evidence
 
@@ -20,7 +22,7 @@ also does not qualify the expanded criterion.
 |---|---|
 | Step 5 lock regression on Slave | PASS: 301/301 accepted samples; Helper, Main frequency, Main phase, Main lock, and PSTAT were locked in all 301 samples. The observer requested a 1000 ms cadence. |
 | Global Time on both boards | PASS: valid/stable snapshots with `TIME_VALID=1` and `PPS_VALID=1`. |
-| Slave WR servo phase offset | NOT PASS: retrospective frozen-image samples were -158 ps after the 300-second series and +135 ps after re-arm; neither is strictly within ±60 ps. Continuous offset stability was not measured. |
+| Slave WR servo phase offset | Historical 2026-09-27 samples were -158 ps and +135 ps. Exact-image 2026-09-29 re-observation captured one valid/stable -17 ps point, followed 10 seconds later by +1165 ps; only 1/105 valid-time samples was in range and no stable interval was established. |
 | Same-PPS agreement | PASS: five common TAI labels matched exactly; maximum difference was 0 cycles (0 ns). |
 | First scheduled digital trigger | PASS: Master and Slave each fired once at TAI 3094, cycle 62,500,000; measured digital label difference 0 cycles (0 ns). |
 | Re-arm repeatability | PASS: both fired again at TAI 3679, cycle 62,500,000; each fire counter reached 2; second measured digital label difference 0 cycles (0 ns). |
@@ -99,7 +101,13 @@ with `sha256sum -c SHA256SUMS`.
   signed WR phase offset is a valid integer strictly inside +/-60 ps. The
   historical digital-trigger pass remains valid for its original scope, but
   cannot be presented as a pass under this expanded criterion until the
-  frozen-image offset gate is captured.
+  frozen-image offset gate is stable across the accepted observation window.
+  The exact-image 2026-09-29 re-observation captured one valid/stable -17 ps
+  point in `TRACK_PHASE`; the next sample 10 seconds later was +1165 ps in
+  `WAIT_OFFSET_STABLE`. Only 1/105 valid/stable Slave time samples was strictly
+  within (-60,+60) ps, so this is a pointwise crossing and not a sustained
+  expanded Step 6 pass. See
+  [`EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929`](../../../experiments/step6/EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md).
 - The runtime-trigger observers use target/ARM source writes only. They do not
   compile, program, reset, restart PTP, or change PPS configuration.
 

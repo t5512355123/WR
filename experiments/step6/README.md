@@ -1,8 +1,11 @@
 # Step 6 — Global Time and Scheduled Trigger
 
 The historical digital Step 6 scope was independently reproduced from frozen
-source, but the current expanded Step 6 gate is not yet established. In
-addition to valid Global Time and the dual-board digital-trigger evidence, the
+source, but the current expanded Step 6 gate is not yet established. The
+2026-09-29 exact-image re-observation captured one valid/stable Slave offset
+point at -17 ps, but the next 10-second sample was +1165 ps; only 1/105
+valid-time samples was within (-60,+60) ps, so this is not a sustained pass.
+In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
 `+135 ps`, and the later half-gain observation `-539 ps`, do not meet that
@@ -24,6 +27,7 @@ TIMING_CLOSED                   = NO (not a functional gate)
 ## Main evidence
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
+- [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)
 - [Formal Step6 milestone package](../../artifacts/milestones/step6_global_time/README.md)
 - [Historical end-to-end hardware run](EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)
 - [Digital evidence closure audit](EXP-S6-DIGITAL-MILESTONE-CLOSURE-20260922/REPORT.md)

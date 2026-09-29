@@ -275,7 +275,15 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
-		s->cur_setpoint_ps += offset_ps;
+		/*
+		 * The DE5a coherent post-action captures show an approximately -2:1
+		 * transfer from phase-setpoint change to measured WR phase-offset
+		 * change.  A full-offset step therefore flips the residual with nearly
+		 * the same magnitude on every retry and never reaches the stable gate.
+		 * Compensate the measured plant gain during acquisition; TRACK_PHASE
+		 * retains its separate fine-tracking law below.
+		 */
+		s->cur_setpoint_ps += (offset_ps / 2);
 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 

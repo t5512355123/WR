@@ -61,6 +61,11 @@ remain in track. The next read-only step adds DMS and SETP to the same
 validated WDIAGS row; it does not change servo controls or claim Step 6 pass.
 See the [high-rate report](EXP-S6-WDIAGS-HIGH-RATE-SERVO-20260930/REPORT.md)
 and [phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/PLAN.md).
+The first same-frame phase-context smoke was rejected in all five rows because
+the WDIAGS epoch advanced during the enlarged read group; no long capture ran.
+The next reader-only attempt must use separate guarded frames and match their
+published UCNT before joining values. See its
+[smoke report](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/REPORT.md).
 
 ## Main evidence
 

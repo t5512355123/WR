@@ -58,8 +58,22 @@ def summarize(
     wire_summary = summary_rows[-1] if summary_rows else {}
     accepted = [r for r in rows if integer(r, "READS_VALID", 0) == 1 and integer(r, "COHERENT", 0) == 1]
     read_valid_rows = [r for r in rows if integer(r, "READS_VALID", 0) == 1]
-    valid_offsets = [integer(r, "CKO_PS") for r in accepted]
+    diag_frame_rows = [r for r in rows if "DIAG_FRAME_VALID" in r]
+    diag_frame_valid_rows = [r for r in diag_frame_rows if integer(r, "DIAG_FRAME_VALID", 0) == 1]
+    # Older captures predate the explicit WDIAGS publication-frame guard.
+    # Keep their recorded validity semantics while reporting the guard as absent.
+    trusted_offset_rows = [
+        r for r in read_valid_rows if integer(r, "DIAG_FRAME_VALID", 1) == 1
+    ]
+    valid_offsets = [integer(r, "CKO_PS") for r in trusted_offset_rows]
     valid_offsets = [value for value in valid_offsets if value is not None]
+    all_lock_rows = [
+        r for r in read_valid_rows
+        if all(integer(r, key, 0) == 1 for key in (
+            "HELPER_LOCK", "MAIN_LOCK", "MAIN_FREQ_LOCK", "MAIN_PHASE_LOCK", "PSTAT_LOCK"
+        ))
+    ]
+    global_time_rows = [r for r in read_valid_rows if integer(r, "GLOBAL_TIME_VALID", 0) == 1]
     strict_rows = [
         r for r in rows
         if integer(r, "QUALIFYING_SAMPLE", 0) == 1
@@ -76,6 +90,27 @@ def summarize(
     times = [value for value in times if value is not None]
     gaps = [right - left for left, right in zip(times, times[1:]) if right >= left]
     row_durations = [float(r["row_ms"]) for r in rows if _is_float(r.get("row_ms"))]
+    timing_rows = [
+        parse_fields(line.split("S6_INTERLEAVED_TIMING ", 1)[1])
+        for line in text.splitlines()
+        if "S6_INTERLEAVED_TIMING " in line
+    ]
+    timing_by_sample = {
+        integer(r, "sample"): r for r in timing_rows if integer(r, "sample") is not None
+    }
+    pre_cko_gaps = []
+    post_cko_gaps = []
+    for row in rows:
+        timing = timing_by_sample.get(integer(row, "sample"))
+        if not timing:
+            continue
+        cko_host = integer(timing, "CKO_HOST_US")
+        pre_end = integer(timing, "DMS_PRE_END_US")
+        post_start = integer(timing, "DMS_POST_START_US")
+        if cko_host is not None and pre_end is not None and cko_host >= pre_end:
+            pre_cko_gaps.append(cko_host - pre_end)
+        if cko_host is not None and post_start is not None and post_start >= cko_host:
+            post_cko_gaps.append(post_start - cko_host)
     sample_ms = integer(config, "sample_ms", 500) or 500
     requested_duration = integer(config, "duration_ms", expected_duration_ms) or expected_duration_ms
     observed_duration = integer(board_done, "elapsed_ms", times[-1] if times else 0) or 0
@@ -128,6 +163,13 @@ def summarize(
         "sample_rows": len(rows),
         "trusted_rows": len(accepted),
         "individual_reads_valid_rows": len(read_valid_rows),
+        "diagnostic_frame_checked_rows": len(diag_frame_rows),
+        "diagnostic_frame_valid_rows": len(diag_frame_valid_rows),
+        "diagnostic_epoch_changed_rows": sum(
+            1 for r in diag_frame_rows if integer(r, "DIAG_EPOCH_STABLE", 0) == 0
+        ),
+        "global_time_valid_rows": len(global_time_rows),
+        "all_five_step5_locks_rows": len(all_lock_rows),
         "qualifying_rows": len(strict_rows),
         "qualifying_fraction": (len(strict_rows) / len(rows)) if rows else None,
         "strict_offset_limit_ps": 60,
@@ -136,7 +178,12 @@ def summarize(
         "offset_min_ps": min(valid_offsets) if valid_offsets else None,
         "offset_max_ps": max(valid_offsets) if valid_offsets else None,
         "maximum_sample_gap_ms": max(gaps) if gaps else None,
+        "median_sample_gap_ms": statistics.median(gaps) if gaps else None,
         "median_row_duration_ms": statistics.median(row_durations) if row_durations else None,
+        "median_cko_after_pre_dms_us": statistics.median(pre_cko_gaps) if pre_cko_gaps else None,
+        "maximum_cko_after_pre_dms_us": max(pre_cko_gaps) if pre_cko_gaps else None,
+        "median_post_dms_start_after_cko_us": statistics.median(post_cko_gaps) if post_cko_gaps else None,
+        "maximum_post_dms_start_after_cko_us": max(post_cko_gaps) if post_cko_gaps else None,
         "reset_stop": reset_stop,
         "timeout_count": timeout_count,
         "invalid_count": invalid_count,
@@ -146,6 +193,7 @@ def summarize(
         "all_rows_step6_qualifying": uninterrupted_samples,
         "limitations": [
             "Sequential Wishbone/probe reads are bounded by host-time markers, not atomic.",
+            "New captures additionally reject rows crossing an invalid or changed WDIAGS publication frame; historical captures predate this guard.",
             "Sampled pass does not prove behavior between observations or physical SMA edge skew.",
             "Global Time and lock fields are separate groups from the interleaved CKO/DMS reads.",
         ],

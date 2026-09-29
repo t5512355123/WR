@@ -39,6 +39,13 @@ the Step 5 regression gate is the Slave result, `STABLE_LOCK_CANDIDATE`, with
 301 valid samples and no unlocked sample. The raw log records the requested
 cadence and complete job start/end times.
 
+The follow-on interleaved 300-second observation is recorded in
+[`EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930`](../../../experiments/step6/EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/REPORT.md).
+It sampled Global Time and all five Slave locks high in 434/434 rows, but only
+1/434 rows met `abs(CKO) < 60 ps`; the expanded acceptance remains
+`NOT_ESTABLISHED`. Stable UCNT/SSTAT framing was present in 382/434 rows.
+This follow-up is read-only and does not change the frozen milestone images.
+
 ## Provenance and frozen files
 
 - Frozen source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.
@@ -115,6 +122,19 @@ with `sha256sum -c SHA256SUMS`.
   [`EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929`](../../../experiments/step6/EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md).
 - The runtime-trigger observers use target/ARM source writes only. They do not
   compile, program, reset, restart PTP, or change PPS configuration.
+- Source audit of `vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c` confirms
+  the software state thresholds: `WAIT_OFFSET_STABLE` enters `TRACK_PHASE`
+  below 60 ps and returns to `SYNC_PHASE` after 10 missed polls;
+  `TRACK_PHASE` returns to `SYNC_PHASE` above 120 ps and otherwise adjusts
+  the phase setpoint by one quarter of the measured offset. This describes the
+  control flow but does not explain the measured CKO transitions or prove
+  causality. The next read-only diagnostic should verify the RTL/readback
+  mapping and capture state/action/update boundaries together. A source audit
+  also established that these WDIAGS fields are republished as a software
+  cache every 100 ms and `DATA_VALID` is cleared during refresh. The prior
+  interleaved reader did not bracket that cache epoch; a guarded follow-on
+  smoke/capture is planned in
+  [`EXP-S6-WDIAGS-FRAME-VALIDITY-20260930`](../../../experiments/step6/EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
 
 ## Evidence
 

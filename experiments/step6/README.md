@@ -22,9 +22,18 @@ but the endpoint readings were +447 ps and -3801 ps. Therefore Step 6 remains
 the derived `CKO−DMS` residual is not an independent t1−t2 measurement, and
 these sequential mailbox reads show correlation only. See the
 [`offset/update correlation report`](EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/REPORT.md).
-The next diagnostic should interleave CKO and DMS reads more tightly while
-bracketing them with UCNT/SSTAT; do not infer causality or tune controls from
-this capture.
+The follow-on [`interleaved CKO/DMS capture`](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/REPORT.md)
+completed a 300.34-second read-only run: Global Time and all five Slave lock
+bits were high in 434/434 rows, while only 1/434 rows also had
+`abs(CKO) < 60 ps`. CKO ranged from −3989 to +2419 ps. The DMS post-read began
+a median 2 μs after the CKO timestamp, but the offset gate remains
+`NOT_ESTABLISHED`; sequential reads do not prove causality. Do not infer a
+controller root cause or tune settings from this correlation alone.
+The source audit then established that these WDIAGS values are refreshed as a
+software cache every 100 ms and `DATA_VALID` is cleared during publication.
+The next read-only experiment adds validity and mapping-epoch guards around
+the critical group; see
+[`WDIAGS frame-validity plan`](EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
 In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
@@ -52,6 +61,8 @@ TIMING_CLOSED                   = NO (not a functional gate)
 - [Servo-transition high-rate correlation report](EXP-S6-SERVO-TRANSITION-HIGH-RATE-CORRELATION-20260929/REPORT.md)
 - [Fast SSTAT/CKO capture plan](EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/PLAN.md)
 - [Fast SSTAT/CKO capture report](EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/REPORT.md)
+- [Interleaved CKO/DMS capture plan](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/PLAN.md)
+- [Interleaved CKO/DMS capture report](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/REPORT.md)
 - [Slave-only microtrace plan](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/PLAN.md)
 - [Slave-only microtrace reader](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/scripts/read_slave_servo_microtrace.tcl)
 - [Slave-only microtrace report](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/REPORT.md)

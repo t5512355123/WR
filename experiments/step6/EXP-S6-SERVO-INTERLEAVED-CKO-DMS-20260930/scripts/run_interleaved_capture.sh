@@ -13,6 +13,7 @@ READER="$ROOT/scripts/jtag/read_step6_servo_interleaved_offset.tcl"
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 SAMPLE_MS=${SAMPLE_MS:-500}
 HARD_TIMEOUT=${HARD_TIMEOUT:-900}
+LOG_DIR=${LOG_DIR:-$EXPERIMENT_DIR/raw/observe}
 if [[ "$MODE" == "smoke" ]]; then
   DURATION_MS=${DURATION_MS:-15000}
 else
@@ -29,9 +30,9 @@ if [[ -n "$(pgrep -af '[q]uartus_stp|[q]uartus_pgm|[s]tep1_6_dashboard.sh' || tr
   exit 2
 fi
 
-mkdir -p "$EXPERIMENT_DIR/raw/observe"
+mkdir -p "$LOG_DIR"
 STAMP=$(date -u +%Y%m%dT%H%M%SZ)
-LOG="$EXPERIMENT_DIR/raw/observe/${MODE}_${STAMP}.log"
+LOG="$LOG_DIR/${MODE}_${STAMP}.log"
 if [[ -e "$LOG" ]]; then
   echo "refusing to overwrite existing evidence: $LOG" >&2
   exit 2

@@ -22,6 +22,8 @@ def row(sample: int, offset: int, qualifies: int = 1, elapsed: int | None = None
         "2026-09-30T00:00:00Z\tS6_INTERLEAVED_SAMPLE "
         f"board=DE5_1-11.2 sample={sample:04d} elapsed_ms={elapsed} row_ms=100.0 "
         f"READS_VALID=1 COHERENT=1 QUALIFYING_SAMPLE={qualifies} "
+        "DIAG_VALID_BEFORE=1 DIAG_VALID_AFTER=1 DIAG_EPOCH_BEFORE=9 "
+        "DIAG_EPOCH_AFTER=9 DIAG_EPOCH_STABLE=1 DIAG_FRAME_VALID=1 "
         f"GLOBAL_TIME_VALID=1 HELPER_LOCK=1 MAIN_LOCK=1 MAIN_FREQ_LOCK=1 "
         f"MAIN_PHASE_LOCK=1 PSTAT_LOCK=1 CKO_PS={offset}"
     )
@@ -32,6 +34,9 @@ class InterleavedCaptureTests(unittest.TestCase):
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         capture = source.split("proc s6_i_capture", maxsplit=1)[1].split("puts [format \"S6_INTERLEAVED_CONFIG", maxsplit=1)[0]
         ordered = [
+            "set diag_ctrl_before_raw [wb_read 0x00100A04]",
+            "set diag_epoch_before_raw [wb_read 0x00100B34]",
+            "set diag_inverse_before_raw [wb_read 0x00100B38]",
             "set ucnt_before [wb_read 0x00100A48]",
             "set sstat_before [wb_read 0x00100A08]",
             "set dms_pre_hi_a [wb_read 0x00100A34]",
@@ -43,6 +48,9 @@ class InterleavedCaptureTests(unittest.TestCase):
             "set dms_post_hi_b [wb_read 0x00100A34]",
             "set sstat_after [wb_read 0x00100A08]",
             "set ucnt_after [wb_read 0x00100A48]",
+            "set diag_epoch_after_raw [wb_read 0x00100B34]",
+            "set diag_inverse_after_raw [wb_read 0x00100B38]",
+            "set diag_ctrl_after_raw [wb_read 0x00100A04]",
         ]
         offsets = [capture.index(item) for item in ordered]
         self.assertEqual(offsets, sorted(offsets))
@@ -50,7 +58,7 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertIn("wb_register_writes=0 fpga_program=0 reset=0", source)
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
         self.assertIn("[normalize_probe64 $snapshot1_after]", source)
-        self.assertIn("$reads_valid && $global_valid && $helper_lock == 1", source)
+        self.assertIn("$reads_valid && $diag_frame_valid && $global_valid", source)
 
     def test_sample_format_has_one_argument_for_each_conversion(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
@@ -97,6 +105,18 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "STEP6_EXPANDED_GATE_NOT_ESTABLISHED")
         self.assertFalse(result["all_rows_step6_qualifying"])
 
+    def test_invalid_or_crossed_diagnostics_frame_is_not_counted_as_offset_data(self) -> None:
+        line = row(0, 15).replace("DIAG_FRAME_VALID=1", "DIAG_FRAME_VALID=0")
+        line = line.replace("COHERENT=1", "COHERENT=0")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "capture.log"
+            path.write_text(line + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke")
+        self.assertEqual(result["diagnostic_frame_checked_rows"], 1)
+        self.assertEqual(result["diagnostic_frame_valid_rows"], 0)
+        self.assertEqual(result["offset_valid_rows"], 0)
+        self.assertEqual(result["trusted_rows"], 0)
+
     def test_complete_qualified_samples_pass_only_the_sampled_gate(self) -> None:
         lines = [row(i, -17) for i in range(601)]
         lines[27] = lines[27].replace("COHERENT=1", "COHERENT=0")
@@ -112,7 +132,10 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "STEP6_EXPANDED_SAMPLE_GATE_PASS")
         self.assertEqual(result["offset_min_ps"], -17)
         self.assertEqual(result["offset_max_ps"], -17)
+        self.assertEqual(result["offset_abs_lt_60_count"], 601)
         self.assertEqual(result["trusted_rows"], 600)
+        self.assertEqual(result["global_time_valid_rows"], 601)
+        self.assertEqual(result["all_five_step5_locks_rows"], 601)
 
 
 if __name__ == "__main__":

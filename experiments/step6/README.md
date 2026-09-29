@@ -16,8 +16,7 @@ episode ended after CKO moved from +92 ps to -3650 ps and state returned to
 `SYNC_PHASE`, consistent with the source's >120 ps tracking-exit threshold;
 the jump's origin remains unresolved. Pre/post dashboards showed all five
 Step 5 locks and Global Time valid, but the compact reader did not sample them
-during capture. The next diagnostic correlates SSTAT/CKO with `WDIAG_UCNT`,
-`WDIAG_SETP`, and `WDIAG_DMS`.
+during capture. The next diagnostic is [`EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929`](EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/PLAN.md): correlate SSTAT/CKO with `WDIAG_UCNT`, `WDIAG_SETP`, and `WDIAG_DMS`. `DMS` is the corrected `delayMS` term (`meanDelay + delayAsymmetry`) used to calculate the servo offset, not an uncorrected/raw delay. The new reader brackets sequential values and supports correlation only; it does not establish same-cycle causality or Step 6 PASS.
 In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and

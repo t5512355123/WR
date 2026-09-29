@@ -121,8 +121,9 @@ stayed asserted throughout the capture.
 Correlate the same Slave `SSTAT`/`CKO` transitions with source-backed
 `WDIAG_UCNT`, `WDIAG_SETP`, and `WDIAG_DMS` in one compact, read-only trace.
 `UCNT` is the WR servo update counter; `SETP` is `cur_setpoint_ps`; `DMS` is
-the raw master-slave delay diagnostic. Bracket `UCNT`, `SETP`, SSTAT, and CKO
-so a jump can be classified as coincident with a servo update/setpoint change
-or occurring without one. Keep all controller and timing parameters fixed.
-This is the next causal-observation step; it still cannot be called Step 6
-PASS without a separate full acceptance window.
+the corrected `delayMS` term (`meanDelay + delayAsymmetry`) used to calculate
+`offsetFromMaster`. Bracket `UCNT`, `SETP`, SSTAT, and CKO so a jump can be
+classified as coincident with a servo update/setpoint/delay change or occurring
+without one. Keep all controller and timing parameters fixed. This is the next
+correlation-observation step; it still cannot be called Step 6 PASS without a
+separate full acceptance window.

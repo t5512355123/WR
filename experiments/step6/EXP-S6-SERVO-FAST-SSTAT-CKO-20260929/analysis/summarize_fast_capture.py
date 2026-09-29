@@ -149,6 +149,10 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
 
         starts = [row.start for row in accepted]
         intervals_ms = [(b - a).total_seconds() * 1000 for a, b in zip(starts, starts[1:])]
+        row_elapsed_us = [
+            value for row in accepted
+            if (value := int_field(row, "elapsed_us")) is not None
+        ]
         strict_both = sum(
             abs(int_field(row, "offset_begin_ps") or 0) < 60
             and abs(int_field(row, "offset_end_ps") or 0) < 60
@@ -180,12 +184,26 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
                 and int_field(row, "pps_valid_end") == 1
                 for row in valid
             ),
-            "first_sample_utc": accepted[0].start.isoformat() if accepted else None,
-            "last_sample_utc": accepted[-1].start.isoformat() if accepted else None,
-            "sample_start_span_seconds": round((accepted[-1].start - accepted[0].start).total_seconds(), 6) if len(accepted) > 1 else 0,
-            "sample_interval_ms_median": round(statistics.median(intervals_ms), 3) if intervals_ms else None,
-            "sample_interval_ms_min": round(min(intervals_ms), 3) if intervals_ms else None,
-            "sample_interval_ms_max": round(max(intervals_ms), 3) if intervals_ms else None,
+            "time_pps_probe_complete_samples": sum(
+                all(int_field(row, key) is not None and int_field(row, key) >= 0
+                    for key in ("time_valid_begin", "time_valid_end", "pps_valid_begin", "pps_valid_end"))
+                for row in valid
+            ),
+            "clock_probe_complete_samples": sum(
+                bool(re.fullmatch(r"[0-9A-Fa-f]{1,16}", row.fields.get("clock_begin", "")))
+                and bool(re.fullmatch(r"[0-9A-Fa-f]{1,16}", row.fields.get("clock_end", "")))
+                for row in valid
+            ),
+            "first_output_received_utc": accepted[0].start.isoformat() if accepted else None,
+            "last_output_received_utc": accepted[-1].start.isoformat() if accepted else None,
+            "output_received_span_seconds": round((accepted[-1].start - accepted[0].start).total_seconds(), 6) if len(accepted) > 1 else 0,
+            "host_output_arrival_interval_ms_median": round(statistics.median(intervals_ms), 3) if intervals_ms else None,
+            "host_output_arrival_interval_ms_min": round(min(intervals_ms), 3) if intervals_ms else None,
+            "host_output_arrival_interval_ms_max": round(max(intervals_ms), 3) if intervals_ms else None,
+            "reader_row_elapsed_us_samples": len(row_elapsed_us),
+            "reader_row_elapsed_us_min": min(row_elapsed_us) if row_elapsed_us else None,
+            "reader_row_elapsed_us_median": statistics.median(row_elapsed_us) if row_elapsed_us else None,
+            "reader_row_elapsed_us_max": max(row_elapsed_us) if row_elapsed_us else None,
             "offset_begin_samples": len(offsets_begin),
             "offset_begin_min_ps": min(offsets_begin) if offsets_begin else None,
             "offset_begin_max_ps": max(offsets_begin) if offsets_begin else None,
@@ -205,7 +223,7 @@ def summarize(rows: list[Row], exit_code: int | None, errors: int) -> dict[str, 
         "reader_error_lines": errors,
         "total_rows": len(rows),
         "boards": result,
-        "interpretation_limit": "SSTAT and CKO are bracketed within one row, but other fields remain sequential reads; this diagnostic cannot prove single-cycle causality or Step 6 acceptance.",
+        "interpretation_limit": "SSTAT and CKO are bracketed within one row, but other fields remain sequential reads; this diagnostic cannot prove single-cycle causality or Step 6 acceptance. Host output-arrival timestamps may be batched by Quartus/Tcl buffering; use reader_row_elapsed_us as the measured per-row duration, not host output-arrival intervals, as sample cadence.",
     }
 
 

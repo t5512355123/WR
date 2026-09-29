@@ -31,6 +31,7 @@ set ::s6_interleaved_invalid_streak 0
 set ::s6_interleaved_reset_stop 0
 set ::s6_interleaved_board_count 0
 array set ::s6_interleaved_reset_baseline {}
+array set ::s6_interleaved_last_diag_epoch {}
 
 proc s6_i_us {} {
   if {![catch {clock clicks -microseconds} value]} { return $value }
@@ -117,20 +118,89 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set main_phase [expr {$main_word < 0 ? -1 : (($main_word >> 3) & 1)}]
   set pstat_lock [expr {$pstat_word < 0 ? -1 : (($pstat_word >> 1) & 1)}]
 
-  # Keep the framed payload minimal: the full WDIAGS refresh is only 100 ms,
-  # so reading DMS/SETP here can span multiple published frames. CKO, SSTAT,
-  # and UCNT are the Step 6 offset/state/update evidence needed in one frame.
+  # Align to a just-published WDIAGS epoch, then read a minimal CKO/SSTAT/UCNT
+  # payload immediately. Unaligned sequential reads were crossing the 100 ms
+  # diagnostic refresh even after removing DMS and SETP.
   set critical_start_us [s6_i_us]
-  set diag_ctrl_before_raw [wb_read 0x00100A04]
-  set diag_epoch_before_raw [wb_read 0x00100B34]
-  set diag_inverse_before_raw [wb_read 0x00100B38]
-  set cko_raw [wb_read 0x00100A40]
-  set cko_host_us [s6_i_us]
-  set sstat_raw [wb_read 0x00100A08]
-  set ucnt_raw [wb_read 0x00100A48]
-  set diag_epoch_after_raw [wb_read 0x00100B34]
-  set diag_ctrl_after_raw [wb_read 0x00100A04]
-  set critical_end_us [s6_i_us]
+  set diag_wait_start_ms [clock milliseconds]
+  set diag_wait_ms -1
+  set diag_valid_before -1
+  set diag_valid_after -1
+  set diag_epoch_before -1
+  set diag_epoch_after -1
+  set diag_epoch_stable 0
+  set diag_epoch_before_ok 0
+  set diag_epoch_after_ok 0
+  set diag_frame_valid 0
+  set diag_ctrl_before_raw "TIMEOUT"
+  set diag_ctrl_after_raw "TIMEOUT"
+  set diag_epoch_before_raw "TIMEOUT"
+  set diag_epoch_after_raw "TIMEOUT"
+  set diag_inverse_before_raw "TIMEOUT"
+  set cko_raw "TIMEOUT"
+  set sstat_raw "TIMEOUT"
+  set ucnt_raw "TIMEOUT"
+  set cko_host_us "NA"
+  set frame_start_us "NA"
+  set critical_end_us "NA"
+  set frame_found 0
+  while {[clock milliseconds] - $diag_wait_start_ms < 350} {
+    set candidate_raw [wb_read 0x00100B34]
+    set candidate_word [word32 $candidate_raw]
+    if {$candidate_word >= 0} {
+      set candidate_epoch [expr {$candidate_word & 0xffff}]
+      if {$candidate_epoch != $::s6_interleaved_last_diag_epoch($hardware_name)} {
+        set ctrl_candidate_raw [wb_read 0x00100A04]
+        set ctrl_candidate_word [word32 $ctrl_candidate_raw]
+        if {$ctrl_candidate_word >= 0 && ($ctrl_candidate_word & 1)} {
+          set inverse_candidate_raw [wb_read 0x00100B38]
+          set inverse_candidate_word [word32 $inverse_candidate_raw]
+          if {$inverse_candidate_word >= 0 &&
+              (($candidate_epoch ^ ($inverse_candidate_word & 0xffff)) == 0xffff)} {
+            set diag_ctrl_before_raw $ctrl_candidate_raw
+            set diag_epoch_before_raw $candidate_raw
+            set diag_inverse_before_raw $inverse_candidate_raw
+            set diag_valid_before 1
+            set diag_epoch_before $candidate_epoch
+            set diag_epoch_before_ok 1
+            set frame_start_us [s6_i_us]
+            set diag_wait_ms [expr {([clock milliseconds] - $diag_wait_start_ms)}]
+            set cko_raw [wb_read 0x00100A40]
+            set cko_host_us [s6_i_us]
+            set sstat_raw [wb_read 0x00100A08]
+            set ucnt_raw [wb_read 0x00100A48]
+            set diag_epoch_after_raw [wb_read 0x00100B34]
+            set diag_ctrl_after_raw [wb_read 0x00100A04]
+            set critical_end_us [s6_i_us]
+            set diag_epoch_after_word [word32 $diag_epoch_after_raw]
+            set diag_ctrl_after_word [word32 $diag_ctrl_after_raw]
+            if {$diag_epoch_after_word >= 0} {
+              set diag_epoch_after [expr {$diag_epoch_after_word & 0xffff}]
+              set diag_epoch_after_ok 1
+              set ::s6_interleaved_last_diag_epoch($hardware_name) $diag_epoch_after
+            }
+            if {$diag_ctrl_after_word >= 0} {
+              set diag_valid_after [expr {$diag_ctrl_after_word & 1}]
+            }
+            set diag_epoch_stable [expr {
+              $diag_epoch_before >= 0 &&
+              $diag_epoch_before == $diag_epoch_after ? 1 : 0}]
+            set diag_frame_valid [expr {
+              $diag_valid_before == 1 && $diag_valid_after == 1 &&
+              $diag_epoch_before_ok && $diag_epoch_after_ok &&
+              $diag_epoch_stable ? 1 : 0}]
+            set frame_found 1
+            break
+          }
+        }
+      }
+    }
+    after 1
+  }
+  if {!$frame_found} {
+    set diag_wait_ms [expr {[clock milliseconds] - $diag_wait_start_ms}]
+    set critical_end_us [s6_i_us]
+  }
 
   set entry [safe_probe_read 26]
   set reset [safe_probe_read 27]
@@ -143,19 +213,6 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set de0_raw [word32 $diag_epoch_before_raw]
   set di0_raw [word32 $diag_inverse_before_raw]
   set de1_raw [word32 $diag_epoch_after_raw]
-  set diag_valid_before [expr {$dc0 < 0 ? -1 : ($dc0 & 1)}]
-  set diag_valid_after [expr {$dc1 < 0 ? -1 : ($dc1 & 1)}]
-  set diag_epoch_before [expr {$de0_raw < 0 ? -1 : ($de0_raw & 0xffff)}]
-  set diag_epoch_after [expr {$de1_raw < 0 ? -1 : ($de1_raw & 0xffff)}]
-  set diag_epoch_before_ok [expr {
-    $de0_raw >= 0 && $di0_raw >= 0 &&
-    ((($de0_raw & 0xffff) ^ ($di0_raw & 0xffff)) == 0xffff) ? 1 : 0}]
-  set diag_epoch_after_ok [expr {$de1_raw >= 0 ? 1 : 0}]
-  set diag_epoch_stable [expr {
-    $diag_epoch_before >= 0 && $diag_epoch_before == $diag_epoch_after ? 1 : 0}]
-  set diag_frame_valid [expr {
-    $diag_valid_before == 1 && $diag_valid_after == 1 &&
-    $diag_epoch_before_ok && $diag_epoch_after_ok && $diag_epoch_stable ? 1 : 0}]
   set cko [s6_i_signed32 $cko_raw]
   set servo_state [expr {$sstat < 0 ? -1 : (($sstat >> 8) & 0xf)}]
   set reads_valid [expr {
@@ -215,11 +272,12 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   }
   if {$qualifies} { incr ::s6_interleaved_qualifying }
 
-  puts [format "S6_INTERLEAVED_TIMING board=%s sample=%04d FRAME_START_US=%s CKO_HOST_US=%s FRAME_END_US=%s" \
-    $hardware_name $sample $critical_start_us $cko_host_us $critical_end_us]
-  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s CRITICAL_START_US=%s CKO_HOST_US=%s CRITICAL_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d" \
+  puts [format "S6_INTERLEAVED_TIMING board=%s sample=%04d DIAG_WAIT_START_US=%s FRAME_START_US=%s CKO_HOST_US=%s FRAME_END_US=%s DIAG_WAIT_MS=%d" \
+    $hardware_name $sample $critical_start_us $frame_start_us $cko_host_us \
+    $critical_end_us $diag_wait_ms]
+  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d FRAME_START_US=%s CKO_HOST_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
-    $critical_start_us $cko_host_us $critical_end_us $row_end_us $reads_valid \
+    $critical_start_us $diag_wait_ms $frame_start_us $cko_host_us $critical_end_us $row_end_us $reads_valid \
     $coherent $qualifies $tai $cycles $global_valid $snapshot_stable \
     $snapshot_valid $snapshot_count $status_time_valid $status_pps_valid \
     $escr_time_valid $escr_pps_valid $helper_lock $main_lock $main_freq \
@@ -247,6 +305,7 @@ foreach hardware_name [get_hardware_names] {
   if {[catch {
     start_insystem_source_probe -hardware_name $hardware_name -device_name $device_name
     wb_sync_toggle
+    set ::s6_interleaved_last_diag_epoch($hardware_name) -1
     set begin_ms [clock milliseconds]
     set sample 0
     while {[clock milliseconds] - $begin_ms <= $duration_ms} {

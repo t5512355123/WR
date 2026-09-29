@@ -18,6 +18,12 @@ validated.
   (`base + 0x134/+0x138`) around a minimal three-register payload (`CKO`,
   `SSTAT`, `UCNT`). Require DATA_VALID high before and after, a valid
   counter/inverse pair at the start, and an unchanged low-16-bit epoch.
+- Do not begin the payload at an arbitrary point in the refresh window. The
+  reader remembers the previous epoch and waits up to 350 ms for a different
+  epoch with DATA_VALID high and a valid inverse pair, then immediately reads
+  CKO/SSTAT/UCNT. A sample that cannot find such a frame is invalid, not a
+  reason to extend the capture or relax the guard. The first row uses an
+  unset epoch baseline and is still protected by the before/after guard.
 - Do not read DMS/SETP in this framed payload: the first smoke showed the full
   group took about 200 ms and crossed one or two 100 ms WDIAGS epochs. DMS
   correlation remains documented in the earlier experiment; this follow-on
@@ -31,7 +37,10 @@ validated.
 1. Run the focused analyzer tests and Tcl completeness/syntax checks.
 2. On Pain, run a 15-second smoke with at least 20 rows, zero transport
    errors/timeouts, median row duration below 250 ms, and at least 75% rows
-   with valid WDIAGS framing and an unchanged diagnostic epoch.
+   with valid WDIAGS framing and an unchanged diagnostic epoch. Smoke
+   `20260929T174908Z` (5/5 crossed frames) and `20260929T175921Z` (10/24 valid
+   frames) both failed this gate; see `REPORT.md`. The next run uses the
+   epoch-aligned reader. Do not launch the 300-second capture unless it passes.
 3. If smoke passes, run one 300-second read-only Slave capture, with a 900
    second hard deadline. Stop on reset signature change, five consecutive
    untrusted rows, transport failure, or deadline; preserve partial evidence.

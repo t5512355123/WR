@@ -30,13 +30,13 @@ def row(sample: int, offset: int, qualifies: int = 1, elapsed: int | None = None
 
 
 class InterleavedCaptureTests(unittest.TestCase):
-    def test_observer_frames_minimal_offset_state_update_payload(self) -> None:
+    def test_observer_aligns_minimal_payload_to_new_valid_diagnostics_epoch(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         capture = source.split("proc s6_i_capture", maxsplit=1)[1].split("puts [format \"S6_INTERLEAVED_CONFIG", maxsplit=1)[0]
         ordered = [
-            "set diag_ctrl_before_raw [wb_read 0x00100A04]",
-            "set diag_epoch_before_raw [wb_read 0x00100B34]",
-            "set diag_inverse_before_raw [wb_read 0x00100B38]",
+            "set candidate_raw [wb_read 0x00100B34]",
+            "set ctrl_candidate_raw [wb_read 0x00100A04]",
+            "set inverse_candidate_raw [wb_read 0x00100B38]",
             "set cko_raw [wb_read 0x00100A40]",
             "set sstat_raw [wb_read 0x00100A08]",
             "set ucnt_raw [wb_read 0x00100A48]",
@@ -50,6 +50,9 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertIn("[normalize_probe64 $snapshot1_before]", source)
         self.assertIn("[normalize_probe64 $snapshot1_after]", source)
         self.assertIn("$reads_valid && $diag_frame_valid && $global_valid", source)
+        self.assertIn("$candidate_epoch != $::s6_interleaved_last_diag_epoch($hardware_name)", capture)
+        self.assertIn("$diag_wait_ms $frame_start_us", source)
+        self.assertIn("set ::s6_interleaved_last_diag_epoch($hardware_name) -1", source)
 
     def test_sample_format_has_one_argument_for_each_conversion(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")

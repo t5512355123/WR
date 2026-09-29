@@ -1,0 +1,79 @@
+GLOBAL_TIME_WAIT elapsed=10s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=INVALID,S3=INVALID,S4=INFO,S5=INFO/UPSTREAM_NOT_READY,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=24s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=INFO,S3=PASS,S4=INFO,S5=INFO/UPSTREAM_NOT_READY,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=38s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=INFO,S3=PASS,S4=INFO,S5=INFO/UPSTREAM_NOT_READY,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=52s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=66s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=80s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=94s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=108s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=122s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=136s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=150s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=164s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=178s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=192s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=206s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=220s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=234s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=248s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=262s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=276s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT elapsed=290s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+GLOBAL_TIME_WAIT_INCOMPLETE elapsed=304s/300s boards=2 reason=host-side-max pending=DE5_1-11.2/SLAVE[S1=PASS,S2=PASS,S3=PASS,S4=PASS,S5=INFO/LOCK_ACQUIRED_NOT_STABLE,S6=INFO,Link=1,TM=1,TIME_VALID=0,PPS_VALID=0,Snapshot=0/1,TAI=0,Cycles=0]
+White Rabbit Step 1-6 dashboard  2026-09-29T11:10:41+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=318 |
+| PPS registers                CR=20000006 EN=0 ESCR=268   |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -3456 ps (target <60 ps)    |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=256   |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=317          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+DASHBOARD_GLOBAL_TIME_WAIT_INCOMPLETE seconds=300 scope=host-only; hardware state is shown above

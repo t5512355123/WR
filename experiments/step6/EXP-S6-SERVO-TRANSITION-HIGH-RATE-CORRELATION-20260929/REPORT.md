@@ -109,5 +109,5 @@ digital-trigger evidence remains separate and unchanged.
 - The observer used the frozen reader through its existing in-system source
   probe mailbox. `write_source_data` carried diagnostic read requests only;
   no WR settings, target/ARM controls, or `DATA_SNAPSHOT` register was written.
-- Dashboard parsing/analyzer tests: 2/2 passed locally.
+- Dashboard parsing/analyzer tests: 2/2 passed on both Laptop and Pain after normalizing nanosecond timestamps for Pain's Python version.
 - The archived `/home/b10504072/04_WR_archive_step6_pass/` was not accessed.

@@ -24,6 +24,21 @@ class FastReaderContractTest(unittest.TestCase):
 
 
 class FastCaptureParserTest(unittest.TestCase):
+    def test_counts_invalid_attempt_before_successful_retry(self):
+        a = "2026-09-29T13:00:00.000000000Z"
+        fields = "data_valid=0 sample_valid=0 elapsed_us=40000 ctrl_valid=0 "
+        good = "data_valid=1 sample_valid=1 elapsed_us=40000 ctrl_valid=1 "
+        log = "\n".join([
+            f"{a}\tFAST_SAMPLE board=DE5 [1-11.2] sample=001 attempt=0 {fields}",
+            f"{a}\tFAST_SAMPLE board=DE5 [1-11.2] sample=001 attempt=1 {good}",
+            f"{a}\tFAST_SAMPLE_RESULT board=DE5 [1-11.2] sample=001 accepted=1 retries=1",
+        ])
+        rows, _, _ = parse_capture(log)
+        slave = summarize(rows, 0, 0)["boards"]["DE5 [1-11.2]"]
+        self.assertEqual(slave["failed_attempt_rows"], 1)
+        self.assertEqual(slave["accepted_samples"], 1)
+        self.assertEqual(slave["accepted_samples_with_retries"], 1)
+
     def test_preserves_within_row_state_edge_and_signed_offsets(self):
         a = "2026-09-29T13:00:00.000000000Z"
         b = "2026-09-29T13:00:00.100000000Z"

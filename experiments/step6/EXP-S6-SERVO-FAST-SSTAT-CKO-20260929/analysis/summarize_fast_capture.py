@@ -73,7 +73,13 @@ def parse_capture(text: str) -> tuple[list[Row], int | None, int]:
         sample_match = FAST_SAMPLE.search(body)
         if sample_match:
             board, sample, attempt, field_text = sample_match.groups()
-            row = Row(board, int(sample), int(attempt), timestamp, dict(FIELD.findall(field_text)))
+            fields = dict(FIELD.findall(field_text))
+            sample_valid = fields.get("sample_valid")
+            attempt_accepted = int(sample_valid) if sample_valid in {"0", "1"} else None
+            row = Row(
+                board, int(sample), int(attempt), timestamp, fields,
+                accepted=attempt_accepted,
+            )
             rows.append(row)
             current[board] = row
             continue

@@ -45,12 +45,38 @@ Slave 重新燒錄的仍是完全相同的 `slave.sof`（Programmer checksum 仍
 
 ## 判讀
 
+### 2026-09-29 strict-offset retrospective
+
+Although this reproduction originally used the pre-expansion Step6 dashboard
+gate, its retained raw dashboard files expose the signed servo offset:
+
+- `raw/observe/dashboard_after_300s_step5.log` (dashboard timestamp
+  `2026-09-29T12:27:17+08:00`): Slave `WR_SERVO_STATE=WAIT_OFFSET_STABLE`,
+  `WR_SERVO_OFFSET=-158 ps`, and `TIME_VALID=PPS_VALID=1`.
+- `raw/observe/dashboard_final_after_rearm.log`: the final Slave dashboard
+  record reports `WR_SERVO_STATE=WAIT_OFFSET_STABLE`,
+  `WR_SERVO_OFFSET_PS=135`, and valid/stable Global-Time snapshots.
+
+Both are valid point observations, but `|-158|` and `|135|` exceed the current
+strict `<60 ps` gate. Neither establishes a sustained in-gate interval. This
+retrospective does not invalidate the original Global-Time, Step5-series,
+same-PPS, or digital-trigger evidence; it means the historical frozen image
+does **not** meet the later expanded Step6 acceptance on the evidence
+available.
+
 **這次差異不是 GitHub clone 複製錯誤或 frozen SOF 內容不同。** 同一 commit、同一對 SOF 在首次配置時出現 Slave runtime failure；對 Slave 重新配置同一 SOF 後，Step5 300 秒觀測、same-PPS 對時、兩次 dual-board trigger/re-arm 與最終 Step6 gate 都通過。最符合證據的判斷是 Slave 的 runtime/startup/servo 狀態具有時序依賴，重新配置使其重新初始化後恢復。
 
 目前只能把問題定位到「板上執行狀態／啟動時序」，**尚未證明更底層的唯一根因**（例如特定 servo transition 或開機順序）。SFP live query 在 recovery 後顯示 EEPROM checksum 有效，但本機 SDBFS lookup 回傳 `rc=-1`、active calibration 為零；由於重配置後 Step6 仍通過，且缺少失敗前的配對讀值，不能把這項診斷直接認定為故障原因。
 
 ## 結論
 
-`GITHUB_CLONE_FROZEN_STEP6_MILESTONE = PASS`，已在與唯讀 `04_WR` 相同的 frozen SOF 上重現，並完成 300 秒 Step5 series、same-PPS consistency、scheduled trigger 及 re-arm repeatability。
+`GITHUB_CLONE_FROZEN_STEP6_HISTORICAL_SCOPE = PASS`；strict offset gate
+`abs(WR_SERVO_OFFSET_PS) < 60` = **NOT MET** on the retained samples.
+同一 frozen SOF 已完成 300 秒 Step5 series、same-PPS consistency、scheduled
+trigger 及 re-arm repeatability，但這些結果不能替代新增的 phase-offset
+門檻。
 
-本結果證明 frozen milestone 可在 GitHub clone 的目標板上通過；不等於已驗證上述不同 SHA 的 fresh-build SOF。完整原始輸出保存在本目錄的 `raw/program/` 與 `raw/observe/`。
+本結果只證明 frozen milestone 在原本 Global-Time、300 秒 Step5、same-PPS
+與數位 trigger 範圍可通過；strict phase-offset gate 仍未達成，也不等於已
+驗證上述不同 SHA 的 fresh-build SOF。完整原始輸出保存在本目錄的
+`raw/program/` 與 `raw/observe/`。

@@ -28,9 +28,11 @@ missing, disagrees with the numeric offset, or has an unknown board role.
 - Bash syntax validation passed. No Quartus build, FPGA programming, reset,
   or hardware observation was performed in this gate-correction change.
 - The 2026-09-27 frozen-image experiment remains a historical pass for the
-  original Global-Time and digital-trigger scope, but it predates the strict
-  phase-offset gate. The separate 2026-09-29 half-gain experiment observed
-  -539 ps and did not establish the expanded Step 6 acceptance.
+  original Global-Time and digital-trigger scope, but its retrospective raw
+  dashboard values were `-158 ps` after the 300-second series and `+135 ps`
+  after re-arm. Both have valid Global Time and both fail the strict `<60 ps`
+  offset requirement. The separate 2026-09-29 half-gain experiment observed
+  `-539 ps` and likewise did not establish expanded Step 6 acceptance.
 - A read-only six-sample dashboard observation was performed on Pain at
   2026-09-29 19:03:14–19:04:24 (+08:00), using the currently programmed
   half-gain candidate image documented in
@@ -49,8 +51,10 @@ missing, disagrees with the numeric offset, or has an unknown board role.
 
 ## Next action
 
-After reviewing this result with the Step6 advisor, select one next
-source-grounded experiment. Any later hardware PASS must record a valid/stable
-Slave snapshot with `abs(WR_SERVO_OFFSET_PS) < 60`; retain existing
-Global-Time and dual-board-trigger evidence as separate gates. Do not infer
-hardware PASS from these offline tests or this short observation.
+The Step6 advisor message was submitted, but the referenced conversation
+returned `systemError` and no new reply was available at report time. Wait for
+the advisor's source-grounded next-step recommendation before another hardware
+experiment. Any later hardware PASS must record a valid/stable Slave snapshot
+with `abs(WR_SERVO_OFFSET_PS) < 60`; retain existing Global-Time and
+dual-board-trigger evidence as separate gates. Do not infer hardware PASS from
+these offline tests or point observations.

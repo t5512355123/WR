@@ -22,6 +22,13 @@ milestone SOFs). Programmer reported one device configured and zero errors or
 warnings on each board. Master/Slave SOF SHA-256 values are recorded in
 `raw/post-program-capture-summary.md`.
 
+This was an experimental source variant, not the frozen Step6 milestone. The
+candidate change is preserved by source commit
+`edd525a2104a7bc68c6db13fcaa1a1368c117095`; the frozen milestone source tree
+has since been restored to the baseline that matches its checked-in SOFs and
+manifests. Do not use the frozen milestone SOFs as substitutes for the
+half-gain candidate build.
+
 ## Hardware result
 
 The first 180-second post-program wait ended before Slave reacquired the phase

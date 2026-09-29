@@ -7,10 +7,12 @@ same future digital trigger twice at exactly matching TAI/cycle labels.
 
 **Current expanded Step 6 acceptance: NOT ESTABLISHED.** In addition to the
 gates below, the Slave must report a valid/stable Global-Time snapshot while
-`abs(WR_SERVO_OFFSET_PS) < 60`. The 2026-09-27 frozen-image reproduction did
-not record this newly required phase-offset gate. A later 2026-09-29 run on a
-different half-gain image observed `WR_SERVO_OFFSET_PS=-539`; it does not
-qualify the expanded criterion or replace a frozen-image reproduction.
+`abs(WR_SERVO_OFFSET_PS) < 60`. Retrospective reads of the 2026-09-27
+frozen-image raw dashboards found `-158 ps` after the 300-second Step5 series
+and `+135 ps` in the final post-rearm dashboard. Global Time was valid in both
+captures, but neither offset meets the strict limit. A later 2026-09-29 run on
+a different half-gain image observed `-539 ps` and then larger offsets; it
+also does not qualify the expanded criterion.
 
 ## Acceptance evidence
 
@@ -18,7 +20,7 @@ qualify the expanded criterion or replace a frozen-image reproduction.
 |---|---|
 | Step 5 lock regression on Slave | PASS: 301/301 accepted samples; Helper, Main frequency, Main phase, Main lock, and PSTAT were locked in all 301 samples. The observer requested a 1000 ms cadence. |
 | Global Time on both boards | PASS: valid/stable snapshots with `TIME_VALID=1` and `PPS_VALID=1`. |
-| Slave WR servo phase offset | NOT ESTABLISHED for the frozen image: the historical reproduction predates the strict `abs(offset_ps) < 60` acceptance gate. |
+| Slave WR servo phase offset | NOT PASS: retrospective frozen-image samples were -158 ps after the 300-second series and +135 ps after re-arm; neither is strictly within ±60 ps. Continuous offset stability was not measured. |
 | Same-PPS agreement | PASS: five common TAI labels matched exactly; maximum difference was 0 cycles (0 ns). |
 | First scheduled digital trigger | PASS: Master and Slave each fired once at TAI 3094, cycle 62,500,000; measured digital label difference 0 cycles (0 ns). |
 | Re-arm repeatability | PASS: both fired again at TAI 3679, cycle 62,500,000; each fire counter reached 2; second measured digital label difference 0 cycles (0 ns). |
@@ -34,6 +36,12 @@ cadence and complete job start/end times.
 
 - Frozen source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.
 - Dashboard/source overlay commit: `3b3a8ec52668d0c60550451ef1780539f7c93fd7`.
+- The frozen `source/` tree is kept byte-identical to its source manifest and
+  the checked-in frozen SOFs. Experimental servo/control variants belong in
+  their own experiment source snapshot or patch; do not edit this frozen tree
+  in place. The unaccepted half-gain candidate is documented separately in
+  `experiments/step6/EXP-S6-WRH-SERVO-PHASE-HALF-GAIN-20260929/REPORT.md` and
+  was built from source commit `edd525a2104a7bc68c6db13fcaa1a1368c117095`.
 - Independently rebuilt from `artifacts/milestones/step6_global_time/source/`
   using Quartus Prime Standard Edition 17.0.0 Build 595 and the recorded
   RISC-V toolchain.

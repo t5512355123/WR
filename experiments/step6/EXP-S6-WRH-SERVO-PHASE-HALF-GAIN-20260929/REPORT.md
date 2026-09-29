@@ -2,60 +2,89 @@
 
 ## Status
 
-`CANDIDATE_BUILT_PROGRAMMED; PHASE_FIX_HARDWARE_VALIDATION_NOT_REACHED`
+`GLOBAL_TIME_RESTORED; SAME_PPS_PASS; STEP5_300S_STABLE_CANDIDATE_NOT_ESTABLISHED; STEP6B_NOT_RUN`
 
-## Baseline finding
+## Finding and change
 
-The Slave showed healthy Step 1–5/SoftPLL lock signals while Global Time stayed
-invalid. The existing read-only observer verified stable counter-bracketed
-servo samples and two repeated post-action responses. In each pair, the
-setpoint moved by the currently measured offset, then the next coherent offset
-changed by approximately twice that amount in the opposite direction:
+The baseline coherent captures showed that the WR servo's phase-setpoint
+actuation had approximately -2:1 response: applying the full measured phase
+offset reversed the next residual and nearly doubled its magnitude. The
+existing 60 ps acquisition gate therefore oscillated instead of settling.
 
-| Offset before (ps) | Setpoint delta (ps) | Offset after (ps) | Measured response delta (ps) |
-|---:|---:|---:|---:|
-| -2757 | -2757 | +2654 | +5411 |
-| +2617 | +2617 | -2639 | -5256 |
+Only the `WRH_SYNC_PHASE` acquisition correction changed, from the full offset
+to half the offset (`offset_ps / 2`). The 60 ps gate, `TRACK_PHASE` fine
+tracking, SoftPLL PI/gains, PPS/TAI logic, RTL, SDB, and timing constraints are
+unchanged. Offline model tests passed 2/2.
 
-The half-step model predicts residuals of approximately -52 ps and -11 ps,
-respectively, within the existing 60 ps gate. This is a model prediction, not
-yet a hardware pass.
+Pain pulled source commit `edd525a2104a7bc68c6db13fcaa1a1368c117095`, built
+both boards successfully, and programmed those fresh images (not the frozen
+milestone SOFs). Programmer reported one device configured and zero errors or
+warnings on each board. Master/Slave SOF SHA-256 values are recorded in
+`raw/post-program-capture-summary.md`.
 
-## Change and verification
+## Hardware result
 
-- Changed only `WRH_SYNC_PHASE` acquisition step to `offset_ps / 2`.
-- Left the 60 ps gate and `TRACK_PHASE` fine-tracking algorithm unchanged.
-- Offline tests: PASS, 2/2. The captured response slopes are between -1.9 and
-  -2.1, and half-step model residuals are within the existing 60 ps gate.
-- Pain pulled exact source commit `edd525a2104a7bc68c6db13fcaa1a1368c117095`.
-- Both full Quartus builds succeeded. Fresh outputs were programmed, not the
-  frozen milestone SOFs:
-  - Master SHA-256 `83548dffe0350827ad9e314f03220175c47d6821f1c0a0f15a3b865be87cdb6a`
-  - Slave SHA-256 `9e972ed4a858f3d21b105fc429a033f1267132ca0b4746d7430e78781f2bec0a`
-  - Programmer reported one device configured, zero errors and zero warnings
-    for each board. `TIMING_CLOSED=NO` for both; timing closure is not a
-    functional acceptance criterion here.
-- The 180-second read-only readiness wait did not reach the modified phase
-  branch. Master remained Global-Time valid. Slave stayed at
-  `WR_SERVO_STATE=SYNC_TAI`, `PTP_STATE=8`, with Step 2/4/5 not ready and the
-  dashboard snapshot invalid. A follow-up 30-second coherent trace had 21
-  coherent rows, 13 adjacent update pairs, no reset/generation change, and
-  `SETP_PS=0` throughout. Thus the new `WRH_SYNC_PHASE` half-step was not
-  exercised; this is an upstream-startup block, not a pass or fail of the
-  changed phase-acquisition law.
-- The raw `CKO` diagnostic is a signed 32-bit projection of the servo offset;
-  it cannot resolve a multi-second TAI difference. The post-program capture
-  summary and build/program identities are recorded under `raw/`.
+The first 180-second post-program wait ended before Slave reacquired the phase
+branch; that was an intermediate startup observation, not the final result.
+Later read-only observation showed the Slave recovered without a reset,
+reprogram, or PTP command. The coherent servo trace exercised the changed
+half-step path; one observed correction was `CKO=-184 ps`, `SETP delta=-92 ps`,
+followed by residuals of `-74 ps` and then `-1 ps`.
 
-## Verdict
+The subsequent dashboard read at 2026-09-29 14:47 (+08:00) reported:
 
-`STEP6_PASS=NOT_ESTABLISHED`. The half-gain model is supported by baseline
-captures, and the changed firmware is built and programmed, but the board did
-not reach `WRH_SYNC_PHASE` during bounded post-program observation. Do not
-claim the correction fixed Global Time or run scheduled-trigger acceptance on
-this incomplete startup. The immediate next diagnostic boundary is why the
-Slave remains in `SYNC_TAI`. Source inspection leaves several distinct gates
-to separate: `readyForSync`, the SoftPLL `locking_poll`, and
-`adjust_in_progress`; the current capture did not publish these individually.
-Keep the programmed candidate in place and do not change the 60 ps threshold
-or other control parameters while determining that boundary.
+```text
+Master: TIME_VALID=1, PPS_VALID=1, snapshot valid/stable
+Slave:  TIME_VALID=1, PPS_VALID=1, snapshot valid/stable
+Slave:  Helper=1, MainFreq=1, MainPhase=1, MainLock=1, PSTAT=1
+Slave:  WR_SERVO_STATE=WAIT_OFFSET_STABLE, WR_SERVO_OFFSET=-539 ps
+```
+
+Thus the reported `TIME_VALID=0 / PPS_VALID=0 / TAI=INVALID` condition was
+cleared on the newly built and programmed image. This is a successful
+Global-Time validity observation, not evidence that the servo offset stayed
+inside 60 ps continuously.
+
+The read-only same-PPS comparison then passed:
+
+```text
+SAMPLES=7
+COMMON_TAI_COUNT=5
+EXACT_MATCH_COUNT=5
+MAX_ABS_DELTA_TICKS=0
+MISMATCH_LABELS=0
+DELTAS=0,0,0,0,0
+```
+
+All five shared TAI labels matched exactly between Master and Slave, including
+the 125 MHz cycle value. No reset or reprogram occurred during this capture.
+
+## Stability boundary and verdict
+
+The 301-sample, 1000 ms-per-sample Step5 series accepted every observation,
+but returned:
+
+```text
+Master: NEVER_LOCKED                 (expected; Master is not the Step5 target)
+Slave:  LOCK_ACQUIRED_NOT_STABLE
+```
+
+This classification means the series did not meet the requirement that every
+sample in the full window be locked; the observer did not classify it as a
+post-acquisition loss. The filtered capture did not preserve the exact initial
+out-of-gate sample, so no narrower cause is claimed. A later dashboard and
+same-PPS gate showed the Slave lock bits asserted, but they do not replace the
+300-second continuous Step5 criterion.
+
+Therefore:
+
+- Global-Time validity on both boards: `PASS` at the observed dashboard point.
+- Same-PPS Master/Slave Global-Time consistency: `PASS` (5 exact common labels).
+- Step5 300-second stable lock candidate: `NOT_ESTABLISHED`.
+- Step6B scheduled dual-board trigger: `NOT_RUN`; the Step5 stability gate was
+  not established.
+- Full Step6 milestone: `NOT_ESTABLISHED` until the 300-second lock gate and
+  scheduled-trigger validation are completed.
+- Timing closure: `NO`; not part of the functional acceptance criteria.
+
+No production changes beyond the single acquisition correction were made.

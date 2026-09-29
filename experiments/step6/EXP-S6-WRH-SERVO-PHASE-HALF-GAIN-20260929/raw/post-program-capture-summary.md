@@ -54,7 +54,41 @@ CKO_PS at last coherent row=1641486945
 ```
 
 Dashboard and observer read diagnostic groups at different times; do not
-combine their PPS status bits into an atomic sample. The decisive observation
-is that the servo stayed in `SYNC_TAI` and never exercised the changed
-`WRH_SYNC_PHASE` branch. No PTP command, WB write, reset, or additional
-programming occurred during observation.
+combine their PPS status bits into an atomic sample. At this intermediate
+capture only, the servo stayed in `SYNC_TAI` and had not yet exercised the
+changed `WRH_SYNC_PHASE` branch. No PTP command, WB write, reset, or additional
+programming occurred during this initial observation.
+
+## Later reacquisition and validation
+
+The initial 180-second wait was followed by further passive observation. The
+Slave then reacquired without a reset, reprogram, or PTP command. A coherent
+trace on the newly programmed image captured the half-step response:
+
+```text
+CKO=-184 ps; SETP delta=-92 ps; next residuals=-74 ps, then -1 ps
+TIME_VALID=1 and PPS_VALID=1 in the captured valid rows
+```
+
+A later dashboard read at 2026-09-29 14:47 (+08:00) reported valid, stable
+snapshots on both boards. Slave reported `TIME_VALID=1`, `PPS_VALID=1`,
+Helper/Main frequency/Main phase/Main/PSTAT lock bits all 1, and
+`WR_SERVO_STATE=WAIT_OFFSET_STABLE`, `WR_SERVO_OFFSET=-539 ps`.
+
+The read-only same-PPS observer completed with:
+
+```text
+SAMPLES=7 COMMON_TAI_COUNT=5 EXACT_MATCH_COUNT=5
+MAX_ABS_DELTA_TICKS=0 MISMATCH_LABELS=0 DELTAS=0,0,0,0,0
+```
+
+All five common TAI labels had exactly matching cycle values on Master and
+Slave. No reset or programming occurred during this test.
+
+The 301-sample Step5 series accepted all 301 samples but classified Slave as
+`LOCK_ACQUIRED_NOT_STABLE`; Master was `NEVER_LOCKED`, as expected for the
+Master role. The filter retained summary and periodic samples, not the exact
+initial Slave boundary that prevented stable-candidate classification, so its
+cause is undetermined. A later dashboard showed the Slave lock bits asserted;
+this does not replace the full 300-second stable-lock acceptance test. The
+scheduled dual-board trigger was therefore not run.

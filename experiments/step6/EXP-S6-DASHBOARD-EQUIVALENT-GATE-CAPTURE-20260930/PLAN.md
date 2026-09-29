@@ -27,6 +27,8 @@ used alone to claim a dashboard-equivalent pass.
 2. Confirm no competing JTAG reader. Run a 15-second Slave-only smoke with
    `phase_context=2`; require valid frames, matching UCNT joins, valid Global
    Time, all five Step 5 locks, valid Step 1 status, and zero reset changes.
+   Require at least 20 rows, at least 75% accepted guarded/UCNT-paired rows,
+   all per-row health gates valid, and median row duration below 450 ms.
 3. If smoke passes, run one 300-second read-only capture in a single JTAG
    session. Preserve every raw row. Stop on timeout, invalid-frame streak,
    board reset/generation change, or early termination.

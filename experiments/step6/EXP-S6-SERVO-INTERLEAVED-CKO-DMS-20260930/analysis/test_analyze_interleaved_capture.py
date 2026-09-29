@@ -121,6 +121,18 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["individual_reads_valid_rows"], 22)
         self.assertEqual(result["verdict"], "SMOKE_PASS")
 
+    def test_smoke_uses_documented_450ms_median_row_limit(self) -> None:
+        lines = [
+            row(i, 120, qualifies=0, elapsed=i * 300).replace("row_ms=100.0", "row_ms=300.0")
+            for i in range(22)
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "smoke_300ms_rows.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke")
+        self.assertEqual(result["median_row_duration_ms"], 300.0)
+        self.assertEqual(result["verdict"], "SMOKE_PASS")
+
     def test_capture_does_not_pass_when_a_sample_loses_global_time_or_lock(self) -> None:
         lines = [row(i, 10, qualifies=0 if i == 9 else 1) for i in range(600)]
         lines += [

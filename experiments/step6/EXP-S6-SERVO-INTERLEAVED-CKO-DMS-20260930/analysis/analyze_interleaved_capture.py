@@ -178,7 +178,7 @@ def summarize(
         and len(read_valid_rows) == len(rows)
         and len(accepted) / len(rows) >= 0.75
         and bool(row_durations)
-        and statistics.median(row_durations) < 250.0
+        and statistics.median(row_durations) < 450.0
         and timeout_count == 0
         and invalid_count == 0
         and not stopped

@@ -109,6 +109,22 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "STEP6_EXPANDED_GATE_NOT_ESTABLISHED")
         self.assertFalse(result["all_rows_step6_qualifying"])
 
+    def test_capture_uses_observed_reader_cadence_not_requested_sleep(self) -> None:
+        lines = ["S6_INTERLEAVED_CONFIG duration_ms=300000 sample_ms=1 board_filter=1-11.2"]
+        lines.extend(row(i, -17, elapsed=i * 375) for i in range(800))
+        lines += [
+            "S6_INTERLEAVED_BOARD_DONE board=DE5_1-11.2 samples=800 elapsed_ms=300100 reset_stop=0 invalid_streak=0",
+            "S6_INTERLEAVED_SUMMARY boards=1 rows=800 accepted=800 qualifying=800 reset_stop=0 timeout_count=0 invalid_count=0",
+            "CAPTURE_PROCESS_EXIT=0",
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "high_rate.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path)
+        self.assertEqual(result["estimated_expected_rows_at_observed_cadence"], 800)
+        self.assertEqual(result["capture_tail_gap_ms"], 475)
+        self.assertEqual(result["verdict"], "STEP6_EXPANDED_SAMPLE_GATE_PASS")
+
     def test_invalid_or_crossed_diagnostics_frame_is_not_counted_as_offset_data(self) -> None:
         line = row(0, 15).replace("DIAG_FRAME_VALID=1", "DIAG_FRAME_VALID=0")
         line = line.replace("COHERENT=1", "COHERENT=0")

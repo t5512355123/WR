@@ -5,26 +5,26 @@
 ```text
 UNALIGNED_MINIMAL_READER_SMOKE  = FAIL (10/24 valid WDIAGS frames; 41.7%)
 PREVIOUS_ROW_EPOCH_READER_SMOKE = FAIL (11/23 valid WDIAGS frames; 47.8%)
-PER_ROW_EPOCH_BASELINE_READER   = IMPLEMENTED, NOT YET RUN
-300S_CAPTURE                    = NOT RUN (smoke gate failed)
-STEP6_EXPANDED_ACCEPTANCE       = NOT ESTABLISHED
+PER_ROW_EPOCH_READER_SMOKE      = PASS (22/22 valid WDIAGS frames; 100%)
+300S_CAPTURE                    = COMPLETE (300277 ms; 429/429 framed rows)
+STEP6_EXPANDED_ACCEPTANCE       = NOT ESTABLISHED (2/429 strict rows)
 ```
 
 The smoke gate requires at least 75% valid diagnostic frames, zero reader
 timeouts/invalid counts, at least 20 rows, and median row duration below
-250 ms. Neither prior smoke met that gate. The first epoch-aligned attempt
-still compared with the previous row's epoch; because rows were about 645 ms
-apart and the publication cadence is 100 ms, that did not ensure a fresh
-transition within the current row. The latest code instead samples a per-row
-baseline and waits for the next epoch transition. It must pass a fresh
-15-second smoke before any long capture.
+250 ms. The first three attempts failed this gate. The first epoch-aligned
+attempt still compared with the previous row's epoch; because rows were about
+645 ms apart and the publication cadence is 100 ms, that did not ensure a
+fresh transition within the current row. The latest code samples a per-row
+baseline, waits for the next epoch transition, and passed its 15-second smoke.
+The ensuing 300-second run completed but failed the strict phase-offset gate.
 
 ## Evidence and sequence
 
-All three captures were read-only observations on Pain, branch
-`feat/file_cleanup`, using source revisions `6173fa94c7e2578f3589abf515586ea98c9a94f2`
-and `f5eb6df3`. There was no FPGA programming, build, reset, or power cycle.
-No file under
+All five runs were read-only observations on Pain, branch `feat/file_cleanup`.
+The first two used `6173fa94c7e2578f3589abf515586ea98c9a94f2`, the third used
+`f5eb6df3`, and the final two used `2268c76b`. There was no FPGA programming,
+build, reset, or power cycle. No file under
 `/home/b10504072/04_WR_archive_step6_pass/` was accessed.
 
 ### Smoke 1 — broad critical read group
@@ -72,16 +72,46 @@ Raw log: [`smoke_20260929T181651Z.log`](raw/observe/smoke_20260929T181651Z.log)
   periods—the candidate was usually already different before the current
   row's wait began. This was not evidence of a just-published frame.
 
+### Smoke 4 — per-row epoch baseline
+
+Raw log: [`smoke_20260929T182440Z.log`](raw/observe/smoke_20260929T182440Z.log)
+
+- 22 rows over 15.360 s; all 22 had individually valid reads, Global Time,
+  all five Slave Step 5 lock bits, and a valid unchanged WDIAGS frame.
+- No transport timeouts/invalid counters, reset changes, or early stop.
+- Median row duration was 195.366 ms. CKO ranged from +338 to +1271 ps; 0/22
+  rows met the strict `abs(CKO) < 60 ps` criterion.
+- Analyzer verdict: `SMOKE_PASS`. This validates the observer smoke gate only;
+  it does not establish Step 6 phase-offset acceptance.
+
+## 300-second read-only capture
+
+Raw log: [`capture_20260929T182613Z.log`](raw/observe/capture_20260929T182613Z.log)
+
+- Completed 300277 ms with 429 rows. Quartus/Tcl exit code was 0; there was no
+  early stop, reset change, Wishbone timeout, or invalid counter.
+- The WDIAGS frame guard was valid in 429/429 rows. Slave Global Time and all
+  five Step 5 lock bits were valid in 429/429 rows.
+- Median row duration was 195.112 ms; median sample spacing was 696 ms because
+  the requested inter-sample delay was 500 ms.
+- CKO ranged from −4023 to +2291 ps. Only 2/429 rows (0.47%) had
+  `abs(CKO) < 60 ps`; therefore the full sampled Step 6 conjunction failed.
+- Analyzer verdict: `STEP6_EXPANDED_GATE_NOT_ESTABLISHED`.
+
+This was a Slave-only observation. It did not capture a dual-board Master
+pre/post Global-Time dashboard, so it cannot establish cross-board Global-Time
+agreement either. No Step 6 PASS or milestone is declared.
+
 ## Next action
 
-Run one 15-second smoke using the per-row-baseline reader in the current
-source. Each row first reads its current epoch, then waits at most 350 ms for
-the epoch to change, validates DATA_VALID and the inverse pair, reads only
-CKO/servo state/update count, and checks the epoch/valid flag again. Require at
-least 20 rows, at least 75% framed rows, zero transport timeouts/invalid
-counts, and median row duration below 250 ms. If any gate fails, stop and
-report it; do not launch the 300-second capture. If the smoke passes, run one
-300-second read-only capture under the existing stop limits.
+The current reader successfully frames the WDIAGS payload, but its 500 ms
+requested delay yielded only 429 rows over 300 seconds (median spacing 696 ms).
+The next diagnostic-only iteration should use a 1 ms requested delay to let
+the read cycle, rather than an added 500 ms sleep, set the sampling rate. First
+run a 15-second smoke with the same frame/transport/row-duration gates; only if
+that passes should a denser 300-second read-only capture be considered. Keep
+the same per-row epoch guard and strict `<60 ps` acceptance. Do not alter
+production servo controls based on this report alone.
 
 This epoch guard improves publication-frame association; it does not make the
 sequential reads atomic or establish servo causality. Step 6 remains

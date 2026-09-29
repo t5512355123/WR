@@ -35,22 +35,19 @@ validated.
 ## Procedure and gates
 
 1. Run the focused analyzer tests and Tcl completeness/syntax checks.
-2. On Pain, run a 15-second smoke with at least 20 rows, zero transport
-   errors/timeouts, median row duration below 250 ms, and at least 75% rows
-   with valid WDIAGS framing and an unchanged diagnostic epoch. Smoke
-   `20260929T174908Z` (5/5 crossed), `20260929T175921Z` (10/24 valid), and
-   `20260929T181651Z` (11/23 valid) failed this gate; see `REPORT.md`. The
-   latest code now waits for an epoch transition relative to the current
-   row's own baseline. Do not launch the 300-second capture unless a new smoke
-   passes.
-3. If smoke passes, run one 300-second read-only Slave capture, with a 900
-   second hard deadline. Stop on reset signature change, five consecutive
-   untrusted rows, transport failure, or deadline; preserve partial evidence.
+2. The first three short smokes failed the 75% valid-frame floor. The per-row
+   epoch-baseline reader then passed: 22/22 valid framed rows, zero reader
+   errors, and 195.366 ms median row duration. See `REPORT.md`.
+3. A 300-second read-only Slave capture completed in 300277 ms (429 rows).
+   All rows were framed and individually valid, but only 2/429 met the strict
+   offset condition; Step 6 expanded acceptance was not established. See the
+   final report for the next experiment.
 4. Keep Step 6 acceptance strict: both boards' Global Time must be valid in
    pre/post checks; all five Slave Step 5 locks and `abs(CKO) < 60 ps` must
    hold in every accepted row across the 300-second window. Timing closure and
    physical SMA edge skew are not part of this gate.
-5. Copy raw evidence to Laptop, verify hashes, analyze, report, and push.
+5. Raw evidence was copied to Laptop, verified against SHA-256, analyzed,
+   reported, and pushed.
 
 The diagnostic epoch check is a publication-frame guard, not an atomic
 hardware snapshot. It can reject observed cache refresh crossings; it cannot

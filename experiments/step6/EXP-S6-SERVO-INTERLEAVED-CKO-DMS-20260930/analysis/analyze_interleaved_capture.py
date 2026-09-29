@@ -119,12 +119,15 @@ def summarize(
     sample_ms = integer(config, "sample_ms", 500) or 500
     requested_duration = integer(config, "duration_ms", expected_duration_ms) or expected_duration_ms
     observed_duration = integer(board_done, "elapsed_ms", times[-1] if times else 0) or 0
+    capture_tail_gap = max(0, observed_duration - times[-1]) if times else 0
+    covered_gaps = gaps + ([capture_tail_gap] if times else [])
     reset_stop = integer(wire_summary, "reset_stop", integer(board_done, "reset_stop", 0)) or 0
     timeout_count = integer(wire_summary, "timeout_count", 0) or 0
     invalid_count = integer(wire_summary, "invalid_count", 0) or 0
     stopped = any("S6_INTERLEAVED_STOP " in line or "S6_INTERLEAVED_ERROR " in line for line in text.splitlines())
     exit_code = _last_value(text, "CAPTURE_PROCESS_EXIT=")
-    expected_rows = max(1, requested_duration // sample_ms)
+    observed_sample_period = statistics.median(gaps) if gaps else float(sample_ms)
+    expected_rows = max(1, int(requested_duration / max(1.0, observed_sample_period)))
 
     complete = observed_duration >= expected_duration_ms and not stopped and exit_code in {None, "0"}
     uninterrupted_samples = (
@@ -137,6 +140,7 @@ def summarize(
         and invalid_count == 0
         and bool(gaps)
         and max(gaps) <= maximum_gap_ms
+        and capture_tail_gap <= maximum_gap_ms
     )
     smoke_ok = (
         len(rows) >= 20
@@ -182,8 +186,10 @@ def summarize(
         "offset_valid_rows": len(valid_offsets),
         "offset_min_ps": min(valid_offsets) if valid_offsets else None,
         "offset_max_ps": max(valid_offsets) if valid_offsets else None,
-        "maximum_sample_gap_ms": max(gaps) if gaps else None,
+        "maximum_sample_gap_ms": max(covered_gaps) if covered_gaps else None,
         "median_sample_gap_ms": statistics.median(gaps) if gaps else None,
+        "capture_tail_gap_ms": capture_tail_gap,
+        "estimated_expected_rows_at_observed_cadence": expected_rows,
         "median_row_duration_ms": statistics.median(row_durations) if row_durations else None,
         "median_cko_after_pre_dms_us": statistics.median(pre_cko_gaps) if pre_cko_gaps else None,
         "maximum_cko_after_pre_dms_us": max(pre_cko_gaps) if pre_cko_gaps else None,

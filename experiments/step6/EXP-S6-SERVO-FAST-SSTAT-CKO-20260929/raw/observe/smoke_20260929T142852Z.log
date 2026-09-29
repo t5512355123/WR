@@ -1,0 +1,36 @@
+2026-09-29T14:28:52.742175590Z	FAST_CAPTURE_META mode=smoke samples_per_board=10 retries=2 hard_timeout_seconds=900
+2026-09-29T14:28:52.744921296Z	FAST_CAPTURE_START_UTC=2026-09-29T14:28:52,741682224+00:00
+2026-09-29T14:28:53.594400189Z	Info: *******************************************************************
+2026-09-29T14:28:53.594869284Z	Info: Running Quartus Prime SignalTap II
+2026-09-29T14:28:53.595290931Z	    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+2026-09-29T14:28:53.595704829Z	    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+2026-09-29T14:28:53.596063084Z	    Info: Your use of Intel Corporation's design tools, logic functions 
+2026-09-29T14:28:53.596506628Z	    Info: and other software and tools, and its AMPP partner logic 
+2026-09-29T14:28:53.596850020Z	    Info: functions, and any output files from any of the foregoing 
+2026-09-29T14:28:53.597187313Z	    Info: (including device programming or simulation files), and any 
+2026-09-29T14:28:53.597532863Z	    Info: associated documentation or information are expressly subject 
+2026-09-29T14:28:53.597872655Z	    Info: to the terms and conditions of the Intel Program License 
+2026-09-29T14:28:53.598212433Z	    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+2026-09-29T14:28:53.598557587Z	    Info: the Intel MegaCore Function License Agreement, or other 
+2026-09-29T14:28:53.598907430Z	    Info: applicable license agreement, including, without limitation, 
+2026-09-29T14:28:53.599254989Z	    Info: that your use is for the sole purpose of programming logic 
+2026-09-29T14:28:53.599584019Z	    Info: devices manufactured by Intel and sold by Intel or its 
+2026-09-29T14:28:53.599910323Z	    Info: authorized distributors.  Please refer to the applicable 
+2026-09-29T14:28:53.600373079Z	    Info: agreement for further details.
+2026-09-29T14:28:53.600714617Z	    Info: Processing started: Tue Sep 29 22:28:52 2026
+2026-09-29T14:28:53.601055533Z	Info: Command: quartus_stp -t /home/b10504072/04_WR/experiments/step6/EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/scripts/read_servo_fast.tcl 10 2
+2026-09-29T14:28:53.601532506Z	Info: Quartus(args): 10 2
+2026-09-29T14:28:53.601962247Z	FAST_CONFIG samples_per_board=10 max_retries=2 gap_ms=0 read_only=1
+2026-09-29T14:28:53.602382872Z	FAST_BOARD_BEGIN hardware=DE5 [1-11.1]
+2026-09-29T14:28:53.602804579Z	FAST_READER_ERROR hardware=DE5 [1-11.1] message=invalid command name "0-9A-Fa-f"
+2026-09-29T14:28:53.603150803Z	FAST_BOARD_BEGIN hardware=DE5 [1-11.2]
+2026-09-29T14:28:53.603596498Z	FAST_READER_ERROR hardware=DE5 [1-11.2] message=invalid command name "0-9A-Fa-f"
+2026-09-29T14:28:53.603976853Z	FAST_SESSION_DONE
+2026-09-29T14:28:53.604373146Z	Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/experiments/step6/EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/scripts/read_servo_fast.tcl was successful
+2026-09-29T14:28:53.604768330Z	Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+2026-09-29T14:28:53.605168000Z	    Info: Peak virtual memory: 772 megabytes
+2026-09-29T14:28:53.605600140Z	    Info: Processing ended: Tue Sep 29 22:28:53 2026
+2026-09-29T14:28:53.606048981Z	    Info: Elapsed time: 00:00:01
+2026-09-29T14:28:53.606505175Z	    Info: Total CPU time (on all processors): 00:00:00
+2026-09-29T14:28:53.606991291Z	FAST_CAPTURE_END_UTC=2026-09-29T14:28:53,598275728+00:00
+2026-09-29T14:28:53.607487753Z	CAPTURE_PROCESS_EXIT=0

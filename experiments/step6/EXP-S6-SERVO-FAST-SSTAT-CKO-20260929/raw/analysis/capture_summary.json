@@ -1,0 +1,166 @@
+{
+  "capture_process_exit": 0,
+  "reader_error_lines": 0,
+  "total_rows": 801,
+  "boards": {
+    "DE5 [1-11.1]": {
+      "sample_rows": 400,
+      "accepted_samples": 400,
+      "failed_attempt_rows": 0,
+      "accepted_samples_with_retries": 0,
+      "max_retries_used": 0,
+      "data_valid_samples": 400,
+      "sample_valid_samples": 400,
+      "control_framing_valid_samples": 400,
+      "servo_state_valid_samples": 0,
+      "servo_state_begin_samples": {},
+      "servo_state_end_samples": {},
+      "state_changes_within_row": [],
+      "between_row_state_transitions": [],
+      "all_five_step5_lock_samples": 0,
+      "valid_time_and_pps_samples": 108,
+      "time_pps_probe_complete_samples": 108,
+      "clock_probe_complete_samples": 400,
+      "first_output_received_utc": "2026-09-29T14:34:33.185031+00:00",
+      "last_output_received_utc": "2026-09-29T14:35:02.745221+00:00",
+      "output_received_span_seconds": 29.56019,
+      "host_output_arrival_interval_ms_median": 4.572,
+      "host_output_arrival_interval_ms_min": 2.855,
+      "host_output_arrival_interval_ms_max": 585.34,
+      "reader_row_elapsed_us_samples": 400,
+      "reader_row_elapsed_us_min": 72855,
+      "reader_row_elapsed_us_median": 73259.5,
+      "reader_row_elapsed_us_max": 77727,
+      "offset_begin_samples": 0,
+      "offset_begin_min_ps": null,
+      "offset_begin_max_ps": null,
+      "offset_begin_median_ps": null,
+      "offset_end_samples": 0,
+      "offset_end_min_ps": null,
+      "offset_end_max_ps": null,
+      "offset_end_median_ps": null,
+      "within_row_offset_delta_samples": 0,
+      "within_row_offset_delta_min_ps": null,
+      "within_row_offset_delta_max_ps": null,
+      "within_row_offset_delta_median_ps": null,
+      "within_row_offset_delta_max_abs_ps": null,
+      "both_offsets_strictly_under_60ps_samples": 0,
+      "dms_distinct_pairs": 2,
+      "setp_distinct_values": 2,
+      "ucnt_first_last": [
+        "00000000",
+        "00000000"
+      ]
+    },
+    "DE5 [1-11.2]": {
+      "sample_rows": 401,
+      "accepted_samples": 400,
+      "failed_attempt_rows": 1,
+      "accepted_samples_with_retries": 1,
+      "max_retries_used": 1,
+      "data_valid_samples": 400,
+      "sample_valid_samples": 400,
+      "control_framing_valid_samples": 400,
+      "servo_state_valid_samples": 400,
+      "servo_state_begin_samples": {
+        "WAIT_OFFSET_STABLE": 368,
+        "SYNC_PHASE": 32
+      },
+      "servo_state_end_samples": {
+        "WAIT_OFFSET_STABLE": 369,
+        "SYNC_PHASE": 31
+      },
+      "state_changes_within_row": [
+        {
+          "sample": 42,
+          "timestamp": "2026-09-29T14:35:05.918952+00:00",
+          "begin_state": "WAIT_OFFSET_STABLE",
+          "end_state": "SYNC_PHASE",
+          "offset_begin_ps": 2104,
+          "offset_end_ps": 2104,
+          "elapsed_us": 76208
+        },
+        {
+          "sample": 56,
+          "timestamp": "2026-09-29T14:35:06.881456+00:00",
+          "begin_state": "SYNC_PHASE",
+          "end_state": "WAIT_OFFSET_STABLE",
+          "offset_begin_ps": 2133,
+          "offset_end_ps": 2210,
+          "elapsed_us": 73345
+        },
+        {
+          "sample": 211,
+          "timestamp": "2026-09-29T14:35:18.322165+00:00",
+          "begin_state": "SYNC_PHASE",
+          "end_state": "WAIT_OFFSET_STABLE",
+          "offset_begin_ps": 795,
+          "offset_end_ps": 789,
+          "elapsed_us": 73872
+        },
+        {
+          "sample": 344,
+          "timestamp": "2026-09-29T14:35:28.405126+00:00",
+          "begin_state": "WAIT_OFFSET_STABLE",
+          "end_state": "SYNC_PHASE",
+          "offset_begin_ps": 499,
+          "offset_end_ps": 499,
+          "elapsed_us": 73182
+        },
+        {
+          "sample": 356,
+          "timestamp": "2026-09-29T14:35:28.868751+00:00",
+          "begin_state": "SYNC_PHASE",
+          "end_state": "WAIT_OFFSET_STABLE",
+          "offset_begin_ps": 499,
+          "offset_end_ps": 719,
+          "elapsed_us": 73129
+        }
+      ],
+      "between_row_state_transitions": [
+        {
+          "sample": 206,
+          "timestamp": "2026-09-29T14:35:17.885537+00:00",
+          "from_state": "WAIT_OFFSET_STABLE",
+          "to_state": "SYNC_PHASE",
+          "offset_begin_ps": 795
+        }
+      ],
+      "all_five_step5_lock_samples": 400,
+      "valid_time_and_pps_samples": 120,
+      "time_pps_probe_complete_samples": 120,
+      "clock_probe_complete_samples": 400,
+      "first_output_received_utc": "2026-09-29T14:35:02.754238+00:00",
+      "last_output_received_utc": "2026-09-29T14:35:32.029455+00:00",
+      "output_received_span_seconds": 29.275217,
+      "host_output_arrival_interval_ms_median": 4.545,
+      "host_output_arrival_interval_ms_min": 0.92,
+      "host_output_arrival_interval_ms_max": 503.82,
+      "reader_row_elapsed_us_samples": 400,
+      "reader_row_elapsed_us_min": 72877,
+      "reader_row_elapsed_us_median": 73274.0,
+      "reader_row_elapsed_us_max": 76208,
+      "offset_begin_samples": 400,
+      "offset_begin_min_ps": -3945,
+      "offset_begin_max_ps": 2210,
+      "offset_begin_median_ps": 790.0,
+      "offset_end_samples": 400,
+      "offset_end_min_ps": -3945,
+      "offset_end_max_ps": 2210,
+      "offset_end_median_ps": 790.0,
+      "within_row_offset_delta_samples": 400,
+      "within_row_offset_delta_min_ps": -1420,
+      "within_row_offset_delta_max_ps": 258,
+      "within_row_offset_delta_median_ps": 0.0,
+      "within_row_offset_delta_max_abs_ps": 1420,
+      "both_offsets_strictly_under_60ps_samples": 0,
+      "dms_distinct_pairs": 29,
+      "setp_distinct_values": 4,
+      "ucnt_first_last": [
+        "00001AD0",
+        "00001AED"
+      ]
+    }
+  },
+  "interpretation_limit": "SSTAT and CKO are bracketed within one row, but other fields remain sequential reads; this diagnostic cannot prove single-cycle causality or Step 6 acceptance. Host output-arrival timestamps may be batched by Quartus/Tcl buffering; use reader_row_elapsed_us as the measured per-row duration, not host output-arrival intervals, as sample cadence."
+}

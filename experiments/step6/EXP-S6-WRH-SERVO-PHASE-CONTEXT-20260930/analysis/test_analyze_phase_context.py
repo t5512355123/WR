@@ -92,6 +92,50 @@ class PhaseContextTests(unittest.TestCase):
         self.assertEqual(result["trusted_phase_context_rows"], 1)
         self.assertEqual(result["phase_context_update_match_rows"], 1)
 
+    def test_smoke_gate_uses_planned_context_floor_latency_and_live_flags(self) -> None:
+        samples = []
+        for sample in range(20):
+            line = row(sample, sample + 1, 1000 + sample, 20 + sample, 80)
+            line = line.replace("row_ms=190.0", "row_ms=300.0")
+            if sample >= 15:
+                line = line.replace("PHASE_CONTEXT_MATCH=1", "PHASE_CONTEXT_MATCH=0")
+            samples.append(line)
+        lines = [
+            "S6_INTERLEAVED_CONFIG duration_ms=15000 sample_ms=1 board_filter=1-11.2 phase_context=2",
+            *samples,
+            "S6_INTERLEAVED_BOARD_DONE board=DE5_1-11.2 samples=20 elapsed_ms=15000 reset_stop=0 invalid_streak=0",
+            "S6_INTERLEAVED_SUMMARY boards=1 rows=20 accepted=15 qualifying=0 reset_stop=0 timeout_count=0 invalid_count=0",
+            "CAPTURE_PROCESS_EXIT=0",
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "smoke.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke", expected_duration_ms=15_000)
+        self.assertEqual(result["verdict"], "SMOKE_PASS")
+        self.assertEqual(result["trusted_phase_context_rows"], 15)
+        self.assertEqual(result["live_gate_rows_any_context_status"], 20)
+        self.assertTrue(result["all_rows_live_gates"])
+        self.assertEqual(result["median_row_duration_ms"], 300.0)
+
+    def test_smoke_gate_fails_if_any_row_loses_a_live_lock(self) -> None:
+        samples = [row(sample, sample + 1, 1000 + sample, 20 + sample, 80)
+                   for sample in range(20)]
+        samples[2] = samples[2].replace("PSTAT_LOCK=1", "PSTAT_LOCK=0")
+        lines = [
+            "S6_INTERLEAVED_CONFIG duration_ms=15000 sample_ms=1 board_filter=1-11.2 phase_context=2",
+            *samples,
+            "S6_INTERLEAVED_BOARD_DONE board=DE5_1-11.2 samples=20 elapsed_ms=15000 reset_stop=0 invalid_streak=0",
+            "S6_INTERLEAVED_SUMMARY boards=1 rows=20 accepted=20 qualifying=0 reset_stop=0 timeout_count=0 invalid_count=0",
+            "CAPTURE_PROCESS_EXIT=0",
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "live_gate_failure.log"
+            path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+            result = ANALYZER.summarize(path, mode="smoke", expected_duration_ms=15_000)
+        self.assertEqual(result["verdict"], "SMOKE_FAIL")
+        self.assertEqual(result["live_gate_rows_any_context_status"], 19)
+        self.assertFalse(result["all_rows_live_gates"])
+
     def test_observer_reads_phase_context_inside_optional_epoch_guard(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         capture = source.split("proc s6_i_capture", maxsplit=1)[1].split(

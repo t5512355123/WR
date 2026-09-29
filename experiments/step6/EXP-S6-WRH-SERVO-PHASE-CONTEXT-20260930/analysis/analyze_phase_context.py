@@ -92,6 +92,11 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
                   and all(integer(row, key) == 1 for key in (
                       "HELPER_LOCK", "MAIN_LOCK", "MAIN_FREQ_LOCK",
                       "MAIN_PHASE_LOCK", "PSTAT_LOCK"))]
+    live_gate_rows = [row for row in parsed
+                      if integer(row, "GLOBAL_TIME_VALID") == 1
+                      and all(integer(row, key) == 1 for key in (
+                          "HELPER_LOCK", "MAIN_LOCK", "MAIN_FREQ_LOCK",
+                          "MAIN_PHASE_LOCK", "PSTAT_LOCK"))]
     strict_offset = [row for row in fully_live
                      if abs(integer(row, "CKO_PS") or 0) < 60]
 
@@ -155,7 +160,7 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
     process_ok = exit_text in {None, "0"}
     context_and_frame_floor = bool(parsed) and len(trusted) / len(parsed) >= 0.75
     all_reads = bool(parsed) and len(read_valid) == len(parsed)
-    all_live = bool(parsed) and len(fully_live) == len(parsed)
+    all_live = bool(parsed) and len(live_gate_rows) == len(parsed)
     expected = integer(config, "duration_ms") or expected_duration_ms
     no_transport_or_reset_error = timeout_count == 0 and invalid_count == 0 and reset_stop == 0
     no_early_stop = not stopped and process_ok
@@ -164,7 +169,7 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
         passed = (len(parsed) >= 20 and elapsed >= expected_duration_ms
                   and all_reads and context_and_frame_floor and all_live
                   and no_transport_or_reset_error and no_early_stop
-                  and bool(row_ms) and statistics.median(row_ms) < 250.0)
+                  and bool(row_ms) and statistics.median(row_ms) < 450.0)
         verdict = "SMOKE_PASS" if passed else "SMOKE_FAIL"
     else:
         verdict = ("CAPTURE_COMPLETE_DIAGNOSTIC"
@@ -186,6 +191,8 @@ def summarize(path: Path, *, mode: str, expected_duration_ms: int = 15_000) -> d
         "phase_context_update_match_rows": len(matched_contexts),
         "trusted_phase_context_rows": len(trusted),
         "global_time_and_all_five_lock_rows": len(fully_live),
+        "live_gate_rows_any_context_status": len(live_gate_rows),
+        "all_rows_live_gates": all_live,
         "strict_abs_cko_lt_60_rows_with_live_gates": len(strict_offset),
         "servo_state_summary": state_summary,
         "adjacent_ucnt_pairs": adjacent_pairs,

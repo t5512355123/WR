@@ -1,4 +1,15 @@
-# Frozen Step 6 source candidate
+# Frozen Step 6 reproduction source — historical digital scope validated
+
+This frozen package independently reproduced the historical Step 6 digital
+functional scope on 2026-09-27: valid Global Time, matching same-PPS labels,
+and repeated dual-board scheduled digital triggers. See
+`experiments/step6/EXP-S6-MILESTONE-REPRO-20260927/REPORT.md`.
+
+The current expanded Step 6 acceptance is **NOT ESTABLISHED**: the Slave must
+also show a valid/stable Global-Time snapshot with
+`abs(WR_SERVO_OFFSET_PS) < 60`. The frozen-image retrospective values were
+`-158 ps` and `+135 ps`, so neither met that criterion. Do not describe this
+historical digital-scope result as a pass of the expanded gate.
 
 Hardware and firmware source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.
 
@@ -26,8 +37,8 @@ explicit `sfp params live` query reads the lower page, page-select byte, and
 Upper Page 00h into local buffers; it reports ACKs, raw bytes, checksums, and a
 read-only local-copy database lookup. It does not call `sfp_match()` or modify
 active calibration. This firmware change does not adjust PLL/PTP control
-parameters and is not itself a Step 6 PASS image; every overlay is identified
-in `SOURCE_MANIFEST.tsv`.
+parameters and is not by itself proof of either Step 6 acceptance scope; every
+overlay is identified in `SOURCE_MANIFEST.tsv`.
 
 Build on Pain from this directory using Quartus Prime Standard 17.0 and the
 configured RISC-V toolchain:
@@ -44,6 +55,8 @@ and `quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`. Program the
 reproduction images Slave then Master. `SOURCE_MANIFEST.tsv` ties every
 historical blob and tooling overlay to its packaged SHA-256.
 
-The candidate becomes a Step 6 milestone only after independent clean builds,
-hardware programming, dashboard validation, the 300-second Step 5 lock check,
-Step 6A same-PPS consistency, and Step 6B scheduled digital-trigger validation.
+The historical digital-scope milestone was independently clean-built,
+programmed, and validated against the dashboard, 300-second Step 5 lock,
+Step 6A same-PPS consistency, and Step 6B scheduled digital-trigger criteria.
+The expanded `<60 ps` Slave offset gate remains pending a qualifying
+valid/stable hardware observation.

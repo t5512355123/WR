@@ -1,13 +1,12 @@
-# Step1 JTAG source candidate (not yet validated)
+# Step 1 frozen source — validated milestone build inputs
 
-This directory is a readable, self-contained reconstruction candidate from
-historical source commit
-`b8d4c3d0526f0c2ca282600ef06648dd9f0af595`.
-
-It is **not a PASS milestone** yet. Do not treat these files as the current
-Step7+ development source. The historical source origin, path relocation map,
-and line-ending normalization are recorded in the parent experiment's
-`PLAN.md` and `analysis/source-relocation.md`.
+This self-contained JTAG package is the frozen build input for the Step 1
+`PASS` milestone. It was independently clean-built, programmed on both DE5a
+boards, and passed the read-only PHY/link acceptance on 2026-09-24. The
+reproduction report and raw evidence are in
+`experiments/step1/EXP-S1-MILESTONE-REPRO-20260924/`. The historical source
+origin, path relocation map, and line-ending normalization are recorded in
+that experiment.
 
 ## Contents
 
@@ -20,7 +19,7 @@ and line-ending normalization are recorded in the parent experiment's
 - `firmware/`: historical role configs and firmware build scripts
 - `vendor/`: the complete historical vendored WR cores and WRPC software
 - `scripts/build/`, `scripts/program/`: the standalone JTAG build and program
-  entrypoints for this candidate
+  entrypoints for this frozen checkpoint
 - `scripts/jtag/read_step1_phy_link.tcl`: read-only instance-0 sampling for
   the Step1 gates
 - `scripts/analysis/analyze_step1_capture.py`: offline raw-probe decoder and
@@ -60,13 +59,14 @@ bash scripts/program/program_slave.sh
 bash scripts/program/program_master.sh
 ```
 
-The order follows the 2026-08-17 Step1 historical procedure. These commands
-program only this candidate's freshly built JTAG SOFs. Runtime validation is
-still required before this candidate can become `artifacts/milestones/step1_phy_link/`.
+The order follows the validated Step 1 procedure. These commands program only
+this package's freshly built JTAG SOFs. The milestone PASS evidence is already
+recorded in the linked reproduction experiment; a new run is a regression
+check, not a prerequisite to promoting this checkpoint.
 
 ## Read-only Step1 runtime validation
 
-With both JTAG cables connected and both candidate SOFs programmed, run from
+With both JTAG cables connected and the freshly built SOFs programmed, run from
 this directory:
 
 ```sh

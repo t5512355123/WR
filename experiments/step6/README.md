@@ -1,16 +1,21 @@
 # Step 6 — Global Time and Scheduled Trigger
 
-Step 6 is the current research stage, and its independent frozen-source
-reproduction is complete. Historical failed, partial, and successful runs are
-kept here as part of the research record; the formal result is the separate
-2026-09-27 reproduction report and frozen milestone package.
+The historical digital Step 6 scope was independently reproduced from frozen
+source, but the current expanded Step 6 gate is not yet established. In
+addition to valid Global Time and the dual-board digital-trigger evidence, the
+Slave must provide a valid/stable Global-Time sample with
+`abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
+`+135 ps`, and the later half-gain observation `-539 ps`, do not meet that
+criterion. Historical failed, partial, and successful runs remain indexed
+below as the complete research record.
 
 ```text
 STEP5_SLAVE_LOCK_STABILITY_300S = PASS
 STEP6A_GLOBAL_TIME_VALIDITY     = PASS
 STEP6A_SAME_PPS_CONSISTENCY     = PASS (5/5 exact labels)
 STEP6B_DUAL_BOARD_TRIGGER       = PASS (initial + re-arm, 0-cycle delta)
-STEP6_FUNCTIONAL_MILESTONE      = PASS
+STEP6_HISTORICAL_DIGITAL_SCOPE  = PASS
+STEP6_CURRENT_EXPANDED_GATE     = NOT_ESTABLISHED (requires valid/stable offset <60 ps)
 PHYSICAL_SMA_EDGE_SKEW          = NOT_EVALUATED
 SFP_CACHED_CALIBRATION_QUERY    = INCONCLUSIVE (guarded; no command sent)
 TIMING_CLOSED                   = NO (not a functional gate)
@@ -25,7 +30,7 @@ TIMING_CLOSED                   = NO (not a functional gate)
 - [Step6B post-fit timing evidence](EXP-S6B-TIMING-QUERY-BOUNDARY-CORRECTION-20260922/REPORT.md)
 - [Historical Step6 evidence summary and limits](STEP6-PASS-MILESTONE.md)
 
-The end-to-end run used source commit `74dc28862653d306e0450cf437ba6d3a230d979d`
+The historical end-to-end run used source commit `74dc28862653d306e0450cf437ba6d3a230d979d`
 and the historical SOFs under
 [`artifact-import/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/`](artifact-import/EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/).
 Those files are provenance/reference artifacts only. The current functional

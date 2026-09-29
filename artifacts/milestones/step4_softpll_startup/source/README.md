@@ -1,9 +1,11 @@
-# Frozen Step 4 source package (candidate)
+# Frozen Step 4 source — validated milestone build inputs
 
-This package is a standalone copy of the JTAG-only implementation at the
-historical source commit recorded in `SOURCE_ORIGIN_COMMIT.txt`. It is a
-candidate until its rebuilt Master and Slave images are programmed and pass
-the Step 4 acceptance described in the milestone README.
+This standalone JTAG source package is the frozen build input for the Step 4
+`PASS` milestone. Its Master and Slave images were independently clean-built,
+programmed, and passed the Step 4A/4B startup and event-chain acceptance. The
+reproduction evidence is in
+`experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/`. The source origin is
+recorded in `SOURCE_ORIGIN_COMMIT.txt`.
 
 ## Layout and provenance
 
@@ -54,8 +56,9 @@ tree is not modified by this compatibility step.
 
 ## Program and observe
 
-The historical Step 4B reproduction programmed Master, waited approximately
-45 seconds, then programmed Slave. Preserve that order for this candidate.
+The validated Step 4B reproduction programmed Master, waited approximately
+45 seconds, then programmed Slave. Preserve that order when reproducing this
+checkpoint.
 The scripts under `scripts/program/` target the fixed DE5a JTAG cable mapping.
 
 For read-only runtime evidence, use the bundled

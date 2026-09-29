@@ -51,10 +51,16 @@ missing, disagrees with the numeric offset, or has an unknown board role.
 
 ## Next action
 
-The Step6 advisor message was submitted, but the referenced conversation
-returned `systemError` and no new reply was available at report time. Wait for
-the advisor's source-grounded next-step recommendation before another hardware
-experiment. Any later hardware PASS must record a valid/stable Slave snapshot
-with `abs(WR_SERVO_OFFSET_PS) < 60`; retain existing Global-Time and
-dual-board-trigger evidence as separate gates. Do not infer hardware PASS from
-these offline tests or point observations.
+No consultant input is part of the next action. The user directed the
+experiment to proceed directly. Reprogram the exact frozen Step 6 milestone
+SOFs, verify their SHA-256 values before programming, take a short read-only
+dashboard smoke, and only if the two boards remain healthy capture a
+300-second read-only dashboard series. The series must preserve per-sample
+Global-Time snapshot validity/stability, all four Slave Step 5 locks, the
+signed servo offset, and board/reset identity. The expanded Step 6 gate is
+eligible only when the Slave has a valid/stable snapshot and
+`abs(WR_SERVO_OFFSET_PS) < 60`; a 300-second claim additionally requires the
+four Step 5 lock indicators to remain asserted for the complete fresh-data
+window. Do not modify the frozen source or control parameters during this
+re-observation. See the dedicated plan at
+`../EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/PLAN.md`.

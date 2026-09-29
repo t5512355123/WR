@@ -1,9 +1,10 @@
-# Step 2 frozen-source candidate
+# Step 2 frozen source — validated milestone build inputs
 
-This directory is a self-contained reproduction candidate for the White
-Rabbit Step 2 Endpoint / MiniNIC / PTP checkpoint. It is not a PASS milestone
-until the report in the parent experiment records successful clean builds,
-programming of both DE5a boards, and the complete runtime acceptance window.
+This self-contained source package is the frozen build input for the Step 2
+Endpoint / MiniNIC / PTP `PASS` milestone. It was independently clean-built,
+programmed on both DE5a boards, and passed the Step 2 runtime acceptance. The
+reproduction record is in
+`experiments/step2/EXP-S2-MILESTONE-REPRO-20260924/`.
 
 ## Source provenance
 
@@ -25,12 +26,12 @@ self-contained JTAG checkpoint:
 - `rtl/clock/si5340_controller/` was moved to
   `quartus/si5340_controller/`.
 - QSF and top-level VHDL relative paths were updated to those locations and
-  to the candidate-local firmware MIF outputs.
+  to the package-local firmware MIF outputs.
 - `scripts/build/build_master.sh` and `build_slave.sh` now build the JTAG
   projects, cleaning the selected Quartus revision before compilation.
 - `scripts/program/program_master.sh` and `program_slave.sh` now program the
   corresponding JTAG image. Obsolete RS422 and duplicate `*_jtag` wrappers
-  from the historical repository are not included in this candidate.
+  from the historical repository are not included in this package.
 - Historical production RTL, firmware configuration, role commands, board
   pins, clocks, resets, and timing constraints were not intentionally changed.
 - The historical JTAG top-level retains board UART pins for the firmware
@@ -39,7 +40,8 @@ self-contained JTAG checkpoint:
 
 The source manifest, `SHA256SUMS`, is included at this directory's root and
 covers its source/build inputs. Successful clean compilation remains the final
-authority for Quartus dependency closure.
+authority for Quartus dependency closure. The milestone build, programming,
+and runtime verdicts are preserved in the linked reproduction experiment.
 
 ## Rebuild
 

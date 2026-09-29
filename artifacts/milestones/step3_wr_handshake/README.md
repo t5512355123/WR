@@ -18,10 +18,10 @@ Step 4 startup completion, Step 5 lock, or valid global time.
   relocations needed for independent builds.
 - Historical Master/Slave SOF hashes are recorded in the reproduction report;
   they are not being represented as the images produced by this rebuild.
-- Frozen candidate package commit: `f235b557ad09d9b37adff2c2b11b36f615f66e9e`.
+- Frozen package commit: `f235b557ad09d9b37adff2c2b11b36f615f66e9e`.
 - Pain source-manifest verification: 3,142 entries; all SHA-256 checks passed.
 - Frozen manifest file SHA-256:
-  `76245e8d53306a1cd2c0c7abd40145c6c4926b131568ed65dedec42594ac7207`.
+  `004f7d88c1f181a8bcb4d6b5878a7f244cc6b3bf45dc3fdf330ae608af143c9f`.
 
 ## Reproduction status
 
@@ -32,6 +32,27 @@ Step 4 startup completion, Step 5 lock, or valid global time.
 | Program Master / Slave | PASS — both JTAG configuration operations succeeded |
 | Step 1 + Step 2 regressions | PASS — stable 30/30 accepted frames per board |
 | Step 3 WR parent/signaling acceptance | PASS — 30/30 accepted Slave frames |
+
+## Rebuild and program
+
+On Pain with Quartus Prime Standard 17.0 Build 595 and the configured RISC-V
+toolchain, run these commands from the frozen source directory:
+
+```sh
+cd artifacts/milestones/step3_wr_handshake/source
+bash scripts/build/build_master.sh
+bash scripts/build/build_slave.sh
+JTAG_CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
+JTAG_CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+```
+
+The build scripts regenerate the role firmware and clean-compile the matching
+Quartus project. Their resulting SOFs are under
+`source/quartus/output_files_master_jtag/` and
+`source/quartus/output_files_slave_jtag/`; the paired promoted images are
+`master.sof` and `slave.sof` in this milestone directory. Preserve the
+Master-then-Slave programming order. The independently reproduced build,
+program, and runtime results are documented in the linked Step 3 experiment.
 
 ## Acceptance interpretation
 

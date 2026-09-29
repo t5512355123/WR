@@ -18,7 +18,7 @@ programming, and runtime evidence uses the JTAG path.
 - Reproduction checkout commit: `947afd975924ffe32e3ffa9a180230bdc6e36751`.
 - Self-contained frozen source: [`source/`](source/).
 - `source/SHA256SUMS` has 3,142 entries and SHA-256
-  `ef623b821a089742a5bcadd5886e257d64ce8cef1368feefaa29fb3c4f3d70dc`;
+  `6cabd9366e1f57b0ef7c45950c6e8e9e7e3d79e0f887a56bcabf0c7f88082ab1`;
   every entry was verified after promotion.
 - Quartus Prime Standard: 17.0.0 Build 595.
 - Firmware toolchain: RISC-V GCC 9.3.0, GNU ld 2.34.

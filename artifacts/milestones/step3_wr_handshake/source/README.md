@@ -1,9 +1,10 @@
-# Step 3 frozen-source candidate
+# Step 3 frozen source — validated milestone build inputs
 
-This self-contained JTAG source package is a **candidate**, not a PASS
-milestone. The Step 3 verdict remains pending until this source is clean-built,
-programmed on both DE5a boards, and passes the runtime acceptance contract in
-`experiments/step3/EXP-S3-MILESTONE-REPRO-20260924/PLAN.md`.
+This self-contained JTAG source package is the frozen build input for the Step
+3 `PASS` milestone. It was clean-built and programmed on both DE5a boards; the
+Step 1/2 regressions and Step 3 WR parent/signaling acceptance passed. The full
+report, raw evidence, offline analysis, and acceptance contract are in
+`experiments/step3/EXP-S3-MILESTONE-REPRO-20260924/`.
 
 ## Provenance
 
@@ -19,11 +20,10 @@ programmed on both DE5a boards, and passes the runtime acceptance contract in
   relocation as the independently rebuilt Step 2 source. No functional RTL,
   firmware, pin, clock, reset, PHY, PTP, or SoftPLL edits were made for Step 3.
 
-The historical Step 3 report names its raw files under an old Pain build
-directory that is no longer present. Those old raw files were not found in the
-current repository or the reported Pain path. The new reproduction therefore
-must use and preserve fresh raw evidence; the historical report alone is not
-accepted as this milestone's proof.
+The old historical report's raw files were unavailable, so the milestone is
+based on the fresh 2026-09-24 reproduction rather than that report. The fresh
+experiment retains the build/program logs and observation evidence used for
+the `PASS` verdict.
 
 ## Build and program
 
@@ -52,5 +52,5 @@ experiment plan. In particular, use the current `WR_LOCAL state` field to
 identify `WRS_S_LOCK`. The separate `fail_state` field is only the state saved
 when a prior handshake failure occurred; it is not the current state.
 
-This package is frozen once validated. Later research modifies the repository
-root current-development source, never this historical snapshot.
+This package is frozen. Later research modifies the repository-root
+current-development source, never this historical snapshot.

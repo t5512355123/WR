@@ -1,6 +1,7 @@
-# Frozen Step 5 reproduction source candidate
+# Frozen Step 5 reproduction source — validated milestone build inputs
 
-This standalone source tree reproduces historical Step 5 source commit
+This standalone source tree is the frozen build input for the Step 5 `PASS`
+milestone and reproduces historical source commit
 `26e138fdc0bfc8426704b397141d563cf4d580a2`. The only later source overlay is the read-only F4L observer
 and matching offline test from `47d9a394e53eda31476c82de2a85ad82573494ed`, which corrected the
 300-second observer contract without changing firmware or RTL.
@@ -19,6 +20,9 @@ source-version marker in firmware built from this standalone package. Build
 products are generated under this package's ignored `build/` and
 `quartus/output_files_*_jtag/` directories.
 
-This is a candidate only. It becomes a formal Step 5 milestone only after
-clean Master/Slave builds, programming both DE5a boards, and the required
-continuous 300-second four-lock runtime validation.
+Independent clean Master/Slave builds, programming on both DE5a boards, and a
+continuous 300-second four-lock runtime validation passed. The measured result
+and complete evidence are in
+`experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md`; the promoted
+SOFs and their hashes are in the parent milestone directory. Timing closure is
+not part of the Step 5 functional acceptance.

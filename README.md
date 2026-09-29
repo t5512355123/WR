@@ -46,7 +46,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Steps 1–6 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. Step 5 reproduced all required Slave locks across its 300-second series. Step 6 verified five exact common PPS labels and two repeated dual-board scheduled digital triggers. Timing closure is NO and is not a functional Step 5/6 gate. Physical SMA/output edge-skew is not evaluated; the guarded cached QSFP calibration CLI query also remains inconclusive. Authoritative hashes and evidence are in [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [Step 6 milestone](artifacts/milestones/step6_global_time/README.md).
+Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints; Step 5 held all required Slave locks for the 300-second acceptance window. The historical Step 6 digital scope also passed: five common PPS labels matched and two repeated dual-board scheduled digital triggers agreed. The expanded Step 6 gate is **not established** until a valid/stable Slave Global-Time sample also reports `abs(WR_SERVO_OFFSET_PS) < 60`. Timing closure is not a functional Step 5/6 gate. Physical SMA/output-edge skew is not evaluated; the guarded cached QSFP calibration CLI query also remains inconclusive. Authoritative hashes and evidence are in [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [Step 6 milestone](artifacts/milestones/step6_global_time/README.md).
 
 ## Reproduce the validated Step 2 checkpoint
 

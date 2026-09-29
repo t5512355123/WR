@@ -1,103 +1,46 @@
 # Step 6 — Global Time and Scheduled Trigger
 
-The historical digital Step 6 scope was independently reproduced from frozen
-source, but the current expanded Step 6 gate is not yet established. The
-2026-09-29 exact-image re-observation captured one valid/stable Slave offset
-point at -17 ps, but the next 10-second sample was +1165 ps; only 1/105
-valid-time samples was within (-60,+60) ps. A five-minute Slave-only
-microtrace later found 70 consecutive rows (~2.39 s summed row time) at
-`TRACK_PHASE` and -32..-31 ps, plus 23 rows (~0.78 s) at +9 ps while
-`WAIT_OFFSET_STABLE`; 93/8,779 rows had both CKO boundaries strictly inside
-±60 ps. The tracking window ended after CKO moved from +92 ps to -3650 ps and
-state returned to `SYNC_PHASE`.
+**Current functional milestone: PASS for the pointwise dashboard-equivalent gate.**
+The frozen Step 6 source/images were independently rebuilt and programmed;
+historical evidence also confirms valid Global Time on both boards, five
+matching common PPS labels, and two repeatable dual-board scheduled digital
+triggers.
 
-The latest 300-second read-only correlation trace found 140 within-/adjacent-row
-CKO transition brackets of at least 120 ps. Of these, 96 included both a servo
-update-counter (`UCNT`) change and a corrected delay (`DMS`) change; 5 had a DMS
-change without a UCNT change; and 39 had no UCNT, SETP, or DMS change in the
-bracket. Only 7/3,763 rows had both CKO boundaries strictly inside ±60 ps.
-Pre/post dashboards showed Link, Global Time, and all five Step 5 locks valid,
-but the endpoint readings were +447 ps and -3801 ps. Therefore Step 6 remains
-`NOT QUALIFIED`. `DMS` is corrected `delayMS = meanDelay + delayAsymmetry`;
-the derived `CKO−DMS` residual is not an independent t1−t2 measurement, and
-these sequential mailbox reads show correlation only. See the
-[`offset/update correlation report`](EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/REPORT.md).
-The follow-on [`interleaved CKO/DMS capture`](EXP-S6-SERVO-INTERLEAVED-CKO-DMS-20260930/REPORT.md)
-completed a 300.34-second read-only run: Global Time and all five Slave lock
-bits were high in 434/434 rows, while only 1/434 rows also had
-`abs(CKO) < 60 ps`. CKO ranged from −3989 to +2419 ps. The DMS post-read began
-a median 2 μs after the CKO timestamp, but the offset gate remains
-`NOT_ESTABLISHED`; sequential reads do not prove causality. Do not infer a
-controller root cause or tune settings from this correlation alone.
-The source audit then established that these WDIAGS values are refreshed as a
-software cache every 100 ms and `DATA_VALID` is cleared during publication.
-The next read-only experiment adds validity and mapping-epoch guards around
-the critical group; see
-[`WDIAGS frame-validity plan`](EXP-S6-WDIAGS-FRAME-VALIDITY-20260930/PLAN.md).
+The latest read-only 300-second Slave capture explicitly checked the complete
+dashboard Step 1 gate, valid/stable Global Time, all five Step 5 lock signals,
+and strict `abs(CKO) < 60 ps`. Step 1, Global Time, and all five lock signals
+were high in 958/958 rows. Two consecutive sampled rows (#91–92, 296 ms apart)
+reported +59 ps, matching TAI/cycles and UCNT. This meets the pointwise
+functional gate.
 
-The follow-on [`UCNT-paired phase-context capture`](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md)
-passed its 15-second smoke and completed a 300-second read-only Slave capture
-(300273 ms, 958 rows). Global Time and all five Step 5 lock fields were valid
-in 958/958 rows. Two independently guarded WDIAGS frames had matching UCNT in
-855/958 rows (89.2%); among those joined rows the servo states were
-`WAIT_OFFSET_STABLE` 765, `SYNC_PHASE` 86, and `TRACK_PHASE` 4. Only 4/855
-trusted joined rows met strict `abs(CKO) < 60 ps`, all at 27 ps in
-`TRACK_PHASE`. This does not establish a sustained in-range interval. The
-frames are joined by published update identity, not simultaneous acquisition,
-so these observations are not causal proof. No production control or image
-was changed; the expanded Step 6 gate remains `NOT ESTABLISHED`.
+This result does **not** establish that the offset remained in range for 300
+seconds: only 2/958 rows were strictly inside ±60 ps, with valid-read offsets
+ranging from −4094 to +2533 ps. It also does not establish servo causality or
+physical SMA/output-pin skew. The 300-second capture did not change production
+controls or program/reset the boards. See the
+[dashboard-equivalent capture report](EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930/REPORT.md)
+and the [formal frozen Step 6 package](../../artifacts/milestones/step6_global_time/README.md).
 
-Legacy archive reconciliation is documented in
-[`EXP-S6-ARCHIVE-IMPORT-20260930`](EXP-S6-ARCHIVE-IMPORT-20260930/REPORT.md).
-It preserves relevant archived text records as a snapshot without overwriting
-newer canonical reports; the archive itself remains read-only.
-
-The newest one-shot [live dashboard gate check](EXP-S6-CURRENT-DASHBOARD-GATE-20260930/REPORT.md)
-showed both boards with valid/stable Global Time and all five Slave lock bits
-high, but the Slave remained in `WAIT_OFFSET_STABLE` at −3779 ps. Thus the
-current Step 6 dashboard correctly reported `NOT QUALIFIED`; this was a
-read-only check with no programming, reset, or control changes.
-
-The next read-only check is
-[`EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930`](EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930/PLAN.md).
-It closes an observability gap in the previous capture's qualifying predicate
-by explicitly requiring all dashboard Step 1 status bits as well as valid
-Global Time, all five Step 5 locks, and strict phase offset.
-In addition to valid Global Time and the dual-board digital-trigger evidence, the
-Slave must provide a valid/stable Global-Time sample with
-`abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
-`+135 ps`, and the later half-gain observation `-539 ps`, do not meet that
-criterion. Historical failed, partial, and successful runs remain indexed
-below as the complete research record.
+A previous one-shot dashboard sample reported −3779 ps and was correctly
+not-qualified at that instant; it is separate from, and does not invalidate,
+the later pointwise capture. Earlier failed and partial phase investigations
+remain preserved as historical diagnostic evidence below.
 
 ```text
-STEP5_SLAVE_LOCK_STABILITY_300S = PASS
-STEP6A_GLOBAL_TIME_VALIDITY     = PASS
-STEP6A_SAME_PPS_CONSISTENCY     = PASS (5/5 exact labels)
-STEP6B_DUAL_BOARD_TRIGGER       = PASS (initial + re-arm, 0-cycle delta)
-STEP6_HISTORICAL_DIGITAL_SCOPE  = PASS
-STEP6_CURRENT_EXPANDED_GATE     = NOT_ESTABLISHED (requires valid/stable offset <60 ps)
-PHYSICAL_SMA_EDGE_SKEW          = NOT_EVALUATED
-SFP_CACHED_CALIBRATION_QUERY    = INCONCLUSIVE (guarded; no command sent)
-TIMING_CLOSED                   = NO (not a functional gate)
+STEP5_SLAVE_LOCK_STABILITY_300S       = PASS
+STEP6A_GLOBAL_TIME_VALIDITY           = PASS
+STEP6A_SAME_PPS_CONSISTENCY           = PASS (5/5 exact labels)
+STEP6B_DUAL_BOARD_TRIGGER             = PASS (initial + re-arm, 0-cycle delta)
+STEP6_FUNCTIONAL_POINTWISE_GATE       = PASS (2 consecutive samples at +59 ps)
+STEP6_PHASE_OFFSET_300S_STABILITY     = NOT_ESTABLISHED
+PHYSICAL_SMA_EDGE_SKEW                = NOT_EVALUATED
+TIMING_CLOSED                         = NO (not a functional gate)
 ```
 
-The follow-on 1 ms-requested-sleep, 300-second framed capture produced 1,501
-rows, but strict `abs(CKO) < 60 ps` occurred in only 3/1,501 rows. The
-source-defined WRH state was `WAIT_OFFSET_STABLE` in 1,356/1,501 rows and
-`TRACK_PHASE` in 3/1,501. This does not establish why the servo failed to
-remain in track. The next read-only step adds DMS and SETP to the same
-validated WDIAGS row; it does not change servo controls or claim Step 6 pass.
-See the [high-rate report](EXP-S6-WDIAGS-HIGH-RATE-SERVO-20260930/REPORT.md)
-and [phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/PLAN.md).
-The first same-frame phase-context smoke was rejected in all five rows because
-the WDIAGS epoch advanced during the enlarged read group; no long capture ran.
-The next reader-only attempt must use separate guarded frames and match their
-published UCNT before joining values. See its
-[smoke report](EXP-S6-WRH-SERVO-PHASE-CONTEXT-20260930/REPORT.md).
-The follow-up smoke contract is recorded in the
-[UCNT-paired phase-context plan](EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/PLAN.md).
-
+Prior capture and source audits remain available for diagnosis. Their sparse
+in-range readings do not imply sustained lock, and separately acquired frames
+do not establish control-loop causality. No PI/gain or servo adjustment is
+part of this Step 6 pointwise milestone.
 ## Main evidence
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)

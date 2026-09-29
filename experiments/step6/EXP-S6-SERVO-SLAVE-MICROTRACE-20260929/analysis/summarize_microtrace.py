@@ -123,7 +123,16 @@ def summarize(
     between_row_state_changes = 0
     previous_end: int | None = None
     state_rows_valid = 0
+    strict_offset_run: list[Attempt] = []
+    strict_offset_runs: list[list[Attempt]] = []
+    strict_track_samples = 0
+    previous_sample: int | None = None
     for row in final_rows:
+        if previous_sample is not None and row.sample != previous_sample + 1:
+            if strict_offset_run:
+                strict_offset_runs.append(strict_offset_run)
+            strict_offset_run = []
+        previous_sample = row.sample
         begin = int_field(row, "state_begin")
         end = int_field(row, "state_end")
         ob = int_field(row, "offset_begin_ps")
@@ -150,6 +159,38 @@ def summarize(
             under_end = abs(oe) < 60
             either_under += int(under_begin or under_end)
             both_under += int(under_begin and under_end)
+            if under_begin and under_end:
+                strict_offset_run.append(row)
+                if begin == 4 and end == 4:
+                    strict_track_samples += 1
+            else:
+                if strict_offset_run:
+                    strict_offset_runs.append(strict_offset_run)
+                strict_offset_run = []
+    if strict_offset_run:
+        strict_offset_runs.append(strict_offset_run)
+    longest_strict_offset_run = max(strict_offset_runs, key=len, default=[])
+
+    strict_offset_run_summaries = []
+    for run in strict_offset_runs:
+        run_offsets_begin = [int_field(row, "offset_begin_ps") for row in run]
+        run_offsets_end = [int_field(row, "offset_end_ps") for row in run]
+        strict_offset_run_summaries.append({
+            "first_sample": run[0].sample,
+            "last_sample": run[-1].sample,
+            "samples": len(run),
+            "sum_of_reader_row_elapsed_us": sum(
+                (int_field(row, "elapsed_us") or 0) for row in run
+            ),
+            "track_phase_both_boundaries_samples": sum(
+                int(int_field(row, "state_begin") == 4 and int_field(row, "state_end") == 4)
+                for row in run
+            ),
+            "offset_begin_min_ps": min(v for v in run_offsets_begin if v is not None),
+            "offset_begin_max_ps": max(v for v in run_offsets_begin if v is not None),
+            "offset_end_min_ps": min(v for v in run_offsets_end if v is not None),
+            "offset_end_max_ps": max(v for v in run_offsets_end if v is not None),
+        })
 
     arrivals = [row.received for row in final_rows]
     arrival_intervals_ms = [
@@ -179,6 +220,22 @@ def summarize(
         "within_row_offset_delta_ps": stats(deltas),
         "either_boundary_strictly_under_60ps_samples": either_under,
         "both_boundaries_strictly_under_60ps_samples": both_under,
+        "strict_offset_run_episodes": strict_offset_run_summaries,
+        "longest_consecutive_both_boundaries_under_60ps_samples": len(longest_strict_offset_run),
+        "longest_run_first_sample": longest_strict_offset_run[0].sample if longest_strict_offset_run else None,
+        "longest_run_last_sample": longest_strict_offset_run[-1].sample if longest_strict_offset_run else None,
+        "longest_run_sum_of_reader_row_elapsed_us": sum(
+            (int_field(row, "elapsed_us") or 0) for row in longest_strict_offset_run
+        ),
+        "longest_run_offset_begin_ps": stats([
+            int_field(row, "offset_begin_ps") for row in longest_strict_offset_run
+            if int_field(row, "offset_begin_ps") is not None
+        ]),
+        "longest_run_offset_end_ps": stats([
+            int_field(row, "offset_end_ps") for row in longest_strict_offset_run
+            if int_field(row, "offset_end_ps") is not None
+        ]),
+        "both_boundaries_under_60ps_and_track_phase_samples": strict_track_samples,
         "reader_row_elapsed_us": stats(elapsed),
         "host_output_arrival_interval_ms": stats(arrival_intervals_ms),
         "first_sample_output_received_utc": arrivals[0].isoformat() if arrivals else None,

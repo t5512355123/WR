@@ -26,17 +26,21 @@ class MicrotraceParserTest(unittest.TestCase):
             f"{a}\tMICRO_SAMPLE board=DE5_1-11.2 sample=000001 attempt=0 row_valid=0 elapsed_us=31000 ctrl_valid=0 sstat_valid_begin=0 sstat_valid_end=0 state_begin=5 state_end=3 offset_begin_ps=62 offset_end_ps=-10",
             f"{b}\tMICRO_SAMPLE board=DE5_1-11.2 sample=000001 attempt=1 row_valid=1 elapsed_us=32000 ctrl_valid=1 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=4 state_begin_name=WAIT_OFFSET_STABLE state_end_name=TRACK_PHASE offset_begin_ps=55 offset_end_ps=-10",
             f"{b}\tMICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000001 accepted=1 retries=1 consecutive_invalid=0",
+            f"{b}\tMICRO_SAMPLE board=DE5_1-11.2 sample=000002 attempt=0 row_valid=1 elapsed_us=33000 ctrl_valid=1 sstat_valid_begin=1 sstat_valid_end=1 state_begin=4 state_end=4 state_begin_name=TRACK_PHASE state_end_name=TRACK_PHASE offset_begin_ps=-50 offset_end_ps=-40 offset_delta_ps=10",
+            f"{b}\tMICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000002 accepted=1 retries=0 consecutive_invalid=0",
             f"{b}\tCAPTURE_PROCESS_EXIT=0",
         ])
         rows, results, code, errors, stop = parse_log(log)
         result = summarize(rows, results, code, errors, stop)
-        self.assertEqual(result["accepted_samples"], 1)
+        self.assertEqual(result["accepted_samples"], 2)
         self.assertEqual(result["failed_attempt_rows"], 1)
         self.assertEqual(result["accepted_samples_with_retries"], 1)
         self.assertEqual(result["track_phase_observed_at_boundary"], True)
-        self.assertEqual(result["either_boundary_strictly_under_60ps_samples"], 1)
-        self.assertEqual(result["within_row_offset_delta_ps"]["median"], -65)
+        self.assertEqual(result["either_boundary_strictly_under_60ps_samples"], 2)
+        self.assertEqual(result["within_row_offset_delta_ps"]["median"], -27.5)
         self.assertEqual(result["within_row_state_change_rows"], 1)
+        self.assertEqual(result["longest_consecutive_both_boundaries_under_60ps_samples"], 2)
+        self.assertEqual(result["both_boundaries_under_60ps_and_track_phase_samples"], 1)
 
     def test_unaccepted_sample_is_not_counted_as_valid(self):
         a = "2026-09-29T15:00:00.000000000Z"

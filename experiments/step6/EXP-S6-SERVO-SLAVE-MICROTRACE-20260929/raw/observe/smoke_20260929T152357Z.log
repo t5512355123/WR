@@ -1,0 +1,74 @@
+2026-09-29T15:23:57.157721180Z	MICRO_CAPTURE_META mode=smoke retries=2 hard_timeout_seconds=900
+2026-09-29T15:23:57.159940915Z	MICRO_CAPTURE_START_UTC=2026-09-29T15:23:57,157568693+00:00
+2026-09-29T15:23:57.903253287Z	Info: *******************************************************************
+2026-09-29T15:23:57.905583784Z	Info: Running Quartus Prime SignalTap II
+2026-09-29T15:23:57.907872345Z	    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+2026-09-29T15:23:57.910101447Z	    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+2026-09-29T15:23:57.912290536Z	    Info: Your use of Intel Corporation's design tools, logic functions 
+2026-09-29T15:23:57.914579435Z	    Info: and other software and tools, and its AMPP partner logic 
+2026-09-29T15:23:57.916977379Z	    Info: functions, and any output files from any of the foregoing 
+2026-09-29T15:23:57.919208263Z	    Info: (including device programming or simulation files), and any 
+2026-09-29T15:23:57.921146519Z	    Info: associated documentation or information are expressly subject 
+2026-09-29T15:23:57.923259211Z	    Info: to the terms and conditions of the Intel Program License 
+2026-09-29T15:23:57.925174801Z	    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+2026-09-29T15:23:57.927299921Z	    Info: the Intel MegaCore Function License Agreement, or other 
+2026-09-29T15:23:57.929225968Z	    Info: applicable license agreement, including, without limitation, 
+2026-09-29T15:23:57.931399172Z	    Info: that your use is for the sole purpose of programming logic 
+2026-09-29T15:23:57.933563395Z	    Info: devices manufactured by Intel and sold by Intel or its 
+2026-09-29T15:23:57.935752709Z	    Info: authorized distributors.  Please refer to the applicable 
+2026-09-29T15:23:57.937899753Z	    Info: agreement for further details.
+2026-09-29T15:23:57.940007088Z	    Info: Processing started: Tue Sep 29 23:23:57 2026
+2026-09-29T15:23:57.942120774Z	Info: Command: quartus_stp -t /home/b10504072/04_WR/experiments/step6/EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/scripts/read_slave_servo_microtrace.tcl smoke 2
+2026-09-29T15:23:57.944295576Z	Info: Quartus(args): smoke 2
+2026-09-29T15:23:57.946600110Z	MICRO_CONFIG mode=smoke target_samples=20 max_retries=2 read_only=1 target_board=DE5_1-11.2
+2026-09-29T15:23:57.948804608Z	MICRO_BOARD_BEGIN hardware=DE5_1-11.2 device_count=1 selected_device=@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+2026-09-29T15:23:57.951134303Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000001 attempt=0 row_valid=1 elapsed_us=33426 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:57.953373263Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000001 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:57.955724717Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000002 attempt=0 row_valid=1 elapsed_us=33404 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:57.957917178Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000002 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:57.960282228Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000003 attempt=0 row_valid=1 elapsed_us=33390 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:57.962257245Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000003 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:57.964017682Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000004 attempt=0 row_valid=1 elapsed_us=33428 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:57.965775980Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000004 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:57.967665772Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000005 attempt=0 row_valid=1 elapsed_us=33728 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:57.969707517Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000005 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.176662229Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000006 attempt=0 row_valid=1 elapsed_us=33954 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.178846114Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000006 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.180946498Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000007 attempt=0 row_valid=1 elapsed_us=33998 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=3 state_begin_name=SYNC_PHASE state_end_name=SYNC_PHASE sstat_begin=00000301 sstat_end=00000301 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.183072773Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000007 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.185178574Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000008 attempt=0 row_valid=1 elapsed_us=33841 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=3 state_end=5 state_begin_name=SYNC_PHASE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000301 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.187314778Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000008 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.189680171Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000009 attempt=0 row_valid=1 elapsed_us=34917 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.191875980Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000009 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.194219798Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000010 attempt=0 row_valid=1 elapsed_us=33866 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.196217548Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000010 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.198303661Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000011 attempt=0 row_valid=1 elapsed_us=34750 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.199867084Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000011 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.201694013Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000012 attempt=0 row_valid=1 elapsed_us=33792 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.202898960Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000012 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.204126947Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000013 attempt=0 row_valid=1 elapsed_us=33851 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.205270689Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000013 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.400065068Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000014 attempt=0 row_valid=1 elapsed_us=33979 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.400636880Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000014 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.401261483Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000015 attempt=0 row_valid=1 elapsed_us=34216 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.401870602Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000015 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.402437723Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000016 attempt=0 row_valid=1 elapsed_us=34158 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.402972656Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000016 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.403558681Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000017 attempt=0 row_valid=1 elapsed_us=33876 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.404156511Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000017 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.405038852Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000018 attempt=0 row_valid=1 elapsed_us=34906 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.405865814Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000018 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.406649404Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000019 attempt=0 row_valid=1 elapsed_us=34033 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.407560082Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000019 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.408474502Z	MICRO_SAMPLE board=DE5_1-11.2 sample=000020 attempt=0 row_valid=1 elapsed_us=33983 ctrl_valid=1 ctrl_begin=00000001 ctrl_end=00000001 sstat_valid_begin=1 sstat_valid_end=1 state_begin=5 state_end=5 state_begin_name=WAIT_OFFSET_STABLE state_end_name=WAIT_OFFSET_STABLE sstat_begin=00000501 sstat_end=00000501 offset_begin_ps=1117 offset_end_ps=1117 offset_delta_ps=0 cko_begin=0000045D cko_end=0000045D
+2026-09-29T15:23:58.409532525Z	MICRO_SAMPLE_RESULT board=DE5_1-11.2 sample=000020 accepted=1 retries=0 consecutive_invalid=0
+2026-09-29T15:23:58.410650323Z	MICRO_BOARD_RESULT board=DE5_1-11.2 samples=20 accepted=20 failed=0 elapsed_ms=682
+2026-09-29T15:23:58.411843823Z	MICRO_SESSION_DONE
+2026-09-29T15:23:58.413249680Z	Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/experiments/step6/EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/scripts/read_slave_servo_microtrace.tcl was successful
+2026-09-29T15:23:58.414703258Z	Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+2026-09-29T15:23:58.416036379Z	    Info: Peak virtual memory: 772 megabytes
+2026-09-29T15:23:58.417296939Z	    Info: Processing ended: Tue Sep 29 23:23:58 2026
+2026-09-29T15:23:58.418431581Z	    Info: Elapsed time: 00:00:01
+2026-09-29T15:23:58.419334862Z	    Info: Total CPU time (on all processors): 00:00:00
+2026-09-29T15:23:58.420179452Z	MICRO_CAPTURE_END_UTC=2026-09-29T15:23:58,405440816+00:00
+2026-09-29T15:23:58.421096538Z	CAPTURE_PROCESS_EXIT=0

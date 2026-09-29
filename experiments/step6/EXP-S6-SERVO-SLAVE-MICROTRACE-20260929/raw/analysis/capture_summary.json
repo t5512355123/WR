@@ -1,0 +1,101 @@
+{
+  "board": "DE5_1-11.2",
+  "capture_process_exit": 0,
+  "reader_error_lines": 0,
+  "stop_reason": null,
+  "attempt_rows": 8788,
+  "failed_attempt_rows": 9,
+  "sample_results": 8779,
+  "accepted_samples": 8779,
+  "accepted_samples_with_retries": 9,
+  "servo_state_valid_rows": 8779,
+  "state_at_row_begin": {
+    "WAIT_OFFSET_STABLE": 7808,
+    "SYNC_PHASE": 865,
+    "TRACK_PHASE": 106
+  },
+  "state_at_row_end": {
+    "WAIT_OFFSET_STABLE": 7807,
+    "SYNC_PHASE": 867,
+    "TRACK_PHASE": 105
+  },
+  "track_phase_observed_at_boundary": true,
+  "within_row_state_change_rows": 26,
+  "between_row_state_change_boundaries": 29,
+  "offset_begin_ps": {
+    "count": 8779,
+    "min": -4043,
+    "median": 598,
+    "max": 2454
+  },
+  "offset_end_ps": {
+    "count": 8779,
+    "min": -4043,
+    "median": 598,
+    "max": 2454
+  },
+  "within_row_offset_delta_ps": {
+    "count": 8779,
+    "min": -4361,
+    "median": 0,
+    "max": 3801
+  },
+  "either_boundary_strictly_under_60ps_samples": 93,
+  "both_boundaries_strictly_under_60ps_samples": 93,
+  "strict_offset_run_episodes": [
+    {
+      "first_sample": 2384,
+      "last_sample": 2453,
+      "samples": 70,
+      "sum_of_reader_row_elapsed_us": 2389836,
+      "track_phase_both_boundaries_samples": 70,
+      "offset_begin_min_ps": -32,
+      "offset_begin_max_ps": -31,
+      "offset_end_min_ps": -32,
+      "offset_end_max_ps": -31
+    },
+    {
+      "first_sample": 8111,
+      "last_sample": 8133,
+      "samples": 23,
+      "sum_of_reader_row_elapsed_us": 783491,
+      "track_phase_both_boundaries_samples": 0,
+      "offset_begin_min_ps": 9,
+      "offset_begin_max_ps": 9,
+      "offset_end_min_ps": 9,
+      "offset_end_max_ps": 9
+    }
+  ],
+  "longest_consecutive_both_boundaries_under_60ps_samples": 70,
+  "longest_run_first_sample": 2384,
+  "longest_run_last_sample": 2453,
+  "longest_run_sum_of_reader_row_elapsed_us": 2389836,
+  "longest_run_offset_begin_ps": {
+    "count": 70,
+    "min": -32,
+    "median": -31.0,
+    "max": -31
+  },
+  "longest_run_offset_end_ps": {
+    "count": 70,
+    "min": -32,
+    "median": -31.0,
+    "max": -31
+  },
+  "both_boundaries_under_60ps_and_track_phase_samples": 70,
+  "reader_row_elapsed_us": {
+    "count": 8779,
+    "min": 32200,
+    "median": 33924,
+    "max": 39936
+  },
+  "host_output_arrival_interval_ms": {
+    "count": 8778,
+    "min": 0.6759999999999999,
+    "median": 4.176500000000001,
+    "max": 1102.194
+  },
+  "first_sample_output_received_utc": "2026-09-29T15:25:00.481272+00:00",
+  "last_sample_output_received_utc": "2026-09-29T15:30:00.290132+00:00",
+  "interpretation_limit": "The host receives timestamped output lines, not hardware-edge timestamps. Use reader_row_elapsed_us for row duration. SSTAT and CKO are sequential bracketed mailbox reads, not an atomic snapshot; absence of a sampled TRACK_PHASE/under-60-ps boundary cannot exclude a sub-row transient."
+}

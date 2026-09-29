@@ -7,12 +7,17 @@ point at -17 ps, but the next 10-second sample was +1165 ps; only 1/105
 valid-time samples was within (-60,+60) ps, so this is not a sustained pass.
 The later 60-row reader capture found no in-range offset and observed 55
 `WAIT_OFFSET_STABLE` plus 5 `SYNC_PHASE` rows, with all five Step 5 lock
-signals high. The 400-row fast capture improved the reader's internal row time
-to a median 73.274 ms; all five Slave Step 5 locks remained high, but no sample
-was strictly within ±60 ps and no `TRACK_PHASE` boundary was observed. Source
-shows that this 60 ps gate is the immediate condition for entering
-`TRACK_PHASE`; the deeper reason the measured offset stays outside it remains
-open. The next diagnostic is a Slave-only compact SSTAT/CKO microtrace.
+signals high. The 400-row fast capture found no strict-offset sample. A
+subsequent five-minute Slave-only microtrace found 70 consecutive rows (~2.39 s
+summed row time) with `TRACK_PHASE` and -32..-31 ps, plus a second 23-row
+(~0.78 s) strict-offset window at +9 ps while `WAIT_OFFSET_STABLE`. In total,
+93/8,779 rows had both CKO boundaries strictly inside ±60 ps. The tracking
+episode ended after CKO moved from +92 ps to -3650 ps and state returned to
+`SYNC_PHASE`, consistent with the source's >120 ps tracking-exit threshold;
+the jump's origin remains unresolved. Pre/post dashboards showed all five
+Step 5 locks and Global Time valid, but the compact reader did not sample them
+during capture. The next diagnostic correlates SSTAT/CKO with `WDIAG_UCNT`,
+`WDIAG_SETP`, and `WDIAG_DMS`.
 In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and
@@ -42,6 +47,7 @@ TIMING_CLOSED                   = NO (not a functional gate)
 - [Fast SSTAT/CKO capture report](EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/REPORT.md)
 - [Slave-only microtrace plan](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/PLAN.md)
 - [Slave-only microtrace reader](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/scripts/read_slave_servo_microtrace.tcl)
+- [Slave-only microtrace report](EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/REPORT.md)
 - [Formal Step6 milestone package](../../artifacts/milestones/step6_global_time/README.md)
 - [Historical end-to-end hardware run](EXP-S6-UNCALIBRATED-SLOCK-RESTART-PRESENT-20260923/REPORT.md)
 - [Digital evidence closure audit](EXP-S6-DIGITAL-MILESTONE-CLOSURE-20260922/REPORT.md)

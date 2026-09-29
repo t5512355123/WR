@@ -1,5 +1,8 @@
 import unittest
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 
 from summarize_offset_correlation import parse_log, summarize
 
@@ -75,6 +78,26 @@ class CorrelationParserTest(unittest.TestCase):
         summary = summarize(rows, results, code, errors, stop, board_result)
         self.assertEqual(summary["dms_delta_within_row_ps"]["max"], 128)
         self.assertEqual(summary["board_result"]["elapsed_ms"], 300100)
+
+    def test_cli_writes_utf8_lf_summary_on_older_python(self):
+        analyzer = Path(__file__).with_name("summarize_offset_correlation.py")
+        with tempfile.TemporaryDirectory() as directory:
+            log = Path(directory) / "capture.log"
+            output = Path(directory) / "summary.json"
+            log.write_text(
+                "2026-09-29T16:00:00.000000000Z\tCAPTURE_PROCESS_EXIT=0\n",
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [sys.executable, str(analyzer), str(log), "--output", str(output)],
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            raw = output.read_bytes()
+            self.assertIn(b'"capture_process_exit": 0', raw)
+            self.assertNotIn(b"\r\n", raw)
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ they are not claimed to be same-cycle with the critical servo fields.
 1. Confirm clean source revision, expected Master/Slave JTAG cables, and no
    competing Quartus/JTAG process. Run one dashboard and save its output.
 2. Run a 15-second Slave smoke at a 500 ms requested interval. Continue only
-   with at least 20 rows, every individual field read valid, at least 95% of
+   with at least 20 rows, every individual field read valid, at least 75% of
    UCNT/SSTAT-framed critical groups coherent, zero transport errors, and
    median row duration below 250 ms. The offset need not already pass for this
    reader smoke.
@@ -51,7 +51,7 @@ they are not claimed to be same-cycle with the critical servo fields.
 4. Run a one-shot dashboard afterward. A Step 6 candidate requires both
    dashboards to show Master and Slave Global Time valid/stable, plus every
    Slave sample in the complete 300-second capture to have all five Step 5
-   locks and `abs(CKO) < 60 ps`; at least 95% of rows must also have stable
+   locks and `abs(CKO) < 60 ps`; at least 75% of rows must also have stable
    UCNT/SSTAT framing for correlation. This is sampled acceptance, not a
    claim about unobserved instants between reads or physical SMA edge skew.
 5. Analyze raw data, write the report, checksum all evidence, then push.

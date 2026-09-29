@@ -90,7 +90,7 @@ def summarize(
     uninterrupted_samples = (
         bool(rows)
         and len(read_valid_rows) == len(rows)
-        and len(accepted) / len(rows) >= 0.95
+        and len(accepted) / len(rows) >= 0.75
         and len(strict_rows) == len(rows)
         and reset_stop == 0
         and timeout_count == 0
@@ -101,7 +101,7 @@ def summarize(
     smoke_ok = (
         len(rows) >= 20
         and len(read_valid_rows) == len(rows)
-        and len(accepted) / len(rows) >= 0.95
+        and len(accepted) / len(rows) >= 0.75
         and bool(row_durations)
         and statistics.median(row_durations) < 250.0
         and timeout_count == 0

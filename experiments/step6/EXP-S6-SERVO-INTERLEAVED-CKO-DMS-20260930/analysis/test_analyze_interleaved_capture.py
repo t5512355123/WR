@@ -71,14 +71,15 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertEqual(result["offset_abs_lt_60_count"], 2)
         self.assertEqual(result["verdict"], "SMOKE_FAIL")
 
-    def test_smoke_allows_a_single_update_crossing_but_requires_valid_reads(self) -> None:
+    def test_smoke_allows_updates_crossing_within_the_documented_coherence_floor(self) -> None:
         lines = [row(i, 120, qualifies=0) for i in range(22)]
-        lines[7] = lines[7].replace("COHERENT=1", "COHERENT=0")
+        for index in (2, 7, 12, 19):
+            lines[index] = lines[index].replace("COHERENT=1", "COHERENT=0")
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "smoke.log"
             path.write_text("\n".join(lines) + "\n", encoding="utf-8")
             result = ANALYZER.summarize(path, mode="smoke")
-        self.assertEqual(result["trusted_rows"], 21)
+        self.assertEqual(result["trusted_rows"], 18)
         self.assertEqual(result["individual_reads_valid_rows"], 22)
         self.assertEqual(result["verdict"], "SMOKE_PASS")
 

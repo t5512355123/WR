@@ -51,6 +51,18 @@ Legacy archive reconciliation is documented in
 [`EXP-S6-ARCHIVE-IMPORT-20260930`](EXP-S6-ARCHIVE-IMPORT-20260930/REPORT.md).
 It preserves relevant archived text records as a snapshot without overwriting
 newer canonical reports; the archive itself remains read-only.
+
+The newest one-shot [live dashboard gate check](EXP-S6-CURRENT-DASHBOARD-GATE-20260930/REPORT.md)
+showed both boards with valid/stable Global Time and all five Slave lock bits
+high, but the Slave remained in `WAIT_OFFSET_STABLE` at −3779 ps. Thus the
+current Step 6 dashboard correctly reported `NOT QUALIFIED`; this was a
+read-only check with no programming, reset, or control changes.
+
+The next read-only check is
+[`EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930`](EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930/PLAN.md).
+It closes an observability gap in the previous capture's qualifying predicate
+by explicitly requiring all dashboard Step 1 status bits as well as valid
+Global Time, all five Step 5 locks, and strict phase offset.
 In addition to valid Global Time and the dual-board digital-trigger evidence, the
 Slave must provide a valid/stable Global-Time sample with
 `abs(WR_SERVO_OFFSET_PS) < 60`. Historical frozen-image values `-158 ps` and

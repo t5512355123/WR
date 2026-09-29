@@ -63,6 +63,24 @@ class InterleavedCaptureTests(unittest.TestCase):
         self.assertIn("DIAG_EPOCH_WAIT_BASELINE=%d", source)
         self.assertNotIn("last_diag_epoch", source)
 
+    def test_step6_qualification_includes_the_full_dashboard_step1_gate(self) -> None:
+        source = OBSERVER_PATH.read_text(encoding="utf-8")
+        capture = source.split("proc s6_i_capture", maxsplit=1)[1].split("puts [format \"S6_INTERLEAVED_CONFIG", maxsplit=1)[0]
+        required_status = [
+            "set status_si_config_done [bit64_low $status 0]",
+            "set status_wr_ready [bit64_low $status 1]",
+            "set status_tm_link [bit64_low $status 2]",
+            "set status_link_ok [bit64_low $status 3]",
+            "set status_rx_ready [bit64_low $status 6]",
+            "set status_tx_ready [bit64_low $status 7]",
+            "set status_cpu_reset_n [bit64_low $status 15]",
+            "set status_rx_locked_to_data [bit64_high $status 0]",
+        ]
+        for expression in required_status:
+            self.assertIn(expression, capture)
+        self.assertIn("$step1_gate == 1", capture)
+        self.assertIn("STEP1_GATE=%d", source)
+
     def test_timing_format_has_one_argument_for_each_conversion(self) -> None:
         source = OBSERVER_PATH.read_text(encoding="utf-8")
         timing = source.split('puts [format "S6_INTERLEAVED_TIMING ', maxsplit=1)[1]

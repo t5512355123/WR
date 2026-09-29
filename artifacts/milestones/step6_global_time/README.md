@@ -56,6 +56,18 @@ sequential frames do not prove causality. The expanded Step 6 result remains
 `NOT ESTABLISHED`; frozen milestone images and production controls were not
 changed.
 
+Because the paired capture's row predicate did not explicitly include the
+dashboard's complete Step 1 PHY/link bit set, the next verification is
+[`EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930`](../../../experiments/step6/EXP-S6-DASHBOARD-EQUIVALENT-GATE-CAPTURE-20260930/PLAN.md).
+It only extends read-only observer output/qualification; it does not modify
+production sources or the frozen images.
+
+A fresh one-shot [live dashboard gate check](../../../experiments/step6/EXP-S6-CURRENT-DASHBOARD-GATE-20260930/REPORT.md)
+confirmed valid/stable Global Time on both boards and all five Slave lock bits
+high, but measured the Slave at −3779 ps in `WAIT_OFFSET_STABLE`; the dashboard
+therefore reported `NOT QUALIFIED`. This read-only check made no image or
+control changes and does not alter the historical digital-trigger result.
+
 ## Provenance and frozen files
 
 - Frozen source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.

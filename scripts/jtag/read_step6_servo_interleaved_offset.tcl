@@ -368,6 +368,22 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set de1_raw [word32 $diag_epoch_after_raw]
   set cko [s6_i_signed32 $cko_raw]
   set servo_state [expr {$sstat < 0 ? -1 : (($sstat >> 8) & 0xf)}]
+  # Match Step 1's exact read-only status-probe prerequisites from
+  # read_wb_runtime.tcl; a valid Global-Time snapshot alone does not replace
+  # the dashboard's PHY/link gate.
+  set status_si_config_done [bit64_low $status 0]
+  set status_wr_ready [bit64_low $status 1]
+  set status_tm_link [bit64_low $status 2]
+  set status_link_ok [bit64_low $status 3]
+  set status_rx_ready [bit64_low $status 6]
+  set status_tx_ready [bit64_low $status 7]
+  set status_cpu_reset_n [bit64_low $status 15]
+  set status_rx_locked_to_data [bit64_high $status 0]
+  set step1_gate [expr {
+    $status_si_config_done == 1 && $status_wr_ready == 1 &&
+    $status_tm_link == 1 && $status_link_ok == 1 &&
+    $status_rx_ready == 1 && $status_tx_ready == 1 &&
+    $status_cpu_reset_n == 1 && $status_rx_locked_to_data == 1 ? 1 : 0}]
   set reads_valid [expr {
     [is_hex $status] && [is_hex $live] && [is_hex $time_seq_before] &&
     [is_hex $time_snapshot] && [is_hex $time_seq_after] &&
@@ -389,6 +405,7 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
   set coherent [expr {$reads_valid && $diagnostic_frame_match && $global_valid ? 1 : 0}]
   set qualifies [expr {
     $reads_valid && $diagnostic_frame_match && $global_valid &&
+    $step1_gate == 1 &&
     $helper_lock == 1 && $main_lock == 1 &&
     $main_freq == 1 && $main_phase == 1 && $pstat_lock == 1 &&
     abs($cko) < 60 ? 1 : 0}]
@@ -438,14 +455,17 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $hardware_name $sample $context_frame_start_us $context_frame_end_us \
     $context_wait_ms $context_frame_valid $context_epoch_before \
     $context_epoch_after $context_ucnt_raw]
-  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
+  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d STEP1_GATE=%d STATUS_SI_CONFIG_DONE=%d STATUS_WR_READY=%d STATUS_TM_LINK=%d STATUS_LINK_OK=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d STATUS_RX_LOCKED_TO_DATA=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
     $critical_start_us $diag_wait_ms $diag_epoch_wait_baseline $frame_start_us \
     $cko_host_us $phase_context_start_us $phase_context_end_us \
     $critical_end_us $row_end_us $reads_valid \
     $coherent $qualifies $tai $cycles $global_valid $snapshot_stable \
     $snapshot_valid $snapshot_count $status_time_valid $status_pps_valid \
-    $escr_time_valid $escr_pps_valid $helper_lock $main_lock $main_freq \
+    $escr_time_valid $escr_pps_valid $step1_gate $status_si_config_done \
+    $status_wr_ready $status_tm_link $status_link_ok $status_rx_ready \
+    $status_tx_ready $status_cpu_reset_n $status_rx_locked_to_data \
+    $helper_lock $main_lock $main_freq \
     $main_phase $pstat_lock $diag_valid_before $diag_valid_after \
     $diag_epoch_before $diag_epoch_after $diag_epoch_stable \
     $diag_epoch_before_ok $diag_frame_valid $ucnt_raw $sstat_raw \

@@ -3,7 +3,9 @@
 The closure audit deliberately consumes only committed experiment artifacts.
 It never invokes Quartus, JTAG, programming, reset, PTP, or any functional
 write.  A PASS therefore means that the existing raw records and summaries
-are mutually consistent with the adviser-approved digital Step6 contract.
+are mutually consistent with the historical digital Step6 contract.  This
+audit does not establish the current additional Slave phase-offset gate
+(`abs(WR_SERVO_OFFSET_PS) < 60`); that gate requires a separate live capture.
 """
 
 from __future__ import annotations
@@ -419,6 +421,7 @@ def audit(repo_root: Path) -> dict[str, Any]:
         "step6b_postfit_timing": "PASS" if verdict == "PASS" else "NOT_PASS",
         "step6b_first_trigger": "PASS" if verdict == "PASS" else "NOT_PASS",
         "step6b_rearm_repeatability": "PASS" if verdict == "PASS" else "NOT_PASS",
+        "expanded_step6_phase_offset_gate": "NOT_ESTABLISHED",
         "step6_physical_pps_baseline": "NOT_EVALUATED",
         "step6b_physical_scheduled_trigger_edge": "NOT_EVALUATED",
         "digital_timestamp_delta_ticks": 0 if verdict == "PASS" else None,

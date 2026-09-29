@@ -14,6 +14,7 @@ def test_closure_audit_passes_existing_evidence() -> None:
     assert result["contradiction_count"] == 0
     assert result["step6_physical_pps_baseline"] == "NOT_EVALUATED"
     assert result["step6b_physical_scheduled_trigger_edge"] == "NOT_EVALUATED"
+    assert result["expanded_step6_phase_offset_gate"] == "NOT_ESTABLISHED"
 
 
 def test_closure_audit_is_read_only_contract() -> None:

@@ -51,17 +51,42 @@ if [ "$ONCE" != "1" ] && [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ]; then
   WAIT_FOR_GLOBAL_TIME_SECONDS=0
 fi
 
+phase_offset_gate_ok() {
+  local role="$1"
+  local offset_ps="$2"
+  local reported_ok="$3"
+  case "$role" in
+    MASTER) return 0 ;;
+    SLAVE)
+      [[ "$reported_ok" == "1" && "$offset_ps" =~ ^-?[0-9]+$ ]] || return 1
+      (( offset_ps > -60 && offset_ps < 60 ))
+      return
+      ;;
+    *) return 1 ;;
+  esac
+}
+
 field_from_line() {
   local key="$1"
   local line="$2"
   local token
+  local result="N/A"
+  local role="UNKNOWN"
+  local offset_ps="N/A"
+  local offset_ok="N/A"
   for token in $line; do
-    if [[ "$token" == "$key="* ]]; then
-      printf '%s' "${token#*=}"
-      return 0
-    fi
+    case "$token" in
+      "$key="*) result="${token#*=}" ;;
+      role=*) role="${token#*=}" ;;
+      WR_SERVO_OFFSET_PS=*) offset_ps="${token#*=}" ;;
+      WR_PHASE_OFFSET_OK=*) offset_ok="${token#*=}" ;;
+    esac
   done
-  printf 'N/A'
+  if [[ "$key" == "Step6" && "$result" == "PASS" ]] &&
+     ! phase_offset_gate_ok "$role" "$offset_ps" "$offset_ok"; then
+    result="INFO"
+  fi
+  printf '%s' "$result"
 }
 
 format_board() {
@@ -87,15 +112,25 @@ format_board() {
   local tm="${field[TM]:-0}"
   local wr_servo_state="${field[WR_SERVO_STATE]:-N/A}"
   local wr_servo_offset_ps="${field[WR_SERVO_OFFSET_PS]:-N/A}"
+  local phase_offset_ok="${field[WR_PHASE_OFFSET_OK]:-N/A}"
   local wr_servo_offset_display="$wr_servo_offset_ps ps"
   local global_state="WAITING"
   local global_reason="TIME_VALID=${time_valid}, PPS_VALID=${pps_valid}"
-  if [[ "$wr_servo_state" == "WAIT_OFFSET_STABLE" &&
-        "$wr_servo_offset_ps" =~ ^-?[0-9]+$ ]]; then
-    wr_servo_offset_display="${wr_servo_offset_ps} ps (target <60 ps)"
-    if [[ "$time_valid" != "1" ]]; then
+  local phase_offset_qualified=1
+  if [[ "$role" == "SLAVE" ]]; then
+    if [[ "$wr_servo_offset_ps" =~ ^-?[0-9]+$ ]]; then
+      wr_servo_offset_display="${wr_servo_offset_ps} ps (target |offset| <60 ps)"
+    fi
+    if ! phase_offset_gate_ok "$role" "$wr_servo_offset_ps" "$phase_offset_ok"; then
+      phase_offset_qualified=0
       global_reason="PTP servo offset not yet <60 ps"
     fi
+  elif [[ "$role" != "MASTER" ]]; then
+    phase_offset_qualified=0
+    global_reason="unknown board role; Step6 gate rejected"
+  fi
+  if [[ "$phase_offset_qualified" != "1" ]]; then
+    step6_gate="INFO"
   fi
   if [[ "$step1_gate" == "PASS" && "$step6_gate" == "PASS" ]]; then
     global_state="VALID"
@@ -109,7 +144,11 @@ format_board() {
   elif [[ "$time_valid" == "1" && "$pps_valid" == "1" &&
           "$snapshot_valid" == "1" && "$snapshot_stable" == "1" ]]; then
     global_state="NOT QUALIFIED"
-    global_reason="snapshot valid; Step6 gate=${step6_gate}"
+    if [[ "$phase_offset_qualified" == "1" ]]; then
+      global_reason="snapshot valid; Step6 gate=${step6_gate}"
+    else
+      global_reason="PTP servo offset not yet <60 ps"
+    fi
   fi
 
   printf '%s\n' '+------------------------------------------------------------+'

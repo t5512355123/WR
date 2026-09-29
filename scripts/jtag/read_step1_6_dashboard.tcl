@@ -133,6 +133,16 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set wr_servo_offset_ps [dashboard_signed32 [get_snap $board after cko]]
   }
 
+  # Step 6's expanded acceptance requires the Slave's signed WR phase offset
+  # to be strictly inside +/-60 ps.  The Master has no Slave servo offset.
+  set phase_offset_ok 1
+  if {$role eq "SLAVE"} {
+    set phase_offset_ok 0
+    if {[string is integer -strict $wr_servo_offset_ps]} {
+      set phase_offset_ok [expr {abs($wr_servo_offset_ps) < 60 ? 1 : 0}]
+    }
+  }
+
   set status_time_valid [bit64_low $status_raw 4]
   set status_pps_valid [bit64_low $status_raw 5]
   set status_link_ok [bit64_low $status_raw 3]
@@ -175,13 +185,13 @@ proc dashboard_emit_board {board hardware_name global_sample} {
                    $global_time_valid == 1 && $global_pps_valid == 1 &&
                    $global_snapshot_valid == 1 && $status_link_ok == 1 &&
                    $status_tm_link == 1 && $status_time_valid == 1 &&
-                   $status_pps_valid == 1 ? "PASS" : "INFO"}]
+                   $status_pps_valid == 1 && $phase_offset_ok == 1 ? "PASS" : "INFO"}]
 
   set board_label [dashboard_board_label $hardware_name]
-  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s WR_SERVO_STATE=%s WR_SERVO_OFFSET_PS=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \
+  puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s WR_SERVO_STATE=%s WR_SERVO_OFFSET_PS=%s WR_PHASE_OFFSET_OK=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \
       $board_label $role $step1 $step2 $step3 $step4 $step5 $step6 \
       $helper_lock $main_freq $main_phase $main_locked $pstat_lock \
-      $wr_servo_state $wr_servo_offset_ps \
+      $wr_servo_state $wr_servo_offset_ps $phase_offset_ok \
       $status_link_ok $status_tm_link $status_rx_ready $status_tx_ready \
       $status_time_valid $status_pps_valid $global_time_valid $global_pps_valid \
       $global_snapshot_valid $global_stable $global_snapshot_count \

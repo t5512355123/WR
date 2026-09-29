@@ -1,9 +1,16 @@
 # Step 6 — Global Time and dual-board scheduled digital trigger
 
-**Functional milestone: PASS.** The frozen-source images were independently
-rebuilt and programmed, both boards reported valid Global Time, Master and
-Slave matched on five common PPS labels, and both boards fired the same future
-digital trigger twice at exactly matching TAI/cycle labels.
+**Historical digital-trigger scope: PASS.** The frozen-source images were
+independently rebuilt and programmed, both boards reported valid Global Time,
+Master and Slave matched on five common PPS labels, and both boards fired the
+same future digital trigger twice at exactly matching TAI/cycle labels.
+
+**Current expanded Step 6 acceptance: NOT ESTABLISHED.** In addition to the
+gates below, the Slave must report a valid/stable Global-Time snapshot while
+`abs(WR_SERVO_OFFSET_PS) < 60`. The 2026-09-27 frozen-image reproduction did
+not record this newly required phase-offset gate. A later 2026-09-29 run on a
+different half-gain image observed `WR_SERVO_OFFSET_PS=-539`; it does not
+qualify the expanded criterion or replace a frozen-image reproduction.
 
 ## Acceptance evidence
 
@@ -11,6 +18,7 @@ digital trigger twice at exactly matching TAI/cycle labels.
 |---|---|
 | Step 5 lock regression on Slave | PASS: 301/301 accepted samples; Helper, Main frequency, Main phase, Main lock, and PSTAT were locked in all 301 samples. The observer requested a 1000 ms cadence. |
 | Global Time on both boards | PASS: valid/stable snapshots with `TIME_VALID=1` and `PPS_VALID=1`. |
+| Slave WR servo phase offset | NOT ESTABLISHED for the frozen image: the historical reproduction predates the strict `abs(offset_ps) < 60` acceptance gate. |
 | Same-PPS agreement | PASS: five common TAI labels matched exactly; maximum difference was 0 cycles (0 ns). |
 | First scheduled digital trigger | PASS: Master and Slave each fired once at TAI 3094, cycle 62,500,000; measured digital label difference 0 cycles (0 ns). |
 | Re-arm repeatability | PASS: both fired again at TAI 3679, cycle 62,500,000; each fire counter reached 2; second measured digital label difference 0 cycles (0 ns). |
@@ -79,6 +87,11 @@ with `sha256sum -c SHA256SUMS`.
   experiment does not claim a direct CLI confirmation of the QSFP serial ID or
   calibration-database match; it does not invalidate the independently
   observed Global-Time/trigger gates.
+- The live dashboard now fails Step 6 closed on the Slave unless the reported
+  signed WR phase offset is a valid integer strictly inside +/-60 ps. The
+  historical digital-trigger pass remains valid for its original scope, but
+  cannot be presented as a pass under this expanded criterion until the
+  frozen-image offset gate is captured.
 - The runtime-trigger observers use target/ARM source writes only. They do not
   compile, program, reset, restart PTP, or change PPS configuration.
 

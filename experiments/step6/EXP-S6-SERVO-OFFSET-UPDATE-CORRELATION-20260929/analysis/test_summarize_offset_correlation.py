@@ -59,6 +59,8 @@ class CorrelationParserTest(unittest.TestCase):
         self.assertEqual(events["events_with_ucnt_change_in_bracket"], 1)
         self.assertEqual(events["events_with_setp_change_in_bracket"], 1)
         self.assertEqual(events["events_with_dms_change_in_bracket"], 1)
+        self.assertEqual(events["events_with_both_ucnt_and_dms_change"], 1)
+        self.assertEqual(events["events_with_no_ucnt_setp_or_dms_change"], 0)
 
     def test_signed_64_bit_dms_and_capture_result_are_decoded(self):
         a = "2026-09-29T16:00:00.000000000Z"

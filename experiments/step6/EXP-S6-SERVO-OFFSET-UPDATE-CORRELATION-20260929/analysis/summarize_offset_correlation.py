@@ -252,6 +252,24 @@ def summarize(
         "events_with_ucnt_change_in_bracket": sum(bool(event["ucnt_changed_in_bracket"]) for event in correlation_events),
         "events_with_setp_change_in_bracket": sum(bool(event["setp_changed_in_bracket"]) for event in correlation_events),
         "events_with_dms_change_in_bracket": sum(bool(event["dms_changed_in_bracket"]) for event in correlation_events),
+        "events_with_both_ucnt_and_dms_change": sum(
+            bool(event["ucnt_changed_in_bracket"] and event["dms_changed_in_bracket"])
+            for event in correlation_events
+        ),
+        "events_with_ucnt_but_no_dms_change": sum(
+            bool(event["ucnt_changed_in_bracket"] and not event["dms_changed_in_bracket"])
+            for event in correlation_events
+        ),
+        "events_with_dms_but_no_ucnt_change": sum(
+            bool(event["dms_changed_in_bracket"] and not event["ucnt_changed_in_bracket"])
+            for event in correlation_events
+        ),
+        "events_with_no_ucnt_setp_or_dms_change": sum(
+            bool(not event["ucnt_changed_in_bracket"] and
+                 not event["setp_changed_in_bracket"] and
+                 not event["dms_changed_in_bracket"])
+            for event in correlation_events
+        ),
         "top_20_offset_events": correlation_events[:20],
     }
     return {

@@ -65,4 +65,6 @@ experiments/step6/EXP-S6-WRH-SERVO-WAIT-COUNTER-RESET-ON-LOCK-20260930/raw/** -t
 experiments/step6/EXP-S6-WRH-SERVO-WAIT-COUNTER-RESET-ON-LOCK-20260930/candidate.patch -text -eol -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-FULL-TRACK-TWELFTH-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-FULL-TRACK-TWELFTH-20260930/candidate.patch -text -eol -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-FULL-ACQUIRE-TRACK-TWELFTH-GUARD-FOURX-20260930/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-FULL-ACQUIRE-TRACK-TWELFTH-GUARD-FOURX-20260930/candidate.patch -text -eol -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/candidate.patch -text -eol -whitespace

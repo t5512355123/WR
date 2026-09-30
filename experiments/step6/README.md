@@ -43,6 +43,19 @@ do not establish control-loop causality. No PI/gain or servo adjustment is
 part of this Step 6 pointwise milestone.
 ## Main evidence
 
+## Active sustained-offset investigation
+
+The Step 6 pointwise milestone above is not a 300-second stable-offset pass.
+The latest full-acquisition + /12 tracking + 4× fallback-guard experiment
+completed a 300-second diagnostic with 0/857 accepted CKO rows strictly
+inside ±60 ps, and no TRACK_PHASE state was observed. Its report is
+[EXP-S6-WRH-SERVO-FULL-ACQUIRE-TRACK-TWELFTH-GUARD-FOURX](EXP-S6-WRH-SERVO-FULL-ACQUIRE-TRACK-TWELFTH-GUARD-FOURX-20260930/REPORT.md).
+
+The next controlled candidate retains the measured quarter-step acquisition
+and original 2× guard, changing only TRACK_PHASE correction from /4 to /8.
+See the
+[quarter-acquire / eighth-track plan](EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md).
+
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)
 - [Servo-transition high-rate correlation plan](EXP-S6-SERVO-TRANSITION-HIGH-RATE-CORRELATION-20260929/PLAN.md)

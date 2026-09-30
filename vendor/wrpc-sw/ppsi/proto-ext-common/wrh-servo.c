@@ -275,7 +275,8 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
-		s->cur_setpoint_ps += offset_ps;
+		/* Half-step acquisition damps the measured phase plant response. */
+		s->cur_setpoint_ps += (offset_ps / 2);
 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 

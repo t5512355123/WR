@@ -8,12 +8,13 @@ PYTHON_OFFLINE_TESTS = 12/12 PASS
 BASH_SYNTAX = PASS
 TCL_PROC_COMPILE = PASS (Tcl 8.6.12 with hardware API stubbed)
 GIT_DIFF_CHECK = PASS
-GITHUB_ARMING_REVISION_PUSH = PENDING
-PAIN_ARMING_REVISION_PULL = PENDING
-FRESH_PROGRAM_OF_EXACT_EXISTING_IMAGES = PENDING
+GITHUB_ARMING_REVISION_PUSH = a78efc88542a7726bbafb1bd256d5b6846c73cf5
+PAIN_ARMING_REVISION_PULL = a78efc88542a7726bbafb1bd256d5b6846c73cf5
+FRESH_PROGRAM_OF_EXACT_EXISTING_IMAGES = PASS
 FIRST_CAPTURE = STOPPED_EARLY_STEP5_LOCK_GATE_LOST_OR_INVALID
-ARMING_OBSERVER_REVISION = LOCAL_VALIDATED_NOT_YET_PUSHED
-NEXT_HARDWARE_RUN = NOT_STARTED
+SECOND_CAPTURE = STOPPED_EARLY_OBSERVER_READ_ERROR
+ARMING_OBSERVER_REVISION = RUNTIME_SCOPE_DEFECT_FOUND
+NEXT_HARDWARE_RUN = WAITING_FOR_SCOPE_AND_ANALYZER_FIX
 STEP6_STABLE_OFFSET = NOT ESTABLISHED
 ~~~
 
@@ -83,6 +84,14 @@ The complete raw log is preserved at
 `raw/observe/20260930T152531Z-acquisition.log`; its local SHA-256 matches the
 Pain source and is recorded in `raw/SHA256SUMS`.
 
+## Second capture — observer Tcl scope error
+
+The ARMING observer revision was pushed as `a78efc88542a7726bbafb1bd256d5b6846c73cf5`; Pain fast-forwarded cleanly to the same commit. The exact existing Slave and Master SOFs matched the pinned SHA-256 values above and were programmed successfully, Slave first on `DE5 [1-11.2]`, then Master on `DE5 [1-11.1]`. No compile or production-control change occurred. The observer started immediately after programming, without a dashboard/JTAG-reader gap.
+
+Run tag `20260930T160416Z` (Pain local time 2026-10-01 00:04:16) stopped after 32,816 ms with `OBSERVER_READ_ERROR`. It recorded 49 sample rows, 44 structurally trusted (89.80%), and `RESET_CHANGED=0`. Trusted servo states were 0:15 and 1:29. At attempted sample 49, the ready-streak marker appeared, then Tcl failed with `can't read "health_min_rows": no such variable`; no acquisition window began (`ACQ_ELAPSED_MS=NA`), no TRACK sample was observed, and no fixed-SETP latch trigger was established. No smoke or 300-second diagnostic ran. This is an observer failure, not a servo/acquisition verdict.
+
+The raw log is preserved byte-for-byte at `raw/observe/20260930T160416Z-acquisition.log`; SHA-256 `f6abb76668514b9303bfe59adfddb3a6f9f370f901975859ce592917328ff499` is recorded in `raw/SHA256SUMS`.
+
 ## Advisor update and next run
 
 After reviewing this first capture, the advisor classified it as a startup
@@ -103,10 +112,12 @@ their stop behavior. A trusted SSTAT=4 during healthy ARMING leads to the
 existing 15-second phase-context smoke on the same live boot. The durable
 wrapper launches that smoke immediately after either healthy ARMING or normal
 ACQUISITION reaches trusted SSTAT=4. A trusted SSTAT=4 with health not ready
-stops and preserves evidence without a smoke. The current live boot is not
-reused because it had a telemetry gap after the first observer exited. The
-next hardware run will freshly program only the two exact hash-verified
-existing SOFs after this observer revision is pushed, then start the observer
+stops and preserves evidence without a smoke. The first live boot was not
+reused because it had a telemetry gap. The ARMING revision was freshly
+programmed and its scope defect is recorded above. The next code revision must
+declare the timing thresholds in the observer procedure's scope and correct
+the analyzer handling of explicit `ACQ_ELAPSED_MS=NA`; after offline checks
+and a separate push, reprogram only the exact pinned SOFs and start capture
 without an intervening dashboard/telemetry session.
 The capture is stored byte-for-byte; trailing spaces in the vendor's Quartus
 license banner are intentionally preserved, so whitespace checks exclude this

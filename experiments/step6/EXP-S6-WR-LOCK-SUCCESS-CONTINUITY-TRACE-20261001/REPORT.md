@@ -74,6 +74,18 @@ counters are sequential reads and their per-register observation times were
 not recorded, neither positive interval is proof of a successful poll; they
 remain unconfirmed diagnostic leads.
 
+### Advisor review of the post-hoc counter intervals
+
+For each published row, define `D_i = POLL_i - UNLOCKED_i - CALIB_FAIL_i`.
+The `+18` and `+16` figures above are only `D_i - D_(i-1)` across separately
+and sequentially sampled diagnostic words. They are not source event records.
+Changing read skew or publication timing can make the differences positive
+without a successful `locking_poll()`. Since per-word observation times were
+not captured, these values remain non-causal context and must not trigger or
+stop a live capture. The next observer therefore uses source-mapped WR state
+and message words as event evidence; counter arithmetic and the S_LOCK tail
+remain explicitly context-only.
+
 ## Offline analyzer correction
 
 The first analyzer run reported zero valid rows because it expected uppercase

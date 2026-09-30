@@ -1,0 +1,183 @@
+{
+  "all_five_lock_rows": 49,
+  "all_step1_status_rows": 49,
+  "capture_complete": true,
+  "coherent_accepted_rows": 42,
+  "consecutive_sample_span_ms": 2201,
+  "diagnostic_frame_valid_rows": 49,
+  "expected_duration_ms": 15000,
+  "global_time_valid_rows": 49,
+  "independently_qualified_rows": 17,
+  "longest_consecutive_qualified_rows": 8,
+  "no_stop_or_read_errors": true,
+  "observed_duration_ms": 15227,
+  "observer_qualifying_rows": 17,
+  "observer_summary_consistent": true,
+  "phase_context_ucnt_match_rows": 42,
+  "pointwise_verdict": "STEP6_POINTWISE_GATE_PASS",
+  "qualification_marker_mismatches": [],
+  "qualifying_samples": [
+    {
+      "cko_ps": 15,
+      "cycles": "123289344",
+      "elapsed_ms": 2530,
+      "sample": "0008",
+      "servo_state": 4,
+      "tai": "457",
+      "ucnt": "0000019C"
+    },
+    {
+      "cko_ps": 15,
+      "cycles": "123289344",
+      "elapsed_ms": 2826,
+      "sample": "0009",
+      "servo_state": 4,
+      "tai": "457",
+      "ucnt": "0000019C"
+    },
+    {
+      "cko_ps": 15,
+      "cycles": "123289344",
+      "elapsed_ms": 3231,
+      "sample": "0010",
+      "servo_state": 4,
+      "tai": "458",
+      "ucnt": "0000019C"
+    },
+    {
+      "cko_ps": -54,
+      "cycles": "123289344",
+      "elapsed_ms": 3525,
+      "sample": "0011",
+      "servo_state": 4,
+      "tai": "458",
+      "ucnt": "0000019D"
+    },
+    {
+      "cko_ps": -54,
+      "cycles": "123289344",
+      "elapsed_ms": 3932,
+      "sample": "0012",
+      "servo_state": 4,
+      "tai": "458",
+      "ucnt": "0000019D"
+    },
+    {
+      "cko_ps": 13,
+      "cycles": "123289344",
+      "elapsed_ms": 6331,
+      "sample": "0020",
+      "servo_state": 4,
+      "tai": "461",
+      "ucnt": "000001A0"
+    },
+    {
+      "cko_ps": 13,
+      "cycles": "123289344",
+      "elapsed_ms": 6625,
+      "sample": "0021",
+      "servo_state": 4,
+      "tai": "461",
+      "ucnt": "000001A0"
+    },
+    {
+      "cko_ps": 58,
+      "cycles": "123289344",
+      "elapsed_ms": 8227,
+      "sample": "0026",
+      "servo_state": 5,
+      "tai": "463",
+      "ucnt": "000001A2"
+    },
+    {
+      "cko_ps": 58,
+      "cycles": "123289344",
+      "elapsed_ms": 8631,
+      "sample": "0027",
+      "servo_state": 5,
+      "tai": "463",
+      "ucnt": "000001A2"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 8927,
+      "sample": "0028",
+      "servo_state": 4,
+      "tai": "463",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 9223,
+      "sample": "0029",
+      "servo_state": 4,
+      "tai": "464",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 9530,
+      "sample": "0030",
+      "servo_state": 4,
+      "tai": "464",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 9826,
+      "sample": "0031",
+      "servo_state": 4,
+      "tai": "464",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 10133,
+      "sample": "0032",
+      "servo_state": 4,
+      "tai": "465",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 49,
+      "cycles": "123289344",
+      "elapsed_ms": 10428,
+      "sample": "0033",
+      "servo_state": 4,
+      "tai": "465",
+      "ucnt": "000001A3"
+    },
+    {
+      "cko_ps": 12,
+      "cycles": "123289344",
+      "elapsed_ms": 14327,
+      "sample": "0046",
+      "servo_state": 4,
+      "tai": "469",
+      "ucnt": "000001A8"
+    },
+    {
+      "cko_ps": 12,
+      "cycles": "123289344",
+      "elapsed_ms": 14622,
+      "sample": "0047",
+      "servo_state": 4,
+      "tai": "469",
+      "ucnt": "000001A8"
+    }
+  ],
+  "read_only_contract": true,
+  "read_valid_rows": 49,
+  "reset_changed_rows": 0,
+  "sample_rows": 49,
+  "stable_snapshot_rows": 49,
+  "strict_offset_rows_abs_lt_60_ps": 18,
+  "sustained_300s_offset_stability": "NOT_ESTABLISHED",
+  "valid_offset_max_ps": 164,
+  "valid_offset_min_ps": -225
+}

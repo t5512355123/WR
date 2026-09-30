@@ -51,3 +51,4 @@ experiments/step6/EXP-S6-MILESTONE-REPRO-20260926/raw/** -text -eol -diff -white
 experiments/step6/EXP-S6-SERVO-FAST-SSTAT-CKO-20260929/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-SERVO-SLAVE-MICROTRACE-20260929/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-PHASE-QUARTER-STEP-20260930/raw/** -text -eol -diff -whitespace

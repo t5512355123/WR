@@ -1,0 +1,192 @@
+{
+  "all_five_lock_rows": 50,
+  "all_step1_status_rows": 50,
+  "capture_complete": true,
+  "coherent_accepted_rows": 48,
+  "consecutive_sample_span_ms": 2105,
+  "diagnostic_frame_valid_rows": 50,
+  "expected_duration_ms": 15000,
+  "global_time_valid_rows": 50,
+  "independently_qualified_rows": 18,
+  "longest_consecutive_qualified_rows": 8,
+  "no_stop_or_read_errors": true,
+  "observed_duration_ms": 15276,
+  "observer_qualifying_rows": 18,
+  "observer_summary_consistent": true,
+  "phase_context_ucnt_match_rows": 48,
+  "pointwise_verdict": "STEP6_POINTWISE_GATE_PASS",
+  "qualification_marker_mismatches": [],
+  "qualifying_samples": [
+    {
+      "cko_ps": 48,
+      "cycles": "123289344",
+      "elapsed_ms": 0,
+      "sample": "0000",
+      "servo_state": 4,
+      "tai": "510",
+      "ucnt": "000001D1"
+    },
+    {
+      "cko_ps": 48,
+      "cycles": "123289344",
+      "elapsed_ms": 277,
+      "sample": "0001",
+      "servo_state": 4,
+      "tai": "510",
+      "ucnt": "000001D1"
+    },
+    {
+      "cko_ps": 26,
+      "cycles": "123289344",
+      "elapsed_ms": 582,
+      "sample": "0002",
+      "servo_state": 4,
+      "tai": "510",
+      "ucnt": "000001D2"
+    },
+    {
+      "cko_ps": 26,
+      "cycles": "123289344",
+      "elapsed_ms": 881,
+      "sample": "0003",
+      "servo_state": 4,
+      "tai": "511",
+      "ucnt": "000001D2"
+    },
+    {
+      "cko_ps": 26,
+      "cycles": "123289344",
+      "elapsed_ms": 1182,
+      "sample": "0004",
+      "servo_state": 4,
+      "tai": "511",
+      "ucnt": "000001D2"
+    },
+    {
+      "cko_ps": 26,
+      "cycles": "123289344",
+      "elapsed_ms": 1479,
+      "sample": "0005",
+      "servo_state": 4,
+      "tai": "511",
+      "ucnt": "000001D2"
+    },
+    {
+      "cko_ps": 26,
+      "cycles": "123289344",
+      "elapsed_ms": 1774,
+      "sample": "0006",
+      "servo_state": 4,
+      "tai": "512",
+      "ucnt": "000001D2"
+    },
+    {
+      "cko_ps": 46,
+      "cycles": "123289344",
+      "elapsed_ms": 2672,
+      "sample": "0009",
+      "servo_state": 5,
+      "tai": "512",
+      "ucnt": "000001D4"
+    },
+    {
+      "cko_ps": 46,
+      "cycles": "123289344",
+      "elapsed_ms": 2980,
+      "sample": "0010",
+      "servo_state": 5,
+      "tai": "513",
+      "ucnt": "000001D4"
+    },
+    {
+      "cko_ps": 46,
+      "cycles": "123289344",
+      "elapsed_ms": 3275,
+      "sample": "0011",
+      "servo_state": 5,
+      "tai": "513",
+      "ucnt": "000001D4"
+    },
+    {
+      "cko_ps": 46,
+      "cycles": "123289344",
+      "elapsed_ms": 3583,
+      "sample": "0012",
+      "servo_state": 5,
+      "tai": "513",
+      "ucnt": "000001D4"
+    },
+    {
+      "cko_ps": -25,
+      "cycles": "123289344",
+      "elapsed_ms": 3879,
+      "sample": "0013",
+      "servo_state": 4,
+      "tai": "514",
+      "ucnt": "000001D5"
+    },
+    {
+      "cko_ps": -25,
+      "cycles": "123289344",
+      "elapsed_ms": 4174,
+      "sample": "0014",
+      "servo_state": 4,
+      "tai": "514",
+      "ucnt": "000001D5"
+    },
+    {
+      "cko_ps": -25,
+      "cycles": "123289344",
+      "elapsed_ms": 4482,
+      "sample": "0015",
+      "servo_state": 4,
+      "tai": "514",
+      "ucnt": "000001D5"
+    },
+    {
+      "cko_ps": -25,
+      "cycles": "123289344",
+      "elapsed_ms": 4777,
+      "sample": "0016",
+      "servo_state": 4,
+      "tai": "515",
+      "ucnt": "000001D5"
+    },
+    {
+      "cko_ps": -58,
+      "cycles": "123289344",
+      "elapsed_ms": 10073,
+      "sample": "0033",
+      "servo_state": 4,
+      "tai": "520",
+      "ucnt": "000001DB"
+    },
+    {
+      "cko_ps": -58,
+      "cycles": "123289344",
+      "elapsed_ms": 10381,
+      "sample": "0034",
+      "servo_state": 4,
+      "tai": "520",
+      "ucnt": "000001DB"
+    },
+    {
+      "cko_ps": -31,
+      "cycles": "123289344",
+      "elapsed_ms": 14981,
+      "sample": "0049",
+      "servo_state": 4,
+      "tai": "525",
+      "ucnt": "000001E0"
+    }
+  ],
+  "read_only_contract": true,
+  "read_valid_rows": 50,
+  "reset_changed_rows": 0,
+  "sample_rows": 50,
+  "stable_snapshot_rows": 50,
+  "strict_offset_rows_abs_lt_60_ps": 18,
+  "sustained_300s_offset_stability": "NOT_ESTABLISHED",
+  "valid_offset_max_ps": 48,
+  "valid_offset_min_ps": -253
+}

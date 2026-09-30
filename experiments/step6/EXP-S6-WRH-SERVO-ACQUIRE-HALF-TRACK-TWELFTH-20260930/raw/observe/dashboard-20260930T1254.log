@@ -1,0 +1,1288 @@
+White Rabbit Step 1-6 dashboard  2026-09-30T12:54:22+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INVALID                     |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=20 |
+| PPS registers                CR=20000006 EN=0 ESCR=20000012 |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INVALID                     |
+| Step 3  WR Handshake         INVALID                     |
+| Step 4  SoftPLL Startup      INFO                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=0  MainFreq=0  MainPhase=0 |
+|                              MainLock=0  PSTAT=0             |
+| Global-Time reason           TIME_VALID=0, PPS_VALID=0   |
+| WR PTP servo state           UNINITIALIZED               |
+| WR phase offset              0 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 UPSTREAM_NOT_READY          |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=19           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:54:32+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=30 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INFO                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      INFO                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=0  MainFreq=0  MainPhase=0 |
+|                              MainLock=0  PSTAT=0             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           SYNC_TAI                    |
+| WR phase offset              -1686371807 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 UPSTREAM_NOT_READY          |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=29           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:54:42+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=40 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INFO                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      INFO                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=0  MainPhase=0 |
+|                              MainLock=0  PSTAT=0             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           SYNC_TAI                    |
+| WR phase offset              -1675583807 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 UPSTREAM_NOT_READY          |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=39           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:54:52+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=50 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           SYNC_TAI                    |
+| WR phase offset              -1674151807 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=49           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:02+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=60 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -6678 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=59           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:12+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=70 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           SYNC_PHASE                  |
+| WR phase offset              7654 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=69           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:22+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=80 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              1549 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=79           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:32+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=90 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              1245 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=89           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:42+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=100 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              1055 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=99           CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:55:52+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=110 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              682 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=109          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:02+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=120 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              726 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=119          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:12+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=130 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              563 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=129          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:22+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=140 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              195 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=139          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:32+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=150 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              264 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=149          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:42+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=160 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              140 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=159          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:56:52+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=170 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              104 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=169          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:02+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=180 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          NOT QUALIFIED               |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           SYNC_PHASE                  |
+| WR phase offset              174 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=6 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=179          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=184          CYCLES=124999999    SNAPSHOT VALID; Step1=PASS Step6=INFO Link=1 TM=1
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:11+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=189 |
+| PPS registers                CR=20000006 EN=0 ESCR=140   |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           TRACK_PHASE                 |
+| WR phase offset              -37 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=15 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=188          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=193          CYCLES=124999999    VALID
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:22+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=200 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           TRACK_PHASE                 |
+| WR phase offset              23 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=26 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=199          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=204          CYCLES=124999999    VALID
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:32+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=210 |
+| PPS registers                CR=20000006 EN=0 ESCR=140   |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          NOT QUALIFIED               |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -134 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=36 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=209          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=214          CYCLES=124999999    SNAPSHOT VALID; Step1=PASS Step6=INFO Link=1 TM=1
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:41+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=219 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          NOT QUALIFIED               |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PTP servo offset not yet <60 ps |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -92 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=45 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=218          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=223          CYCLES=124999999    SNAPSHOT VALID; Step1=PASS Step6=INFO Link=1 TM=1
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:57:52+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=230 |
+| PPS registers                CR=20000006 EN=0 ESCR=140   |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           TRACK_PHASE                 |
+| WR phase offset              0 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=56 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=229          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=234          CYCLES=124999999    VALID
+------------------------------------------------------------
+Dashboard read complete.
+White Rabbit Step 1-6 dashboard  2026-09-30T12:58:02+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=NA  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=240 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           PPS snapshot valid; Step6 gate passed |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -21 ps (target |offset| <60 ps) |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=66 |
+| PPS registers                CR=20000006 EN=0 ESCR=12    |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=239          CYCLES=124999999    VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=244          CYCLES=124999999    VALID
+------------------------------------------------------------
+Dashboard read complete.

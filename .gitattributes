@@ -59,4 +59,6 @@ experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-EIGHTH-20260930/candidate.
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-TWELFTH-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-TWELFTH-20260930/candidate.patch -text -eol -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-TRACK-EXIT-GUARD-FOURX-20260930/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-TRACK-EXIT-GUARD-FOURX-20260930/candidate.patch -text -eol -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/candidate.patch -text -eol -whitespace

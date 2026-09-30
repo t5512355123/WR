@@ -1,0 +1,14 @@
+{
+  "atomic_cross_group_causality_claimed": false,
+  "maximum_unique_observation_gap_ms": null,
+  "offset_max_ps": null,
+  "offset_min_ps": null,
+  "raw_valid_rows": 0,
+  "recovery_admission_supported": false,
+  "samples": 5,
+  "stable_elapsed_ms": -1,
+  "stable_unique_rows": 0,
+  "stable_window_started": false,
+  "stop_reason": "FIVE_CONSECUTIVE_INVALID_REQUIRED_FRAMES",
+  "verdict": "NOT_ESTABLISHED"
+}

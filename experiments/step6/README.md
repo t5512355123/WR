@@ -55,6 +55,14 @@ The next controlled candidate retains the measured quarter-step acquisition
 and original 2× guard, changing only TRACK_PHASE correction from /4 to /8.
 See the
 [quarter-acquire / eighth-track plan](EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md).
+That candidate built and programmed successfully, but its 30-minute
+dashboard observed 0/180 Slave offsets strictly inside ±60 ps; it remained
+in `WAIT_OFFSET_STABLE`/`SYNC_PHASE`, so the changed tracking branch was not
+exercised. The short interleaved diagnostic also stopped on invalid Global
+Time and is not a pass. See its
+[report](EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md).
+The next damping test is to retain `/8` tracking and change only acquisition
+from `/4` to `/8`; it remains an unverified hypothesis.
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

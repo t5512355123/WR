@@ -183,6 +183,7 @@ proc s6_a_snapshot {snapshot0 snapshot1_before snapshot1_after status escr} {
 }
 
 proc s6_a_capture {hardware_name sample elapsed_ms} {
+  global arming_timeout_ms duration_ms health_stable_ms health_min_rows
   incr ::s6_acq_rows
   set row_start_us [s6_a_us]
   set phase_context $::s6_acq_phase_context

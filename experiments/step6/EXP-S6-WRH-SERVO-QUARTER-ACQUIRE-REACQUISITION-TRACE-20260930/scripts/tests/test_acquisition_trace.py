@@ -99,6 +99,18 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertEqual(summary["acquisition_sample_count"], 0)
         self.assertFalse(summary["adequate_full_window"])
 
+    def test_explicit_na_acquisition_elapsed_does_not_fall_back_to_total(self):
+        text = sample(0, state=1, phase="ARMING") + (
+            "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ARM_ELAPSED_MS=32816 "
+            "ACQ_ELAPSED_MS=NA TOTAL_ELAPSED_MS=32816 ELAPSED_MS=32816 "
+            "LAST_ROW_START_MS=31865 LAST_ROW_END_MS=32214 "
+            "STOP_REASON=OBSERVER_READ_ERROR"
+        )
+        summary = analyzer.analyze_text(text)
+        self.assertIsNone(summary["acq_elapsed_ms"])
+        self.assertEqual(summary["total_elapsed_ms"], 32816)
+        self.assertEqual(summary["result"], "STOPPED_EARLY_OBSERVER_READ_ERROR")
+
     def test_track_observed_during_arming_is_distinguished(self):
         text = sample(0, state=4, phase="ARMING") + (
             "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ARM_ELAPSED_MS=9000 "
@@ -190,6 +202,10 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertIn("S6_ACQ_ARMED", source)
         self.assertIn("HEALTH_READY_STREAK_MS=%d", source)
         self.assertIn("set arming_timeout_ms 300000", source)
+        self.assertIn(
+            "global arming_timeout_ms duration_ms health_stable_ms health_min_rows",
+            source,
+        )
 
     def test_wrapper_logs_directly_to_raw_and_never_deletes_capture(self):
         source = WRAPPER.read_text(encoding="utf-8")

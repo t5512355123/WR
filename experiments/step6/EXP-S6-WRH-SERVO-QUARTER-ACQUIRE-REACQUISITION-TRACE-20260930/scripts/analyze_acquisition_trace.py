@@ -116,8 +116,9 @@ def analyze_text(text: str) -> dict[str, Any]:
     stop_reason = stop.get("STOP_REASON", "MISSING_STOP_RECORD")
     requested_ms = as_int(stop, "REQUESTED_DURATION_MS")
     arm_elapsed_ms = as_int(stop, "ARM_ELAPSED_MS")
-    acq_elapsed_ms = as_int(stop, "ACQ_ELAPSED_MS")
-    if acq_elapsed_ms is None:
+    if "ACQ_ELAPSED_MS" in stop:
+        acq_elapsed_ms = as_int(stop, "ACQ_ELAPSED_MS")
+    else:
         acq_elapsed_ms = as_int(stop, "ELAPSED_MS")
     total_elapsed_ms = as_int(stop, "TOTAL_ELAPSED_MS")
     if total_elapsed_ms is None:

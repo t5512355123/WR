@@ -51,9 +51,15 @@ other behavior unchanged. Do not edit the frozen source or milestone SOFs.
 2. Require a clean tracked worktree, the expected two JTAG cables, and no
    active JTAG/Quartus process. Verify the frozen-source (3219 entries) and
    milestone-artifact (4 entries) manifests before applying the patch.
-3. Apply only `candidate.patch` to the temporary Pain build copy. Build
-   Master firmware/SOF, then Slave firmware/SOF. Preserve full logs and
-   verify the candidate SOF SHA-256 values.
+3. Run the checked-in build/program runner with the exact pulled HEAD:
+   `bash experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/scripts/build_program_candidate.sh <HEAD>`.
+   It verifies the branch/commit, tracked worktree, JTAG occupancy, cables,
+   and manifests; applies only `candidate.patch` to the temporary Pain build
+   copy; builds Master then Slave; programs Slave then Master; and restores
+   the frozen source in an exit trap. Preserve its full raw logs and verify
+   both candidate SOF hashes. The initial remote orchestration attempt at
+   11:13 +08:00 stopped before patch application or build; its preflight and
+   restoration evidence is retained in `raw/preflight/`.
 4. Program Slave `DE5 [1-11.2]`, then Master `DE5 [1-11.1]`; require one
    configured device and zero programming errors/warnings for each.
 5. Run the read-only dashboard, sampling every 10 seconds, for at most 30

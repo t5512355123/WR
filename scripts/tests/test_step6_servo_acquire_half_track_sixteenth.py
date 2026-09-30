@@ -13,6 +13,7 @@ EXPERIMENT = (
     / "EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930"
 )
 PATCH = EXPERIMENT / "candidate.patch"
+RUNNER = EXPERIMENT / "scripts" / "build_program_candidate.sh"
 SOURCE_PATH = (
     "artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/"
     "proto-ext-common/wrh-servo.c"
@@ -36,6 +37,15 @@ class ServoAcquireHalfTrackSixteenthTests(unittest.TestCase):
         self.assertNotIn("WRH_SERVO_OFFSET_STABILITY_THRESHOLD", patch)
         self.assertNotIn("timeout", patch.lower())
         self.assertNotIn("threshold", patch.lower())
+
+    def test_remote_runner_guards_inputs_and_restores_frozen_source(self):
+        runner = RUNNER.read_text(encoding="utf-8")
+        self.assertIn("EXPECTED_BRANCH=feat/file_cleanup", runner)
+        self.assertIn('git -C "$ROOT" apply --check "$PATCH"', runner)
+        self.assertIn("trap finish EXIT", runner)
+        self.assertIn('git -C "$ROOT" apply -R "$PATCH"', runner)
+        self.assertIn("SOURCE_MANIFEST_RESTORED=PASS", runner)
+        self.assertIn("ARTIFACT_MANIFEST_RESTORED=PASS", runner)
 
     def test_sixteenth_step_is_less_aggressive_without_claiming_a_pass(self):
         for measured_gain in (-2.008, -1.964):

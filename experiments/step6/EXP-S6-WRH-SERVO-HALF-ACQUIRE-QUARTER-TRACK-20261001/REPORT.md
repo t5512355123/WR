@@ -4,14 +4,28 @@
 
 ```text
 CANDIDATE = WRH_SYNC_PHASE /2; WRH_TRACK_PHASE /4
-LAPTOP_SOURCE_TEST = PENDING
-GITHUB_PUSH = PENDING
-PAIN_BUILD_PROGRAM = PENDING
-HARDWARE_CAPTURE = PENDING
+LAPTOP_SOURCE_TEST = PASS (3/3)
+GITHUB_PUSH = PASS (ba9514c555edc672dff4eea9cfa5690d614a20a4)
+PAIN_PULL = PASS (exact candidate commit)
+PAIN_FIRMWARE_BUILD = PASS (Master + Slave)
+PAIN_QUARTUS_FULL_COMPILE = PASS (Master 0 errors; Slave 0 errors)
+JTAG_PROGRAM = PASS (Slave then Master; programmed SOF hashes match build inputs)
+POST_PROGRAM_READY_WAIT = EXPIRED (600 s; Slave Global Time invalid)
+ACQUISITION_TRACE = NOT_STARTED (adviser reply awaits readback)
 STABLE_OFFSET_300S = NOT_ESTABLISHED
 ```
 
-This is an in-progress experiment record. No hardware result is claimed yet.
+This is an in-progress experiment record. The candidate built and programmed
+successfully, but this run did not establish stable offset or Step 6 PASS.
+
+The first post-program one-shot showed Slave Step 1/link and all five Step 5
+lock registers high, but the servo was still in `SYNC_TAI` at
+`+1,312,121,377 ps`. After a bounded 600-second dashboard readiness wait, the
+final sample was `WAIT_OFFSET_STABLE`, `+925 ps`, `TIME_VALID=0`,
+`PPS_VALID=0`; the host-side wait expired. No smoke or 300-second acceptance
+capture was run. A dedicated read-only acquisition trace is planned on the
+same boot because the acceptance reader requires valid Global Time and would
+otherwise stop on untrusted rows.
 
 ## Initial scope
 
@@ -31,6 +45,34 @@ with the `/4` tracking baseline and the full acceptance reader.
 
 ## Results
 
-To be completed after laptop validation, Pain build/program, and bounded
-read-only hardware observation. Until then, verdict remains
-`STABLE_OFFSET_300S=NOT_ESTABLISHED`.
+- Laptop candidate tests: 3/3 passed (half-step acquisition, unchanged
+  quarter-step tracking, and unchanged threshold/retry/exit guard).
+- Pain pulled exact source commit `ba9514c555edc672dff4eea9cfa5690d614a20a4`.
+- Master and Slave firmware builds and full Quartus compilations succeeded.
+  Quartus reported existing warnings (Master 297, Slave 299); timing closure
+  was not a criterion for this functional experiment.
+- Slave was programmed before Master. Build-input and programmed SOF hashes
+  match:
+
+  ```text
+  Slave  7abf7fe8decea08f884e48b61f0161b8410f8907e70a0622cad129b02131ea49
+  Master 01260f6f0f511782025bbbc19a20d35eec684744ecbdd61e8f14b76ed446ae83
+  ```
+
+- The initial post-program sample showed Slave Step 1/link and all five Step 5
+  lock registers high, while the servo was in `SYNC_TAI` at `+1,312,121,377 ps`.
+- The bounded 600-second Global-Time readiness wait expired. Its final sample
+  had Step 1/link and all five lock registers high, state
+  `WAIT_OFFSET_STABLE`, CKO `+925 ps`, `TIME_VALID=0`, and `PPS_VALID=0`.
+  The dashboard reported `LOCK_ACQUIRED_NOT_STABLE`.
+- No 15-second interleaved smoke or 300-second acceptance capture was run.
+  Therefore these endpoint observations do not prove a stable trend or a
+  causal mechanism; `STABLE_OFFSET_300S=NOT_ESTABLISHED` and Step 6 remains
+  unproven.
+- The Pain build, programming, and dashboard evidence was copied without
+  modification to `raw/pain-run-20261001/`. The next diagnostic action is
+  held pending review of the requested adviser response. The response is
+  finished in the ChatGPT conversation, but its text is not exposed through
+  the current reader; the browser fallback is logged out and will not be
+  authenticated by automation. No reset or reprogram was performed after the
+  bounded wait.

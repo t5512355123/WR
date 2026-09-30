@@ -1,0 +1,5 @@
+188976cc52ad0dbcb7a1c47398ff5d97ced7d42450d9dfa6b1fd0ab030a3f852  /home/b10504072/04_WR/build/firmware/master/wrc.elf
+c2036447dddc29e6ffc913348b6e23afc3b7b4f55c5098b0bcbe38a07a45b349  /home/b10504072/04_WR/build/firmware/master/wrc.bin
+71706bd1fe40e47d796d3ac8a4dfee27d91a068c3d84d346bdfdb5a345f497fb  /home/b10504072/04_WR/build/firmware/master/wrc.mif
+01e63d6878772d9f8e9e3328dd003da9e18a93a5fac930f8cfd0bf6186b2ca2a  /home/b10504072/04_WR/firmware/configs/de5a_master_defconfig
+f6111af614df7c0cbbe42f4eac0c20958c8a95af4dc304c079fb15252a3d961f  /home/b10504072/04_WR/firmware/configs/de5a_master_identity.h

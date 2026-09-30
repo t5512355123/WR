@@ -69,6 +69,25 @@ repeated in-band baseline so far (351/957 samples, longest fully-qualified run
    An out-of-band CKO disproves this candidate's 300-second dwell; retain the
    bounded capture evidence and do not claim PASS.
 
+### Provisional acquisition trace if the post-program wait expires
+
+This is a read-only fallback proposal, not an authorization to start another
+capture. Review the requested adviser response before launching it.
+
+If the 600-second Global-Time readiness wait expires while Step 1 and all five
+lock registers remain healthy but Global Time is still invalid, do not start
+the acceptance reader (it treats invalid Global Time as an untrusted row). On
+the same programmed boot, run the already-published read-only
+`scripts/jtag/read_step6_servo_acquisition_context.tcl` once. It records
+separately guarded CKO/SSTAT/UCNT and SETP/DMS context without requiring valid
+Global Time, with up to 300 seconds ARMING and 600 seconds of health-ready
+acquisition. Do not reset, reprogram, or launch a second JTAG reader. This is
+diagnostic data only; it does not replace either smoke or the 300-second
+acceptance capture. If the trace reaches a trusted `TRACK_PHASE` endpoint
+while Step 1 and all locks remain ready, run the same 15-second
+`phase_context=2` smoke on that boot; proceed to the acceptance capture only
+if the smoke passes.
+
 ## Report and iteration
 
 Transfer Pain evidence to Laptop, verify hashes, analyze accepted rows, and

@@ -1,0 +1,8 @@
+test_existing_threshold_retry_and_exit_guard_remain (test_half_acquire_quarter_track.HalfAcquireQuarterTrackTests) ... ok
+test_sync_phase_uses_measured_half_step (test_half_acquire_quarter_track.HalfAcquireQuarterTrackTests) ... ok
+test_track_phase_remains_quarter_step (test_half_acquire_quarter_track.HalfAcquireQuarterTrackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK

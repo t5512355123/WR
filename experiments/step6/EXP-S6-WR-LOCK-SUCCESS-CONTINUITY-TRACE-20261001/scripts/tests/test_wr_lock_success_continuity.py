@@ -76,6 +76,21 @@ class WrLockContinuityTests(unittest.TestCase):
         result = analyze_text(text)
         self.assertEqual(result["class"], "SUCCESSFUL_SLOCK_ADMISSION_NOT_REPRODUCED")
 
+    def test_actual_tcl_lowercase_row_valid_field_is_accepted(self):
+        line = "S6W_SAMPLE board=DE5_1-11.2 sample=000001 elapsed_ms=100 row_valid=1 WR_STATE=2"
+        result = analyze_text(line + "\nS6W_STOP reason=FIVE_CONSECUTIVE_INVALID_SUCCESS_METRICS\n")
+        self.assertEqual(result["valid_rows"], 1)
+        self.assertEqual(result["invalid_rows"], 0)
+
+    def test_posthoc_positive_interval_is_reported_separately_from_confirmation(self):
+        first = row(LOCK_POLL_COUNT_RAW="00000020", LOCK_UNLOCKED_COUNT_RAW="00000010",
+                    LOCK_CALIB_FAIL_COUNT_RAW="00000002")
+        second = row(ELAPSED_MS=200, LOCK_POLL_COUNT_RAW="00000025",
+                     LOCK_UNLOCKED_COUNT_RAW="00000012", LOCK_CALIB_FAIL_COUNT_RAW="00000003")
+        result = analyze_text(first + "\n" + second + "\nS6W_STOP reason=FIVE_CONSECUTIVE_INVALID_SUCCESS_METRICS\n")
+        self.assertEqual(result["metric_positive_intervals"], 1)
+        self.assertEqual(result["success_confirmed_rows"], 0)
+
     def test_success_with_handshake_progress_is_supported(self):
         first = row(ELAPSED_MS=100, SUCCESS_CONFIRMED=1, SUCCESS_TRIGGER_MS=90,
                     SUCCESS_TRIGGER_CONFIRM_MS=110,

@@ -15,7 +15,7 @@ U32 = 1 << 32
 
 def parse_fields(line: str) -> dict[str, str]:
     return {
-        key: value
+        key.upper(): value
         for key, value in re.findall(r"([A-Za-z][A-Za-z0-9_]*)=([^\s]+)", line)
     }
 
@@ -117,7 +117,7 @@ def analyze_text(text: str) -> dict[str, Any]:
     stops = [parse_fields(line) for line in text.splitlines() if line.startswith("S6W_STOP ")]
     summaries = [parse_fields(line) for line in text.splitlines() if line.startswith("S6W_SUMMARY ")]
     stop = stops[-1] if stops else (summaries[-1] if summaries else {})
-    stop_reason = stop.get("reason", stop.get("stop_reason", "MISSING_STOP"))
+    stop_reason = stop.get("REASON", stop.get("STOP_REASON", "MISSING_STOP"))
     valid = [row for row in rows if as_int(row, "ROW_VALID") == 1]
     state_counts = Counter(str(as_int(row, "WR_STATE")) for row in valid)
     confirmed = [row for row in valid if as_int(row, "SUCCESS_CONFIRMED") == 1]
@@ -129,6 +129,12 @@ def analyze_text(text: str) -> dict[str, Any]:
             continue
         deltas.append(derive_success_delta(previous, current))
     all_metric_valid = sum(result["valid"] for result in deltas)
+    positive_metric_intervals = sum(
+        result["valid"] and result["delta"] > 0 for result in deltas
+    )
+    zero_metric_intervals = sum(
+        result["valid"] and result["delta"] == 0 for result in deltas
+    )
     tx_locked_rows = sum(as_int(row, "WR_TX_ID") == 0x1002 for row in valid)
     rx_calibrate_rows = sum(as_int(row, "WR_RX_ID") == 0x1003 for row in valid)
     result = classify(rows, stop_reason)
@@ -146,6 +152,8 @@ def analyze_text(text: str) -> dict[str, Any]:
         "success_confirm_ms": as_int(confirmed[0], "SUCCESS_TRIGGER_CONFIRM_MS") if confirmed else None,
         "metric_intervals_valid": all_metric_valid,
         "metric_intervals_total": len(deltas),
+        "metric_positive_intervals": positive_metric_intervals,
+        "metric_zero_intervals": zero_metric_intervals,
         "tx_locked_rows": tx_locked_rows,
         "rx_calibrate_rows": rx_calibrate_rows,
         "class": result,
@@ -169,6 +177,8 @@ def render(result: dict[str, Any]) -> str:
             f"SUCCESS_TRIGGER_MS={result['success_trigger_ms']}",
             f"SUCCESS_CONFIRM_MS={result['success_confirm_ms']}",
             f"SUCCESS_METRIC_VALID_INTERVALS={result['metric_intervals_valid']}/{result['metric_intervals_total']}",
+            f"SUCCESS_METRIC_POSITIVE_INTERVALS={result['metric_positive_intervals']}",
+            f"SUCCESS_METRIC_ZERO_INTERVALS={result['metric_zero_intervals']}",
             f"TX_LOCKED_ROWS={result['tx_locked_rows']}",
             f"RX_CALIBRATE_ROWS={result['rx_calibrate_rows']}",
             f"CLASS={result['class']}",

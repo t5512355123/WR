@@ -1,0 +1,38 @@
+S6W_WRAPPER_CONFIG run_tag=20260930T183854Z log=/home/b10504072/04_WR/experiments/step6/EXP-S6-WR-LOCK-SUCCESS-CONTINUITY-TRACE-20261001/raw/observe/20260930T183854Z-wr-lock-success-continuity.log pretrigger_ms=300000 post_success_ms=5000 artificial_delay_ms=0 external_watchdog_s=330 raw_persistent=1 cleanup_deletes_raw=0 follow_on_smoke=0
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Thu Oct  1 02:38:54 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step6_wr_lock_success_continuity_trace.tcl
+------------------------------------------------
+monotonic elapsed-time clock unavailable
+    while executing
+"error "monotonic elapsed-time clock unavailable""
+    (procedure "s6w_now_ms" line 4)
+    invoked from within
+"s6w_now_ms"
+    invoked from within
+"set ::capture_start_click [s6w_now_ms]"
+    (file "/home/b10504072/04_WR/scripts/jtag/read_step6_wr_lock_success_continuity_trace.tcl" line 25)
+------------------------------------------------
+Error (23031): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_step6_wr_lock_success_continuity_trace.tcl unsuccessful
+Error: Quartus Prime SignalTap II was unsuccessful. 1 error, 0 warnings
+    Error: Peak virtual memory: 772 megabytes
+    Error: Processing ended: Thu Oct  1 02:38:54 2026
+    Error: Elapsed time: 00:00:00
+    Error: Total CPU time (on all processors): 00:00:00
+S6W_WRAPPER_EXIT run_tag=20260930T183854Z pipeline_rc=3 log=/home/b10504072/04_WR/experiments/step6/EXP-S6-WR-LOCK-SUCCESS-CONTINUITY-TRACE-20261001/raw/observe/20260930T183854Z-wr-lock-success-continuity.log

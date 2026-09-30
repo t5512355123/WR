@@ -13,8 +13,9 @@ PAIN_ARMING_REVISION_PULL = a78efc88542a7726bbafb1bd256d5b6846c73cf5
 FRESH_PROGRAM_OF_EXACT_EXISTING_IMAGES = PASS
 FIRST_CAPTURE = STOPPED_EARLY_STEP5_LOCK_GATE_LOST_OR_INVALID
 SECOND_CAPTURE = STOPPED_EARLY_OBSERVER_READ_ERROR
-ARMING_OBSERVER_REVISION = SCOPE_AND_ANALYZER_FIX_LOCAL_VALIDATION_PASS
-NEXT_HARDWARE_RUN = WAITING_FOR_FIX_PUSH_AND_PAIN_PULL
+ARMING_OBSERVER_REVISION = SCOPE_AND_ANALYZER_FIX_VALIDATED
+THIRD_CAPTURE = INCONCLUSIVE_STARTUP_NOT_ARMED
+NEXT_HARDWARE_RUN = WAITING_FOR_ADVISOR_RECOMMENDATION
 STEP6_STABLE_OFFSET = NOT ESTABLISHED
 ~~~
 
@@ -92,6 +93,30 @@ Run tag `20260930T160416Z` (Pain local time 2026-10-01 00:04:16) stopped after 3
 
 The raw log is preserved byte-for-byte at `raw/observe/20260930T160416Z-acquisition.log`; SHA-256 `f6abb76668514b9303bfe59adfddb3a6f9f370f901975859ce592917328ff499` is recorded in `raw/SHA256SUMS`.
 
+## Third capture — ARMING timeout
+
+The scope and explicit-NA analyzer fixes were pushed in `cd9c67cc428c3b0dece92f3948553b1070ff74b3`, pulled cleanly on Pain, and passed 13/13 tests. The same hash-pinned Slave and Master SOFs were freshly programmed successfully, with no compile or production-control change. Capture started immediately after programming without an intervening dashboard/JTAG-reader session.
+
+Run tag `20260930T161852Z` (Pain local time 2026-10-01 00:18:52) stopped normally as `ARMING_TIMEOUT` after 300,116 ms. The 10-second/10-row all-lock readiness precondition was never reached, so ACQUISITION did not start. This is `INCONCLUSIVE_STARTUP_NOT_ARMED`, not a phase-servo result.
+
+~~~text
+SAMPLE_ROWS=472 (all ARMING)
+STRUCTURALLY_TRUSTED=414/472 (87.71%)
+TRUSTED_SERVO_STATE=1 on 414 rows
+STEP1_GATE=1 on 414/414 trusted rows
+ALL_HELPER_MAIN_LOCK_GATES=0 on trusted rows
+HEALTH_READY_ROWS=0
+RESET_CHANGED=0
+TRACK_PHASE_SAMPLED=0
+FIXED_SETP_LATCH_TRIGGER=NOT_ESTABLISHED
+~~~
+
+There was no read error, reset change, TRACK endpoint, smoke, or ACQUISITION
+interval, so this run does not evaluate CKO/SETP phase tracking.
+
+Raw log: `raw/observe/20260930T161852Z-acquisition.log`
+SHA-256: `449acc3c0d82c32ee5a0f96d59c138c553a88029f87008793daa7f021c344188d`
+
 ## Advisor update and next run
 
 After reviewing this first capture, the advisor classified it as a startup
@@ -119,6 +144,8 @@ declare the timing thresholds in the observer procedure's scope and correct
 the analyzer handling of explicit `ACQ_ELAPSED_MS=NA`; after offline checks
 and a separate push, reprogram only the exact pinned SOFs and start capture
 without an intervening dashboard/telemetry session.
+After the third capture, the observer/analyzer fixes are confirmed by 13/13 tests and the result is recorded above. The 300-second ARMING timeout was sent to the advisor for updated direction; no subsequent hardware experiment has started.
+
 The capture is stored byte-for-byte; trailing spaces in the vendor's Quartus
 license banner are intentionally preserved, so whitespace checks exclude this
 raw evidence file rather than altering its checksum.

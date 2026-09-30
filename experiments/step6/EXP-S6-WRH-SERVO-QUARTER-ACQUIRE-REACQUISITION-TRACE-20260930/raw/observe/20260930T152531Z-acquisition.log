@@ -1,0 +1,38 @@
+S6_ACQ_WRAPPER_CONFIG run_tag=20260930T152531Z log=/home/b10504072/04_WR/experiments/step6/EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-REACQUISITION-TRACE-20260930/raw/observe/20260930T152531Z-acquisition.log requested_duration_ms=600000 external_watchdog_s=605 raw_persistent=1 cleanup_deletes_raw=0
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Wed Sep 30 23:25:31 2026
+Info: Command: quartus_stp -t /home/b10504072/04_WR/scripts/jtag/read_step6_servo_acquisition_context.tcl
+S6_ACQ_CONFIG board_filter=1-11.2 sample_ms=250 phase_context=2 context_join=MATCHED_UCNT_SEPARATE_FRAMES requested_duration_ms=600000 structural_valid_ignores_global_time=1 read_only=1 wb_register_writes=0 fpga_program=0 reset=0
+S6_ACQ_CONTEXT_FIELDS primary=CKO,SSTAT,UCNT,epoch_before,epoch_after,frame_valid context=UCNT,SETP,DMS_HI,DMS_LO,epoch_before,epoch_after,frame_valid
+S6_ACQ_BOARD board=DE5 [1-11.2] device=@1: 10AX115H(1|2|2E2|2ES|3|3E3)/.. (0x02E660DD)
+S6_ACQ_START board=DE5 [1-11.2] ACQ_START_MONOTONIC_US=1790781932827000 REQUESTED_DURATION_MS=600000
+S6_ACQ_TIMING board=DE5 [1-11.2] sample=0000 DIAG_WAIT_START_US=1790781932874000 DIAG_EPOCH_WAIT_BASELINE=3426 FRAME_START_US=1790781932931000 CKO_HOST_US=1790781932942000 PHASE_CONTEXT_START_US=1790781933032000 PHASE_CONTEXT_END_US=1790781933099000 FRAME_END_US=1790781932987000 DIAG_WAIT_MS=57
+S6_ACQ_CONTEXT_TIMING board=DE5 [1-11.2] sample=0000 PHASE_CONTEXT_FRAME_START_US=1790781933032000 PHASE_CONTEXT_FRAME_END_US=1790781933099000 PHASE_CONTEXT_WAIT_MS=45 PHASE_CONTEXT_FRAME_VALID=1 PHASE_CONTEXT_EPOCH_BEFORE=3428 PHASE_CONTEXT_EPOCH_AFTER=3428 PHASE_CONTEXT_UCNT=0000002C
+S6_ACQ_SAMPLE board=DE5 [1-11.2] sample=0000 elapsed_ms=0 row_ms=271.000 HEALTH_START_US=1790781932828000 HEALTH_END_US=1790781932841000 DIAG_WAIT_START_US=1790781932874000 DIAG_WAIT_MS=57 DIAG_EPOCH_WAIT_BASELINE=3426 FRAME_START_US=1790781932931000 CKO_HOST_US=1790781932942000 PHASE_CONTEXT_START_US=1790781933032000 PHASE_CONTEXT_END_US=1790781933099000 FRAME_END_US=1790781932987000 ROW_END_US=1790781933099000 READS_VALID=1 STRUCTURALLY_TRUSTED_ROW=0 STEP6_QUALIFYING_ROW=0 TAI=0 CYCLES=0 GLOBAL_TIME_VALID=0 SNAPSHOT_STABLE=1 SNAPSHOT_VALID=0 SNAPSHOT_COUNT=0 STATUS_TIME_VALID=0 STATUS_PPS_VALID=1 ESCR_TIME_VALID=0 ESCR_PPS_VALID=0 STEP1_GATE=1 STATUS_SI_CONFIG_DONE=1 STATUS_WR_READY=1 STATUS_TM_LINK=1 STATUS_LINK_OK=1 STATUS_RX_READY=1 STATUS_TX_READY=1 STATUS_CPU_RESET_N=1 STATUS_RX_LOCKED_TO_DATA=1 HELPER_LOCK=1 MAIN_LOCK=0 MAIN_FREQ_LOCK=0 MAIN_PHASE_LOCK=0 PSTAT_LOCK=0 DIAG_VALID_BEFORE=1 DIAG_VALID_AFTER=1 DIAG_EPOCH_BEFORE=3427 DIAG_EPOCH_AFTER=3427 DIAG_EPOCH_STABLE=1 DIAG_EPOCH_BEFORE_OK=1 DIAG_FRAME_VALID=1 UCNT=0000002B SSTAT=00000101 SERVO_STATE=1 CKO_RAW=AC7BB281 CKO_PS=-1401179519 BOOT_GENERATION=00000001 CPU_RESET_COUNT=00000001 WR_CORE_RESET_COUNT=00000001 SI_CONFIG_DROP_COUNT=00000001 RESET_CHANGED=0 PHASE_CONTEXT=2 PHASE_CONTEXT_VALID=1 DMS_HI=00000000 DMS_LO=0002F44B DMS_PS=193611 SETP_RAW=00000000 SETP_PS=0 PHASE_CONTEXT_FRAME_VALID=1 PHASE_CONTEXT_MATCH=0 PHASE_CONTEXT_UCNT=0000002C PHASE_CONTEXT_EPOCH_BEFORE=3428 PHASE_CONTEXT_EPOCH_AFTER=3428 PHASE_CONTEXT_FRAME_START_US=1790781933032000 PHASE_CONTEXT_FRAME_END_US=1790781933099000 PHASE_CONTEXT_WAIT_MS=45
+S6_ACQ_STOP board=DE5 [1-11.2] REQUESTED_DURATION_MS=600000 LAST_ROW_START_MS=1 LAST_ROW_END_MS=272 ELAPSED_MS=273 STOP_REASON=STEP5_LOCK_GATE_LOST_OR_INVALID
+S6_ACQ_BOARD_DONE board=DE5 [1-11.2] samples=1 structurally_trusted=0 step6_qualifying=0 invalid_streak=1
+S6_ACQ_SUMMARY boards=1 samples=1 structurally_trusted=0 step6_qualifying=0 stop_reason=STEP5_LOCK_GATE_LOST_OR_INVALID timeout_count=0 invalid_count=0
+S6_ACQ_DONE
+Info (23030): Evaluation of Tcl script /home/b10504072/04_WR/scripts/jtag/read_step6_servo_acquisition_context.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Wed Sep 30 23:25:33 2026
+    Info: Elapsed time: 00:00:02
+    Info: Total CPU time (on all processors): 00:00:00
+S6_ACQ_WRAPPER_EXIT run_tag=20260930T152531Z pipeline_rc=0 log=/home/b10504072/04_WR/experiments/step6/EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-REACQUISITION-TRACE-20260930/raw/observe/20260930T152531Z-acquisition.log

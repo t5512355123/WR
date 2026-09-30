@@ -1,0 +1,143 @@
+{
+  "experiment": "EXP-S6-OBSERVER-PUBLICATION-TIMESTAMP-VALIDATION-20261001",
+  "replay_metadata": {
+    "source_experiment": "EXP-S6-WR-REARM-TO-STABLE-WINDOW-TRACE-20261001",
+    "source_raw_path": "experiments/step6/EXP-S6-WR-REARM-TO-STABLE-WINDOW-TRACE-20261001/raw/observe/20260930T213635Z-wr-rearm-stable-window.log",
+    "source_raw_sha256": "FADEA77FF4CB3C435DC581D131DDC763C3BD4D6B7BA63E056D00F05CD5E9AE7B",
+    "observer_reported_elapsed_ms": 2208,
+    "observer_stop_reason": "FIVE_CONSECUTIVE_INVALID_REQUIRED_FRAMES",
+    "raw_attempt_count": 5,
+    "read_timestamps_are_host_intervals_not_firmware_publication_times": true
+  },
+  "source_audit": {
+    "field_writer_contract_complete": true,
+    "writer_aliases_complete": true,
+    "publication_protocol_proven": false,
+    "sequence_owner_proven": false,
+    "aba_excluded_for_60s": false
+  },
+  "capture": {
+    "start_ms": 1790804196397,
+    "end_ms": 1790804198327,
+    "step1_gate_initial": 1,
+    "step1_gate_final": 1,
+    "reset_signature_valid": true,
+    "reset_changed": false,
+    "wb_timeout_count": 0,
+    "wb_unstable_count": 0,
+    "unexpected_transaction_trigger_count": 0
+  },
+  "frames": [
+    {
+      "kind": "PHASE",
+      "frame_start_ms": 1790804196515,
+      "frame_end_ms": 1790804196730,
+      "data_valid_before": 1,
+      "snapshot_before": 0,
+      "generation_before": "1EF70265",
+      "generation_inverse_before": "E108FD9A",
+      "owner_before": "UNRECORDED",
+      "overlay_active_before": null,
+      "data_valid_after": 1,
+      "snapshot_after": 0,
+      "generation_after": "1EF70267",
+      "generation_inverse_after": "E108FD98",
+      "owner_after": "UNRECORDED",
+      "overlay_active_after": null,
+      "payload": {
+        "CKO": {"raw": "1F5FAC61", "valid": true, "transport_valid": true},
+        "SETP": {"raw": "00000000", "valid": true, "transport_valid": true},
+        "UCNT": {"raw": "00000005", "valid": true, "transport_valid": true}
+      }
+    },
+    {
+      "kind": "PHASE",
+      "frame_start_ms": 1790804196912,
+      "frame_end_ms": 1790804197134,
+      "data_valid_before": 1,
+      "snapshot_before": 0,
+      "generation_before": "1EF70269",
+      "generation_inverse_before": "E108FD96",
+      "owner_before": "UNRECORDED",
+      "overlay_active_before": null,
+      "data_valid_after": 1,
+      "snapshot_after": 0,
+      "generation_after": "1EF7026B",
+      "generation_inverse_after": "E108FD94",
+      "owner_after": "UNRECORDED",
+      "overlay_active_after": null,
+      "payload": {
+        "CKO": {"raw": "1F5FAC61", "valid": true, "transport_valid": true},
+        "SETP": {"raw": "00000000", "valid": true, "transport_valid": true},
+        "UCNT": {"raw": "00000005", "valid": true, "transport_valid": true}
+      }
+    },
+    {
+      "kind": "PHASE",
+      "frame_start_ms": 1790804197311,
+      "frame_end_ms": 1790804197531,
+      "data_valid_before": 1,
+      "snapshot_before": 0,
+      "generation_before": "1EF7026D",
+      "generation_inverse_before": "E108FD92",
+      "owner_before": "UNRECORDED",
+      "overlay_active_before": null,
+      "data_valid_after": 1,
+      "snapshot_after": 0,
+      "generation_after": "1EF7026F",
+      "generation_inverse_after": "E108FD90",
+      "owner_after": "UNRECORDED",
+      "overlay_active_after": null,
+      "payload": {
+        "CKO": {"raw": "1F5FAC61", "valid": true, "transport_valid": true},
+        "SETP": {"raw": "00000000", "valid": true, "transport_valid": true},
+        "UCNT": {"raw": "00000005", "valid": true, "transport_valid": true}
+      }
+    },
+    {
+      "kind": "PHASE",
+      "frame_start_ms": 1790804197708,
+      "frame_end_ms": 1790804197928,
+      "data_valid_before": 1,
+      "snapshot_before": 0,
+      "generation_before": "1EF70271",
+      "generation_inverse_before": "E108FD8E",
+      "owner_before": "UNRECORDED",
+      "overlay_active_before": null,
+      "data_valid_after": 1,
+      "snapshot_after": 0,
+      "generation_after": "1EF70273",
+      "generation_inverse_after": "E108FD8C",
+      "owner_after": "UNRECORDED",
+      "overlay_active_after": null,
+      "payload": {
+        "CKO": {"raw": "1F5FAC61", "valid": true, "transport_valid": true},
+        "SETP": {"raw": "00000000", "valid": true, "transport_valid": true},
+        "UCNT": {"raw": "00000005", "valid": true, "transport_valid": true}
+      }
+    },
+    {
+      "kind": "PHASE",
+      "frame_start_ms": 1790804198106,
+      "frame_end_ms": 1790804198326,
+      "data_valid_before": 1,
+      "snapshot_before": 0,
+      "generation_before": "1EF70275",
+      "generation_inverse_before": "E108FD8A",
+      "owner_before": "UNRECORDED",
+      "overlay_active_before": null,
+      "data_valid_after": 1,
+      "snapshot_after": 0,
+      "generation_after": "1EF70277",
+      "generation_inverse_after": "E108FD88",
+      "owner_after": "UNRECORDED",
+      "overlay_active_after": null,
+      "payload": {
+        "CKO": {"raw": "1F5FAC61", "valid": true, "transport_valid": true},
+        "SETP": {"raw": "00000000", "valid": true, "transport_valid": true},
+        "UCNT": {"raw": "00000005", "valid": true, "transport_valid": true}
+      }
+    }
+  ],
+  "status_observations": []
+}

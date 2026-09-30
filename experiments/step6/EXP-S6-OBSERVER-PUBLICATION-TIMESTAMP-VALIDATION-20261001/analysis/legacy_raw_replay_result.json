@@ -1,0 +1,27 @@
+{
+  "candidate_rejection_reasons": {
+    "PUBLICATION_SEQUENCE_CHANGED": 5
+  },
+  "cross_group_atomicity_claimed": false,
+  "event_candidate_frames": 0,
+  "event_distinct_publications": 0,
+  "event_structurally_valid_frames": 0,
+  "event_trusted_frames": 0,
+  "phase_candidate_frames": 5,
+  "phase_distinct_publications": 0,
+  "phase_structurally_valid_frames": 0,
+  "phase_trusted_frames": 0,
+  "phase_ucnt_advanced": false,
+  "servo_offset_verdict": "NOT_ESTABLISHED",
+  "source_audit_blockers": [
+    "PUBLICATION_PROTOCOL_PROVEN_UNPROVEN",
+    "SEQUENCE_OWNER_PROVEN_UNPROVEN",
+    "ABA_EXCLUDED_FOR_60S_UNPROVEN"
+  ],
+  "sstat_a6c_joined_to_frames": false,
+  "stable_window_established": false,
+  "status_observations_valid": false,
+  "step6_offset_claimed": false,
+  "stop_reason": "FIVE_CONSECUTIVE_INVALID_PHASE_FRAMES:PUBLICATION_SEQUENCE_CHANGED",
+  "verdict": "BLOCKED_SOURCE_AUDIT_UNPROVEN"
+}

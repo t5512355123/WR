@@ -1,0 +1,23 @@
+{
+  "experiment": "EXP-S6-OBSERVER-PUBLICATION-TIMESTAMP-VALIDATION-20261001",
+  "source_audit": {
+    "field_writer_contract_complete": true,
+    "writer_aliases_complete": true,
+    "publication_protocol_proven": false,
+    "sequence_owner_proven": false,
+    "aba_excluded_for_60s": false
+  },
+  "capture": {
+    "start_ms": 0,
+    "end_ms": 0,
+    "step1_gate_initial": null,
+    "step1_gate_final": null,
+    "reset_signature_valid": null,
+    "reset_changed": null,
+    "wb_timeout_count": 0,
+    "wb_unstable_count": 0,
+    "unexpected_transaction_trigger_count": 0
+  },
+  "frames": [],
+  "status_observations": []
+}

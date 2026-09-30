@@ -72,14 +72,16 @@ run. Step 6 stable offset remains NOT ESTABLISHED. See the
 [eighth-acquire/eighth-track report](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md)
 and [plan](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md).
 
-The next experiment is the
-[first-TRACK fixed-SETP open-loop diagnostic](EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930/PLAN.md).
-It returns to the known `/4 acquire + /4 track` candidate and freezes phase
-actuation at the first successful TRACK entry, then correlates CKO, DMS, SETP,
-SSTAT, and UCNT using explicit separate context frames (`phase_context=2`).
-This is diagnostic only; it does not relax the strict 300-second Step 6
-acceptance criterion. The quarter-step report's SSTAT 4/5 labels were
-corrected against the source enum; raw data and numeric counts did not change.
+The first-TRACK fixed-SETP candidate was built and programmed, but the Slave
+did not reacquire `TRACK_PHASE` within the 600-second deadline. The run is
+`INCONCLUSIVE_BASELINE_NOT_REACQUIRED`; its one-shot latch was never exercised,
+so no smoke or 300-second capture was run. The dashboard was stopped about
+137 seconds after the planned deadline, a protocol deviation recorded in the
+[report](EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930/REPORT.md).
+No tuning change followed. See the
+[experiment plan](EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930/PLAN.md).
+The quarter-step report's SSTAT 4/5 labels were corrected against the source
+enum; raw data and numeric counts did not change.
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

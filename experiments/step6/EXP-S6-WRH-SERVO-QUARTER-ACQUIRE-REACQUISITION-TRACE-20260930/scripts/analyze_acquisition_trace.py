@@ -11,6 +11,16 @@ import sys
 from typing import Any
 
 
+HEX_FIELDS = {
+    "UCNT",
+    "PHASE_CONTEXT_UCNT",
+    "BOOT_GENERATION",
+    "CPU_RESET_COUNT",
+    "WR_CORE_RESET_COUNT",
+    "SI_CONFIG_DROP_COUNT",
+}
+
+
 def parse_fields(line: str) -> dict[str, str]:
     return {
         key: value
@@ -19,11 +29,20 @@ def parse_fields(line: str) -> dict[str, str]:
 
 
 def as_int(row: dict[str, str], key: str) -> int | None:
+    value = row.get(key)
+    if value is None:
+        return None
+    if key in HEX_FIELDS:
+        try:
+            hex_value = value[2:] if value.lower().startswith("0x") else value
+            return int(hex_value, 16)
+        except ValueError:
+            return None
     try:
-        return int(row[key], 10)
+        return int(value, 10)
     except (KeyError, TypeError, ValueError):
         try:
-            return int(row[key], 0)
+            return int(value, 0)
         except (KeyError, TypeError, ValueError):
             return None
 

@@ -32,9 +32,10 @@ def sample(
         f"STEP6_QUALIFYING_ROW={qualifying} GLOBAL_TIME_VALID={global_valid} "
         "DIAG_FRAME_VALID=1 PHASE_CONTEXT_FRAME_VALID=1 PHASE_CONTEXT_MATCH=1 "
         f"SERVO_STATE={state} CKO_PS={cko} DMS_PS={dms} SETP_PS={setp} "
-        f"UCNT={n + 10} PHASE_CONTEXT_UCNT={n + 10} RESET_CHANGED=0 "
-        "BOOT_GENERATION=1 CPU_RESET_COUNT=1 WR_CORE_RESET_COUNT=1 "
-        "SI_CONFIG_DROP_COUNT=0 STEP1_GATE=1 HELPER_LOCK=1 MAIN_FREQ_LOCK=1 "
+        f"UCNT={n + 10:08X} PHASE_CONTEXT_UCNT={n + 10:08X} RESET_CHANGED=0 "
+        "BOOT_GENERATION=00000001 CPU_RESET_COUNT=0000000A "
+        "WR_CORE_RESET_COUNT=0000000B SI_CONFIG_DROP_COUNT=0000000C "
+        "STEP1_GATE=1 HELPER_LOCK=1 MAIN_FREQ_LOCK=1 "
         "MAIN_PHASE_LOCK=1 MAIN_LOCK=1 PSTAT_LOCK=1"
     )
 
@@ -80,7 +81,9 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertFalse(summary["track_phase_observed"])
 
     def test_context_mismatch_is_not_structurally_trusted(self):
-        row = sample(0).replace("PHASE_CONTEXT_UCNT=10", "PHASE_CONTEXT_UCNT=11")
+        row = sample(0).replace(
+            "PHASE_CONTEXT_UCNT=0000000A", "PHASE_CONTEXT_UCNT=0000000B"
+        )
         summary = analyzer.analyze_text(row)
         self.assertEqual(summary["structurally_trusted_count"], 0)
 
@@ -114,6 +117,13 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertEqual(summary["delta_residual_max_abs_ps"], 50)
         self.assertEqual(len(summary["sync_step_rows"]), 1)
         self.assertEqual(summary["sync_step_rows"][0]["delta_setp"], -100)
+
+    def test_hex_encoded_ucnt_and_reset_fields_parse_as_hex(self):
+        row = analyzer.parse_fields(sample(0))
+        self.assertEqual(analyzer.as_int(row, "UCNT"), 0xA)
+        self.assertEqual(analyzer.as_int(row, "PHASE_CONTEXT_UCNT"), 0xA)
+        self.assertEqual(analyzer.as_int(row, "CPU_RESET_COUNT"), 0xA)
+        self.assertTrue(analyzer.structurally_valid(row))
 
     def test_observer_has_hard_monotonic_deadline_and_global_independent_trust(self):
         source = TCL.read_text(encoding="utf-8")

@@ -115,7 +115,11 @@ There was no read error, reset change, TRACK endpoint, smoke, or ACQUISITION
 interval, so this run does not evaluate CKO/SETP phase tracking.
 
 Raw log: `raw/observe/20260930T161852Z-acquisition.log`
-SHA-256: `449acc3c0d82c32ee5a0f96d59c138c553a88029f87008793daa7f021c344188d`
+SHA-256: `449cc3c0d82c32ee5a0f96d59c138c553a88029f87008793daa7f021c344188d`
+
+Checksum was independently re-verified against the original Pain capture and
+the local byte-for-byte copy on 2026-10-01. The capture itself was not changed;
+this corrects a transcription error in the report and manifest.
 
 ## Advisor update and next run
 

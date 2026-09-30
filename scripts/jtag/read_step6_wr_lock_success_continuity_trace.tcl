@@ -14,11 +14,45 @@ set ::pretrigger_timeout_ms 300000
 set ::post_success_window_ms 5000
 set ::invalid_row_limit 5
 set ::invalid_metric_limit 5
+set ::s6w_clock_source UNKNOWN
+set ::s6w_last_clock_ms -1
 proc s6w_now_ms {} {
-  if {[catch {clock clicks -milliseconds} value] ||
-      ![string is integer -strict $value]} {
-    error "monotonic elapsed-time clock unavailable"
+  set value ""
+  if {![catch {clock clicks -milliseconds} clicks_value] &&
+      [string is double -strict $clicks_value]} {
+    if {[scan $clicks_value %f clicks_numeric] == 1} {
+      set value [expr {wide(round($clicks_numeric))}]
+      set ::s6w_clock_source clock_clicks_ms
+    }
   }
+  if {$value eq ""} {
+    # Quartus 17's embedded Tcl may reject the -milliseconds option. Pain is
+    # Linux, so /proc/uptime provides a monotonic fallback independent of
+    # wall-clock/NTP adjustments.
+    set uptime_ms -1
+    if {![catch {
+      set uptime_fd [open /proc/uptime r]
+      set uptime_line [gets $uptime_fd]
+      close $uptime_fd
+      if {![regexp {^([0-9]+)\.([0-9]+)} $uptime_line -> uptime_seconds uptime_fraction]} {
+        error "invalid /proc/uptime record"
+      }
+      set uptime_fraction [string range "${uptime_fraction}000" 0 2]
+      if {[scan $uptime_seconds %d uptime_seconds_numeric] != 1 ||
+          [scan $uptime_fraction %d uptime_fraction_numeric] != 1} {
+        error "invalid /proc/uptime numeric fields"
+      }
+      set uptime_ms [expr {$uptime_seconds_numeric * 1000 + $uptime_fraction_numeric}]
+    }]} {
+      error "no supported monotonic elapsed-time clock"
+    }
+    set value $uptime_ms
+    set ::s6w_clock_source proc_uptime_ms
+  }
+  if {$::s6w_last_clock_ms >= 0 && $value < $::s6w_last_clock_ms} {
+    error "monotonic elapsed-time clock moved backwards"
+  }
+  set ::s6w_last_clock_ms $value
   return $value
 }
 
@@ -316,6 +350,7 @@ proc s6w_stop {reason board elapsed_ms} {
 
 puts [format "S6W_CONFIG trial=%s target=DE5_1-11.2 pretrigger_timeout_ms=%d post_success_ms=%d artificial_delay_ms=0 read_only=1 compile=0 reset=0 power_cycle=0" \
   $::trial_id $::pretrigger_timeout_ms $::post_success_window_ms]
+puts [format "S6W_CLOCK source=%s start_ms=%d" $::s6w_clock_source $::capture_start_click]
 puts "S6W_REGISTER_CONTRACT slock_tail=0x00100BE0..0x00100BFC poll_counters=0x00100A90/94/98 wr_signals=0x00100A64/68 downstream=0x00100AA0/ABC/AC4/00C/008/048"
 flush stdout
 

@@ -61,11 +61,23 @@ in `WAIT_OFFSET_STABLE`/`SYNC_PHASE`, so the changed tracking branch was not
 exercised. The short interleaved diagnostic also stopped on invalid Global
 Time and is not a pass. See its
 [report](EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md).
-The next damping test is to retain `/8` tracking and change only acquisition
-from `/4` to `/8`; it remains an unverified hypothesis.
-See the
-[eighth-acquire/eighth-track plan](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md)
-for the exact one-variable experiment and acceptance procedure.
+The eighth-acquire/eighth-track candidate was built and programmed from
+`e30b7221c07adcf720dff85e2336d781aec7b502`. Its 30-minute dashboard produced
+179 paired frames: both boards' Step 1/link gates and all five Slave Step 5
+locks remained high, but the Slave offset was never strictly inside ±60 ps
+(range −3838 to +5268 ps), and `TRACK_PHASE` was never reached. A subsequent
+interleaved smoke used `phase_context=0`, saw Global Time invalid in all five
+rows, and stopped before the minimum smoke gate; no 300-second diagnostic was
+run. Step 6 stable offset remains NOT ESTABLISHED. See the
+[eighth-acquire/eighth-track report](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md)
+and [plan](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md).
+
+The next bounded iteration should improve only read-only observability:
+explicitly use separate WDIAGS phase-context frames joined by UCNT and report
+structural row trust separately from the strict Global-Time/offset acceptance
+gate. This is needed to capture valid servo context while Global Time is
+blocked; it does not authorize relaxing the strict 300-second Step 6 criterion
+or changing production controls.
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

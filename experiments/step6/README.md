@@ -72,12 +72,14 @@ run. Step 6 stable offset remains NOT ESTABLISHED. See the
 [eighth-acquire/eighth-track report](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md)
 and [plan](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md).
 
-The next bounded iteration should improve only read-only observability:
-explicitly use separate WDIAGS phase-context frames joined by UCNT and report
-structural row trust separately from the strict Global-Time/offset acceptance
-gate. This is needed to capture valid servo context while Global Time is
-blocked; it does not authorize relaxing the strict 300-second Step 6 criterion
-or changing production controls.
+The next experiment is the
+[first-TRACK fixed-SETP open-loop diagnostic](EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930/PLAN.md).
+It returns to the known `/4 acquire + /4 track` candidate and freezes phase
+actuation at the first successful TRACK entry, then correlates CKO, DMS, SETP,
+SSTAT, and UCNT using explicit separate context frames (`phase_context=2`).
+This is diagnostic only; it does not relax the strict 300-second Step 6
+acceptance criterion. The quarter-step report's SSTAT 4/5 labels were
+corrected against the source enum; raw data and numeric counts did not change.
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

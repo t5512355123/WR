@@ -1,0 +1,53 @@
+diff --git a/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c b/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+--- a/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
++++ b/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+@@ -25,4 +25,7 @@
+ /* Enable tracking by default. Disabling the tracking is used for demos. */
+ static int wrh_tracking_enabled = 1;
+ 
++/* One-shot diagnostic latch: freeze phase SETP after first TRACK entry. */
++static int wrh_fixed_setpoint_latched = 0;
++
+ /* prototypes */
+@@ -62,8 +65,10 @@
+-	if (s->cur_setpoint_ps > s->clock_period_ps)
++	if (!wrh_fixed_setpoint_latched &&
++	    s->cur_setpoint_ps > s->clock_period_ps)
+ 		s->cur_setpoint_ps %= s->clock_period_ps;
+ 
+ 	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+ 
+-	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
++	if (!wrh_fixed_setpoint_latched)
++		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 
+ 	gs->flags |= PP_SERVO_FLAG_VALID;
+@@ -274,10 +279,12 @@
+ 	case WRH_SYNC_PHASE:
+ 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
+ 			s->cur_setpoint_ps, offset_ticks,
+ 			offset_ps);
+-		s->cur_setpoint_ps += offset_ps;
+-		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+-		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
++		if (!wrh_fixed_setpoint_latched) {
++			s->cur_setpoint_ps += (offset_ps / 4);
++			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
++			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 
++		}
+ 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
+ 		setState(ppi,WRH_WAIT_OFFSET_STABLE);
+@@ -303,5 +310,8 @@
+ 		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+ 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
+ 			s->prev_delayMS_ps = s->delayMS_ps;
++			if (!wrh_fixed_setpoint_latched) {
++				wrh_fixed_setpoint_latched = 1;
++			}
+ 			setState(ppi,WRH_TRACK_PHASE);
+ 		} else {
+@@ -320,2 +331,2 @@
+-		if(wrh_tracking_enabled) {
++		if(!wrh_fixed_setpoint_latched && wrh_tracking_enabled) {
+ 			if (abs(offset_ps) >

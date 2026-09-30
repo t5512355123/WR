@@ -97,9 +97,13 @@ Servo-state distribution from the sampled `SSTAT` field:
 
 | State code | Rows | Strict CKO rows | Full-gate qualifying rows |
 |---:|---:|---:|---:|
-| 3 | 164 | 0 | 0 |
-| 4 (`WAIT_OFFSET_STABLE`) | 418 | 270 | 240 |
-| 5 (`TRACK_PHASE`) | 375 | 81 | 75 |
+| 3 (`SYNC_PHASE`) | 164 | 0 | 0 |
+| 4 (`TRACK_PHASE`) | 418 | 270 | 240 |
+| 5 (`WAIT_OFFSET_STABLE`) | 375 | 81 | 75 |
+
+State names were corrected against the `wrh_servo_state_t` enum and the
+`wrh_servo_state_name` table: numeric codes 4 and 5 had been mislabeled in the
+initial report. Raw samples and per-code counts are unchanged.
 
 There were 136 sampled servo-state transitions. The raw adjacent-row analysis
 found 123 CKO changes of at least 120 ps; UCNT changed in all 123, SETP in 27,
@@ -127,12 +131,11 @@ Step 6 correctly remained `NOT QUALIFIED`.
 ## Conclusion and next experiment
 
 The acquisition quarter-step is a promising improvement but does not deliver
-stable `<60 ps` offset. In this capture, only 81/375 sampled `TRACK_PHASE`
-rows were strictly in range, versus 270/418 `WAIT_OFFSET_STABLE` rows. The
-next single-variable candidate should retain the acquisition `/4` step and
-change only the `WRH_TRACK_PHASE` correction from `offset_ps / 4` to
-`offset_ps / 8`, testing whether gentler fine tracking reduces repeated
-excursions while preserving the successful acquisition damping. Keep the
-strict 60 ps gate and 300-second all-rows acceptance unchanged; build and
-program it as a separate candidate, then measure again. Do not call this run a
+stable `<60 ps` offset. In this capture, 270/418 sampled `TRACK_PHASE` rows
+were strictly in range, versus 81/375 `WAIT_OFFSET_STABLE` rows. At the time
+of this report, the proposed next candidate was `/4` acquisition
+with `/8` tracking. That candidate and a subsequent `/8+/8` candidate have
+since been run and reported; neither established stable offset. The current
+next experiment is the separate fixed-SETP diagnostic listed in
+[`experiments/step6/README.md`](../README.md). Do not call this run a
 stable-offset pass.

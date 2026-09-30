@@ -63,6 +63,9 @@ Time and is not a pass. See its
 [report](EXP-S6-WRH-SERVO-QUARTER-ACQUIRE-EIGHTH-TRACK-20260930/REPORT.md).
 The next damping test is to retain `/8` tracking and change only acquisition
 from `/4` to `/8`; it remains an unverified hypothesis.
+See the
+[eighth-acquire/eighth-track plan](EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/PLAN.md)
+for the exact one-variable experiment and acceptance procedure.
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

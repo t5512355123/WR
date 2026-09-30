@@ -138,4 +138,3 @@ sudo -v
   2>&1 | tee "$RAW_DIR/program/${RUN_TAG}-master-program.log"
 
 echo BUILD_AND_PROGRAM_COMPLETE
-

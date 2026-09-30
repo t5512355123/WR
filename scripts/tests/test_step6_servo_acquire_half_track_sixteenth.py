@@ -46,6 +46,8 @@ class ServoAcquireHalfTrackSixteenthTests(unittest.TestCase):
         self.assertIn('git -C "$ROOT" apply -R "$PATCH"', runner)
         self.assertIn("SOURCE_MANIFEST_RESTORED=PASS", runner)
         self.assertIn("ARTIFACT_MANIFEST_RESTORED=PASS", runner)
+        self.assertIn("bash ./firmware/scripts/build_master_firmware.sh", runner)
+        self.assertIn("bash ./scripts/program/program_slave.sh", runner)
 
     def test_sixteenth_step_is_less_aggressive_without_claiming_a_pass(self):
         for measured_gain in (-2.008, -1.964):

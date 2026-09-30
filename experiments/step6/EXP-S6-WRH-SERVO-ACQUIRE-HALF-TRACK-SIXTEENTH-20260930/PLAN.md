@@ -59,7 +59,10 @@ other behavior unchanged. Do not edit the frozen source or milestone SOFs.
    the frozen source in an exit trap. Preserve its full raw logs and verify
    both candidate SOF hashes. The initial remote orchestration attempt at
    11:13 +08:00 stopped before patch application or build; its preflight and
-   restoration evidence is retained in `raw/preflight/`.
+   restoration evidence is retained in `raw/preflight/`. A subsequent runner
+   attempt also stopped before firmware build because the frozen package
+   scripts lack executable mode; the runner now invokes them explicitly with
+   `bash` and gives each attempt a unique log prefix.
 4. Program Slave `DE5 [1-11.2]`, then Master `DE5 [1-11.1]`; require one
    configured device and zero programming errors/warnings for each.
 5. Run the read-only dashboard, sampling every 10 seconds, for at most 30

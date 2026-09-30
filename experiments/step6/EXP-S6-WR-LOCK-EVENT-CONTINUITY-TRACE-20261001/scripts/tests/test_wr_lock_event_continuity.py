@@ -123,6 +123,22 @@ class WrLockEventContinuityTests(unittest.TestCase):
         self.assertEqual(result["result"], "NO_SUCCESS_EVIDENCE_OBSERVED_300S")
         self.assertEqual(result["step6_stable_offset"], "NOT_EVALUATED")
 
+    def test_failure_stop_label_is_not_promoted_to_extension_disable(self):
+        text = "\n".join([
+            event_row(sample=1, row_kind="NONE", state=2),
+            event_row(sample=2, row_kind="NONE", state=1),
+            "S6E_STOP elapsed_ms=2000 reason=NEW_FAILURE_RECORD_AND_TERMINAL_WR_EXIT",
+        ])
+        result = analyze_text(text)
+        self.assertEqual(
+            result["result"],
+            "NEW_FAILURE_AND_STOP_POLICY_STATE_EXIT_BEFORE_EVENT",
+        )
+        self.assertEqual(
+            result["stop_reason"],
+            "NEW_FAILURE_RECORD_AND_TERMINAL_WR_EXIT",
+        )
+
     def test_zero_post_event_elapsed_is_retained_as_valid_context(self):
         text = "\n".join([
             event_row(row_kind="WRS_LOCKED_STATE", triggered=1,

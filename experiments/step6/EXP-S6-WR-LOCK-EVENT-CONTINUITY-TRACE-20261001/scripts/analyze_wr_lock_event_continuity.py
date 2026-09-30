@@ -152,7 +152,10 @@ def analyze_text(text: str) -> dict[str, Any]:
         if stop_reason == "NO_SUCCESS_EVIDENCE_OBSERVED_300S":
             result = "NO_SUCCESS_EVIDENCE_OBSERVED_300S"
         elif stop_reason == "NEW_FAILURE_RECORD_AND_TERMINAL_WR_EXIT":
-            result = "NEW_FAILURE_AND_TERMINAL_WR_EXIT_BEFORE_EVENT"
+            # This is the observer's historical stop-rule label. Its three
+            # follow-up rows can be WRS_PRESENT (a re-arm state), so do not
+            # promote the label into a claim that the extension was disabled.
+            result = "NEW_FAILURE_AND_STOP_POLICY_STATE_EXIT_BEFORE_EVENT"
         else:
             result = f"INCONCLUSIVE_{stop_reason}"
     elif reset_changed or stop_reason in {

@@ -68,10 +68,12 @@ The following are context only and can never trigger or stop a capture:
 
 The low eight bits of the WR failure word are compared with the first trusted
 baseline row. A value already present at baseline is not a new failure. A new
-counter record is latched; stop for terminal WR exit only after three
-consecutive trusted rows report inactive state (`WRS_IDLE`/`WRS_PRESENT`).
+counter record is latched; the observer stop rule fires after three
+consecutive trusted rows report its configured state-exit class
+(`WRS_IDLE`/`WRS_PRESENT`). This is a capture stop condition only and does
+not prove extension disable; WRS_PRESENT may be a handshake re-arm state.
 An active row or invalid state cannot erase failure evidence; an invalid row
-breaks the consecutive-inactive streak.
+breaks the consecutive stop-class streak.
 
 ## Capture protocol
 
@@ -94,7 +96,7 @@ breaks the consecutive-inactive streak.
 - Step 1 loss after it was established;
 - five consecutive invalid required raw rows;
 - a new failure counter record followed by three consecutive trusted
-  inactive WR-state rows.
+  observer stop-class WR-state rows.
 
 If an event occurs, capture 5 seconds from its source-word read end unless an
 immediate stop condition occurs. No event in 300 seconds is

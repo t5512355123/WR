@@ -54,4 +54,5 @@ experiments/step6/EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/raw/** -text -
 experiments/step6/EXP-S6-WRH-SERVO-PHASE-QUARTER-STEP-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-TRACKING-EIGHTH-STEP-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-TRACKING-EIGHTH-STEP-20260930/candidate.patch -text -eol -whitespace
+experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-EIGHTH-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-EIGHTH-20260930/candidate.patch -text -eol -whitespace

@@ -1,0 +1,2 @@
+d750128b2e271cb0251a20c2a0679d452849586404c097610ed3b9adf2b894df  /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+a29431011e2333cbc0b4eaf90e09ac2cfa8ce301fe2f945d9eacc08567008b61  /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof

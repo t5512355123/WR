@@ -11,7 +11,10 @@
 package require ::quartus::insystem_source_probe
 
 set duration_ms 600000
+set arming_timeout_ms 300000
 set sample_ms 250
+set health_stable_ms 10000
+set health_min_rows 10
 set board_filter "1-11.2"
 set phase_context 2
 set ::wb_library_mode 1
@@ -24,6 +27,11 @@ set ::s6_acq_invalid_streak 0
 set ::s6_acq_reset_stop 0
 set ::s6_acq_board_count 0
 set ::s6_acq_phase_context $phase_context
+set ::s6_acq_mode ARMING
+set ::s6_acq_total_start_us ""
+set ::s6_acq_acquisition_start_us ""
+set ::s6_acq_ready_since_us ""
+set ::s6_acq_ready_rows 0
 array set ::s6_acq_reset_baseline {}
 
 proc s6_a_us {} {
@@ -439,6 +447,69 @@ proc s6_a_capture {hardware_name sample elapsed_ms} {
   }
   if {$reset_changed} { set ::s6_acq_reset_stop 1 }
 
+  set observer_phase $::s6_acq_mode
+  set health_reads_valid [expr {
+    [is_hex $status] && $helper_word >= 0 && $main_word >= 0 &&
+    $pstat_word >= 0 && $step1_gate >= 0 && $helper_lock >= 0 &&
+    $main_freq >= 0 && $main_phase >= 0 && $main_lock >= 0 &&
+    $pstat_lock >= 0 && $reset_signature_valid && !$reset_changed ? 1 : 0}]
+  set health_ready [expr {
+    $health_reads_valid && $step1_gate == 1 && $helper_lock == 1 &&
+    $main_freq == 1 && $main_phase == 1 && $main_lock == 1 &&
+    $pstat_lock == 1 ? 1 : 0}]
+  set total_elapsed_ms [expr {
+    ($row_end_us - $::s6_acq_total_start_us) / 1000}]
+  set arm_elapsed_ms $total_elapsed_ms
+  set acq_elapsed_ms "NA"
+  if {$::s6_acq_acquisition_start_us ne ""} {
+    set acq_elapsed_ms [expr {
+      ($row_end_us - $::s6_acq_acquisition_start_us) / 1000}]
+  }
+  set ready_streak_rows $::s6_acq_ready_rows
+  set ready_streak_ms 0
+  set armed_now 0
+
+  if {$health_ready} {
+    if {$::s6_acq_ready_rows == 0} {
+      set ::s6_acq_ready_since_us $row_end_us
+      puts [format "S6_ACQ_ARM_READY_BEGIN board=%s sample=%04d ARM_ELAPSED_MS=%d" \
+        $hardware_name $sample $arm_elapsed_ms]
+    }
+    incr ::s6_acq_ready_rows
+    set ready_streak_rows $::s6_acq_ready_rows
+    set ready_streak_ms [expr {
+      ($row_end_us - $::s6_acq_ready_since_us) / 1000}]
+  } else {
+    if {$::s6_acq_ready_rows > 0} {
+      set ready_reset_reason "HEALTH_REGISTER_INVALID"
+      if {$step1_gate != 1} {
+        set ready_reset_reason "STEP1_NOT_READY"
+      } elseif {$helper_lock != 1 || $main_freq != 1 ||
+          $main_phase != 1 || $main_lock != 1 || $pstat_lock != 1} {
+        set ready_reset_reason "STEP5_LOCK_NOT_READY"
+      }
+      puts [format "S6_ACQ_ARM_READY_RESET board=%s sample=%04d reason=%s ARM_ELAPSED_MS=%d previous_streak_rows=%d previous_streak_ms=%d" \
+        $hardware_name $sample $ready_reset_reason $arm_elapsed_ms \
+        $::s6_acq_ready_rows [expr {
+          ($row_end_us - $::s6_acq_ready_since_us) / 1000}]]
+    }
+    set ::s6_acq_ready_rows 0
+    set ::s6_acq_ready_since_us ""
+    set ready_streak_rows 0
+    set ready_streak_ms 0
+  }
+
+  if {$observer_phase eq "ARMING" && $health_ready &&
+      $ready_streak_rows >= $health_min_rows &&
+      $ready_streak_ms >= $health_stable_ms &&
+      $arm_elapsed_ms < $arming_timeout_ms &&
+      !($structurally_trusted && $servo_state == 4)} {
+    set ::s6_acq_mode ACQUISITION
+    set ::s6_acq_acquisition_start_us $row_end_us
+    set acq_elapsed_ms "NA"
+    set armed_now 1
+  }
+
   if {$structurally_trusted} {
     incr ::s6_acq_structurally_trusted
     set ::s6_acq_invalid_streak 0
@@ -455,7 +526,7 @@ proc s6_a_capture {hardware_name sample elapsed_ms} {
     $hardware_name $sample $context_frame_start_us $context_frame_end_us \
     $context_wait_ms $context_frame_valid $context_epoch_before \
     $context_epoch_after $context_ucnt_raw]
-  puts [format "S6_ACQ_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d STRUCTURALLY_TRUSTED_ROW=%d STEP6_QUALIFYING_ROW=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d STEP1_GATE=%d STATUS_SI_CONFIG_DONE=%d STATUS_WR_READY=%d STATUS_TM_LINK=%d STATUS_LINK_OK=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d STATUS_RX_LOCKED_TO_DATA=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
+  puts [format "S6_ACQ_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d STRUCTURALLY_TRUSTED_ROW=%d STEP6_QUALIFYING_ROW=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d STEP1_GATE=%d STATUS_SI_CONFIG_DONE=%d STATUS_WR_READY=%d STATUS_TM_LINK=%d STATUS_LINK_OK=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d STATUS_RX_LOCKED_TO_DATA=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d OBSERVER_PHASE=%s HEALTH_READS_VALID=%d HEALTH_READY_ROW=%d HEALTH_READY_STREAK_ROWS=%d HEALTH_READY_STREAK_MS=%d ARM_ELAPSED_MS=%d ACQ_ELAPSED_MS=%s TOTAL_ELAPSED_MS=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
     $critical_start_us $diag_wait_ms $diag_epoch_wait_baseline $frame_start_us \
     $cko_host_us $phase_context_start_us $phase_context_end_us \
@@ -473,14 +544,25 @@ proc s6_a_capture {hardware_name sample elapsed_ms} {
     $phase_context $phase_context_valid $dms_hi_raw $dms_lo_raw $dms_ps \
     $setp_raw $setp_ps $context_frame_valid $context_update_match \
     $context_ucnt_raw $context_epoch_before $context_epoch_after \
-    $context_frame_start_us $context_frame_end_us $context_wait_ms]
+    $context_frame_start_us $context_frame_end_us $context_wait_ms \
+    $observer_phase $health_reads_valid $health_ready $ready_streak_rows \
+    $ready_streak_ms $arm_elapsed_ms $acq_elapsed_ms $total_elapsed_ms]
   flush stdout
-  return [list $reset_changed $structurally_trusted $servo_state $step1_gate $helper_lock $main_freq $main_phase $main_lock $pstat_lock $global_valid $row_start_us $row_end_us]
+  if {$armed_now} {
+    puts [format "S6_ACQ_ARMED board=%s ARM_ELAPSED_MS=%d READY_STREAK_ROWS=%d READY_STREAK_MS=%d ARMED_AT_MONOTONIC_US=%s" \
+      $hardware_name $arm_elapsed_ms $ready_streak_rows $ready_streak_ms $row_end_us]
+    puts [format "S6_ACQ_ACQUISITION_START board=%s ACQ_START_MONOTONIC_US=%s REQUESTED_DURATION_MS=%d" \
+      $hardware_name $::s6_acq_acquisition_start_us $duration_ms]
+    flush stdout
+  }
+  return [list $reset_changed $structurally_trusted $servo_state $step1_gate \
+    $helper_lock $main_freq $main_phase $main_lock $pstat_lock $global_valid \
+    $row_start_us $row_end_us $health_ready $observer_phase]
 }
 
 set ::s6_acq_stop_reason "NO_MATCHING_BOARD"
-set ::s6_acq_requested_duration_ms 600000
-puts "S6_ACQ_CONFIG board_filter=$board_filter sample_ms=$sample_ms phase_context=2 context_join=MATCHED_UCNT_SEPARATE_FRAMES requested_duration_ms=600000 structural_valid_ignores_global_time=1 read_only=1 wb_register_writes=0 fpga_program=0 reset=0"
+set ::s6_acq_requested_duration_ms $duration_ms
+puts "S6_ACQ_CONFIG board_filter=$board_filter sample_ms=$sample_ms phase_context=2 context_join=MATCHED_UCNT_SEPARATE_FRAMES arming_timeout_ms=$arming_timeout_ms health_stable_ms=$health_stable_ms health_min_rows=$health_min_rows requested_duration_ms=$duration_ms structural_valid_ignores_global_time=1 read_only=1 wb_register_writes=0 fpga_program=0 reset=0"
 puts "S6_ACQ_CONTEXT_FIELDS primary=CKO,SSTAT,UCNT,epoch_before,epoch_after,frame_valid context=UCNT,SETP,DMS_HI,DMS_LO,epoch_before,epoch_after,frame_valid"
 flush stdout
 
@@ -500,25 +582,44 @@ foreach hardware_name [get_hardware_names] {
   } setup_error]} {
     set ::s6_acq_stop_reason "OBSERVER_SETUP_ERROR"
     puts [format "S6_ACQ_ERROR board=%s message=%s" $hardware_name $setup_error]
-    puts [format "S6_ACQ_STOP board=%s REQUESTED_DURATION_MS=600000 LAST_ROW_START_MS=NA LAST_ROW_END_MS=NA ELAPSED_MS=0 STOP_REASON=%s" $hardware_name $::s6_acq_stop_reason]
+    puts [format "S6_ACQ_STOP board=%s ARMING_TIMEOUT_MS=%d REQUESTED_DURATION_MS=%d LAST_ROW_START_MS=NA LAST_ROW_END_MS=NA ARM_ELAPSED_MS=0 ACQ_ELAPSED_MS=NA TOTAL_ELAPSED_MS=0 ELAPSED_MS=0 STOP_REASON=%s" \
+      $hardware_name $arming_timeout_ms $duration_ms $::s6_acq_stop_reason]
     flush stdout
     break
   }
 
-  set acquisition_start_us [s6_a_monotonic_us]
+  set arm_start_us [s6_a_monotonic_us]
+  set ::s6_acq_total_start_us $arm_start_us
+  set ::s6_acq_acquisition_start_us ""
+  set ::s6_acq_ready_since_us ""
+  set ::s6_acq_ready_rows 0
+  set ::s6_acq_mode ARMING
   set last_row_start_ms "NA"
   set last_row_end_ms "NA"
   set sample 0
-  set ::s6_acq_stop_reason "DURATION_LIMIT"
-  puts [format "S6_ACQ_START board=%s ACQ_START_MONOTONIC_US=%s REQUESTED_DURATION_MS=600000" $hardware_name $acquisition_start_us]
+  set ::s6_acq_stop_reason "ARMING_TIMEOUT"
+  puts [format "S6_ACQ_ARM_START board=%s ARM_START_MONOTONIC_US=%s ARMING_TIMEOUT_MS=%d HEALTH_STABLE_MS=%d HEALTH_MIN_ROWS=%d" \
+    $hardware_name $arm_start_us $arming_timeout_ms $health_stable_ms $health_min_rows]
   flush stdout
 
   while {1} {
     set now_us [s6_a_monotonic_us]
-    set elapsed_before_ms [expr {($now_us - $acquisition_start_us) / 1000}]
-    if {$elapsed_before_ms >= 600000} {
-      set ::s6_acq_stop_reason "DURATION_LIMIT"
+    set total_elapsed_before_ms [expr {($now_us - $arm_start_us) / 1000}]
+    if {$::s6_acq_mode eq "ARMING" &&
+        $total_elapsed_before_ms >= $arming_timeout_ms} {
+      set ::s6_acq_stop_reason "ARMING_TIMEOUT"
       break
+    }
+    if {$::s6_acq_mode eq "ACQUISITION"} {
+      set acq_elapsed_before_ms [expr {
+        ($now_us - $::s6_acq_acquisition_start_us) / 1000}]
+      if {$acq_elapsed_before_ms >= $duration_ms} {
+        set ::s6_acq_stop_reason "DURATION_LIMIT"
+        break
+      }
+      set elapsed_before_ms $acq_elapsed_before_ms
+    } else {
+      set elapsed_before_ms $total_elapsed_before_ms
     }
 
     set sample_index $sample
@@ -530,28 +631,17 @@ foreach hardware_name [get_hardware_names] {
       flush stdout
       break
     }
-    lassign $capture_result reset_changed structural_trusted servo_state step1_gate helper_lock main_freq main_phase main_lock pstat_lock global_valid row_start_us row_end_us
+    lassign $capture_result reset_changed structural_trusted servo_state step1_gate \
+      helper_lock main_freq main_phase main_lock pstat_lock global_valid \
+      row_start_us row_end_us health_ready observer_phase
     incr sample
     incr ::s6_acq_samples
 
-    set last_row_start_ms [expr {($row_start_us - $acquisition_start_us) / 1000}]
-    set last_row_end_ms [expr {($row_end_us - $acquisition_start_us) / 1000}]
+    set last_row_start_ms [expr {($row_start_us - $arm_start_us) / 1000}]
+    set last_row_end_ms [expr {($row_end_us - $arm_start_us) / 1000}]
 
     if {$reset_changed} {
       set ::s6_acq_stop_reason "RESET_SIGNATURE_CHANGED"
-      break
-    }
-    if {$step1_gate != 1} {
-      set ::s6_acq_stop_reason "STEP1_GATE_LOST_OR_INVALID"
-      break
-    }
-    if {$helper_lock != 1 || $main_freq != 1 || $main_phase != 1 ||
-        $main_lock != 1 || $pstat_lock != 1} {
-      set ::s6_acq_stop_reason "STEP5_LOCK_GATE_LOST_OR_INVALID"
-      break
-    }
-    if {$structural_trusted && $servo_state == 4} {
-      set ::s6_acq_stop_reason "TRACK_PHASE_REACHED"
       break
     }
     if {$::s6_acq_invalid_streak >= 5} {
@@ -559,18 +649,62 @@ foreach hardware_name [get_hardware_names] {
       break
     }
 
-    set completed_us [s6_a_monotonic_us]
-    if {[expr {($completed_us - $acquisition_start_us) / 1000}] >= 600000} {
-      set ::s6_acq_stop_reason "DURATION_LIMIT"
-      break
+    if {$observer_phase eq "ARMING"} {
+      if {$structural_trusted && $servo_state == 4} {
+        if {$health_ready} {
+          set ::s6_acq_stop_reason "TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_READY"
+        } else {
+          set ::s6_acq_stop_reason "TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_NOT_READY"
+        }
+        break
+      }
+      if {$::s6_acq_mode eq "ARMING" &&
+          [expr {($row_end_us - $arm_start_us) / 1000}] >= $arming_timeout_ms} {
+        set ::s6_acq_stop_reason "ARMING_TIMEOUT"
+        break
+      }
+    } else {
+      if {!$health_ready} {
+        if {$step1_gate != 1} {
+          set ::s6_acq_stop_reason "STEP1_GATE_LOST_OR_INVALID"
+        } elseif {$helper_lock != 1 || $main_freq != 1 ||
+            $main_phase != 1 || $main_lock != 1 || $pstat_lock != 1} {
+          set ::s6_acq_stop_reason "STEP5_LOCK_GATE_LOST_OR_INVALID"
+        } else {
+          set ::s6_acq_stop_reason "HEALTH_READ_INVALID"
+        }
+        break
+      }
+      if {$structural_trusted && $servo_state == 4} {
+        set ::s6_acq_stop_reason "TRACK_PHASE_REACHED"
+        break
+      }
+      if {[expr {($row_end_us - $::s6_acq_acquisition_start_us) / 1000}] >= $duration_ms} {
+        set ::s6_acq_stop_reason "DURATION_LIMIT"
+        break
+      }
     }
     after $sample_ms
   }
 
   set final_us [s6_a_monotonic_us]
-  set elapsed_final_ms [expr {($final_us - $acquisition_start_us) / 1000}]
-  puts [format "S6_ACQ_STOP board=%s REQUESTED_DURATION_MS=600000 LAST_ROW_START_MS=%s LAST_ROW_END_MS=%s ELAPSED_MS=%d STOP_REASON=%s"     $hardware_name $last_row_start_ms $last_row_end_ms $elapsed_final_ms $::s6_acq_stop_reason]
-  puts [format "S6_ACQ_BOARD_DONE board=%s samples=%d structurally_trusted=%d step6_qualifying=%d invalid_streak=%d"     $hardware_name $::s6_acq_samples $::s6_acq_structurally_trusted     $::s6_acq_qualifying $::s6_acq_invalid_streak]
+  set total_elapsed_final_ms [expr {($final_us - $arm_start_us) / 1000}]
+  set arm_elapsed_final_ms $total_elapsed_final_ms
+  set acq_elapsed_final_ms "NA"
+  if {$::s6_acq_acquisition_start_us ne ""} {
+    set arm_elapsed_final_ms [expr {
+      ($::s6_acq_acquisition_start_us - $arm_start_us) / 1000}]
+    set acq_elapsed_final_ms [expr {
+      ($final_us - $::s6_acq_acquisition_start_us) / 1000}]
+  }
+  puts [format "S6_ACQ_STOP board=%s ARMING_TIMEOUT_MS=%d REQUESTED_DURATION_MS=%d LAST_ROW_START_MS=%s LAST_ROW_END_MS=%s ARM_ELAPSED_MS=%d ACQ_ELAPSED_MS=%s TOTAL_ELAPSED_MS=%d ELAPSED_MS=%d STOP_REASON=%s" \
+    $hardware_name $arming_timeout_ms $duration_ms $last_row_start_ms \
+    $last_row_end_ms $arm_elapsed_final_ms $acq_elapsed_final_ms \
+    $total_elapsed_final_ms $total_elapsed_final_ms $::s6_acq_stop_reason]
+  puts [format "S6_ACQ_BOARD_DONE board=%s mode=%s samples=%d structurally_trusted=%d step6_qualifying=%d invalid_streak=%d ready_streak_rows=%d" \
+    $hardware_name $::s6_acq_mode $::s6_acq_samples \
+    $::s6_acq_structurally_trusted $::s6_acq_qualifying \
+    $::s6_acq_invalid_streak $::s6_acq_ready_rows]
   flush stdout
   catch {end_insystem_source_probe}
   break
@@ -579,6 +713,10 @@ foreach hardware_name [get_hardware_names] {
 if {$::s6_acq_board_count == 0} {
   set ::s6_acq_stop_reason "NO_MATCHING_BOARD"
 }
-puts [format "S6_ACQ_SUMMARY boards=%d samples=%d structurally_trusted=%d step6_qualifying=%d stop_reason=%s timeout_count=%d invalid_count=%d"   $::s6_acq_board_count $::s6_acq_samples $::s6_acq_structurally_trusted   $::s6_acq_qualifying $::s6_acq_stop_reason $::wb_timeout_count $::wb_invalid_count]
+puts [format "S6_ACQ_SUMMARY boards=%d mode=%s samples=%d structurally_trusted=%d step6_qualifying=%d ready_streak_rows=%d stop_reason=%s timeout_count=%d invalid_count=%d" \
+  $::s6_acq_board_count $::s6_acq_mode $::s6_acq_samples \
+  $::s6_acq_structurally_trusted $::s6_acq_qualifying \
+  $::s6_acq_ready_rows $::s6_acq_stop_reason \
+  $::wb_timeout_count $::wb_invalid_count]
 puts "S6_ACQ_DONE"
 flush stdout

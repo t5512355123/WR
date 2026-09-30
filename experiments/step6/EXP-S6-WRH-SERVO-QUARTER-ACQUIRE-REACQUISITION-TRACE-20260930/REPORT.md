@@ -3,25 +3,28 @@
 ## Status
 
 ~~~text
-IMPLEMENTATION = LOCAL_VALIDATION_PASS
-PYTHON_OFFLINE_TESTS = 9/9 PASS
+IMPLEMENTATION = ARMING_REVISION_LOCAL_VALIDATION_PASS
+PYTHON_OFFLINE_TESTS = 12/12 PASS
 BASH_SYNTAX = PASS
 TCL_PROC_COMPILE = PASS (Tcl 8.6.12 with hardware API stubbed)
-GIT_DIFF_CHECK = PASS_FOR_NON_RAW_FILES
-GITHUB_IMPLEMENTATION_PUSH = 0a656c98bfba12be04140537c00a09f6ba71ee28
-PAIN_PULL = 0a656c98bfba12be04140537c00a09f6ba71ee28
-PAIN_IMAGE_HASH_PREFLIGHT = PASS
-SLAVE_PROGRAM = PASS
-MASTER_PROGRAM = PASS
-ACQUISITION_TRACE = STOPPED_EARLY_STEP5_LOCK_GATE_LOST_OR_INVALID
+GIT_DIFF_CHECK = PASS
+GITHUB_ARMING_REVISION_PUSH = PENDING
+PAIN_ARMING_REVISION_PULL = PENDING
+FRESH_PROGRAM_OF_EXACT_EXISTING_IMAGES = PENDING
+FIRST_CAPTURE = STOPPED_EARLY_STEP5_LOCK_GATE_LOST_OR_INVALID
+ARMING_OBSERVER_REVISION = LOCAL_VALIDATED_NOT_YET_PUSHED
+NEXT_HARDWARE_RUN = NOT_STARTED
 STEP6_STABLE_OFFSET = NOT ESTABLISHED
 ~~~
 
-The observer implementation passed local offline checks. Tcl procedure
-compilation used system Tcl 8.6.12 with the Quartus hardware API stubbed; the
-actual observer also parsed and exited successfully under Pain's Quartus 17.0
-runtime. Both exact existing SOFs were hash-verified and programmed successfully
-without rebuilding. The trace stopped on its first row because Step 5 lock
+The initial observer implementation passed local offline checks and its
+hardware-free parse/exit on Pain's Quartus 17.0 runtime. The revised ARMING
+observer now passes 12 offline tests, Bash syntax validation, Tcl 8.6.12
+procedure compilation with the hardware API stubbed, and `git diff --check`.
+The revised observer has not yet been pushed or run on hardware. In the earlier
+initial-observer run, both exact existing SOFs were hash-verified and
+programmed successfully without rebuilding. The trace stopped on its first
+row because Step 5 lock
 gates were low immediately after programming; this does not adjudicate
 acquisition or the fixed-SETP hypothesis.
 
@@ -74,11 +77,37 @@ primary UCNT `0x2B`, context UCNT `0x2C`. Therefore the row is not used for CKO,
 DMS, or SETP correlation; no latch trigger or TRACK sample was established.
 This is an immediate post-program startup observation, not a six-hundred-second
 acquisition result. The advisor has been sent the result; no further reset,
-programming, or capture is being done while awaiting a revised next action.
+programming, or capture was done before receiving the revised next action.
 
 The complete raw log is preserved at
 `raw/observe/20260930T152531Z-acquisition.log`; its local SHA-256 matches the
 Pain source and is recorded in `raw/SHA256SUMS`.
+
+## Advisor update and next run
+
+After reviewing this first capture, the advisor classified it as a startup
+gating boundary error, not an acquisition failure. The next approved run keeps
+the exact same source and SOF images and changes only this observer/harness:
+
+~~~text
+ARMING_TIMEOUT = 300000 ms
+ARM_READY = Step1 + five Step5 locks high and health reads valid
+ARM_STABILITY = at least 10000 ms and at least 10 consecutive ready rows
+ACQUISITION_TIMEOUT = 600000 ms, starting only after ARM_READY
+~~~
+
+ARMING continues recording the full row set; health-not-ready resets the ready
+streak but does not itself stop ARMING. Reset-signature changes, fatal reader
+errors, five consecutive structurally untrusted rows, and timer expiry retain
+their stop behavior. A trusted SSTAT=4 during healthy ARMING leads to the
+existing 15-second phase-context smoke on the same live boot. The durable
+wrapper launches that smoke immediately after either healthy ARMING or normal
+ACQUISITION reaches trusted SSTAT=4. A trusted SSTAT=4 with health not ready
+stops and preserves evidence without a smoke. The current live boot is not
+reused because it had a telemetry gap after the first observer exited. The
+next hardware run will freshly program only the two exact hash-verified
+existing SOFs after this observer revision is pushed, then start the observer
+without an intervening dashboard/telemetry session.
 The capture is stored byte-for-byte; trailing spaces in the vendor's Quartus
 license banner are intentionally preserved, so whitespace checks exclude this
 raw evidence file rather than altering its checksum.

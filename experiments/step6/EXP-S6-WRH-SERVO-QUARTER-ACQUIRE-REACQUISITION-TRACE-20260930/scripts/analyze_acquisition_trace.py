@@ -115,7 +115,13 @@ def analyze_text(text: str) -> dict[str, Any]:
     stop = stop_records[-1] if stop_records else {}
     stop_reason = stop.get("STOP_REASON", "MISSING_STOP_RECORD")
     requested_ms = as_int(stop, "REQUESTED_DURATION_MS")
-    elapsed_ms = as_int(stop, "ELAPSED_MS")
+    arm_elapsed_ms = as_int(stop, "ARM_ELAPSED_MS")
+    acq_elapsed_ms = as_int(stop, "ACQ_ELAPSED_MS")
+    if acq_elapsed_ms is None:
+        acq_elapsed_ms = as_int(stop, "ELAPSED_MS")
+    total_elapsed_ms = as_int(stop, "TOTAL_ELAPSED_MS")
+    if total_elapsed_ms is None:
+        total_elapsed_ms = as_int(stop, "ELAPSED_MS")
 
     states = Counter(
         str(as_int(row, "SERVO_STATE"))
@@ -137,6 +143,49 @@ def analyze_text(text: str) -> dict[str, Any]:
     lock_counts = {key: sum(as_int(row, key) == 1 for row in trusted) for key in lock_keys}
     all_trusted_health = bool(trusted) and step1_pass == len(trusted) and all(
         lock_counts[key] == len(trusted) for key in lock_keys
+    )
+
+    arming_rows = [row for row in all_rows if row.get("OBSERVER_PHASE") == "ARMING"]
+    acquisition_rows = [
+        row
+        for row in all_rows
+        if row.get("OBSERVER_PHASE", "ACQUISITION") == "ACQUISITION"
+    ]
+    acquisition_trusted = [
+        row
+        for row in trusted
+        if row.get("OBSERVER_PHASE", "ACQUISITION") == "ACQUISITION"
+    ]
+    acquisition_coverage = (
+        len(acquisition_trusted) / len(acquisition_rows) if acquisition_rows else 0.0
+    )
+    acquisition_lock_counts = {
+        key: sum(as_int(row, key) == 1 for row in acquisition_trusted)
+        for key in lock_keys
+    }
+    acquisition_step1_pass = sum(
+        as_int(row, "STEP1_GATE") == 1 for row in acquisition_trusted
+    )
+    acquisition_health = bool(acquisition_trusted) and (
+        acquisition_step1_pass == len(acquisition_trusted)
+        and all(
+            acquisition_lock_counts[key] == len(acquisition_trusted)
+            for key in lock_keys
+        )
+    )
+    known_acquisition_states = bool(acquisition_trusted) and {
+        as_int(row, "SERVO_STATE") for row in acquisition_trusted
+    }.issubset({3, 5})
+    health_ready_row_count = sum(
+        as_int(row, "HEALTH_READY_ROW") == 1 for row in all_rows
+    )
+    max_health_ready_streak_rows = max(
+        (as_int(row, "HEALTH_READY_STREAK_ROWS") or 0 for row in all_rows),
+        default=0,
+    )
+    max_health_ready_streak_ms = max(
+        (as_int(row, "HEALTH_READY_STREAK_MS") or 0 for row in all_rows),
+        default=0,
     )
 
     adjacent: list[tuple[dict[str, str], dict[str, str]]] = []
@@ -180,22 +229,41 @@ def analyze_text(text: str) -> dict[str, Any]:
         if all(value is not None for value in (lc, rc, ld, rd)):
             delta_residual.append((rc - rd) - (lc - ld))
 
-    sstat4_observed = any(as_int(row, "SERVO_STATE") == 4 for row in trusted)
-    full_window = requested_ms == 600000 and elapsed_ms is not None and elapsed_ms >= 600000
+    track_rows = [row for row in trusted if as_int(row, "SERVO_STATE") == 4]
+    sstat4_observed = bool(track_rows)
+    track_observed_during_arming = any(
+        row.get("OBSERVER_PHASE") == "ARMING" for row in track_rows
+    )
+    full_window = (
+        requested_ms == 600000
+        and acq_elapsed_ms is not None
+        and acq_elapsed_ms >= 600000
+    )
     coverage = len(trusted) / len(all_rows) if all_rows else 0.0
-    known_acquisition_states = bool(states) and set(states).issubset({"3", "5"})
     adequate_full_window = (
         requested_ms == 600000
-        and elapsed_ms is not None
-        and elapsed_ms >= 600000
-        and len(trusted) >= 1000
-        and coverage >= 0.95
-        and all_trusted_health
+        and acq_elapsed_ms is not None
+        and acq_elapsed_ms >= 600000
+        and len(acquisition_trusted) >= 1000
+        and acquisition_coverage >= 0.95
+        and acquisition_health
         and known_acquisition_states
         and flag_mismatches == 0
     )
-    if sstat4_observed:
-        result = "ACQUISITION_REACQUIRED"
+    if stop_reason == "TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_NOT_READY":
+        result = "TRACK_OBSERVED_DURING_ARMING_HEALTH_NOT_READY"
+    elif stop_reason == "TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_READY":
+        result = "TRACK_OBSERVED_DURING_ARMING"
+    elif sstat4_observed and track_observed_during_arming:
+        result = "TRACK_OBSERVED_DURING_ARMING_STOPPED_EARLY"
+    elif sstat4_observed:
+        result = (
+            "ACQUISITION_REACQUIRED"
+            if stop_reason == "TRACK_PHASE_REACHED"
+            else f"TRACK_OBSERVED_STOPPED_{stop_reason}"
+        )
+    elif stop_reason == "ARMING_TIMEOUT":
+        result = "INCONCLUSIVE_STARTUP_NOT_ARMED"
     elif stop_reason == "DURATION_LIMIT" and full_window and adequate_full_window:
         result = "REPRODUCIBLE_ACQUISITION_FAILURE_OBSERVED"
     elif stop_reason == "DURATION_LIMIT" and full_window:
@@ -209,15 +277,25 @@ def analyze_text(text: str) -> dict[str, Any]:
         "result": result,
         "stop_reason": stop_reason,
         "requested_ms": requested_ms,
-        "elapsed_ms": elapsed_ms,
+        "arm_elapsed_ms": arm_elapsed_ms,
+        "acq_elapsed_ms": acq_elapsed_ms,
+        "total_elapsed_ms": total_elapsed_ms,
         "last_row_start_ms": stop.get("LAST_ROW_START_MS", "NA"),
         "last_row_end_ms": stop.get("LAST_ROW_END_MS", "NA"),
         "sample_count": len(all_rows),
+        "arming_sample_count": len(arming_rows),
+        "acquisition_sample_count": len(acquisition_rows),
         "structurally_trusted_count": len(trusted),
+        "acquisition_structurally_trusted_count": len(acquisition_trusted),
         "structural_coverage": coverage,
+        "acquisition_structural_coverage": acquisition_coverage,
         "structural_flag_mismatches": flag_mismatches,
         "adequate_full_window": adequate_full_window,
         "known_acquisition_states_only": known_acquisition_states,
+        "acquisition_health_high_on_trusted_rows": acquisition_health,
+        "health_ready_row_count": health_ready_row_count,
+        "max_health_ready_streak_rows": max_health_ready_streak_rows,
+        "max_health_ready_streak_ms": max_health_ready_streak_ms,
         "step6_qualifying_count": sum(
             as_int(row, "STEP6_QUALIFYING_ROW") == 1 for row in all_rows
         ),
@@ -226,6 +304,7 @@ def analyze_text(text: str) -> dict[str, Any]:
         "lock_counts": lock_counts,
         "state_counts": dict(states),
         "track_phase_observed": sstat4_observed,
+        "track_phase_observed_during_arming": track_observed_during_arming,
         "latch_trigger_established": sstat4_observed,
         "cko_range_ps": _range(cko),
         "dms_range_ps": _range(dms),
@@ -250,19 +329,31 @@ def render(summary: dict[str, Any]) -> str:
         f"RESULT={summary['result']}",
         f"STOP_REASON={summary['stop_reason']}",
         f"REQUESTED_DURATION_MS={summary['requested_ms']}",
-        f"ELAPSED_MS={summary['elapsed_ms']}",
+        f"ARM_ELAPSED_MS={summary['arm_elapsed_ms']}",
+        f"ACQ_ELAPSED_MS={summary['acq_elapsed_ms']}",
+        f"TOTAL_ELAPSED_MS={summary['total_elapsed_ms']}",
+        f"ELAPSED_MS={summary['total_elapsed_ms']}",
         f"LAST_ROW_START_MS={summary['last_row_start_ms']}",
         f"LAST_ROW_END_MS={summary['last_row_end_ms']}",
         f"SAMPLE_COUNT={summary['sample_count']}",
+        f"ARMING_SAMPLE_COUNT={summary['arming_sample_count']}",
+        f"ACQUISITION_SAMPLE_COUNT={summary['acquisition_sample_count']}",
         f"STRUCTURALLY_TRUSTED_COUNT={summary['structurally_trusted_count']}",
+        f"ACQUISITION_TRUSTED_COUNT={summary['acquisition_structurally_trusted_count']}",
         f"STRUCTURAL_COVERAGE={summary['structural_coverage']:.4f}",
+        f"ACQUISITION_STRUCTURAL_COVERAGE={summary['acquisition_structural_coverage']:.4f}",
         f"STRUCTURAL_FLAG_MISMATCHES={summary['structural_flag_mismatches']}",
         f"ADEQUATE_FULL_WINDOW={int(summary['adequate_full_window'])}",
+        f"ACQUISITION_HEALTH_HIGH={int(summary['acquisition_health_high_on_trusted_rows'])}",
+        f"HEALTH_READY_ROW_COUNT={summary['health_ready_row_count']}",
+        f"MAX_HEALTH_READY_STREAK_ROWS={summary['max_health_ready_streak_rows']}",
+        f"MAX_HEALTH_READY_STREAK_MS={summary['max_health_ready_streak_ms']}",
         f"STEP6_QUALIFYING_COUNT={summary['step6_qualifying_count']}",
         f"GLOBAL_VALID_TRUSTED_COUNT={summary['global_valid_trusted_count']}",
         f"STEP1_PASS_TRUSTED_COUNT={summary['step1_pass_trusted_count']}",
         f"SERVO_STATE_COUNTS={summary['state_counts']}",
         f"TRACK_PHASE_OBSERVED={int(summary['track_phase_observed'])}",
+        f"TRACK_PHASE_OBSERVED_DURING_ARMING={int(summary['track_phase_observed_during_arming'])}",
         f"FIXED_SETP_LATCH_TRIGGER={latch}",
         f"CKO_RANGE_PS={summary['cko_range_ps']}",
         f"DMS_RANGE_PS={summary['dms_range_ps']}",

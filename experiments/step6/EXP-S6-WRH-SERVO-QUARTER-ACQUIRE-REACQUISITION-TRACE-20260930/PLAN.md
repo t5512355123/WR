@@ -46,21 +46,40 @@ guarded primary and context WDIAGS frames joined by UCNT. The fixed sampling
 delay is 250 ms; actual sample spacing is also determined by guarded-frame
 publication waits and is recorded per row.
 
-The Tcl observer starts its own high-resolution monotonic timer after the
-Slave JTAG source-probe setup and ends normally at 600,000 ms, after finishing
-the row already in progress. It records:
+The observer begins a high-resolution monotonic ARMING timer immediately after
+the Slave JTAG source-probe setup. ARMING is limited to 300,000 ms. The 600,000
+ms acquisition timer starts only after Step 1 and all five Step 5 lock gates
+have remained valid/high continuously for at least 10,000 ms and at least 10
+health-ready rows. It then ends normally at 600,000 ms after finishing the row
+already in progress. Both phases continuously collect the same guarded
+CKO/SSTAT/UCNT and SETP/DMS/context trace.
+
+ARMING readiness is a separate health predicate. It requires a valid and
+unchanged reset signature, valid Step 1/lock-register reads, Step 1 PASS, and
+Helper/MainFreq/MainPhase/MainLock/PSTAT all high. It does not require Global
+Time valid, an in-band CKO, a UCNT context join, or structural trust. Any
+health-not-ready row resets the continuous readiness streak. It does not stop
+ARMING by itself.
+
+The observer records:
 
 ~~~text
+ARM_START_MONOTONIC_US
+ARMED_AT_MONOTONIC_US
 ACQ_START_MONOTONIC_US
 REQUESTED_DURATION_MS=600000
+ARMING_TIMEOUT_MS=300000
 LAST_ROW_START_MS
 LAST_ROW_END_MS
-ELAPSED_MS
+ARM_ELAPSED_MS
+ACQ_ELAPSED_MS
+TOTAL_ELAPSED_MS
 STOP_REASON
 ~~~
 
-The shell wrapper applies a 605-second external watchdog only as a hung-process
-safety net. The Tcl observer's 600-second monotonic deadline is authoritative.
+The shell wrapper applies a 905-second external watchdog only as a hung-process
+safety net (300-second ARMING plus 600-second ACQUISITION and small overhead).
+The Tcl observer's separate monotonic deadlines are authoritative.
 The log is opened directly under raw/observe/ before the reader starts.
 Signal/exit handling may append status but must never remove or truncate raw
 capture data.
@@ -111,23 +130,33 @@ in one hardware cycle.
 
 ## Stop conditions
 
-Stop acquisition immediately on:
+ARMING and ACQUISITION use different health-gate rules:
 
-- a structurally trusted SERVO_STATE=4 (TRACK_PHASE);
-- reset/boot-generation signature change;
-- Step 1 gate loss or invalidity;
-- any of the five Step 5 locks low or invalid;
-- five consecutive structurally untrusted rows;
-- fatal JTAG/reader error;
-- the 600,000 ms monotonic deadline.
+| Condition | ARMING (max 300 s) | ACQUISITION (max 600 s) |
+|---|---|---|
+| Step 1 or any Step 5 lock low | Reset ready streak; continue | Stop immediately |
+| Health read invalid | Reset ready streak; continue | Stop immediately |
+| Global Time invalid | Continue | Continue |
+| `abs(CKO)>60 ps` or `>120 ps` | Continue | Continue |
+| SSTAT 1/2/3/5 | Continue | Continue |
+| Structurally trusted SSTAT=4 | If health-ready, stop as `TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_READY`; if not, stop as `TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_NOT_READY` | Stop as `TRACK_PHASE_REACHED` |
+| Reset signature change | Stop immediately | Stop immediately |
+| Fatal JTAG/reader error | Stop immediately | Stop immediately |
+| Five consecutive structurally untrusted rows | Stop immediately | Stop immediately |
+| Timer expiry | `ARMING_TIMEOUT` | `DURATION_LIMIT` |
 
-Do not stop merely because Global Time is invalid, abs(CKO)>60 ps,
-abs(CKO)>120 ps, or the state is SYNC_PHASE (3) / WAIT_OFFSET_STABLE (5).
+If trusted SSTAT=4 occurs during ARMING while all health gates are ready, the
+durable wrapper immediately starts the existing 15-second `phase_context=2`
+smoke on the same live boot. Do not reset or reprogram. If trusted SSTAT=4 occurs
+during ARMING while health is not ready, preserve the raw trace and stop; do
+not run the smoke or reprogram automatically. The acquisition endpoint is a
+trusted SSTAT=4 row after ARMING.
 
 ## Follow-on if TRACK is observed
 
-Do not reset or reprogram. After the acquisition Tcl exits, run the existing
-15-second phase-context smoke sequentially in the same live hardware state:
+Do not reset or reprogram. After a trusted TRACK endpoint (during healthy
+ARMING or after ACQUISITION starts), run the existing 15-second phase-context
+smoke sequentially in the same live hardware state:
 
 ~~~sh
 quartus_stp -t scripts/jtag/read_step6_servo_interleaved_offset.tcl \
@@ -162,18 +191,21 @@ contains only state 3/5, classify the observed acquisition failure without
 tuning gain/threshold. Use the trace to decide the next production-side
 experiment; do not preselect /2, /8, or missed_iters changes.
 
-For this diagnostic only, predeclare a full trace as data-adequate when it has
-at least 1,000 structurally trusted rows, at least 95% structural coverage,
-zero analyzer-vs-row validity-flag mismatches, and Step 1 plus all five lock
-gates high on every trusted row. This is a diagnostic evidence-quality gate,
-not a Step 6 acceptance threshold.
+For this diagnostic only, predeclare the 600-second ACQUISITION trace as
+data-adequate when it has at least 1,000 structurally trusted ACQUISITION rows,
+at least 95% structural coverage within ACQUISITION, zero analyzer-vs-row
+validity-flag mismatches, and Step 1 plus all five lock gates high on every
+trusted ACQUISITION row. ARMING rows are reported separately and do not dilute
+the ACQUISITION health/coverage verdict. This is a diagnostic evidence-quality
+gate, not a Step 6 acceptance threshold.
 
 ## Laptop verification and publish
 
 Before pushing:
 
 1. Require a clean feat/file_cleanup worktree at the exact current origin tip.
-2. Run the new analyzer/offline tests and shell syntax check.
+2. Run the new analyzer/offline tests, ARMING state-machine checks, and shell
+   syntax check.
 3. Run git diff --check.
 4. Confirm the diff contains no production control, acceptance-reader, or
    candidate-SOF source change.

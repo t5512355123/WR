@@ -12,6 +12,7 @@ import analyze_acquisition_trace as analyzer  # noqa: E402
 
 
 TCL = ROOT / "scripts/jtag/read_step6_servo_acquisition_context.tcl"
+PLAN = EXPERIMENT / "PLAN.md"
 WRAPPER = EXPERIMENT / "scripts/run_acquisition_trace.sh"
 
 
@@ -23,6 +24,7 @@ def sample(
     cko: int = -200,
     dms: int = 1000,
     setp: int = 300,
+    phase: str = "ACQUISITION",
     global_valid: int = 0,
     qualifying: int = 0,
 ) -> str:
@@ -33,6 +35,8 @@ def sample(
         "DIAG_FRAME_VALID=1 PHASE_CONTEXT_FRAME_VALID=1 PHASE_CONTEXT_MATCH=1 "
         f"SERVO_STATE={state} CKO_PS={cko} DMS_PS={dms} SETP_PS={setp} "
         f"UCNT={n + 10:08X} PHASE_CONTEXT_UCNT={n + 10:08X} RESET_CHANGED=0 "
+        f"OBSERVER_PHASE={phase} HEALTH_READS_VALID=1 HEALTH_READY_ROW=1 "
+        "HEALTH_READY_STREAK_ROWS=10 HEALTH_READY_STREAK_MS=10000 "
         "BOOT_GENERATION=00000001 CPU_RESET_COUNT=0000000A "
         "WR_CORE_RESET_COUNT=0000000B SI_CONFIG_DROP_COUNT=0000000C "
         "STEP1_GATE=1 HELPER_LOCK=1 MAIN_FREQ_LOCK=1 "
@@ -53,18 +57,21 @@ class AcquisitionTraceTests(unittest.TestCase):
 
     def test_only_structurally_trusted_track_row_counts_as_reacquired(self):
         untrusted = sample(0, trusted=0, state=4)
-        stop = (
+        untrusted_stop = (
             "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ELAPSED_MS=600000 "
             "LAST_ROW_START_MS=599900 LAST_ROW_END_MS=600200 "
             "STOP_REASON=DURATION_LIMIT"
         )
         self.assertEqual(
-            analyzer.analyze_text(untrusted + stop)["result"],
+            analyzer.analyze_text(untrusted + untrusted_stop)["result"],
             "INCONCLUSIVE_STRUCTURAL_COVERAGE",
         )
         trusted = sample(0, trusted=1, state=4)
+        trusted_stop = untrusted_stop.replace(
+            "STOP_REASON=DURATION_LIMIT", "STOP_REASON=TRACK_PHASE_REACHED"
+        )
         self.assertEqual(
-            analyzer.analyze_text(trusted + stop)["result"],
+            analyzer.analyze_text(trusted + trusted_stop)["result"],
             "ACQUISITION_REACQUIRED",
         )
 
@@ -79,6 +86,43 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertEqual(summary["result"], "REPRODUCIBLE_ACQUISITION_FAILURE_OBSERVED")
         self.assertTrue(summary["adequate_full_window"])
         self.assertFalse(summary["track_phase_observed"])
+
+    def test_arming_timeout_is_not_misclassified_as_acquisition_failure(self):
+        text = sample(0, state=1, phase="ARMING") + (
+            "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ARMING_TIMEOUT_MS=300000 "
+            "ARM_ELAPSED_MS=300000 ACQ_ELAPSED_MS=NA TOTAL_ELAPSED_MS=300050 "
+            "ELAPSED_MS=300050 LAST_ROW_START_MS=299800 LAST_ROW_END_MS=300050 "
+            "STOP_REASON=ARMING_TIMEOUT"
+        )
+        summary = analyzer.analyze_text(text)
+        self.assertEqual(summary["result"], "INCONCLUSIVE_STARTUP_NOT_ARMED")
+        self.assertEqual(summary["acquisition_sample_count"], 0)
+        self.assertFalse(summary["adequate_full_window"])
+
+    def test_track_observed_during_arming_is_distinguished(self):
+        text = sample(0, state=4, phase="ARMING") + (
+            "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ARM_ELAPSED_MS=9000 "
+            "ACQ_ELAPSED_MS=NA TOTAL_ELAPSED_MS=9000 ELAPSED_MS=9000 "
+            "LAST_ROW_START_MS=8900 LAST_ROW_END_MS=9000 "
+            "STOP_REASON=TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_READY"
+        )
+        summary = analyzer.analyze_text(text)
+        self.assertEqual(summary["result"], "TRACK_OBSERVED_DURING_ARMING")
+        self.assertTrue(summary["track_phase_observed_during_arming"])
+        self.assertTrue(summary["latch_trigger_established"])
+
+    def test_arming_rows_do_not_dilute_acquisition_health_verdict(self):
+        rows = [sample(0, state=1, phase="ARMING")]
+        rows.extend(sample(n, state=5, phase="ACQUISITION") for n in range(1000))
+        text = "\n".join(rows) + (
+            "\nS6_ACQ_STOP REQUESTED_DURATION_MS=600000 ARM_ELAPSED_MS=10000 "
+            "ACQ_ELAPSED_MS=600100 TOTAL_ELAPSED_MS=610100 ELAPSED_MS=610100 "
+            "LAST_ROW_START_MS=609900 LAST_ROW_END_MS=610100 STOP_REASON=DURATION_LIMIT"
+        )
+        summary = analyzer.analyze_text(text)
+        self.assertTrue(summary["adequate_full_window"])
+        self.assertEqual(summary["arming_sample_count"], 1)
+        self.assertEqual(summary["acquisition_sample_count"], 1000)
 
     def test_context_mismatch_is_not_structurally_trusted(self):
         row = sample(0).replace(
@@ -134,17 +178,26 @@ class AcquisitionTraceTests(unittest.TestCase):
         self.assertIn(structural, source)
         self.assertIn("$structurally_trusted && $global_valid", source)
         self.assertIn("clock clicks -milliseconds", source)
-        self.assertIn("elapsed_before_ms >= 600000", source)
+        self.assertIn("$acq_elapsed_before_ms >= $duration_ms", source)
         self.assertIn("$structural_trusted && $servo_state == 4", source)
+        self.assertIn("if {$observer_phase eq \"ARMING\"}", source)
         self.assertIn("if {$step1_gate != 1}", source)
         self.assertIn("$helper_lock != 1 || $main_freq != 1", source)
         self.assertIn("FIVE_CONSECUTIVE_STRUCTURALLY_INVALID_ROWS", source)
+        self.assertIn("S6_ACQ_ARM_START", source)
+        self.assertIn("S6_ACQ_ARM_READY_BEGIN", source)
+        self.assertIn("S6_ACQ_ARM_READY_RESET", source)
+        self.assertIn("S6_ACQ_ARMED", source)
+        self.assertIn("HEALTH_READY_STREAK_MS=%d", source)
+        self.assertIn("set arming_timeout_ms 300000", source)
 
     def test_wrapper_logs_directly_to_raw_and_never_deletes_capture(self):
         source = WRAPPER.read_text(encoding="utf-8")
         self.assertIn('RAW_DIR="$EXP_DIR/raw/observe"', source)
         self.assertIn('tee -a "$LOG"', source)
-        self.assertIn("605s", source)
+        self.assertIn("905s", source)
+        self.assertIn("read_step6_servo_interleaved_offset.tcl", source)
+        self.assertIn("TRACK_PHASE_REACHED_DURING_ARMING_HEALTH_READY", source)
         self.assertNotIn("rm -rf", source)
         self.assertNotIn("/tmp/capture.log", source)
 

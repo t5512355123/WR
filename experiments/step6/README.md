@@ -111,11 +111,12 @@ rows and `SYNC_PHASE` for 69; it never entered `TRACK_PHASE`. The WR admission
 state stayed `WRS_IDLE`, with no source-backed admission event. This shows the
 phase servo is the immediate unresolved boundary, but does not reveal whether
 CKO crossed its strict threshold because the trace did not sample CKO/DMS/SETP.
-The next step is a short same-publication-frame CKO/DMS/SETP observation on
-this unchanged image; make no controller change until those values are
-available. See the
+The next experiment is a 30-second same-publication-frame CKO/DMS/SETP
+observation on this unchanged image; make no controller change until those
+values are available. See the
 [pre-TRACK attribution report](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/REPORT.md),
 [plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md), and
+[same-frame phase diagnostic plan](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/PLAN.md),
 [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)

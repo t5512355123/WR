@@ -81,20 +81,61 @@ RTL, SDB, or timing-constraint change is introduced.
 2. On Pain, fast-forward `/home/b10504072/04_WR` to that exact commit. Do not
    access `/home/b10504072/04_WR_archive_step6_pass/`. Preserve all existing
    untracked user data.
-3. Run the build/program script with the exact pulled commit. It verifies the
-   pulled checkout, creates an isolated temporary worktree at the historical
-   build commit above, verifies the frozen source manifest (3,219 entries),
-   canonical Step 6 SOF manifest (4 entries), both JTAG cables, and no
-   competing Quartus/JTAG process. It temporarily applies the existing patch,
-   builds both images, verifies historical MIF, QSF, SDC, and Quartus-version
-   identities plus successful full compilations, records the newly generated
-   SOF hashes, then programs Slave followed by Master. It restores the patch,
-   verifies both manifests, and removes only the temporary worktree it created.
-4. Do not run two JTAG readers at once. The capture script polls both boards
+3. Compile only, using the exact pulled commit:
+
+   The build command accepts `scripts/build_candidate.sh EXPECTED_CURRENT_COMMIT`.
+
+   ```sh
+   EXPECTED_COMMIT=$(git rev-parse HEAD)
+   bash experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/scripts/build_candidate.sh "$EXPECTED_COMMIT"
+   ```
+
+   This verifies the checkout, creates an isolated temporary worktree at the
+   pinned historical build commit above, verifies the frozen source and
+   canonical artifact manifests, applies the existing patch, builds both
+   images, and validates the historical MIF, QSF, SDC, Quartus-version, and
+   full-compilation identities. It then copies the verified SOFs out of the
+   temporary worktree and leaves them in the ignored, persistent folder:
+
+   ```text
+   experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/output/BUILD_RUN_TAG/DE5a_wr_slave_jtag.sof
+   experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/output/BUILD_RUN_TAG/DE5a_wr_master_jtag.sof
+   ```
+
+   The script prints `S6TV_BUILD_COMPLETE` only after the temporary worktree is
+   removed and both retained files still exist, are non-empty, and match the
+   generated build-info hashes. It does not query JTAG cables, request sudo,
+   or program either board. The printed `run_tag` is passed unchanged to the
+   next phase. A failed or incomplete compile cannot be programmed. The SOFs
+   are ignored local build outputs: they remain on Pain under `output/` and
+   are not uploaded to GitHub with the source commit.
+4. Program only the retained SOFs, using the same checkout commit and build
+   run tag:
+
+   The programmer command accepts `scripts/program_candidate.sh EXPECTED_CURRENT_COMMIT BUILD_RUN_TAG`.
+
+   ```sh
+   bash experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/scripts/program_candidate.sh "$EXPECTED_COMMIT" BUILD_RUN_TAG
+   ```
+
+   This checks both output files and their SHA-256/build metadata before any
+   programming, verifies both cable identities, then programs Slave followed
+   by Master. The SOFs remain in `output/BUILD_RUN_TAG/`; the program log names
+   the exact files consumed. Do not rebuild between these two phases unless
+   you intend to use the newly printed build run tag.
+5. Start the read-only live dashboard only after programming completes:
+
+   ```sh
+   INTERVAL_SECONDS=10 OBS_GAP_MS=2000 bash scripts/monitor/step1_6_dashboard.sh
+   ```
+
+   The dashboard displays the current state. Stop it with Ctrl+C before
+   starting the separate long JTAG capture; do not run two JTAG readers at
+   once. The capture script polls both boards
    read-only until `STATUS_TIME_VALID=1` in every preflight sample for both
    boards during one poll, with a maximum readiness wait of 1,800 seconds.
    This is only a start gate; it does not replace the long capture.
-5. The long observer is read-only and sequential by board:
+6. The long observer is read-only and sequential by board:
 
    ```text
    scripts/jtag/read_step6_global_time_observability.tcl
@@ -104,7 +145,7 @@ RTL, SDB, or timing-constraint change is introduced.
    ```
 
    A 900-second process deadline covers both sequential board windows.
-6. Copy the unmodified raw capture and build/program logs back to Laptop,
+7. Copy the unmodified raw capture and build/program logs back to Laptop,
    verify SHA-256 values, run `scripts/analysis/step6_time_valid_300s.py`,
    update REPORT.md, then push the evidence and report to the same branch.
 
@@ -127,13 +168,15 @@ the exported bit; it does not claim cycle-by-cycle continuity between reads.
 
 ## Stop conditions
 
-- Stop before patching/building if branch/commit, source/artifact manifests,
-  cable identities, or JTAG process preflight do not match.
+- Stop before patching/building if branch/commit or source/artifact manifests
+  do not match, or another Quartus process is active.
 - Stop before Quartus compilation if either firmware MIF hash differs from
-  the historical expected hash. Stop before programming if either source/QSF/
-  SDC/tool identity differs, either compilation fails, or either SOF is absent.
-  A newly generated SOF hash need not equal the historical hash; record it and
-  do not claim byte-identical image reproduction.
+  the historical expected hash. Stop before SOF retention if either
+  source/QSF/SDC/tool identity differs, either compilation fails, or either
+  generated SOF is absent. Stop before programming if either retained SOF is
+  absent, empty, or fails its SHA-256/build-info check, or cable/process
+  preflight fails. A newly generated SOF hash need not equal the historical
+  hash; record it and do not claim byte-identical image reproduction.
 - Stop if either programming log does not identify one successfully configured
   DE5a device on the expected cable.
 - Preserve all partial evidence and stop on reset interruption, read errors,

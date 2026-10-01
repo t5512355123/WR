@@ -6,6 +6,8 @@ SCRIPT_DIR=$(dirname "$(realpath "$0")")
 EXP_DIR=$(dirname "$SCRIPT_DIR")
 ROOT=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 RAW_DIR="$EXP_DIR/raw"
+EXP_REL="experiments/step6/$(basename "$EXP_DIR")"
+OUTPUT_REL="$EXP_REL/output"
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 EXPECTED_BRANCH=feat/file_cleanup
 EXPECTED_BUILD_COMMIT=4c1adf73ab762506939163d467fb8c6b35bca9b4
@@ -30,8 +32,15 @@ if [ "$#" -ne 2 ]; then
 fi
 EXPECTED_COMMIT="$1"
 BUILD_RUN_TAG="$2"
+if [[ ! "$BUILD_RUN_TAG" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+  echo "S6TV_CAPTURE_ABORT reason=invalid-build-run-tag" >&2
+  exit 2
+fi
 RUN_TAG=$(date -u +%Y%m%dT%H%M%SZ)
 BUILD_DIR="$RAW_DIR/build"
+PROGRAM_DIR="$RAW_DIR/program"
+BUILD_HEAD_RECORD="$RAW_DIR/preflight/$BUILD_RUN_TAG-current-head.txt"
+PROGRAM_RUN_RECORD="$BUILD_DIR/$BUILD_RUN_TAG-program-run.txt"
 OBSERVE_DIR="$RAW_DIR/observe"
 ANALYSIS_DIR="$RAW_DIR/analysis"
 READINESS_LOG="$OBSERVE_DIR/$RUN_TAG-readiness"
@@ -48,6 +57,16 @@ test "$(git -C "$ROOT" branch --show-current)" = "$EXPECTED_BRANCH" || fail "bra
 test -z "$(git -C "$ROOT" diff --name-only)" || fail "tracked worktree is dirty"
 test -z "$(git -C "$ROOT" diff --cached --name-only)" || fail "index is not clean"
 test -x "$QUARTUS_STP" || fail "Quartus SignalTap executable is unavailable"
+test -f "$BUILD_HEAD_RECORD" || fail "BUILD checkout identity record is missing"
+test "$(tr -d '\r\n' < "$BUILD_HEAD_RECORD")" = "$EXPECTED_COMMIT" || fail "build checkout commit differs"
+test -f "$PROGRAM_RUN_RECORD" || fail "verified programming completion record is missing"
+test "$(sed -n 's/^BUILD_RUN_TAG=//p' "$PROGRAM_RUN_RECORD")" = "$BUILD_RUN_TAG" || fail "program completion record belongs to another build"
+PROGRAM_RUN_TAG=$(sed -n 's/^PROGRAM_RUN_TAG=//p' "$PROGRAM_RUN_RECORD")
+test -n "$PROGRAM_RUN_TAG" || fail "program run tag is missing"
+test "$(printf '%s\n' "$PROGRAM_RUN_TAG" | wc -l)" -eq 1 || fail "program run tag is ambiguous"
+if [[ ! "$PROGRAM_RUN_TAG" =~ ^[0-9]{8}T[0-9]{6}Z$ ]]; then
+  fail "program run tag is malformed"
+fi
 test -f "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt" || fail "candidate SOF hash record is missing"
 
 verify_build_info() {
@@ -67,18 +86,21 @@ verify_build_info() {
   test -n "$sof_hash" || fail "SOF hash is missing in $info_file"
   test "$(printf '%s\n' "$sof_hash" | wc -l)" -eq 1 || fail "SOF hash is ambiguous in $info_file"
   test "$(grep -Fxc "$sof_hash  $sof_path" "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt")" -eq 1 || fail "SOF hash record disagrees for $info_file"
+  test -s "$ROOT/$sof_path" || fail "retained SOF is missing or empty: $sof_path"
+  actual_sof_hash=$(sha256sum "$ROOT/$sof_path" | awk '{print $1}')
+  test "$actual_sof_hash" = "$sof_hash" || fail "retained SOF hash differs for $info_file"
 }
 
 verify_build_info "$BUILD_DIR/$BUILD_RUN_TAG-build-info-slave.txt" \
   "$EXPECTED_SLAVE_QSF" "$EXPECTED_SLAVE_MIF" \
-  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+  "$OUTPUT_REL/$BUILD_RUN_TAG/DE5a_wr_slave_jtag.sof"
 verify_build_info "$BUILD_DIR/$BUILD_RUN_TAG-build-info-master.txt" \
   "$EXPECTED_MASTER_QSF" "$EXPECTED_MASTER_MIF" \
-  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
+  "$OUTPUT_REL/$BUILD_RUN_TAG/DE5a_wr_master_jtag.sof"
 grep -q 'Programmer was successful. 0 errors, 0 warnings' \
-  "$RAW_DIR/program/$BUILD_RUN_TAG-slave-program.log" || fail "Slave programming success is unverified"
+  "$PROGRAM_DIR/$PROGRAM_RUN_TAG-slave-program.log" || fail "Slave programming success is unverified"
 grep -q 'Programmer was successful. 0 errors, 0 warnings' \
-  "$RAW_DIR/program/$BUILD_RUN_TAG-master-program.log" || fail "Master programming success is unverified"
+  "$PROGRAM_DIR/$PROGRAM_RUN_TAG-master-program.log" || fail "Master programming success is unverified"
 
 mkdir -p "$OBSERVE_DIR" "$ANALYSIS_DIR"
 if [ -e "$CAPTURE_LOG" ] || [ -e "$ANALYSIS_JSON" ]; then

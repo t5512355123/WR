@@ -20,10 +20,12 @@ EXPECTED_QUARTUS_VERSION='Version 17.0.0 Build 595 04/25/2017 SJ Standard Editio
 EXPECTED_SLAVE_MIF=d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916
 EXPECTED_MASTER_MIF=07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6
 SOURCE_PATCH_REL="$SOURCE_REL/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c"
+OUTPUT_REL="experiments/step6/$(basename "$EXP_DIR")/output"
+OUTPUT_ROOT="$ROOT/$OUTPUT_REL"
 QUARTUS_BIN=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin
 
 if [ "$#" -ne 1 ]; then
-  echo "Usage: bash build_program_candidate.sh EXPECTED_CURRENT_COMMIT" >&2
+  echo "Usage: bash build_candidate.sh EXPECTED_CURRENT_COMMIT" >&2
   exit 2
 fi
 EXPECTED_CURRENT_COMMIT="$1"
@@ -34,14 +36,19 @@ BUILD_ROOT=
 BUILD_SOURCE_DIR=
 WORKTREE_ADDED=0
 PATCH_APPLIED=0
+OUTPUT_RUN_DIR="$OUTPUT_ROOT/$RUN_TAG"
+SLAVE_SOF_OUTPUT="$OUTPUT_RUN_DIR/DE5a_wr_slave_jtag.sof"
+MASTER_SOF_OUTPUT="$OUTPUT_RUN_DIR/DE5a_wr_master_jtag.sof"
+SLAVE_SOF_HASH=
+MASTER_SOF_HASH=
 
 fail() {
-  printf 'S6TV_ABORT reason=%s\n' "$*" >&2
+  printf 'S6TV_BUILD_ABORT reason=%s\n' "$*" >&2
   exit 2
 }
 
-mkdir -p "$RAW_DIR/preflight" "$RAW_DIR/build" "$RAW_DIR/program" "$RAW_DIR/observe"
-if [ -e "$RAW_DIR/build/$RUN_TAG-source-diff.patch" ]; then
+mkdir -p "$RAW_DIR/preflight" "$RAW_DIR/build"
+if [ -e "$RAW_DIR/build/$RUN_TAG-source-diff.patch" ] || [ -e "$OUTPUT_RUN_DIR" ]; then
   fail "run-tag output already exists"
 fi
 git -C "$ROOT" status --short --branch > "$RAW_DIR/preflight/$RUN_TAG-git-status-before.txt"
@@ -54,7 +61,7 @@ test "$(git -C "$ROOT" rev-parse HEAD)" = "$EXPECTED_CURRENT_COMMIT" || fail "pu
 test "$(git -C "$ROOT" branch --show-current)" = "$EXPECTED_BRANCH" || fail "branch mismatch"
 test -z "$(git -C "$ROOT" diff --name-only)" || fail "tracked worktree is dirty"
 test -z "$(git -C "$ROOT" diff --cached --name-only)" || fail "index is not clean"
-test -x "$QUARTUS_BIN/quartus_pgm" || fail "Quartus 17.0 programmer is unavailable"
+test -x "$QUARTUS_BIN/quartus_sh" || fail "Quartus 17.0 shell is unavailable"
 test -f "$PATCH" || fail "historical /2+/12 candidate patch is missing"
 echo "$EXPECTED_PATCH_SHA256  $PATCH" | sha256sum -c - || fail "historical /2+/12 patch hash differs"
 git -C "$ROOT" cat-file -e "$EXPECTED_BUILD_COMMIT^{commit}" || fail "historical build commit is unavailable"
@@ -62,13 +69,9 @@ git -C "$ROOT" cat-file -e "$EXPECTED_BUILD_COMMIT^{commit}" || fail "historical
 for process in quartus_stp quartus_pgm quartus_sh; do
   if pgrep -x "$process" >/dev/null; then
     ps -C "$process" -o pid=,comm=,args= >&2 || true
-    fail "competing Quartus/JTAG process $process is active"
+    fail "competing Quartus process $process is active"
   fi
 done
-
-"$QUARTUS_BIN/quartus_pgm" -l > "$RAW_DIR/preflight/$RUN_TAG-cables.log" 2>&1
-grep -Fq 'DE5 [1-11.1]' "$RAW_DIR/preflight/$RUN_TAG-cables.log" || fail "Master JTAG cable is missing"
-grep -Fq 'DE5 [1-11.2]' "$RAW_DIR/preflight/$RUN_TAG-cables.log" || fail "Slave JTAG cable is missing"
 
 finish() {
   rc=$?
@@ -128,6 +131,21 @@ finish() {
   fi
   git -C "$ROOT" status --short --branch > "$RAW_DIR/preflight/$RUN_TAG-git-status-after.txt"
   date -Is > "$RAW_DIR/preflight/$RUN_TAG-finished-at.txt"
+
+  if [ "$rc" -eq 0 ] && [ "$restore_rc" -eq 0 ]; then
+    if [ ! -s "$SLAVE_SOF_OUTPUT" ] || [ ! -s "$MASTER_SOF_OUTPUT" ]; then
+      echo SOF_OUTPUT_PERSISTENCE=FAIL >&2
+      restore_rc=1
+    elif [ "$(sha256sum "$SLAVE_SOF_OUTPUT" | awk '{print $1}')" != "$SLAVE_SOF_HASH" ] ||
+         [ "$(sha256sum "$MASTER_SOF_OUTPUT" | awk '{print $1}')" != "$MASTER_SOF_HASH" ]; then
+      echo SOF_OUTPUT_HASH_RECHECK=FAIL >&2
+      restore_rc=1
+    else
+      echo SOF_OUTPUT_PERSISTENCE=PASS
+      printf 'S6TV_BUILD_COMPLETE run_tag=%s build_commit=%s slave_sof=%s master_sof=%s\n' \
+        "$RUN_TAG" "$EXPECTED_BUILD_COMMIT" "$SLAVE_SOF_OUTPUT" "$MASTER_SOF_OUTPUT"
+    fi
+  fi
   if [ "$rc" -ne 0 ]; then
     exit "$rc"
   fi
@@ -206,36 +224,31 @@ grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-ma
 grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave Quartus compilation failed"
 grep -q '^FITTER_STATUS=Fitter Status : Successful' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master fitter did not report success"
 grep -q '^FITTER_STATUS=Fitter Status : Successful' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave fitter did not report success"
-(
-  cd "$BUILD_SOURCE_DIR"
-  sha256sum quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof \
-    quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
-) > "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt"
+
 SLAVE_SOF_HASH=$(sed -n 's/^SOF_SHA256=//p' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt")
 MASTER_SOF_HASH=$(sed -n 's/^SOF_SHA256=//p' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt")
 test -n "$SLAVE_SOF_HASH" || fail "Slave build-info SOF hash is missing"
 test -n "$MASTER_SOF_HASH" || fail "Master build-info SOF hash is missing"
-grep -Fq "$SLAVE_SOF_HASH  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" \
-  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "Slave SOF hash records disagree"
-grep -Fq "$MASTER_SOF_HASH  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
-  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "Master SOF hash records disagree"
+test "$(printf '%s\n' "$SLAVE_SOF_HASH" | wc -l)" -eq 1 || fail "Slave SOF hash is ambiguous"
+test "$(printf '%s\n' "$MASTER_SOF_HASH" | wc -l)" -eq 1 || fail "Master SOF hash is ambiguous"
+grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master full compilation did not pass"
+grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave full compilation did not pass"
 
-sudo -v
-(cd "$BUILD_SOURCE_DIR" && CABLE='DE5 [1-11.2]' \
-  SOF="$BUILD_SOURCE_DIR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" \
-  bash scripts/program/program_slave.sh) \
-  2>&1 | tee "$RAW_DIR/program/$RUN_TAG-slave-program.log"
-grep -q 'JTAG ID code 0x02E660DD' "$RAW_DIR/program/$RUN_TAG-slave-program.log" || fail "Slave programmer log lacks the expected device ID"
-grep -q 'Programmer was successful. 0 errors, 0 warnings' \
-  "$RAW_DIR/program/$RUN_TAG-slave-program.log" || fail "Slave programming did not report a clean success"
+mkdir -p "$OUTPUT_RUN_DIR"
+cp -- "$BUILD_SOURCE_DIR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" "$SLAVE_SOF_OUTPUT"
+cp -- "$BUILD_SOURCE_DIR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" "$MASTER_SOF_OUTPUT"
+test -s "$SLAVE_SOF_OUTPUT" || fail "retained Slave SOF is missing or empty"
+test -s "$MASTER_SOF_OUTPUT" || fail "retained Master SOF is missing or empty"
 
-(cd "$BUILD_SOURCE_DIR" && CABLE='DE5 [1-11.1]' \
-  SOF="$BUILD_SOURCE_DIR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
-  bash scripts/program/program_master.sh) \
-  2>&1 | tee "$RAW_DIR/program/$RUN_TAG-master-program.log"
-grep -q 'JTAG ID code 0x02E660DD' "$RAW_DIR/program/$RUN_TAG-master-program.log" || fail "Master programmer log lacks the expected device ID"
-grep -q 'Programmer was successful. 0 errors, 0 warnings' \
-  "$RAW_DIR/program/$RUN_TAG-master-program.log" || fail "Master programming did not report a clean success"
+(
+  cd "$ROOT"
+  sha256sum "$OUTPUT_REL/$RUN_TAG/DE5a_wr_slave_jtag.sof" \
+    "$OUTPUT_REL/$RUN_TAG/DE5a_wr_master_jtag.sof"
+) > "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt"
+grep -Fq "$SLAVE_SOF_HASH  $OUTPUT_REL/$RUN_TAG/DE5a_wr_slave_jtag.sof" \
+  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "retained Slave SOF hash differs from build-info"
+grep -Fq "$MASTER_SOF_HASH  $OUTPUT_REL/$RUN_TAG/DE5a_wr_master_jtag.sof" \
+  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "retained Master SOF hash differs from build-info"
 
-printf 'S6TV_BUILD_PROGRAM_COMPLETE run_tag=%s build_commit=%s slave_sof=%s master_sof=%s\n' \
-  "$RUN_TAG" "$EXPECTED_BUILD_COMMIT" "$SLAVE_SOF_HASH" "$MASTER_SOF_HASH"
+printf 'S6TV_BUILD_STAGED run_tag=%s slave_sof=%s master_sof=%s\n' \
+  "$RUN_TAG" "$SLAVE_SOF_OUTPUT" "$MASTER_SOF_OUTPUT"

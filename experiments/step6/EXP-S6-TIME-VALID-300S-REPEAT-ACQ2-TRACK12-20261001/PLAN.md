@@ -34,6 +34,12 @@ change is introduced.
 
 - Branch: `feat/file_cleanup`.
 - Frozen Step 6 source origin: `74dc28862653d306e0450cf437ba6d3a230d979d`.
+- Historical FPGA/firmware build commit: `4c1adf73ab762506939163d467fb8c6b35bca9b4`.
+  The firmware embeds `__GIT_VER__` in its MIF even with
+  `CONFIG_DETERMINISTIC_BINARY=y`; therefore the same source patch built at a
+  later repository commit does not recreate the proven images. Build in an
+  isolated temporary worktree at this exact commit and keep the MIF/SOF hash
+  gates below.
 - Reuse, unchanged, the historical patch at
   `experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-TWELFTH-20260930/candidate.patch`.
 - Candidate source behavior: `WRH_SYNC_PHASE` acquisition is `offset_ps / 2`;
@@ -44,6 +50,10 @@ change is introduced.
   `dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b`.
 - Expected Master SOF SHA-256:
   `2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b`.
+- Expected Slave firmware MIF SHA-256:
+  `d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916`.
+- Expected Master firmware MIF SHA-256:
+  `07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6`.
 - Build and program only if both rebuilt SOF hashes exactly match those
   previously exercised artifacts. Program Slave first, then Master.
 
@@ -57,11 +67,14 @@ change is introduced.
    access `/home/b10504072/04_WR_archive_step6_pass/`. Preserve all existing
    untracked user data.
 3. Run the build/program script with the exact pulled commit. It verifies the
-   frozen source manifest (3,219 entries), canonical Step 6 SOF manifest
-   (4 entries), both JTAG cables, and no competing Quartus/JTAG process. It
-   temporarily applies the existing patch, builds both images, verifies the
-   historical SOF hashes, programs Slave then Master, restores the patch, and
-   verifies both manifests again.
+   pulled checkout, creates an isolated temporary worktree at the historical
+   build commit above, verifies the frozen source manifest (3,219 entries),
+   canonical Step 6 SOF manifest (4 entries), both JTAG cables, and no
+   competing Quartus/JTAG process. It temporarily applies the existing patch,
+   builds both images, verifies historical MIF hashes before Quartus and SOF
+   hashes afterward, then programs Slave followed by Master only on exact
+   matches. It restores the patch, verifies both manifests, and removes only
+   the temporary worktree it created.
 4. Do not run two JTAG readers at once. The capture script polls both boards
    read-only until `STATUS_TIME_VALID=1` in every preflight sample for both
    boards during one poll, with a maximum readiness wait of 1,800 seconds.
@@ -101,8 +114,9 @@ the exported bit; it does not claim cycle-by-cycle continuity between reads.
 
 - Stop before patching/building if branch/commit, source/artifact manifests,
   cable identities, or JTAG process preflight do not match.
-- Stop before programming if either SOF hash differs from the historical
-  expected hash or either compilation fails.
+- Stop before Quartus compilation if either firmware MIF hash differs from
+  the historical expected hash. Stop before programming if either SOF hash
+  differs from the historical expected hash or either compilation fails.
 - Stop if either programming log does not identify one successfully configured
   DE5a device on the expected cable.
 - Preserve all partial evidence and stop on reset interruption, read errors,

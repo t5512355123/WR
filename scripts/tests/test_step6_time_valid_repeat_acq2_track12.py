@@ -30,13 +30,22 @@ class TimeValidRepeatTests(unittest.TestCase):
         )
         self.assertIn("dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b", build)
         self.assertIn("2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b", build)
-        self.assertIn('git -C "$ROOT" apply --check "$PATCH"', build)
-        self.assertIn('git -C "$ROOT" apply -R "$PATCH"', build)
+        self.assertIn("EXPECTED_BUILD_COMMIT=4c1adf73ab762506939163d467fb8c6b35bca9b4", build)
+        self.assertIn('git -C "$ROOT" worktree add --detach "$BUILD_ROOT" "$EXPECTED_BUILD_COMMIT"', build)
+        self.assertIn('git -C "$BUILD_ROOT" apply --check "$PATCH"', build)
+        self.assertIn('git -C "$BUILD_ROOT" apply -R "$PATCH"', build)
+        self.assertIn("EXPECTED_SLAVE_MIF=d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916", build)
+        self.assertIn("EXPECTED_MASTER_MIF=07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6", build)
+        self.assertIn('EXPECTED_SLAVE_SOF=dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b', build)
+        self.assertIn('EXPECTED_MASTER_SOF=2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b', build)
+        self.assertLess(build.index('fail "rebuilt Slave MIF hash differs'), build.index('bash scripts/build/build_master.sh'))
+        self.assertLess(build.index('fail "rebuilt Master SOF hash differs'), build.index('bash scripts/program/program_slave.sh'))
         self.assertIn("SOURCE_MANIFEST_RESTORED=PASS", build)
         self.assertIn("ARTIFACT_MANIFEST_RESTORED=PASS", build)
         self.assertIn("CABLE='DE5 [1-11.2]'", build)
         self.assertIn("CABLE='DE5 [1-11.1]'", build)
         self.assertIn("EXTERNAL_UNTRACKED_PATHS_PRESERVED", build)
+        self.assertIn('git -C "$ROOT" worktree remove --force "$BUILD_ROOT"', build)
 
     def test_capture_uses_status_time_valid_and_a_longer_read_window(self):
         capture = (EXP / "scripts" / "capture_300s.sh").read_text(
@@ -62,6 +71,7 @@ class TimeValidRepeatTests(unittest.TestCase):
         self.assertIn("959/959", plan)
         self.assertIn("299,998 ms", plan)
         self.assertIn("NOT_ESTABLISHED", report)
+        self.assertIn("ABORTED_BEFORE_PROGRAM", report)
         self.assertIn("DUAL_BOARD_303S_CAPTURE", report)
 
 

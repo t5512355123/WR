@@ -83,6 +83,16 @@ No tuning change followed. See the
 The quarter-step report's SSTAT 4/5 labels were corrected against the source
 enum; raw data and numeric counts did not change.
 
+The next `/4` acquisition + `/4` track candidate added an in-band hold: below
+60 ps it held SETP and skipped `adjust_phase()`. It reached `TRACK_PHASE`,
+valid Global Time, and all five Step 5 locks. Two 15-second read-only smokes
+then found coherent, UCNT-matched CKO rows outside ±60 ps (5/18 and 13/21
+accepted rows respectively); the first also had fewer than 20 accepted rows.
+The candidate therefore failed the smoke gate and no 300-second capture was
+run. This does not establish Step 6 sustained offset stability. See the
+[in-band hold/deadband report](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/REPORT.md)
+and [plan](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/PLAN.md).
+
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)
 - [Servo-transition high-rate correlation plan](EXP-S6-SERVO-TRANSITION-HIGH-RATE-CORRELATION-20260929/PLAN.md)

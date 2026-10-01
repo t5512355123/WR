@@ -6,9 +6,9 @@
 STEP6_TIME_VALID_300S_BOTH_BOARDS = PASS
 FRESH_SAME_SOURCE_BUILD           = PASS
 DUAL_BOARD_303S_CAPTURE           = PASS
-QUALIFYING_FRESH_RUNS              = 1
-REPRODUCIBILITY                    = NOT_ESTABLISHED
-NEXT_ACTION                       = repeat the same candidate once
+QUALIFYING_FRESH_RUNS              = 2
+REPRODUCIBILITY                    = PASS_ACROSS_TWO_FRESH_BUILDS
+NEXT_ACTION                       = stop controller sweep; preserve candidate
 ~~~
 
 The first two fresh build attempts stopped before programming. Attempt 3
@@ -155,11 +155,63 @@ sequential and sampled every ~250 ms; this does not claim cycle-by-cycle
 continuity between samples, exact identity with the unavailable historical
 SOFs, SMA edge-skew performance, or timing closure.
 
-## Reproducibility status
+## Independent repeat #2 — PASS
 
-This is one qualifying fresh build/program run, not yet evidence of repeatable
-behavior across independent runs. The next experiment keeps the exact `/2`
-acquisition + `/12` tracking source and all other controls fixed, and performs
-one new full build/program/capture cycle. Until that repeat is analyzed,
-describe the result as `PASS_ONCE; REPRODUCIBILITY_NOT_ESTABLISHED`; do not
-claim the candidate is stable based on this single capture.
+The Laptop/GitHub experiment commit was `8aed7b62eef7705bbd48be4c8a3d5c4097fa9f96`;
+Pain fast-forwarded to that exact commit before the repeat. The build used the
+same frozen source origin `74dc28862653d306e0450cf437ba6d3a230d979d`, historical
+firmware build commit `4c1adf73ab762506939163d467fb8c6b35bca9b4`, and unchanged
+`/2 acquisition + /12 tracking` patch with SHA-256
+`a3a69d1734ab67801bd45dd212e31879e640992ff3a0cc20fcbad3dcf0e477f4`. No
+controller, RTL, timeout, threshold, PHY, reset, or timing-constraint change
+was made.
+
+Build tag: `20261001T112327Z`; capture tag: `20261001T114109Z`. Both full
+compilations succeeded under Quartus 17.0 Build 595. The historical Master and
+Slave MIF, QSF, and SDC hashes matched. Both devices reported the expected
+JTAG ID `0x02E660DD` and configured successfully on their expected cables.
+The newly generated SOFs are fresh same-source images, not byte-identical
+historical binaries:
+
+| Board | Fresh programmed SOF SHA-256 | Timing closed |
+|---|---|---|
+| Master `1-11.1` | `5421abf83d8420139f58ee5f2fbd3e5b1cd9fbb28ba6137d47df8cf5dcf447ce` | NO |
+| Slave `1-11.2` | `566c0d85423b27b4b06930905d90ec21f99978f354f9a220d3755aa226185bcd` | NO |
+
+Both boards became ready on poll 5 after 54 seconds; readiness waiting was
+outside the qualifying capture window. The 303,000 ms observation then ran
+sequentially, Master followed by Slave, at a requested 250 ms sample interval:
+
+| Board | Valid samples | Invalid | Sample span | Max gap | Capture elapsed |
+|---|---:|---:|---:|---:|---:|
+| Master `1-11.1` | 1190 / 1190 | 0 | 302,879 ms | 256 ms | 303,134 ms |
+| Slave `1-11.2` | 1190 / 1190 | 0 | 302,870 ms | 257 ms | 303,125 ms |
+
+Both board identities and sample sequences were valid; Step 1/link-ready rows,
+snapshot-valid rows, snapshot-time-valid rows, and PPS-valid rows were each
+1190/1190. There were no invalid rows, capture errors, reset interruptions, or
+gaps above the 1,000 ms limit. The laptop reran the analyzer against the copied
+raw log and obtained `PASS_TIME_VALID_300S` for both boards. The remote
+44-file run manifest matched every copied file on Laptop.
+
+Run-2 raw evidence:
+
+- capture SHA-256: `118635b45892affea02ade2636f7d4898538f660c698c768c954234c6ada4710`
+- analyzer JSON SHA-256: `5dff9bad85f2ea62eb618978e28a3e6ce158b84f8e646b7e64ccfd4ae9ce710b`
+- 44-file remote checksum manifest SHA-256:
+  `e4c6376d4d08eda6b9b51208d6568836d8e8a64a980945acac0183c26ec08351`
+
+## Reproducibility conclusion
+
+Two independent fresh build/program runs of the same `/2 acquisition + /12
+tracking` source each passed the 300-second sampled `STATUS_TIME_VALID` target
+on both Master and Slave. In each run, both boards had 1190/1190 valid rows,
+over 300 seconds of observed span, and no invalid sample. This is repeatable
+evidence for the user's revised criterion, so stop the controller/gain sweep
+and preserve this candidate as the Step 6 300-second TIME_VALID result.
+
+The observers read the boards sequentially and sample every ~250 ms. Thus the
+result does not prove cycle-by-cycle continuity between reads, exact
+byte-identity to unavailable historical SOFs, timing closure, Step 5 lock,
+phase-offset bounds, simultaneous cross-board sampling, or physical SMA
+edge-skew performance.

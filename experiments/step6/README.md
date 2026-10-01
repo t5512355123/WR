@@ -104,11 +104,13 @@ SETP. The dashboard ran about 49 seconds beyond its planned 600-second
 post-program deadline, which is documented in the
 [fixed-SETP report](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/REPORT.md).
 
-The next investigation should keep production controls frozen and use one
-read-only Slave lock-success/continuity trace on the already-programmed
-candidate to attribute the pre-TRACK startup boundary before another phase
-candidate is built. Do not infer CKO behavior from the dashboard's large
-`WR phase offset` field. See the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
+The next investigation keeps production controls frozen and uses one
+source-backed, read-only Slave WR lock/admission event trace on the
+already-programmed candidate to attribute the pre-TRACK startup boundary
+before another phase candidate is built. Do not infer CKO behavior from the
+dashboard's large `WR phase offset` field. See the
+[fixed-SETP pre-TRACK attribution plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md)
+and the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

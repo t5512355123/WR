@@ -1,0 +1,28 @@
+{
+  "acceptance": {
+    "signal": "STATUS_TIME_VALID",
+    "required_boards": ["1-11.1", "1-11.2"],
+    "required_sample_span_ms_per_board": 300000,
+    "phase_offset_gate": false,
+    "timing_closure_gate": false
+  },
+  "canonical_frozen_baseline_attempt": {
+    "board": "1-11.2",
+    "sample_rows": 1186,
+    "status_time_valid_rows": 0,
+    "sample_span_ms": 301860,
+    "maximum_sample_gap_ms": 257,
+    "verdict": "TIME_VALID_300S_NOT_ESTABLISHED"
+  },
+  "quarter_step_acquisition_historical_capture": {
+    "board": "1-11.2",
+    "sample_rows": 957,
+    "status_time_valid_rows": 957,
+    "sample_span_ms": 299984,
+    "observer_elapsed_ms": 300279,
+    "maximum_sample_gap_ms": 409,
+    "master_300s_capture_present": false,
+    "verdict": "TIME_VALID_300S_NOT_ESTABLISHED",
+    "reason": "sample span is 16 ms short and Master lacks a 300-second record"
+  }
+}

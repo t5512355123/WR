@@ -58,3 +58,78 @@ All logs for run `20261001T051718Z` are retained under
 `raw/build/20261001T051718Z/`. Their SHA-256 values are listed in that folder's
 `SHA256SUMS`. These are build/pre-program records only; no hardware runtime
 result is present.
+
+## Attempt 2 — programmed-image 300-second capture
+
+Run tag: `20261001T060353Z` on Pain source commit
+`547f90c5b8bad8c8ee9db05dc94ebed0b293b802`.
+
+```text
+MASTER_BUILD = PASS
+SLAVE_BUILD = PASS
+CANONICAL_MILESTONE_MANIFEST = PASS
+SLAVE_PROGRAM = PASS (DE5 [1-11.2], exact milestone SHA-256)
+MASTER_PROGRAM = PASS (DE5 [1-11.1], exact milestone SHA-256)
+OBSERVER_EXIT = PASS (rc=0; normal completion)
+TIME_VALID_300S = NOT_ESTABLISHED
+```
+
+The rebuilt SOFs differed from the canonical files because of the embedded
+outer-checkout build identity; those hashes were recorded only. The exact
+checked-in milestone SOFs were independently verified and programmed:
+
+- Master programmed SHA-256:
+  `ad16d364eddbdacbf1aab40bd12154da337f757fbec90e2e216c8e08a0f54901`.
+- Slave programmed SHA-256:
+  `6257952a2aa303b07dcfbd1ca08aa75230af12e412adf176cbbf5a4443bc7450`.
+- Rebuilt Master SHA-256:
+  `26e30d02688d447d2dc6cec6aec0d6c2defb225c2accc0d5e9f7c3dc5022e0a3`.
+- Rebuilt Slave SHA-256:
+  `e932fc8e86d5e27487ec777beed5d3351cd1f81234e25b82f1b25ace5ac5039c`.
+
+The read-only Slave observer completed `302115 ms` with 1,186 samples over a
+`301860 ms` sample span and a maximum sample gap of 257 ms. It found:
+
+```text
+STATUS_TIME_VALID=1             0 / 1186
+SNAPSHOT_TIME_VALID=1            0 / 1186
+SNAPSHOT_VALID=1                 0 / 1186
+status PPS-valid bit=1          1140 / 1186
+snapshot PPS-valid=1              0 / 1186
+Step1/link-ready                  1183 / 1186
+```
+
+The analyzer verdict is `TIME_VALID_300S_NOT_ESTABLISHED`. The live-time
+monotonicity field was false, but this is diagnostic only under the revised
+TIME_VALID-only acceptance and did not determine the verdict: both Slave
+TIME_VALID fields were zero in every sample. (The raw JSON was produced by the
+earlier analyzer revision, which included monotonicity in its completeness
+flag; that JSON is preserved unchanged.) The one-shot dashboard after the
+capture confirmed the Master was `TIME_VALID=1`, while the Slave remained
+`TIME_VALID=0`, `PPS_VALID=0`, with snapshot count 0. The Slave still showed
+Helper, Main frequency, Main phase, Main lock, and PSTAT all locked; its WR PTP
+servo state was `WAIT_OFFSET_STABLE` and phase offset was `-1471 ps` (diagnostic
+only).
+
+The dashboard's PPS status registers provide a useful comparison point. At the
+end of this run Master showed `ESCR=268`, `TM=1`, `PPS=1`; Slave showed
+`ESCR=256`, `TM=0`, `PPS=0`. In the historical 2026-09-27 reproduction, the
+same exact milestone SOF hashes showed `ESCR=1036`, `TM=1`, `PPS=1` on both
+boards after a 120-second post-program wait. Thus the present failure is not
+explained by a different programmed image; why the Slave PPS/TM validity bits
+remain clear in this session is unresolved.
+
+All build, programming, observation, analysis, and post-capture dashboard files
+for this attempt are under their `raw/{build,program,observe,analysis}/` run
+tag paths. The combined `raw/build/20261001T060353Z/SHA256SUMS` was verified on
+Laptop after transfer. No timing-closure or phase-offset criterion was applied.
+
+### Next diagnostic boundary
+
+Do not tune the phase servo based on this result. The next useful experiment
+should capture the Slave PPS ESCR validity bits, exported and snapshot
+TIME_VALID/PPS_VALID, WR PTP servo state, link gates, and reset indicators in
+one read-only time series, and compare them with Master over the same run. It
+must determine whether the Slave's TM/PPS validity bits ever assert and whether
+that transition tracks the PTP servo state. Step6 remains pending until a
+continuous 300-second valid window is actually measured.

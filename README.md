@@ -46,7 +46,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints; Step 5 held all required Slave locks for its 300-second acceptance window. The historical Step 6 work validated Global Time, common PPS labels, and repeated dual-board scheduled digital triggers. On 2026-10-01 the current Step 6 acceptance was revised to require the Slave's `TIME_VALID` to remain asserted for 300 seconds; phase offset, PPS-valid, Step 5 locks, and timing closure are not gates for this target. The revised 300-second reproduction is pending; the earlier pointwise `abs(CKO) = 59 ps` result is retained as historical evidence, not the current pass criterion. See [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [current experiment plan](experiments/step6/EXP-S6-TIME-VALID-STABLE-300S-20261001/PLAN.md).
+Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints; Step 5 held all required Slave locks for its 300-second acceptance window. The historical Step 6 work validated Global Time, common PPS labels, and repeated dual-board scheduled digital triggers. On 2026-10-01 the current Step 6 acceptance was revised to require both DE5a boards to keep exported `STATUS_TIME_VALID=1` throughout separate sampled windows of at least 300 seconds. Phase offset, snapshot/PPS flags, Step 1/link, Step 5 locks, and timing closure are not gates. The revised reproduction is pending; the earlier pointwise `abs(CKO) = 59 ps` result is historical only. See [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [current experiment plan](experiments/step6/EXP-S6-TIME-VALID-300S-QUARTER-ACQUIRE-20261001/PLAN.md).
 
 ## Reproduce the validated Step 2 checkpoint
 
@@ -207,9 +207,11 @@ the dashboard still prints the latest state. Continuous monitoring always
 shows each sample immediately and ignores this optional wait; use `ONCE=1`
 when deliberately requesting a one-shot readiness gate. On an invalid Slave
 Global-Time gate, the panel also shows the WR PTP servo state and signed phase
-offset. In `WAIT_OFFSET_STABLE`, the firmware withholds timing output until the offset is
-below its source-defined 60 ps threshold; Step 5 SoftPLL lock bits alone do
-not satisfy that separate Step 6 prerequisite.
+offset. In `WAIT_OFFSET_STABLE`, the firmware withholds timing output until
+the offset is below its source-defined 60 ps threshold; that is how firmware
+first asserts TIME_VALID, not a requirement to keep the offset in-band for the
+revised 300-second hold. The current acceptance is the exported status bit as
+defined above.
 
 ## Source and evidence policy
 

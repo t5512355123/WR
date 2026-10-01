@@ -1,10 +1,13 @@
 # Step 6 — Global Time and Scheduled Trigger
 
-**Current revised acceptance: PENDING a 300-second Slave `TIME_VALID` capture.**
-The current target is at least 300 seconds of sampled stable/valid Slave
-Global-Time snapshots with `TIME_VALID=1` in both snapshot and status. Phase
-offset, `PPS_VALID`, Step 1/link, Step 5 locks, and timing closure are not gates.
-See the [current experiment plan](EXP-S6-TIME-VALID-STABLE-300S-20261001/PLAN.md).
+**Current revised acceptance: PENDING 300 sampled seconds of `TIME_VALID=1` on
+each DE5a board.** For both Master `1-11.1` and Slave `1-11.2`, every sampled
+`STATUS_TIME_VALID` must remain 1 across a sample-to-sample span of at least
+300,000 ms. Snapshot flags, PPS validity, TAI/cycle payload or monotonicity,
+Step 1/link, Step 5 locks, phase offset, and timing closure are diagnostic only.
+The boards are observed sequentially; this acceptance does not claim same-cycle
+TAI equality or physical output skew. See the
+[current experiment plan](EXP-S6-TIME-VALID-300S-QUARTER-ACQUIRE-20261001/PLAN.md).
 
 The previous pointwise dashboard-equivalent phase gate is historical evidence,
 not the current acceptance criterion.
@@ -51,7 +54,7 @@ do not establish control-loop causality. No PI/gain or servo adjustment is
 part of this Step 6 pointwise milestone.
 ## Main evidence
 
-## Active sustained-offset investigation
+## Historical sustained-offset investigation (not a current pass gate)
 
 The Step 6 pointwise milestone above is not a 300-second stable-offset pass.
 The latest full-acquisition + /12 tracking + 4× fallback-guard experiment

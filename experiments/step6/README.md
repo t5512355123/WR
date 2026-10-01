@@ -93,13 +93,22 @@ run. This does not establish Step 6 sustained offset stability. See the
 [in-band hold/deadband report](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/REPORT.md)
 and [plan](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/PLAN.md).
 
-The next candidate is a diagnostic boot-lifetime latch that freezes phase
-SETP on the first successful TRACK entry and guards every servo phase-write
-path. It is specifically aimed at testing whether coherent CKO excursions
-continue while SETP is fixed. The previous frozen-source attempt never reached
-TRACK; this retry is based on the current `/4` acquisition source, which did
-reach TRACK in the latest hardware run. It has not yet been built or tested on
-hardware. See the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
+The current diagnostic candidate adds a boot-lifetime latch intended to
+freeze phase SETP at the first successful TRACK entry and guard every servo
+phase-write path. It built and programmed successfully from `a62c264d`, but
+the Slave remained in `SYNC_TAI` for the bounded readiness run: 88/88 paired
+dashboard samples showed no Helper/Main lock, invalid Slave Global Time, and
+no `TRACK_PHASE`. The latch was therefore never exercised; no smoke or
+300-second CKO capture was run, and the result is inconclusive about fixed
+SETP. The dashboard ran about 49 seconds beyond its planned 600-second
+post-program deadline, which is documented in the
+[fixed-SETP report](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/REPORT.md).
+
+The next investigation should keep production controls frozen and use one
+read-only Slave lock-success/continuity trace on the already-programmed
+candidate to attribute the pre-TRACK startup boundary before another phase
+candidate is built. Do not infer CKO behavior from the dashboard's large
+`WR phase offset` field. See the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

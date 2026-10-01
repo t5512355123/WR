@@ -25,6 +25,9 @@
 /* Enable tracking by default. Disabling the tracking is used for demos. */
 static int wrh_tracking_enabled = 1;
 
+/* Diagnostic only: freeze phase SETP after the first successful TRACK entry. */
+static int wrh_fixed_setpoint_latched = 0;
+
 /* prototypes */
 static int __wrh_servo_update(struct pp_instance *ppi);
 static void  setState(struct pp_instance *ppi, int newState);
@@ -59,12 +62,13 @@ int wrh_servo_init(struct pp_instance *ppi)
 	 * The softpll code uses the module anyways, but if we unplug-replug
 	 * the fiber it will always increase, so don't scare the user
 	 */
-	if (s->cur_setpoint_ps > s->clock_period_ps)
-		s->cur_setpoint_ps %= s->clock_period_ps;
+	if (!wrh_fixed_setpoint_latched) {
+		if (s->cur_setpoint_ps > s->clock_period_ps)
+			s->cur_setpoint_ps %= s->clock_period_ps;
 
-	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
-
-	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+	}
 
 	gs->flags |= PP_SERVO_FLAG_VALID;
 	TOPS(ppi)->get(ppi, &gs->update_time);
@@ -275,10 +279,12 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
-		/* Quarter-step acquisition is the best measured entry baseline. */
-		s->cur_setpoint_ps += (offset_ps / 4);
-		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
-		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+		if (!wrh_fixed_setpoint_latched) {
+			/* Quarter-step acquisition is the measured entry baseline. */
+			s->cur_setpoint_ps += (offset_ps / 4);
+			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+		}
 
 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
 		setState(ppi,WRH_WAIT_OFFSET_STABLE);
@@ -304,6 +310,8 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
 			s->prev_delayMS_ps = s->delayMS_ps;
+			if (!wrh_fixed_setpoint_latched)
+				wrh_fixed_setpoint_latched = 1;
 			setState(ppi,WRH_TRACK_PHASE);
 		} else {
 			s->missed_iters++;
@@ -318,7 +326,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		s->skew_ps = s->delayMS_ps - s->prev_delayMS_ps;
 
 		/* Can be disabled for manually tweaking and testing */
-		if(wrh_tracking_enabled) {
+		if(!wrh_fixed_setpoint_latched && wrh_tracking_enabled) {
 			if (abs(offset_ps) >
 			    2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
 				setState(ppi,WRH_SYNC_PHASE);

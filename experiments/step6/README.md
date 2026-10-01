@@ -93,6 +93,14 @@ run. This does not establish Step 6 sustained offset stability. See the
 [in-band hold/deadband report](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/REPORT.md)
 and [plan](EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001/PLAN.md).
 
+The next candidate is a diagnostic boot-lifetime latch that freezes phase
+SETP on the first successful TRACK entry and guards every servo phase-write
+path. It is specifically aimed at testing whether coherent CKO excursions
+continue while SETP is fixed. The previous frozen-source attempt never reached
+TRACK; this retry is based on the current `/4` acquisition source, which did
+reach TRACK in the latest hardware run. It has not yet been built or tested on
+hardware. See the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
+
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)
 - [Servo-transition high-rate correlation plan](EXP-S6-SERVO-TRANSITION-HIGH-RATE-CORRELATION-20260929/PLAN.md)

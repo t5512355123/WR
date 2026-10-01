@@ -57,6 +57,8 @@ class TimeValidRepeatTests(unittest.TestCase):
         )
         self.assertIn("EXPECTED_BUILD_COMMIT=4c1adf73ab762506939163d467fb8c6b35bca9b4", capture)
         self.assertIn("EXPECTED_SOURCE_ORIGIN=74dc28862653d306e0450cf437ba6d3a230d979d", capture)
+        self.assertIn('BUILD_DIR="$RAW_DIR/build"', capture)
+        self.assertNotIn('BUILD_DIR="$RAW_DIR/build/$BUILD_RUN_TAG"', capture)
         self.assertIn("verify_build_info()", capture)
         self.assertIn('grep -Fx "QSF_SHA256=$project_qsf"', capture)
         self.assertIn('grep -Fx "MIF_SHA256=$mif_hash"', capture)

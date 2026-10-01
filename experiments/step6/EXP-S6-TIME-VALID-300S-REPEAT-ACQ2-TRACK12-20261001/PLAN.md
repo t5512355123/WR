@@ -141,3 +141,29 @@ the exported bit; it does not claim cycle-by-cycle continuity between reads.
   evidence a pass.
 - If either board drops `STATUS_TIME_VALID`, classify the target
   `NOT_ESTABLISHED`; do not tune or program another candidate in this run.
+
+## Independent repeat #2 — reproducibility check
+
+The first fresh same-source dual-board run passed the 300-second sampled-bit
+contract once. That is a valid run-level pass, but it is not enough to call the
+behavior reproducible or stable. Repeat the same candidate once from a fresh
+build/program cycle before changing any servo setting:
+
+- Keep the frozen source origin, build commit, `/2` acquisition + `/12`
+  tracking patch, firmware MIFs, QSF/SDC, Quartus version, thresholds, and
+  fallback behavior exactly as defined above.
+- Make no production controller, RTL, timeout, PHY, reset, or constraint
+  changes. Newly compiled SOF hashes may differ; record and identify each
+  repeat as a fresh same-source candidate, never as a byte-identical historic
+  image.
+- Repeat the same Laptop commit/push → Pain fast-forward pull → build/program
+  both boards → 303-second sequential capture → Laptop analysis/report/push
+  workflow. Use a new run timestamp so the raw evidence cannot overwrite the
+  first run.
+- Apply the existing acceptance contract independently to Master and Slave.
+  A second pass supports reproducibility across two fresh build/program runs;
+  it still does not establish cycle-by-cycle continuity between samples or
+  indefinite stability.
+- If either board fails, preserve the complete raw evidence and stop. Do not
+  immediately tune `/2`, `/12`, thresholds, or timing controls; compare the
+  two runs first.

@@ -82,16 +82,19 @@ class TimeValidRepeatTests(unittest.TestCase):
         self.assertNotIn("PST", capture)
         self.assertNotIn("04_WR_archive_step6_pass", capture)
 
-    def test_current_status_records_the_reproduced_time_valid_pass(self):
+    def test_current_status_records_one_pass_and_pending_reproducibility(self):
         status = (ROOT / "STATUS.md").read_text(encoding="utf-8")
         plan = (EXP / "PLAN.md").read_text(encoding="utf-8")
         report = (EXP / "REPORT.md").read_text(encoding="utf-8")
-        self.assertIn("**PASS — 300 s exported `STATUS_TIME_VALID` on both boards**", status)
+        self.assertIn("**PASS ONCE — one fresh same-source run", status)
+        self.assertIn("reproducibility is not yet established", status)
         self.assertIn("REPEAT-ACQ2-TRACK12-20261001/PLAN.md", status)
         self.assertIn("959/959", plan)
         self.assertIn("299,998 ms", plan)
         self.assertIn("STEP6_TIME_VALID_300S_BOTH_BOARDS = PASS", report)
         self.assertIn("DUAL_BOARD_303S_CAPTURE           = PASS", report)
+        self.assertIn("QUALIFYING_FRESH_RUNS              = 1", report)
+        self.assertIn("REPRODUCIBILITY                    = NOT_ESTABLISHED", report)
         self.assertIn("302,887 ms", report)
         self.assertIn("302,880 ms", report)
 

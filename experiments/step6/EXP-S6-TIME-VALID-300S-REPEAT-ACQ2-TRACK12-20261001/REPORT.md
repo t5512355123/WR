@@ -6,7 +6,9 @@
 STEP6_TIME_VALID_300S_BOTH_BOARDS = PASS
 FRESH_SAME_SOURCE_BUILD           = PASS
 DUAL_BOARD_303S_CAPTURE           = PASS
-NEXT_ACTION                       = stop; preserve this candidate and evidence
+QUALIFYING_FRESH_RUNS              = 1
+REPRODUCIBILITY                    = NOT_ESTABLISHED
+NEXT_ACTION                       = repeat the same candidate once
 ~~~
 
 The first two fresh build attempts stopped before programming. Attempt 3
@@ -152,3 +154,12 @@ over an independently qualifying 300-second window on each board. Reads were
 sequential and sampled every ~250 ms; this does not claim cycle-by-cycle
 continuity between samples, exact identity with the unavailable historical
 SOFs, SMA edge-skew performance, or timing closure.
+
+## Reproducibility status
+
+This is one qualifying fresh build/program run, not yet evidence of repeatable
+behavior across independent runs. The next experiment keeps the exact `/2`
+acquisition + `/12` tracking source and all other controls fixed, and performs
+one new full build/program/capture cycle. Until that repeat is analyzed,
+describe the result as `PASS_ONCE; REPRODUCIBILITY_NOT_ESTABLISHED`; do not
+claim the candidate is stable based on this single capture.

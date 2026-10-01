@@ -3,8 +3,9 @@
 > Superseded before any FPGA programming by
 > [EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001](../EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/PLAN.md).
 > A partial Master build attempt on Pain was interrupted before Quartus
-> compilation completed; no SOF was programmed. Its raw logs are preserved in
-> this folder and described in REPORT.md. The historical /2-acquire +
+> compilation completed; no SOF was programmed. Its four raw logs have been
+> hash-verified against Pain and are archived with a checksum manifest; see
+> REPORT.md. The historical /2-acquire +
 > /12-track capture is a closer, already exercised candidate.
 
 ## Objective

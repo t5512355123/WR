@@ -12,9 +12,9 @@ NEXT_ACTION                       = repeat historical /2 acquisition + /12 track
 This candidate was superseded before Quartus compilation or any FPGA
 programming. A partial Pain-side attempt began at source commit
 `2a91e3684c2b8416b9ba98dac78a1a113031173c` and was interrupted while only the
-Master firmware/build setup was in progress. Its partial logs are present as
-untracked files in the Laptop and Pain worktrees and will be hash-checked and
-synchronized separately before being treated as shared evidence. They show no
+Master firmware/build setup was in progress. The four partial log files were
+hashed on Pain and Laptop; every SHA-256 value matched. They are archived under
+\`raw/build/20261001T074121Z/\` with a checksum manifest. They show no
 completed SOF, no programming, and no hardware observation. Its
 source-manifest check was made while the
 temporary /4 patch was applied and consequently reported one mismatch; the

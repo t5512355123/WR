@@ -275,8 +275,8 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
-		/* Half-step acquisition damps the measured phase plant response. */
-		s->cur_setpoint_ps += (offset_ps / 2);
+		/* Quarter-step acquisition is the best measured entry baseline. */
+		s->cur_setpoint_ps += (offset_ps / 4);
 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 
@@ -325,13 +325,17 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 				break;
 			}
 
-			// adjust phase towards offset = 0 make ck0 0
-			s->cur_setpoint_ps += (offset_ps / 4);
+			/* Hold SETP inside the strict Step 6 in-band window. */
+			if (abs(offset_ps) >=
+			    WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+				// adjust phase towards offset = 0 make ck0 0
+				s->cur_setpoint_ps += (offset_ps / 4);
 
-			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
-			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
-			pp_diag(ppi, time, 1, "adjust phase %i\n",
-				s->cur_setpoint_ps);
+				pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+				WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+				pp_diag(ppi, time, 1, "adjust phase %i\n",
+					s->cur_setpoint_ps);
+			}
 
 			s->prev_delayMS_ps = s->delayMS_ps;
 		}

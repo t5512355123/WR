@@ -141,16 +141,21 @@ SHA-256 = 6d49db1a78f1c5f73394d977ca51cce6e92970cc5a7cbc40672763bed4a66284
 
 ## Next experiment selected from this result
 
-Stop this `/2` candidate; do not continue a gain sweep from data with no TRACK
-endpoint. The next diagnostic returns to the historical `/4 acquire + /4
-track` source baseline, which has previously entered TRACK and briefly sampled
-inside the strict band. Add only a boot-lifetime, one-shot fixed-SETP latch at
-the first trusted WAIT-to-TRACK transition. The latch must guard every
-`adjust_phase()` path, including initialization, SYNC_PHASE updates, tracking
-adjustment, and the `>120 ps` tracking fallback; it must not alter coarse
-second/cycle counter adjustment. The purpose is to measure CKO/DMS movement
-with the phase setpoint proven invariant, not to claim a production lock. The
-observer stops on the first state different from TRACK after latching or any
-existing health/reset/transport stop condition. Baseline commit and the exact
-source guard locations must be re-verified before implementing that separate
-experiment.
+Stop this `/2 acquire + /4 track` candidate; it did not reach trusted TRACK
+or any in-band row. Do not repeat the first-TRACK fixed-SETP trial: the
+separate `EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930` report
+already records that `/4 + /4` candidate failing to reacquire TRACK within
+600 seconds, so its latch was never exercised.
+
+The next candidate returns to the best measured `/4 acquire + /4 track`
+baseline and changes one behavior only: in `TRACK_PHASE`, hold the existing
+SETP when `abs(offset_ps) < 60 ps`; apply the unchanged `/4` correction at or
+outside that band. Keep the strict WAIT entry threshold, `>120 ps` fallback,
+ten-miss retry, and all Step 5/PTP/DMS/reset behavior unchanged. The hypothesis
+is that unnecessary phase writes while already inside the acceptance band
+contribute to the short in-band dwell; the historical 300-second trace
+(270/418 strict in-band TRACK rows, longest fully qualified run 3.099 s) makes
+this a targeted test, not a proven cause. The new candidate must pass the
+predeclared two-smoke gate before a 300-second acceptance capture. Its plan and
+hardware result are maintained in the separate
+`EXP-S6-WRH-SERVO-TRACK-INBAND-HOLD-DEADBAND-20261001` experiment folder.

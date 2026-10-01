@@ -11,7 +11,7 @@ PAIN_FIRMWARE_BUILD = PASS (Master + Slave)
 PAIN_QUARTUS_FULL_COMPILE = PASS (Master 0 errors; Slave 0 errors)
 JTAG_PROGRAM = PASS (Slave then Master; programmed SOF hashes match build inputs)
 POST_PROGRAM_READY_WAIT = EXPIRED (600 s; Slave Global Time invalid)
-ACQUISITION_TRACE = NOT_STARTED (adviser reply awaits readback)
+ACQUISITION_TRACE = PENDING_SAME_BOOT_READ_ONLY_CAPTURE
 STABLE_OFFSET_300S = NOT_ESTABLISHED
 ```
 
@@ -77,9 +77,7 @@ with the `/4` tracking baseline and the full acceptance reader.
   causal mechanism; `STABLE_OFFSET_300S=NOT_ESTABLISHED` and Step 6 remains
   unproven.
 - The Pain build, programming, and dashboard evidence was copied without
-  modification to `raw/pain-run-20261001/`. The next diagnostic action is
-  held pending review of the requested adviser response. The response is
-  finished in the ChatGPT conversation, but its text is not exposed through
-  the current reader; the browser fallback is logged out and will not be
-  authenticated by automation. No reset or reprogram was performed after the
-  bounded wait.
+  modification to `raw/pain-run-20261001/`. The next action is a same-boot
+  read-only acquisition trace, implemented by this experiment's durable
+  wrapper. It is not gated on outside review. No reset or reprogram was
+  performed after the bounded wait.

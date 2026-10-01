@@ -69,24 +69,40 @@ repeated in-band baseline so far (351/957 samples, longest fully-qualified run
    An out-of-band CKO disproves this candidate's 300-second dwell; retain the
    bounded capture evidence and do not claim PASS.
 
-### Provisional acquisition trace if the post-program wait expires
+### Same-boot read-only acquisition diagnostic
 
-This is a read-only fallback proposal, not an authorization to start another
-capture. Review the requested adviser response before launching it.
+The bounded 600-second readiness wait expired with Step 1 and all five Step 5
+lock registers high, but Global Time invalid. The ordinary acceptance reader
+requires valid Global Time, so it cannot qualify this state. The next action is
+therefore a read-only diagnostic on the already-running boot, using
+`scripts/jtag/read_step6_servo_acquisition_context.tcl` through this
+experiment's `scripts/run_same_boot_acquisition_trace.sh` durable wrapper.
 
-If the 600-second Global-Time readiness wait expires while Step 1 and all five
-lock registers remain healthy but Global Time is still invalid, do not start
-the acceptance reader (it treats invalid Global Time as an untrusted row). On
-the same programmed boot, run the already-published read-only
-`scripts/jtag/read_step6_servo_acquisition_context.tcl` once. It records
-separately guarded CKO/SSTAT/UCNT and SETP/DMS context without requiring valid
-Global Time, with up to 300 seconds ARMING and 600 seconds of health-ready
-acquisition. Do not reset, reprogram, or launch a second JTAG reader. This is
-diagnostic data only; it does not replace either smoke or the 300-second
-acceptance capture. If the trace reaches a trusted `TRACK_PHASE` endpoint
-while Step 1 and all locks remain ready, run the same 15-second
-`phase_context=2` smoke on that boot; proceed to the acceptance capture only
-if the smoke passes.
+This action does not compile, program, reset, or change production control.
+Preserving the same boot matters: earlier freshly programmed boots repeatedly
+lost Main/Step 5 readiness before the observer armed. The laptop changes for
+this run are limited to the experiment wrapper/tests/record; push them first,
+then Pain fast-forwards to that exact commit. No rebuild or reprogram is part
+of this diagnostic because the exact candidate images are already programmed
+and the read-only script does not alter them.
+
+The observer records guarded CKO/SSTAT/UCNT and a separate UCNT-matched
+SETP/DMS context without requiring valid Global Time. ARMING may last up to
+300 seconds and, after 10 seconds plus 10 consecutive ready rows, acquisition
+may last up to 600 seconds. Run only one JTAG reader. Do not reset, reprogram,
+or access the protected Step 6 archive.
+
+If a trusted `TRACK_PHASE` endpoint (SSTAT=4) is reached with Step 1 and all
+five lock gates healthy, the wrapper immediately runs one 15-second
+`phase_context=2` smoke on the same boot. This smoke is diagnostic only; it is
+not a 300-second acceptance run. Otherwise preserve the complete log and stop
+on the observer's recorded stop reason, transport/read error, five invalid
+rows, reset-signature change, health loss during acquisition, or watchdog.
+
+Run the candidate-specific offline checks before push. After capture, transfer
+the raw log and checksum to this experiment folder, verify the checksum, and
+only then analyze it. The older quarter-acquire analyzer's `expected_cko_div4`
+field must not be used to label this `/2` acquisition candidate.
 
 ## Report and iteration
 

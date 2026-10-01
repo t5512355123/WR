@@ -11,7 +11,11 @@ PAIN_FIRMWARE_BUILD = PASS (Master + Slave)
 PAIN_QUARTUS_FULL_COMPILE = PASS (Master 0 errors; Slave 0 errors)
 JTAG_PROGRAM = PASS (Slave then Master; programmed SOF hashes match build inputs)
 POST_PROGRAM_READY_WAIT = EXPIRED (600 s; Slave Global Time invalid)
-ACQUISITION_TRACE = PENDING_SAME_BOOT_READ_ONLY_CAPTURE
+ACQUISITION_TRACE = COMPLETED (DURATION_LIMIT; NORMAL_EXIT)
+ACQUISITION_ELAPSED_MS = 600158
+ACQUISITION_TRUSTED = 807/935 (86.31%; BELOW_95_PERCENT_COVERAGE_TARGET)
+TRACK_PHASE_TRUSTED_ROWS = 0
+STRICT_ABS_CKO_LT_60PS = 0/807
 STABLE_OFFSET_300S = NOT_ESTABLISHED
 ```
 
@@ -81,3 +85,72 @@ with the `/4` tracking baseline and the full acceptance reader.
   read-only acquisition trace, implemented by this experiment's durable
   wrapper. It is not gated on outside review. No reset or reprogram was
   performed after the bounded wait.
+
+## Same-boot read-only acquisition trace
+
+The trace ran on the already-programmed `/2 acquire + /4 track` boot. The
+wrapper did not compile, program, reset, or issue target/control writes. Its
+header records `wb_register_writes=0`, `fpga_program=0`, and `reset=0`. The
+capture completed normally at the observer's 600-second duration limit:
+
+```text
+run_tag                 = 20261001T012320Z
+candidate image source  = ba9514c555edc672dff4eea9cfa5690d614a20a4
+observer SHA-256        = 99b0719049e870c79a493d57173ba8e59158b4f6bcfc599a5aaa1c6259aafa01
+STOP_REASON             = DURATION_LIMIT
+ACQ_ELAPSED_MS          = 600158
+total observer rows     = 951
+acquisition rows        = 935
+trusted acquisition    = 807/935 (86.31%)
+structural flag mismatch= 0
+observer timeout/error  = 0
+```
+
+The structural coverage is below 95%, so this is not an acceptance-quality
+capture and no 300-second Step 6 claim follows from it. Among the 807 trusted
+acquisition rows:
+
+| Signal | Observation |
+|---|---:|
+| Step 1 gate | 807/807 high |
+| Helper / Main-frequency / Main-phase / Main / PSTAT locks | each 807/807 high |
+| Global Time valid | 0/807 |
+| Reset signature change | 0; all four recorded signatures remained `1` |
+| SSTAT=3 (`SYNC_PHASE`) | 76 |
+| SSTAT=4 (`TRACK_PHASE`) | 0 |
+| SSTAT=5 (`WAIT_OFFSET_STABLE`) | 731 |
+| Strict `abs(CKO)<60 ps` | 0/807 |
+| CKO range | `-3728..+1888 ps` |
+| SETP range / distinct values | `2733..4870 ps` / 54 |
+| DMS range | `175656..180577 ps` |
+
+The same-boot evidence therefore shows that this `/2` acquisition candidate
+did not reach a trusted TRACK sample during the 600-second window; every
+trusted phase sample remained outside the strict ±60 ps band. It does not
+establish why. Primary CKO/SSTAT/UCNT and context SETP/DMS frames are separately
+guarded and UCNT-matched, not a same-cycle atomic measurement. No TRACK
+follow-on smoke or 300-second acceptance capture was run.
+
+The raw log was copied byte-for-byte from Pain and independently checksum
+verified:
+
+```text
+raw/acquisition/20261001T012320Z-acquisition.log
+SHA-256 = 6d49db1a78f1c5f73394d977ca51cce6e92970cc5a7cbc40672763bed4a66284
+```
+
+## Next experiment selected from this result
+
+Stop this `/2` candidate; do not continue a gain sweep from data with no TRACK
+endpoint. The next diagnostic returns to the historical `/4 acquire + /4
+track` source baseline, which has previously entered TRACK and briefly sampled
+inside the strict band. Add only a boot-lifetime, one-shot fixed-SETP latch at
+the first trusted WAIT-to-TRACK transition. The latch must guard every
+`adjust_phase()` path, including initialization, SYNC_PHASE updates, tracking
+adjustment, and the `>120 ps` tracking fallback; it must not alter coarse
+second/cycle counter adjustment. The purpose is to measure CKO/DMS movement
+with the phase setpoint proven invariant, not to claim a production lock. The
+observer stops on the first state different from TRACK after latching or any
+existing health/reset/transport stop condition. Baseline commit and the exact
+source guard locations must be re-verified before implementing that separate
+experiment.

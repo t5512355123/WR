@@ -75,13 +75,14 @@ proc print_global_time_sample {hardware_name sample elapsed_ms} {
   set status_pps_valid [expr {($status >> 5) & 1}]
   set status_rx_ready [expr {($status >> 6) & 1}]
   set status_tx_ready [expr {($status >> 7) & 1}]
+  set status_cpu_reset_n [expr {($status >> 15) & 1}]
 
-  puts [format "GLOBAL_TIME_SAMPLE board=%s sample=%d elapsed_ms=%d RAW_LIVE=%016X RAW0=%016X RAW1_BEFORE=%016X RAW1_AFTER=%016X STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_TIME_VALID=%d SNAPSHOT_PPS_VALID=%d SNAPSHOT_COUNT=%d TAI=%d CYCLES=%d LIVE_TAI_LO=%d LIVE_CYCLES=%d STATUS_RAW=%016X STATUS_SI_CONFIG=%d STATUS_PHY_READY=%d STATUS_TM_LINK_UP=%d STATUS_LINK_OK=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d STATUS_RX_READY=%d STATUS_TX_READY=%d" \
+  puts [format "GLOBAL_TIME_SAMPLE board=%s sample=%d elapsed_ms=%d RAW_LIVE=%016X RAW0=%016X RAW1_BEFORE=%016X RAW1_AFTER=%016X STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_TIME_VALID=%d SNAPSHOT_PPS_VALID=%d SNAPSHOT_COUNT=%d TAI=%d CYCLES=%d LIVE_TAI_LO=%d LIVE_CYCLES=%d STATUS_RAW=%016X STATUS_SI_CONFIG=%d STATUS_PHY_READY=%d STATUS_TM_LINK_UP=%d STATUS_LINK_OK=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d" \
         $hardware_name $sample $elapsed_ms $live $word0 $word1_before $word1_after $stable \
         $snapshot_valid $snapshot_time_valid $snapshot_pps_valid $snapshot_count $tai $cycles \
         $live_tai_lo $live_cycles $status $status_si_config $status_phy_ready \
         $status_tm_link_up $status_link_ok $status_time_valid $status_pps_valid \
-        $status_rx_ready $status_tx_ready]
+        $status_rx_ready $status_tx_ready $status_cpu_reset_n]
   flush stdout
 }
 

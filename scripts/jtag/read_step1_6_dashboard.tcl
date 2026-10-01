@@ -133,8 +133,8 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set wr_servo_offset_ps [dashboard_signed32 [get_snap $board after cko]]
   }
 
-  # Step 6's expanded acceptance requires the Slave's signed WR phase offset
-  # to be strictly inside +/-60 ps.  The Master has no Slave servo offset.
+  # Keep the signed servo phase offset visible for diagnosis, but Step 6's
+  # current acceptance is valid/stable Global Time, not a phase-offset limit.
   set phase_offset_ok 1
   if {$role eq "SLAVE"} {
     set phase_offset_ok 0
@@ -180,12 +180,10 @@ proc dashboard_emit_board {board hardware_name global_sample} {
     set tai [dict get $global_sample tai]
     set cycles [dict get $global_sample cycles]
   }
-  set step6 [expr {$step1 eq "PASS" &&
-                   $global_valid && $global_stable == 1 &&
-                   $global_time_valid == 1 && $global_pps_valid == 1 &&
-                   $global_snapshot_valid == 1 && $status_link_ok == 1 &&
-                   $status_tm_link == 1 && $status_time_valid == 1 &&
-                   $status_pps_valid == 1 && $phase_offset_ok == 1 ? "PASS" : "INFO"}]
+  set step6 [expr {$global_valid && $global_stable == 1 &&
+                   $global_time_valid == 1 &&
+                   $global_snapshot_valid == 1 &&
+                   $status_time_valid == 1 ? "PASS" : "INFO"}]
 
   set board_label [dashboard_board_label $hardware_name]
   puts [format "DASHBOARD_BOARD board=%s role=%s | Step1=%s Step2=%s Step3=%s Step4=%s Step5=%s Step6=%s | HelperLock=%s MainFreq=%s MainPhase=%s MainLock=%s PSTAT=%s WR_SERVO_STATE=%s WR_SERVO_OFFSET_PS=%s WR_PHASE_OFFSET_OK=%s | Link=%s TM=%s RX=%s TX=%s STATUS_TIME_VALID=%s STATUS_PPS_VALID=%s TIME_VALID=%s PPS_VALID=%s SNAPSHOT_VALID=%s SNAPSHOT_STABLE=%s SNAPSHOT_COUNT=%s | TAI=%s CYCLES=%s | PPS_CR=%s PPS_CR_ENABLE=%s PPS_ESCR=%s ESCR_TM_VALID=%s ESCR_PPS_VALID=%s | Step5Result=%s" \

@@ -1,17 +1,24 @@
 # Step 6 — Global Time and Scheduled Trigger
 
-**Current functional milestone: PASS for the pointwise dashboard-equivalent gate.**
+**Current revised acceptance: PENDING a 300-second Slave `TIME_VALID` capture.**
+The current target is at least 300 seconds of sampled stable/valid Slave
+Global-Time snapshots with `TIME_VALID=1` in both snapshot and status. Phase
+offset, `PPS_VALID`, Step 1/link, Step 5 locks, and timing closure are not gates.
+See the [current experiment plan](EXP-S6-TIME-VALID-STABLE-300S-20261001/PLAN.md).
+
+The previous pointwise dashboard-equivalent phase gate is historical evidence,
+not the current acceptance criterion.
 The frozen Step 6 source/images were independently rebuilt and programmed;
 historical evidence also confirms valid Global Time on both boards, five
 matching common PPS labels, and two repeatable dual-board scheduled digital
 triggers.
 
-The latest read-only 300-second Slave capture explicitly checked the complete
-dashboard Step 1 gate, valid/stable Global Time, all five Step 5 lock signals,
-and strict `abs(CKO) < 60 ps`. Step 1, Global Time, and all five lock signals
-were high in 958/958 rows. Two consecutive sampled rows (#91–92, 296 ms apart)
-reported +59 ps, matching TAI/cycles and UCNT. This meets the pointwise
-functional gate.
+The latest historical read-only 300-second Slave capture explicitly checked
+the complete dashboard Step 1 gate, valid/stable Global Time, all five Step 5
+lock signals, and strict `abs(CKO) < 60 ps`. Step 1, Global Time, and all five
+lock signals were high in 958/958 rows. Two consecutive sampled rows (#91–92,
+296 ms apart) reported +59 ps, matching TAI/cycles and UCNT. This met the
+previous pointwise phase criterion only.
 
 This result does **not** establish that the offset remained in range for 300
 seconds: only 2/958 rows were strictly inside ±60 ps, with valid-read offsets
@@ -31,7 +38,8 @@ STEP5_SLAVE_LOCK_STABILITY_300S       = PASS
 STEP6A_GLOBAL_TIME_VALIDITY           = PASS
 STEP6A_SAME_PPS_CONSISTENCY           = PASS (5/5 exact labels)
 STEP6B_DUAL_BOARD_TRIGGER             = PASS (initial + re-arm, 0-cycle delta)
-STEP6_FUNCTIONAL_POINTWISE_GATE       = PASS (2 consecutive samples at +59 ps)
+STEP6_PREVIOUS_POINTWISE_PHASE_GATE   = PASS (historical; 2 consecutive +59 ps samples)
+STEP6_TIME_VALID_300S                 = NOT_ESTABLISHED (revised target pending)
 STEP6_PHASE_OFFSET_300S_STABILITY     = NOT_ESTABLISHED
 PHYSICAL_SMA_EDGE_SKEW                = NOT_EVALUATED
 TIMING_CLOSED                         = NO (not a functional gate)

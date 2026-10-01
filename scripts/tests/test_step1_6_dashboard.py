@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import shutil
 import shlex
 import subprocess
 import tempfile
@@ -13,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 DASHBOARD = ROOT / "scripts" / "monitor" / "step1_6_dashboard.sh"
+BASH = shutil.which("bash") or r"C:\Program Files\Git\bin\bash.exe"
 
 
 def dashboard_line(
@@ -69,7 +71,7 @@ class DashboardGateTest(unittest.TestCase):
                 }
             )
             return subprocess.run(
-                ["bash", str(DASHBOARD)],
+                [BASH, str(DASHBOARD)],
                 cwd=ROOT,
                 env=env,
                 text=True,
@@ -91,17 +93,20 @@ class DashboardGateTest(unittest.TestCase):
         self.assertIn("1 { return SYNC_TAI }", tcl_source)
         self.assertIn("2 { return SYNC_NSEC }", tcl_source)
 
-    def test_tcl_step6_gate_requires_strict_slave_phase_offset(self) -> None:
+    def test_tcl_step6_gate_uses_time_validity_not_other_signals(self) -> None:
         tcl_source = (ROOT / "scripts" / "jtag" / "read_step1_6_dashboard.tcl").read_text(
             encoding="utf-8"
         )
-        self.assertIn("string is integer -strict $wr_servo_offset_ps", tcl_source)
-        self.assertIn("abs($wr_servo_offset_ps) < 60", tcl_source)
-        self.assertIn("$phase_offset_ok == 1 ? \"PASS\" : \"INFO\"", tcl_source)
+        self.assertIn("$global_time_valid == 1", tcl_source)
+        self.assertNotIn("$global_pps_valid == 1 ?", tcl_source)
+        self.assertIn("$status_time_valid == 1", tcl_source)
+        self.assertIn("$status_time_valid == 1 ? \"PASS\" : \"INFO\"", tcl_source)
+        self.assertNotIn("$phase_offset_ok == 1", tcl_source)
+        self.assertNotIn("$step1 eq \"PASS\"", tcl_source)
         self.assertIn("WR_PHASE_OFFSET_OK=%s", tcl_source)
 
-    def test_slave_phase_offset_gate_uses_strict_absolute_60_ps_boundary(self) -> None:
-        for offset in ("59", "-59"):
+    def test_slave_time_valid_pass_is_independent_of_phase_offset(self) -> None:
+        for offset in ("59", "-59", "60", "-60", "2318"):
             with self.subTest(offset=offset):
                 result = self.run_dashboard(
                     dashboard_line("PASS", 1, 1, role="SLAVE", offset_ps=offset)
@@ -109,44 +114,29 @@ class DashboardGateTest(unittest.TestCase):
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertIn("Step 6  Global Time", result.stdout)
                 self.assertIn("VALID", result.stdout)
-                self.assertIn(f"{offset} ps (target |offset| <60 ps)", result.stdout)
-
-        for offset in ("60", "-60", "539", "-539", "NA"):
-            with self.subTest(offset=offset):
-                result = self.run_dashboard(
-                    dashboard_line("PASS", 1, 1, role="SLAVE", offset_ps=offset)
+                phase_display = (
+                    f"{offset} ps (diagnostic only)" if offset != "NA" else "NA ps"
                 )
-                self.assertEqual(result.returncode, 0, result.stderr)
-                self.assertIn("NOT QUALIFIED", result.stdout)
-                self.assertIn("PTP servo offset not yet <60 ps", result.stdout)
+                self.assertIn(phase_display, result.stdout)
 
-    def test_shell_fails_closed_if_reported_slave_gate_disagrees(self) -> None:
-        result = self.run_dashboard(
-            dashboard_line(
-                "PASS", 1, 1, role="SLAVE", offset_ps="59", phase_offset_ok="0"
-            )
-        )
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("NOT QUALIFIED", result.stdout)
-        self.assertIn("PTP servo offset not yet <60 ps", result.stdout)
-
-    def test_shell_fails_closed_if_slave_qualification_field_is_missing(self) -> None:
-        line = dashboard_line("PASS", 1, 1, role="SLAVE", offset_ps="1").replace(
-            " WR_PHASE_OFFSET_OK=1", ""
+    def test_shell_fails_closed_if_reported_time_validity_disagrees(self) -> None:
+        line = dashboard_line("PASS", 1, 1).replace(
+            "TIME_VALID=1 PPS_VALID=1 SNAPSHOT_VALID=1",
+            "TIME_VALID=0 PPS_VALID=1 SNAPSHOT_VALID=1",
         )
         result = self.run_dashboard(line)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("NOT QUALIFIED", result.stdout)
-        self.assertIn("PTP servo offset not yet <60 ps", result.stdout)
+        self.assertIn("WAITING", result.stdout)
+        self.assertIn("TIME_VALID=0, PPS_VALID=1", result.stdout)
 
-    def test_valid_snapshot_does_not_pass_step6_when_link_is_down(self) -> None:
-        result = self.run_dashboard(dashboard_line("INFO", 0, 0, step1="FAIL"))
+    def test_time_valid_pass_does_not_require_step1_or_pps_valid(self) -> None:
+        result = self.run_dashboard(dashboard_line("PASS", 0, 0, step1="FAIL"))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Step 6  Global Time", result.stdout)
-        self.assertIn("LINK DOWN", result.stdout)
-        self.assertIn("WR link gate failed (Link=0, TM=0)", result.stdout)
+        self.assertIn("VALID", result.stdout)
+        self.assertIn("TIME_VALID snapshot valid", result.stdout)
         self.assertIn(
-            "SNAPSHOT VALID; Step1=FAIL Step6=INFO Link=0 TM=0", result.stdout
+            "TAI=1155         CYCLES=124999999    TIME_VALID", result.stdout
         )
 
     def test_wait_gate_does_not_accept_retained_snapshot_without_step6_pass(self) -> None:
@@ -158,16 +148,16 @@ class DashboardGateTest(unittest.TestCase):
         self.assertIn("scope=host-only", result.stdout)
         self.assertIn("reason=host-side-max", result.stderr)
 
-    def test_slave_waiting_for_ptp_phase_reports_the_offset_gate(self) -> None:
+    def test_slave_waiting_for_time_valid_reports_global_time_gate(self) -> None:
         line = dashboard_line("INFO", 1, 1, role="SLAVE", offset_ps="2318").replace(
             "TIME_VALID=1 PPS_VALID=1 SNAPSHOT_VALID=1",
             "TIME_VALID=0 PPS_VALID=0 SNAPSHOT_VALID=0",
         )
         result = self.run_dashboard(line)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("PTP servo offset not yet <60 ps", result.stdout)
+        self.assertIn("TIME_VALID=0, PPS_VALID=0", result.stdout)
         self.assertIn("WAIT_OFFSET_STABLE", result.stdout)
-        self.assertIn("2318 ps (target |offset| <60 ps)", result.stdout)
+        self.assertIn("2318 ps (diagnostic only)", result.stdout)
 
     def test_negative_wr_servo_offset_is_displayed_as_signed(self) -> None:
         line = dashboard_line("INFO", 1, 1, role="SLAVE", offset_ps="-37").replace(
@@ -176,20 +166,20 @@ class DashboardGateTest(unittest.TestCase):
         )
         result = self.run_dashboard(line)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("-37 ps (target |offset| <60 ps)", result.stdout)
+        self.assertIn("-37 ps (diagnostic only)", result.stdout)
 
     def test_linked_valid_snapshot_renders_as_pass(self) -> None:
         result = self.run_dashboard(dashboard_line("PASS", 1, 1))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("Step 6  Global Time", result.stdout)
         self.assertIn("VALID", result.stdout)
-        self.assertRegex(result.stdout, r"CYCLES=124999999\s+VALID")
+        self.assertRegex(result.stdout, r"CYCLES=124999999\s+TIME_VALID")
 
-    def test_step6_pass_is_rejected_when_step1_fails(self) -> None:
+    def test_step6_time_valid_does_not_require_step1_pass(self) -> None:
         result = self.run_dashboard(dashboard_line("PASS", 1, 1, step1="FAIL"))
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertIn("STEP1 BLOCKED", result.stdout)
-        self.assertIn("SNAPSHOT VALID; Step1=FAIL Step6=PASS Link=1 TM=1", result.stdout)
+        self.assertIn("Step 6  Global Time", result.stdout)
+        self.assertIn("VALID", result.stdout)
 
 
 if __name__ == "__main__":

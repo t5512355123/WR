@@ -51,19 +51,26 @@ if [ "$ONCE" != "1" ] && [ "$WAIT_FOR_GLOBAL_TIME_SECONDS" -gt 0 ]; then
   WAIT_FOR_GLOBAL_TIME_SECONDS=0
 fi
 
-phase_offset_gate_ok() {
-  local role="$1"
-  local offset_ps="$2"
-  local reported_ok="$3"
-  case "$role" in
-    MASTER) return 0 ;;
-    SLAVE)
-      [[ "$reported_ok" == "1" && "$offset_ps" =~ ^-?[0-9]+$ ]] || return 1
-      (( offset_ps > -60 && offset_ps < 60 ))
-      return
-      ;;
-    *) return 1 ;;
-  esac
+global_time_gate_ok() {
+  local line="$1"
+  local token role="UNKNOWN"
+  local time_valid="0" snapshot_valid="0" snapshot_stable="0"
+  local status_time_valid="0" tai="INVALID" cycles="INVALID"
+  for token in $line; do
+    case "$token" in
+      role=*) role="${token#*=}" ;;
+      TIME_VALID=*) time_valid="${token#*=}" ;;
+      SNAPSHOT_VALID=*) snapshot_valid="${token#*=}" ;;
+      SNAPSHOT_STABLE=*) snapshot_stable="${token#*=}" ;;
+      STATUS_TIME_VALID=*) status_time_valid="${token#*=}" ;;
+      TAI=*) tai="${token#*=}" ;;
+      CYCLES=*) cycles="${token#*=}" ;;
+    esac
+  done
+  [[ ( "$role" == "MASTER" || "$role" == "SLAVE" ) &&
+     "$time_valid" == "1" && "$snapshot_valid" == "1" &&
+     "$snapshot_stable" == "1" && "$status_time_valid" == "1" &&
+     "$tai" != "INVALID" && "$cycles" != "INVALID" ]]
 }
 
 field_from_line() {
@@ -71,19 +78,13 @@ field_from_line() {
   local line="$2"
   local token
   local result="N/A"
-  local role="UNKNOWN"
-  local offset_ps="N/A"
-  local offset_ok="N/A"
   for token in $line; do
     case "$token" in
       "$key="*) result="${token#*=}" ;;
-      role=*) role="${token#*=}" ;;
-      WR_SERVO_OFFSET_PS=*) offset_ps="${token#*=}" ;;
-      WR_PHASE_OFFSET_OK=*) offset_ok="${token#*=}" ;;
     esac
   done
   if [[ "$key" == "Step6" && "$result" == "PASS" ]] &&
-     ! phase_offset_gate_ok "$role" "$offset_ps" "$offset_ok"; then
+     ! global_time_gate_ok "$line"; then
     result="INFO"
   fi
   printf '%s' "$result"
@@ -112,43 +113,27 @@ format_board() {
   local tm="${field[TM]:-0}"
   local wr_servo_state="${field[WR_SERVO_STATE]:-N/A}"
   local wr_servo_offset_ps="${field[WR_SERVO_OFFSET_PS]:-N/A}"
-  local phase_offset_ok="${field[WR_PHASE_OFFSET_OK]:-N/A}"
   local wr_servo_offset_display="$wr_servo_offset_ps ps"
   local global_state="WAITING"
   local global_reason="TIME_VALID=${time_valid}, PPS_VALID=${pps_valid}"
-  local phase_offset_qualified=1
   if [[ "$role" == "SLAVE" ]]; then
     if [[ "$wr_servo_offset_ps" =~ ^-?[0-9]+$ ]]; then
-      wr_servo_offset_display="${wr_servo_offset_ps} ps (target |offset| <60 ps)"
+      wr_servo_offset_display="${wr_servo_offset_ps} ps (diagnostic only)"
     fi
-    if ! phase_offset_gate_ok "$role" "$wr_servo_offset_ps" "$phase_offset_ok"; then
-      phase_offset_qualified=0
-      global_reason="PTP servo offset not yet <60 ps"
-    fi
-  elif [[ "$role" != "MASTER" ]]; then
-    phase_offset_qualified=0
-    global_reason="unknown board role; Step6 gate rejected"
   fi
-  if [[ "$phase_offset_qualified" != "1" ]]; then
-    step6_gate="INFO"
-  fi
-  if [[ "$step1_gate" == "PASS" && "$step6_gate" == "PASS" ]]; then
+  if [[ "$step6_gate" == "PASS" ]]; then
     global_state="VALID"
-    global_reason="PPS snapshot valid; Step6 gate passed"
+    global_reason="TIME_VALID snapshot valid"
   elif [[ "$link" != "1" || "$tm" != "1" ]]; then
     global_state="LINK DOWN"
     global_reason="WR link gate failed (Link=${link}, TM=${tm})"
   elif [[ "$step1_gate" != "PASS" ]]; then
     global_state="STEP1 BLOCKED"
     global_reason="Step1 gate=${step1_gate}; Step6 gate=${step6_gate}"
-  elif [[ "$time_valid" == "1" && "$pps_valid" == "1" &&
-          "$snapshot_valid" == "1" && "$snapshot_stable" == "1" ]]; then
+  elif [[ "$time_valid" == "1" && "$snapshot_valid" == "1" &&
+          "$snapshot_stable" == "1" ]]; then
     global_state="NOT QUALIFIED"
-    if [[ "$phase_offset_qualified" == "1" ]]; then
-      global_reason="snapshot valid; Step6 gate=${step6_gate}"
-    else
-      global_reason="PTP servo offset not yet <60 ps"
-    fi
+    global_reason="snapshot valid; Step6 gate=${step6_gate}"
   fi
 
   printf '%s\n' '+------------------------------------------------------------+'
@@ -201,7 +186,7 @@ format_global_time_summary() {
     step6_gate=$(field_from_line Step6 "$line")
     link=$(field_from_line Link "$line")
     tm=$(field_from_line TM "$line")
-    if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
+    if [[ "$time_valid" != "1" ||
           "$snapshot_valid" != "1" || "$snapshot_stable" != "1" ||
           "$tai" == "INVALID" || "$cycles" == "INVALID" ]]; then
       tai='--'
@@ -209,35 +194,33 @@ format_global_time_summary() {
       printf '  %-7s (%s)\n' "$role" "$board"
       printf '    TAI=%-12s CYCLES=%-12s WAITING (%s, %s)\n' \
         "$tai" "$cycles" "TIME_VALID=$time_valid" "PPS_VALID=$pps_valid"
-    elif [[ "$step1_gate" != "PASS" || "$step6_gate" != "PASS" ]]; then
+    elif [[ "$step6_gate" != "PASS" ]]; then
       printf '  %-7s (%s)\n' "$role" "$board"
       printf '    TAI=%-12s CYCLES=%-12s SNAPSHOT VALID; Step1=%s Step6=%s Link=%s TM=%s\n' \
         "$tai" "$cycles" "$step1_gate" "$step6_gate" "$link" "$tm"
     else
       printf '  %-7s (%s)\n' "$role" "$board"
-      printf '    TAI=%-12s CYCLES=%-12s VALID\n' "$tai" "$cycles"
+      printf '    TAI=%-12s CYCLES=%-12s TIME_VALID\n' "$tai" "$cycles"
     fi
   done
   printf '%s\n' '------------------------------------------------------------'
 }
 
 all_boards_have_valid_global_time() {
-  local line time_valid pps_valid snapshot_valid snapshot_stable tai cycles step1_gate step6_gate
+  local line time_valid snapshot_valid snapshot_stable tai cycles step6_gate
   local board_count=0
   for line in "$@"; do
     board_count=$((board_count + 1))
     time_valid=$(field_from_line TIME_VALID "$line")
-    pps_valid=$(field_from_line PPS_VALID "$line")
     snapshot_valid=$(field_from_line SNAPSHOT_VALID "$line")
     snapshot_stable=$(field_from_line SNAPSHOT_STABLE "$line")
     tai=$(field_from_line TAI "$line")
     cycles=$(field_from_line CYCLES "$line")
-    step1_gate=$(field_from_line Step1 "$line")
     step6_gate=$(field_from_line Step6 "$line")
-    if [[ "$time_valid" != "1" || "$pps_valid" != "1" ||
+    if [[ "$time_valid" != "1" ||
           "$snapshot_valid" != "1" || "$snapshot_stable" != "1" ||
           "$tai" == "INVALID" || "$cycles" == "INVALID" ||
-          "$step1_gate" != "PASS" || "$step6_gate" != "PASS" ]]; then
+          "$step6_gate" != "PASS" ]]; then
       return 1
     fi
   done

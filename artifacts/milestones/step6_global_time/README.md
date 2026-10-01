@@ -1,24 +1,27 @@
 # Step 6 — Global Time and dual-board scheduled digital trigger
 
-**Functional milestone: PASS (pointwise dashboard-equivalent phase gate).**
+**Revised 2026-10-01 acceptance: PENDING a 300-second Slave `TIME_VALID` capture.**
 The frozen Step 6 source was independently rebuilt and programmed. Historical
 hardware evidence established valid Global Time on both boards, five matching
 common PPS labels, and two repeated dual-board scheduled digital triggers at
 matching TAI/cycle labels.
 
-Step 6 pointwise acceptance is one trustworthy Slave observation for which
-the complete dashboard Step 1 status gate is high, Global Time is
-valid/stable, all five Step 5 lock signals are high, and
-`abs(WR_SERVO_OFFSET_PS) < 60 ps`. A 300-second phase-offset dwell is **not**
-required for this functional milestone.
+The current acceptance requires the Slave's PPS-latched snapshot and exported
+status to report `TIME_VALID=1` throughout a sampled 300-second window, using
+stable, valid snapshots and advancing TAI/cycle data. Phase offset,
+`PPS_VALID`, Step 1/link, Step 5 locks, and timing closure are not gates for
+this revised target. The pointwise phase-offset gate below is retained as
+historical evidence under the previous criterion, not as the current Step 6
+acceptance.
 
 ## Acceptance evidence
 
 | Gate | Result |
 |---|---|
+| Revised Slave TIME_VALID hold | PENDING: the 300-second sampled `TIME_VALID=1` capture in `EXP-S6-TIME-VALID-STABLE-300S-20261001` has not yet been run. This is the current acceptance gate. |
 | Step 5 lock regression on Slave | PASS: 301/301 accepted samples; Helper, Main frequency, Main phase, Main lock, and PSTAT were locked in all 301 samples. |
 | Global Time on both boards | PASS: valid/stable snapshots with `TIME_VALID=1` and `PPS_VALID=1`. |
-| Dashboard Step 1 plus Step 5 locks and Slave phase offset | PASS: 958/958 rows had the complete Step 1 gate, valid/stable Global Time, and all five locks; rows #91 and #92 were consecutive samples 296 ms apart and each measured +59 ps with matching TAI/cycles and UCNT. |
+| Historical dashboard phase gate (superseded) | PASS under the previous criterion: 958/958 rows had the complete Step 1 gate, valid/stable Global Time, and all five locks; rows #91 and #92 were consecutive samples 296 ms apart and each measured +59 ps with matching TAI/cycles and UCNT. |
 | Same-PPS agreement | PASS: five common TAI labels matched exactly; maximum difference was 0 cycles (0 ns). |
 | First scheduled digital trigger | PASS: Master and Slave each fired once at TAI 3094, cycle 62,500,000; measured digital label difference 0 cycles (0 ns). |
 | Re-arm repeatability | PASS: both fired again at TAI 3679, cycle 62,500,000; each fire counter reached 2; second measured digital label difference 0 cycles (0 ns). |
@@ -103,9 +106,10 @@ with `sha256sum -c SHA256SUMS`.
 
 ## Limits and outstanding diagnostics
 
-The pointwise Step 6 functional gate is now **PASS** as recorded above. The
-historical observations below document why a 300-second phase-offset dwell is
-not established; they do not revoke the pointwise milestone.
+The historical pointwise phase criterion passed as recorded above, but it is
+superseded by the revised 300-second TIME_VALID acceptance, which remains
+pending. The phase-offset observations below remain diagnostic history; they
+do not determine the revised result.
 
 - The trigger comparison is based on the two boards' latched digital TAI/cycle
   labels. No oscilloscope measurement was made, so physical `SMA_CLKOUT` or
@@ -116,9 +120,9 @@ not established; they do not revoke the pointwise milestone.
   experiment does not claim a direct CLI confirmation of the QSFP serial ID or
   calibration-database match; it does not invalidate the independently
   observed Global-Time/trigger gates.
-- The strict dashboard offset condition is pointwise: a valid integer CKO
+- The superseded strict dashboard offset condition was pointwise: a valid integer CKO
   strictly inside +/-60 ps is accepted when the Step 1 gate, stable/valid time,
-  and all five locks are high. The current capture passes that functional
+  and all five locks are high. The historical capture passed that prior
   gate in two consecutive sampled rows; it does not prove 300-second offset
   stability. Earlier exact-image and UCNT-paired captures remain diagnostic
   history and do not supersede the newer full Step 1-gated evidence. See the

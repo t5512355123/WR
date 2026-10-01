@@ -111,12 +111,16 @@ rows and `SYNC_PHASE` for 69; it never entered `TRACK_PHASE`. The WR admission
 state stayed `WRS_IDLE`, with no source-backed admission event. This shows the
 phase servo is the immediate unresolved boundary, but does not reveal whether
 CKO crossed its strict threshold because the trace did not sample CKO/DMS/SETP.
-The next experiment is a 30-second same-publication-frame CKO/DMS/SETP
-observation on this unchanged image; make no controller change until those
-values are available. See the
+The first same-publication-frame attempt stopped after five untrusted rows:
+the diagnostic epoch changed in all 5/5 rows (`DIAG_EPOCH_STABLE=0`), so no
+CKO/DMS/SETP pair was accepted despite valid raw reads. The next read-only
+attempt will use the observer's separate-frame mode with an exact UCNT match,
+without changing controls, resetting, or reprogramming. See the
 [pre-TRACK attribution report](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/REPORT.md),
 [plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md), and
-[same-frame phase diagnostic plan](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/PLAN.md),
+[same-frame diagnostic report](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/REPORT.md),
+[same-frame plan](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/PLAN.md),
+[next UCNT-paired diagnostic plan](EXP-S6-PRETRACK-UCNT-PAIRED-CKO-SETP-20261001/PLAN.md),
 [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)

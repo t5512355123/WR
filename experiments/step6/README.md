@@ -104,13 +104,19 @@ SETP. The dashboard ran about 49 seconds beyond its planned 600-second
 post-program deadline, which is documented in the
 [fixed-SETP report](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/REPORT.md).
 
-The next investigation keeps production controls frozen and uses one
-source-backed, read-only Slave WR lock/admission event trace on the
-already-programmed candidate to attribute the pre-TRACK startup boundary
-before another phase candidate is built. Do not infer CKO behavior from the
-dashboard's large `WR phase offset` field. See the
-[fixed-SETP pre-TRACK attribution plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md)
-and the [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
+The source-backed, read-only Slave lock/admission trace on the programmed
+fixed-SETP candidate completed 300 seconds with 888/888 valid rows. All five
+Step 5 lock bits stayed high, but Servo state was `WAIT_OFFSET_STABLE` for 819
+rows and `SYNC_PHASE` for 69; it never entered `TRACK_PHASE`. The WR admission
+state stayed `WRS_IDLE`, with no source-backed admission event. This shows the
+phase servo is the immediate unresolved boundary, but does not reveal whether
+CKO crossed its strict threshold because the trace did not sample CKO/DMS/SETP.
+The next step is a short same-publication-frame CKO/DMS/SETP observation on
+this unchanged image; make no controller change until those values are
+available. See the
+[pre-TRACK attribution report](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/REPORT.md),
+[plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md), and
+[fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
 - [Exact frozen-image strict-offset re-observation](EXP-S6-FROZEN-IMAGE-STRICT-PHASE-300S-20260929/REPORT.md)

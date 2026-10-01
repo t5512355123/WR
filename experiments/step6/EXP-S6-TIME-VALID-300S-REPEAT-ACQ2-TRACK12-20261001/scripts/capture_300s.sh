@@ -8,8 +8,14 @@ ROOT=$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)
 RAW_DIR="$EXP_DIR/raw"
 QUARTUS_STP=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp
 EXPECTED_BRANCH=feat/file_cleanup
-EXPECTED_SLAVE=dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b
-EXPECTED_MASTER=2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b
+EXPECTED_BUILD_COMMIT=4c1adf73ab762506939163d467fb8c6b35bca9b4
+EXPECTED_SOURCE_ORIGIN=74dc28862653d306e0450cf437ba6d3a230d979d
+EXPECTED_MASTER_QSF=fc2f861ad6cf3a2f660ac66184fe054415515ab4006e578542ddce59ab026530
+EXPECTED_SLAVE_QSF=d074d47954f13d539d5477615a8a03752622b2b115dfa6684bc51169a3d7275d
+EXPECTED_SDC=083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d
+EXPECTED_QUARTUS_VERSION='Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition'
+EXPECTED_SLAVE_MIF=d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916
+EXPECTED_MASTER_MIF=07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6
 CAPTURE_DURATION_MS=303000
 SAMPLE_MS=250
 REQUIRED_DURATION_MS=300000
@@ -43,10 +49,32 @@ test -z "$(git -C "$ROOT" diff --name-only)" || fail "tracked worktree is dirty"
 test -z "$(git -C "$ROOT" diff --cached --name-only)" || fail "index is not clean"
 test -x "$QUARTUS_STP" || fail "Quartus SignalTap executable is unavailable"
 test -f "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt" || fail "candidate SOF hash record is missing"
-grep -Fq "$EXPECTED_SLAVE  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" \
-  "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt" || fail "Slave candidate hash mismatch"
-grep -Fq "$EXPECTED_MASTER  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
-  "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt" || fail "Master candidate hash mismatch"
+
+verify_build_info() {
+  info_file="$1"
+  project_qsf="$2"
+  mif_hash="$3"
+  sof_path="$4"
+  grep -Fx "SOURCE_ORIGIN_COMMIT=$EXPECTED_SOURCE_ORIGIN" "$info_file" >/dev/null || fail "source origin differs in $info_file"
+  grep -Fx "REPOSITORY_COMMIT=$EXPECTED_BUILD_COMMIT" "$info_file" >/dev/null || fail "build commit differs in $info_file"
+  grep -Fx "QSF_SHA256=$project_qsf" "$info_file" >/dev/null || fail "QSF differs in $info_file"
+  grep -Fx "SDC_SHA256=$EXPECTED_SDC" "$info_file" >/dev/null || fail "SDC differs in $info_file"
+  grep -Fx "QUARTUS_VERSION=$EXPECTED_QUARTUS_VERSION" "$info_file" >/dev/null || fail "Quartus version differs in $info_file"
+  grep -Fx "MIF_SHA256=$mif_hash" "$info_file" >/dev/null || fail "firmware MIF differs in $info_file"
+  grep -Fx 'FITTER_STATUS=Fitter Status : Successful' "$info_file" >/dev/null || fail "Fitter did not succeed in $info_file"
+  grep -Fx 'COMPILE_RESULT=Full Compilation was successful' "$info_file" >/dev/null || fail "full compilation did not succeed in $info_file"
+  sof_hash=$(sed -n 's/^SOF_SHA256=//p' "$info_file")
+  test -n "$sof_hash" || fail "SOF hash is missing in $info_file"
+  test "$(printf '%s\n' "$sof_hash" | wc -l)" -eq 1 || fail "SOF hash is ambiguous in $info_file"
+  test "$(grep -Fxc "$sof_hash  $sof_path" "$BUILD_DIR/$BUILD_RUN_TAG-candidate-sof-sha256.txt")" -eq 1 || fail "SOF hash record disagrees for $info_file"
+}
+
+verify_build_info "$BUILD_DIR/$BUILD_RUN_TAG-build-info-slave.txt" \
+  "$EXPECTED_SLAVE_QSF" "$EXPECTED_SLAVE_MIF" \
+  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+verify_build_info "$BUILD_DIR/$BUILD_RUN_TAG-build-info-master.txt" \
+  "$EXPECTED_MASTER_QSF" "$EXPECTED_MASTER_MIF" \
+  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
 grep -q 'Programmer was successful. 0 errors, 0 warnings' \
   "$RAW_DIR/program/$BUILD_RUN_TAG-slave-program.log" || fail "Slave programming success is unverified"
 grep -q 'Programmer was successful. 0 errors, 0 warnings' \

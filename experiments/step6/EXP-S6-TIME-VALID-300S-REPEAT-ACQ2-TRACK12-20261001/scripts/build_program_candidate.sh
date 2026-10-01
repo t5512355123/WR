@@ -12,10 +12,13 @@ RAW_DIR="$EXP_DIR/raw"
 EXPECTED_BRANCH=feat/file_cleanup
 EXPECTED_BUILD_COMMIT=4c1adf73ab762506939163d467fb8c6b35bca9b4
 EXPECTED_SOURCE_ORIGIN=74dc28862653d306e0450cf437ba6d3a230d979d
+EXPECTED_PATCH_SHA256=a3a69d1734ab67801bd45dd212e31879e640992ff3a0cc20fcbad3dcf0e477f4
+EXPECTED_MASTER_QSF=fc2f861ad6cf3a2f660ac66184fe054415515ab4006e578542ddce59ab026530
+EXPECTED_SLAVE_QSF=d074d47954f13d539d5477615a8a03752622b2b115dfa6684bc51169a3d7275d
+EXPECTED_SDC=083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d
+EXPECTED_QUARTUS_VERSION='Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition'
 EXPECTED_SLAVE_MIF=d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916
 EXPECTED_MASTER_MIF=07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6
-EXPECTED_SLAVE_SOF=dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b
-EXPECTED_MASTER_SOF=2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b
 SOURCE_PATCH_REL="$SOURCE_REL/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c"
 QUARTUS_BIN=/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin
 
@@ -53,6 +56,7 @@ test -z "$(git -C "$ROOT" diff --name-only)" || fail "tracked worktree is dirty"
 test -z "$(git -C "$ROOT" diff --cached --name-only)" || fail "index is not clean"
 test -x "$QUARTUS_BIN/quartus_pgm" || fail "Quartus 17.0 programmer is unavailable"
 test -f "$PATCH" || fail "historical /2+/12 candidate patch is missing"
+echo "$EXPECTED_PATCH_SHA256  $PATCH" | sha256sum -c - || fail "historical /2+/12 patch hash differs"
 git -C "$ROOT" cat-file -e "$EXPECTED_BUILD_COMMIT^{commit}" || fail "historical build commit is unavailable"
 
 for process in quartus_stp quartus_pgm quartus_sh; do
@@ -190,17 +194,31 @@ grep -Fx "SOURCE_ORIGIN_COMMIT=$EXPECTED_SOURCE_ORIGIN" "$RAW_DIR/build/$RUN_TAG
 grep -Fx "SOURCE_ORIGIN_COMMIT=$EXPECTED_SOURCE_ORIGIN" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave source-origin commit differs"
 grep -Fx "REPOSITORY_COMMIT=$EXPECTED_BUILD_COMMIT" "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master build commit differs from pinned historical commit"
 grep -Fx "REPOSITORY_COMMIT=$EXPECTED_BUILD_COMMIT" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave build commit differs from pinned historical commit"
+grep -Fx "QSF_SHA256=$EXPECTED_MASTER_QSF" "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master QSF differs from historical project"
+grep -Fx "QSF_SHA256=$EXPECTED_SLAVE_QSF" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave QSF differs from historical project"
+grep -Fx "SDC_SHA256=$EXPECTED_SDC" "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master SDC differs from historical project"
+grep -Fx "SDC_SHA256=$EXPECTED_SDC" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave SDC differs from historical project"
+grep -Fx "QUARTUS_VERSION=$EXPECTED_QUARTUS_VERSION" "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master Quartus version differs"
+grep -Fx "QUARTUS_VERSION=$EXPECTED_QUARTUS_VERSION" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave Quartus version differs"
+grep -Fx "MIF_SHA256=$EXPECTED_MASTER_MIF" "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master build-info MIF hash differs"
+grep -Fx "MIF_SHA256=$EXPECTED_SLAVE_MIF" "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave build-info MIF hash differs"
 grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master Quartus compilation failed"
 grep -q 'Full Compilation was successful' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave Quartus compilation failed"
+grep -q '^FITTER_STATUS=Fitter Status : Successful' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt" || fail "Master fitter did not report success"
+grep -q '^FITTER_STATUS=Fitter Status : Successful' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt" || fail "Slave fitter did not report success"
 (
   cd "$BUILD_SOURCE_DIR"
   sha256sum quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof \
     quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
 ) > "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt"
-grep -Fq "$EXPECTED_SLAVE_SOF  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" \
-  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "rebuilt Slave SOF hash differs from proven candidate"
-grep -Fq "$EXPECTED_MASTER_SOF  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
-  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "rebuilt Master SOF hash differs from proven candidate"
+SLAVE_SOF_HASH=$(sed -n 's/^SOF_SHA256=//p' "$RAW_DIR/build/$RUN_TAG-build-info-slave.txt")
+MASTER_SOF_HASH=$(sed -n 's/^SOF_SHA256=//p' "$RAW_DIR/build/$RUN_TAG-build-info-master.txt")
+test -n "$SLAVE_SOF_HASH" || fail "Slave build-info SOF hash is missing"
+test -n "$MASTER_SOF_HASH" || fail "Master build-info SOF hash is missing"
+grep -Fq "$SLAVE_SOF_HASH  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof" \
+  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "Slave SOF hash records disagree"
+grep -Fq "$MASTER_SOF_HASH  quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof" \
+  "$RAW_DIR/build/$RUN_TAG-candidate-sof-sha256.txt" || fail "Master SOF hash records disagree"
 
 sudo -v
 (cd "$BUILD_SOURCE_DIR" && CABLE='DE5 [1-11.2]' \
@@ -220,4 +238,4 @@ grep -q 'Programmer was successful. 0 errors, 0 warnings' \
   "$RAW_DIR/program/$RUN_TAG-master-program.log" || fail "Master programming did not report a clean success"
 
 printf 'S6TV_BUILD_PROGRAM_COMPLETE run_tag=%s build_commit=%s slave_sof=%s master_sof=%s\n' \
-  "$RUN_TAG" "$EXPECTED_BUILD_COMMIT" "$EXPECTED_SLAVE_SOF" "$EXPECTED_MASTER_SOF"
+  "$RUN_TAG" "$EXPECTED_BUILD_COMMIT" "$SLAVE_SOF_HASH" "$MASTER_SOF_HASH"

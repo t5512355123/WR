@@ -1,4 +1,4 @@
-# EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001 — Historical image rebuild pending
+# EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001 — Fresh same-source candidate pending
 
 ## Current verdict
 
@@ -6,11 +6,12 @@
 STEP6_TIME_VALID_300S_BOTH_BOARDS = NOT_ESTABLISHED
 BUILD_AND_PROGRAM                 = ABORTED_BEFORE_PROGRAM
 DUAL_BOARD_303S_CAPTURE           = NOT_RUN
-NEXT_ACTION                       = rebuild from historical build commit in an isolated worktree
+NEXT_ACTION                       = rerun validated same-source build, then capture both boards
 ~~~
 
-One build attempt has occurred. No programming or hardware capture for this
-experiment has occurred.
+Two build attempts have occurred. Both stopped before programming, so neither
+board has been changed and no hardware capture for this experiment has
+occurred.
 The historical evidence is a near-pass only:
 
 ~~~text
@@ -22,8 +23,9 @@ observer done     = 300,403 ms
 ~~~
 
 The prior 300,000-ms request ended its last sample 2 ms short of the required
-span. The intended repeat holds the exact historical candidate image and
-requests 303,000 ms on each board. No Step 6 pass is claimed until both boards
+span. The intended repeat holds the historical candidate source and firmware
+MIFs and requests 303,000 ms on each board. Fresh SOF outputs are recorded as
+new same-source candidates, not byte-identical historical images. No Step 6 pass is claimed until both boards
 independently satisfy the complete acceptance contract in PLAN.md.
 
 ## Build attempt 1 — stopped safely before programming
@@ -55,10 +57,43 @@ The script restored the patched source, verified both source/artifact manifests,
 and confirmed unrelated untracked paths were preserved. Raw build logs with
 the `20261001T085322Z-` prefix are in `raw/build/`; preflight/restore logs are
 in `raw/preflight/`.
-The next attempt is constrained to a temporary isolated worktree at the exact
-historical build commit; both historical MIF hashes will be checked before
-Quartus and both SOF hashes before any programming. A mismatch remains a
-hard stop.
+
+## Build attempt 2 — historical source/MIF reproduced; SOF differs
+
+The second attempt used a temporary worktree pinned to
+`4c1adf73ab762506939163d467fb8c6b35bca9b4`, applied the same `/2 + /12` patch,
+and completed Master and Slave Full Compilation with Quartus 17.0. The source
+origin, firmware MIFs, QSF/SDC hashes, and reported fitter timing metrics all
+matched the historical build. However, both freshly generated SOF hashes
+differed from the recorded historical hashes. The script stopped before either
+programming command, restored the patch, revalidated both manifests, removed
+its temporary worktree, and preserved unrelated untracked paths. Neither board
+was changed.
+
+| Board | Historical MIF | Rebuilt MIF | Historical SOF | Fresh SOF | Historical vs fresh timing summary |
+|---|---|---|---|---|---|
+| Master | `07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6` | `07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6` | `2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b` | `a1f2b3c68cf994bf6ae7783792c5b56f23af94cf3a8e2dedc3b8d9e2cbf0786e` | setup `+0.262`, hold `+0.040`, recovery `+0.501`, removal `+0.252 ns` — equal |
+| Slave | `d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916` | `d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916` | `dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b` | `3e4a6ca26bcbf4efdbd72606ff8e1ffe52e0d624604655526113a320d84acbd3` | setup `-0.659`, hold `+0.035`, recovery `+0.650`, removal `+0.216 ns` — equal |
+
+The exact binary-level cause is not proven: the recorded repository contains
+the historical SOF hashes but not the corresponding candidate `.sof` files,
+so there is no old binary to compare. Intel documents that the Fitter seed and
+processor settings can affect compilation outputs; this is a possible class
+of tool-output variation, not a confirmed cause for this pair of builds. The
+master QSF pins `SEED 2`; the slave QSF has no explicit seed assignment. See
+[Intel's Quartus compilation reproducibility guidance](https://www.intel.com/content/www/us/en/support/programmable/articles/000084189.html)
+and [SEED assignment reference](https://www.intel.com/programmable/technical-pdfs/683296.pdf).
+
+To pursue the requested time-valid experiment without mislabeling the artifact,
+the next build treats the output as a **fresh same-source candidate**, not a
+byte-identical replay. The script verifies the candidate patch SHA-256,
+historical source origin and build commit, exact MIF/QSF/SDC/tool identities,
+successful full compilations, and agreement of SOF hashes across build-info and
+the direct file-hash record. Only then does it program those just-built files.
+No controller, RTL, timeout, or timing-constraint changes are introduced.
+
+Raw build logs with prefix `20261001T094154Z-` are in `raw/build/`; the
+matching preflight and cleanup logs are in `raw/preflight/`.
 
 ## Run evidence
 

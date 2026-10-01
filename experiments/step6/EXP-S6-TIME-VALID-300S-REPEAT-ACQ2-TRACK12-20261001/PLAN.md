@@ -26,9 +26,11 @@ current two-board criterion. The /2 + /12 candidate is the best starting point:
 it has 959/959 valid Slave rows and missed the span criterion by only 2 ms.
 The prior observer requested exactly 300,000 ms, but its last sample occurred
 at 299,998 ms even though its completion marker was at 300,403 ms. This run
-keeps the same candidate source and images and requests 303,000 ms per board.
-No PI, servo, timeout, threshold, reset, PHY, RTL, SDB, or timing-constraint
-change is introduced.
+keeps the same candidate source and firmware MIFs and requests 303,000 ms per
+board. A fresh Quartus fit may produce a different SOF hash; such an output is
+recorded and evaluated as a fresh same-source candidate, never described as a
+byte-identical historical image. No PI, servo, timeout, threshold, reset, PHY,
+RTL, SDB, or timing-constraint change is introduced.
 
 ## Exact candidate provenance
 
@@ -37,9 +39,8 @@ change is introduced.
 - Historical FPGA/firmware build commit: `4c1adf73ab762506939163d467fb8c6b35bca9b4`.
   The firmware embeds `__GIT_VER__` in its MIF even with
   `CONFIG_DETERMINISTIC_BINARY=y`; therefore the same source patch built at a
-  later repository commit does not recreate the proven images. Build in an
-  isolated temporary worktree at this exact commit and keep the MIF/SOF hash
-  gates below.
+  later repository commit does not recreate the proven MIFs. Build in an
+  isolated temporary worktree at this exact commit.
 - Reuse, unchanged, the historical patch at
   `experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-TWELFTH-20260930/candidate.patch`.
 - Candidate source behavior: `WRH_SYNC_PHASE` acquisition is `offset_ps / 2`;
@@ -50,12 +51,26 @@ change is introduced.
   `dd5d2e72d6fcde92ace62cf51cfd7fc333c5af1d8d8dd4ebfdc8437b3bba701b`.
 - Expected Master SOF SHA-256:
   `2beddef2b481c96d6b94bf195fc3ea3cd87513bc776b6884cc775ee8d08f763b`.
+- Historical board-project hashes: Master QSF
+  `fc2f861ad6cf3a2f660ac66184fe054415515ab4006e578542ddce59ab026530`, Slave
+  QSF `d074d47954f13d539d5477615a8a03752622b2b115dfa6684bc51169a3d7275d`, and
+  shared SDC `083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d`.
+- The historical SOF hashes are provenance references, not a hard equality
+  gate for a fresh Quartus run. The exact historical binaries are not stored
+  with the repository records. A fresh image may be programmed only after the
+  source patch, source origin, firmware MIFs, QSF/SDC, Quartus version, and both
+  full compilations pass their exact checks; record each newly generated SOF
+  hash and call it a fresh same-source build, not a byte-identical historical
+  image.
 - Expected Slave firmware MIF SHA-256:
   `d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916`.
 - Expected Master firmware MIF SHA-256:
   `07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6`.
-- Build and program only if both rebuilt SOF hashes exactly match those
-  previously exercised artifacts. Program Slave first, then Master.
+- Historical SOF hashes above document the previously exercised binaries but
+  are not a hard equality gate: those binaries are not present in the saved
+  repository records. Program the freshly built outputs only after the source,
+  patch, MIF, QSF/SDC, Quartus version, and full-compilation checks pass.
+  Record the actual fresh SOF hashes and program Slave first, then Master.
 
 ## Laptop -> GitHub -> Pain workflow
 
@@ -71,10 +86,10 @@ change is introduced.
    build commit above, verifies the frozen source manifest (3,219 entries),
    canonical Step 6 SOF manifest (4 entries), both JTAG cables, and no
    competing Quartus/JTAG process. It temporarily applies the existing patch,
-   builds both images, verifies historical MIF hashes before Quartus and SOF
-   hashes afterward, then programs Slave followed by Master only on exact
-   matches. It restores the patch, verifies both manifests, and removes only
-   the temporary worktree it created.
+   builds both images, verifies historical MIF, QSF, SDC, and Quartus-version
+   identities plus successful full compilations, records the newly generated
+   SOF hashes, then programs Slave followed by Master. It restores the patch,
+   verifies both manifests, and removes only the temporary worktree it created.
 4. Do not run two JTAG readers at once. The capture script polls both boards
    read-only until `STATUS_TIME_VALID=1` in every preflight sample for both
    boards during one poll, with a maximum readiness wait of 1,800 seconds.
@@ -115,8 +130,10 @@ the exported bit; it does not claim cycle-by-cycle continuity between reads.
 - Stop before patching/building if branch/commit, source/artifact manifests,
   cable identities, or JTAG process preflight do not match.
 - Stop before Quartus compilation if either firmware MIF hash differs from
-  the historical expected hash. Stop before programming if either SOF hash
-  differs from the historical expected hash or either compilation fails.
+  the historical expected hash. Stop before programming if either source/QSF/
+  SDC/tool identity differs, either compilation fails, or either SOF is absent.
+  A newly generated SOF hash need not equal the historical hash; record it and
+  do not claim byte-identical image reproduction.
 - Stop if either programming log does not identify one successfully configured
   DE5a device on the expected cable.
 - Preserve all partial evidence and stop on reset interruption, read errors,

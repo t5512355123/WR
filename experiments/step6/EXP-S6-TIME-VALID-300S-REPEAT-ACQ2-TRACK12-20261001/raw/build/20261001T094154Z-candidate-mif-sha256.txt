@@ -1,0 +1,2 @@
+d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916  build/firmware/slave/wrc.mif
+07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6  build/firmware/master/wrc.mif

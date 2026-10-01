@@ -69,31 +69,52 @@ run_logged master_quartus bash scripts/build/build_master.sh
 run_logged slave_firmware bash firmware/scripts/build_slave_firmware.sh
 run_logged slave_quartus bash scripts/build/build_slave.sh
 
-MASTER_SOF="$SOURCE_DIR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof"
-SLAVE_SOF="$SOURCE_DIR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
-test -f "$MASTER_SOF"
-test -f "$SLAVE_SOF"
-ACTUAL_MASTER="$(sha256sum "$MASTER_SOF" | awk '{print $1}')"
-ACTUAL_SLAVE="$(sha256sum "$SLAVE_SOF" | awk '{print $1}')"
-printf 'S6TV_BUILD_HASH master=%s slave=%s\n' "$ACTUAL_MASTER" "$ACTUAL_SLAVE" | tee "$BUILD_DIR/sof-hashes.log"
-if [[ "$ACTUAL_MASTER" != "$EXPECTED_MASTER" || "$ACTUAL_SLAVE" != "$EXPECTED_SLAVE" ]]; then
-  printf 'S6TV_ABORT reason=frozen_sof_hash_mismatch\n' | tee -a "$BUILD_DIR/sof-hashes.log"
+BUILT_MASTER_SOF="$SOURCE_DIR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof"
+BUILT_SLAVE_SOF="$SOURCE_DIR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof"
+PROGRAM_MASTER_SOF="$MILESTONE_DIR/master.sof"
+PROGRAM_SLAVE_SOF="$MILESTONE_DIR/slave.sof"
+test -f "$BUILT_MASTER_SOF"
+test -f "$BUILT_SLAVE_SOF"
+test -f "$PROGRAM_MASTER_SOF"
+test -f "$PROGRAM_SLAVE_SOF"
+BUILT_MASTER_HASH="$(sha256sum "$BUILT_MASTER_SOF" | awk '{print $1}')"
+BUILT_SLAVE_HASH="$(sha256sum "$BUILT_SLAVE_SOF" | awk '{print $1}')"
+printf 'S6TV_BUILD_HASH master=%s slave=%s\n' "$BUILT_MASTER_HASH" "$BUILT_SLAVE_HASH" | tee "$BUILD_DIR/sof-hashes.log"
+
+if (cd "$MILESTONE_DIR" && sha256sum -c SHA256SUMS) 2>&1 | tee "$BUILD_DIR/frozen-milestone-artifact-check.log"; then
+  :
+else
+  printf 'S6TV_ABORT reason=frozen_milestone_manifest_check_failed\n' | tee -a "$BUILD_DIR/frozen-milestone-artifact-check.log"
   exit 2
 fi
+ACTUAL_MASTER="$(sha256sum "$PROGRAM_MASTER_SOF" | awk '{print $1}')"
+ACTUAL_SLAVE="$(sha256sum "$PROGRAM_SLAVE_SOF" | awk '{print $1}')"
+printf 'S6TV_PROGRAM_SOURCE=checked_in_frozen_milestone_sof\nS6TV_CANONICAL_HASH master=%s slave=%s\n' \
+  "$ACTUAL_MASTER" "$ACTUAL_SLAVE" | tee -a "$BUILD_DIR/sof-hashes.log"
+if [[ "$ACTUAL_MASTER" != "$EXPECTED_MASTER" || "$ACTUAL_SLAVE" != "$EXPECTED_SLAVE" ]]; then
+  printf 'S6TV_ABORT reason=frozen_milestone_sof_hash_mismatch\n' | tee -a "$BUILD_DIR/sof-hashes.log"
+  exit 2
+fi
+BUILT_MASTER_MATCH=DIFFERENT
+BUILT_SLAVE_MATCH=DIFFERENT
+[[ "$BUILT_MASTER_HASH" == "$EXPECTED_MASTER" ]] && BUILT_MASTER_MATCH=MATCH
+[[ "$BUILT_SLAVE_HASH" == "$EXPECTED_SLAVE" ]] && BUILT_SLAVE_MATCH=MATCH
+printf 'S6TV_BUILD_HASH_MATCH master=%s slave=%s result=recorded_only\n' \
+  "$BUILT_MASTER_MATCH" "$BUILT_SLAVE_MATCH" | tee -a "$BUILD_DIR/sof-hashes.log"
 
 PGM_LIST="$("$PGM_BIN" -l 2>&1)"
 printf '%s\n' "$PGM_LIST" | tee "$PROGRAM_DIR/cables.log"
 [[ "$PGM_LIST" == *'DE5 [1-11.2]'* ]]
 [[ "$PGM_LIST" == *'DE5 [1-11.1]'* ]]
 
-if SOF="$SLAVE_SOF" CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh 2>&1 | tee "$PROGRAM_DIR/program-slave.log"; then
+if SOF="$PROGRAM_SLAVE_SOF" CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh 2>&1 | tee "$PROGRAM_DIR/program-slave.log"; then
   printf 'S6TV_PROGRAM board=slave result=PASS sha256=%s\n' "$ACTUAL_SLAVE" | tee -a "$PROGRAM_DIR/program-slave.log"
 else
   result=$?
   printf 'S6TV_PROGRAM board=slave result=FAIL rc=%d\n' "$result" | tee -a "$PROGRAM_DIR/program-slave.log"
   exit "$result"
 fi
-if SOF="$MASTER_SOF" CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh 2>&1 | tee "$PROGRAM_DIR/program-master.log"; then
+if SOF="$PROGRAM_MASTER_SOF" CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh 2>&1 | tee "$PROGRAM_DIR/program-master.log"; then
   printf 'S6TV_PROGRAM board=master result=PASS sha256=%s\n' "$ACTUAL_MASTER" | tee -a "$PROGRAM_DIR/program-master.log"
 else
   result=$?

@@ -73,3 +73,7 @@ experiments/step6/EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/raw/** -
 experiments/step6/EXP-S6-WRH-SERVO-EIGHTH-ACQUIRE-EIGHTH-TRACK-20260930/candidate.patch -text -eol -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-FIRST-TRACK-FIXED-SETP-OPEN-LOOP-20260930/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/candidate.patch -text -eol -whitespace
+
+# Preserve the complete build/pre-program record for the revised Step 6
+# TIME_VALID dwell experiment byte-for-byte, including vendor log whitespace.
+experiments/step6/EXP-S6-TIME-VALID-STABLE-300S-20261001/raw/** -text -eol -diff -whitespace

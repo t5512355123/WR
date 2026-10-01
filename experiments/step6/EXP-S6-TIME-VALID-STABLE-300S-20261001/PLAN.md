@@ -32,11 +32,17 @@ the boards.
 1. Laptop tests and pushes this observer, analyzer, dashboard-gate update, and
    experiment plan to `feat/file_cleanup`.
 2. Pain fast-forwards `/home/b10504072/04_WR` to that branch tip.
-3. Verify the frozen source manifest, compile Master and Slave from the frozen
-   source tree, and compare both SOF hashes to the expected values. If either
-   differs, stop before programming.
-4. Program the Slave SOF and then the Master SOF. Save separate build and
-   programming logs.
+3. Verify the frozen source manifest and compile Master and Slave from the
+   frozen source tree. Record the freshly rebuilt SOF hashes. The firmware
+   embeds a `git describe` string from the outer checkout, so rebuilt SOF hashes
+   can differ even when the frozen source is unchanged; do not treat that
+   difference as hardware evidence.
+4. Independently verify the checked-in, previously validated milestone files
+   using `artifacts/milestones/step6_global_time/SHA256SUMS` and the exact
+   Master/Slave hashes listed above. Program those exact milestone SOFs (not
+   the newly rebuilt files), Slave first and then Master. Save separate build,
+   artifact-verification, and programming logs. Any canonical artifact hash
+   mismatch stops before programming.
 5. Run the read-only Global-Time observer on Slave `1-11.2` for 302 seconds,
    requested cadence 250 ms. Do not run another JTAG reader concurrently.
 6. Analyze the raw capture on Laptop; add the checksummed raw log, JSON
@@ -57,11 +63,13 @@ the boards.
 - No observer error and a normal completion record.
 
 Any sampled `TIME_VALID` loss fails this attempt in the final analyzer;
-preserve all rows and identify the first failing sample. A
+preserve all rows and identify the first failing sample. A canonical milestone
 SOF hash mismatch, missing cable, concurrent reader, or transport/Tcl error
-stops before continuing. If the capture does not pass, do not declare Step 6
-complete or tune unrelated controls; use the saved servo/PTP evidence to set
-the next experiment.
+stops before continuing. A freshly rebuilt SOF hash mismatch is recorded but
+does not stop this controlled run because the previously validated canonical
+milestone artifacts are the programming inputs. If the capture does not pass,
+do not declare Step 6 complete or tune unrelated controls; use the saved
+servo/PTP evidence to set the next experiment.
 
 The observer is read-only. A sampled 250-ms cadence does not prove sub-sample
 behavior between reads; report the maximum measured gap and do not describe it

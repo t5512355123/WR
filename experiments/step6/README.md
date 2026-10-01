@@ -120,7 +120,7 @@ without changing controls, resetting, or reprogramming. See the
 [plan](EXP-S6-FIXED-SETP-PRETRACK-LOCK-ATTRIBUTION-20261001/PLAN.md), and
 [same-frame diagnostic report](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/REPORT.md),
 [same-frame plan](EXP-S6-PRETRACK-COHERENT-CKO-SETP-20261001/PLAN.md),
-[next UCNT-paired diagnostic plan](EXP-S6-PRETRACK-UCNT-PAIRED-CKO-SETP-20261001/PLAN.md),
+[UCNT-paired diagnostic plan](EXP-S6-PRETRACK-UCNT-PAIRED-CKO-SETP-20261001/PLAN.md),
 [fixed-SETP latch plan](EXP-S6-WRH-SERVO-TRACK-ENTRY-FIXED-SETP-20261001/PLAN.md).
 
 - [Independent frozen-source reproduction](EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)

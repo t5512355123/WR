@@ -1,0 +1,22 @@
+diff --git a/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c b/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+index 06586d4e..6b4e1ef3 100644
+--- a/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
++++ b/artifacts/milestones/step6_global_time/source/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+@@ -275,7 +275,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
+ 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
+ 			s->cur_setpoint_ps, offset_ticks,
+ 			offset_ps);
+-		s->cur_setpoint_ps += offset_ps;
++		s->cur_setpoint_ps += (offset_ps / 2);
+ 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+ 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 
+@@ -325,7 +325,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
+ 			}
+ 
+ 			// adjust phase towards offset = 0 make ck0 0
+-			s->cur_setpoint_ps += (offset_ps / 4);
++			s->cur_setpoint_ps += (offset_ps / 12);
+ 
+ 			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
+ 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);

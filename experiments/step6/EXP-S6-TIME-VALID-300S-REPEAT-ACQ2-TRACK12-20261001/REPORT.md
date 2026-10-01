@@ -1,18 +1,18 @@
-# EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001 — Fresh same-source candidate pending
+# EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001 — 300 s TIME_VALID PASS
 
 ## Current verdict
 
 ~~~text
-STEP6_TIME_VALID_300S_BOTH_BOARDS = NOT_ESTABLISHED
-BUILD_AND_PROGRAM                 = ABORTED_BEFORE_PROGRAM
-DUAL_BOARD_303S_CAPTURE           = NOT_RUN
-NEXT_ACTION                       = rerun validated same-source build, then capture both boards
+STEP6_TIME_VALID_300S_BOTH_BOARDS = PASS
+FRESH_SAME_SOURCE_BUILD           = PASS
+DUAL_BOARD_303S_CAPTURE           = PASS
+NEXT_ACTION                       = stop; preserve this candidate and evidence
 ~~~
 
-Two build attempts have occurred. Both stopped before programming, so neither
-board has been changed and no hardware capture for this experiment has
-occurred.
-The historical evidence is a near-pass only:
+The first two fresh build attempts stopped before programming. Attempt 3
+successfully built and programmed both boards, then met the two-board sampled
+`STATUS_TIME_VALID=1` acceptance contract. The historical evidence that
+motivated the backtrack was a Slave-only near-pass:
 
 ~~~text
 /2 acquisition + /12 tracking, Slave only:
@@ -23,10 +23,9 @@ observer done     = 300,403 ms
 ~~~
 
 The prior 300,000-ms request ended its last sample 2 ms short of the required
-span. The intended repeat holds the historical candidate source and firmware
-MIFs and requests 303,000 ms on each board. Fresh SOF outputs are recorded as
-new same-source candidates, not byte-identical historical images. No Step 6 pass is claimed until both boards
-independently satisfy the complete acceptance contract in PLAN.md.
+span. The successful repeat used the historical candidate source and firmware
+MIFs, generated fresh SOFs, and requested 303,000 ms on each board. The SOFs
+are same-source candidates, not byte-identical historical images.
 
 ## Build attempt 1 — stopped safely before programming
 
@@ -95,9 +94,61 @@ No controller, RTL, timeout, or timing-constraint changes are introduced.
 Raw build logs with prefix `20261001T094154Z-` are in `raw/build/`; the
 matching preflight and cleanup logs are in `raw/preflight/`.
 
-## Run evidence
+## Build and capture attempt 3 — PASS
 
-Append the exact Laptop/Pain/GitHub commits, manifest results, build and
-programming logs, candidate SOF hashes, readiness observations, raw capture
-SHA-256, analyzer output, per-board spans/rows/gaps/valid counts, and final
-verdict here after the hardware run.
+The candidate was built from the immutable Step 6 source origin
+`74dc28862653d306e0450cf437ba6d3a230d979d` at firmware build commit
+`4c1adf73ab762506939163d467fb8c6b35bca9b4`, with the historical `/2 acquisition
++ /12 tracking` patch (SHA-256
+`a3a69d1734ab67801bd45dd212e31879e640992ff3a0cc20fcbad3dcf0e477f4`). The
+Laptop/GitHub/Pain experiment checkout used commit
+`d180e0a1ed92039d0e46d816113210d1d5feb682`. Both firmware MIF hashes, both QSF
+hashes, shared SDC hash, Quartus 17.0 Build 595 version, fitter success, and
+full-compilation success matched the pinned historical build contract.
+
+| Board | Fresh programmed SOF SHA-256 | QSF SHA-256 | MIF SHA-256 | Timing closed |
+|---|---|---|---|---|
+| Master `1-11.1` | `c5d5d6882ea94ff1e38870e36a4f74fca975723467214e14051523089992123c` | `fc2f861ad6cf3a2f660ac66184fe054415515ab4006e578542ddce59ab026530` | `07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6` | NO |
+| Slave `1-11.2` | `68a557f857a2dcce2ff7dcc4da8e700ed28183b4121dd4f5363e4070914b1efa` | `d074d47954f13d539d5477615a8a03752622b2b115dfa6684bc51169a3d7275d` | `d6165e93f0a43bc6b2a41db8d568ab696916c1a32c1733b47d7df36b5a692916` | NO |
+
+Both devices reported the expected JTAG ID `0x02E660DD` and configured
+successfully on their respective cables. `timing_closed=NO` is recorded, not
+used as a gate. The SOF hashes differ from the historical byte hashes; these
+are accurately classified as freshly generated, same-source candidate images.
+
+The initial capture invocations stopped before any JTAG read because the script
+looked for build records under an extra run-tag directory. The capture path was
+corrected and tested (`ddfef709`). A final metadata check was also adjusted to
+accept Quartus's timestamp suffix in a successful `FITTER_STATUS` field
+(`d180e0a1`). No controller setting, RTL, timeout, or timing constraint was
+changed by these repairs. The successful readiness poll passed in 3 seconds;
+capture began at `2026-10-01T18:44:20` Pain time, with a 250 ms requested sample
+interval and sequential Master-then-Slave observation.
+
+| Board | Samples with `STATUS_TIME_VALID=1` | Invalid samples | First-to-last span | Max gap | Completion elapsed |
+|---|---:|---:|---:|---:|---:|
+| Master `1-11.1` | 1190 / 1190 | 0 | 302,887 ms | 257 ms | 303,141 ms |
+| Slave `1-11.2` | 1190 / 1190 | 0 | 302,880 ms | 257 ms | 303,135 ms |
+
+Both board identities and sample sequences were valid, each exceeded the
+300,000 ms minimum span and 301-sample minimum, and the analyzer reported no
+capture errors. The final analyzer verdict is:
+
+~~~text
+STEP6_TIME_VALID_300S_BOTH_BOARDS = PASS
+verdict                           = PASS_TIME_VALID_300S
+~~~
+
+Raw capture SHA-256:
+`0f3f8fcc0a752c82c6f2ddaac0a988e030f5e93a4fb476df2abaa123b0c1afd4`.
+Analyzer JSON SHA-256:
+`97d9d364bd30484c9bfe247350f4b2bc453b1bf6f69253d4dff18fd29eea0b5c`.
+The Laptop copies matched Pain's per-file staging manifest and both capture
+sidecar checksums. The complete evidence and manifest are under `raw/`.
+
+This result establishes the revised Step 6 criterion for this programmed
+candidate: the exported `STATUS_TIME_VALID` bit remained high in every sample
+over an independently qualifying 300-second window on each board. Reads were
+sequential and sampled every ~250 ms; this does not claim cycle-by-cycle
+continuity between samples, exact identity with the unavailable historical
+SOFs, SMA edge-skew performance, or timing closure.

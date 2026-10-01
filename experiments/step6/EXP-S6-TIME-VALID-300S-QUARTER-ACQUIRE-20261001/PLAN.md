@@ -1,5 +1,12 @@
 # EXP-S6-TIME-VALID-300S-QUARTER-ACQUIRE-20261001
 
+> Superseded before any FPGA programming by
+> [EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001](../EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/PLAN.md).
+> A partial Master build attempt on Pain was interrupted before Quartus
+> compilation completed; no SOF was programmed. Its raw logs are preserved in
+> this folder and described in REPORT.md. The historical /2-acquire +
+> /12-track capture is a closer, already exercised candidate.
+
 ## Objective
 
 Test the revised Step 6 functional target: both DE5a boards independently

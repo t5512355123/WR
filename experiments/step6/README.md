@@ -6,8 +6,13 @@ each DE5a board.** For both Master `1-11.1` and Slave `1-11.2`, every sampled
 300,000 ms. Snapshot flags, PPS validity, TAI/cycle payload or monotonicity,
 Step 1/link, Step 5 locks, phase offset, and timing closure are diagnostic only.
 The boards are observed sequentially; this acceptance does not claim same-cycle
-TAI equality or physical output skew. See the
-[current experiment plan](EXP-S6-TIME-VALID-300S-QUARTER-ACQUIRE-20261001/PLAN.md).
+TAI equality or physical output skew. Historical 300-second Slave-only captures
+were all time-valid in every row but ended 2–273 ms short of the required
+sample-to-sample span. The closest was the proven /2-acquisition + /12-tracking
+image: 959/959 valid rows over 299,998 ms. The current repeat uses that exact
+candidate and a 303,000-ms capture request; no additional controller change is
+planned. See the
+[current experiment plan](EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/PLAN.md).
 
 The previous pointwise dashboard-equivalent phase gate is historical evidence,
 not the current acceptance criterion.

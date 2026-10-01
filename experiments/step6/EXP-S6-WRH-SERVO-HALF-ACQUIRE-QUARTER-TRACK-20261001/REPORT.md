@@ -65,6 +65,13 @@ with the `/4` tracking baseline and the full acceptance reader.
   had Step 1/link and all five lock registers high, state
   `WAIT_OFFSET_STABLE`, CKO `+925 ps`, `TIME_VALID=0`, and `PPS_VALID=0`.
   The dashboard reported `LOCK_ACQUIRED_NOT_STABLE`.
+- The readiness log contains 51 host polls from 7 through 607 seconds; every
+  poll kept Step 1/link and the five lock flags high while Global Time remained
+  invalid and the result remained `LOCK_ACQUIRED_NOT_STABLE`. These poll lines
+  do not carry per-sample CKO/SETP/DMS/state measurements, so they establish
+  persistent readiness status, not an offset trajectory. The initial CKO is
+  from the separate post-program snapshot; the final `+925 ps` is the only CKO
+  reported by the bounded-wait dashboard.
 - No 15-second interleaved smoke or 300-second acceptance capture was run.
   Therefore these endpoint observations do not prove a stable trend or a
   causal mechanism; `STABLE_OFFSET_300S=NOT_ESTABLISHED` and Step 6 remains

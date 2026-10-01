@@ -62,6 +62,7 @@ class TimeValidRepeatTests(unittest.TestCase):
         self.assertIn("verify_build_info()", capture)
         self.assertIn('grep -Fx "QSF_SHA256=$project_qsf"', capture)
         self.assertIn('grep -Fx "MIF_SHA256=$mif_hash"', capture)
+        self.assertIn("grep -q '^FITTER_STATUS=Fitter Status : Successful'", capture)
         self.assertIn('grep -Fxc "$sof_hash  $sof_path"', capture)
         self.assertNotIn("EXPECTED_SLAVE=", capture)
         self.assertNotIn("EXPECTED_MASTER=", capture)

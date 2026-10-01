@@ -61,7 +61,7 @@ verify_build_info() {
   grep -Fx "SDC_SHA256=$EXPECTED_SDC" "$info_file" >/dev/null || fail "SDC differs in $info_file"
   grep -Fx "QUARTUS_VERSION=$EXPECTED_QUARTUS_VERSION" "$info_file" >/dev/null || fail "Quartus version differs in $info_file"
   grep -Fx "MIF_SHA256=$mif_hash" "$info_file" >/dev/null || fail "firmware MIF differs in $info_file"
-  grep -Fx 'FITTER_STATUS=Fitter Status : Successful' "$info_file" >/dev/null || fail "Fitter did not succeed in $info_file"
+  grep -q '^FITTER_STATUS=Fitter Status : Successful' "$info_file" || fail "Fitter did not succeed in $info_file"
   grep -Fx 'COMPILE_RESULT=Full Compilation was successful' "$info_file" >/dev/null || fail "full compilation did not succeed in $info_file"
   sof_hash=$(sed -n 's/^SOF_SHA256=//p' "$info_file")
   test -n "$sof_hash" || fail "SOF hash is missing in $info_file"

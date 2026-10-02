@@ -7,15 +7,18 @@ This repository develops and records the two-board White Rabbit system on Terasi
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003`.
 Current source restores normal /2 acquisition + /12 tracking and adds a passive
-same-update four-timestamp/RTT RAM history. Fresh build/program is pending;
-retained output is the preceding fixed-setpoint diagnostic, NOT this source.
-Do not program stale output as this new candidate. See the
-[plan](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/PLAN.md).
+same-update four-timestamp/RTT RAM history. Fresh two-board build/program from
+`4e0c2324095c8644dac7fb5426f69de0eadb392c` completed; root output contains those
+actual diagnostic SOFs, NOT a strict300s PASS milestone. All16consecutive
+timestamp records passed identities. Action-free ~8.2ns return-leg jumps
+correspond to ~4.2ns CKO jumps. The120s acquisition observation reached<60ps,
+but qualified hold was only2102ms; postflight did not satisfy the extension
+gate. See the [completed report](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/REPORT.md).
 The preceding completed fixed-setpoint diagnostic had fresh
 two-board builds and one Slave→Master programming pair succeeded from
-`fbd8febf3eab38e6d2734f859d911f1e6b10365f`; root `output/` holds those SOFs.
-First strict entry freezes WR setpoint, but >120ps still revokes Slave time.
-No automatic re-enable after an excursion in the diagnostic boot. This is NOT
+`fbd8febf3eab38e6d2734f859d911f1e6b10365f`; those products are now superseded.
+In that previous diagnostic, first strict entry froze WR setpoint, but >120ps
+still revoked Slave time, without automatic re-enable in that boot. This was NOT
 a production PASS image. Late-entry read-only capture found CKO/DMS jumps near
 4ns with unchanged WR phase-write/init counts and SETP; 38 fresh updates did
 not meet the preset 40-update diagnostic gate. Strict 300s remains
@@ -244,29 +247,27 @@ not the inter-board White Rabbit packet link.
 
 Use Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware
 toolchain recorded in the experiment provenance. From the repository root on
-Pain, build firmware, then clean-compile each canonical Quartus project:
+Pain, use the pinned current-root wrappers to build firmware and clean-compile
+both canonical Quartus projects (including retained-output export):
 
 ```sh
-bash firmware/scripts/build_master_firmware.sh
-bash scripts/build/build_master.sh
-bash firmware/scripts/build_slave_firmware.sh
-bash scripts/build/build_slave.sh
+bash scripts/build/build_current.sh
+bash scripts/build/compile_current.sh
 ```
 
 `QUARTUS_BIN` may be set to the installed Quartus `bin` directory; the default
 is `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`. Then program the matching JTAG
-images (use the programming order required by the experiment or milestone):
+images with source/MIF/SOF checks and the current experiment's programming order:
 
 ```sh
-CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
-CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
+bash scripts/program/program_current.sh
 ```
 
 The freshly built current-development SOFs are:
 
 ```text
-Master: quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof
-Slave:  quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof
+Master: output/DE5a_wr_master_jtag.sof
+Slave:  output/DE5a_wr_slave_jtag.sof
 ```
 
 These are not frozen milestone binaries. For a validated checkpoint, use the
@@ -289,9 +290,11 @@ when deliberately requesting a one-shot readiness gate. On an invalid Slave
 Global-Time gate, the panel also shows the WR PTP servo state and signed phase
 offset. In `WAIT_OFFSET_STABLE`, the firmware withholds timing output until
 the offset is below its source-defined 60 ps threshold; that is how firmware
-first asserts TIME_VALID, not a requirement to keep the offset in-band for the
-revised 300-second hold. The current acceptance is the exported status bit as
-defined above.
+first asserts TIME_VALID. The historical frozen milestone checked a300-second
+TIME_VALID-only hold. The CURRENT root instead requires fresh strict<60ps
+acquisition, then inclusive+/-120ps retention with live invalidation outside
+that band, plus300seconds of qualified fresh offset/time/Master-health samples.
+The exported status bit or dashboard alone cannot establish this stricter gate.
 
 ## Source and evidence policy
 

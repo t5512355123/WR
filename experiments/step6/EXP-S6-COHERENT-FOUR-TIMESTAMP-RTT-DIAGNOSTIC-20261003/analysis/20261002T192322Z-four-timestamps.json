@@ -1,0 +1,104 @@
+{
+  "verdict": "PASS_COHERENT_TIMESTAMP_DATA_ONLY",
+  "records": 16,
+  "consecutive_pairs": 15,
+  "snapshot": "00000001",
+  "ranges_ps": {
+    "cko": [
+      -2016.510009765625,
+      3731.4910888671875
+    ],
+    "dms": [
+      173562.5,
+      177908.4930419922
+    ],
+    "raw_rtt": [
+      350324.9816894531,
+      359016.98303222656
+    ],
+    "rtt": [
+      347125.0,
+      355817.00134277344
+    ],
+    "raw_forward": [
+      175910.99548339844,
+      178320.9991455078
+    ],
+    "raw_return": [
+      172686.99645996094,
+      181890.9912109375
+    ],
+    "forward": [
+      173511.00158691406,
+      175921.00524902344
+    ],
+    "return": [
+      171887.0086669922,
+      181091.00341796875
+    ],
+    "asym": [
+      0.0,
+      0.0
+    ]
+  },
+  "states": {
+    "5": 11,
+    "4": 5
+  },
+  "large_cko_transition_pairs": [
+    {
+      "from_ucnt": 189,
+      "to_ucnt": 190,
+      "cko_delta_ps": 3697.998046875,
+      "dms_delta_ps": 3291.0003662109375,
+      "raw_forward_delta_ps": -406.9976806640625,
+      "raw_return_delta_ps": 6988.9984130859375,
+      "raw_rtt_delta_ps": 6582.000732421875,
+      "asym_delta_ps": 0.0,
+      "fixed_deltas_changed": false,
+      "setp_before_delta_ps": 0,
+      "setp_previous_action_ps": 0
+    },
+    {
+      "from_ucnt": 190,
+      "to_ucnt": 191,
+      "cko_delta_ps": -1445.9991455078125,
+      "dms_delta_ps": 548.004150390625,
+      "raw_forward_delta_ps": 1994.0032958984375,
+      "raw_return_delta_ps": -897.003173828125,
+      "raw_rtt_delta_ps": 1097.0001220703125,
+      "asym_delta_ps": 0.0,
+      "fixed_deltas_changed": false,
+      "setp_before_delta_ps": 1865,
+      "setp_previous_action_ps": 1865
+    },
+    {
+      "from_ucnt": 192,
+      "to_ucnt": 193,
+      "cko_delta_ps": -4221.00830078125,
+      "dms_delta_ps": -3940.9942626953125,
+      "raw_forward_delta_ps": 280.0140380859375,
+      "raw_return_delta_ps": -8162.994384765625,
+      "raw_rtt_delta_ps": -7882.9803466796875,
+      "asym_delta_ps": 0.0,
+      "fixed_deltas_changed": false,
+      "setp_before_delta_ps": 0,
+      "setp_previous_action_ps": 0
+    },
+    {
+      "from_ucnt": 193,
+      "to_ucnt": 194,
+      "cko_delta_ps": 4297.0123291015625,
+      "dms_delta_ps": 3973.9990234375,
+      "raw_forward_delta_ps": -323.0133056640625,
+      "raw_return_delta_ps": 8272.003173828125,
+      "raw_rtt_delta_ps": 7948.9898681640625,
+      "asym_delta_ps": 0.0,
+      "fixed_deltas_changed": false,
+      "setp_before_delta_ps": 0,
+      "setp_previous_action_ps": 0
+    }
+  ],
+  "errors": [],
+  "scope": "One producer snapshot of pre-control stamps/math with pre/post action state/SETP. Not raw OOB, physical skew, causality, uninterrupted history or strict300s PASS."
+}

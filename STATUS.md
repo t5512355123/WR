@@ -3,13 +3,20 @@
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
 Active experiment: EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003.
 Current root restores normal feedback and adds a passive coherent T1..T4/RTT
-producer RAM history. Fresh native tests/build/program pending. Retained output
-is the preceding fixed-setpoint diagnostic, not the modified source below.
+producer RAM history. Native tests, fresh full compile and one programming pair
+completed from `4e0c2324095c8644dac7fb5426f69de0eadb392c`. Root output is THIS
+normal-feedback diagnostic, not a strict PASS image. All16same-source records
+passed full timestamp/RTT/CKO identities. With phase action absent, ~8.2ns return
+jumps correspond to ~4.2ns CKO jumps; timestamp provenance is the next boundary.
+The120s acquisition had13fresh<60ps entries, longest qualified hold2102ms.
+Postflight retained both links/all Slave locks and Master validity, but Slave
+CKO−2866..+2737ps, no qualified hold. Strict300s remains NOT_ESTABLISHED.
+See the [completed TS4 report](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/REPORT.md).
 The preceding main-root intervention froze WR setpoint after first<60ps entry,
 retaining strict >120ps invalidation, no automatic re-enable in that boot.
 Native baseline/fixed C tests passed; both fresh compiles and one programming
 pair completed from `fbd8febf3eab38e6d2734f859d911f1e6b10365f`.
-Root output is this diagnostic, NOT a production PASS milestone. Late freeze
+Those previous fixed-setpoint products are now superseded. Late freeze
 was confirmed; exact entry CKO was not sampled. The 60s capture had 38 fresh
 matched updates, below preset40: diagnostic INCONCLUSIVE. CKO -375..+3731ps,
 DMS176621..180942ps, SETP=-4719 and WR phase-write/init counts unchanged;
@@ -25,7 +32,7 @@ The new firmware revokes Slave validity outside +/-120 ps and reacquires only
 inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
 revision 2 passed 35 actual-C cases and fresh two-board compile/program from
 `4ba9df5935fc0a6afae2c7bd29603f190936e627`. These preceding candidate images
-have been superseded by the RXTS then fixed-SETP products, NOT historical PASS images. Master validity is restored;
+have been superseded by RXTS, fixed-SETP, then normal-feedback TS4 products, NOT historical PASS images. Master validity is restored;
 the completed 660 s capture had 1882 Slave rows (1849 trusted), CKO
 -3158..+3839 ps, no <60 ps row, and zero qualified hold. All 496 sampled Master
 health rows were valid; Slave TIME_VALID remained 0. No reset/transport errors.

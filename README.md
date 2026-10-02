@@ -11,6 +11,9 @@ Slave then Master, and sampled each board for more than 300 seconds.
 All four windows had 1192/1192 TIME_VALID rows; no invalid rows or transport
 errors. The two cycles used identical 3110 production inputs and firmware MIFs.
 See the [qualification report](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md).
+The frozen Step6 package also passed a new full independent-directory
+build/compile/program reproduction: Master/Slave 1192/1192 valid rows over
+302952/302872 ms. See the [standalone rebuild report](experiments/step6/EXP-S6-MILESTONE-STANDALONE-FRESH-REBUILD-TIME-VALID-300S-20261002/REPORT.md).
 
 The production change is Master `HPLL_TRACKER_CODE_PER_PHYSICAL_STEP` 34 → 64;
 Master bootstrap remains 2048, Slave control remains `/2 acquisition + /12 tracking`.

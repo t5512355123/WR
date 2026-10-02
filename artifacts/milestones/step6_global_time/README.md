@@ -1,6 +1,9 @@
 # Step6 milestone — two complete root reproductions
 
 **PASS_TWO_INDEPENDENT_ROOT_CYCLES**, qualified 2026-10-02.
+Also **PASS_FRESH_STANDALONE_MILESTONE_REPRODUCTION** after a new full
+build/compile/program/capture run from this package at 20:03–20:34.
+See [standalone rebuild verification](STANDALONE-REBUILD-VERIFICATION.md).
 This directory contains **one** operational Step6 version, not a mixture of
 old source and a newer `current/` tree. Root-level SOFs, archived output/SOFs
 and current main-root output are the actual second-cycle pair.

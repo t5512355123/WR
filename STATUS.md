@@ -1,6 +1,10 @@
 # Current status
 
 **Current Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
+The frozen milestone additionally passed fresh standalone build/compile/program
+at 20:03–20:34: 1192/1192 valid samples per board, Master/Slave spans
+302952/302872 ms, no invalid rows or transport errors. See the
+[standalone report](experiments/step6/EXP-S6-MILESTONE-STANDALONE-FRESH-REBUILD-TIME-VALID-300S-20261002/REPORT.md).
 Experiment: EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002.
 Only Master HPLL physical-step accounting changed 34 → 64; Master bootstrap
 2048 and Slave `/2 + /12` firmware stayed unchanged. Both root cycles completed

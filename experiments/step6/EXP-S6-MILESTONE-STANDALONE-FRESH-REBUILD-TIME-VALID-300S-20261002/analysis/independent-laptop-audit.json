@@ -1,0 +1,93 @@
+{
+  "end": "2026-10-02T20:34:23+08:00",
+  "frozen_archive_unchanged": true,
+  "images": {
+    "master": {
+      "mif_sha256": "18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea",
+      "sof_sha256": "5ac122d17959199f0a6a73c4b6e744f054a44f3bc5cff7fc9e5290752d8a6351"
+    },
+    "slave": {
+      "mif_sha256": "91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379",
+      "sof_sha256": "35db78d9d8bf969f91a9049e2592d921827c41d9dbe86a65c943e73c4fa33ac4"
+    }
+  },
+  "production_input_count": 3110,
+  "root": "/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source",
+  "source_commit": "6f298267cf578d051689db451f1b856b380ad1f6",
+  "start": "2026-10-02T20:03:23+08:00",
+  "time_valid": {
+    "acceptance_signal": "STATUS_TIME_VALID",
+    "boards": {
+      "1-11.1": {
+        "board_id": "1-11.1",
+        "board_identity_valid": true,
+        "capture_complete": true,
+        "capture_elapsed_ms": 303206,
+        "done_records": [
+          "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1192 elapsed_ms=303206"
+        ],
+        "done_sample_count_matches": true,
+        "first_invalid_rows": [],
+        "gap_limit_ms": 1000,
+        "invalid_row_count": 0,
+        "live_time_monotonic": true,
+        "max_sample_gap_ms": 257,
+        "minimum_samples": 301,
+        "observed_sample_span_ms": 302952,
+        "pps_valid_rows": 1192,
+        "requested_duration_ms": 303000,
+        "required_duration_ms": 300000,
+        "sample_rows": 1192,
+        "sample_sequence_ok": true,
+        "snapshot_time_valid_rows": 1192,
+        "snapshot_valid_rows": 1192,
+        "step1_link_ready_rows": 1192,
+        "time_valid_rows": 1192,
+        "verdict": "PASS_TIME_VALID_300S"
+      },
+      "1-11.2": {
+        "board_id": "1-11.2",
+        "board_identity_valid": true,
+        "capture_complete": true,
+        "capture_elapsed_ms": 303126,
+        "done_records": [
+          "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1192 elapsed_ms=303126"
+        ],
+        "done_sample_count_matches": true,
+        "first_invalid_rows": [],
+        "gap_limit_ms": 1000,
+        "invalid_row_count": 0,
+        "live_time_monotonic": true,
+        "max_sample_gap_ms": 256,
+        "minimum_samples": 301,
+        "observed_sample_span_ms": 302872,
+        "pps_valid_rows": 1192,
+        "requested_duration_ms": 303000,
+        "required_duration_ms": 300000,
+        "sample_rows": 1192,
+        "sample_sequence_ok": true,
+        "snapshot_time_valid_rows": 1192,
+        "snapshot_valid_rows": 1192,
+        "step1_link_ready_rows": 1192,
+        "time_valid_rows": 1192,
+        "verdict": "PASS_TIME_VALID_300S"
+      }
+    },
+    "boards_observed_sequentially": true,
+    "capture_complete": true,
+    "capture_errors": [],
+    "discovered_boards": [
+      "1-11.1",
+      "1-11.2"
+    ],
+    "requested_duration_ms": 303000,
+    "required_boards": [
+      "1-11.1",
+      "1-11.2"
+    ],
+    "required_duration_ms": 300000,
+    "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+    "verdict": "PASS_TIME_VALID_300S"
+  },
+  "verdict": "PASS_FRESH_STANDALONE_MILESTONE_REPRODUCTION"
+}

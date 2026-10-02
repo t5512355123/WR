@@ -1,0 +1,12 @@
+ALL_3110_MAIN_VS_FROZEN_COMPILE_INPUTS_IDENTICAL=1
+54950148ab09c0a5367f9779e59eaf993fcbef66877b8e7e461d642f8c7e2598  ../source.tar.gz
+9f66cef3f06697085325916126e6da61d76ace7138e7203af068df1a69d30036  ../master.sof
+b92e3356580691814e113e8c3278f1044bee621e2808d207541c9efc3ba59727  ../slave.sof
+5ac122d17959199f0a6a73c4b6e744f054a44f3bc5cff7fc9e5290752d8a6351  output/DE5a_wr_master_jtag.sof
+35db78d9d8bf969f91a9049e2592d921827c41d9dbe86a65c943e73c4fa33ac4  output/DE5a_wr_slave_jtag.sof
+/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source
+6f298267cf578d051689db451f1b856b380ad1f6
+POST_BUILD_PRODUCTION_HASHES=PASS
+source.tar.gz: OK
+master.sof: OK
+slave.sof: OK

@@ -1,0 +1,90 @@
+TIME_VALID_WAIT elapsed_s=3/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-0.log
+TIME_VALID_WAIT elapsed_s=16/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-13.log
+TIME_VALID_WAIT elapsed_s=29/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-26.log
+TIME_VALID_WAIT elapsed_s=41/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-39.log
+TIME_VALID_WAIT elapsed_s=54/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-51.log
+TIME_VALID_WAIT elapsed_s=67/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-64.log
+TIME_VALID_WAIT elapsed_s=80/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-77.log
+TIME_VALID_WAIT elapsed_s=93/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-90.log
+TIME_VALID_WAIT elapsed_s=105/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-103.log
+TIME_VALID_WAIT elapsed_s=118/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-115.log
+TIME_VALID_WAIT elapsed_s=131/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-128.log
+TIME_VALID_WAIT elapsed_s=144/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-141.log
+TIME_VALID_WAIT elapsed_s=157/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-154.log
+TIME_VALID_WAIT elapsed_s=169/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-ready-167.log
+TIME_VALID_CAPTURE_PATH=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T122056Z-current-time-valid-303s.log
+TIME_VALID_RESULT_PATH=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/analysis/20261002T122056Z-current-time-valid-300s.json
+{
+  "acceptance_signal": "STATUS_TIME_VALID",
+  "boards": {
+    "1-11.1": {
+      "board_id": "1-11.1",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303206,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1192 elapsed_ms=303206"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 257,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302952,
+      "pps_valid_rows": 1192,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1192,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1192,
+      "snapshot_valid_rows": 1192,
+      "step1_link_ready_rows": 1192,
+      "time_valid_rows": 1192,
+      "verdict": "PASS_TIME_VALID_300S"
+    },
+    "1-11.2": {
+      "board_id": "1-11.2",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303126,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1192 elapsed_ms=303126"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 256,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302872,
+      "pps_valid_rows": 1192,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1192,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1192,
+      "snapshot_valid_rows": 1192,
+      "step1_link_ready_rows": 1192,
+      "time_valid_rows": 1192,
+      "verdict": "PASS_TIME_VALID_300S"
+    }
+  },
+  "boards_observed_sequentially": true,
+  "capture_complete": true,
+  "capture_errors": [],
+  "discovered_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "requested_duration_ms": 303000,
+  "required_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "required_duration_ms": 300000,
+  "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+  "verdict": "PASS_TIME_VALID_300S"
+}

@@ -1,6 +1,7 @@
 # Current status
 
 - Branch: feat/file_cleanup.
+- Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
 - Canonical implementation: the two DE5a JTAG projects, with QSFP-A lane 0 as the fixed White Rabbit link.
 - Step 1 PHY/link: PASS, independently rebuilt, programmed, and runtime-validated.
 - Step 2 Endpoint/MiniNIC/PTP: PASS, independently rebuilt, programmed, and runtime-validated.

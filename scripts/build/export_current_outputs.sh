@@ -2,6 +2,14 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "$ROOT/scripts/build/current_experiment.env"
+COMPILED_COMMIT=$(sed -n 's/^GIT_COMMIT=//p' "$ROOT/build/build_info_master.txt")
+git -C "$ROOT" cat-file -e "$COMPILED_COMMIT^{commit}"
+grep -Fx "GIT_COMMIT=$COMPILED_COMMIT" "$ROOT/build/build_info_slave.txt" > /dev/null
+# Export may be repeated after documentation changes, but never after changing
+# any firmware, HDL, generated-IP or Quartus input used by the compiler.
+git -C "$ROOT" diff --quiet "$COMPILED_COMMIT" -- firmware vendor quartus quartus_generated || {
+  echo 'Compile inputs changed; rebuild both boards before exporting.' >&2; exit 2;
+}
 mkdir -p "$ROOT/output"
 for role in master slave; do
   sof="$ROOT/quartus/output_files_${role}_jtag/DE5a_wr_${role}_jtag.sof"

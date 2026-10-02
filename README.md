@@ -4,7 +4,7 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
-The root source is the successful `EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001` controller (acquisition `/2`, tracking `/12`). Only `artifacts/milestones/` contains complete historical source snapshots; `experiments/` retains historical procedures, evidence and reports, not the current build entrypoint. No temporary historical checkout or experiment patch is needed to build the root source.
+The root source is the successful `EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001` controller (acquisition `/2`, tracking `/12`). On 2026-10-02 it was freshly built/programmed from the root: both boards passed sampled TIME_VALID for >300 s (Master 302.868 s, Slave 302.813 s, 1190/1190 valid each). Only `artifacts/milestones/` contains complete historical operational source snapshots; `experiments/` retains historical procedures, evidence and archive records, not the current build entrypoint. No temporary historical checkout or experiment patch is needed to build the root source.
 
 Run on Pain from `/home/b10504072/04_WR`:
 
@@ -63,7 +63,7 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints; Step 5 held all required Slave locks for its 300-second acceptance window. The historical Step 6 work validated Global Time, common PPS labels, and repeated dual-board scheduled digital triggers. On 2026-10-01 the current Step 6 acceptance was revised to require both DE5a boards to keep exported `STATUS_TIME_VALID=1` throughout separate sampled windows of at least 300 seconds. Phase offset, snapshot/PPS flags, Step 1/link, Step 5 locks, and timing closure are not gates. Historical Slave captures under several candidates held STATUS_TIME_VALID for every sampled row but missed the required sample span by 2–273 ms; the closest was the proven /2-acquire + /12-track image at 299,998 ms. The active experiment repeats that exact image and extends the capture to 303 seconds. See [STATUS.md](STATUS.md), [MILESTONES.md](MILESTONES.md), and the [current experiment plan](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/PLAN.md).
+Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. The historical Step6 milestone covers Global Time, common PPS labels and scheduled digital triggers. The current root `/2 acquisition + /12 tracking` version additionally passed the revised two-board 300-second sampled `STATUS_TIME_VALID` criterion in repeated runs, including a fresh root build/program on 2026-10-02. The current retained SOFs are in `output/`; the six historical milestone packages stay in `artifacts/milestones/`. Timing closure, phase-offset bounds and physical SMA skew are not gates for this revised TIME_VALID test. See [STATUS.md](STATUS.md) and the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
 
 ## Reproduce the validated Step 2 checkpoint
 

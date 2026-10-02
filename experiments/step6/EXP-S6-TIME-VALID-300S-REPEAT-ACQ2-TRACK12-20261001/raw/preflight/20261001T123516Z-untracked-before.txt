@@ -1,0 +1,2 @@
+experiments/step6/EXP-S6-PRETRACK-UCNT-PAIRED-CKO-SETP-20261001/raw/observe/20261001T040923Z-pretrack-ucnt-paired.log
+experiments/step6/EXP-S6-PRETRACK-UCNT-PAIRED-CKO-SETP-20261001/raw/observe/20261001T040923Z-pretrack-ucnt-paired.log.sha256

@@ -18,7 +18,7 @@ class FixedAnalysisTests(unittest.TestCase):
             if changed: after=after.replace(changed.split(':')[0],changed.split(':')[1])
             for name,text in [('before',before),('after',after)]:
                 (d/name).write_text('STEP6_VUART_QUERY_RESULT board=slave status=OK reply_hex='+text.encode().hex()+'\nSTEP6_VUART_POSTFLIGHT reset_changed=0\n')
-            rows=[row(n,200,time_valid=0)+' SETP_RAW=00000064 DMS_HI=00000000 DMS_LO=000186A0 SPLL_INIT=00000001'
+            rows=[row(n,200,time_valid=0)+f' SETP_RAW=00000064 SETP_UCNT={n:08X} SETP_EPOCH_BEFORE=00000001 SETP_EPOCH_AFTER=00000001 DMS_HI=00000000 DMS_LO=000186A0 DMS_UCNT={n:08X} DMS_EPOCH_BEFORE=00000002 DMS_EPOCH_AFTER=00000002 SPLL_INIT=00000001'
                   for n in range(30 if short else 61)]
             (d/'capture').write_text('\n'.join(rows)+'\nS6_STRICT_DONE timeout_count=0 invalid_count=0\n')
             return fixed.analyze(d/'capture',d/'before',d/'after')

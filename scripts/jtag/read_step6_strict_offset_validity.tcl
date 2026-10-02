@@ -23,7 +23,7 @@ proc strict_frame {} {
   # Counter is updated inside the WDIAGS invalid interval; CTRL before payload
   # and after the closing epoch are essential. Inverse mapping is checked in
   # the board preflight, outside this guarded frame (no invented raw).
-  set result [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
+  set result [concat [list 0] [lrepeat 15 INVALID]]
   set deadline [expr {[clock milliseconds]+600}]
   while {[clock milliseconds]<$deadline} {
     set e0 [wb_read 0x00100B34]
@@ -32,23 +32,43 @@ proc strict_frame {} {
     set u [wb_read 0x00100A48]
     set k [wb_read 0x00100A40]
     set s [wb_read 0x00100A08]
-    # Existing source-backed fields, inside the same primary publication guard.
-    set setp [wb_read 0x00100A44]
-    set dhi [wb_read 0x00100A34]
-    set dlo [wb_read 0x00100A38]
-    set init [wb_read 0x00100B44]
     set e1 [wb_read 0x00100B34]
     set c1 [wb_read 0x00100A04]
     set good [expr {[is_hex $e0] && [is_hex $e1] && [is_hex $u] &&
       [is_hex $k] && [is_hex $s] && [word32 $c1]>=0 &&
       ([word32 $c1]&1) && (([word32 $e0]^ [word32 $e1])&0xffff)==0}]
-    foreach raw [list $setp $dhi $dlo $init] {
-      if {![is_hex $raw]} { set good 0 }
+    set se0 INVALID; set se1 INVALID; set de0 INVALID; set de1 INVALID
+    set setp INVALID; set dhi INVALID; set dlo INVALID; set init INVALID
+    set su INVALID; set du INVALID
+    if {$good} {
+      # Primary frame stays the proven seven reads. Additional groups each
+      # have their own publication guard and join by actual servo UCNT.
+      # Equal UCNT proves the same serialized producer update, NOT one cycle.
+      lassign [strict_context {0x00100A48 0x00100A44}] sg se0 se1 su setp
+      lassign [strict_context {0x00100A48 0x00100A34 0x00100A38}] dg de0 de1 du dhi dlo
+      set init [wb_read 0x00100B44]
+      set good [expr {$sg && $dg && $su eq $u && $du eq $u && [is_hex $init]}]
     }
-    set result [list $good $e0 $e1 $u $k $s $setp $dhi $dlo $init]
+    set result [list $good $e0 $e1 $u $k $s $setp $dhi $dlo $init $se0 $se1 $de0 $de1 $su $du]
     if {$good} { return $result }
   }
   return $result
+}
+proc strict_context {addresses} {
+  set e0 [wb_read 0x00100B34]
+  set c0 [wb_read 0x00100A04]
+  set payload {}
+  set good [expr {[is_hex $e0] && [word32 $c0]>=0 && ([word32 $c0]&1)}]
+  foreach address $addresses {
+    set raw [wb_read $address]
+    lappend payload $raw
+    if {![is_hex $raw]} { set good 0 }
+  }
+  set e1 [wb_read 0x00100B34]
+  set c1 [wb_read 0x00100A04]
+  set good [expr {$good && [is_hex $e1] && [word32 $c1]>=0 &&
+    ([word32 $c1]&1) && (([word32 $e0]^ [word32 $e1])&0xffff)==0}]
+  return [concat [list $good $e0 $e1] $payload]
 }
 proc strict_master_health {hw device begin} {
   start_insystem_source_probe -hardware_name $hw -device_name $device
@@ -142,7 +162,7 @@ foreach hw [get_hardware_names] {
     set row_begin [clock milliseconds]
     set status0 [safe_probe_read 0]
     set escr0 [wb_read 0x0010031C]
-    lassign [strict_frame] frame_ok epoch0 epoch1 ucnt cko_raw sstat setp dhi dlo init
+    lassign [strict_frame] frame_ok epoch0 epoch1 ucnt cko_raw sstat setp dhi dlo init se0 se1 de0 de1 su du
     set helper [wb_read 0x00100ABC]
     set main [wb_read 0x00100AC4]
     set pstat [wb_read 0x00100A0C]
@@ -183,7 +203,7 @@ foreach hw [get_hardware_names] {
     set master_age [expr {$row_end-$master_end}]
     set trustworthy [expr {$reads_ok && $epoch_age<=1000 && !$reset_changed &&
       $master_good && !$master_changed && $master_age<=1500}]
-    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state SETP_RAW=$setp DMS_HI=$dhi DMS_LO=$dlo SPLL_INIT=$init STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed MASTER_HEALTH_VALID=$master_good MASTER_TIME_VALID=$master_time MASTER_LINK_GATE=$master_link MASTER_RESET_CHANGED=$master_changed MASTER_AGE_MS=$master_age"
+    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state SETP_RAW=$setp SETP_UCNT=$su SETP_EPOCH_BEFORE=$se0 SETP_EPOCH_AFTER=$se1 DMS_HI=$dhi DMS_LO=$dlo DMS_UCNT=$du DMS_EPOCH_BEFORE=$de0 DMS_EPOCH_AFTER=$de1 SPLL_INIT=$init STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed MASTER_HEALTH_VALID=$master_good MASTER_TIME_VALID=$master_time MASTER_LINK_GATE=$master_link MASTER_RESET_CHANGED=$master_changed MASTER_AGE_MS=$master_age"
     flush stdout
     if {$trustworthy} { set invalid_streak 0 } else { incr invalid_streak }
     if {$fixed_mode && $trustworthy} {

@@ -22,8 +22,10 @@ alone is therefore not PASS/validity evidence. No gain/calibration/RTL/SDC chang
 
 Passive counters/query: pll fixed reports latch/entry UCNT/WR phase writes/WR
 servo init count/frozen setpoint/revocation and actual SPLL init generation and
-current/target phase shift. Existing coherent WDIAGS frame also reads SETP,
-64-bit DMS and SPLL init count. No invented registers or bank switching.
+current/target phase shift. Existing coherent WDIAGS primary frame is joined
+to separately guarded SETP and64-bit DMS groups by identical actual UCNT.
+SPLL init is a separate passive guard, not a cycle-atomic payload field.
+No invented registers or bank switching.
 Console query before/after capture only; acknowledge its scheduling impact.
 
 ## Tests and hardware sequence

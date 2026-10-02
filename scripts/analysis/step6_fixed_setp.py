@@ -37,6 +37,13 @@ def analyze(trace,before,after):
         if not line.startswith('S6_STRICT_SAMPLE '): continue
         row=fields(line)
         if row.get('TRUSTWORTHY')!='1': continue
+        for group in ('SETP','DMS'):
+            if row.get(group+'_UCNT')!=row['UCNT']:
+                errors.append('unmatched '+group+' update')
+            try:
+                if (int(row[group+'_EPOCH_BEFORE'],16)&0xffff)!=(int(row[group+'_EPOCH_AFTER'],16)&0xffff):
+                    errors.append('torn '+group+' publication')
+            except (KeyError,ValueError): errors.append('missing '+group+' guard')
         if any(row.get(k)!='1' for k in ('FRAME_VALID','STEP1_GATE','LOCK_GATE',
               'MASTER_TIME_VALID','MASTER_LINK_GATE')): errors.append('health loss')
         if int(row['SERVO_STATE'])!=4: errors.append('state exit')

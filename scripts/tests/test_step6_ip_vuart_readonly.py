@@ -26,7 +26,7 @@ class Step6IpVuartObserverTests(unittest.TestCase):
     def test_calibration_mode_uses_only_fixed_read_only_commands(self):
         self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
                       self.observer)
-        self.assertIn('error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, or ram_read"', self.observer)
+        self.assertIn('error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, or ram_read"', self.observer)
         self.assertNotIn('"sfp match"', self.observer)
 
     def test_ram_read_cannot_send_a_write_value_or_mmio_address(self):
@@ -45,6 +45,8 @@ class Step6IpVuartObserverTests(unittest.TestCase):
 
     def test_pll_read_is_statistics_and_get_phase_only(self):
         self.assertIn('pll_read { set read_only_queries [list "pll stat" "pll gps 0"] }', self.observer)
+        self.assertIn('pll_read_both { set read_only_queries [list "pll stat" "pll gps 0"] }', self.observer)
+        self.assertIn('$query_mode eq "pll_read_both" && [string match "*1-11.1*" $hardware_name]', self.observer)
         pll = (ROOT / 'vendor/wrpc-sw/shell/cmd_pll.c').read_text(encoding='utf-8')
         stat = pll.split('case CMD_STAT:', 1)[1].split('case CMD_SPS:', 1)[0]
         gps = pll.split('case CMD_GPS:', 1)[1].split('case CMD_START:', 1)[0]

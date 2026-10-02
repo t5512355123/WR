@@ -40,6 +40,14 @@ class CurrentSourceTests(unittest.TestCase):
                 self.assertEqual(expected.count(old), 1)
                 expected = expected.replace(old, new)
                 expected = expected.replace(
+                    '      STEP5_BOOTSTRAP_REVERSE => 1,\n',
+                    '      STEP5_BOOTSTRAP_REVERSE => 1,\n'
+                    '      -- Repeatability candidate: the Master with the inherited 34-code\n'
+                    '      -- account alternated between both PI rails while the 64-code Slave\n'
+                    '      -- remained locked. Test the same physical-step account on the Master;\n'
+                    '      -- bootstrap origin, PI and firmware validity decisions stay unchanged.\n'
+                    '      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,\n')
+                expected = expected.replace(
                     '      STEP5_BOOTSTRAP_STEPS : integer := 6336;\n',
                     '      STEP5_BOOTSTRAP_STEPS : integer := 6336;\n'
                     '      STEP5_BOOTSTRAP_REVERSE : integer := 0;\n')

@@ -1,4 +1,6 @@
 * text=auto eol=lf
+experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/analysis/** -text -eol -diff -whitespace
 artifacts/milestones/step6_global_time/current-source.tar.gz -text -eol
 
 /.gitattributes text eol=lf

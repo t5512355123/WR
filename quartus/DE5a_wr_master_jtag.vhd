@@ -1859,6 +1859,11 @@ begin
       ENABLE_STEP5_BOOTSTRAP => 1,
       STEP5_BOOTSTRAP_STEPS => 2048,
       STEP5_BOOTSTRAP_REVERSE => 1,
+      -- Repeatability candidate: the Master with the inherited 34-code
+      -- account alternated between both PI rails while the 64-code Slave
+      -- remained locked. Test the same physical-step account on the Master;
+      -- bootstrap origin, PI and firmware validity decisions stay unchanged.
+      HPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 64,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

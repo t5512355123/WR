@@ -15,6 +15,7 @@
 #include "shell.h"
 #include "dev/rxts_calibrator.h"
 #include "rxts-diag.h"
+#include "wrh-fixed-diag.h"
 
 #define CMD_INIT 0
 #define CMD_CL 1
@@ -27,6 +28,7 @@
 #define CMD_GDAC 8
 #define CMD_GAIN 9
 #define CMD_RXTS 10
+#define CMD_FIXED 11
 
 
 
@@ -43,7 +45,8 @@ static const char * const pll_menu[] =
 	[CMD_SDAC] = "sdac",
 	[CMD_GDAC] = "gdac",
 	[CMD_GAIN] = "gain",
-	[CMD_RXTS] = "rxts"
+	[CMD_RXTS] = "rxts",
+	[CMD_FIXED] = "fixed"
 };
 
 /* Number of arguments for the sub-commands.  Mind the order!  */
@@ -59,7 +62,8 @@ static const unsigned char nargs[] =
 	[CMD_SDAC] = 2,
 	[CMD_GDAC] = 1,
 	[CMD_GAIN] = 5,
-	[CMD_RXTS] = 1
+	[CMD_RXTS] = 1,
+	[CMD_FIXED] = 0
 };
 
 static int cmd_pll(const char *args[])
@@ -81,6 +85,21 @@ static int cmd_pll(const char *args[])
 		return -EINVAL;
 
 	switch (icmd) {
+	case CMD_FIXED:
+	{
+		struct wrh_fixed_diag d;
+		int32_t current, target;
+		/* Main-loop RAM copy before console output; no control writes. */
+		wrh_fixed_diag_get(&d);
+		spll_get_phase_shift(0, &current, &target);
+		pp_printf("FIXED_V1 enabled=%u latched=%u entry=%u writes=%u "
+			  "inits=%u revoked=%u setp=%d spll_init=%u "
+			  "current=%d target=%d\n", d.enabled, d.latched,
+			  d.entry_update, d.phase_writes, d.servo_inits,
+			  d.revoked, (int)d.frozen_setpoint,
+			  wrpc_spll_init_count, (int)current, (int)target);
+		return 0;
+	}
 	case CMD_RXTS:
 		return rxts_diag_show_page((unsigned)vals[1]);
 	case CMD_INIT:

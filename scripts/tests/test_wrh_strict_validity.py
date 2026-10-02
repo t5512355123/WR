@@ -15,7 +15,7 @@ class StrictValidityTests(unittest.TestCase):
             self.skipTest("No native C compiler here; run run_wrh_strict_c.sh on Pain before firmware build")
         with tempfile.TemporaryDirectory() as out:
             exe = Path(out)/"servo-test"
-            subprocess.run([cc,"-std=gnu99","-fsanitize=undefined",
+            subprocess.run([cc,"-std=gnu99","-DWRH_FIXED_SETP_DIAGNOSTIC=0","-fsanitize=undefined",
                 "-fno-sanitize-recover=all","-I",str(ROOT/"scripts/tests/wrh_strict"),
                 str(ROOT/"scripts/tests/wrh_strict/servo_test.c"),"-o",str(exe)],check=True)
             result = subprocess.run([str(exe)],check=True,capture_output=True,text=True)
@@ -25,7 +25,7 @@ class StrictValidityTests(unittest.TestCase):
         text = SERVO.read_text()
         gate = text.index("s->offsetMS_ps > 2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD")
         self.assertLess(gate,text.index("if (!WRH_OPER()->adjust_in_progress())"))
-        self.assertLess(gate,text.index("if(wrh_tracking_enabled)"))
+        self.assertLess(gate,text.index("if(wrh_tracking_enabled && !FIXED_SETP)"))
         self.assertIn("s->offsetMS_ps < -2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD",text)
         self.assertNotIn("abs(pp_time_to_picos",text)
         self.assertNotIn("abs(s->offsetMS_ps)",text)

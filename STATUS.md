@@ -1,7 +1,11 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003.
+Active experiment: EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003.
+New main-root firmware intervention: freeze WR setpoint after first<60ps entry,
+retain strict >120ps invalidation, no automatic re-enable in that boot.
+Laptop contracts passed; fresh native/build/program/observation pending.
+Retained output is preceding RXTS hardware, not this modified source.
 Passive RX timestamp recorder in root: fresh build/program succeeded from
 `13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`; current output is this candidate.
 90s preflight reached <60ps but retained +/-120ps only2669ms; NOT300s PASS.

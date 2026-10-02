@@ -30,6 +30,10 @@ class StrictReaderTests(unittest.TestCase):
               0x00100A48 {return 00000001}
               0x00100A40 {return 0000003B}
               0x00100A08 {return 00000401}
+              0x00100A44 {return 00000064}
+              0x00100A34 {return 00000000}
+              0x00100A38 {return 000186A0}
+              0x00100B44 {return 00000001}
               0x00100ABC {return 00000001}
               0x00100AC4 {return 0000000E}
               0x00100A0C {return 00000002}

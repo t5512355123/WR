@@ -6,9 +6,11 @@ source [file join [file dirname [info script]] read_wb_runtime.tcl]
 set duration_ms 330000
 set sample_ms 250
 set board_filter "1-11.2"
+set fixed_mode 0
 if {[llength $argv]>0} { set duration_ms [expr {int([lindex $argv 0])}] }
 if {[llength $argv]>1} { set sample_ms [expr {int([lindex $argv 1])}] }
 if {[llength $argv]>2} { set board_filter [lindex $argv 2] }
+if {[llength $argv]>3} { set fixed_mode [expr {int([lindex $argv 3])}] }
 if {$duration_ms<=0 || $sample_ms<=0} { error "Positive duration/sample required" }
 proc strict_byte {raw shift} {
   if {![is_hex $raw]} { return INVALID }
@@ -21,7 +23,7 @@ proc strict_frame {} {
   # Counter is updated inside the WDIAGS invalid interval; CTRL before payload
   # and after the closing epoch are essential. Inverse mapping is checked in
   # the board preflight, outside this short seven-read frame (no invented raw).
-  set result [list 0 INVALID INVALID INVALID INVALID INVALID]
+  set result [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
   set deadline [expr {[clock milliseconds]+600}]
   while {[clock milliseconds]<$deadline} {
     set e0 [wb_read 0x00100B34]
@@ -30,12 +32,20 @@ proc strict_frame {} {
     set u [wb_read 0x00100A48]
     set k [wb_read 0x00100A40]
     set s [wb_read 0x00100A08]
+    # Existing source-backed fields, inside the same primary publication guard.
+    set setp [wb_read 0x00100A44]
+    set dhi [wb_read 0x00100A34]
+    set dlo [wb_read 0x00100A38]
+    set init [wb_read 0x00100B44]
     set e1 [wb_read 0x00100B34]
     set c1 [wb_read 0x00100A04]
     set good [expr {[is_hex $e0] && [is_hex $e1] && [is_hex $u] &&
       [is_hex $k] && [is_hex $s] && [word32 $c1]>=0 &&
       ([word32 $c1]&1) && (([word32 $e0]^ [word32 $e1])&0xffff)==0}]
-    set result [list $good $e0 $e1 $u $k $s]
+    foreach raw [list $setp $dhi $dlo $init] {
+      if {![is_hex $raw]} { set good 0 }
+    }
+    set result [list $good $e0 $e1 $u $k $s $setp $dhi $dlo $init]
     if {$good} { return $result }
   }
   return $result
@@ -114,6 +124,8 @@ foreach hw [get_hardware_names] {
   set prev_epoch -1
   set last_epoch_ms $begin
   set master_end 0
+  set fixed_setp ""
+  set fixed_init ""
   while {[clock milliseconds]-$begin<=$duration_ms} {
     # One reader/session only. Interleave Master health at <=1 s cadence;
     # explicitly bracket each board and never claim cross-board atomicity.
@@ -128,7 +140,7 @@ foreach hw [get_hardware_names] {
     set row_begin [clock milliseconds]
     set status0 [safe_probe_read 0]
     set escr0 [wb_read 0x0010031C]
-    lassign [strict_frame] frame_ok epoch0 epoch1 ucnt cko_raw sstat
+    lassign [strict_frame] frame_ok epoch0 epoch1 ucnt cko_raw sstat setp dhi dlo init
     set helper [wb_read 0x00100ABC]
     set main [wb_read 0x00100AC4]
     set pstat [wb_read 0x00100A0C]
@@ -169,9 +181,17 @@ foreach hw [get_hardware_names] {
     set master_age [expr {$row_end-$master_end}]
     set trustworthy [expr {$reads_ok && $epoch_age<=1000 && !$reset_changed &&
       $master_good && !$master_changed && $master_age<=1500}]
-    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed MASTER_HEALTH_VALID=$master_good MASTER_TIME_VALID=$master_time MASTER_LINK_GATE=$master_link MASTER_RESET_CHANGED=$master_changed MASTER_AGE_MS=$master_age"
+    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state SETP_RAW=$setp DMS_HI=$dhi DMS_LO=$dlo SPLL_INIT=$init STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed MASTER_HEALTH_VALID=$master_good MASTER_TIME_VALID=$master_time MASTER_LINK_GATE=$master_link MASTER_RESET_CHANGED=$master_changed MASTER_AGE_MS=$master_age"
     flush stdout
     if {$trustworthy} { set invalid_streak 0 } else { incr invalid_streak }
+    if {$fixed_mode && $trustworthy} {
+      if {$fixed_setp eq ""} { set fixed_setp $setp; set fixed_init $init }
+      if {$state!=4 || $setp ne $fixed_setp || $init ne $fixed_init ||
+          !$step1 || !$lock_ok || !$master_time || !$master_link} {
+        puts "S6_STRICT_STOP board={$hw} reason=fixed_diagnostic_invariant_or_health"
+        break
+      }
+    }
     if {$reset_changed || $master_changed || $invalid_streak>=5} {
       puts "S6_STRICT_STOP board={$hw} reason=reset_or_untrusted_data invalid_streak=$invalid_streak"
       break

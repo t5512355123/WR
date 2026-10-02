@@ -4,6 +4,7 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "$ROOT/scripts/build/current_experiment.env"
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 DURATION_MS=${DURATION_MS:-660000}
+FIXED_MODE=${FIXED_MODE:-0}
 if pgrep -x quartus_stp >/dev/null || pgrep -x quartus_pgm >/dev/null; then
   echo 'Stop the other JTAG reader/programmer first.' >&2; exit 2
 fi
@@ -20,7 +21,7 @@ echo "STRICT_RESULT_PATH=$RESULT"
 # This includes bounded acquisition and dwell. A timeout/ended reader is not PASS.
 set +e
 timeout --signal=INT --kill-after=5s "$((DURATION_MS/1000+60))s" "$QUARTUS_STP" -t \
-  scripts/jtag/read_step6_strict_offset_validity.tcl "$DURATION_MS" 250 1-11.2 > "$LOG" 2>&1
+  scripts/jtag/read_step6_strict_offset_validity.tcl "$DURATION_MS" 250 1-11.2 "$FIXED_MODE" > "$LOG" 2>&1
 CAPTURE_RC=$?
 set -e
 sha256sum "$LOG" > "$LOG.sha256"

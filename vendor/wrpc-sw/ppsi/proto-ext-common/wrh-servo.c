@@ -12,6 +12,7 @@
 #include "wrh-servo_state_name.h"
 #if CONFIG_ARCH_IS_WRPC
 #include "../arch-wrpc/wrpc.h"
+#include "../../include/wrh-fixed-diag.h"
 #endif
 
 #if CONFIG_ARCH_IS_WRS
@@ -27,6 +28,20 @@
 
 /* Enable tracking by default. Disabling the tracking is used for demos. */
 static int wrh_tracking_enabled = 1;
+
+#if CONFIG_ARCH_IS_WRPC
+/* Boot-lifetime diagnostic latch, independent of IPC. No init/reset clears it. */
+static struct wrh_fixed_diag fixed_diag = {
+	.enabled = WRH_FIXED_SETP_DIAGNOSTIC
+};
+void wrh_fixed_diag_get(struct wrh_fixed_diag *result)
+{
+	*result = fixed_diag;
+}
+#define FIXED_SETP (WRH_FIXED_SETP_DIAGNOSTIC && fixed_diag.latched)
+#else
+#define FIXED_SETP 0
+#endif
 
 /* prototypes */
 static int __wrh_servo_update(struct pp_instance *ppi);
@@ -60,6 +75,9 @@ int wrh_servo_init(struct pp_instance *ppi)
 	/* Reinitialization can itself write a phase setpoint. Revoke first. */
 	invalidate_slave_time(ppi);
 	pp_servo_init(ppi); // Initialize the standard servo data
+#if CONFIG_ARCH_IS_WRPC
+	fixed_diag.servo_inits++;
+#endif
 
 	/* shmem lock */
 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
@@ -75,12 +93,17 @@ int wrh_servo_init(struct pp_instance *ppi)
 	 * The softpll code uses the module anyways, but if we unplug-replug
 	 * the fiber it will always increase, so don't scare the user
 	 */
-	if (s->cur_setpoint_ps > s->clock_period_ps)
+	if (!FIXED_SETP && s->cur_setpoint_ps > s->clock_period_ps)
 		s->cur_setpoint_ps %= s->clock_period_ps;
 
 	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 
-	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+	if (!FIXED_SETP) {
+		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+#if CONFIG_ARCH_IS_WRPC
+		fixed_diag.phase_writes++;
+#endif
+	}
 
 	gs->flags |= PP_SERVO_FLAG_VALID;
 	TOPS(ppi)->get(ppi, &gs->update_time);
@@ -257,8 +280,18 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	 * Comparisons avoid abs(int64_t)->int truncation and INT64_MIN overflow. */
 	if (gs->state == WRH_TRACK_PHASE &&
 	    (s->offsetMS_ps > 2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD ||
-	     s->offsetMS_ps < -2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD))
-		setState(ppi, WRH_SYNC_PHASE);
+	     s->offsetMS_ps < -2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD)) {
+		if (FIXED_SETP) {
+			/* Continue measuring at fixed phase, but never preserve/re-enable
+			 * valid output after an excursion. This is NOT a PASS bypass. */
+			invalidate_slave_time(ppi);
+#if CONFIG_ARCH_IS_WRPC
+			fixed_diag.revoked = 1;
+#endif
+		} else {
+			setState(ppi, WRH_SYNC_PHASE);
+		}
+	}
 
 	/* After each action on the hardware, we must verify if it is over. */
 	if (!WRH_OPER()->adjust_in_progress()) {
@@ -308,12 +341,17 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	case WRH_SYNC_PHASE:
+		if (FIXED_SETP)
+			break; /* A coarse/reinit exit remains invalid; observer stops. */
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
 		s->cur_setpoint_ps += (offset_ps / 2);
 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+#if CONFIG_ARCH_IS_WRPC
+		fixed_diag.phase_writes++;
+#endif
 
 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
 		setState(ppi,WRH_WAIT_OFFSET_STABLE);
@@ -333,6 +371,8 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	case WRH_WAIT_OFFSET_STABLE:
+		if (FIXED_SETP)
+			break; /* One-shot qualification: no second VALID entry. */
 
 		/* Strict acquisition band: exactly +/-60 ps is not an entry. */
 		if (s->offsetMS_ps < WRH_SERVO_OFFSET_STABILITY_THRESHOLD &&
@@ -340,6 +380,14 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 			s->missed_iters = 0;
 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
 			s->prev_delayMS_ps = s->delayMS_ps;
+#if CONFIG_ARCH_IS_WRPC
+			if (WRH_FIXED_SETP_DIAGNOSTIC &&
+			    WRPC_ARCH_I(ppi)->timingMode == WRH_TM_BOUNDARY_CLOCK) {
+				fixed_diag.frozen_setpoint = s->cur_setpoint_ps;
+				fixed_diag.entry_update = gs->update_count;
+				fixed_diag.latched = 1;
+			}
+#endif
 			setState(ppi,WRH_TRACK_PHASE);
 		} else {
 			s->missed_iters++;
@@ -354,12 +402,15 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		s->skew_ps = s->delayMS_ps - s->prev_delayMS_ps;
 
 		/* Can be disabled for manually tweaking and testing */
-		if(wrh_tracking_enabled) {
+		if(wrh_tracking_enabled && !FIXED_SETP) {
 			// adjust phase towards offset = 0 make ck0 0
 			s->cur_setpoint_ps += (offset_ps / 12);
 
 			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+#if CONFIG_ARCH_IS_WRPC
+			fixed_diag.phase_writes++;
+#endif
 			pp_diag(ppi, time, 1, "adjust phase %i\n",
 				s->cur_setpoint_ps);
 

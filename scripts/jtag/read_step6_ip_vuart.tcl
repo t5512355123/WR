@@ -41,6 +41,7 @@ switch -- $query_mode {
     sfp_params { set read_only_queries [list "sfp params"] }
     sfp_live { set read_only_queries [list "sfp params live"] }
     pll_read { set read_only_queries [list "pll stat" "pll gps 0"] }
+    fixed_read { set read_only_queries [list "pll fixed"] }
     pll_read_both { set read_only_queries [list "pll stat" "pll gps 0"] }
     pll_recover_master { set read_only_queries [list "\x7f\x7fpll stat" "pll gps 0"] }
     ram_read {

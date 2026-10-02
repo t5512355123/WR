@@ -5,8 +5,14 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003`.
-Current source adds passive packet-specific timestamp RAM snapshots only;
+Active experiment: `EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003`.
+The main-root source now contains a bounded fixed-setpoint diagnostic; its
+fresh build/program is pending. Existing output below is the preceding RXTS
+image, NOT this changed firmware. Do not program it as the new candidate.
+First strict entry freezes WR setpoint, but >120ps still revokes Slave time.
+No automatic re-enable after an excursion in the diagnostic boot. See its
+[plan](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/PLAN.md).
+Preceding source added passive packet-specific timestamp RAM snapshots;
 both fresh compiles/programming completed. Root `output/` is this diagnostic
 source, actual compile commit `13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`.
 The90s preflight reached <60ps with a2669ms qualified span, not300s. Packet

@@ -29,4 +29,16 @@ sha256sum -c output/SHA256SUMS
 # Preserve actual compile identities, not the metadata-only export commit.
 sed -n 's/^GIT_COMMIT=//p' build/build_info_master.txt > output/SOURCE_COMMIT
 printf '%s\n' "$CURRENT_EXPERIMENT" > output/EXPERIMENT
+RECORD_BASE="$ROOT/experiments/step6/$CURRENT_EXPERIMENT/raw/build"
+mkdir -p "$RECORD_BASE"
+RECORD=$(mktemp -d "$RECORD_BASE/$(date -u +%Y%m%dT%H%M%SZ)-current.XXXXXX")
+for role in master slave; do
+  cp "$ROOT/build/build_info_${role}.txt" "$RECORD/$role-build-info.txt"
+  cp "$ROOT/build/quartus_${role}_compile.log" "$RECORD/$role-compile.log"
+  cp "$ROOT/build/firmware/$role/build.log" "$RECORD/$role-firmware.log"
+  cp "$ROOT/build/firmware/$role/build_hashes.sha256" "$RECORD/$role-firmware.sha256"
+done
+cp "$ROOT/output/SHA256SUMS" "$RECORD/sof.sha256"
+cp "$ROOT/output/SOURCE_COMMIT" "$RECORD/source-commit.txt"
+printf 'CURRENT_BUILD_RECORD=%s\n' "$RECORD"
 echo 'CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/'

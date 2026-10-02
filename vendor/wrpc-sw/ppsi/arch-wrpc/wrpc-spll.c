@@ -194,7 +194,11 @@ int wrpc_enable_timing_output(struct pp_globals *ppg, int enable)
 	if (enable != 2) {
 		pps_enable = enable;
 	}
-	shw_pps_gen_enable_output(pps_enable | GOPTS(ppg)->forcePpsGen);
+	/* Slave validity must be owned by the WR servo's acquisition/exit gate.
+	 * Keep the existing force-PPS behaviour for Master/GM only: a demo/IPC
+	 * force request must not turn failed Slave synchronization into VALID. */
+	shw_pps_gen_enable_output(pps_enable |
+		(wrc_ptp_get_mode() != WRC_MODE_SLAVE && GOPTS(ppg)->forcePpsGen));
 	return WRH_SPLL_OK;
 }
 

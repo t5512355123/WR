@@ -43,6 +43,8 @@ int wrh_servo_init(struct pp_instance *ppi)
 	struct pp_servo *gs=SRV(ppi);
 	int ret=0;
 
+	/* Reinitialization can itself write a phase setpoint. Revoke first. */
+	TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
 	pp_servo_init(ppi); // Initialize the standard servo data
 
 	/* shmem lock */
@@ -177,6 +179,11 @@ static void setState(struct pp_instance *ppi, int newState)
 {
 	struct pp_servo *gs=SRV(ppi);
 	const char *state_name = wrh_servo_state_name[newState];
+	/* Valid time is a live qualification, not a one-shot acquisition latch.
+	 * Invalidate before any coarse/phase reacquisition or reset operation. */
+	if (newState != WRH_TRACK_PHASE)
+		TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
+	gs->servo_locked = (newState == WRH_TRACK_PHASE);
 	pp_diag(ppi, servo, 1, "new state %s\n", state_name);
 	gs->state=newState;
 	gs->servo_state_name = state_name;
@@ -186,7 +193,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 {
 	struct pp_servo *gs=SRV(ppi);
 	wrh_servo_t *s=WRH_SRV(ppi);
-	int remaining_offset;
 	int32_t  offset_ticks;
 	int64_t prev_delayMM_ps = 0;
 	int locking_poll_ret;
@@ -195,14 +201,18 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	int32_t  offset_ps;
 
 	if ( gs->state==WRH_UNINITIALIZED ) {
+		TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
 		pp_error("%s : Servo not initialized !!!!\n",__FUNCTION__);
 		return 0;
 	}
 
 	prev_delayMM_ps = s->delayMM_ps;
 
-	if ( !pp_servo_calculate_delays(ppi) )
+	if ( !pp_servo_calculate_delays(ppi) ) {
+		/* No trustworthy measurement: reacquire rather than retain VALID. */
+		setState(ppi, WRH_SYNC_PHASE);
 		return 0;
+	}
 
 	s->delayMM_ps=pp_time_to_picos(&gs->delayMM);
 	s->delayMS_ps=pp_time_to_picos(&gs->delayMS);
@@ -214,15 +224,27 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	gs->update_count++;
 	TOPS(ppi)->get(ppi, &gs->update_time);
 
-	if (!s->readyForSync )
+	if (!s->readyForSync ) {
+		setState(ppi, WRH_SYNC_PHASE);
 		return 1; /* We have to wait before to start the synchronization */
+	}
 
 	locking_poll_ret = WRH_OPER()->locking_poll(ppi);
 	if (locking_poll_ret != WRH_SPLL_LOCKED ){
+		setState(ppi, WRH_SYNC_PHASE);
 		pp_error("%s: PLL error detected (Err=%d). Force restart.\n",__func__,locking_poll_ret);
 		s->doRestart = TRUE;
 		return 0;
 	}
+
+	/* Use the full signed 64-bit measured offset, not its wrapped residual.
+	 * This safety check must precede the hardware-busy early return and must
+	 * remain active even when IPC/demo tracking adjustments are disabled.
+	 * Comparisons avoid abs(int64_t)->int truncation and INT64_MIN overflow. */
+	if (gs->state == WRH_TRACK_PHASE &&
+	    (s->offsetMS_ps > 2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD ||
+	     s->offsetMS_ps < -2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD))
+		setState(ppi, WRH_SYNC_PHASE);
 
 	/* After each action on the hardware, we must verify if it is over. */
 	if (!WRH_OPER()->adjust_in_progress()) {
@@ -298,9 +320,10 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 
 	case WRH_WAIT_OFFSET_STABLE:
 
-		/* ts_to_picos() below returns phase alone */
-		remaining_offset = abs(pp_time_to_picos(&offsetMS));
-		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+		/* Strict acquisition band: exactly +/-60 ps is not an entry. */
+		if (s->offsetMS_ps < WRH_SERVO_OFFSET_STABILITY_THRESHOLD &&
+		    s->offsetMS_ps > -WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+			s->missed_iters = 0;
 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
 			s->prev_delayMS_ps = s->delayMS_ps;
 			setState(ppi,WRH_TRACK_PHASE);
@@ -318,12 +341,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 
 		/* Can be disabled for manually tweaking and testing */
 		if(wrh_tracking_enabled) {
-			if (abs(offset_ps) >
-			    2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
-				setState(ppi,WRH_SYNC_PHASE);
-				break;
-			}
-
 			// adjust phase towards offset = 0 make ck0 0
 			s->cur_setpoint_ps += (offset_ps / 12);
 
@@ -347,7 +364,8 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 
 	/* Increase number of servo updates with offset exceeded
 	 * SNMP_MAX_OFFSET_PS (Used by SNMP) */
-	if (abs(s->offsetMS_ps) > SNMP_MAX_OFFSET_PS)
+	if (s->offsetMS_ps > SNMP_MAX_OFFSET_PS ||
+	    s->offsetMS_ps < -SNMP_MAX_OFFSET_PS)
 		s->n_err_offset++;
 
 	/* Increase number of servo updates with delta rtt exceeded

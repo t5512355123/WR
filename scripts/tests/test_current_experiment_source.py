@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FROZEN = ROOT / 'artifacts/milestones/step6_global_time/source'
 CURRENT_HASHES = {
     'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
-        '0eb04e6a35dee436d21f81b0b9d5bb493e0299847304fc095e9be1ffa48cd97f',
+        '83e929dc284a2d1be71242684c293fc193eac3fde1f6abd086bf48e84a2d9bc2',
     'quartus/DE5a_wr_master_jtag.vhd':
         '1cbaf7b40f831bd7d1ba32702dbfc80b1a7dfb3948eca5d7dd8922e57cc880ed',
     'quartus/DE5a_wr_slave_jtag.vhd':
@@ -26,16 +26,14 @@ class CurrentSourceTests(unittest.TestCase):
             return True
         return False
 
-    def test_controller_is_exact_proven_candidate(self):
+    def test_controller_is_current_strict_candidate(self):
         path = 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c'
-        if self.check_standalone_source(path):
-            return
-        expected = (FROZEN / path).read_text().replace(
-            's->cur_setpoint_ps += offset_ps;',
-            's->cur_setpoint_ps += (offset_ps / 2);').replace(
-            's->cur_setpoint_ps += (offset_ps / 4);',
-            's->cur_setpoint_ps += (offset_ps / 12);')
-        self.assertEqual((ROOT / path).read_text(), expected)
+        self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), CURRENT_HASHES[path])
+        text = (ROOT / path).read_text()
+        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 2);'), 1)
+        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 12);'), 1)
+        self.assertIn('s->offsetMS_ps > 2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD', text)
+        self.assertIn('if (newState != WRH_TRACK_PHASE)', text)
 
     def test_top_levels_preserve_validated_memory_path(self):
         for role in ('master', 'slave'):

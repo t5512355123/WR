@@ -12,7 +12,10 @@
 # It then reads the firmware response from the host-side VUART RX FIFO.
 #
 # Usage:
-#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?ip|calibration|sfp_params|sfp_live?
+#   quartus_stp -t read_step6_ip_vuart.tcl ?stable_ms? ?timeout_ms? ?mode? ?ram_addresses?
+# ram_read accepts only aligned data-RAM addresses below 0x30000. Resolve them
+# from the exact programmed firmware ELF, never a different build. It sends
+# devmem with one address argument only, so the firmware executes its read path.
 
 package require ::quartus::insystem_source_probe
 
@@ -32,7 +35,22 @@ switch -- $query_mode {
   calibration { set read_only_queries [list "delays" "sfp show"] }
     sfp_params { set read_only_queries [list "sfp params"] }
     sfp_live { set read_only_queries [list "sfp params live"] }
-    default { error "query_mode must be ip, calibration, sfp_params, or sfp_live" }
+    ram_read {
+      if {[llength $argv] != 4} { error "ram_read requires a Tcl list of RAM addresses" }
+      set read_only_queries {}
+      foreach address [lindex $argv 3] {
+        if {![regexp {^[0-9a-fA-F]{1,8}$} $address]} { error "invalid RAM address" }
+        scan $address %x numeric_address
+        if {$numeric_address < 0 || $numeric_address >= 0x30000 || ($numeric_address & 3)} {
+          error "RAM address must be aligned and below 0x30000"
+        }
+        lappend read_only_queries [format "devmem %08x" $numeric_address]
+      }
+      if {[llength $read_only_queries] == 0 || [llength $read_only_queries] > 16} {
+        error "ram_read requires 1 to 16 addresses"
+      }
+    }
+    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, or ram_read" }
 }
 
 array set ::wb_toggle {}

@@ -26,8 +26,22 @@ class Step6IpVuartObserverTests(unittest.TestCase):
     def test_calibration_mode_uses_only_fixed_read_only_commands(self):
         self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
                       self.observer)
-        self.assertIn('error "query_mode must be ip, calibration, sfp_params, or sfp_live"', self.observer)
+        self.assertIn('error "query_mode must be ip, calibration, sfp_params, sfp_live, or ram_read"', self.observer)
         self.assertNotIn('"sfp match"', self.observer)
+
+    def test_ram_read_cannot_send_a_write_value_or_mmio_address(self):
+        mode = self.observer.split('    ram_read {', 1)[1].split('    default {', 1)[0]
+        self.assertIn('regexp {^[0-9a-fA-F]{1,8}$}', mode)
+        self.assertIn('$numeric_address >= 0x30000', mode)
+        self.assertIn('($numeric_address & 3)', mode)
+        self.assertIn('format "devmem %08x" $numeric_address', mode)
+        self.assertIn('[llength $read_only_queries] > 16', mode)
+        self.assertNotIn('format "devmem %08x %', mode)
+        ll = (ROOT / 'vendor/wrpc-sw/shell/cmd_ll.c').read_text(encoding='utf-8')
+        read_branch = ll.split('static int cmd_devmem', 1)[1].split('DEFINE_WRC_COMMAND(devmem)', 1)[0]
+        self.assertIn('if (args[1])', read_branch)
+        self.assertIn('*addr = value;', read_branch)
+        self.assertIn('} else {', read_branch)
 
     def test_sfp_params_mode_sends_only_the_read_only_snapshot_command(self):
         self.assertIn('sfp_params { set read_only_queries [list "sfp params"] }',

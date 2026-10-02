@@ -299,6 +299,10 @@ proc capture_vuart_reply {hardware_name timeout_ms} {
   return [list OK $all_hex $all_text]
 }
 
+# Allow other passive observers to reuse the tested bundled-mailbox transport.
+# This returns before enumeration, UART reads, or command injection.
+if {[info exists ::step6_vuart_library_only] && $::step6_vuart_library_only} { return }
+
 set board_scope SLAVE
 if {$query_mode eq "pll_read_both"} { set board_scope MASTER_AND_SLAVE }
 if {$query_mode eq "pll_recover_master"} { set board_scope MASTER_OWNED_PARTIAL_RECOVERY }

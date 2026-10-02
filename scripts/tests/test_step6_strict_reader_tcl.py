@@ -15,7 +15,7 @@ class StrictReaderTests(unittest.TestCase):
           proc source {args} { return }
           rename puts original_puts
           proc puts {args} { lappend ::emitted [lindex $args end] }
-          proc get_hardware_names {} { return [list {DE5 [1-11.2]}] }
+          proc get_hardware_names {} { return [list {DE5 [1-11.1]} {DE5 [1-11.2]}] }
           proc get_device_names {args} { return [list {device}] }
           proc start_insystem_source_probe {args} {}
           proc end_insystem_source_probe {args} {}
@@ -56,6 +56,8 @@ class StrictReaderTests(unittest.TestCase):
         self.assertIn("TIME_VALID=1",rows[0])
         self.assertIn("STEP1_GATE=1",rows[0])
         self.assertIn("LOCK_GATE=1",rows[0])
+        self.assertIn("MASTER_TIME_VALID=1",rows[0])
+        self.assertTrue(any(line.startswith("S6_STRICT_MASTER_SAMPLE ") for line in output))
         self.assertIn("RESET_SIGNATURE={00000001 00000001 00000002 00000003 00000004}",rows[0])
         self.assertTrue(output[-1].startswith("S6_STRICT_DONE "))
         self.assertEqual(t.eval("strict_byte 0000040302010000 24"),"00000002")

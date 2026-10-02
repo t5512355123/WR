@@ -40,6 +40,53 @@ proc strict_frame {} {
   }
   return $result
 }
+proc strict_master_health {hw device begin} {
+  start_insystem_source_probe -hardware_name $hw -device_name $device
+  wb_sync_toggle
+  set ::wb_last_static_addr ""
+  set start [clock milliseconds]
+  set st0 [safe_probe_read 0]
+  set es0 [wb_read 0x0010031C]
+  set entry [safe_probe_read 26]
+  set reset [safe_probe_read 27]
+  set es1 [wb_read 0x0010031C]
+  set st1 [safe_probe_read 0]
+  set end [clock milliseconds]
+  set good 1
+  foreach raw [list $st0 $st1 $es0 $es1 $entry $reset] {
+    if {![is_hex $raw]} { set good 0 }
+  }
+  set signature [list [probe_high_counter_hex $entry] [strict_byte $reset 16] \
+    [strict_byte $reset 24] [strict_byte $reset 32] [strict_byte $reset 40]]
+  set changed 0
+  if {$good} {
+    if {![info exists ::strict_master_reset]} { set ::strict_master_reset $signature }
+    if {$::strict_master_reset ne $signature} { set changed 1 }
+  }
+  set link 1
+  foreach st [list $st0 $st1] {
+    foreach bit {0 1 2 3 6 7 15} {
+      if {[bit64_low $st $bit]!=1} { set link 0 }
+    }
+    if {[bit64_high $st 0]!=1} { set link 0 }
+  }
+  set valid [expr {$good && [bit64_low $st0 4]==1 && [bit64_low $st1 4]==1 &&
+    ([word32 $es0]&0xc)==0xc && ([word32 $es1]&0xc)==0xc}]
+  puts "S6_STRICT_MASTER_SAMPLE board={$hw} row_start_ms=[expr {$start-$begin}] row_end_ms=[expr {$end-$begin}] READS_VALID=$good TIME_VALID=$valid LINK_GATE=$link STATUS_BEFORE=$st0 STATUS_AFTER=$st1 ESCR_BEFORE=$es0 ESCR_AFTER=$es1 RESET_SIGNATURE={$signature} RESET_CHANGED=$changed"
+  flush stdout
+  end_insystem_source_probe
+  return [list $good $valid $link $changed $end]
+}
+set master_hw ""
+foreach hw [get_hardware_names] {
+  if {[string first "1-11.1" $hw]>=0} {
+    if {$master_hw ne ""} { error "Ambiguous Master JTAG target" }
+    set master_hw $hw
+    set master_devices [get_device_names -hardware_name $hw]
+  }
+}
+if {$master_hw eq "" || ![llength $master_devices]} { error "Master health target missing" }
+set master_device [lindex $master_devices 0]
 puts "S6_STRICT_CONFIG duration_ms=$duration_ms sample_ms=$sample_ms read_only=1 wb_register_writes=0 health_cycle_atomic=0"
 set boards 0
 foreach hw [get_hardware_names] {
@@ -66,7 +113,18 @@ foreach hw [get_hardware_names] {
   set baseline ""
   set prev_epoch -1
   set last_epoch_ms $begin
+  set master_end 0
   while {[clock milliseconds]-$begin<=$duration_ms} {
+    # One reader/session only. Interleave Master health at <=1 s cadence;
+    # explicitly bracket each board and never claim cross-board atomicity.
+    if {[clock milliseconds]-$master_end>=1000} {
+      end_insystem_source_probe
+      lassign [strict_master_health $master_hw $master_device $begin] \
+        master_good master_time master_link master_changed master_end
+      start_insystem_source_probe -hardware_name $hw -device_name [lindex $devices 0]
+      wb_sync_toggle
+      set ::wb_last_static_addr ""
+    }
     set row_begin [clock milliseconds]
     set status0 [safe_probe_read 0]
     set escr0 [wb_read 0x0010031C]
@@ -108,11 +166,13 @@ foreach hw [get_hardware_names] {
     set lock_ok [expr {([word32 $helper]&1)==1 && ([word32 $main]&0xe)==0xe && ([word32 $pstat]&2)==2}]
     set time_ok [expr {[bit64_low $status0 4]==1 && [bit64_low $status1 4]==1 &&
       ([word32 $escr0]&0xc)==0xc && ([word32 $escr1]&0xc)==0xc}]
-    set trustworthy [expr {$reads_ok && $epoch_age<=1000 && !$reset_changed}]
-    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed"
+    set master_age [expr {$row_end-$master_end}]
+    set trustworthy [expr {$reads_ok && $epoch_age<=1000 && !$reset_changed &&
+      $master_good && !$master_changed && $master_age<=1500}]
+    puts "S6_STRICT_SAMPLE board={$hw} sample=$sample elapsed_ms=[expr {$row_end-$begin}] row_start_ms=[expr {$row_begin-$begin}] row_end_ms=[expr {$row_end-$begin}] READS_VALID=$reads_ok FRAME_VALID=$frame_ok TRUSTWORTHY=$trustworthy EPOCH_BEFORE=$epoch0 EPOCH_AFTER=$epoch1 EPOCH_AGE_MS=$epoch_age UCNT=$ucnt CKO_RAW=$cko_raw CKO_PS=$k SSTAT=$sstat SERVO_STATE=$state STATUS_BEFORE=$status0 STATUS_AFTER=$status1 ESCR_BEFORE=$escr0 ESCR_AFTER=$escr1 TIME_VALID=$time_ok STEP1_GATE=$step1 LOCK_GATE=$lock_ok RESET_SIGNATURE={$reset_sig} RESET_CHANGED=$reset_changed MASTER_HEALTH_VALID=$master_good MASTER_TIME_VALID=$master_time MASTER_LINK_GATE=$master_link MASTER_RESET_CHANGED=$master_changed MASTER_AGE_MS=$master_age"
     flush stdout
     if {$trustworthy} { set invalid_streak 0 } else { incr invalid_streak }
-    if {$reset_changed || $invalid_streak>=5} {
+    if {$reset_changed || $master_changed || $invalid_streak>=5} {
       puts "S6_STRICT_STOP board={$hw} reason=reset_or_untrusted_data invalid_streak=$invalid_streak"
       break
     }

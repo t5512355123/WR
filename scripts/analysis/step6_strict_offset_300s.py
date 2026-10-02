@@ -45,7 +45,13 @@ def analyze(path,required_ms=300000,max_gap_ms=1000,max_update_age_ms=2000):
             else: du=1
             if du==1: last_unique=t
             trusted=trusted and last_unique is not None and t-last_unique<=max_update_age_ms
-            qualified=trusted and row["TIME_VALID"]=="1" and state==4 and abs(k)<=120
+            master_ok=(row.get("MASTER_HEALTH_VALID")=="1" and
+                row.get("MASTER_TIME_VALID")=="1" and row.get("MASTER_LINK_GATE")=="1" and
+                row.get("MASTER_RESET_CHANGED")=="0" and
+                0<=int(row.get("MASTER_AGE_MS","999999"))<=1500)
+            if row.get("MASTER_RESET_CHANGED")=="1":
+                errors.append("Master reset signature changed")
+            qualified=trusted and master_ok and row["TIME_VALID"]=="1" and state==4 and abs(k)<=120
             if trusted:
                 cko_values.append(k); state_counts[state]=state_counts.get(state,0)+1
                 if row["TIME_VALID"]=="1" and abs(k)>120: outside+=1
@@ -74,7 +80,7 @@ def analyze(path,required_ms=300000,max_gap_ms=1000,max_update_age_ms=2000):
         "pointwise_valid_outside_retention":outside,"rejected_rows":untrusted,
         "trusted_cko_range_ps":[min(cko_values,default=None),max(cko_values,default=None)],
         "states":state_counts,"errors":sorted(set(errors)),
-        "scope":"Coherent firmware publication, bracketed live health, contiguous sampled producer updates. Not analogue skew or cycle-atomic cross-domain proof."}
+        "scope":"Coherent Slave publication, bracketed live health and interleaved fresh Master validity, contiguous sampled producer updates. Not analogue skew or cycle-atomic cross-domain proof."}
 
 if __name__=="__main__":
     p=argparse.ArgumentParser(); p.add_argument("trace"); p.add_argument("--required-ms",type=int,default=300000)

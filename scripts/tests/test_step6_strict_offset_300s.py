@@ -12,7 +12,8 @@ def row(n,cko=50,time_valid=1,state=4,ucnt=None):
         f"READS_VALID=1 FRAME_VALID=1 TRUSTWORTHY=1 STEP1_GATE=1 LOCK_GATE=1 RESET_CHANGED=0 "
         f"EPOCH_BEFORE={n:08X} EPOCH_AFTER={n:08X} EPOCH_AGE_MS=0 "
         f"UCNT={(n if ucnt is None else ucnt):08X} CKO_PS={cko} CKO_RAW={cko&0xffffffff:08X} "
-        f"TIME_VALID={time_valid} SERVO_STATE={state} RESET_SIGNATURE={{1 1 1 1}}")
+        f"TIME_VALID={time_valid} SERVO_STATE={state} RESET_SIGNATURE={{1 1 1 1}} "
+        "MASTER_HEALTH_VALID=1 MASTER_TIME_VALID=1 MASTER_LINK_GATE=1 MASTER_RESET_CHANGED=0 MASTER_AGE_MS=0")
 
 class StrictOffsetTests(unittest.TestCase):
     def run_rows(self,rows,done=True):
@@ -47,6 +48,12 @@ class StrictOffsetTests(unittest.TestCase):
             self.assertNotEqual(self.run_rows(rows)["verdict"],"PASS_SAMPLED_STRICT_GOAL")
     def test_missing_completion_is_inconclusive(self):
         self.assertEqual(self.run_rows([row(n) for n in range(301)],False)["verdict"],"INCONCLUSIVE")
+    def test_master_invalid_stale_or_reset_breaks_window(self):
+        for a,b in (("MASTER_TIME_VALID=1","MASTER_TIME_VALID=0"),
+                    ("MASTER_AGE_MS=0","MASTER_AGE_MS=1501"),
+                    ("MASTER_RESET_CHANGED=0","MASTER_RESET_CHANGED=1")):
+            rows=[row(n) for n in range(301)]; rows[150]=rows[150].replace(a,b)
+            self.assertNotEqual(self.run_rows(rows)["verdict"],"PASS_SAMPLED_STRICT_GOAL")
     def test_observed_valid_overlimit_is_not_hidden_by_later_good_window(self):
         rows=[row(0),row(1,121)]+[row(n) for n in range(2,303)]
         result=self.run_rows(rows)

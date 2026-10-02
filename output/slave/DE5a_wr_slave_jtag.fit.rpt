@@ -1,5 +1,5 @@
 Fitter report for DE5a_wr_slave_jtag
-Fri Oct  2 17:15:23 2026
+Fri Oct  2 23:51:29 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -72,7 +72,7 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Fitter Summary                                                                ;
 +-----------------------------+-------------------------------------------------+
-; Fitter Status               ; Successful - Fri Oct  2 17:15:21 2026           ;
+; Fitter Status               ; Successful - Fri Oct  2 23:51:27 2026           ;
 ; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
 ; Revision Name               ; DE5a_wr_slave_jtag                              ;
 ; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
@@ -160,7 +160,7 @@ agreement for further details.
 ; Number detected on machine ; 28          ;
 ; Maximum allowed            ; 16          ;
 ;                            ;             ;
-; Average used               ; 1.25        ;
+; Average used               ; 1.24        ;
 ; Maximum used               ; 16          ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
@@ -168,7 +168,7 @@ agreement for further details.
 ;     Processor 2            ;   3.5%      ;
 ;     Processor 3            ;   1.8%      ;
 ;     Processor 4            ;   1.7%      ;
-;     Processor 5            ;   1.7%      ;
+;     Processor 5            ;   1.6%      ;
 ;     Processor 6            ;   1.6%      ;
 ;     Processor 7            ;   1.6%      ;
 ;     Processor 8            ;   1.5%      ;
@@ -6267,7 +6267,7 @@ Info (176235): Finished register packing
 Warning (16067): 4 out of 4 DSP blocks in the design are not fully utilizing recommended internal DSP register banks. Design performance may be limited. To take full advantage of device resources, you should either enable the register banks directly (if using WYSIWYG entry) or provide additional registers in your design that the Quartus register packing optimization algorithm can convert to internal DSP register banks.
     Warning (16069): 4 DSP blocks are partially registered - they use some, but not all of the recommended internal DSP register banks. Intel advises using all the recommended internal DSP register banks for high performance designs.
 Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:36
-Info (11165): Fitter preparation operations ending: elapsed time is 00:00:36
+Info (11165): Fitter preparation operations ending: elapsed time is 00:00:35
 Info (170189): Fitter placement preparation operations beginning
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (14951): The Fitter is using Advanced Physical Optimization.
@@ -6276,14 +6276,14 @@ Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
 Info (170192): Fitter placement operations ending: elapsed time is 00:00:12
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Placement is 8.98 seconds.
+Info (11888): Total time spent on timing analysis during Placement is 9.03 seconds.
 Info (170193): Fitter routing operations beginning
 Info (170195): Router estimated average interconnect usage is 1% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 29% of the available device resources in the region that extends from location X165_Y35 to location X176_Y46
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (11888): Total time spent on timing analysis during Routing is 5.65 seconds.
-Info (16607): Fitter routing operations ending: elapsed time is 00:07:55
+Info (11888): Total time spent on timing analysis during Routing is 5.60 seconds.
+Info (16607): Fitter routing operations ending: elapsed time is 00:07:57
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (11888): Total time spent on timing analysis during Post-Routing is 0.42 seconds.
 Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:28
@@ -6291,10 +6291,10 @@ Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments 
 Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.fit.smsg
 Info (11793): Fitter databases successfully split.
 Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings
-    Info: Peak virtual memory: 12681 megabytes
-    Info: Processing ended: Fri Oct  2 17:15:24 2026
-    Info: Elapsed time: 00:10:04
-    Info: Total CPU time (on all processors): 00:23:25
+    Info: Peak virtual memory: 12609 megabytes
+    Info: Processing ended: Fri Oct  2 23:51:30 2026
+    Info: Elapsed time: 00:10:05
+    Info: Total CPU time (on all processors): 00:23:24
 
 
 +----------------------------+

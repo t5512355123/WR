@@ -1,5 +1,5 @@
 Flow report for DE5a_wr_slave_jtag
-Fri Oct  2 17:16:07 2026
+Fri Oct  2 23:52:11 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -41,7 +41,7 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Flow Summary                                                                  ;
 +-----------------------------+-------------------------------------------------+
-; Flow Status                 ; Successful - Fri Oct  2 17:15:53 2026           ;
+; Flow Status                 ; Successful - Fri Oct  2 23:51:58 2026           ;
 ; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
 ; Revision Name               ; DE5a_wr_slave_jtag                              ;
 ; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
@@ -65,7 +65,7 @@ agreement for further details.
 +-------------------+---------------------+
 ; Option            ; Setting             ;
 +-------------------+---------------------+
-; Start date & time ; 10/02/2026 17:04:19 ;
+; Start date & time ; 10/02/2026 23:40:28 ;
 ; Main task         ; Compilation         ;
 ; Revision Name     ; DE5a_wr_slave_jtag  ;
 +-------------------+---------------------+
@@ -77,7 +77,7 @@ agreement for further details.
 ; Assignment Name          ; Value                                                                                                                          ; Default Value ; Entity Name             ; Section Id ;
 +--------------------------+--------------------------------------------------------------------------------------------------------------------------------+---------------+-------------------------+------------+
 ; AUTO_OPEN_DRAIN_PINS     ; Off                                                                                                                            ; On            ; --                      ; --         ;
-; COMPILER_SIGNATURE_ID    ; 141562625799615.179093185920647                                                                                                ; --            ; --                      ; --         ;
+; COMPILER_SIGNATURE_ID    ; 141562625799615.179095562733328                                                                                                ; --            ; --                      ; --         ;
 ; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.cmp         ; --            ; --                      ; --         ;
 ; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/../wr_arria10_e3p1_det_phy.qsys     ; --            ; --                      ; --         ;
 ; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.cmp         ; --            ; --                      ; --         ;
@@ -105,11 +105,11 @@ agreement for further details.
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 ; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
-; Analysis & Synthesis      ; 00:00:56     ; 2.6                     ; 1711 MB             ; 00:01:32                           ;
-; Fitter                    ; 00:10:01     ; 1.2                     ; 12681 MB            ; 00:23:23                           ;
-; Assembler                 ; 00:00:26     ; 1.0                     ; 6970 MB             ; 00:00:26                           ;
-; TimeQuest Timing Analyzer ; 00:00:12     ; 1.5                     ; 4569 MB             ; 00:00:52                           ;
-; Total                     ; 00:11:35     ; --                      ; --                  ; 00:26:13                           ;
+; Analysis & Synthesis      ; 00:00:52     ; 2.3                     ; 1709 MB             ; 00:01:30                           ;
+; Fitter                    ; 00:10:02     ; 1.2                     ; 12609 MB            ; 00:23:22                           ;
+; Assembler                 ; 00:00:26     ; 1.0                     ; 6970 MB             ; 00:00:25                           ;
+; TimeQuest Timing Analyzer ; 00:00:11     ; 1.5                     ; 4574 MB             ; 00:00:52                           ;
+; Total                     ; 00:11:31     ; --                      ; --                  ; 00:26:09                           ;
 +---------------------------+--------------+-------------------------+---------------------+------------------------------------+
 
 

@@ -8,8 +8,12 @@ This repository develops and records the two-board White Rabbit system on Terasi
 Active experiment: `EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002`.
 The requested gate now also requires a <60 ps acquisition and a 300 s interval
 within +/-120 ps, with Slave validity revoked on excursions. The old
-TIME_VALID-only pass does not prove this. Stale root SOFs must not be programmed
-after source changes; candidate firmware/FPGA rebuild is required.
+TIME_VALID-only pass does not prove this. Fresh role-corrected candidate SOFs
+are retained in `output/`, compiled from `4ba9df5935fc0a6afae2c7bd29603f190936e627`
+and programmed on 2026-10-02. Master validity is restored; the completed 660 s
+strict capture had no <60 ps entry, CKO -3158..+3839 ps, and no qualified hold.
+Slave correctly remained invalid. These are NOT PASS
+milestone images. Any further production-source change still requires rebuild.
 
 **Historical Step6 TIME_VALID-only PASS — two root cycles (2026-10-02).**
 Historical experiment: `EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`.
@@ -47,7 +51,7 @@ bash scripts/program/program_current.sh      # 3. program Slave, then Master
 bash scripts/monitor/step1_6_dashboard.sh      # 4. live read-only dashboard
 ```
 
-The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running `bash scripts/monitor/verify_time_valid_300s.sh`: this separately checks at least 300 seconds of sampled `STATUS_TIME_VALID=1` on each board. The dashboard alone does not establish that dwell. Timing closure and phase-offset bounds are not this acceptance gate.
+The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running any verifier. `bash scripts/monitor/verify_time_valid_300s.sh` checks the historical TIME_VALID-only gate; the current strict goal instead requires `bash scripts/monitor/verify_strict_offset_time_valid_300s.sh` and its coherent fresh-offset/Master-health checks. Neither the dashboard nor the old bit-only verifier establishes the strict goal. Timing closure is not a gate.
 
 Firmware version text stays pinned for reproducibility; the passive diagnostic changes the MIF and has separately pinned hashes. `output/SOURCE_COMMIT` records the real checkout used for compilation. Until the new compile/export finishes, retained `output/` files still belong to the preceding build; the source-manifest gate prevents programming those stale files as the new source.
 

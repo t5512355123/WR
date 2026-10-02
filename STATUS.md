@@ -3,9 +3,14 @@
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
 Active experiment: EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002.
 The new firmware revokes Slave validity outside +/-120 ps and reacquires only
-inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Full fresh
-build/program and offset-bound 300 s qualification are pending; old root SOFs
-do not represent this candidate. Frozen milestone packages remain unchanged.
+inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
+revision 2 passed 35 actual-C cases and fresh two-board compile/program from
+`4ba9df5935fc0a6afae2c7bd29603f190936e627`. Current `output/` contains these
+candidate images, NOT the historical PASS images. Master validity is restored;
+the completed 660 s capture had 1882 Slave rows (1849 trusted), CKO
+-3158..+3839 ps, no <60 ps row, and zero qualified hold. All 496 sampled Master
+health rows were valid; Slave TIME_VALID remained 0. No reset/transport errors.
+Offset-bound 300 s qualification is NOT_ESTABLISHED. Frozen packages unchanged.
 
 **Historical TIME_VALID-only Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
 The frozen milestone additionally passed fresh standalone build/compile/program
@@ -25,7 +30,7 @@ and >300-second sampled TIME_VALID windows on each board.
 
 No invalid rows or transport errors. All 3110 production inputs and both MIFs
 match between cycles. Master Helper was locked and its phase tracker ready
-after qualification. Current images are the second-cycle images, compiled
+after qualification. Frozen milestone images are the second-cycle images, compiled
 from 7b6550123986a9d7cea5f4be0dbb8af1f5a019ab. The single Step6 package is
 `artifacts/milestones/step6_global_time/source.tar.gz`, prepared as `source/`.
 This supports two-run reproduction of the user's sampled TIME_VALID-only gate,

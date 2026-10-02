@@ -69,6 +69,8 @@ def analyze(path):
     done = re.findall(r"^RXTS_DONE completed=(\d+) required=(\d+) elapsed_ms=(\d+)$", text, re.M)
     if len(done) != 1 or done[0][0] != done[0][1] or "RXTS_STOP " in text:
         errors.append("capture incomplete/stopped")
+    elif int(done[0][0]) != len(groups) or int(done[0][0]) < 2:
+        errors.append("completed snapshot count inconsistent")
     if not groups:
         errors.append("no snapshots")
     unique = {}
@@ -123,6 +125,8 @@ def analyze(path):
             b[key + "_range"] = [min(values, default=None), max(values, default=None)]
     if not boards or any(b["correct_records"] < 4 for b in boards.values()):
         errors.append("insufficient correct records")
+    if len(boards) != 2:
+        errors.append("two-board evidence missing")
     return {"verdict": "PASS_DIAGNOSTIC_DATA_ONLY" if not errors else "INCONCLUSIVE",
             "snapshots": len(groups), "boards": boards, "errors": sorted(set(errors)),
             "scope": "Frozen packet RAM histories; omissions between snapshots possible. Does not prove timestamp physical accuracy, CKO causality, or 300s strict validity."}

@@ -2,6 +2,9 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+import ctypes
+import shutil
+import subprocess
 try:
     import tkinter
 except ImportError:
@@ -50,6 +53,33 @@ class AnalysisTests(unittest.TestCase):
         self.assertEqual(mod.linearize(10, 999999992, 1500, False, 1000, 8000), (11, 0, 500, True))
         self.assertEqual(mod.linearize(10, 8, 2000, True, 0, 8000), (10, 8, 2000, False))
         self.assertEqual(mod.linearize(10, 8, 6000, True, 0, 8000), (10, 8, 6000, False))
+
+    @unittest.skipUnless(shutil.which("cc"), "Native C compiler unavailable")
+    def test_actual_production_linearizer_matches_decoder(self):
+        # Compile the unchanged production function body verbatim, not a
+        # second hand-written C model. This temporary is a test product only.
+        source = (ROOT / "vendor/wrpc-sw/lib/net.c").read_text()
+        body = source.split("void ptpd_netif_linearize_rx_timestamp", 1)[1].split("/* Slow, but we don't care much... */", 1)[0]
+        class Stamp(ctypes.Structure):
+            _fields_ = [("sec", ctypes.c_int64)] + [(n, ctypes.c_int32) for n in
+                ("nsec", "phase", "raw_phase", "raw_nsec", "raw_ahead", "correct")]
+        with tempfile.TemporaryDirectory() as tmp:
+            c = Path(tmp) / "linearizer.c"
+            so = Path(tmp) / "linearizer.so"
+            c.write_text('#include "net.h"\nvoid ptpd_netif_linearize_rx_timestamp' + body)
+            subprocess.run(["cc", "-shared", "-fPIC", "-Wall", "-Wextra", "-Werror",
+                "-fsanitize=undefined", "-fno-sanitize-recover=all", "-I",
+                str(ROOT / "vendor/wrpc-sw/include"), str(c), "-o", str(so)], check=True)
+            fn = ctypes.CDLL(str(so)).ptpd_netif_linearize_rx_timestamp
+            fn.argtypes = [ctypes.POINTER(Stamp), ctypes.c_int32] + [ctypes.c_int] * 3
+            for t24p in (0, 2389, 7050):
+                for ahead in (False, True):
+                    for raw_ns in (8, 999999992):
+                        for phase in range(8000):
+                            ts = Stamp(sec=10, nsec=raw_ns)
+                            fn(ctypes.byref(ts), phase, int(ahead), t24p, 8000)
+                            expected = mod.linearize(10, raw_ns, phase, ahead, t24p, 8000)
+                            self.assertEqual((ts.sec, ts.nsec, ts.phase), expected[:3])
 
 
 @unittest.skipIf(tkinter is None, "Tcl runtime unavailable")

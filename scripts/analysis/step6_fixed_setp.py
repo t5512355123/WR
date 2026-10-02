@@ -60,12 +60,24 @@ def analyze(trace,before,after):
     if len(updates)<40 or not times or times[-1]-times[0]<55000:
         errors.append('insufficient fresh bounded diagnostic')
     if 'S6_STRICT_STOP ' in text: errors.append('observer invariant stop')
+    # Source: proto-standard/servo.c, CKO = T1 - T2 + delayMS.
+    # Thus DMS-CKO is the calibrated forward difference T2-T1, not raw T2-T1.
+    forward=[d-k for d,k in zip(delays,values)]
+    midpoint=(min(values)+max(values))/2 if values else 0
+    clusters=[]
+    for upper in (False,True):
+        selected=[(k,d) for k,d in zip(values,delays) if (k>midpoint)==upper]
+        clusters.append({'side':'upper' if upper else 'lower','count':len(selected),
+            'mean_cko_ps':sum(k for k,d in selected)/len(selected) if selected else None,
+            'mean_dms_ps':sum(d for k,d in selected)/len(selected) if selected else None})
     strict=strict_analyze(trace)
     if strict['errors']: errors.extend(strict['errors'])
     return {'verdict':'INCONCLUSIVE' if errors else 'PASS_FIXED_SETP_DIAGNOSTIC_ONLY',
         'before':a,'after':b,'unique_updates':len(updates),
         'fresh_cko_range_ps':[min(values,default=None),max(values,default=None)],
         'dms_range_ps':[min(delays,default=None),max(delays,default=None)],
+        'calibrated_forward_t2_minus_t1_range_ps':[min(forward,default=None),max(forward,default=None)],
+        'exploratory_midrange_cko_groups':clusters,
         'adjacent_cko_delta_range_ps':[
             min((y-x for x,y in zip(values,values[1:])),default=None),
             max((y-x for x,y in zip(values,values[1:])),default=None)],

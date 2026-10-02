@@ -88,6 +88,47 @@ PASS and instantaneous PLL lock are not substitutes for that validation.
 
 ## Evidence integrity
 
+## Fresh RXTS diagnostic build/program and upstream finding
+
+Both boards compiled successfully from `9fe20c3ed7e366445c3be51ef863dc60276b1b2a`.
+Programming succeeded Slave then Master at 12:45:36 / 12:45:55 +08:00.
+The new diagnostic is confirmed executing by its explicit RXTS_DIAG output.
+
+| Role | SOF SHA-256 |
+| --- | --- |
+| Master | `280abfb64900f7e57fc9fe5ad44555e60f0880e1d7e126e5e1cef692afee8f0b` |
+| Slave | `73b9399beeadab6abb108eab7e92b592485c273762857c2eca4e5b3c95b2969b` |
+
+Slave readback: Helper/Main locked; active T24P=7100 ps, measured rising=7300
+and falling=2900 ps. The source reconstruction gives 7100 ps, exactly matching
+the active value. This does not support stale Slave calibration for this run.
+
+Master readback: mode=2, sequence=wait-helper, HL=0, HY=65531, phase tracker
+ready=0 and phase=0. RXTS active T24P=2389 ps is not a newly measured calibration:
+both edge detectors/counts are zero. Master TIME_VALID=1 is therefore not proof
+of Helper readiness or valid fine timestamp measurement.
+
+The passive L2 observer found Master Helper starts/completions both fixed at
+1929, no failed-service count, while Slave service counters progressed. This
+supports a saturated operating-point/range investigation, not an admission
+deadlock diagnosis. Master uses no coarse bootstrap and the default 34-code
+fine physical step; 1929 is consistent with traversing the available DAC range.
+The Master liveness outputs ARE wired at probes 52–61; other position probes
+are open. Do not classify it as globally unwired.
+
+The ten multiword Helper frames on each board did NOT pass their unchanged
+epoch guard. Their raw payload is preserved but is not coherent evidence.
+The older PI snapshot observer also rejected frames with ACK_TIMEOUT because
+the current diagnostic bank contract differs; it was stopped. Neither reader
+completion nor observer exit status implies a diagnostic PASS.
+
+New raw evidence archive transfer SHA-256:
+`a055dab1644ffdfe5951ff727a15e993ddfbd16748718a1a915449f9ba98b38a`.
+No new 300-second TIME_VALID pass has been established. Protected archive was
+not modified. No PI/gain/threshold/controller change was made in this diagnostic.
+
+## Earlier evidence integrity
+
 Raw logs in this folder were copied from Pain, with transfer archive SHA-256:
 `a70905179453ec27bfe7bc98d286f0e15fc663dec6c50f5704109d6f913da277`.
 

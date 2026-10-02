@@ -1,15 +1,15 @@
 === BUILD IDENTITY ===
-2026-10-02T08:43:33+08:00
+2026-10-02T12:26:07+08:00
 HOST=pain
 ROOT=/home/b10504072/04_WR
-GIT_COMMIT=073c9afabd52272f4de40bd70592aa75eab1c60a
+GIT_COMMIT=9fe20c3ed7e366445c3be51ef863dc60276b1b2a
 GIT_BRANCH=feat/file_cleanup
 Quartus Prime Shell
 Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 Copyright (C) 2017  Intel Corporation. All rights reserved.
 fc2f861ad6cf3a2f660ac66184fe054415515ab4006e578542ddce59ab026530  /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.qsf
 083b6dce769023afa8d8c425b6ea56f6f0c8b2bb315396235b050c8cc179715d  /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.sdc
-07511e0a1148dd120898b1fc53f644f265b098d52912340314dace2a8b1526f6  /home/b10504072/04_WR/build/firmware/master/wrc.mif
+18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea  /home/b10504072/04_WR/build/firmware/master/wrc.mif
 === QUARTUS CLEAN ===
 /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/
 Info: *******************************************************************
@@ -29,7 +29,7 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Fri Oct  2 08:43:34 2026
+    Info: Processing started: Fri Oct  2 12:26:07 2026
 Info: Command: quartus_sh --clean DE5a_wr_master_jtag.qpf
 Info: Quartus(args): DE5a_wr_master_jtag.qpf
 Info: /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl version #1
@@ -37,9 +37,9 @@ Info: Removed 1058 files/folders from project.
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 0 warnings
     Info: Peak virtual memory: 753 megabytes
-    Info: Processing ended: Fri Oct  2 08:43:36 2026
+    Info: Processing ended: Fri Oct  2 12:26:09 2026
     Info: Elapsed time: 00:00:02
-    Info: Total CPU time (on all processors): 00:00:00
+    Info: Total CPU time (on all processors): 00:00:01
 === QUARTUS COMPILE ===
 Info: *******************************************************************
 Info: Running Quartus Prime Shell
@@ -58,7 +58,7 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Fri Oct  2 08:43:36 2026
+    Info: Processing started: Fri Oct  2 12:26:09 2026
 Info: Command: quartus_sh --flow compile DE5a_wr_master_jtag.qpf
 Info: Quartus(args): compile DE5a_wr_master_jtag.qpf
 Info: Project Name = /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag
@@ -66,7 +66,7 @@ Info: Revision Name = DE5a_wr_master_jtag
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Fri Oct  2 08:43:36 2026
+    Info: Processing started: Fri Oct  2 12:26:10 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
@@ -2888,7 +2888,7 @@ Info (12128): Elaborating entity "xwb_clock_monitor" for hierarchy "xwr_core:u_x
 Info (12128): Elaborating entity "clock_monitor_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwb_clock_monitor:\gen_with_clock_monitor:inst_clock_monitor|clock_monitor_wb:U_WB_Slave" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/xwb_clock_monitor.vhd Line: 154
 Warning (10541): VHDL Signal Declaration warning at clock_monitor_wb.vhd(27): used implicit default value for signal "int_o" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations. File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/clock_monitor_wb.vhd Line: 27
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.10.02.08:43:53 Progress: Loading sld47b33ef0/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.10.02.12:26:25 Progress: Loading sld47b33ef0/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: "Transforming system: alt_sld_fab"
 Info (11172): Alt_sld_fab: Running transform generation_view_transform
@@ -2908,7 +2908,7 @@ Info (11172): Ident: Running transform generation_view_transform took 0.000s
 Info (11172): A10xcvrfabric: Running transform generation_view_transform
 Info (11172): A10xcvrfabric: Running transform generation_view_transform took 0.000s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.018s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.016s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.010s
 Info (11172): Alt_sld_fab: "Naming system components in system: alt_sld_fab"
@@ -3130,14 +3130,14 @@ Info (21057): Implemented 26035 device resources after synthesis - the final res
     Info (21064): Implemented 406 RAM segments
     Info (21062): Implemented 4 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 262 warnings
-    Info: Peak virtual memory: 1668 megabytes
-    Info: Processing ended: Fri Oct  2 08:44:25 2026
-    Info: Elapsed time: 00:00:49
-    Info: Total CPU time (on all processors): 00:01:26
+    Info: Peak virtual memory: 1671 megabytes
+    Info: Processing ended: Fri Oct  2 12:26:57 2026
+    Info: Elapsed time: 00:00:47
+    Info: Total CPU time (on all processors): 00:01:25
 Info: *******************************************************************
 Info: Running Quartus Prime Fitter
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Fri Oct  2 08:44:25 2026
+    Info: Processing started: Fri Oct  2 12:26:58 2026
 Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Info: qfit2_default_script.tcl version: #1
 Info: Project  = DE5a_wr_master_jtag
@@ -3248,50 +3248,50 @@ Info (176235): Finished register packing
 Warning (16067): 4 out of 4 DSP blocks in the design are not fully utilizing recommended internal DSP register banks. Design performance may be limited. To take full advantage of device resources, you should either enable the register banks directly (if using WYSIWYG entry) or provide additional registers in your design that the Quartus register packing optimization algorithm can convert to internal DSP register banks.
     Warning (16069): 4 DSP blocks are partially registered - they use some, but not all of the recommended internal DSP register banks. Intel advises using all the recommended internal DSP register banks for high performance designs.
 Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:36
-Info (11165): Fitter preparation operations ending: elapsed time is 00:00:36
+Info (11165): Fitter preparation operations ending: elapsed time is 00:00:35
 Info (170189): Fitter placement preparation operations beginning
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (14951): The Fitter is using Advanced Physical Optimization.
 Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:17
 Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
-Info (170192): Fitter placement operations ending: elapsed time is 00:00:12
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:11
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Placement is 8.48 seconds.
+Info (11888): Total time spent on timing analysis during Placement is 8.44 seconds.
 Info (170193): Fitter routing operations beginning
 Info (170195): Router estimated average interconnect usage is 0% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 29% of the available device resources in the region that extends from location X153_Y47 to location X164_Y58
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (11888): Total time spent on timing analysis during Routing is 5.27 seconds.
+Info (11888): Total time spent on timing analysis during Routing is 5.25 seconds.
 Info (16607): Fitter routing operations ending: elapsed time is 00:00:30
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (11888): Total time spent on timing analysis during Post-Routing is 0.39 seconds.
-Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:27
+Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:26
 Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.fit.smsg
 Info (11793): Fitter databases successfully split.
 Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings
     Info: Peak virtual memory: 12487 megabytes
-    Info: Processing ended: Fri Oct  2 08:47:01 2026
-    Info: Elapsed time: 00:02:36
-    Info: Total CPU time (on all processors): 00:15:20
+    Info: Processing ended: Fri Oct  2 12:29:32 2026
+    Info: Elapsed time: 00:02:34
+    Info: Total CPU time (on all processors): 00:15:18
 Info: *******************************************************************
 Info: Running Quartus Prime Assembler
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Fri Oct  2 08:47:03 2026
+    Info: Processing started: Fri Oct  2 12:29:34 2026
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info: Quartus Prime Assembler was successful. 0 errors, 1 warning
-    Info: Peak virtual memory: 6966 megabytes
-    Info: Processing ended: Fri Oct  2 08:47:29 2026
-    Info: Elapsed time: 00:00:26
+    Info: Peak virtual memory: 6964 megabytes
+    Info: Processing ended: Fri Oct  2 12:30:01 2026
+    Info: Elapsed time: 00:00:27
     Info: Total CPU time (on all processors): 00:00:26
 Info (293026): Skipped module PowerPlay Power Analyzer due to the assignment FLOW_ENABLE_POWER_ANALYZER
 Info: *******************************************************************
 Info: Running Quartus Prime TimeQuest Timing Analyzer
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Fri Oct  2 08:47:30 2026
+    Info: Processing started: Fri Oct  2 12:30:02 2026
 Info: Command: quartus_sta DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -3602,14 +3602,14 @@ Info (332114): Report Metastability: Found 1185 synchronizer chains.
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
-    Info: Peak virtual memory: 4533 megabytes
-    Info: Processing ended: Fri Oct  2 08:47:43 2026
-    Info: Elapsed time: 00:00:13
+    Info: Peak virtual memory: 4512 megabytes
+    Info: Processing ended: Fri Oct  2 12:30:14 2026
+    Info: Elapsed time: 00:00:12
     Info: Total CPU time (on all processors): 00:00:50
 Info (293000): Quartus Prime Full Compilation was successful. 0 errors, 297 warnings
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 297 warnings
     Info: Peak virtual memory: 788 megabytes
-    Info: Processing ended: Fri Oct  2 08:47:44 2026
-    Info: Elapsed time: 00:04:08
-    Info: Total CPU time (on all processors): 00:18:05
+    Info: Processing ended: Fri Oct  2 12:30:15 2026
+    Info: Elapsed time: 00:04:06
+    Info: Total CPU time (on all processors): 00:18:02

@@ -1,5 +1,10 @@
 # Current status
 
+2026-10-02 current candidate: Master Helper coarse-origin bootstrap2048.
+NOT VALIDATED / 300-second TIME_VALID NOT ESTABLISHED for this candidate.
+Master was independently confirmed wait-helper, HY=65531, ptracker_ready=0;
+Slave PLL locks were present but TIME_VALID=0. Keep historical PASS separate.
+
 - Branch: feat/file_cleanup.
 - Latest session (2026-10-02): **Slave TIME_VALID=0; current startup reproducibility NOT ESTABLISHED.** A later fresh user rebuild/program did not reproduce the earlier PASS. Current source adds only passive RXTS state readback; the new diagnostic image is not yet runtime-validated. See [regression evidence](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). Historical successful captures below remain valid for their recorded sessions, not a guarantee for every startup.
 - Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).

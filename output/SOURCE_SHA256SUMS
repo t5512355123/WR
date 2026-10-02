@@ -2280,7 +2280,7 @@ d984dc14730676424b5606e1e1eceb55131987955dced1fe1696af0a605771c8  vendor/wrpc-sw
 9a4dc4404ad66e3904d82e4a5ea6f2651b5e41d09fa078190648d60658245179  vendor/wrpc-sw/dev/netif.c
 2cef25fe2bdfd1b54a53ec7a0b435a384c50e3ac0d94a825d1c626a454fa6d18  vendor/wrpc-sw/dev/pps_gen.c
 a7d6c71252dfe7cbff199516fcee34a7b5c7a7f4a7467d337592b692d4a94744  vendor/wrpc-sw/dev/puts-syslog.c
-054a945b8eef1d5a6d4d27e67c051bf87bbb2872031055eb8d05251d75f0b27c  vendor/wrpc-sw/dev/rxts_calibrator.c
+966cef235651562863bb6c932577582d659ba1dbc8f39f349376b534d10dba48  vendor/wrpc-sw/dev/rxts_calibrator.c
 a4720c7653401ac06e9c5957046b847c362ef29417d4507a64d8363ae5a37366  vendor/wrpc-sw/dev/sdbfs.c
 efbbc7f501b027e5782eecfc2b66be674f0482a3594be458bf8fd95a769ddec6  vendor/wrpc-sw/dev/sensors.c
 b730099d8e9a4be15984800d94c809aad7f94284bf27f868a94277dbea07c772  vendor/wrpc-sw/dev/sfp.c
@@ -2387,7 +2387,7 @@ ed3c457bb03c2bd28fb1043313b25e8fa79c4460d2fb70b7113ee7ec3abc07c6  vendor/wrpc-sw
 618bcb38417d17e5fc118eec85264107ba1837f7e7382707ba21bbfbbaf0a427  vendor/wrpc-sw/include/dev/minic.h
 b930c0bf99537ef66c39efa15b57ee2c2939c528cd069e8d16902bfd2d278358  vendor/wrpc-sw/include/dev/netif.h
 4286746bcd2e45a68678f8eebeb54601a813f2b6d1188f9554663539126a6550  vendor/wrpc-sw/include/dev/pps_gen.h
-9afacbb062241b9b31a40bab6e8d7e935a1ef058ad2707944793c9665f06709c  vendor/wrpc-sw/include/dev/rxts_calibrator.h
+fb06e7c21e9e58370490601f303529e189386c7392b482009f7df6064dbca81d  vendor/wrpc-sw/include/dev/rxts_calibrator.h
 699ea09300a5b159a1e524d743b01b64525783b707d40c911519924032047ef6  vendor/wrpc-sw/include/dev/si57x.h
 d996e7744c4929ce1a01fbbcbb321997551f516d9f0e41f830bae7a1058013b0  vendor/wrpc-sw/include/dev/simple_uart.h
 78f6db1dedcb1d19411a87a553853a89da075f715c286201f94b8a39df9c84db  vendor/wrpc-sw/include/dev/spi_flash.h
@@ -2932,7 +2932,7 @@ adc4f998763e984b455ed9592c0447eb16db5054291da928c8763563fa6dbe89  vendor/wrpc-sw
 628bb1cdee8c7ff7469bf8d876d066a0605df302b8febd6002dd22db5c953197  vendor/wrpc-sw/shell/cmd_ll.c
 50e58d23791059b798c883b65042f726436222a2da5cc09b777aa5df3b6af23c  vendor/wrpc-sw/shell/cmd_mac.c
 77e82cd42bbe758da554740985f8c86d1f0e6eedcbc0c80979e587d0cb1a7b3d  vendor/wrpc-sw/shell/cmd_netconsole.c
-74c80f5ac4927bb2def2750ea59de7d6b5052b4abb453ea2e27b2b25769d02e4  vendor/wrpc-sw/shell/cmd_pll.c
+ff65438d1a9d24a8407dec6ea6ffab736baea3e57456dbd67e115fe81d1b89da  vendor/wrpc-sw/shell/cmd_pll.c
 fc7fef441edf801b5c6e27cf57340a5ee99df77a1a77b67680dbfc3859ad8a79  vendor/wrpc-sw/shell/cmd_pps.c
 aa17b901580ff7c028d3f15baf0aacb3be3261b3dd2b7c4efda188f872a6365a  vendor/wrpc-sw/shell/cmd_ps.c
 52c568ea2858c33ba902a2e78d0612b40329c298b73479d491d06fdcdd25370c  vendor/wrpc-sw/shell/cmd_ptp.c

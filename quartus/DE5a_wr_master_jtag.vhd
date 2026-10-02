@@ -1848,11 +1848,16 @@ begin
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
-      -- Keep the Master's normal HPLL path enabled: it is the upstream
-      -- frequency reference for the Slave calibration image.  The normal
-      -- tracker is disabled only in the Slave under test.
+      -- Master range-recovery candidate: the unbootstrapped fine range
+      -- exhausted at HY=65531 with Helper unlocked. Shift only its physical
+      -- origin; keep the existing 34-code fine step and all firmware gains.
+      -- Explicit actuator polarity makes every bootstrap step FINC, rather
+      -- than allowing the changing normal target direction to reverse it.
+      ENABLE_STEP5_ACTUATOR_IDENTIFICATION => 1,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
-      ENABLE_STEP5_BOOTSTRAP => 0,
+      ENABLE_STEP5_BOOTSTRAP => 1,
+      STEP5_BOOTSTRAP_STEPS => 2048,
+      STEP5_BOOTSTRAP_REVERSE => 1,
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

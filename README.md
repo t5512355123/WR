@@ -4,6 +4,13 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
+Current unvalidated candidate: `EXP-S6-MASTER-HELPER-RANGE-BOOTSTRAP2048-20261002`.
+It changes only Master's coarse Helper origin (2048 FINC bootstrap); Slave
+control remains `/2 + /12`. See the [candidate plan](experiments/step6/EXP-S6-MASTER-HELPER-RANGE-BOOTSTRAP2048-20261002/PLAN.md).
+The paragraph below records the preceding diagnostic baseline. Existing
+`output/` products belong to that diagnostic, NOT this new candidate; the
+program script must reject them until a fresh compile/export.
+
 The root controller remains acquisition `/2`, tracking `/12`. Earlier fresh runs passed sampled TIME_VALID for >300 s, but a subsequent user rebuild/program left the Slave in WAIT_OFFSET_STABLE with TIME_VALID=0 despite PLL lock. Startup reproducibility is therefore not established. **Current source is the passive RXTS diagnostic `EXP-S6-CURRENT-STARTUP-REGRESSION-20261002`, not a newly validated PASS image.** It adds calibration state output to explicit `pll stat` queries without changing the controller. See the [regression report](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md) and [diagnostic plan](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/RXTS-DIAGNOSTIC-PLAN.md). Only `artifacts/milestones/` contains complete historical operational source snapshots; `experiments/` retains evidence, not the current build entrypoint.
 
 Run on Pain from `/home/b10504072/04_WR`:

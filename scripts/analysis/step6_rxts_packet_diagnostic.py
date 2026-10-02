@@ -90,6 +90,15 @@ def analyze(path):
             if k in unique and unique[k] != w:
                 errors.append("record identity changed across snapshots")
             unique[k] = w
+    pairs = {}
+    for (board, ident), w in unique.items():
+        msg = w[1] >> 24
+        if msg not in (0, 8):
+            continue
+        # Same remote source clock/port, domain, and Sync sequence. Delay_Req
+        # and Delay_Resp sequences MUST NOT be joined to this Sync sequence.
+        key = board, w[1] & 0xffffff, w[2], w[3], w[4] & 0xffff
+        pairs.setdefault(key, {}).setdefault(msg, []).append(w)
     boards = {}
     for (board, ident), w in unique.items():
         b = boards.setdefault(board, {"records": 0, "correct_records": 0,
@@ -123,12 +132,35 @@ def analyze(path):
         for key in ("raw_phase_ps", "correction_ps", "rising_window_margin_ps"):
             values = b.pop(key)
             b[key + "_range"] = [min(values, default=None), max(values, default=None)]
+    forward = {}
+    for key, messages in pairs.items():
+        if len(messages.get(0, [])) != 1 or len(messages.get(8, [])) != 1:
+            continue
+        sync, follow = messages[0][0], messages[8][0]
+        if not sync[4] & (1 << 16):
+            continue
+        t2 = (sync[10] << 32 | sync[11]) * 10**12 + signed32(sync[12]) * 1000 + signed32(sync[13])
+        t1 = (follow[14] << 32 | follow[15]) * 10**12 + follow[16] * 1000
+        if follow[16] >= 10**9:
+            errors.append("invalid wire T1 nanoseconds")
+            continue
+        forward.setdefault(key[0], []).append((sync[0], t2 - t1))
+    legs = {}
+    for board, data in forward.items():
+        data.sort()
+        values = [v for _, v in data]
+        steps = [b[1] - a[1] for a, b in zip(data, data[1:])]
+        legs[board] = {"matched_sync_followup_pairs": len(data),
+            "t2_minus_t1_ps_range": [min(values), max(values)],
+            "adjacent_captured_pair_delta_ps_range": [min(steps, default=None), max(steps, default=None)],
+            "scope": "One-way time difference includes offset and propagation delay; captured pairs may have omitted intervening exchanges. Not CKO or causality."}
     if not boards or any(b["correct_records"] < 4 for b in boards.values()):
         errors.append("insufficient correct records")
     if len(boards) != 2:
         errors.append("two-board evidence missing")
     return {"verdict": "PASS_DIAGNOSTIC_DATA_ONLY" if not errors else "INCONCLUSIVE",
-            "snapshots": len(groups), "boards": boards, "errors": sorted(set(errors)),
+            "snapshots": len(groups), "boards": boards, "sync_followup_forward_leg": legs,
+            "errors": sorted(set(errors)),
             "scope": "Frozen packet RAM histories; omissions between snapshots possible. Does not prove timestamp physical accuracy, CKO causality, or 300s strict validity."}
 
 

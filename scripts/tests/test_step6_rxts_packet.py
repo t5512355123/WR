@@ -22,7 +22,7 @@ class AnalysisTests(unittest.TestCase):
             for page in range(2):
                 lines.append(f"RXTS_CAPTURE_PAGE board={{{b}}} capture=0 snapshot=00000001 total=00000008 page={page} count=8")
                 for i in range(page * 4, page * 4 + 4):
-                    w = [i+1, 0, 1, 2, 0x10001, 0, 10, 8, 4000,
+                    w = [i+1, i, 1, 2, 0x10001, 0, 10, 8, 4000,
                          0, 0, 10, 8, 4000, 0, 0, 0, 8000]
                     lines.append(f"RXTS_RECORD board={{{b}}} capture=0 snapshot=00000001 RXTS_V1 idx={i} words=" + " ".join(f"{x:08x}" for x in w))
             lines.append(f"RXTS_CAPTURE_DONE board={{{b}}} capture=0 snapshot=00000001 records=8")
@@ -37,6 +37,19 @@ class AnalysisTests(unittest.TestCase):
 
     def test_complete_data(self):
         self.assertEqual(self.analyze(self.fixture())["errors"], [])
+
+    def test_sync_followup_join_keeps_source_and_sequence(self):
+        lines = self.fixture().splitlines()
+        for i, line in enumerate(lines):
+            if 'RXTS_V1 idx=1 words=' in line:
+                prefix, data = line.split('words=')
+                words = data.split()
+                words[1] = '08000000'
+                lines[i] = prefix + 'words=' + ' '.join(words)
+        result = self.analyze('\n'.join(lines))
+        self.assertEqual(result['sync_followup_forward_leg']['Slave']['matched_sync_followup_pairs'], 1)
+        changed = '\n'.join(lines).replace('08000000', '08000001')
+        self.assertFalse(self.analyze(changed)['sync_followup_forward_leg'])
 
     def test_missing_page(self):
         s = self.fixture().replace("page=1 count=8", "page=2 count=8", 1)

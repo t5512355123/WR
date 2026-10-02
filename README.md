@@ -2,8 +2,6 @@
 
 This repository develops and records the two-board White Rabbit system on Terasic DE5a / Arria 10. The only intended current hardware workflow is the JTAG-based Master/Slave design; frozen milestone snapshots preserve each validated research checkpoint.
 
-## System architecture
-
 ## Current code and four-step workflow
 
 The root source is the successful `EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001` controller (acquisition `/2`, tracking `/12`). Only `artifacts/milestones/` contains complete historical source snapshots; `experiments/` retains historical procedures, evidence and reports, not the current build entrypoint. No temporary historical checkout or experiment patch is needed to build the root source.
@@ -20,6 +18,8 @@ bash scripts/monitor/step1_6_dashboard.sh      # 4. live read-only dashboard
 The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running `bash scripts/monitor/verify_time_valid_300s.sh`: this separately checks at least 300 seconds of sampled `STATUS_TIME_VALID=1` on each board. The dashboard alone does not establish that dwell. Timing closure and phase-offset bounds are not this acceptance gate.
 
 Firmware version text is pinned to the successful historical build to preserve the exact MIF; `output/SOURCE_COMMIT` records the real root checkout used for compilation.
+
+## System architecture
 
 ```mermaid
 flowchart LR

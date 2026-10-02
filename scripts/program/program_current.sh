@@ -4,6 +4,11 @@ ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "$ROOT/scripts/build/current_experiment.env"
 cd "$ROOT"
 sha256sum -c output/SHA256SUMS
+sha256sum -c output/SOURCE_SHA256SUMS > /dev/null
+for role in master slave; do
+  actual=$(sha256sum "build/firmware/$role/wrc.mif" | awk '{print $1}')
+  grep -Fx "MIF_SHA256=$actual" "output/build_info_$role.txt" > /dev/null
+done
 if pgrep -x quartus_stp >/dev/null || pgrep -x quartus_pgm >/dev/null; then
   echo 'Stop the other JTAG reader/programmer first.' >&2
   exit 2

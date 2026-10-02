@@ -11,6 +11,7 @@ for role in master slave; do
 done
 cd "$ROOT"
 sha256sum output/*.sof > output/SHA256SUMS
+git ls-files -z firmware vendor quartus quartus_generated | xargs -0 sha256sum > output/SOURCE_SHA256SUMS
 sha256sum -c output/SHA256SUMS
 git rev-parse HEAD > output/SOURCE_COMMIT
 printf '%s\n' "$CURRENT_EXPERIMENT" > output/EXPERIMENT

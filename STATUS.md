@@ -1,9 +1,12 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003.
-New main-root firmware intervention: freeze WR setpoint after first<60ps entry,
-retain strict >120ps invalidation, no automatic re-enable in that boot.
+Active experiment: EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003.
+Current root restores normal feedback and adds a passive coherent T1..T4/RTT
+producer RAM history. Fresh native tests/build/program pending. Retained output
+is the preceding fixed-setpoint diagnostic, not the modified source below.
+The preceding main-root intervention froze WR setpoint after first<60ps entry,
+retaining strict >120ps invalidation, no automatic re-enable in that boot.
 Native baseline/fixed C tests passed; both fresh compiles and one programming
 pair completed from `fbd8febf3eab38e6d2734f859d911f1e6b10365f`.
 Root output is this diagnostic, NOT a production PASS milestone. Late freeze

@@ -1,0 +1,28 @@
+test_complete_snapshot_reproduces_half_return_jump_not_pass (test_step6_four_timestamps.FourStampTests.test_complete_snapshot_reproduces_half_return_jump_not_pass) ... ok
+test_duplicate_updates_and_unknown_schema_reject (test_step6_four_timestamps.FourStampTests.test_duplicate_updates_and_unknown_schema_reject) ... ok
+test_false_health_and_reset_are_not_accepted (test_step6_four_timestamps.FourStampTests.test_false_health_and_reset_are_not_accepted) ... FAIL
+test_full_seconds_larger_than_signed64_picos (test_step6_four_timestamps.FourStampTests.test_full_seconds_larger_than_signed64_picos) ... ok
+test_incorrect_or_changed_math_reject (test_step6_four_timestamps.FourStampTests.test_incorrect_or_changed_math_reject) ... ok
+test_negative64_setpoint_and_correct_delta_add_sub (test_step6_four_timestamps.FourStampTests.test_negative64_setpoint_and_correct_delta_add_sub) ... ok
+test_only_passive_hook_added_normal_feedback_restored (test_step6_four_timestamps.FourStampTests.test_only_passive_hook_added_normal_feedback_restored) ... ok
+test_torn_missing_or_wrong_records_reject (test_step6_four_timestamps.FourStampTests.test_torn_missing_or_wrong_records_reject) ... ok
+test_wrong_control_mode_and_generation_reject (test_step6_four_timestamps.FourStampTests.test_wrong_control_mode_and_generation_reject) ... ok
+test_real_tcl_math_large_tai_and_half_period (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_math_large_tai_and_half_period) ... ok
+test_real_tcl_rejects_missing_changed_or_duplicate_record (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_rejects_missing_changed_or_duplicate_record) ... ok
+test_real_tcl_rejects_wrong_fixed_flag_math_and_marker (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_rejects_wrong_fixed_flag_math_and_marker) ... ok
+
+======================================================================
+FAIL: test_false_health_and_reset_are_not_accepted (test_step6_four_timestamps.FourStampTests.test_false_health_and_reset_are_not_accepted)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\zenbook\我的雲端硬碟\碩士班研究資料\04_WR\scripts\tests\test_step6_four_timestamps.py", line 108, in test_false_health_and_reset_are_not_accepted
+    self.assertEqual(self.analyze(fixture().replace(old,new,1))['verdict'],'INCONCLUSIVE')
+AssertionError: 'PASS_COHERENT_TIMESTAMP_DATA_ONLY' != 'INCONCLUSIVE'
+- PASS_COHERENT_TIMESTAMP_DATA_ONLY
++ INCONCLUSIVE
+
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.302s
+
+FAILED (failures=1)

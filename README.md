@@ -5,8 +5,13 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003`.
-The main-root source contains a completed fixed-setpoint diagnostic. Fresh
+Active experiment: `EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003`.
+Current source restores normal /2 acquisition + /12 tracking and adds a passive
+same-update four-timestamp/RTT RAM history. Fresh build/program is pending;
+retained output is the preceding fixed-setpoint diagnostic, NOT this source.
+Do not program stale output as this new candidate. See the
+[plan](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/PLAN.md).
+The preceding completed fixed-setpoint diagnostic had fresh
 two-board builds and one Slave→Master programming pair succeeded from
 `fbd8febf3eab38e6d2734f859d911f1e6b10365f`; root `output/` holds those SOFs.
 First strict entry freezes WR setpoint, but >120ps still revokes Slave time.

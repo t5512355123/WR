@@ -61,3 +61,23 @@ The WR phase controller is `setpoint += measured_error/divisor`, not a separate
 Ki setting. PLL Ki and WR phase correction are different loops. A gain change
 cannot explain an offset jump during a zero-SETP-delta interval by itself;
 correlation of RTT/DMS/phase/timestamp state is required. No advisor messages.
+
+## Pre-compile qualification
+
+Pain pulled `8f8a5af51f5f6ab471cf001d03e1d23c4ad3fa77`. The actual C
+test with undefined-behaviour sanitizer passed 31 cases; all 7 Python tests
+passed there. Laptop passed 6 contracts, with the native-C test explicitly
+skipped because no native C compiler is installed. Both role firmware builds
+succeeded. MIFs are pinned before full FPGA compile:
+
+- Master: `61d7ba5ef46c58521377a59fd7b134d331a77e6ea45a8130d5ba3de71aad1c5c`.
+- Slave: `4b61c3e22a3f78671f3443fcfab346df0d79940dc7a59eacc99fd12b75e275a1`.
+
+The 120 s precondition trace contained 117 unique UCNT-bracketed updates,
+115 adjacent pairs, CKO -2432..+4050 ps, and only 2 updates inside +/-120 ps.
+70 adjacent pairs jumped by >120 ps with zero SETP change. Several raw RTT
+changes were about +/-8000 ps and DMS changes about +/-4000 ps. This supports
+investigating timestamp/phase measurements, not assigning every jump to Ki.
+The trace also exposed 113 pointwise VALID updates outside +/-120 ps; these
+cannot count toward the stricter goal. These are diagnostic correlations,
+not publication-epoch coherent physical causality or a root-cause proof.

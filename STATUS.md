@@ -1,7 +1,9 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002.
+Active experiment: EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003.
+Passive RX timestamp recorder added in root; tests/build/program pending.
+Retained images below are preceding strict-validity revision2 only.
 The new firmware revokes Slave validity outside +/-120 ps and reacquires only
 inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
 revision 2 passed 35 actual-C cases and fresh two-board compile/program from

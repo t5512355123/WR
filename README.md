@@ -5,7 +5,10 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002`.
+Active experiment: `EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003`.
+Current source adds passive packet-specific timestamp RAM snapshots only;
+its build/program is pending. Existing `output/` below is the preceding
+strict-validity revision2, not this changed source. Do not program stale images.
 The requested gate now also requires a <60 ps acquisition and a 300 s interval
 within +/-120 ps, with Slave validity revoked on excursions. The old
 TIME_VALID-only pass does not prove this. Fresh role-corrected candidate SOFs

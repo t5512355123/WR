@@ -1,6 +1,7 @@
 # Current status
 
 - Branch: feat/file_cleanup.
+- Latest session (2026-10-02): **Slave TIME_VALID=0; current startup reproducibility NOT ESTABLISHED.** A later fresh user rebuild/program did not reproduce the earlier PASS. Current source adds only passive RXTS state readback; the new diagnostic image is not yet runtime-validated. See [regression evidence](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). Historical successful captures below remain valid for their recorded sessions, not a guarantee for every startup.
 - Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
 - Canonical implementation: the two DE5a JTAG projects, with QSFP-A lane 0 as the fixed White Rabbit link.
 - Step 1 PHY/link: PASS, independently rebuilt, programmed, and runtime-validated.
@@ -19,4 +20,4 @@ Step 5 timing closure remains NO and is not a functional gate. Its F4L raw audit
 
 Current source layout: canonical JTAG projects are flattened under quartus/, generated Quartus inputs are under quartus_generated/, SI5340 RTL is under quartus/si5340_controller/, and tests are consolidated under scripts/tests/. The canonical-path and stale-reference audit is complete.
 
-The historical Step 6 pointwise milestone remains complete under its recorded scope. The revised 300-second TIME_VALID target is repeatably met across two fresh same-source build/program runs; physical SMA/output-edge-skew measurement remains separate and is not claimed.
+The historical Step 6 pointwise milestone and recorded 300-second captures remain complete under their recorded scopes. The later startup failure means the current workflow cannot yet be claimed reliably repaired. Physical SMA/output-edge-skew measurement remains separate and is not claimed.

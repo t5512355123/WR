@@ -45,6 +45,7 @@ def sample_row(sample: int, elapsed_ms: int, *, offset_ps: int = 59, **overrides
         "DIAG_FRAME_VALID": "1",
         "DIAG_EPOCH_STABLE": "1",
         "PHASE_CONTEXT_VALID": "1",
+        "PHASE_CONTEXT": "2",
         "PHASE_CONTEXT_FRAME_VALID": "1",
         "PHASE_CONTEXT_MATCH": "1",
         "RESET_CHANGED": "0",
@@ -158,6 +159,49 @@ class Step6DashboardGateCaptureTests(unittest.TestCase):
 
         self.assertEqual(result["qualification_marker_mismatches"], [0])
         self.assertEqual(result["pointwise_verdict"], "STEP6_POINTWISE_GATE_NOT_ESTABLISHED")
+
+    def test_phase_observation_survives_invalid_global_time_but_not_step6_gate(self) -> None:
+        row = sample_row(
+            1,
+            1000,
+            COHERENT="0",
+            QUALIFYING_SAMPLE="0",
+            GLOBAL_TIME_VALID="0",
+            SNAPSHOT_VALID="0",
+            STATUS_TIME_VALID="0",
+            ESCR_TIME_VALID="0",
+            PHASE_OBSERVATION_VALID="1",
+        )
+        text = capture([row], qualifying=0).replace(
+            "accepted=0 qualifying=0", "accepted=0 phase_accepted=1 qualifying=0"
+        )
+        result = MODULE.analyze_text(text)
+
+        self.assertEqual(result["phase_observation_valid_rows"], 1)
+        self.assertEqual(result["phase_observation_cko_min_ps"], 59)
+        self.assertEqual(result["phase_observation_strict_offset_rows_abs_lt_60_ps"], 1)
+        self.assertEqual(result["independently_qualified_rows"], 0)
+        self.assertEqual(result["pointwise_verdict"], "STEP6_POINTWISE_GATE_NOT_ESTABLISHED")
+
+    def test_unmatched_ucnt_is_not_a_valid_phase_observation(self) -> None:
+        row = sample_row(
+            1,
+            1000,
+            READS_VALID="1",
+            COHERENT="0",
+            QUALIFYING_SAMPLE="0",
+            PHASE_OBSERVATION_VALID="0",
+            PHASE_CONTEXT_MATCH="0",
+        )
+        text = capture([row], qualifying=0).replace(
+            "accepted=0 qualifying=0", "accepted=0 phase_accepted=0 qualifying=0"
+        )
+        result = MODULE.analyze_text(text)
+
+        self.assertEqual(result["read_valid_cko_min_ps"], 59)
+        self.assertEqual(result["phase_observation_valid_rows"], 0)
+        self.assertIsNone(result["valid_offset_min_ps"])
+
 
 
 if __name__ == "__main__":

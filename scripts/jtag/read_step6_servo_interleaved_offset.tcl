@@ -5,7 +5,10 @@
 # can read DMS and SETP in the same frame or a separate UCNT-joined frame.
 # Mode 2 uses a second independently guarded publication frame.
 # Global-Time and lock fields are read separately; no cross-domain atomicity is
-# claimed. This script
+# claimed. PHASE_OBSERVATION_VALID is deliberately distinct from COHERENT:
+# pre-TRACK diagnosis may use a valid, UCNT-matched phase frame even when the
+# independent Global-Time snapshot is not valid. Step 6 acceptance still
+# requires the full COHERENT/QUALIFYING_SAMPLE gates. This script
 # issues mailbox reads only and does not write a target, alter a servo/PPS
 # setting, reset, or program the FPGA.
 #
@@ -32,6 +35,7 @@ set ::wb_library_mode 1
 source [file join [file dirname [info script]] read_wb_runtime.tcl]
 set ::s6_interleaved_rows 0
 set ::s6_interleaved_accepted 0
+set ::s6_interleaved_phase_accepted 0
 set ::s6_interleaved_qualifying 0
 set ::s6_interleaved_invalid_streak 0
 set ::s6_interleaved_reset_stop 0
@@ -437,10 +441,21 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     set coherent 0
     set qualifies 0
   }
+  set phase_observation_valid [expr {
+    $reads_valid && $diagnostic_frame_match && $reset_signature_valid ? 1 : 0}]
   if {$reset_changed} { set ::s6_interleaved_reset_stop 1 }
 
   if {$reads_valid && $coherent} {
     incr ::s6_interleaved_accepted
+  }
+  if {$phase_observation_valid} {
+    incr ::s6_interleaved_phase_accepted
+  }
+  set streak_observation_valid $coherent
+  if {$phase_context > 0} {
+    set streak_observation_valid $phase_observation_valid
+  }
+  if {$streak_observation_valid} {
     set ::s6_interleaved_invalid_streak 0
   } else {
     incr ::s6_interleaved_invalid_streak
@@ -455,12 +470,12 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
     $hardware_name $sample $context_frame_start_us $context_frame_end_us \
     $context_wait_ms $context_frame_valid $context_epoch_before \
     $context_epoch_after $context_ucnt_raw]
-  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d STEP1_GATE=%d STATUS_SI_CONFIG_DONE=%d STATUS_WR_READY=%d STATUS_TM_LINK=%d STATUS_LINK_OK=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d STATUS_RX_LOCKED_TO_DATA=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
+  puts [format "S6_INTERLEAVED_SAMPLE board=%s sample=%04d elapsed_ms=%d row_ms=%.3f HEALTH_START_US=%s HEALTH_END_US=%s DIAG_WAIT_START_US=%s DIAG_WAIT_MS=%d DIAG_EPOCH_WAIT_BASELINE=%d FRAME_START_US=%s CKO_HOST_US=%s PHASE_CONTEXT_START_US=%s PHASE_CONTEXT_END_US=%s FRAME_END_US=%s ROW_END_US=%s READS_VALID=%d COHERENT=%d PHASE_OBSERVATION_VALID=%d QUALIFYING_SAMPLE=%d TAI=%s CYCLES=%s GLOBAL_TIME_VALID=%d SNAPSHOT_STABLE=%d SNAPSHOT_VALID=%d SNAPSHOT_COUNT=%d STATUS_TIME_VALID=%d STATUS_PPS_VALID=%d ESCR_TIME_VALID=%d ESCR_PPS_VALID=%d STEP1_GATE=%d STATUS_SI_CONFIG_DONE=%d STATUS_WR_READY=%d STATUS_TM_LINK=%d STATUS_LINK_OK=%d STATUS_RX_READY=%d STATUS_TX_READY=%d STATUS_CPU_RESET_N=%d STATUS_RX_LOCKED_TO_DATA=%d HELPER_LOCK=%d MAIN_LOCK=%d MAIN_FREQ_LOCK=%d MAIN_PHASE_LOCK=%d PSTAT_LOCK=%d DIAG_VALID_BEFORE=%d DIAG_VALID_AFTER=%d DIAG_EPOCH_BEFORE=%d DIAG_EPOCH_AFTER=%d DIAG_EPOCH_STABLE=%d DIAG_EPOCH_BEFORE_OK=%d DIAG_FRAME_VALID=%d UCNT=%s SSTAT=%s SERVO_STATE=%d CKO_RAW=%s CKO_PS=%d BOOT_GENERATION=%s CPU_RESET_COUNT=%s WR_CORE_RESET_COUNT=%s SI_CONFIG_DROP_COUNT=%s RESET_CHANGED=%d PHASE_CONTEXT=%d PHASE_CONTEXT_VALID=%d DMS_HI=%s DMS_LO=%s DMS_PS=%s SETP_RAW=%s SETP_PS=%s PHASE_CONTEXT_FRAME_VALID=%d PHASE_CONTEXT_MATCH=%d PHASE_CONTEXT_UCNT=%s PHASE_CONTEXT_EPOCH_BEFORE=%d PHASE_CONTEXT_EPOCH_AFTER=%d PHASE_CONTEXT_FRAME_START_US=%s PHASE_CONTEXT_FRAME_END_US=%s PHASE_CONTEXT_WAIT_MS=%d" \
     $hardware_name $sample $elapsed_ms $row_ms $health_start_us $health_end_us \
     $critical_start_us $diag_wait_ms $diag_epoch_wait_baseline $frame_start_us \
     $cko_host_us $phase_context_start_us $phase_context_end_us \
     $critical_end_us $row_end_us $reads_valid \
-    $coherent $qualifies $tai $cycles $global_valid $snapshot_stable \
+    $coherent $phase_observation_valid $qualifies $tai $cycles $global_valid $snapshot_stable \
     $snapshot_valid $snapshot_count $status_time_valid $status_pps_valid \
     $escr_time_valid $escr_pps_valid $step1_gate $status_si_config_done \
     $status_wr_ready $status_tm_link $status_link_ok $status_rx_ready \
@@ -481,8 +496,10 @@ proc s6_i_capture {hardware_name sample elapsed_ms} {
 set context_join_mode NONE
 if {$phase_context == 1} { set context_join_mode SAME_WDIAGS_FRAME }
 if {$phase_context == 2} { set context_join_mode MATCHED_UCNT_SEPARATE_FRAMES }
-puts [format "S6_INTERLEAVED_CONFIG duration_ms=%d sample_ms=%d board_filter=%s phase_context=%d context_join=mode_specific read_only=1 wb_register_writes=0 fpga_program=0 reset=0" \
-  $duration_ms $sample_ms $board_filter $phase_context]
+set trust_domain FULL_STEP6
+if {$phase_context > 0} { set trust_domain PHASE_OBSERVATION }
+puts [format "S6_INTERLEAVED_CONFIG duration_ms=%d sample_ms=%d board_filter=%s phase_context=%d context_join=mode_specific trust_domain=%s read_only=1 wb_register_writes=0 fpga_program=0 reset=0" \
+  $duration_ms $sample_ms $board_filter $phase_context $trust_domain]
 flush stdout
 
 puts [format "S6_INTERLEAVED_CONTEXT_CONFIG join_mode=%s" $context_join_mode]
@@ -510,7 +527,11 @@ foreach hardware_name [get_hardware_names] {
         break
       }
       if {$::s6_interleaved_invalid_streak >= 5} {
-        puts [format "S6_INTERLEAVED_STOP board=%s sample=%d elapsed_ms=%d reason=five_consecutive_untrusted_samples" $hardware_name $sample_index $elapsed_ms]
+        set stop_reason five_consecutive_untrusted_samples
+        if {$phase_context > 0} {
+          set stop_reason five_consecutive_invalid_phase_observations
+        }
+        puts [format "S6_INTERLEAVED_STOP board=%s sample=%d elapsed_ms=%d reason=%s" $hardware_name $sample_index $elapsed_ms $stop_reason]
         incr sample
         break
       }
@@ -528,9 +549,9 @@ foreach hardware_name [get_hardware_names] {
   catch {end_insystem_source_probe}
 }
 
-puts [format "S6_INTERLEAVED_SUMMARY boards=%d rows=%d accepted=%d qualifying=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
+puts [format "S6_INTERLEAVED_SUMMARY boards=%d rows=%d accepted=%d phase_accepted=%d qualifying=%d reset_stop=%d timeout_count=%d invalid_count=%d" \
   $::s6_interleaved_board_count $::s6_interleaved_rows \
-  $::s6_interleaved_accepted $::s6_interleaved_qualifying \
+  $::s6_interleaved_accepted $::s6_interleaved_phase_accepted $::s6_interleaved_qualifying \
   $::s6_interleaved_reset_stop $::wb_timeout_count $::wb_invalid_count]
 puts "S6_INTERLEAVED_DONE"
 flush stdout

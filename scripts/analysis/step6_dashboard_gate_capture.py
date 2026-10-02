@@ -52,6 +52,42 @@ def _all_locks(row: dict[str, str]) -> bool:
     return all(_is_one(row, key) for key in LOCK_FIELDS)
 
 
+def _phase_observation_prerequisites(row: dict[str, str]) -> bool:
+    if not (
+        _is_one(row, "READS_VALID")
+        and _is_one(row, "DIAG_FRAME_VALID")
+        and _is_one(row, "DIAG_EPOCH_STABLE")
+        and row.get("RESET_CHANGED") == "0"
+    ):
+        return False
+
+    # In mode 0 the CKO/SSTAT/UCNT diagnostic frame is sufficient by itself.
+    if row.get("PHASE_CONTEXT", "0") == "0":
+        return True
+
+    return (
+        _is_one(row, "PHASE_CONTEXT_VALID")
+        and _is_one(row, "PHASE_CONTEXT_FRAME_VALID")
+        and _is_one(row, "PHASE_CONTEXT_MATCH")
+    )
+
+
+def _phase_observation_valid(row: dict[str, str]) -> bool:
+    """Validate phase telemetry independently from the Global-Time gate."""
+    prerequisites = _phase_observation_prerequisites(row)
+    if not prerequisites:
+        return False
+    if "PHASE_OBSERVATION_VALID" in row:
+        return _is_one(row, "PHASE_OBSERVATION_VALID")
+    return True
+
+
+def _phase_observation_marker_mismatch(row: dict[str, str]) -> bool:
+    if "PHASE_OBSERVATION_VALID" not in row:
+        return False
+    return _is_one(row, "PHASE_OBSERVATION_VALID") != _phase_observation_prerequisites(row)
+
+
 def _qualifies(row: dict[str, str]) -> bool:
     try:
         offset_ps = int(row["CKO_PS"])
@@ -111,6 +147,11 @@ def analyze_text(text: str) -> dict[str, Any]:
         for index, row in enumerate(rows)
         if _is_one(row, "QUALIFYING_SAMPLE") != _qualifies(row)
     ]
+    phase_observation_marker_mismatches = [
+        index
+        for index, row in enumerate(rows)
+        if _phase_observation_marker_mismatch(row)
+    ]
 
     longest_run = 0
     current_run: list[int] = []
@@ -126,14 +167,17 @@ def analyze_text(text: str) -> dict[str, Any]:
         else:
             current_run = []
 
-    valid_offset_values: list[int] = []
+    read_valid_offset_values: list[int] = []
+    phase_observation_offset_values: list[int] = []
     for row in rows:
-        if not _is_one(row, "READS_VALID"):
-            continue
         try:
-            valid_offset_values.append(int(row["CKO_PS"]))
+            offset = int(row["CKO_PS"])
         except (KeyError, ValueError):
             continue
+        if _is_one(row, "READS_VALID"):
+            read_valid_offset_values.append(offset)
+        if _phase_observation_valid(row):
+            phase_observation_offset_values.append(offset)
 
     def count(predicate: Any) -> int:
         return sum(1 for row in rows if predicate(row))
@@ -159,6 +203,12 @@ def analyze_text(text: str) -> dict[str, Any]:
         summary.get("rows") == str(len(rows))
         and summary.get("accepted") == str(count(lambda row: _is_one(row, "COHERENT")))
         and summary.get("qualifying") == str(len(marker_indexes))
+        and (
+            "phase_accepted" not in summary
+            or summary.get("phase_accepted")
+            == str(count(_phase_observation_valid))
+        )
+        and not phase_observation_marker_mismatches
     )
     read_only_contract = (
         config.get("read_only") == "1"
@@ -208,12 +258,33 @@ def analyze_text(text: str) -> dict[str, Any]:
         "phase_context_ucnt_match_rows": count(
             lambda row: _is_one(row, "PHASE_CONTEXT_MATCH")
         ),
+        "phase_observation_valid_rows": count(_phase_observation_valid),
+        "phase_observation_marker_mismatches": phase_observation_marker_mismatches,
+        "read_valid_cko_min_ps": min(read_valid_offset_values)
+        if read_valid_offset_values
+        else None,
+        "read_valid_cko_max_ps": max(read_valid_offset_values)
+        if read_valid_offset_values
+        else None,
+        "phase_observation_strict_offset_rows_abs_lt_60_ps": sum(
+            1 for offset in phase_observation_offset_values if abs(offset) < 60
+        ),
+        "phase_observation_cko_min_ps": min(phase_observation_offset_values)
+        if phase_observation_offset_values
+        else None,
+        "phase_observation_cko_max_ps": max(phase_observation_offset_values)
+        if phase_observation_offset_values
+        else None,
         "coherent_accepted_rows": count(lambda row: _is_one(row, "COHERENT")),
         "strict_offset_rows_abs_lt_60_ps": sum(
-            1 for offset in valid_offset_values if abs(offset) < 60
+            1 for offset in phase_observation_offset_values if abs(offset) < 60
         ),
-        "valid_offset_min_ps": min(valid_offset_values) if valid_offset_values else None,
-        "valid_offset_max_ps": max(valid_offset_values) if valid_offset_values else None,
+        "valid_offset_min_ps": min(phase_observation_offset_values)
+        if phase_observation_offset_values
+        else None,
+        "valid_offset_max_ps": max(phase_observation_offset_values)
+        if phase_observation_offset_values
+        else None,
         "observer_qualifying_rows": len(marker_indexes),
         "independently_qualified_rows": len(qualified_indexes),
         "qualification_marker_mismatches": marker_mismatches,

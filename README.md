@@ -7,13 +7,16 @@ This repository develops and records the two-board White Rabbit system on Terasi
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003`.
 Current source adds passive packet-specific timestamp RAM snapshots only;
-its build/program is pending. Existing `output/` below is the preceding
-strict-validity revision2, not this changed source. Do not program stale images.
+both fresh compiles/programming completed. Root `output/` is this diagnostic
+source, actual compile commit `13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`.
+The90s preflight reached <60ps with a2669ms qualified span, not300s. Packet
+math validated, but fine stability remains NOT_ESTABLISHED; see the
+[RXTS report](experiments/step6/EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003/REPORT.md).
 The requested gate now also requires a <60 ps acquisition and a 300 s interval
 within +/-120 ps, with Slave validity revoked on excursions. The old
-TIME_VALID-only pass does not prove this. Fresh role-corrected candidate SOFs
-are retained in `output/`, compiled from `4ba9df5935fc0a6afae2c7bd29603f190936e627`
-and programmed on 2026-10-02. Master validity is restored; the completed 660 s
+TIME_VALID-only pass does not prove this. The preceding role-corrected candidate
+was compiled from `4ba9df5935fc0a6afae2c7bd29603f190936e627`
+and programmed on 2026-10-02. Master validity was restored; its completed660s
 strict capture had no <60 ps entry, CKO -3158..+3839 ps, and no qualified hold.
 Slave correctly remained invalid. These are NOT PASS
 milestone images. Any further production-source change still requires rebuild.

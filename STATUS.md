@@ -2,13 +2,16 @@
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
 Active experiment: EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003.
-Passive RX timestamp recorder added in root; tests/build/program pending.
-Retained images below are preceding strict-validity revision2 only.
+Passive RX timestamp recorder in root: fresh build/program succeeded from
+`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`; current output is this candidate.
+90s preflight reached <60ps but retained +/-120ps only2669ms; NOT300s PASS.
+Two packet histories validated mathematically;64 rows,63 correct. Both used
+falling selection; actual ahead/calibration accuracy remains unproven.
 The new firmware revokes Slave validity outside +/-120 ps and reacquires only
 inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
 revision 2 passed 35 actual-C cases and fresh two-board compile/program from
-`4ba9df5935fc0a6afae2c7bd29603f190936e627`. Current `output/` contains these
-candidate images, NOT the historical PASS images. Master validity is restored;
+`4ba9df5935fc0a6afae2c7bd29603f190936e627`. These preceding candidate images
+have been superseded by RXTS products, NOT historical PASS images. Master validity is restored;
 the completed 660 s capture had 1882 Slave rows (1849 trusted), CKO
 -3158..+3839 ps, no <60 ps row, and zero qualified hold. All 496 sampled Master
 health rows were valid; Slave TIME_VALID remained 0. No reset/transport errors.

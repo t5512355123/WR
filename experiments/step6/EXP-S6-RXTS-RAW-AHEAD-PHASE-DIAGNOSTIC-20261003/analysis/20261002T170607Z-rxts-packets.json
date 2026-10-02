@@ -1,0 +1,82 @@
+{
+  "verdict": "PASS_DIAGNOSTIC_DATA_ONLY",
+  "snapshots": 2,
+  "boards": {
+    "DE5 [1-11.1]": {
+      "records": 32,
+      "correct_records": 32,
+      "messages": {
+        "1": 32
+      },
+      "ahead": {
+        "1": 11,
+        "0": 21
+      },
+      "selection": {
+        "falling": 32
+      },
+      "t24p_ps": [
+        2389
+      ],
+      "raw_phase_ps_range": [
+        2035,
+        3888
+      ],
+      "correction_ps_range": [
+        -354,
+        9499
+      ],
+      "rising_window_margin_ps_range": [
+        501,
+        1928
+      ]
+    },
+    "DE5 [1-11.2]": {
+      "records": 32,
+      "correct_records": 31,
+      "messages": {
+        "8": 9,
+        "9": 15,
+        "0": 8
+      },
+      "ahead": {
+        "1": 15,
+        "0": 16
+      },
+      "selection": {
+        "falling": 31
+      },
+      "t24p_ps": [
+        7250
+      ],
+      "raw_phase_ps_range": [
+        5372,
+        6739
+      ],
+      "correction_ps_range": [
+        -837,
+        6752
+      ],
+      "rising_window_margin_ps_range": [
+        122,
+        1489
+      ]
+    }
+  },
+  "sync_followup_forward_leg": {
+    "DE5 [1-11.2]": {
+      "matched_sync_followup_pairs": 8,
+      "t2_minus_t1_ps_range": [
+        182149,
+        183489
+      ],
+      "adjacent_captured_pair_delta_ps_range": [
+        -603,
+        300
+      ],
+      "scope": "One-way time difference includes offset and propagation delay; captured pairs may have omitted intervening exchanges. Not CKO or causality."
+    }
+  },
+  "errors": [],
+  "scope": "Frozen packet RAM histories; omissions between snapshots possible. Does not prove timestamp physical accuracy, CKO causality, or 300s strict validity."
+}

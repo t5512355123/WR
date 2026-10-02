@@ -68,7 +68,7 @@ class AnalysisTests(unittest.TestCase):
             so = Path(tmp) / "linearizer.so"
             c.write_text('#include "net.h"\nvoid ptpd_netif_linearize_rx_timestamp' + body)
             subprocess.run(["cc", "-shared", "-fPIC", "-Wall", "-Wextra", "-Werror",
-                "-fsanitize=undefined", "-fno-sanitize-recover=all", "-I",
+                "-fsanitize=undefined", "-fno-sanitize-recover=all", "-iquote",
                 str(ROOT / "vendor/wrpc-sw/include"), str(c), "-o", str(so)], check=True)
             fn = ctypes.CDLL(str(so)).ptpd_netif_linearize_rx_timestamp
             fn.argtypes = [ctypes.POINTER(Stamp), ctypes.c_int32] + [ctypes.c_int] * 3

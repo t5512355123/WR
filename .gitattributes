@@ -29,6 +29,7 @@
 output/** -text -eol -diff -whitespace
 build/firmware/master/** -text -eol -diff -whitespace
 build/firmware/slave/** -text -eol -diff -whitespace
+build/*.log -text -eol -diff -whitespace
 *.pof binary
 *.a binary
 *.o binary
@@ -82,3 +83,4 @@ experiments/step6/EXP-S6-WRH-SERVO-ACQUIRE-HALF-TRACK-SIXTEENTH-20260930/candida
 # TIME_VALID dwell experiment byte-for-byte, including vendor log whitespace.
 experiments/step6/EXP-S6-TIME-VALID-STABLE-300S-20261001/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/analysis/** -text -eol -diff -whitespace

@@ -70,6 +70,8 @@ artifacts/EXP-*/
 !artifacts/milestones/**/source/**/*.log
 
 # Published current build outputs, not temporary compiler object/cache trees.
+artifacts/milestones/step6_global_time/current/
+artifacts/milestones/step6_global_time/.current-extract.*/
 !build/firmware/master/**
 !build/firmware/slave/**
 !build/build_info_*.txt

@@ -1,5 +1,17 @@
 # Step 6 — Global Time and dual-board scheduled digital trigger
 
+## Current milestone (2026-10-02)
+
+The current milestone is the complete independent `current/` checkout,
+distributed as `current-source.tar.gz`. Both boards passed the revised
+sampled TIME_VALID >300-second gate. See [CURRENT.md](CURRENT.md) for
+preparation, build, compile, program, dashboard and verification commands.
+
+The remainder below describes the **previous historical milestone only**,
+also preserved verbatim in [HISTORICAL_README.md](HISTORICAL_README.md).
+Its `source/` and SOFs are not the current 300-second qualification images.
+Do not mistake the historical PENDING line below for the current PASS.
+
 **Revised 2026-10-01 acceptance: PENDING a 300-second Slave `TIME_VALID` capture.**
 The frozen Step 6 source was independently rebuilt and programmed. Historical
 hardware evidence established valid Global Time on both boards, five matching

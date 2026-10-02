@@ -1,6 +1,13 @@
 # Current status
 
-**Current Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
+**Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
+Active experiment: EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002.
+The new firmware revokes Slave validity outside +/-120 ps and reacquires only
+inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Full fresh
+build/program and offset-bound 300 s qualification are pending; old root SOFs
+do not represent this candidate. Frozen milestone packages remain unchanged.
+
+**Historical TIME_VALID-only Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
 The frozen milestone additionally passed fresh standalone build/compile/program
 at 20:03–20:34: 1192/1192 valid samples per board, Master/Slave spans
 302952/302872 ms, no invalid rows or transport errors. See the

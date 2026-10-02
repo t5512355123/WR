@@ -4,7 +4,7 @@
 #include <limits.h>
 #define __COMMON_FUN_H
 #include "ppsi/ppsi.h"
-#include "../../../../vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c"
+#include "../../../vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c"
 
 static int output, busy, pll, delays_ok, phase_calls, counter_calls;
 static struct pp_servo gs;

@@ -4,8 +4,15 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
-**Step6 PASS — two independent full root reproduction cycles (2026-10-02).**
-Current experiment: `EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`.
+**Current root: strict WR validity candidate, NOT YET QUALIFIED.**
+Active experiment: `EXP-S6-STRICT-WRH-VALIDITY-HYSTERESIS-20261002`.
+The requested gate now also requires a <60 ps acquisition and a 300 s interval
+within +/-120 ps, with Slave validity revoked on excursions. The old
+TIME_VALID-only pass does not prove this. Stale root SOFs must not be programmed
+after source changes; candidate firmware/FPGA rebuild is required.
+
+**Historical Step6 TIME_VALID-only PASS — two root cycles (2026-10-02).**
+Historical experiment: `EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`.
 Each cycle freshly built firmware, fully compiled both FPGA projects, programmed
 Slave then Master, and sampled each board for more than 300 seconds.
 All four windows had 1192/1192 TIME_VALID rows; no invalid rows or transport

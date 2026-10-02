@@ -66,6 +66,23 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertIn("0x00100514", self.observer)
         self.assertIn("(($word >> 8) & 1)", self.observer)
 
+    def test_bundled_wb_payload_settles_before_toggle_commit(self):
+        transfer = self.observer.split('proc wb_transfer', 1)[1].split('proc wb_read', 1)[0]
+        self.assertLess(transfer.index('encode_wb_command $preload_cmd'),
+                        transfer.index('set toggle [expr {$prior_toggle ^ 1}]'))
+        self.assertIn('$p1 == $p2 && $p2 == $p3', transfer)
+        self.assertIn('(($p3 >> 36) & 1) == 0', transfer)
+        self.assertIn('0xA5A5', transfer)
+
+    def test_pre_drain_preserves_pages_and_backpressure_has_time_bound(self):
+        drain = self.observer.split('proc drain_preexisting_uart', 1)[1].split('proc capture_vuart_reply', 1)[0]
+        self.assertIn('append all_hex $chunk_hex', drain)
+        self.assertIn('append all_text $chunk_text', drain)
+        self.assertIn('[string length $all_hex] < 16384', drain)
+        send = self.observer.split('proc send_vuart_command', 1)[1].split('proc drain_preexisting_uart', 1)[0]
+        self.assertIn('[clock milliseconds] - $wait_start < $timeout_ms', send)
+        self.assertNotIn('$n < 100', send)
+
     def test_reply_capture_appends_full_pages_before_continuing(self):
         capture = self.observer.split("proc capture_vuart_reply", 1)[1].split("\n}\n", 1)[0]
         self.assertLess(capture.index("append all_hex $chunk_hex"),

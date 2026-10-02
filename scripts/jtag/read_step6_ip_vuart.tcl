@@ -67,14 +67,13 @@ proc is_hex {value} {
 
 proc word32 {value} {
   if {![is_hex $value]} { return INVALID }
-  scan $value %x word
+  set word [expr 0x$value]
   return [expr {$word & 0xffffffff}]
 }
 
 proc word64 {value} {
   if {![is_hex $value]} { return INVALID }
-  scan $value %x word
-  return $word
+  return [expr 0x$value]
 }
 
 proc probe_word {instance} {
@@ -90,62 +89,62 @@ proc wb_sync_toggle {hardware_name} {
   if {![is_hex $value]} {
     error "cannot synchronize Wishbone mailbox toggle"
   }
-  scan $value %x word
+  set word [word64 $value]
   set ::wb_toggle($hardware_name) [expr {($word >> 35) & 1}]
 }
 
-proc wb_read {hardware_name addr} {
+proc encode_wb_command {command} {
+  # Avoid platform-dependent %X truncation of the 96-bit mailbox payload.
+  return [format %08X%08X%08X [expr {($command >> 64) & 0xffffffff}] \
+    [expr {($command >> 32) & 0xffffffff}] [expr {$command & 0xffffffff}]]
+}
+
+proc wb_transfer {hardware_name addr data write_enable} {
   global poll_attempts
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (0xf << 2) | (($addr & 0xffffffff) << 6)}]
+  set prior_toggle $::wb_toggle($hardware_name)
+  set payload [expr {($write_enable << 1) | (0xf << 2) |
+                    (($addr & 0xffffffff) << 6) | (($data & 0xffffffff) << 38)}]
+  # Settle the complete bundled payload before changing only the commit bit.
+  set preload_cmd [expr {$payload | $prior_toggle}]
   if {[catch {
-    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
+    write_source_data -instance_index 1 -value [encode_wb_command $preload_cmd] -value_in_hex
   }]} { return TIMEOUT }
   after 2
+  set preload_probe [word64 [probe_word 1]]
+  if {$preload_probe eq "INVALID" || (($preload_probe >> 35) & 1) != $prior_toggle ||
+      (($preload_probe >> 36) & 1)} { return TIMEOUT }
+  set toggle [expr {$prior_toggle ^ 1}]
+  set ::wb_toggle($hardware_name) $toggle
+  set cmd [expr {$payload | $toggle}]
+  if {[catch {
+    write_source_data -instance_index 1 -value [encode_wb_command $cmd] -value_in_hex
+  }]} { return TIMEOUT }
+  after 5
   for {set n 0} {$n < $poll_attempts} {incr n} {
-    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
-      set value TIMEOUT
-    }
-    if {[is_hex $value]} {
-      scan $value %x word
-      set done_toggle [expr {($word >> 35) & 1}]
-      set active [expr {($word >> 36) & 1}]
-      if {$done_toggle == $toggle && $active == 0} {
-        return [format %08X [expr {$word & 0xffffffff}]]
+    set p1 [word64 [probe_word 1]]
+    after 1
+    set p2 [word64 [probe_word 1]]
+    after 1
+    set p3 [word64 [probe_word 1]]
+    if {$p1 ne "INVALID" && $p2 ne "INVALID" && $p3 ne "INVALID" &&
+        $p1 == $p2 && $p2 == $p3 && (($p3 >> 35) & 1) == $toggle &&
+        (($p3 >> 36) & 1) == 0 && (($p3 >> 16) & 0xffff) != 0xA5A5} {
+      if {$write_enable} {
+        return OK
       }
+      return [format %08X [expr {$p3 & 0xffffffff}]]
     }
     after 1
   }
   return TIMEOUT
 }
 
+proc wb_read {hardware_name addr} {
+  return [wb_transfer $hardware_name $addr 0 0]
+}
+
 proc wb_write {hardware_name addr data} {
-  global poll_attempts
-  set ::wb_toggle($hardware_name) [expr {$::wb_toggle($hardware_name) ^ 1}]
-  set toggle $::wb_toggle($hardware_name)
-  set cmd [expr {$toggle | (1 << 1) | (0xf << 2) |
-                (($addr & 0xffffffff) << 6) |
-                (($data & 0xffffffff) << 38)}]
-  if {[catch {
-    write_source_data -instance_index 1 -value [format %024X $cmd] -value_in_hex
-  }]} { return TIMEOUT }
-  after 2
-  for {set n 0} {$n < $poll_attempts} {incr n} {
-    if {[catch {set value [read_probe_data -instance_index 1 -value_in_hex]}]} {
-      set value TIMEOUT
-    }
-    if {[is_hex $value]} {
-      scan $value %x word
-      set done_toggle [expr {($word >> 35) & 1}]
-      set active [expr {($word >> 36) & 1}]
-      if {$done_toggle == $toggle && $active == 0} {
-        return OK
-      }
-    }
-    after 1
-  }
-  return TIMEOUT
+  return [wb_transfer $hardware_name $addr $data 1]
 }
 
 proc stable_shell_ready {hardware_name} {
@@ -200,7 +199,7 @@ proc read_uart_available {hardware_name max_bytes} {
   for {set n 0} {$n < $max_bytes} {incr n} {
     set raw [wb_read $hardware_name 0x00100514]
     if {$raw eq "TIMEOUT"} { return [list TIMEOUT $hex $text] }
-    scan $raw %x word
+    set word [word32 $raw]
     if {(($word >> 8) & 1) == 0} { return [list OK $hex $text] }
     set byte [expr {$word & 0xff}]
     append hex [format %02X $byte]
@@ -225,12 +224,14 @@ proc escaped_text {text} {
 }
 
 proc send_vuart_command {hardware_name command_name} {
+  global timeout_ms
   set command "${command_name}\n"
   set index 0
   foreach character [split $command ""] {
     scan $character %c byte
     set ready 0
-    for {set n 0} {$n < 100} {incr n} {
+    set wait_start [clock milliseconds]
+    while {[clock milliseconds] - $wait_start < $timeout_ms} {
       set status [word32 [wb_read $hardware_name 0x00100500]]
       if {$status eq "INVALID" || $status eq "TIMEOUT"} { return TIMEOUT }
       if {(($status >> 1) & 1) == 0} { set ready 1; break }
@@ -244,6 +245,19 @@ proc send_vuart_command {hardware_name command_name} {
     incr index
   }
   return OK
+}
+
+proc drain_preexisting_uart {hardware_name timeout_ms} {
+  set start_ms [clock milliseconds]
+  set all_hex ""
+  set all_text ""
+  while {[clock milliseconds] - $start_ms < $timeout_ms && [string length $all_hex] < 16384} {
+    lassign [read_uart_available $hardware_name 256] status chunk_hex chunk_text
+    append all_hex $chunk_hex
+    append all_text $chunk_text
+    if {$status eq "OK" || $status eq "TIMEOUT"} { return [list $status $all_hex $all_text] }
+  }
+  return [list LIMIT $all_hex $all_text]
 }
 
 proc capture_vuart_reply {hardware_name timeout_ms} {
@@ -332,7 +346,7 @@ foreach hardware_name [get_hardware_names] {
       puts [format "STEP6_VUART_PREFLIGHT board=%s boot_generation=%d cpu_reset=%d" \
         $hardware_name $pre_generation $pre_cpu_reset]
 
-      lassign [read_uart_available $hardware_name 1024] pre_status pre_hex pre_text
+      lassign [drain_preexisting_uart $hardware_name $timeout_ms] pre_status pre_hex pre_text
       puts [format "STEP6_VUART_PREEXISTING board=%s status=%s bytes=%d hex=%s text=%s" \
         $hardware_name $pre_status [expr {[string length $pre_hex] / 2}] $pre_hex \
         [escaped_text $pre_text]]

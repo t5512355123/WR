@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 FROZEN = ROOT / 'artifacts/milestones/step6_global_time/source'
 CURRENT_HASHES = {
     'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
-        '83e929dc284a2d1be71242684c293fc193eac3fde1f6abd086bf48e84a2d9bc2',
+        '806866e8776c708482b92e51af5b6c6c3e010bbdd4964ddd34ed0215c9ed2fd9',
     'quartus/DE5a_wr_master_jtag.vhd':
         '1cbaf7b40f831bd7d1ba32702dbfc80b1a7dfb3948eca5d7dd8922e57cc880ed',
     'quartus/DE5a_wr_slave_jtag.vhd':

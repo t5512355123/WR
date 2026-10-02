@@ -10,6 +10,9 @@
 // #include "wrs-constants.h"
 #include "../proto-standard/common-fun.h"
 #include "wrh-servo_state_name.h"
+#if CONFIG_ARCH_IS_WRPC
+#include "../arch-wrpc/wrpc.h"
+#endif
 
 #if CONFIG_ARCH_IS_WRS
 #include <libwr/shmem.h>
@@ -28,6 +31,17 @@ static int wrh_tracking_enabled = 1;
 /* prototypes */
 static int __wrh_servo_update(struct pp_instance *ppi);
 static void  setState(struct pp_instance *ppi, int newState);
+static void invalidate_slave_time(struct pp_instance *ppi)
+{
+#if CONFIG_ARCH_IS_WRPC
+	/* WR hooks/reset also run on a free-running Master. Its local time must
+	 * stay enabled; only an effective Slave owns this offset qualification.
+	 * Use effective timing mode, not configured role (BMC can change it). */
+	if (WRPC_ARCH_I(ppi)->timingMode != WRH_TM_BOUNDARY_CLOCK)
+		return;
+#endif
+	TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
+}
 
 /* External data */
 extern struct wrs_shm_head *ppsi_head;
@@ -44,7 +58,7 @@ int wrh_servo_init(struct pp_instance *ppi)
 	int ret=0;
 
 	/* Reinitialization can itself write a phase setpoint. Revoke first. */
-	TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
+	invalidate_slave_time(ppi);
 	pp_servo_init(ppi); // Initialize the standard servo data
 
 	/* shmem lock */
@@ -182,7 +196,7 @@ static void setState(struct pp_instance *ppi, int newState)
 	/* Valid time is a live qualification, not a one-shot acquisition latch.
 	 * Invalidate before any coarse/phase reacquisition or reset operation. */
 	if (newState != WRH_TRACK_PHASE)
-		TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
+		invalidate_slave_time(ppi);
 	gs->servo_locked = (newState == WRH_TRACK_PHASE);
 	pp_diag(ppi, servo, 1, "new state %s\n", state_name);
 	gs->state=newState;
@@ -201,7 +215,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	int32_t  offset_ps;
 
 	if ( gs->state==WRH_UNINITIALIZED ) {
-		TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
+		invalidate_slave_time(ppi);
 		pp_error("%s : Servo not initialized !!!!\n",__FUNCTION__);
 		return 0;
 	}

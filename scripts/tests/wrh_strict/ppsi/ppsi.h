@@ -6,6 +6,12 @@
 #include <stdlib.h>
 #include <string.h>
 #define CONFIG_ARCH_IS_WRS 0
+#define CONFIG_ARCH_IS_WRPC 1
+#define __WRPC_H
+enum { WRH_TM_GRAND_MASTER, WRH_TM_FREE_MASTER, WRH_TM_BOUNDARY_CLOCK, WRH_TM_DISABLED };
+struct test_arch_data { int timingMode; };
+extern struct test_arch_data test_arch;
+#define WRPC_ARCH_I(p) (&test_arch)
 #define CONFIG_HAS_P2P 0
 #define TRUE 1
 #define PP_EXSTATE_ACTIVE 1

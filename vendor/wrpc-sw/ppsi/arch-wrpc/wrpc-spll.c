@@ -198,7 +198,9 @@ int wrpc_enable_timing_output(struct pp_globals *ppg, int enable)
 	 * Keep the existing force-PPS behaviour for Master/GM only: a demo/IPC
 	 * force request must not turn failed Slave synchronization into VALID. */
 	shw_pps_gen_enable_output(pps_enable |
-		(wrc_ptp_get_mode() != WRC_MODE_SLAVE && GOPTS(ppg)->forcePpsGen));
+		(wrc_ptp_get_mode() != WRC_MODE_SLAVE &&
+		 WRPC_ARCH_G(ppg)->timingMode != WRH_TM_BOUNDARY_CLOCK &&
+		 GOPTS(ppg)->forcePpsGen));
 	return WRH_SPLL_OK;
 }
 

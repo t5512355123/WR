@@ -8,6 +8,7 @@
 
 static int output, busy, pll, delays_ok, phase_calls, counter_calls;
 static struct pp_servo gs;
+struct test_arch_data test_arch;
 static wrh_servo_t ws;
 static struct pp_instance instance = { .servo=&gs, .ext_data=&ws };
 static int enable_output(void *unused,int enable) { output=enable; return 0; }
@@ -17,7 +18,8 @@ static int lock_poll(struct pp_instance *p) { return pll; }
 static int is_busy(void) { return busy; }
 static int counters(int64_t sec,int32_t ns) { counter_calls++; return 0; }
 static int phase(int32_t ps) {
-    if(gs.state!=WRH_TRACK_PHASE) assert(output==0);
+    if(test_arch.timingMode==WRH_TM_BOUNDARY_CLOCK && gs.state!=WRH_TRACK_PHASE)
+        assert(output==0);
     phase_calls++; return 0;
 }
 static int32_t period(void) { return 8000; }
@@ -37,6 +39,7 @@ const char *time_to_string(const struct pp_time *t) { return "test"; }
 static void fixture(int state,int64_t offset) {
     memset(&gs,0,sizeof(gs)); memset(&ws,0,sizeof(ws));
     instance.extState=PP_EXSTATE_ACTIVE; gs.state=state;
+    test_arch.timingMode=WRH_TM_BOUNDARY_CLOCK;
     gs.servo_locked=(state==WRH_TRACK_PHASE);
     gs.offsetFromMaster.ps=offset; ws.readyForSync=1; ws.clock_period_ps=8000;
     output=(state==WRH_TRACK_PHASE); busy=0; pll=0; delays_ok=1;
@@ -88,6 +91,14 @@ int main(void) {
     __wrh_servo_update(&instance); assert(ws.cur_setpoint_ps==1100 && output==0);
     fixture(WRH_TRACK_PHASE,60); ws.cur_setpoint_ps=1000;
     __wrh_servo_update(&instance); assert(ws.cur_setpoint_ps==1005 && output==1);
-    puts("ACTUAL_WRH_SERVO_C_TEST=PASS cases=31 acquisition_divisor=2 tracking_divisor=12");
+    fixture(WRH_TRACK_PHASE,0); test_arch.timingMode=WRH_TM_FREE_MASTER;
+    wrh_servo_reset(&instance); assert(output==1);
+    fixture(WRH_TRACK_PHASE,0); test_arch.timingMode=WRH_TM_FREE_MASTER;
+    wrh_servo_init(&instance); assert(output==1);
+    fixture(WRH_UNINITIALIZED,0); output=1; test_arch.timingMode=WRH_TM_FREE_MASTER;
+    __wrh_servo_update(&instance); assert(output==1);
+    fixture(WRH_TRACK_PHASE,0); test_arch.timingMode=WRH_TM_GRAND_MASTER;
+    wrh_servo_reset(&instance); assert(output==1);
+    puts("ACTUAL_WRH_SERVO_C_TEST=PASS cases=35 acquisition_divisor=2 tracking_divisor=12 master_gm_preserved=1");
     return 0;
 }

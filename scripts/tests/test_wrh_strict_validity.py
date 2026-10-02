@@ -36,13 +36,15 @@ class StrictValidityTests(unittest.TestCase):
         text=SERVO.read_text()
         state=text.split("static void setState(struct pp_instance *ppi, int newState)\n{",1)[1].split("static int __wrh",1)[0]
         self.assertIn("newState != WRH_TRACK_PHASE",state)
-        self.assertIn("enable_timing_output(GLBS(ppi), 0)",state)
+        self.assertIn("invalidate_slave_time(ppi)",state)
         init=text.split("int wrh_servo_init",1)[1].split("void wrh_servo_reset",1)[0]
-        self.assertLess(init.index("enable_timing_output(GLBS(ppi), 0)"),init.index("adjust_phase"))
+        self.assertLess(init.index("invalidate_slave_time(ppi)"),init.index("adjust_phase"))
 
     def test_slave_force_cannot_bypass_gate_and_abi_unchanged(self):
         text=(ROOT/"vendor/wrpc-sw/ppsi/arch-wrpc/wrpc-spll.c").read_text()
-        self.assertIn("wrc_ptp_get_mode() != WRC_MODE_SLAVE && GOPTS(ppg)->forcePpsGen",text)
+        self.assertIn("wrc_ptp_get_mode() != WRC_MODE_SLAVE &&",text)
+        self.assertIn("WRPC_ARCH_G(ppg)->timingMode != WRH_TM_BOUNDARY_CLOCK &&",text)
+        self.assertIn("WRPC_ARCH_I(ppi)->timingMode != WRH_TM_BOUNDARY_CLOCK",SERVO.read_text())
         header=(ROOT/"vendor/wrpc-sw/ppsi/include/hw-specific/wrh.h").read_text()
         self.assertIn("#define WRS_PPSI_SHMEM_VERSION 36",header)
         self.assertIn("#define WRH_SERVO_OFFSET_STABILITY_THRESHOLD 60",header)

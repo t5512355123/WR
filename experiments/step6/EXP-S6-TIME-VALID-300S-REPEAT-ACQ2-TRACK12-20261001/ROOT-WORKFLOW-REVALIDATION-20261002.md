@@ -33,6 +33,12 @@ workspaces, Quartus databases and incremental caches are rebuildable staging,
 not published release files. All twelve existing Step1–6 milestone SOFs are
 tracked and their checksums were verified unchanged.
 
+Every compile/export also saves a unique, timestamped build record under
+this experiment's `raw/build/`, so subsequent root builds cannot overwrite
+the historical firmware and compile logs. This reproduction's archived
+record is `raw/build/20261002T012631Z-current.3tphJU/`. Its post-transfer
+checks confirm all 64 published files and all 3110 source inputs match.
+
 ## Hardware acceptance
 
 Capture run: `20261002T010427Z`. Read-only, one JTAG reader, sequential boards,

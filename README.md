@@ -9,6 +9,9 @@ Current qualified experiment: `EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261
 build/compile/Slave→Master programming: Master 1190/1190 rows over 302871 ms,
 Slave 1190/1190 over 302876 ms. Actual qualified SOFs are retained in output/.
 See the [current report](experiments/step6/EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002/REPORT.md).
+The complete [Step6 milestone archive](artifacts/milestones/step6_global_time/CURRENT.md)
+contains this qualified checkout, including all scripts and the dashboard;
+run its `prepare_current.sh` to operate independently from its `current/` directory.
 Slave control remains `/2 + /12`; Master uses a 2048-FINC coarse origin.
 **Master Helper is still unlocked.** This is not a Helper/fine-timestamp
 accuracy repair, and universal startup repeatability is not established.

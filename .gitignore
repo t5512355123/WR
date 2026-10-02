@@ -73,6 +73,7 @@ artifacts/EXP-*/
 artifacts/milestones/step6_global_time/current/
 artifacts/milestones/step6_global_time/.current-extract.*/
 !artifacts/milestones/step6_global_time/verification-dashboard.log
+!experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/cycles/**/*.sof
 !build/firmware/master/**
 !build/firmware/slave/**
 !build/build_info_*.txt

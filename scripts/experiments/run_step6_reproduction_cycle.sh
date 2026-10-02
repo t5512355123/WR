@@ -20,6 +20,8 @@ cp output/SHA256SUMS "$RECORD/sof.sha256"
 cp output/SOURCE_COMMIT "$RECORD/compiled-commit.txt"
 cp output/SOURCE_SHA256SUMS "$RECORD/compile-inputs.sha256"
 cp output/build_info_master.txt output/build_info_slave.txt "$RECORD/"
+cp output/DE5a_wr_master_jtag.sof "$RECORD/master.sof"
+cp output/DE5a_wr_slave_jtag.sof "$RECORD/slave.sof"
 bash scripts/program/program_current.sh
 ONCE=1 CLEAR_SCREEN=0 bash scripts/monitor/step1_6_dashboard.sh > "$RECORD/dashboard-before.log"
 cat "$RECORD/dashboard-before.log"

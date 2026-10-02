@@ -12,9 +12,9 @@ spec.loader.exec_module(module)
 class PairAuditTests(unittest.TestCase):
     def records(self):
         a = {'start': '2026-10-02T10:00:00+08:00', 'end': '2026-10-02T11:00:00+08:00',
-             'capture_sha256': 'a'}
+             'capture_sha256': 'a', 'mifs': {'master': 'x', 'slave': 'y'}}
         b = {'start': '2026-10-02T12:00:00+08:00', 'end': '2026-10-02T13:00:00+08:00',
-             'capture_sha256': 'b'}
+             'capture_sha256': 'b', 'mifs': {'master': 'x', 'slave': 'y'}}
         return a, b
 
     def test_accepts_two_distinct_nonoverlapping_cycles(self):

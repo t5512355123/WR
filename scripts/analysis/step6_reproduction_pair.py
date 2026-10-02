@@ -41,6 +41,7 @@ def audit_cycle(record, expected_label):
     if compiled != source:
         raise ValueError('Cycle source/compile identity differs')
     sofs = manifest((record / 'sof.sha256').read_text())
+    mifs = {}
     for role in ['master', 'slave']:
         info = dict(line.split('=', 1) for line in
                     (record / f'build_info_{role}.txt').read_text().splitlines() if '=' in line)
@@ -48,6 +49,11 @@ def audit_cycle(record, expected_label):
             raise ValueError('Board build identity/SOF checksum mismatch')
         if info.get('COMPILE_RESULT') != 'Full Compilation was successful':
             raise ValueError('Board compile did not complete')
+        if hashlib.sha256((record / f'{role}.sof').read_bytes()).hexdigest() != info['SOF_SHA256']:
+            raise ValueError('Retained actual SOF differs from board build identity')
+        mifs[role] = info.get('MIF_SHA256')
+        if not re.fullmatch('[0-9a-f]{64}', mifs[role] or ''):
+            raise ValueError('Missing board firmware identity')
     capture = record / 'qualified-capture.log'
     verdict = gate.analyze_file(capture, required_duration_ms=300000,
                                max_sample_gap_ms=1000, minimum_samples=301,
@@ -58,7 +64,7 @@ def audit_cycle(record, expected_label):
     if len(inputs) < 2500:
         raise ValueError('Compile input manifest is incomplete')
     return {'cycle': label, 'start': start, 'end': end[0][1], 'compiled_commit': compiled,
-            'sofs': sofs, 'capture_sha256': hashlib.sha256(capture.read_bytes()).hexdigest(),
+            'sofs': sofs, 'mifs': mifs, 'capture_sha256': hashlib.sha256(capture.read_bytes()).hexdigest(),
             'time_valid': verdict}, inputs
 
 
@@ -67,6 +73,8 @@ def audit_pair(first, second):
     b, bi = audit_cycle(second, 'cycle2')
     if ai != bi:
         raise ValueError('Production compile inputs differ between cycles')
+    if a['mifs'] != b['mifs']:
+        raise ValueError('Firmware products differ between cycles')
     if not a['start'] < a['end'] < b['start'] < b['end']:
         raise ValueError('Cycles are not two consecutive non-overlapping runs')
     if a['capture_sha256'] == b['capture_sha256']:

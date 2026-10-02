@@ -41,7 +41,8 @@ export PATH="$TOOLBIN:$PATH"
   git -C "$ROOT" rev-parse HEAD 2>/dev/null || echo "GIT_COMMIT=uncommitted"
   sha256sum "$CONFIG" "$IDENTITY"
   make -C "$WORK" de5a_slave_defconfig
-  make -C "$WORK" -j"$JOBS"
+  source "$ROOT/scripts/build/current_experiment.env"
+  make -C "$WORK" -j"$JOBS" GIT_VER="$FIRMWARE_VERSION" PPSI_VERSION="$FIRMWARE_VERSION"
 } > "$OUT/build.log" 2>&1
 
 ! grep -qiE '(^|[[:space:]])error:' "$OUT/build.log"

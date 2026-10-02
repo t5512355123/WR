@@ -1,5 +1,9 @@
 # Quartus and other rebuildable outputs
 build/*
+!build/firmware/
+build/firmware/*
+!build/firmware/master/
+!build/firmware/slave/
 db/
 incremental_db/
 output_files/
@@ -64,3 +68,11 @@ artifacts/EXP-*/
 # A historical source snapshot may contain a tracked upstream log that is
 # part of its recorded source tree; preserve such files inside frozen sources.
 !artifacts/milestones/**/source/**/*.log
+
+# Published current build outputs, not temporary compiler object/cache trees.
+!build/firmware/master/**
+!build/firmware/slave/**
+!build/build_info_*.txt
+!build/build_*.log
+!build/quartus_*_compile.log
+!output/**

@@ -28,6 +28,13 @@
 #define SFP_ADD 1
 
 #define SFP_PN_LEN 16
+#define SFP_ID_SFF8472 0x03
+#define SFP_ID_SFF8636_QSFP 0x0d
+#define SFP_ID_SFF8636_QSFP28 0x11
+#define SFP_QSFP_PAGE_SELECT 127
+#define SFP_QSFP_SERIAL_ID_START 128
+#define SFP_QSFP_SERIAL_ID_SIZE 96
+#define SFP_QSFP_VENDOR_PN_OFFSET 40
 
 struct s_sfpinfo {
 	char pn[SFP_PN_LEN];
@@ -49,6 +56,12 @@ extern struct sfp_info sfp_info;
 
 /* Match plugged SFP with a DB entry */
 int sfp_match(int force);
+
+/* Read-only live header diagnostic. The caller supplies storage for one
+ * shw_sfp_header; this does not update the cached header or calibration. */
+int sfp_read_header_diagnostic(uint8_t *header, uint32_t *ack_mask);
+int sfp_read_eeprom_diagnostic(uint8_t start, uint8_t *buffer,
+			       uint32_t size, uint32_t *ack_mask);
 
 /* update dom data */
 int sfp_dom_update(void);

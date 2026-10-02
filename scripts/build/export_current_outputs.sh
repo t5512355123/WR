@@ -29,6 +29,23 @@ sha256sum -c output/SHA256SUMS
 # Preserve actual compile identities, not the metadata-only export commit.
 sed -n 's/^GIT_COMMIT=//p' build/build_info_master.txt > output/SOURCE_COMMIT
 printf '%s\n' "$CURRENT_EXPERIMENT" > output/EXPERIMENT
+# Refresh the established publication list after every real build. This reads
+# the frozen milestone SOFs but never edits them. Do not publish stale checksum
+# entries for newly compiled root products.
+test -s output/PUBLISHED_SHA256SUMS
+PUBLISHED_TMP=$(mktemp "$ROOT/output/.published-sha.XXXXXX")
+trap 'rm -f "$PUBLISHED_TMP"' EXIT
+while read -r old_hash published_path; do
+  case "$published_path" in
+    output/PUBLISHED_SHA256SUMS) echo 'Self-referential publication manifest' >&2; exit 2 ;;
+    build/*|output/*|artifacts/milestones/*/*.sof) ;;
+    *) echo "Unexpected publication target: $published_path" >&2; exit 2 ;;
+  esac
+  test -f "$published_path"
+  sha256sum -- "$published_path"
+done < output/PUBLISHED_SHA256SUMS > "$PUBLISHED_TMP"
+mv "$PUBLISHED_TMP" output/PUBLISHED_SHA256SUMS
+sha256sum -c output/PUBLISHED_SHA256SUMS >/dev/null
 RECORD_BASE="$ROOT/experiments/step6/$CURRENT_EXPERIMENT/raw/build"
 mkdir -p "$RECORD_BASE"
 RECORD=$(mktemp -d "$RECORD_BASE/$(date -u +%Y%m%dT%H%M%SZ)-current.XXXXXX")

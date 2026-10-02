@@ -39,6 +39,7 @@ done
 timeout --signal=INT --kill-after=5s 900s "$QUARTUS_STP" -t \
   scripts/jtag/read_step6_global_time_observability.tcl 303000 250 "" > "$LOG" 2>&1
 sha256sum "$LOG" > "$LOG.sha256"
+printf 'TIME_VALID_CAPTURE_PATH=%s\nTIME_VALID_RESULT_PATH=%s\n' "$LOG" "$RESULT"
 python3 scripts/analysis/step6_time_valid_300s.py "$LOG" \
   --required-duration-ms 300000 --max-sample-gap-ms 1000 \
   --minimum-samples 301 --boards 1-11.1,1-11.2 > "$RESULT"

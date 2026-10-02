@@ -18,12 +18,19 @@ bash scripts/build/build_current.sh
 bash scripts/build/compile_current.sh
 cp output/SHA256SUMS "$RECORD/sof.sha256"
 cp output/SOURCE_COMMIT "$RECORD/compiled-commit.txt"
+cp output/SOURCE_SHA256SUMS "$RECORD/compile-inputs.sha256"
+cp output/build_info_master.txt output/build_info_slave.txt "$RECORD/"
 bash scripts/program/program_current.sh
 ONCE=1 CLEAR_SCREEN=0 bash scripts/monitor/step1_6_dashboard.sh > "$RECORD/dashboard-before.log"
 cat "$RECORD/dashboard-before.log"
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 "$QUARTUS_STP" -t scripts/jtag/read_step6_helper_passive.tcl 3 250 > "$RECORD/helper-before.log" 2>&1
-bash scripts/monitor/verify_time_valid_300s.sh
+bash scripts/monitor/verify_time_valid_300s.sh | tee "$RECORD/time-valid-verifier.log"
+capture=$(sed -n 's/^TIME_VALID_CAPTURE_PATH=//p' "$RECORD/time-valid-verifier.log")
+result=$(sed -n 's/^TIME_VALID_RESULT_PATH=//p' "$RECORD/time-valid-verifier.log")
+test -f "$capture" && test -f "$result"
+cp "$capture" "$RECORD/qualified-capture.log"
+cp "$result" "$RECORD/qualified-result.json"
 ONCE=1 CLEAR_SCREEN=0 bash scripts/monitor/step1_6_dashboard.sh > "$RECORD/dashboard-after.log"
 cat "$RECORD/dashboard-after.log"
 "$QUARTUS_STP" -t scripts/jtag/read_step6_helper_passive.tcl 3 250 > "$RECORD/helper-after.log" 2>&1

@@ -1,0 +1,5 @@
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: FAILED
+build/firmware/slave/wrc.mif: FAILED
+sha256sum: WARNING: 2 computed checksums did NOT match

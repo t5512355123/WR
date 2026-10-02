@@ -1,0 +1,5 @@
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: OK
+build/firmware/slave/wrc.mif: OK
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-CURRENT-STARTUP-REGRESSION-20261002

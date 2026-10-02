@@ -45,6 +45,14 @@ Pinned diagnostic MIF hashes (source firmware addition `8ce559db`): Master
 The current experiment identifier now refers to this diagnostic, not to the
 earlier passing run. Firmware version metadata stays pinned as before.
 
+Both firmware builds then passed the pinned checks under the root
+`build_current.sh` workflow. Logs are retained in this experiment's `raw/`
+folder. FPGA compilation was started on Pain at source `9fe20c3e`, using
+`scripts/build/compile_current.sh`; this is a progress record, not a claim of
+new SOF/programming/runtime acceptance. Precompile query and firmware logs
+were copied to Laptop with transfer archive SHA-256
+`1f6f529372b7b58d819fe919bce80fe0e9debb2c9ed281ad7ae3059db2f996da`.
+
 Stop on failed build/program, image mismatch, conflicting reader, invalid
 transport, reset/generation change or persistent invalid query replies.
 After entry gates establish, collect the explicit RXTS readback and a short

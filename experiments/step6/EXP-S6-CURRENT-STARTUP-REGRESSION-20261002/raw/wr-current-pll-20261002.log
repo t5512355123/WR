@@ -1,0 +1,53 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Fri Oct  2 12:18:11 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_ip_vuart.tcl 1500 15000 pll_read
+Info: Quartus(args): 1500 15000 pll_read
+STEP6_VUART_CONFIG stable_ms=1500 timeout_ms=15000 board_filter=SLAVE query_mode=pll_read read_only_firmware_commands=1
+STEP6_VUART_GATE_PASS board=DE5 [1-11.2] gate_details={failed=NONE armed=1 cpu_reset=0 marker_mask=0xF boot_generation=1 astat_generation=1 command_stage=0 uart_input_pending=0 entry=4295078588 corr5=117440512 corr7=12888796176 astat=67092480 uart_status=0}
+STEP6_VUART_PREFLIGHT board=DE5 [1-11.2] boot_generation=1 cpu_reset=0
+STEP6_VUART_PREEXISTING board=DE5 [1-11.2] status=OK bytes=0 hex= text=
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=00 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=01 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=02 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=03 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=04 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=05 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=06 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=07 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll stat index=08 byte=0x0A result=OK
+STEP6_VUART_QUERY_RESULT board=DE5 [1-11.2] command=pll stat status=OK reply_bytes=387 reply_hex=1B5B3140701B5B31406C1B5B31406C1B5B3140201B5B3140731B5B3140741B5B3140611B5B3140740D0A736F6674706C6C3A206D6F64653A33207365713A7265616479206E5F7265662031206E5F6F757420310D0A697271733A313434323336313220616C69676E6D656E745F73746174653A3020484C31204D4C312048593D3437373934204D593D31313833342044656C436E743D3020736574706F696E743A3235333820726566636E743A3732313639333720746167636E743A3732313537323820685F6B703A2D3232353020685F6B693A2D3220685F73686966743A3132206D5F6B703A333030206D5F6B693A31206D5F73686966743A313220685F6C6F636B5F6475726174696F6E3A32393235206D5F667265715F6C6F636B5F6475726174696F6E3A3130383932206D5F70686173655F6C6F636B5F6475726174696F6E3A31313930340D0A736F6674706C6C3A2070747261636B6572303A20656E61626C65642031206E5F617667203531322076616C756520323634380D0A7772632320 reply_text=\x1B[1@p\x1B[1@l\x1B[1@l\x1B[1@ \x1B[1@s\x1B[1@t\x1B[1@a\x1B[1@t\x0D\x0Asoftpll: mode:3 seq:ready n_ref 1 n_out 1\x0D\x0Airqs:14423612 alignment_state:0 HL1 ML1 HY=47794 MY=11834 DelCnt=0 setpoint:2538 refcnt:7216937 tagcnt:7215728 h_kp:-2250 h_ki:-2 h_shift:12 m_kp:300 m_ki:1 m_shift:12 h_lock_duration:2925 m_freq_lock_duration:10892 m_phase_lock_duration:11904\x0D\x0Asoftpll: ptracker0: enabled 1 n_avg 512 value 2648\x0D\x0Awrc# 
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=00 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=01 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=02 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=03 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=04 byte=0x67 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=05 byte=0x70 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=06 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=07 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=08 byte=0x30 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=pll gps 0 index=09 byte=0x0A result=OK
+STEP6_VUART_QUERY_RESULT board=DE5 [1-11.2] command=pll gps 0 status=OK reply_bytes=63 reply_hex=1B5B3140701B5B31406C1B5B31406C1B5B3140201B5B3140671B5B3140701B5B3140731B5B3140201B5B3140300D0A3234373820323437380D0A7772632320 reply_text=\x1B[1@p\x1B[1@l\x1B[1@l\x1B[1@ \x1B[1@g\x1B[1@p\x1B[1@s\x1B[1@ \x1B[1@0\x0D\x0A2478 2478\x0D\x0Awrc# 
+STEP6_VUART_POSTFLIGHT board=DE5 [1-11.2] boot_generation_before=1 boot_generation_after=1 cpu_reset_before=0 cpu_reset_after=0 reset_changed=0
+STEP6_VUART_DONE
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_ip_vuart.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Fri Oct  2 12:18:19 2026
+    Info: Elapsed time: 00:00:08
+    Info: Total CPU time (on all processors): 00:00:00

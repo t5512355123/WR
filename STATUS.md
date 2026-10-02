@@ -1,5 +1,11 @@
 # Current status
 
+**Current candidate: NOT YET QUALIFIED for two-cycle repeatability.**
+The identical retained bootstrap2048 SOFs failed Slave TIME_VALID after the
+15:32 reprogram. Current production tests only Master HPLL step accounting
+34 -> 64. Experiment: EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002.
+Do not treat the historical single-session PASS below as reproducibility.
+
 2026-10-02 current qualification: **PASS_TIME_VALID_300S on both boards**.
 Master 1190/1190 rows over 302871 ms; Slave 1190/1190 over 302876 ms,
 max gaps 256/257 ms, no invalid rows or transport errors. Current SOFs are

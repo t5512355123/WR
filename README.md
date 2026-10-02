@@ -4,6 +4,13 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
+**Repeatability investigation in progress (2026-10-02):** the frozen
+bootstrap2048 image failed TIME_VALID acquisition after a later reprogram.
+Current source tests Master HPLL physical-step accounting 34 -> 64; it is
+not yet qualified. Two independent full build/compile/program/300-second
+cycles are required before replacing the Step6 milestone. The older PASS
+below applies only to its recorded session, not this new candidate.
+
 Current qualified experiment: `EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002`.
 **Both boards passed the sampled TIME_VALID >300 s gate** after fresh root
 build/compile/Slave→Master programming: Master 1190/1190 rows over 302871 ms,

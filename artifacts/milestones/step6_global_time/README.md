@@ -2,6 +2,11 @@
 
 ## Current milestone (2026-10-02)
 
+**Reproduction warning:** a later reprogram of the same frozen SOFs did not
+reproduce Slave TIME_VALID. The archive remains evidence of one successful
+session, not a repeatably qualified milestone. It will be replaced only
+after two independent current-root build/compile/program qualifications.
+
 The current milestone is the complete independent `current/` checkout,
 distributed as `current-source.tar.gz`. Both boards passed the revised
 sampled TIME_VALID >300-second gate. See [CURRENT.md](CURRENT.md) for

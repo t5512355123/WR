@@ -19,6 +19,8 @@
 # ram_read additionally requires CONFIG_CMD_LL; a missing command is not data.
 # pll_read uses only the existing statistics and phase-shift readback commands.
 # pll_read_both uses the same fixed queries on the two named DE5 boards.
+# pll_recover_master is only for the two owned partial characters left by the
+# failed pll stat send: two shell backspaces, then the same read-only query.
 
 package require ::quartus::insystem_source_probe
 
@@ -40,6 +42,7 @@ switch -- $query_mode {
     sfp_live { set read_only_queries [list "sfp params live"] }
     pll_read { set read_only_queries [list "pll stat" "pll gps 0"] }
     pll_read_both { set read_only_queries [list "pll stat" "pll gps 0"] }
+    pll_recover_master { set read_only_queries [list "\x7f\x7fpll stat" "pll gps 0"] }
     ram_read {
       if {[llength $argv] != 4} { error "ram_read requires a Tcl list of RAM addresses" }
       set read_only_queries {}
@@ -55,7 +58,7 @@ switch -- $query_mode {
         error "ram_read requires 1 to 16 addresses"
       }
     }
-    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, or ram_read" }
+    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, pll_recover_master, or ram_read" }
 }
 
 array set ::wb_toggle {}
@@ -298,12 +301,17 @@ proc capture_vuart_reply {hardware_name timeout_ms} {
 
 set board_scope SLAVE
 if {$query_mode eq "pll_read_both"} { set board_scope MASTER_AND_SLAVE }
+if {$query_mode eq "pll_recover_master"} { set board_scope MASTER_OWNED_PARTIAL_RECOVERY }
 puts [format "STEP6_VUART_CONFIG stable_ms=%d timeout_ms=%d board_filter=%s query_mode=%s read_only_firmware_commands=1" \
   $stable_ms $timeout_ms $board_scope $query_mode]
 set found 0
 foreach hardware_name [get_hardware_names] {
+  if {$query_mode eq "pll_recover_master"} {
+    if {![string match "*1-11.1*" $hardware_name]} { continue }
+  } else {
   if {![string match "*1-11.2*" $hardware_name] &&
       !($query_mode eq "pll_read_both" && [string match "*1-11.1*" $hardware_name])} { continue }
+  }
   set found 1
   set devices [get_device_names -hardware_name $hardware_name]
   if {[llength $devices] == 0} {

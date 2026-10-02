@@ -11,6 +11,12 @@ and current main-root output are the actual second-cycle pair.
   Quartus inputs, retained build/output products and both-cycle experiment data.
   No external milestone/source tree, Git history, compiler cache or toolchain
   installation is embedded. `source/` is its extracted form, not another version.
+  Snapshot checkout: `0bb02c6f91dd4c7a578e1b8cb02a553ce9ce9787` (production
+  inputs remain the identical qualified second-cycle inputs). The snapshot's
+  `output/PUBLISHED_SHA256SUMS` is the parent repository's release index and
+  also lists Steps 1–5; those packages are deliberately not embedded here.
+  For standalone verification use `ARCHIVE_SHA256SUMS`, `SHA256SUMS` and the
+  extracted `output/SOURCE_SHA256SUMS` / `output/SHA256SUMS`.
 - `master.sof`, `slave.sof`, `SHA256SUMS`: actual qualified second-cycle images.
 - `ARCHIVE_SHA256SUMS`: exact archive hash.
 - `prepare_source.sh`: verify, extract, verify production inputs/images and

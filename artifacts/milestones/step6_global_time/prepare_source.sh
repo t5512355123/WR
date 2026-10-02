@@ -12,14 +12,20 @@ cd "$MILESTONE"
 test "$(basename "$MILESTONE")" = step6_global_time
 sha256sum -c ARCHIVE_SHA256SUMS
 sha256sum -c SHA256SUMS
+ARCHIVE_ID=$(sha256sum source.tar.gz | awk '{print $1}')
 if [ -L source ]; then
   echo 'Refusing a symlink source directory.' >&2; exit 2
 fi
 if [ ! -d source ]; then
   stage=$(mktemp -d "$MILESTONE/.source-extract.XXXXXX")
   tar -xzf source.tar.gz -C "$stage"
+  printf '%s\n' "$ARCHIVE_ID" > "$stage/.archive-sha256"
   test ! -e source
   mv "$stage" source
+fi
+if [ "$(cat source/.archive-sha256 2>/dev/null || true)" != "$ARCHIVE_ID" ]; then
+  echo 'Existing source is from a different archive; move it to a backup before preparing again.' >&2
+  exit 2
 fi
 cd source
 sha256sum -c output/SOURCE_SHA256SUMS >/dev/null

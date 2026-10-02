@@ -1,5 +1,6 @@
 """Source guard for explicitly requested, read-only RXTS diagnostics."""
 from pathlib import Path
+import hashlib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -9,11 +10,14 @@ class PassiveRxtsTests(unittest.TestCase):
     def test_only_diagnostic_function_added_to_calibrator(self):
         path = 'vendor/wrpc-sw/dev/rxts_calibrator.c'
         current = (ROOT / path).read_text()
-        frozen = (ROOT / 'artifacts/milestones/step6_global_time/source' / path).read_text()
         start = current.index('\n/* Passive, non-atomic diagnostic;')
         end = current.index('\n/* finds the transition', start)
         # Original executable calibration implementation remains byte-identical.
-        self.assertEqual(current[:start] + current[end:], frozen)
+        # Pin the historical executable portion without requiring a second
+        # operational source tree inside the single promoted milestone.
+        baseline = (current[:start] + current[end:]).encode('utf-8')
+        self.assertEqual(hashlib.sha256(baseline).hexdigest(),
+                         '054a945b8eef1d5a6d4d27e67c051bf87bbb2872031055eb8d05251d75f0b27c')
 
     def test_diagnostic_has_no_calibration_or_phase_write(self):
         text = (ROOT / 'vendor/wrpc-sw/dev/rxts_calibrator.c').read_text()

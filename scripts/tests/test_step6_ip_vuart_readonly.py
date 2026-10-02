@@ -137,16 +137,16 @@ class Step6IpVuartObserverTests(unittest.TestCase):
                         self.ip_command.index('!strcasecmp(args[0], "set")'))
 
     def test_firmware_calibration_queries_do_not_apply_new_values(self):
-        ll = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+        ll = (ROOT
               / "vendor" / "wrpc-sw" / "shell" / "cmd_ll.c").read_text(encoding="utf-8")
-        sfp = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+        sfp = (ROOT
                / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c").read_text(encoding="utf-8")
         self.assertIn('"delays"', ll)
         self.assertIn('pp_printf("tx: %i   rx: %i\\n"', ll)
         self.assertIn('storage_get_sfp(&sfp, SFP_GET, i)', sfp)
 
     def test_firmware_sfp_params_observer_only_reads_cached_and_local_state(self):
-        sfp_path = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+        sfp_path = (ROOT
                     / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c")
         sfp = sfp_path.read_text(encoding="utf-8")
         observer = sfp.split("static void print_cached_sfp_params(void)", 1)[1]
@@ -164,9 +164,9 @@ class Step6IpVuartObserverTests(unittest.TestCase):
         self.assertNotRegex(observer, r"sfp_info\.sfp_params\.[A-Za-z_]+\s*=")
 
     def test_live_sfp_read_is_explicit_local_and_checks_address_acks(self):
-        source = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+        source = (ROOT
                   / "vendor" / "wrpc-sw" / "dev" / "sfp.c").read_text(encoding="utf-8")
-        header = (ROOT / "artifacts" / "milestones" / "step6_global_time" / "source"
+        header = (ROOT
                   / "vendor" / "wrpc-sw" / "shell" / "cmd_sfp.c").read_text(encoding="utf-8")
         reader = source.split("static int sfp_read_i2c_checked", 1)[1].split(
             "int sfp_read_eeprom_diagnostic", 1)[0]

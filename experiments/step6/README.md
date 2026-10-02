@@ -8,7 +8,7 @@ The single current frozen version is `artifacts/milestones/step6_global_time/`.
 
 The earlier repeat plan below is retained as historical context:
 300 sampled seconds of `TIME_VALID=1` on
-each DE5a board.** For both Master `1-11.1` and Slave `1-11.2`, every sampled
+each DE5a board. For both Master `1-11.1` and Slave `1-11.2`, every sampled
 `STATUS_TIME_VALID` must remain 1 across a sample-to-sample span of at least
 300,000 ms. Snapshot flags, PPS validity, TAI/cycle payload or monotonicity,
 Step 1/link, Step 5 locks, phase offset, and timing closure are diagnostic only.

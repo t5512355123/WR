@@ -1,21 +1,27 @@
 # Current status
 
-**Current candidate: NOT YET QUALIFIED for two-cycle repeatability.**
-The identical retained bootstrap2048 SOFs failed Slave TIME_VALID after the
-15:32 reprogram. Current production tests only Master HPLL step accounting
-34 -> 64. Experiment: EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002.
-Do not treat the historical single-session PASS below as reproducibility.
+**Current Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
+Experiment: EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002.
+Only Master HPLL physical-step accounting changed 34 → 64; Master bootstrap
+2048 and Slave `/2 + /12` firmware stayed unchanged. Both root cycles completed
+fresh firmware builds, full two-board FPGA compiles, Slave→Master programming
+and >300-second sampled TIME_VALID windows on each board.
 
-2026-10-02 current qualification: **PASS_TIME_VALID_300S on both boards**.
-Master 1190/1190 rows over 302871 ms; Slave 1190/1190 over 302876 ms,
-max gaps 256/257 ms, no invalid rows or transport errors. Current SOFs are
-freshly compiled/programmed from 40c38801 and retained in output/.
-Master Helper remains unlocked/unready; fine timestamp correctness and
-universal startup repeatability are NOT ESTABLISHED. This PASS is strictly
-the user's revised sampled TIME_VALID-only gate, not a Helper repair.
+| Cycle | Master valid rows / span | Slave valid rows / span | Max gaps M/S |
+|---|---|---|---|
+| 1 | 1192/1192 / 302791 ms | 1192/1192 / 302901 ms | 257/257 ms |
+| 2 | 1192/1192 / 302815 ms | 1192/1192 / 302885 ms | 258/256 ms |
+
+No invalid rows or transport errors. All 3110 production inputs and both MIFs
+match between cycles. Master Helper was locked and its phase tracker ready
+after qualification. Current images are the second-cycle images, compiled
+from 7b6550123986a9d7cea5f4be0dbb8af1f5a019ab. The single Step6 package is
+`artifacts/milestones/step6_global_time/source.tar.gz`, prepared as `source/`.
+This supports two-run reproduction of the user's sampled TIME_VALID-only gate,
+not universal startup reliability, fine timestamp accuracy or physical SMA skew.
 
 - Branch: feat/file_cleanup.
-- Latest session (2026-10-02): both TIME_VALID/PPS_VALID bits stayed 1 in all 1190 sampled rows per board, and the post-capture dashboard remained valid. See the [current qualification report](experiments/step6/EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002/REPORT.md). Earlier WAITING sessions and their [regression evidence](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md) remain historical evidence, not the present runtime verdict.
+- Latest session: both boards passed in two complete cycles; see the [current report](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md). The earlier bootstrap2048 single-session PASS subsequently failed after reprogramming with identical SOFs. That failure remains recorded; copying equality alone was not startup validation.
 - Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
 - Canonical implementation: the two DE5a JTAG projects, with QSFP-A lane 0 as the fixed White Rabbit link.
 - Step 1 PHY/link: PASS, independently rebuilt, programmed, and runtime-validated.
@@ -34,4 +40,7 @@ Step 5 timing closure remains NO and is not a functional gate. Its F4L raw audit
 
 Current source layout: canonical JTAG projects are flattened under quartus/, generated Quartus inputs are under quartus_generated/, SI5340 RTL is under quartus/si5340_controller/, and tests are consolidated under scripts/tests/. The canonical-path and stale-reference audit is complete.
 
-The historical Step 6 pointwise milestone and recorded 300-second captures remain complete under their recorded scopes. The later startup failure means the current workflow cannot yet be claimed reliably repaired. Physical SMA/output-edge-skew measurement remains separate and is not claimed.
+Historical Step6 records retain their original scopes. The Master-step64 repair
+now has two independent root reproduction successes; the earlier single-session
+package is superseded, not a second active Step6 milestone. Physical SMA/output
+edge-skew measurement remains separate and is not claimed.

@@ -1,3 +1,0 @@
-[submodule "testbench/osvvm/upstream"]
-	path = testbench/osvvm/upstream
-	url = https://github.com/OSVVM/OSVVM.git

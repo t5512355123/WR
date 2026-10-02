@@ -1,0 +1,186 @@
+{
+  "accuracy_and_universal_startup_repeatability_not_claimed": true,
+  "compile_input_count": 3110,
+  "cycles": [
+    {
+      "capture_sha256": "eed3dcdcf9ed2437d20a212dbe94013ea352397a5838433a573041dd5004ad74",
+      "compiled_commit": "3b68162d8c13998478f970b9d6c1020b682cb4c6",
+      "cycle": "cycle1",
+      "end": "2026-10-02T16:58:29+08:00",
+      "mifs": {
+        "master": "18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea",
+        "slave": "91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379"
+      },
+      "sofs": {
+        "output/DE5a_wr_master_jtag.sof": "d593846302998a8601b244212dc32e283d9c2d0c3ff66bfa751e195774b12861",
+        "output/DE5a_wr_slave_jtag.sof": "a79633978091796bc4b78122bbf4df04c3704456c814d13acd2cde66f03cb412"
+      },
+      "start": "2026-10-02T16:28:17+08:00",
+      "time_valid": {
+        "acceptance_signal": "STATUS_TIME_VALID",
+        "boards": {
+          "1-11.1": {
+            "board_id": "1-11.1",
+            "board_identity_valid": true,
+            "capture_complete": true,
+            "capture_elapsed_ms": 303044,
+            "done_records": [
+              "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1192 elapsed_ms=303044"
+            ],
+            "done_sample_count_matches": true,
+            "first_invalid_rows": [],
+            "gap_limit_ms": 1000,
+            "invalid_row_count": 0,
+            "live_time_monotonic": true,
+            "max_sample_gap_ms": 257,
+            "minimum_samples": 301,
+            "observed_sample_span_ms": 302791,
+            "pps_valid_rows": 1192,
+            "requested_duration_ms": 303000,
+            "required_duration_ms": 300000,
+            "sample_rows": 1192,
+            "sample_sequence_ok": true,
+            "snapshot_time_valid_rows": 1192,
+            "snapshot_valid_rows": 1192,
+            "step1_link_ready_rows": 1192,
+            "time_valid_rows": 1192,
+            "verdict": "PASS_TIME_VALID_300S"
+          },
+          "1-11.2": {
+            "board_id": "1-11.2",
+            "board_identity_valid": true,
+            "capture_complete": true,
+            "capture_elapsed_ms": 303154,
+            "done_records": [
+              "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1192 elapsed_ms=303154"
+            ],
+            "done_sample_count_matches": true,
+            "first_invalid_rows": [],
+            "gap_limit_ms": 1000,
+            "invalid_row_count": 0,
+            "live_time_monotonic": true,
+            "max_sample_gap_ms": 257,
+            "minimum_samples": 301,
+            "observed_sample_span_ms": 302901,
+            "pps_valid_rows": 1192,
+            "requested_duration_ms": 303000,
+            "required_duration_ms": 300000,
+            "sample_rows": 1192,
+            "sample_sequence_ok": true,
+            "snapshot_time_valid_rows": 1192,
+            "snapshot_valid_rows": 1192,
+            "step1_link_ready_rows": 1192,
+            "time_valid_rows": 1192,
+            "verdict": "PASS_TIME_VALID_300S"
+          }
+        },
+        "boards_observed_sequentially": true,
+        "capture_complete": true,
+        "capture_errors": [],
+        "discovered_boards": [
+          "1-11.1",
+          "1-11.2"
+        ],
+        "requested_duration_ms": 303000,
+        "required_boards": [
+          "1-11.1",
+          "1-11.2"
+        ],
+        "required_duration_ms": 300000,
+        "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+        "verdict": "PASS_TIME_VALID_300S"
+      }
+    },
+    {
+      "capture_sha256": "714f5e9b69f4d5e54cfd6b6c567653602104a9d995e3a35156836bba5222501d",
+      "compiled_commit": "7b6550123986a9d7cea5f4be0dbb8af1f5a019ab",
+      "cycle": "cycle2",
+      "end": "2026-10-02T17:31:23+08:00",
+      "mifs": {
+        "master": "18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea",
+        "slave": "91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379"
+      },
+      "sofs": {
+        "output/DE5a_wr_master_jtag.sof": "9f66cef3f06697085325916126e6da61d76ace7138e7203af068df1a69d30036",
+        "output/DE5a_wr_slave_jtag.sof": "b92e3356580691814e113e8c3278f1044bee621e2808d207541c9efc3ba59727"
+      },
+      "start": "2026-10-02T16:59:49+08:00",
+      "time_valid": {
+        "acceptance_signal": "STATUS_TIME_VALID",
+        "boards": {
+          "1-11.1": {
+            "board_id": "1-11.1",
+            "board_identity_valid": true,
+            "capture_complete": true,
+            "capture_elapsed_ms": 303069,
+            "done_records": [
+              "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1192 elapsed_ms=303069"
+            ],
+            "done_sample_count_matches": true,
+            "first_invalid_rows": [],
+            "gap_limit_ms": 1000,
+            "invalid_row_count": 0,
+            "live_time_monotonic": true,
+            "max_sample_gap_ms": 258,
+            "minimum_samples": 301,
+            "observed_sample_span_ms": 302815,
+            "pps_valid_rows": 1192,
+            "requested_duration_ms": 303000,
+            "required_duration_ms": 300000,
+            "sample_rows": 1192,
+            "sample_sequence_ok": true,
+            "snapshot_time_valid_rows": 1192,
+            "snapshot_valid_rows": 1192,
+            "step1_link_ready_rows": 1192,
+            "time_valid_rows": 1192,
+            "verdict": "PASS_TIME_VALID_300S"
+          },
+          "1-11.2": {
+            "board_id": "1-11.2",
+            "board_identity_valid": true,
+            "capture_complete": true,
+            "capture_elapsed_ms": 303140,
+            "done_records": [
+              "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1192 elapsed_ms=303140"
+            ],
+            "done_sample_count_matches": true,
+            "first_invalid_rows": [],
+            "gap_limit_ms": 1000,
+            "invalid_row_count": 0,
+            "live_time_monotonic": true,
+            "max_sample_gap_ms": 256,
+            "minimum_samples": 301,
+            "observed_sample_span_ms": 302885,
+            "pps_valid_rows": 1192,
+            "requested_duration_ms": 303000,
+            "required_duration_ms": 300000,
+            "sample_rows": 1192,
+            "sample_sequence_ok": true,
+            "snapshot_time_valid_rows": 1192,
+            "snapshot_valid_rows": 1192,
+            "step1_link_ready_rows": 1192,
+            "time_valid_rows": 1192,
+            "verdict": "PASS_TIME_VALID_300S"
+          }
+        },
+        "boards_observed_sequentially": true,
+        "capture_complete": true,
+        "capture_errors": [],
+        "discovered_boards": [
+          "1-11.1",
+          "1-11.2"
+        ],
+        "requested_duration_ms": 303000,
+        "required_boards": [
+          "1-11.1",
+          "1-11.2"
+        ],
+        "required_duration_ms": 300000,
+        "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+        "verdict": "PASS_TIME_VALID_300S"
+      }
+    }
+  ],
+  "production_inputs_identical": true,
+  "verdict": "PASS_TWO_INDEPENDENT_ROOT_CYCLES"
+}

@@ -1,6 +1,13 @@
 # Step 6 — Global Time and Scheduled Trigger
 
-**Current revised acceptance: PENDING 300 sampled seconds of `TIME_VALID=1` on
+**Current revised acceptance: PASS in two fresh complete root cycles, 2026-10-02.**
+Master HPLL step accounting 34 → 64; Slave `/2 + /12` unchanged. All four
+board windows passed 1192/1192 TIME_VALID rows across >302.7 seconds.
+See [the two-cycle report](EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md).
+The single current frozen version is `artifacts/milestones/step6_global_time/`.
+
+The earlier repeat plan below is retained as historical context:
+300 sampled seconds of `TIME_VALID=1` on
 each DE5a board.** For both Master `1-11.1` and Slave `1-11.2`, every sampled
 `STATUS_TIME_VALID` must remain 1 across a sample-to-sample span of at least
 300,000 ms. Snapshot flags, PPS validity, TAI/cycle payload or monotonicity,

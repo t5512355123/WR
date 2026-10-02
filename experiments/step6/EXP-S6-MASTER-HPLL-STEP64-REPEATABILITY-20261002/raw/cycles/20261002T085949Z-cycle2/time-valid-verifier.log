@@ -1,0 +1,86 @@
+TIME_VALID_WAIT elapsed_s=2/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-0.log
+TIME_VALID_WAIT elapsed_s=15/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-12.log
+TIME_VALID_WAIT elapsed_s=28/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-25.log
+TIME_VALID_WAIT elapsed_s=41/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-38.log
+TIME_VALID_WAIT elapsed_s=54/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-51.log
+TIME_VALID_WAIT elapsed_s=66/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-64.log
+TIME_VALID_WAIT elapsed_s=79/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-76.log
+TIME_VALID_WAIT elapsed_s=92/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-89.log
+TIME_VALID_WAIT elapsed_s=105/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-102.log
+TIME_VALID_WAIT elapsed_s=118/1800 poll=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-ready-115.log
+TIME_VALID_CAPTURE_PATH=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/observe/20261002T091848Z-current-time-valid-303s.log
+TIME_VALID_RESULT_PATH=experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/analysis/20261002T091848Z-current-time-valid-300s.json
+{
+  "acceptance_signal": "STATUS_TIME_VALID",
+  "boards": {
+    "1-11.1": {
+      "board_id": "1-11.1",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303069,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1192 elapsed_ms=303069"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 258,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302815,
+      "pps_valid_rows": 1192,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1192,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1192,
+      "snapshot_valid_rows": 1192,
+      "step1_link_ready_rows": 1192,
+      "time_valid_rows": 1192,
+      "verdict": "PASS_TIME_VALID_300S"
+    },
+    "1-11.2": {
+      "board_id": "1-11.2",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303140,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1192 elapsed_ms=303140"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 256,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302885,
+      "pps_valid_rows": 1192,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1192,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1192,
+      "snapshot_valid_rows": 1192,
+      "step1_link_ready_rows": 1192,
+      "time_valid_rows": 1192,
+      "verdict": "PASS_TIME_VALID_300S"
+    }
+  },
+  "boards_observed_sequentially": true,
+  "capture_complete": true,
+  "capture_errors": [],
+  "discovered_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "requested_duration_ms": 303000,
+  "required_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "required_duration_ms": 300000,
+  "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+  "verdict": "PASS_TIME_VALID_300S"
+}

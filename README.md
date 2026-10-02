@@ -4,26 +4,29 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
-**Repeatability investigation in progress (2026-10-02):** the frozen
-bootstrap2048 image failed TIME_VALID acquisition after a later reprogram.
-Current source tests Master HPLL physical-step accounting 34 -> 64; it is
-not yet qualified. Two independent full build/compile/program/300-second
-cycles are required before replacing the Step6 milestone. The older PASS
-below applies only to its recorded session, not this new candidate.
+**Step6 PASS — two independent full root reproduction cycles (2026-10-02).**
+Current experiment: `EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`.
+Each cycle freshly built firmware, fully compiled both FPGA projects, programmed
+Slave then Master, and sampled each board for more than 300 seconds.
+All four windows had 1192/1192 TIME_VALID rows; no invalid rows or transport
+errors. The two cycles used identical 3110 production inputs and firmware MIFs.
+See the [qualification report](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md).
 
-Current qualified experiment: `EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002`.
-**Both boards passed the sampled TIME_VALID >300 s gate** after fresh root
-build/compile/Slave→Master programming: Master 1190/1190 rows over 302871 ms,
-Slave 1190/1190 over 302876 ms. Actual qualified SOFs are retained in output/.
-See the [current report](experiments/step6/EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002/REPORT.md).
-The complete [Step6 milestone archive](artifacts/milestones/step6_global_time/CURRENT.md)
-contains this qualified checkout, including all scripts and the dashboard;
-run its `prepare_current.sh` to operate independently from its `current/` directory.
-Slave control remains `/2 + /12`; Master uses a 2048-FINC coarse origin.
-**Master Helper is still unlocked.** This is not a Helper/fine-timestamp
-accuracy repair, and universal startup repeatability is not established.
+The production change is Master `HPLL_TRACKER_CODE_PER_PHYSICAL_STEP` 34 → 64;
+Master bootstrap remains 2048, Slave control remains `/2 acquisition + /12 tracking`.
+Master Helper was locked and its phase tracker ready after qualification.
+The earlier byte-identical bootstrap2048 archive failed after reprogramming:
+copy equality alone was not reproduction evidence. That failure is retained
+in the new report, not hidden by this PASS.
 
-The preceding startup regression left the Slave in WAIT_OFFSET_STABLE despite PLL lock. Passive diagnostics confirmed Master Helper saturation/unready phase tracking while Slave calibration matched its live scan; see the [regression report](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). The latest qualification above supersedes that session for the user's TIME_VALID-only gate, not its unresolved fine-timestamp caveat. The dashboard displays Master Helper lock rather than hiding it as NA; Main PLL fields remain inapplicable to the free-running Master. Only `artifacts/milestones/` contains complete historical operational source snapshots; `experiments/` retains evidence, not the current build entrypoint.
+The [single Step6 milestone](artifacts/milestones/step6_global_time/README.md)
+contains the qualified source, all scripts/dashboard, products and evidence.
+Run `prepare_source.sh` there and use its independent `source/` directory.
+Only `artifacts/milestones/` holds frozen operational snapshots;
+`experiments/` holds evidence, not a different current build entrypoint.
+This is the user's sampled TIME_VALID-only gate. Sequential board reads do
+not establish physical time accuracy, cycle-by-cycle continuity, offset <60 ps,
+or universal startup reliability. Timing closure is not required.
 
 Run on Pain from `/home/b10504072/04_WR`:
 
@@ -82,7 +85,11 @@ DE5a_wr_slave_jtag
 
 ## Current milestone status
 
-Steps 1–5 have independently rebuilt, programmed, and runtime-validated frozen checkpoints. The historical Step6 milestone covers Global Time, common PPS labels and scheduled digital triggers. The current root `/2 acquisition + /12 tracking` version additionally passed the revised two-board 300-second sampled `STATUS_TIME_VALID` criterion in repeated runs, including a fresh root build/program on 2026-10-02. The current retained SOFs are in `output/`; the six historical milestone packages stay in `artifacts/milestones/`. Timing closure, phase-offset bounds and physical SMA skew are not gates for this revised TIME_VALID test. See [STATUS.md](STATUS.md) and the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
+Steps 1–5 retain independently validated frozen checkpoints. The single Step6
+package is now the Master-step64 version qualified by two fresh complete root
+cycles. Current images are in `output/`. Earlier common-PPS/digital-trigger
+results remain in their experiment reports, not as a second Step6 package.
+See [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md).
 
 ## Reproduce the validated Step 2 checkpoint
 
@@ -154,23 +161,26 @@ CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 
 The validated program order was Master, wait at least 90 seconds, then Slave; wait at least 120 seconds after both before read-only preflight. The 300-second F4L invocation and full acceptance evidence are in the [Step 5 reproduction report](experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md). The [Step 5 milestone README](artifacts/milestones/step5_softpll_lock/README.md) records the exact acceptance boundary and caveats.
 
-## Reproduce the validated Step 6 Global-Time and digital-trigger checkpoint
+## Reproduce the validated Step 6 TIME_VALID checkpoint
 
 The current Step 6 research index, including successful and failed runs, is
 [`experiments/step6/README.md`](experiments/step6/README.md).
 
-The exact Step 6 SOFs independently rebuilt and programmed on 2026-09-27 are:
+The exact second-cycle Step6 SOFs compiled and programmed on 2026-10-02 are:
 
-- Master: [artifacts/milestones/step6_global_time/master.sof](artifacts/milestones/step6_global_time/master.sof), SHA-256 `ad16d364eddbdacbf1aab40bd12154da337f757fbec90e2e216c8e08a0f54901`.
-- Slave: [artifacts/milestones/step6_global_time/slave.sof](artifacts/milestones/step6_global_time/slave.sof), SHA-256 `6257952a2aa303b07dcfbd1ca08aa75230af12e412adf176cbbf5a4443bc7450`.
+- Master: [master.sof](artifacts/milestones/step6_global_time/master.sof), SHA-256 `9f66cef3f06697085325916126e6da61d76ace7138e7203af068df1a69d30036`.
+- Slave: [slave.sof](artifacts/milestones/step6_global_time/slave.sof), SHA-256 `b92e3356580691814e113e8c3278f1044bee621e2808d207541c9efc3ba59727`.
 
-The frozen source is `artifacts/milestones/step6_global_time/source/`. On Pain, build from that directory with the Quartus and RISC-V tools on `PATH`:
+On Pain, prepare the standalone source and then use its original scripts:
 
 ```sh
-bash firmware/scripts/build_master_firmware.sh
-bash scripts/build/build_master.sh
-bash firmware/scripts/build_slave_firmware.sh
-bash scripts/build/build_slave.sh
+cd artifacts/milestones/step6_global_time
+bash prepare_source.sh
+cd source
+bash scripts/build/build_current.sh
+bash scripts/build/compile_current.sh
+bash scripts/program/program_current.sh
+bash scripts/monitor/step1_6_dashboard.sh
 ```
 
 To program the frozen milestone SOFs, from the same `source/` directory use
@@ -181,12 +191,11 @@ SOF=../slave.sof CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 SOF=../master.sof CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
 ```
 
-The functional Step 6 reproduction matched five common PPS labels exactly and
-fired the same scheduled digital TAI/cycle on both boards twice. The [Step 6
-milestone README](artifacts/milestones/step6_global_time/README.md) and
-[reproduction report](experiments/step6/EXP-S6-MILESTONE-REPRO-20260927/REPORT.md)
-contain the measured gates, commands, hashes, and limitations. This does not
-claim oscilloscope-verified physical output skew.
+Stop the dashboard before running `bash scripts/monitor/verify_time_valid_300s.sh`.
+The [milestone README](artifacts/milestones/step6_global_time/README.md) documents
+retained-image programming without rebuilding, checksums and external tools.
+Historical digital-trigger evidence remains in its experiment reports;
+physical SMA skew is not claimed by this TIME_VALID qualification.
 
 ## Current development source, build, and programming
 

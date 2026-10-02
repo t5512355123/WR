@@ -70,8 +70,8 @@ artifacts/EXP-*/
 !artifacts/milestones/**/source/**/*.log
 
 # Published current build outputs, not temporary compiler object/cache trees.
-artifacts/milestones/step6_global_time/current/
-artifacts/milestones/step6_global_time/.current-extract.*/
+artifacts/milestones/step6_global_time/source/
+artifacts/milestones/step6_global_time/.source-extract.*/
 !artifacts/milestones/step6_global_time/verification-dashboard.log
 !experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/cycles/**/*.sof
 !build/firmware/master/**

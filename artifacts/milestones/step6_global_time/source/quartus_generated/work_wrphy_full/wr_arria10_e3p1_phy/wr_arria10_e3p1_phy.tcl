@@ -1,6 +1,0 @@
-qsys-generate wr_arria10_e3p1_phy
-qsys-generate wr_arria10_e3p1_det_phy
-qsys-generate wr_arria10_e3p1_atx_pll
-qsys-generate wr_arria10_e3p1_cmu_pll
-qsys-generate wr_arria10_e3p1_tx_pll
-qsys-generate wr_arria10_e3p1_rst_ctl

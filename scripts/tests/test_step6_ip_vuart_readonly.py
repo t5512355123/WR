@@ -26,7 +26,7 @@ class Step6IpVuartObserverTests(unittest.TestCase):
     def test_calibration_mode_uses_only_fixed_read_only_commands(self):
         self.assertIn('calibration { set read_only_queries [list "delays" "sfp show"] }',
                       self.observer)
-        self.assertIn('error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, pll_recover_master, or ram_read"', self.observer)
+        self.assertIn('error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, pll_recover_master, fixed_read, or ram_read"', self.observer)
         self.assertNotIn('"sfp match"', self.observer)
 
     def test_ram_read_cannot_send_a_write_value_or_mmio_address(self):

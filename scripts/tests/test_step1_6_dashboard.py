@@ -49,6 +49,17 @@ def dashboard_line(
 
 
 class DashboardGateTest(unittest.TestCase):
+    def test_master_helper_is_not_hidden_as_not_applicable(self) -> None:
+        source = (ROOT / "scripts/jtag/read_step1_6_dashboard.tcl").read_text()
+        helper_assignment = "set helper_lock [dashboard_lock_value $board after spll_helper_state 0 1]"
+        self.assertEqual(source.count(helper_assignment), 1)
+        self.assertIn('if {$role eq "MASTER" || $role eq "SLAVE"} {\n    ' + helper_assignment, source)
+        # Render the measured value without changing the existing panel layout.
+        for lock in (0, 1):
+            result = self.run_dashboard(dashboard_line("PASS", 1, 1).replace("HelperLock=NA", f"HelperLock={lock}"))
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn(f"Helper={lock}", result.stdout)
+
     def run_dashboard(self, line: str, wait_seconds: int = 0) -> subprocess.CompletedProcess[str]:
         with tempfile.TemporaryDirectory(prefix="step1-6-dashboard-test-") as temp:
             fake_stp = Path(temp) / "quartus_stp"

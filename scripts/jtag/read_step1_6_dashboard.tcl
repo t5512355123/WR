@@ -121,8 +121,12 @@ proc dashboard_emit_board {board hardware_name global_sample} {
   set pstat_lock "NA"
   set wr_servo_state "NA"
   set wr_servo_offset_ps "NA"
-  if {$role eq "SLAVE"} {
+  # Free-running Master does not use the Slave Main PLL, but its Helper
+  # and phase tracker still matter for fine timestamp measurements.
+  if {$role eq "MASTER" || $role eq "SLAVE"} {
     set helper_lock [dashboard_lock_value $board after spll_helper_state 0 1]
+  }
+  if {$role eq "SLAVE"} {
     set main_enabled [dashboard_lock_value $board after spll_main_state 0 1]
     set main_locked [dashboard_lock_value $board after spll_main_state 1 1]
     set main_freq [dashboard_lock_value $board after spll_main_state 2 1]

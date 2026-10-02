@@ -155,10 +155,11 @@ proc stable_shell_ready {hardware_name} {
   set corr5 [word64 [probe_word 33]]
   set corr7 [word64 [probe_word 35]]
   set astat [word32 [wb_read $hardware_name 0x00100A14]]
+  set main_bank_magic [word32 [wb_read $hardware_name 0x00100B5C]]
   set command_stage [word32 [wb_read $hardware_name 0x00100BA0]]
   set uart_status [word32 [wb_read $hardware_name 0x00100500]]
-  set names [list entry corr5 corr7 astat command_stage uart_status]
-  set values [list $entry $corr5 $corr7 $astat $command_stage $uart_status]
+  set names [list entry corr5 corr7 astat main_bank_magic command_stage uart_status]
+  set values [list $entry $corr5 $corr7 $astat $main_bank_magic $command_stage $uart_status]
   set invalid_fields {}
   foreach name $names value $values {
     if {$value eq "INVALID" || $value eq "TIMEOUT"} { lappend invalid_fields $name }
@@ -184,15 +185,22 @@ proc stable_shell_ready {hardware_name} {
   if {$cpu_reset != 0} { lappend failures CPU_RESET_ASSERTED }
   if {$marker_mask != 0x0f} { lappend failures SHELL_MARKERS_INCOMPLETE }
   if {$boot_generation != $astat_generation} { lappend failures GENERATION_MISMATCH }
-  if {$command_stage != 0} { lappend failures COMMAND_STAGE_NOT_IDLE }
+  # F4L (magic at base+4, WDIAGS 0x158+4) owns 0x1a0 after Main startup.
+  # In that bank, 0x1a0 is frame payload, NOT a persistent shell stage. Do not
+  # invent an idle-stage value. Fixed read-only queries still require all live
+  # shell/generation/reset markers and a quiet input FIFO for stable_ms.
+  set command_stage_observable [expr {$main_bank_magic != 0x46344c31}]
+  if {$command_stage_observable && $command_stage != 0} {
+    lappend failures COMMAND_STAGE_NOT_IDLE
+  }
   if {$input_pending} { lappend failures VUART_INPUT_PENDING }
   set failure_text [join $failures ,]
   if {$failure_text eq ""} { set failure_text NONE }
   set ::gate_debug($hardware_name) [format \
-    "failed=%s armed=%d cpu_reset=%d marker_mask=0x%X boot_generation=%d astat_generation=%d command_stage=%d uart_input_pending=%d entry=%s corr5=%s corr7=%s astat=%s uart_status=%s" \
+    "failed=%s armed=%d cpu_reset=%d marker_mask=0x%X boot_generation=%d astat_generation=%d command_stage=%d command_stage_observable=%d main_bank_magic=%08X uart_input_pending=%d entry=%s corr5=%s corr7=%s astat=%s uart_status=%s" \
     $failure_text \
     $post_startup_armed $cpu_reset $marker_mask $boot_generation $astat_generation \
-    $command_stage $input_pending $entry $corr5 $corr7 $astat $uart_status]
+    $command_stage $command_stage_observable $main_bank_magic $input_pending $entry $corr5 $corr7 $astat $uart_status]
   return [expr {[llength $failures] == 0}]
 }
 

@@ -86,6 +86,42 @@ class TransportExecutionTests(unittest.TestCase):
         self.assertEqual(self.tcl.eval('send_vuart_command board "pll stat"'), 'OK')
         self.assertGreater(int(self.tcl.eval('set ::reads')), 120)
 
+    def test_shell_gate_recognizes_f4l_overlay_without_fabricating_idle_stage(self):
+        self.tcl.eval('''
+            set ::bank_magic 0x46344c31
+            set ::command_value 7849052
+            set ::uart_pending 0
+            proc probe_word {index} {
+                switch $index {
+                    26 { return 0000000100000000 }
+                    33 { return 0000000000000000 }
+                    35 { return 0000000200000000 }
+                }
+                return INVALID
+            }
+            proc wb_read {board addr} {
+                switch $addr {
+                    0x00100A14 { return 03E00000 }
+                    0x00100B5C { return [format %08X $::bank_magic] }
+                    0x00100BA0 { return [format %08X $::command_value] }
+                    0x00100500 { return [format %08X $::uart_pending] }
+                }
+                return INVALID
+            }
+        ''')
+        self.assertEqual(self.tcl.eval('stable_shell_ready board'), '1')
+        diag = self.tcl.eval('set ::gate_debug(board)')
+        self.assertIn('command_stage=7849052', diag)
+        self.assertIn('command_stage_observable=0', diag)
+        self.tcl.eval('set ::bank_magic 0')
+        self.assertEqual(self.tcl.eval('stable_shell_ready board'), '0')
+        self.tcl.eval('set ::command_value 0')
+        self.assertEqual(self.tcl.eval('stable_shell_ready board'), '1')
+        self.tcl.eval('set ::bank_magic 0x46344c31; set ::uart_pending 2')
+        self.assertEqual(self.tcl.eval('stable_shell_ready board'), '0')
+        self.tcl.eval('set ::uart_pending 0; set ::bank_magic 0x11111111; set ::command_value 9')
+        self.assertEqual(self.tcl.eval('stable_shell_ready board'), '0')
+
 
 if __name__ == '__main__':
     unittest.main()

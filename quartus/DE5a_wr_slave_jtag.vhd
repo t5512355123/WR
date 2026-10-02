@@ -36,7 +36,7 @@ entity DE5a_wr_slave_jtag is
     SI5340A_RST_n     : out   std_logic;
     SMA_CLKOUT        : out   std_logic;
 
-    -- Board UART-console pins: an RS422 sideband, not a separate WR architecture.
+    -- Board RS422 transceiver pins used to expose the WRPC physical UART.
     RS422_DE          : out   std_logic;
     RS422_DIN         : in    std_logic;
     RS422_DOUT        : out   std_logic;
@@ -2296,7 +2296,7 @@ begin
       g_phys_uart                 => true,
       g_virtual_uart              => true,
       g_aux_clks                  => 0,
-      g_dpram_initf               => "../../build/firmware/slave/wrc.mif",
+      g_dpram_initf               => "../build/firmware/slave/wrc.mif",
       g_dpram_size                => 49152,
       g_use_platform_specific_dpram => false,
       g_ep_rxbuf_size             => 1024,
@@ -2412,8 +2412,7 @@ begin
 
   QSFPA_LP_MODE <= core_phy_tx_disable;
 
-  -- Enable the UART-console RS422 sideband; project build/program and
-  -- milestone diagnostics use JTAG.
+  -- Enable both directions of the on-board full-duplex RS422 transceiver.
   RS422_DE   <= '1';
   RS422_RE_n <= '0';
   RS422_DOUT <= uart_txd;

@@ -197,7 +197,8 @@ Across the two independent fresh build/program runs, every sampled
 supports reproducibility for the stated sampled-bit criterion; it is not a
 cycle-by-cycle continuity measurement or a claim of indefinite stability.
 No further controller tuning is justified by this target alone.
-# Current operation (2026-10-02)
+
+## Current operation (2026-10-02)
 
 The successful source is now promoted to the repository root. The old
 experiment-local build/program/capture entrypoints have been retired.
@@ -211,5 +212,5 @@ Use these four steps from the repository root:
 Stop the dashboard before the separate acceptance capture:
 `bash scripts/monitor/verify_time_valid_300s.sh`.
 The SOFs persist in `output/`; evidence goes in this experiment's raw/analysis
-directories. The earlier procedure below is a historical record, not the
+directories. The earlier procedure above is a historical record, not the
 current operational workflow.

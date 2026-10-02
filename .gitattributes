@@ -26,6 +26,9 @@
 *.elf binary
 *.mif binary
 *.sof binary
+output/** -text -eol -diff -whitespace
+build/firmware/master/** -text -eol -diff -whitespace
+build/firmware/slave/** -text -eol -diff -whitespace
 *.pof binary
 *.a binary
 *.o binary

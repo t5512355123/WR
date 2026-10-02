@@ -65,5 +65,22 @@ class StrictReaderTests(unittest.TestCase):
         self.assertIn("RESET_SIGNATURE={00000001 00000001 00000002 00000003 00000004}",rows[0])
         self.assertTrue(output[-1].startswith("S6_STRICT_DONE "))
         self.assertEqual(t.eval("strict_byte 0000040302010000 24"),"00000002")
+        # Execute the actual fixed-mode loop again: changed phase setpoint must
+        # stop immediately, rather than being hidden by stable live lock bits.
+        t.eval(r'''
+          rename wb_read first_mock_read
+          proc wb_read {addr} {
+            if {$addr eq "0x00100A44"} {
+              incr ::setp_reads
+              return [format %08X [expr {100+($::setp_reads>1)}]]
+            }
+            return [first_mock_read $addr]
+          }
+          set ::emitted {}; set ::setp_reads 0; set argv {100 1 1-11.2 1}
+        ''')
+        t.eval((ROOT/"scripts/jtag/read_step6_strict_offset_validity.tcl").read_text())
+        changed=t.splitlist(t.getvar("emitted"))
+        self.assertTrue(any('reason=fixed_diagnostic_invariant_or_health' in line
+                            for line in changed))
 
 if __name__=="__main__": unittest.main()

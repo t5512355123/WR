@@ -16,6 +16,8 @@
 # ram_read accepts only aligned data-RAM addresses below 0x30000. Resolve them
 # from the exact programmed firmware ELF, never a different build. It sends
 # devmem with one address argument only, so the firmware executes its read path.
+# ram_read additionally requires CONFIG_CMD_LL; a missing command is not data.
+# pll_read uses only the existing statistics and phase-shift readback commands.
 
 package require ::quartus::insystem_source_probe
 
@@ -35,6 +37,7 @@ switch -- $query_mode {
   calibration { set read_only_queries [list "delays" "sfp show"] }
     sfp_params { set read_only_queries [list "sfp params"] }
     sfp_live { set read_only_queries [list "sfp params live"] }
+    pll_read { set read_only_queries [list "pll stat" "pll gps 0"] }
     ram_read {
       if {[llength $argv] != 4} { error "ram_read requires a Tcl list of RAM addresses" }
       set read_only_queries {}
@@ -50,7 +53,7 @@ switch -- $query_mode {
         error "ram_read requires 1 to 16 addresses"
       }
     }
-    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, or ram_read" }
+    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, or ram_read" }
 }
 
 array set ::wb_toggle {}

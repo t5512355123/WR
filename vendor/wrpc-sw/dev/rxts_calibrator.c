@@ -75,6 +75,25 @@ struct trans_detect_state {
 static struct trans_detect_state det_rising, det_falling;
 static int cal_cur_phase;
 
+/* Passive, non-atomic diagnostic; called only by an explicit pll stat query.
+ * These values describe the last/current scan, not a calibration-success flag.
+ * The phase tracker may advance between reads; no packet-level correlation is
+ * implied. Never load storage, start a scan or change the phase shifter here. */
+void calib_t24p_show_state(void)
+{
+	int32_t phase_ps;
+	int ready = spll_read_ptracker(0, &phase_ps, NULL);
+	if (netif_get_device_count() > 0)
+		pp_printf("RXTS_DIAG active_t24p_ps=%u phase_ps=%d ptracker_ready=%d\n",
+			  (unsigned)netif_get_device(0)->phase_transition,
+			  (int)phase_ps, ready);
+	pp_printf("RXTS_SCAN phase_ps=%d rising_state=%d rising_count=%d rising_ps=%d "
+		  "falling_state=%d falling_count=%d falling_ps=%d\n",
+		  cal_cur_phase, det_rising.state, det_rising.sample_count,
+		  det_rising.trans_phase, det_falling.state,
+		  det_falling.sample_count, det_falling.trans_phase);
+}
+
 /* finds the transition in the value of flip_bit and returns phase associated
    with it. If no transition phase has been found yet, returns 0. Non-zero
    polarity means we are looking for positive transitions, 0 - negative

@@ -13,6 +13,7 @@
 
 #include "softpll_ng.h"
 #include "shell.h"
+#include "dev/rxts_calibrator.h"
 
 #define CMD_INIT 0
 #define CMD_CL 1
@@ -86,6 +87,7 @@ static int cmd_pll(const char *args[])
 		return 0;
 	case CMD_STAT:
 		spll_show_stats();
+		calib_t24p_show_state();
 		return 0;
 	case CMD_SPS:
 		spll_set_phase_shift(vals[1], vals[2]);

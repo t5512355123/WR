@@ -17,4 +17,6 @@ int calib_t24p(void);
 
 int measure_t24p(void);
 void calib_t24p_load(void);
+/* Explicit shell diagnostic: reads state only, never starts calibration. */
+void calib_t24p_show_state(void);
 #endif

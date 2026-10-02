@@ -56,6 +56,14 @@ foreach board [get_hardware_names] {
   for {set n 1} {$n <= $samples} {incr n} {
     lassign [passive_helper_frame $board] valid start end epoch raw freq output
     puts "HELPER_PASSIVE board={$board} sample=$n valid=$valid start_ms=$start end_ms=$end epoch=$epoch raw={$raw} freq_error=$freq output=$output"
+    # A rapidly republished bank may prevent a coherent multiword capture.
+    # Preserve single-word evidence separately; never label it a joined frame.
+    foreach {field addr} {freq_error 0x00100B0C output 0x00100B1C update_count 0x00100B18} {
+      set scalar_start [clock milliseconds]
+      set scalar_raw [wb_read $board $addr]
+      set scalar_valid [expr {[word32 $scalar_raw] ne "INVALID"}]
+      puts "HELPER_SCALAR board={$board} sample=$n field=$field start_ms=$scalar_start end_ms=[clock milliseconds] raw=$scalar_raw transport_valid=$scalar_valid cross_field_coherent=0"
+    }
     # L2 counters are NOT atomic with the Helper payload or with each other.
     set l2_start [clock milliseconds]
     set l2 {}

@@ -18,6 +18,7 @@
 # devmem with one address argument only, so the firmware executes its read path.
 # ram_read additionally requires CONFIG_CMD_LL; a missing command is not data.
 # pll_read uses only the existing statistics and phase-shift readback commands.
+# fixed_read queries the current diagnostic latch and passive phase counters.
 # pll_read_both uses the same fixed queries on the two named DE5 boards.
 # pll_recover_master is only for the two owned partial characters left by the
 # failed pll stat send: two shell backspaces, then the same read-only query.
@@ -59,7 +60,7 @@ switch -- $query_mode {
         error "ram_read requires 1 to 16 addresses"
       }
     }
-    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, pll_recover_master, or ram_read" }
+    default { error "query_mode must be ip, calibration, sfp_params, sfp_live, pll_read, pll_read_both, pll_recover_master, fixed_read, or ram_read" }
 }
 
 array set ::wb_toggle {}

@@ -22,7 +22,7 @@ proc strict_byte {raw shift} {
 proc strict_frame {} {
   # Counter is updated inside the WDIAGS invalid interval; CTRL before payload
   # and after the closing epoch are essential. Inverse mapping is checked in
-  # the board preflight, outside this short seven-read frame (no invented raw).
+  # the board preflight, outside this guarded frame (no invented raw).
   set result [list 0 INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID INVALID]
   set deadline [expr {[clock milliseconds]+600}]
   while {[clock milliseconds]<$deadline} {
@@ -126,6 +126,8 @@ foreach hw [get_hardware_names] {
   set master_end 0
   set fixed_setp ""
   set fixed_init ""
+  set fixed_ucnt ""
+  set fixed_last_update $begin
   while {[clock milliseconds]-$begin<=$duration_ms} {
     # One reader/session only. Interleave Master health at <=1 s cadence;
     # explicitly bracket each board and never claim cross-board atomicity.
@@ -186,8 +188,10 @@ foreach hw [get_hardware_names] {
     if {$trustworthy} { set invalid_streak 0 } else { incr invalid_streak }
     if {$fixed_mode && $trustworthy} {
       if {$fixed_setp eq ""} { set fixed_setp $setp; set fixed_init $init }
+      if {$ucnt ne $fixed_ucnt} { set fixed_ucnt $ucnt; set fixed_last_update $row_end }
       if {$state!=4 || $setp ne $fixed_setp || $init ne $fixed_init ||
-          !$step1 || !$lock_ok || !$master_time || !$master_link} {
+          !$step1 || !$lock_ok || !$master_time || !$master_link ||
+          $row_end-$fixed_last_update>2000} {
         puts "S6_STRICT_STOP board={$hw} reason=fixed_diagnostic_invariant_or_health"
         break
       }

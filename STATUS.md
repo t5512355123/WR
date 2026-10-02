@@ -1,12 +1,15 @@
 # Current status
 
-2026-10-02 current candidate: Master Helper coarse-origin bootstrap2048.
-NOT VALIDATED / 300-second TIME_VALID NOT ESTABLISHED for this candidate.
-Master was independently confirmed wait-helper, HY=65531, ptracker_ready=0;
-Slave PLL locks were present but TIME_VALID=0. Keep historical PASS separate.
+2026-10-02 current qualification: **PASS_TIME_VALID_300S on both boards**.
+Master 1190/1190 rows over 302871 ms; Slave 1190/1190 over 302876 ms,
+max gaps 256/257 ms, no invalid rows or transport errors. Current SOFs are
+freshly compiled/programmed from 40c38801 and retained in output/.
+Master Helper remains unlocked/unready; fine timestamp correctness and
+universal startup repeatability are NOT ESTABLISHED. This PASS is strictly
+the user's revised sampled TIME_VALID-only gate, not a Helper repair.
 
 - Branch: feat/file_cleanup.
-- Latest session (2026-10-02): **Slave TIME_VALID=0; current startup reproducibility NOT ESTABLISHED.** A later fresh user rebuild/program did not reproduce the earlier PASS. Current source adds only passive RXTS state readback; the new diagnostic image is not yet runtime-validated. See [regression evidence](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). Historical successful captures below remain valid for their recorded sessions, not a guarantee for every startup.
+- Latest session (2026-10-02): both TIME_VALID/PPS_VALID bits stayed 1 in all 1190 sampled rows per board, and the post-capture dashboard remained valid. See the [current qualification report](experiments/step6/EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002/REPORT.md). Earlier WAITING sessions and their [regression evidence](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md) remain historical evidence, not the present runtime verdict.
 - Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
 - Canonical implementation: the two DE5a JTAG projects, with QSFP-A lane 0 as the fixed White Rabbit link.
 - Step 1 PHY/link: PASS, independently rebuilt, programmed, and runtime-validated.

@@ -1,0 +1,80 @@
+    Info (12023): Found entity 1: spll_aligner File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_aligner.vhd Line: 38
+Warning (10335): Unrecognized synthesis attribute "rom_extract" at ../vendor/wr-cores/modules/wr_softpll_ng/spll_bangbang_pd.vhd(99) File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_bangbang_pd.vhd Line: 99
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_bangbang_pd.vhd
+    Info (12022): Found design unit 1: spll_bangbang_pd-rtl File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_bangbang_pd.vhd Line: 102
+    Info (12023): Found entity 1: spll_bangbang_pd File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_bangbang_pd.vhd Line: 50
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_period_detect.vhd
+    Info (12022): Found design unit 1: spll_period_detect-rtl File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_period_detect.vhd Line: 89
+    Info (12023): Found entity 1: spll_period_detect File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_period_detect.vhd Line: 53
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wb_slave.vhd
+    Info (12022): Found design unit 1: spll_wb_slave-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wb_slave.vhd Line: 118
+    Info (12023): Found entity 1: spll_wb_slave File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wb_slave.vhd Line: 21
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wbgen2_pkg.vhd
+    Info (12022): Found design unit 1: spll_wbgen2_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wbgen2_pkg.vhd Line: 18
+    Info (12022): Found design unit 2: spll_wbgen2_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/spll_wbgen2_pkg.vhd Line: 243
+Warning (10335): Unrecognized synthesis attribute "mark_debug" at ../vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd(511) File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 511
+Warning (10335): Unrecognized synthesis attribute "mark_debug" at ../vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd(512) File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 512
+Warning (10335): Unrecognized synthesis attribute "mark_debug" at ../vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd(513) File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 513
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd
+    Info (12022): Found design unit 1: wr_softpll_ng-rtl File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 169
+    Info (12023): Found entity 1: wr_softpll_ng File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/wr_softpll_ng.vhd Line: 49
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd
+    Info (12022): Found design unit 1: xwr_softpll_ng-wrapper File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 146
+    Info (12023): Found entity 1: xwr_softpll_ng File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_softpll_ng/xwr_softpll_ng.vhd Line: 45
+Info (12021): Found 1 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_pkg.vhd
+    Info (12022): Found design unit 1: wr_txtsu_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_pkg.vhd Line: 4
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd
+    Info (12022): Found design unit 1: wrsw_txtsu_wb-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd Line: 47
+    Info (12023): Found entity 1: wrsw_txtsu_wb File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/wr_txtsu_wb.vhd Line: 18
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd
+    Info (12022): Found design unit 1: xwr_tx_tsu-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd Line: 98
+    Info (12023): Found entity 1: xwr_tx_tsu File: /home/b10504072/04_WR/vendor/wr-cores/modules/wr_txtsu/xwr_txtsu.vhd Line: 62
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd
+    Info (12022): Found design unit 1: wr_core-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 373
+    Info (12023): Found entity 1: wr_core File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wr_core.vhd Line: 74
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd
+    Info (12022): Found design unit 1: wrc_cpu_csr_wb_slave-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd Line: 33
+    Info (12023): Found entity 1: wrc_cpu_csr_wb_slave File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wb.vhd Line: 21
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd
+    Info (12022): Found design unit 1: wrc_cpu_csr_wbgen2_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd Line: 18
+    Info (12022): Found design unit 2: wrc_cpu_csr_wbgen2_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_cpu_csr_wbgen2_pkg.vhd Line: 81
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd
+    Info (12022): Found design unit 1: wrc_diags_dpram-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd Line: 68
+    Info (12023): Found entity 1: wrc_diags_dpram File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_diags_dpram.vhd Line: 51
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd
+    Info (12022): Found design unit 1: wrc_periph-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 116
+    Info (12023): Found entity 1: wrc_periph File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_periph.vhd Line: 46
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd
+    Info (12022): Found design unit 1: sysc_wbgen2_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd Line: 17
+    Info (12022): Found design unit 2: sysc_wbgen2_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_pkg.vhd Line: 196
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd
+    Info (12022): Found design unit 1: wrc_syscon_wb-syn File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd Line: 40
+    Info (12023): Found entity 1: wrc_syscon_wb File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_syscon_wb.vhd Line: 20
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd
+    Info (12022): Found design unit 1: wrc_urv_wrapper-arch File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd Line: 82
+    Info (12023): Found entity 1: wrc_urv_wrapper File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrc_urv_wrapper.vhd Line: 35
+Info (12021): Found 2 design units, including 0 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd
+    Info (12022): Found design unit 1: wrcore_pkg File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd Line: 44
+    Info (12022): Found design unit 2: wrcore_pkg-body File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/wrcore_pkg.vhd Line: 853
+Info (12021): Found 2 design units, including 1 entities, in source file /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd
+    Info (12022): Found design unit 1: xwr_core-struct File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 324
+    Info (12023): Found entity 1: xwr_core File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 71
+Error (10349): VHDL Association List error at DE5a_wr_master_jtag.vhd(1860): formal "STEP5_BOOTSTRAP_REVERSE" does not exist File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1860
+Warning (10236): Verilog HDL Implicit Net warning at urv_cpu.v(251): created implicit net for "d2x_is_add" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/urv-core/rtl/urv_cpu.v Line: 251
+Warning (10236): Verilog HDL Implicit Net warning at urv_cpu.v(393): created implicit net for "sys_tick" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/urv-core/rtl/urv_cpu.v Line: 393
+Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.map.smsg
+Error: Quartus Prime Analysis & Synthesis was unsuccessful. 1 error, 46 warnings
+    Error: Peak virtual memory: 1043 megabytes
+    Error: Processing ended: Fri Oct  2 13:29:20 2026
+    Error: Elapsed time: 00:00:09
+    Error: Total CPU time (on all processors): 00:00:13
+Error (293001): Quartus Prime Full Compilation was unsuccessful. 3 errors, 46 warnings
+Error: Flow compile (for project /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag) was not successful
+Error: ERROR: Error(s) found while running an executable. See report file(s) for error message(s). Message log indicates which executable was run last.
+
+Error (23031): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl unsuccessful
+Error: Quartus Prime Shell was unsuccessful. 10 errors, 46 warnings
+    Error: Peak virtual memory: 773 megabytes
+    Error: Processing ended: Fri Oct  2 13:29:20 2026
+    Error: Elapsed time: 00:00:10
+    Error: Total CPU time (on all processors): 00:00:14

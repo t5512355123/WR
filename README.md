@@ -4,14 +4,16 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 ## Current code and four-step workflow
 
-Current unvalidated candidate: `EXP-S6-MASTER-HELPER-RANGE-BOOTSTRAP2048-20261002`.
-It changes only Master's coarse Helper origin (2048 FINC bootstrap); Slave
-control remains `/2 + /12`. See the [candidate plan](experiments/step6/EXP-S6-MASTER-HELPER-RANGE-BOOTSTRAP2048-20261002/PLAN.md).
-The paragraph below records the preceding diagnostic baseline. Existing
-`output/` products belong to that diagnostic, NOT this new candidate; the
-program script must reject them until a fresh compile/export.
+Current qualified experiment: `EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002`.
+**Both boards passed the sampled TIME_VALID >300 s gate** after fresh root
+build/compile/Slave→Master programming: Master 1190/1190 rows over 302871 ms,
+Slave 1190/1190 over 302876 ms. Actual qualified SOFs are retained in output/.
+See the [current report](experiments/step6/EXP-S6-TIME-VALID-300S-MASTER-BOOTSTRAP2048-20261002/REPORT.md).
+Slave control remains `/2 + /12`; Master uses a 2048-FINC coarse origin.
+**Master Helper is still unlocked.** This is not a Helper/fine-timestamp
+accuracy repair, and universal startup repeatability is not established.
 
-The root controller remains acquisition `/2`, tracking `/12`. Earlier fresh runs passed sampled TIME_VALID for >300 s, but a subsequent user rebuild/program left the Slave in WAIT_OFFSET_STABLE with TIME_VALID=0 despite PLL lock. Startup reproducibility is not yet established. The preceding passive RXTS diagnostic confirmed Master Helper saturation and an unready phase tracker; Slave calibration matched its live scan. See the [regression report](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). The dashboard now displays Master Helper lock rather than hiding it as NA; Main PLL fields remain inapplicable to the free-running Master. Only `artifacts/milestones/` contains complete historical operational source snapshots; `experiments/` retains evidence, not the current build entrypoint.
+The preceding startup regression left the Slave in WAIT_OFFSET_STABLE despite PLL lock. Passive diagnostics confirmed Master Helper saturation/unready phase tracking while Slave calibration matched its live scan; see the [regression report](experiments/step6/EXP-S6-CURRENT-STARTUP-REGRESSION-20261002/REPORT.md). The latest qualification above supersedes that session for the user's TIME_VALID-only gate, not its unresolved fine-timestamp caveat. The dashboard displays Master Helper lock rather than hiding it as NA; Main PLL fields remain inapplicable to the free-running Master. Only `artifacts/milestones/` contains complete historical operational source snapshots; `experiments/` retains evidence, not the current build entrypoint.
 
 Run on Pain from `/home/b10504072/04_WR`:
 

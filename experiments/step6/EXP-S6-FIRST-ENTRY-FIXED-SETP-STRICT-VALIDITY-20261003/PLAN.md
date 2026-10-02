@@ -65,3 +65,15 @@ TIME_VALID/PPS and actual CKO<=120, not TRACK state or disabled feedback alone.
 
 Laptop receives full raw/checksums and actual products, writes REPORT and
 pushes, then Pain ff sync. Frozen milestones/protected archive untouched.
+
+## Read-only late-entry amendment
+
+The first query near6min reported latched=0. Initial observer attempts failed
+publication-width checks and were preserved; no reprogram/control change.
+Independent short-context retry subsequently produced trusted data with state4
+but invalid time, indicating a possible entry AFTER the planned acquisition
+budget. Such a late entry is NOT a successful bounded acquisition or300s PASS.
+If a new versioned query confirms the latch, salvage one60s read-only fixed-
+phase diagnostic in this existing boot, with all original invariant/health
+stops. Label it LATE_ENTRY_SALVAGE, distinguish its timing, never discard the
+earlier failed runs. Stop after this diagnostic and report; no gain changes.

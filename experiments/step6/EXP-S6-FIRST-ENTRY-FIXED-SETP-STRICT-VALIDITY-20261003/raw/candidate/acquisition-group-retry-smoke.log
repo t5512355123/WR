@@ -1,0 +1,24 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+STRICT_CAPTURE_PATH=experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/raw/observe/20261002T181548Z-strict-offset-validity.log
+STRICT_RESULT_PATH=experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/analysis/20261002T181548Z-strict-offset-300s.json
+{
+  "verdict": "NOT_ESTABLISHED",
+  "required_duration_ms": 300000,
+  "maximum_qualified_span_ms": 0,
+  "best_window": null,
+  "rows": 23,
+  "fresh_strict_entry_observations": 0,
+  "pointwise_valid_outside_retention": 0,
+  "rejected_rows": 9,
+  "trusted_cko_range_ps": [
+    3349,
+    3660
+  ],
+  "states": {
+    "5": 9,
+    "4": 5
+  },
+  "errors": [],
+  "scope": "Coherent Slave publication, bracketed live health and interleaved fresh Master validity, contiguous sampled producer updates. Not analogue skew or cycle-atomic cross-domain proof."
+}

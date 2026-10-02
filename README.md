@@ -6,15 +6,19 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003`.
-The main-root source now contains a bounded fixed-setpoint diagnostic; its
-fresh build/program is pending. Existing output below is the preceding RXTS
-image, NOT this changed firmware. Do not program it as the new candidate.
+The main-root source contains a completed fixed-setpoint diagnostic. Fresh
+two-board builds and one Slave→Master programming pair succeeded from
+`fbd8febf3eab38e6d2734f859d911f1e6b10365f`; root `output/` holds those SOFs.
 First strict entry freezes WR setpoint, but >120ps still revokes Slave time.
-No automatic re-enable after an excursion in the diagnostic boot. See its
-[plan](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/PLAN.md).
+No automatic re-enable after an excursion in the diagnostic boot. This is NOT
+a production PASS image. Late-entry read-only capture found CKO/DMS jumps near
+4ns with unchanged WR phase-write/init counts and SETP; 38 fresh updates did
+not meet the preset 40-update diagnostic gate. Strict 300s remains
+NOT_ESTABLISHED, diagnostic INCONCLUSIVE. See the
+[report](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/REPORT.md).
 Preceding source added passive packet-specific timestamp RAM snapshots;
-both fresh compiles/programming completed. Root `output/` is this diagnostic
-source, actual compile commit `13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`.
+both fresh compiles/programming completed from
+`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`, now superseded by the fixed-SETP build.
 The90s preflight reached <60ps with a2669ms qualified span, not300s. Packet
 math validated, but fine stability remains NOT_ESTABLISHED; see the
 [RXTS report](experiments/step6/EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003/REPORT.md).

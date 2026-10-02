@@ -4,10 +4,17 @@
 Active experiment: EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003.
 New main-root firmware intervention: freeze WR setpoint after first<60ps entry,
 retain strict >120ps invalidation, no automatic re-enable in that boot.
-Laptop contracts passed; fresh native/build/program/observation pending.
-Retained output is preceding RXTS hardware, not this modified source.
-Passive RX timestamp recorder in root: fresh build/program succeeded from
-`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`; current output is this candidate.
+Native baseline/fixed C tests passed; both fresh compiles and one programming
+pair completed from `fbd8febf3eab38e6d2734f859d911f1e6b10365f`.
+Root output is this diagnostic, NOT a production PASS milestone. Late freeze
+was confirmed; exact entry CKO was not sampled. The 60s capture had 38 fresh
+matched updates, below preset40: diagnostic INCONCLUSIVE. CKO -375..+3731ps,
+DMS176621..180942ps, SETP=-4719 and WR phase-write/init counts unchanged;
+all observed Slave validity remained invalid. This suggests further coherent
+four-timestamp/delay diagnosis, not proof of Ki or physical clock causality.
+See the [completed report](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/REPORT.md).
+Preceding passive RX timestamp recorder: fresh build/program succeeded from
+`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`, now superseded.
 90s preflight reached <60ps but retained +/-120ps only2669ms; NOT300s PASS.
 Two packet histories validated mathematically;64 rows,63 correct. Both used
 falling selection; actual ahead/calibration accuracy remains unproven.
@@ -15,7 +22,7 @@ The new firmware revokes Slave validity outside +/-120 ps and reacquires only
 inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
 revision 2 passed 35 actual-C cases and fresh two-board compile/program from
 `4ba9df5935fc0a6afae2c7bd29603f190936e627`. These preceding candidate images
-have been superseded by RXTS products, NOT historical PASS images. Master validity is restored;
+have been superseded by the RXTS then fixed-SETP products, NOT historical PASS images. Master validity is restored;
 the completed 660 s capture had 1882 Slave rows (1849 trusted), CKO
 -3158..+3839 ps, no <60 ps row, and zero qualified hold. All 496 sampled Master
 health rows were valid; Slave TIME_VALID remained 0. No reset/transport errors.

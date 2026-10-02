@@ -1,0 +1,81 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "before": {
+    "enabled": 1,
+    "latched": 1,
+    "entry": 600,
+    "writes": 56,
+    "inits": 2,
+    "revoked": 1,
+    "setp": -4719,
+    "spll_init": 1,
+    "current": -4719,
+    "target": -4719
+  },
+  "after": {
+    "enabled": 1,
+    "latched": 1,
+    "entry": 600,
+    "writes": 56,
+    "inits": 2,
+    "revoked": 1,
+    "setp": -4719,
+    "spll_init": 1,
+    "current": -4719,
+    "target": -4719
+  },
+  "unique_updates": 38,
+  "fresh_cko_range_ps": [
+    -375,
+    3731
+  ],
+  "dms_range_ps": [
+    176621,
+    180942
+  ],
+  "calibrated_forward_t2_minus_t1_range_ps": [
+    176622,
+    177682
+  ],
+  "exploratory_midrange_cko_groups": [
+    {
+      "side": "lower",
+      "count": 13,
+      "mean_cko_ps": -226.69230769230768,
+      "mean_dms_ps": 176744.46153846153
+    },
+    {
+      "side": "upper",
+      "count": 25,
+      "mean_cko_ps": 3512.0,
+      "mean_dms_ps": 180635.36
+    }
+  ],
+  "adjacent_cko_delta_range_ps": [
+    -3948,
+    4046
+  ],
+  "strict_goal": {
+    "verdict": "NOT_ESTABLISHED",
+    "required_duration_ms": 300000,
+    "maximum_qualified_span_ms": 0,
+    "best_window": null,
+    "rows": 63,
+    "fresh_strict_entry_observations": 0,
+    "pointwise_valid_outside_retention": 0,
+    "rejected_rows": 40,
+    "trusted_cko_range_ps": [
+      -370,
+      3730
+    ],
+    "states": {
+      "4": 23
+    },
+    "errors": [],
+    "scope": "Coherent Slave publication, bracketed live health and interleaved fresh Master validity, contiguous sampled producer updates. Not analogue skew or cycle-atomic cross-domain proof."
+  },
+  "errors": [
+    "insufficient fresh bounded diagnostic"
+  ],
+  "scope": "Constant published SETP and counted WR writes, settled hardware endpoint readbacks, stable SPLL init; no analogue or cycle-atomic target proof. Diagnostic PASS is not Step6 PASS."
+}

@@ -15,6 +15,11 @@ Normal tracker remains enabled, default fine code step stays 34. Slave top,
 all firmware control/gains/thresholds, static tables, reset, PHY, arbitration,
 timing constraints and dashboard are unchanged.
 
+The Master VHDL component declaration also exposes the existing Verilog
+STEP5_BOOTSTRAP_REVERSE parameter (default zero). The first compile caught
+its missing declaration and stopped in analysis; no image was programmed.
+An offline interface-subset test now checks every mapped generic is declared.
+
 This is an empirical range bracket, not a proven fix. The old fine range
 admits about (65531-5)/34 = 1927 physical steps from its origin. Moving the
 origin by 2048 makes a different, higher physical range available; it does

@@ -1,5 +1,6 @@
 """Guard the promoted controller and the Quartus firmware load path."""
 from pathlib import Path
+import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -38,7 +39,19 @@ class CurrentSourceTests(unittest.TestCase):
       STEP5_BOOTSTRAP_REVERSE => 1,'''
                 self.assertEqual(expected.count(old), 1)
                 expected = expected.replace(old, new)
+                expected = expected.replace(
+                    '      STEP5_BOOTSTRAP_STEPS : integer := 6336;\n',
+                    '      STEP5_BOOTSTRAP_STEPS : integer := 6336;\n'
+                    '      STEP5_BOOTSTRAP_REVERSE : integer := 0;\n')
             self.assertEqual((ROOT / path).read_text(), expected)
+
+    def test_master_controller_generic_map_matches_declared_interface(self):
+        source = (ROOT / 'quartus/DE5a_wr_master_jtag.vhd').read_text()
+        interface = source.split('component si5340a_controller_dco is', 1)[1].split('port (', 1)[0]
+        mapping = source.split('u_si5340a_controller : si5340a_controller_dco', 1)[1].split('port map', 1)[0]
+        declared = set(re.findall(r'(\w+)\s*:\s*integer', interface))
+        used = set(re.findall(r'(\w+)\s*=>', mapping))
+        self.assertTrue(used <= declared, f'undeclared generic(s): {used - declared}')
 
 
 if __name__ == '__main__':

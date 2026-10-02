@@ -55,6 +55,9 @@ proc strict_frame {} {
   return $result
 }
 proc strict_context {addresses} {
+  set deadline [expr {[clock milliseconds]+180}]
+  set result [concat [list 0 INVALID INVALID] [lrepeat [llength $addresses] INVALID]]
+  while {[clock milliseconds]<$deadline} {
   set e0 [wb_read 0x00100B34]
   set c0 [wb_read 0x00100A04]
   set payload {}
@@ -68,7 +71,11 @@ proc strict_context {addresses} {
   set c1 [wb_read 0x00100A04]
   set good [expr {$good && [is_hex $e1] && [word32 $c1]>=0 &&
     ([word32 $c1]&1) && (([word32 $e0]^ [word32 $e1])&0xffff)==0}]
-  return [concat [list $good $e0 $e1] $payload]
+  set result [concat [list $good $e0 $e1] $payload]
+  if {$good} { return $result }
+  after 1
+  }
+  return $result
 }
 proc strict_master_health {hw device begin} {
   start_insystem_source_probe -hardware_name $hw -device_name $device

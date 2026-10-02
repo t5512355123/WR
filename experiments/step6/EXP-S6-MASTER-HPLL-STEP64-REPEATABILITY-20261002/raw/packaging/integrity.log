@@ -1,0 +1,13 @@
+MAIN_VS_MILESTONE_SCRIPT_FILES_IDENTICAL=273
+SOURCE_AND_SOF_INTEGRITY=PASS
+54950148ab09c0a5367f9779e59eaf993fcbef66877b8e7e461d642f8c7e2598  artifacts/milestones/step6_global_time/source.tar.gz
+/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source
+ARCHIVE_SHA256SUMS
+master.sof
+prepare_source.sh
+README.md
+SHA256SUMS
+slave.sof
+source
+source.tar.gz
+verification-dashboard.log

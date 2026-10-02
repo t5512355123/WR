@@ -66,7 +66,7 @@ def analyze(path,required_ms=300000,max_gap_ms=1000,max_update_age_ms=2000):
             previous={"t":t,"u":u,"k":k,"state":state}
         except (KeyError,ValueError):
             errors.append("malformed row"); start=None; entry=None; previous=None
-    passed=not errors and best>=required_ms
+    passed=not errors and outside==0 and best>=required_ms
     return {"verdict":"PASS_SAMPLED_STRICT_GOAL" if passed else
             ("INCONCLUSIVE" if errors else "NOT_ESTABLISHED"),
         "required_duration_ms":required_ms,"maximum_qualified_span_ms":best,

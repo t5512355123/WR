@@ -47,5 +47,10 @@ class StrictOffsetTests(unittest.TestCase):
             self.assertNotEqual(self.run_rows(rows)["verdict"],"PASS_SAMPLED_STRICT_GOAL")
     def test_missing_completion_is_inconclusive(self):
         self.assertEqual(self.run_rows([row(n) for n in range(301)],False)["verdict"],"INCONCLUSIVE")
+    def test_observed_valid_overlimit_is_not_hidden_by_later_good_window(self):
+        rows=[row(0),row(1,121)]+[row(n) for n in range(2,303)]
+        result=self.run_rows(rows)
+        self.assertGreaterEqual(result["maximum_qualified_span_ms"],300000)
+        self.assertNotEqual(result["verdict"],"PASS_SAMPLED_STRICT_GOAL")
 
 if __name__=="__main__": unittest.main()

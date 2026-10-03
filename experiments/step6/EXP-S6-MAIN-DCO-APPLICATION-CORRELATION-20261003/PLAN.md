@@ -55,3 +55,14 @@ raw. Laptop fixes ONLY observer session ownership and adds an offline native
 Tcl lifecycle/wrong-image test ->push ->Pain pull/native tests ->one bounded
 retry on the same programmed pair. No control/source-image change, no compile
 input change, no reprogram. Compiled source identity remains f0f0f7ef.
+
+Second pre-sample stop: the reader incorrectly expected full HDL instance IDs.
+Existing read_probe.tcl actual inventory proves Slave tuples72/73/74 are
+{72 1 64 A_V1}, {73 1 64 N_V1}, {74 1 64 S_V1}; Master has none. Quartus17
+returns four-character suffixes. No debug capture request/sample was issued.
+Laptop narrows image check to those exact unique index/source/probe/ID tuples,
+with five wrong-contract native tests; keep schema/init/sequence/failure guards.
+Afterpush/Painpull/native tests, permit one bounded actual capture using the
+same exact SOFs. Preserve both failed preflights and inventory. No reprogram,
+no relaxed data guards, and do not confuse these reader preflights with
+hardware failure or valid DCO data.

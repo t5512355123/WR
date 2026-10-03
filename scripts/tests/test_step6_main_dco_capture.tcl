@@ -10,16 +10,24 @@ proc end_insystem_source_probe {} {
 }
 proc get_insystem_source_probe_instance_info {args} {
   if {$::test_active} {error "Second JTAG session"}
-  if {$::test_wrong_image} {return WR_S6_MAIN_DCO_META_V1}
-  return {WR_S6_MAIN_DCO_META_V1 WR_S6_MAIN_DCO_POSITION_V1 WR_S6_MAIN_DCO_COUNTS_V1}
+  switch $::test_wrong_image {
+    1 {return {{72 1 64 A_V1}}}
+    2 {return {{72 1 32 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}}}
+    3 {return {{72 1 64 A_V1} {72 1 64 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}}}
+    4 {return {{72 1 64 Z_V1} {73 1 64 N_V1} {74 1 64 S_V1}}}
+    5 {return {{72 2 64 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}}}
+  }
+  return {{72 1 64 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}}
 }
 if {[llength [dco_require_image test_hw test_device]]!=3 || $::test_active} {
   error "Image discovery/session ownership failed"
 }
-set ::test_active 1; set ::test_wrong_image 1
-if {![catch {dco_require_image test_hw test_device} why] ||
-    $why ne "Wrong image: missingWR_S6_MAIN_DCO_POSITION_V1"} {
-  error "Incomplete image not rejected: $why"
+foreach bad {1 2 3 4 5} {
+  set ::test_active 1; set ::test_wrong_image $bad
+  if {![catch {dco_require_image test_hw test_device} why] ||
+      [string first "Wrong image: instance contract" $why]!=0} {
+    error "Wrong image/width/duplicate/name/source not rejected: $why"
+  }
 }
 set ::test_meta 0000000020020000; set ::written {}; set ::torn 0
 proc probe_word {i} {

@@ -13,8 +13,17 @@ proc dco_require_image {hw device} {
   # opens its own session, so close ours first; never run two JTAG sessions.
   end_insystem_source_probe
   set instances [get_insystem_source_probe_instance_info -hardware_name $hw -device_name $device]
-  foreach id {WR_S6_MAIN_DCO_META_V1 WR_S6_MAIN_DCO_POSITION_V1 WR_S6_MAIN_DCO_COUNTS_V1} {
-    if {[string first $id $instances]<0} {error "Wrong image: missing$id"}
+  # Actual Quartus17 inventory has four-character IDs, not the full HDL string:
+  # {72 1 64 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}. Check exact unique tuples;
+  # dco_capture additionally checks payload schema/init/ACK and sequence.
+  foreach expected {{72 1 64 A_V1} {73 1 64 N_V1} {74 1 64 S_V1}} {
+    set matches {}
+    foreach item $instances {
+      if {[lindex $item 0]==[lindex $expected 0]} {lappend matches $item}
+    }
+    if {[llength $matches]!=1 || [lindex $matches 0] ne $expected} {
+      error "Wrong image: instance contract $expected"
+    }
   }
   return $instances
 }

@@ -14,6 +14,7 @@
 		Description: launches RX timestamper calibration. */
 
 #include <string.h>
+#include <errno.h>
 #include <wrc.h>
 #include "shell.h"
 #include "storage.h"
@@ -33,6 +34,15 @@ static const char * const calib_cmds[] =
 static int cmd_calibration(const char *args[])
 {
 	int icmd;
+
+	/* Read-only, bounded status: no scan, storage or phase-control call.
+	 * In particular, never let this fall through to no-argument measure. */
+	if (args[0] && !strcmp(args[0], "status")) {
+		if (args[1])
+			return -EINVAL;
+		calib_t24p_show_state();
+		return 0;
+	}
 
 	if (!args[0]) {
 		uint32_t trans;

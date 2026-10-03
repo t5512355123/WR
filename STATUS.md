@@ -1,7 +1,13 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003.
+Active experiment: EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003.
+Prepared bounded same-gateware role exchange; adds passive status dispatch
+only. Native tests/full compile/program and actual calibration pending.
+No guessed calibration, Ki/gain changes or relaxed strict60/120/300s gate.
+Root output remains preceding products until a real compile. See the
+[current plan](experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/PLAN.md).
+Preceding completed experiment: EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003.
 Completed passive paired history observer; production inputs identical toc8460b08.
 Native/firmware tests, full two-board compile and one Slave→Master program
 from1ab27d25 passed. Root output contains these actual products, not a strict

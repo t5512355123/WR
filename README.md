@@ -5,7 +5,13 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003`.
+Active experiment: `EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003`.
+Prepared bounded same-gateware role exchange and passive calibration-status
+query. Native tests/build/program/hardware calibration pending; no guessed
+T24P and no gain/strict-gate changes. Output still contains the preceding
+diagnostic products until a real new compile. See the
+[current plan](experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/PLAN.md).
+Preceding completed experiment: `EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003`.
 Completed passive exact accepted-update join; native/firmware tests, fresh
 two-board full compile and one Slave→Master programming pair passed from
 `1ab27d25c6935ed5e6ddb5af129982f66a2265ac`. Root output contains THESE

@@ -33,6 +33,21 @@ PHY/reset/SDC changes. Board windows are sequential, not simultaneous.
 Source/image mismatch, competing owner, native/compile/program/transport
 failure or acquisition timeout stops the candidate and preserves evidence.
 PASS requires the new standalone capture, not root history or a dashboard.
+
+Follow-up after the first600s acquisition TIMEOUT (2026-10-04): both fresh
+SOFs compiled/programmed successfully; native/source tests and3117 production
+input hashes agree. Quartus CPF conversions establish BYTE-IDENTICAL Master
+and Slave RBF configuration payloads versus the qualified main-root images.
+Slave's post-timeout dashboard has allfive PLL lock signals1 but remains in
+WAIT_OFFSET_STABLE, CKO-2353ps. Preserve this failed first readiness attempt.
+One additional600s READ-ONLY acquisition/capture continuation is allowed in
+the SAME already-programmed session. No programming, reset, power cycle,
+control adjustment, threshold change or firmware timeout extension. Only the
+host observer's second bounded wait is new. Failure ends this reproduction;
+success must retain the initial timeout and qualify a new complete303s-per-
+board capture. This is not a claim of acquisition within600s or reproducible
+startup speed. The continuation's raw records are explicitly labelled.
+
 Return all records/new products to Laptop, rerun analyzer, push evidence and
 the single current Step6 package to GitHub. No main merge. After reproduction
 PASS, stop further tuning and report the frozen archive/actual fresh SOF hashes.

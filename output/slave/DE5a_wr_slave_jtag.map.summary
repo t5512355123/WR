@@ -1,10 +1,10 @@
-Analysis & Synthesis Status : Successful - Sat Oct  3 11:18:40 2026
+Analysis & Synthesis Status : Successful - Sat Oct  3 14:10:35 2026
 Quartus Prime Version : 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 Revision Name : DE5a_wr_slave_jtag
 Top-level Entity Name : DE5a_wr_slave_jtag
 Family : Arria 10
 Logic utilization (in ALMs) : N/A
-Total registers : 18890
+Total registers : 19310
 Total pins : 41
 Total virtual pins : 0
 Total block memory bits : 1,676,928

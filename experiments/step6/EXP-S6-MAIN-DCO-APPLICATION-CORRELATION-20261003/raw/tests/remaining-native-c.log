@@ -1,0 +1,3 @@
+ACTUAL_TS4_RECORDER_C=PASS raw/cal fields action boundary filtering overwrite frozen pages signed64 no-control-input
+ACTUAL_WRH_SERVO_C_TEST=PASS cases=35 acquisition_divisor=2 tracking_divisor=12 master_gm_preserved=1
+ACTUAL_FIXED_SETP_C_TEST=PASS in_band_updates=100 full64_revocations=8 all_phase_paths_guarded=1

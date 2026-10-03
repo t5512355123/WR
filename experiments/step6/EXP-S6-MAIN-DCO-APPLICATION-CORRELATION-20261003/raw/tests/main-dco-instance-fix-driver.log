@@ -1,0 +1,4 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+MAIN_DCO_LOG=experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/raw/observe/20261003T062802Z-main-dco.log
+MAIN_DCO_CAPTURE_FAILED rc=3

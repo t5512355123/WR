@@ -1,0 +1,40 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Oct  3 14:20:49 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_main_dco_capture.tcl
+MAIN_DCO_CONFIG schema=1 samples=60 max_actual_ms=120000 control_changed=0 applied_position_is_virtual=1 cross_group_atomic=0
+TS4_HEALTH_OK role=MASTER STATUS=614244E137BC82FF ESCR=0000010C H=03E80101 M=00000000 P=00000003 RESET={1 1 1 0 1}
+TS4_HEALTH_OK role=SLAVE STATUS=FC827661333882FF ESCR=0000010C H=03E80001 M=3E80300F P=00000003 RESET={1 1 1 0 1}
+MAIN_DCO_STOP samples=0 reason={ERROR: There is already an active In-System Sources and Probes session started. Unable to start another session.
+}
+MAIN_DCO_DONE samples=0 elapsed_ms=582
+------------------------------------------------
+Incomplete Main DCO diagnostic: ERROR: There is already an active In-System Sources and Probes session started. Unable to start another session.
+
+    while executing
+"error "Incomplete Main DCO diagnostic: $failure""
+    invoked from within
+"if {$completed!=60} {error "Incomplete Main DCO diagnostic: $failure"}"
+    (file "scripts/jtag/read_step6_main_dco_capture.tcl" line 91)
+------------------------------------------------
+Error (23031): Evaluation of Tcl script scripts/jtag/read_step6_main_dco_capture.tcl unsuccessful
+Error: Quartus Prime SignalTap II was unsuccessful. 1 error, 0 warnings
+    Error: Peak virtual memory: 772 megabytes
+    Error: Processing ended: Sat Oct  3 14:20:50 2026
+    Error: Elapsed time: 00:00:01
+    Error: Total CPU time (on all processors): 00:00:00

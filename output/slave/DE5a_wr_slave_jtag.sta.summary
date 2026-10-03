@@ -2,132 +2,132 @@
 TimeQuest Timing Analyzer Summary
 ------------------------------------------------------------
 
-Type  : Slow 900mV 100C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : -0.659
-TNS   : -1.140
-
 Type  : Slow 900mV 100C Model Setup 'clk_50m'
-Slack : 0.104
+Slack : 0.256
+TNS   : 0.000
+
+Type  : Slow 900mV 100C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 0.335
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Setup 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 1.211
-TNS   : 0.000
-
-Type  : Slow 900mV 100C Model Setup 'qsfp_ref_125m'
-Slack : 2.080
+Slack : 1.165
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 2.393
+Slack : 1.797
 TNS   : 0.000
 
-Type  : Slow 900mV 100C Model Setup '~ALTERA_CLKUSR~'
-Slack : 6.649
+Type  : Slow 900mV 100C Model Setup 'qsfp_ref_125m'
+Slack : 2.023
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Setup 'qsfp_dmtd_124m992'
-Slack : 6.656
+Slack : 6.606
+TNS   : 0.000
+
+Type  : Slow 900mV 100C Model Setup '~ALTERA_CLKUSR~'
+Slack : 6.762
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Setup 'altera_reserved_tck'
-Slack : 8.786
+Slack : 8.253
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.035
+Slack : 0.036
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'altera_reserved_tck'
-Slack : 0.044
-TNS   : 0.000
-
-Type  : Slow 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.046
+Slack : 0.045
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'qsfp_ref_125m'
-Slack : 0.049
+Slack : 0.047
 TNS   : 0.000
 
-Type  : Slow 900mV 100C Model Hold '~ALTERA_CLKUSR~'
-Slack : 0.067
+Type  : Slow 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 0.048
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'clk_50m'
-Slack : 0.074
+Slack : 0.054
+TNS   : 0.000
+
+Type  : Slow 900mV 100C Model Hold '~ALTERA_CLKUSR~'
+Slack : 0.065
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'qsfp_dmtd_124m992'
-Slack : 0.124
+Slack : 0.134
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 2.842
-TNS   : 0.000
-
-Type  : Slow 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.650
+Slack : 3.119
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery 'qsfp_ref_125m'
-Slack : 2.211
+Slack : 0.365
+TNS   : 0.000
+
+Type  : Slow 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 1.053
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 4.784
+Slack : 5.021
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery '~ALTERA_CLKUSR~'
-Slack : 7.151
+Slack : 7.185
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 14.814
+Slack : 14.855
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 16.394
+Slack : 16.341
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Recovery 'altera_reserved_tck'
-Slack : 29.084
+Slack : 29.056
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.216
+Slack : 0.214
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal 'altera_reserved_tck'
-Slack : 0.368
-TNS   : 0.000
-
-Type  : Slow 900mV 100C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.384
+Slack : 0.343
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal '~ALTERA_CLKUSR~'
-Slack : 0.405
+Slack : 0.372
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal 'qsfp_ref_125m'
-Slack : 0.417
+Slack : 0.387
+TNS   : 0.000
+
+Type  : Slow 900mV 100C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
+Slack : 0.662
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 10.219
+Slack : 10.273
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 12.753
+Slack : 12.720
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'qsfp_ref_125m'
-Slack : 3.626
+Slack : 3.607
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 3.659
+Slack : 3.687
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
@@ -147,15 +147,15 @@ Slack : 3.904
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'qsfp_dmtd_124m992'
-Slack : 3.941
+Slack : 3.928
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 7.610
+Slack : 7.607
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'clk_50m'
-Slack : 9.916
+Slack : 9.910
 TNS   : 0.000
 
 Type  : Slow 900mV 100C Model Minimum Pulse Width 'altera_reserved_tck'
@@ -163,123 +163,123 @@ Slack : 16.575
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup 'clk_50m'
-Slack : 0.090
-TNS   : 0.000
-
-Type  : Slow 900mV 0C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.549
+Slack : 0.331
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 1.248
+Slack : 1.330
 TNS   : 0.000
 
-Type  : Slow 900mV 0C Model Setup 'qsfp_ref_125m'
-Slack : 2.261
+Type  : Slow 900mV 0C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 1.494
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 2.515
+Slack : 1.949
+TNS   : 0.000
+
+Type  : Slow 900mV 0C Model Setup 'qsfp_ref_125m'
+Slack : 2.496
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup 'qsfp_dmtd_124m992'
-Slack : 6.696
+Slack : 6.641
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup '~ALTERA_CLKUSR~'
-Slack : 6.741
+Slack : 6.781
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Setup 'altera_reserved_tck'
-Slack : 9.216
+Slack : 8.931
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.036
+Slack : 0.035
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'altera_reserved_tck'
-Slack : 0.042
-TNS   : 0.000
-
-Type  : Slow 900mV 0C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.042
+Slack : 0.040
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'qsfp_ref_125m'
-Slack : 0.046
+Slack : 0.043
 TNS   : 0.000
 
-Type  : Slow 900mV 0C Model Hold '~ALTERA_CLKUSR~'
-Slack : 0.065
+Type  : Slow 900mV 0C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 0.049
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'clk_50m'
-Slack : 0.067
+Slack : 0.052
+TNS   : 0.000
+
+Type  : Slow 900mV 0C Model Hold '~ALTERA_CLKUSR~'
+Slack : 0.064
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'qsfp_dmtd_124m992'
-Slack : 0.092
+Slack : 0.119
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 2.734
-TNS   : 0.000
-
-Type  : Slow 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 1.253
+Slack : 2.982
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery 'qsfp_ref_125m'
-Slack : 2.386
+Slack : 0.998
+TNS   : 0.000
+
+Type  : Slow 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 1.990
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 4.863
+Slack : 5.117
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery '~ALTERA_CLKUSR~'
-Slack : 7.144
+Slack : 7.189
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 14.718
+Slack : 14.766
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 16.551
+Slack : 16.511
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Recovery 'altera_reserved_tck'
-Slack : 29.108
+Slack : 29.094
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : -0.264
-TNS   : -1.035
+Slack : -0.241
+TNS   : -0.952
 
 Type  : Slow 900mV 0C Model Removal 'altera_reserved_tck'
-Slack : 0.354
-TNS   : 0.000
-
-Type  : Slow 900mV 0C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.389
-TNS   : 0.000
-
-Type  : Slow 900mV 0C Model Removal 'qsfp_ref_125m'
-Slack : 0.391
+Slack : 0.337
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Removal '~ALTERA_CLKUSR~'
-Slack : 0.398
+Slack : 0.353
+TNS   : 0.000
+
+Type  : Slow 900mV 0C Model Removal 'qsfp_ref_125m'
+Slack : 0.377
+TNS   : 0.000
+
+Type  : Slow 900mV 0C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
+Slack : 0.563
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 9.794
+Slack : 9.841
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 12.726
+Slack : 12.690
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'qsfp_ref_125m'
@@ -287,7 +287,7 @@ Slack : 3.596
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 3.679
+Slack : 3.670
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width '~ALTERA_CLKUSR~'
@@ -307,7 +307,7 @@ Slack : 3.888
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'qsfp_dmtd_124m992'
-Slack : 3.917
+Slack : 3.912
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
@@ -315,7 +315,7 @@ Slack : 7.590
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'clk_50m'
-Slack : 9.848
+Slack : 9.853
 TNS   : 0.000
 
 Type  : Slow 900mV 0C Model Minimum Pulse Width 'altera_reserved_tck'
@@ -323,131 +323,131 @@ Slack : 16.514
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : -0.130
-TNS   : -0.130
+Slack : 0.795
+TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'clk_50m'
-Slack : 1.381
+Slack : 1.352
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 1.747
+Slack : 1.697
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'qsfp_ref_125m'
-Slack : 2.616
+Slack : 2.854
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 3.735
-TNS   : 0.000
-
-Type  : Fast 900mV 100C Model Setup '~ALTERA_CLKUSR~'
-Slack : 7.002
+Slack : 3.308
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'qsfp_dmtd_124m992'
-Slack : 7.152
+Slack : 7.121
+TNS   : 0.000
+
+Type  : Fast 900mV 100C Model Setup '~ALTERA_CLKUSR~'
+Slack : 7.172
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Setup 'altera_reserved_tck'
-Slack : 10.636
+Slack : 10.127
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Hold 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.013
-TNS   : 0.000
+Slack : -0.062
+TNS   : -0.062
 
 Type  : Fast 900mV 100C Model Hold 'altera_reserved_tck'
-Slack : 0.018
-TNS   : 0.000
-
-Type  : Fast 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.020
+Slack : 0.015
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Hold 'qsfp_ref_125m'
-Slack : 0.022
+Slack : 0.021
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Hold 'clk_50m'
 Slack : 0.023
 TNS   : 0.000
 
+Type  : Fast 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 0.023
+TNS   : 0.000
+
 Type  : Fast 900mV 100C Model Hold '~ALTERA_CLKUSR~'
-Slack : 0.025
+Slack : 0.023
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Hold 'qsfp_dmtd_124m992'
-Slack : 0.067
+Slack : 0.072
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 2.319
+Slack : 2.557
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.716
+Slack : 1.581
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'qsfp_ref_125m'
-Slack : 3.008
+Slack : 2.266
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 5.422
+Slack : 5.537
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery '~ALTERA_CLKUSR~'
-Slack : 7.443
+Slack : 7.450
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 16.573
+Slack : 16.581
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 16.756
+Slack : 16.720
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Recovery 'altera_reserved_tck'
-Slack : 29.995
-TNS   : 0.000
-
-Type  : Fast 900mV 100C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.221
+Slack : 30.279
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Removal '~ALTERA_CLKUSR~'
-Slack : 0.230
-TNS   : 0.000
-
-Type  : Fast 900mV 100C Model Removal 'qsfp_ref_125m'
-Slack : 0.250
+Slack : 0.217
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Removal 'altera_reserved_tck'
-Slack : 0.278
+Slack : 0.234
+TNS   : 0.000
+
+Type  : Fast 900mV 100C Model Removal 'qsfp_ref_125m'
+Slack : 0.236
+TNS   : 0.000
+
+Type  : Fast 900mV 100C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
+Slack : 0.494
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.486
+Slack : 0.519
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 10.930
+Slack : 10.967
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 11.822
+Slack : 11.813
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Minimum Pulse Width 'qsfp_ref_125m'
-Slack : 3.667
+Slack : 3.647
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 3.681
+Slack : 3.688
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
@@ -467,7 +467,7 @@ Slack : 3.955
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Minimum Pulse Width 'qsfp_dmtd_124m992'
-Slack : 3.957
+Slack : 3.970
 TNS   : 0.000
 
 Type  : Fast 900mV 100C Model Minimum Pulse Width 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
@@ -483,131 +483,131 @@ Slack : 16.492
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'clk_50m'
-Slack : 1.663
+Slack : 1.705
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 1.896
+Slack : 1.946
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 2.081
+Slack : 2.066
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'qsfp_ref_125m'
-Slack : 2.871
+Slack : 3.044
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 4.257
-TNS   : 0.000
-
-Type  : Fast 900mV 0C Model Setup '~ALTERA_CLKUSR~'
-Slack : 7.162
+Slack : 3.914
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'qsfp_dmtd_124m992'
-Slack : 7.253
+Slack : 7.224
+TNS   : 0.000
+
+Type  : Fast 900mV 0C Model Setup '~ALTERA_CLKUSR~'
+Slack : 7.283
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Setup 'altera_reserved_tck'
-Slack : 11.635
+Slack : 11.276
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.008
-TNS   : 0.000
-
-Type  : Fast 900mV 0C Model Hold 'qsfp_ref_125m'
-Slack : 0.014
+Slack : 0.011
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'altera_reserved_tck'
+Slack : 0.013
+TNS   : 0.000
+
+Type  : Fast 900mV 0C Model Hold 'qsfp_ref_125m'
 Slack : 0.015
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.016
+Slack : 0.017
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'clk_50m'
-Slack : 0.021
+Slack : 0.023
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold '~ALTERA_CLKUSR~'
-Slack : 0.024
+Slack : 0.023
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'qsfp_dmtd_124m992'
-Slack : 0.068
+Slack : 0.074
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Hold 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 1.959
-TNS   : 0.000
-
-Type  : Fast 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 2.556
+Slack : 2.132
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery 'qsfp_ref_125m'
-Slack : 3.199
+Slack : 3.339
+TNS   : 0.000
+
+Type  : Fast 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 3.377
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 5.688
+Slack : 5.772
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery '~ALTERA_CLKUSR~'
-Slack : 7.484
+Slack : 7.497
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 16.953
+Slack : 16.969
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 17.716
+Slack : 17.689
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Recovery 'altera_reserved_tck'
-Slack : 30.536
-TNS   : 0.000
-
-Type  : Fast 900mV 0C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 0.194
+Slack : 30.654
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal '~ALTERA_CLKUSR~'
-Slack : 0.202
+Slack : 0.183
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal 'qsfp_ref_125m'
-Slack : 0.203
+Slack : 0.199
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal 'altera_reserved_tck'
-Slack : 0.235
+Slack : 0.200
+TNS   : 0.000
+
+Type  : Fast 900mV 0C Model Removal 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
+Slack : 0.395
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 0.406
+Slack : 0.400
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk'
-Slack : 10.387
+Slack : 10.417
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Removal 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
-Slack : 11.493
-TNS   : 0.000
-
-Type  : Fast 900mV 0C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
-Slack : 3.691
+Slack : 11.475
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Minimum Pulse Width 'qsfp_ref_125m'
-Slack : 3.696
+Slack : 3.682
+TNS   : 0.000
+
+Type  : Fast 900mV 0C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout'
+Slack : 3.692
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Minimum Pulse Width 'u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk'
@@ -631,11 +631,11 @@ Slack : 3.978
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Minimum Pulse Width 'u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk'
-Slack : 7.672
+Slack : 7.669
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Minimum Pulse Width 'clk_50m'
-Slack : 9.914
+Slack : 9.913
 TNS   : 0.000
 
 Type  : Fast 900mV 0C Model Minimum Pulse Width 'altera_reserved_tck'

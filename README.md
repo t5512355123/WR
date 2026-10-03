@@ -5,10 +5,23 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`.
-Fresh native tests/full compiles/one programming pair completed from
-`78948729bc18c5a78aaede3b6a8f7a363042efc7`; root output retains THESE actual
-Kp600 candidate SOFs, not a strict PASS image. The sole functional change is
+Active experiment: `EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`.
+Fresh native equivalence/full compiles/one programming pair completed from
+`f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1`; root output retains THESE actual
+passive-capture candidate SOFs. Firmware/control unchanged from Kp600.
+Final observer source70193e25 corrects session ownership, actual Quartus
+instance tuples and independent seven-read publication groups without reprogram.
+60 coherent snapshots: Main progress59/59,641 completions, latency1.22882ms;
+59/60 residuals below16 code, but CKO-201..+227ps. Strict acquisition/postflight
+qualified spans604/0ms, no300s extension. Final TIME_VALID1/CKO-55ps is pointwise.
+See the [DCO correlation report](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md).
+Next boundary is a tested nearest-step admission candidate, not a Ki/gain sweep;
+physical step and strict60/120 requirements must remain unchanged.
+The preceding Kp600 products below are superseded; evidence is not erased.
+Previous experiment: `EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`.
+Previous native tests/full compiles/one programming pair completed from
+`78948729bc18c5a78aaede3b6a8f7a363042efc7`; those products are now superseded,
+not a strict PASS image. The sole functional change was
 Slave shared Main Kp300→600; Ki1 and all thresholds remain fixed. Master MIF
 is identical; Slave binary changed only two instruction bytes. Main phase
 error narrowed to−198..+229ps, but WR CKO remains−301..+274ps. The120s

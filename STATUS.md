@@ -1,9 +1,25 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003.
-Fresh full compiles/one programming pair from78948729 completed; root output
-contains latest actual Kp600 candidate SOFs, NOT a strict PASS milestone.
+Active experiment: EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003.
+Private Main DCO capture only; firmware/functional controller unchanged.
+Native cycle equivalence, actual pin/C tests, fresh two-board compiles and one
+programming pair fromf0f0f7ef passed. Root output is that actual candidate,
+not a strict PASS milestone. Observer-only fixes through70193e25 were pulled
+and native-tested without another program.60 coherent snapshots over63936ms:
+Main59/59 intervals advanced,641 completions, max latency1.22882ms,
+59/60 residuals<16 code; the one-17-code row was an active Main transaction.
+CKO-201..+227ps,21/60 strict60 and43/60 inclusive120. No sustained service
+blockage supported in this window; virtual account is not physical readback.
+Strict acquisition/postflight holds604/0ms, no300s extension. All three reader
+pre-sample failures and rejected rows preserved. Final pointwise TIME_VALID1,
+CKO-55ps is not sustained PASS. Next is a carefully tested nearest-step
+admission candidate with consistent ties, not automatic Ki/gain changes.
+See the [DCO report](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md).
+The preceding Kp600 products below are superseded; evidence remains.
+Previous experiment: EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003.
+Full compiles/one programming pair from78948729 completed; those Kp600
+products are now superseded, NOT a strict PASS milestone.
 Only Slave Main Kp300→600 changed; Master MIF unchanged, Slave binary differs
 by two instruction bytes. Main phase error−198..+229ps (mean absolute87.55ps,
 previous219.39ps), WR CKO−301..+274ps (24/32 inclusive120ps).

@@ -1,0 +1,264 @@
+test_actual_indices_unique_and_master_inactive (test_step6_main_dco_capture.CaptureTests) ... ok
+test_actual_tcl_capture_only_writes_private_source_and_checks_freeze (test_step6_main_dco_capture.CaptureTests) ... skipped 'Use native Quartus Tcl runner on Pain'
+test_bad_ack_schema_torn_and_partial64_rejected (test_step6_main_dco_capture.CaptureTests) ... ok
+test_coherent_virtual_data_not_sustained_or_physical_pass (test_step6_main_dco_capture.CaptureTests) ... ok
+test_control_source_identical_outside_private_blocks (test_step6_main_dco_capture.CaptureTests) ... ok
+test_counter_reset_sequence_collision_and_loss_never_pass (test_step6_main_dco_capture.CaptureTests) ... ok
+test_missing_deadline_and_master_health_never_pass (test_step6_main_dco_capture.CaptureTests) ... ok
+test_stationary_success_reported_not_removed (test_step6_main_dco_capture.CaptureTests) ... ok
+test_unsigned_boundary_applied65536_allowed (test_step6_main_dco_capture.CaptureTests) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.033s
+
+OK (skipped=1)
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Oct  3 13:57:29 2026
+Info: Command: quartus_stp -t scripts/tests/test_step6_main_dco_capture.tcl
+ACTUAL_QUARTUS_TCL_DCO_CAPTURE=PASS private_source_only=1 coherent=1 torn_rejected=1 hardware_session=0
+Info (23030): Evaluation of Tcl script scripts/tests/test_step6_main_dco_capture.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sat Oct  3 13:57:29 2026
+    Info: Elapsed time: 00:00:00
+    Info: Total CPU time (on all processors): 00:00:00
+Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+Start time: 13:57:29 on Oct 03,2026
+vlog -sv /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v /home/b10504072/04_WR/quartus/si5340a_controller_dco.v /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v /home/b10504072/04_WR/quartus/si5340_controller/initial_config.v /home/b10504072/04_WR/quartus/si5340_controller/clock_divider.v /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v /home/b10504072/04_WR/quartus/si5340_controller/si5340a_clk_frq_sel_gen.v /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v 
+-- Compiling module tb_main_dco_capture
+-- Compiling module baseline_si5340a_controller_dco
+-- Compiling module si5340a_controller_dco
+-- Compiling module i2c_bus_controller_dco
+-- Compiling module si5340a_i2c_reg_controller_dco
+-- Compiling module initial_config
+-- Compiling module clock_divider
+-- Compiling module edge_detector
+-- Compiling module si5340a_clk_frq_sel_gen
+-- Compiling module si5340a_freq_prameter_selector
+
+Top level modules:
+	tb_main_dco_capture
+	si5340a_clk_frq_sel_gen
+End time: 13:57:30 on Oct 03,2026, Elapsed time: 0:00:01
+Errors: 0, Warnings: 0
+Reading pref.tcl
+
+# 10.5b
+
+# vsim -c -voptargs="+acc" work.tb_main_dco_capture -do "onbreak {quit -code 1}; onerror {quit -code 1}; run -all; quit -code 0" 
+# Start time: 13:57:31 on Oct 03,2026
+# Loading sv_std.std
+# Loading work.tb_main_dco_capture
+# Loading work.si5340a_controller_dco
+# Loading work.si5340a_i2c_reg_controller_dco
+# Loading work.si5340a_freq_prameter_selector
+# Loading work.edge_detector
+# Loading work.initial_config
+# Loading work.clock_divider
+# Loading work.i2c_bus_controller_dco
+# Loading work.baseline_si5340a_controller_dco
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Too few port connections. Expected 56, found 20.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oPLL_I2C_ID_READ_ERROR'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oPLL_REG_CONFIG_DONE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_BUSY'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_ERROR'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP_COUNT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_CONFIG_DONE_PULSE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_ACCESS_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_BUS_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_BUS_DONE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_BUS_ENABLE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDEBUG_SYSTEM_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_BURST_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_BURST_WIDE_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_TRACKER_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_BOOTSTRAP_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_POSITION_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_POSITION_ACCOUNTING_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_ACTUATOR_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_I2C_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_I2C_SEQUENCE_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_POLARITY_ACTIVE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_STATUS'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_PENDING'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_COMPLETED'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FAILED'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_WAIT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_CURRENT_WAIT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_LATENCY'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FAILURE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(18): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FIRST_LOSS'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_static_reg_controller/f1 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_static_reg_controller/f2 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_static_reg_controller/f3 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_static_reg_controller/f4 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_static_reg_controller/u1 File: /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(664): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_start_edge File: /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(664): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(664): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Too few port connections. Expected 43, found 17.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/dut/u_i2c_bus File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'read_data_tmp'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_clk_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_state'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_bit_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'shift_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'slave_addr1_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'slave_addr2_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'word_addr1_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'data_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'system_clk'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_clk_src'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'falling_edge'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'rising_edge'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'process_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'start_data_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'stop_data_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'start_clk_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'stop_clk_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_master_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_slave_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_read_done'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'read_length'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'test_start'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'test_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'wr_data_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_controller_dco.v(680): [TFMPC] - Missing connection for port 'i2c_stop_ctrl_cnt'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Too few port connections. Expected 52, found 16.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline File: /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oPLL_I2C_ID_READ_ERROR'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oPLL_REG_CONFIG_DONE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_BUSY'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_ERROR'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP_COUNT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_CONFIG_DONE_PULSE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_STATIC_ACCESS_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_BUS_STATE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_BUS_DONE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_RUNTIME_BUS_ENABLE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDEBUG_SYSTEM_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_BURST_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_BURST_WIDE_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_TRACKER_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_BOOTSTRAP_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_POSITION_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_POSITION_ACCOUNTING_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_ACTUATOR_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_I2C_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_I2C_SEQUENCE_DEBUG'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_POLARITY_ACTIVE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_STATUS'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_PENDING'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_START'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_COMPLETED'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FAILED'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_WAIT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_CURRENT_WAIT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_LATENCY'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FAILURE'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(27): [TFMPC] - Missing connection for port 'oDCO_STEP5_LIVENESS_FIRST_LOSS'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_static_reg_controller/f1 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(516): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_static_reg_controller/f2 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(526): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_static_reg_controller/f3 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(536): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Too few port connections. Expected 4, found 3.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_static_reg_controller/f4 File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(545): [TFMPC] - Missing connection for port 'NX_DEN'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_static_reg_controller/u1 File: /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v(716): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(619): [TFMPC] - Too few port connections. Expected 7, found 5.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_start_edge File: /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(619): [TFMPC] - Missing connection for port 'oDEBOUNCE_OUT'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(619): [TFMPC] - Missing connection for port 'rst_cnt'.
+# ** Warning: (vsim-3017) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Too few port connections. Expected 43, found 17.
+#    Time: 0 ps  Iteration: 0  Instance: /tb_main_dco_capture/baseline/u_i2c_bus File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'read_data_tmp'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_clk_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_state'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_bit_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'shift_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'slave_addr1_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'slave_addr2_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'word_addr1_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'data_shift_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'system_clk'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_clk_src'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'falling_edge'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'rising_edge'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'process_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'start_data_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'stop_data_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'start_clk_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'stop_clk_control'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_master_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_slave_out'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_read_done'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'read_length'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'test_start'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'test_cnt'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'wr_data_en'.
+# ** Warning: (vsim-3722) /home/b10504072/04_WR/build/main-dco-capture.z03A8f/baseline.v(635): [TFMPC] - Missing connection for port 'i2c_stop_ctrl_cnt'.
+# onbreak {quit -code 1}
+#  Warning: onbreak command for use within macro
+#  onerror {quit -code 1}
+#  Warning: onerror command for use within macro
+#  run -all
+# ** Warning: (vsim-3116) Problem reading symbols from linux-gate.so.1 : can not open ELF file.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libpthread.so.0 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/librt.so.1 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libdl.so.2 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libm.so.6 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/i386-linux-gnu/libc.so.6 : module was loaded at an absolute address.
+# ** Warning: (vsim-3116) Problem reading symbols from /lib/ld-linux.so.2 : module was loaded at an absolute address.
+# MAIN_DCO_CAPTURE_EQ=PASS cycles=60605 captures=33 completed=4 immutable=1 no_control_feedback=1
+# ** Note: $finish    : /home/b10504072/04_WR/scripts/experiment/tb_main_dco_capture.sv(96)
+#    Time: 606140 ns  Iteration: 1  Instance: /tb_main_dco_capture
+# End time: 13:57:32 on Oct 03,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 163

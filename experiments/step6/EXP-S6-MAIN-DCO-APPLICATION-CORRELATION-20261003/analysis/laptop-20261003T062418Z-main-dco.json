@@ -1,0 +1,21 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "errors": [
+    "MASTER reset/bracket failure",
+    "SLAVE reset/bracket failure",
+    "incomplete/overdeadline capture",
+    "missing/source-contract header",
+    "stop/missing smoke"
+  ],
+  "raw_captures": 0,
+  "rows": [],
+  "ranges": {
+    "residual": [],
+    "cko_ps": [],
+    "main_max_latency_ms": [],
+    "helper_max_latency_ms": []
+  },
+  "main_progress_intervals": 0,
+  "residual_at_least_step_rows": 0,
+  "scope": "Single50MHz-edge virtual position/transaction-account capture. WR and L2 groups independently guarded/read, not cycle-atomic, chip readback, causal proof, or300s/Step6 PASS. Pending-based wait may omit/pre-date residual admission."
+}

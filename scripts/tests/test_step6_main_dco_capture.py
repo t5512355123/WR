@@ -4,7 +4,10 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
-import tkinter
+try:
+    import tkinter
+except ImportError:
+    tkinter=None
 ROOT=Path(__file__).resolve().parents[2]
 BASE='eb12a587415fb0c55f620360ddb66c1066a0676b'
 spec=importlib.util.spec_from_file_location('dcocap',ROOT/'scripts/analysis/step6_main_dco_capture.py')
@@ -77,6 +80,7 @@ class CaptureTests(unittest.TestCase):
     def test_unsigned_boundary_applied65536_allowed(self):
         f=row();f['POSITION']='000100000000FFFF'
         self.assertEqual(mod.decode(f)['residual'],-1)
+    @unittest.skipIf(tkinter is None,'Use native Quartus Tcl runner on Pain')
     def test_actual_tcl_capture_only_writes_private_source_and_checks_freeze(self):
         t=tkinter.Tcl();t.eval('package provide ::quartus::insystem_source_probe 1.0;set argv {};set ::dco_capture_library_only 1')
         t.call('source',str(ROOT/'scripts/jtag/read_step6_main_dco_capture.tcl'))

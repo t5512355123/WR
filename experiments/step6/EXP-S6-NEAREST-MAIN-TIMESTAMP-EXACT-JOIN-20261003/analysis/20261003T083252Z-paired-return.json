@@ -1,0 +1,56 @@
+{
+  "verdict": "PASS_PAIRED_RETURN_DATA_ONLY",
+  "slave_timestamp_verdict": "PASS_COHERENT_TIMESTAMP_DATA_ONLY",
+  "master_records": 32,
+  "paired_updates": 16,
+  "unpaired_slave_updates": 0,
+  "paired_ucnt": [
+    1806,
+    1807,
+    1808,
+    1809,
+    1810,
+    1811,
+    1812,
+    1813,
+    1814,
+    1815,
+    1816,
+    1817,
+    1818,
+    1819,
+    1820,
+    1821
+  ],
+  "consecutive_paired_differences": 15,
+  "master_t24p_ps": [
+    2389
+  ],
+  "paired_cko_range_ps": [
+    -1448.5015869140625,
+    3521.4996337890625
+  ],
+  "large_cko_transition_pairs": [
+    {
+      "from_ucnt": 1816,
+      "to_ucnt": 1817,
+      "delay_seq_before": 3726,
+      "delay_seq_after": 3728,
+      "cko_delta_ps": 4656.9976806640625,
+      "raw_forward_delta_ps": -772.9949951171875,
+      "raw_return_delta_ps": 8541.9921875,
+      "coarse_return_delta_ps": 0.0,
+      "linearization_correction_delta_ps": 8541.9921875,
+      "ahead_before": true,
+      "ahead_after": false,
+      "falling_before": true,
+      "falling_after": true,
+      "master_raw_phase_delta_ps": 542,
+      "setp_previous_action_ps": -697,
+      "setp_current_action_ps": 0,
+      "fixed_deltas_changed": false
+    }
+  ],
+  "errors": [],
+  "scope": "Exact source/port/domain/DelayResp sequence plus full64 time joins. Complete32/16 immutable histories; only overlapping accepted pairs used. Not simultaneous acquisition, physical accuracy, causality or strict300s PASS."
+}

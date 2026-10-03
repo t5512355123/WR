@@ -10,6 +10,12 @@ post-accept Main error is much smaller. This narrows the next investigation
 to return timestamp coarse/fine continuity and calibration provenance; it
 does NOT prove physical jitter, a calibration bug, or a Ki cause.
 
+Later SAME-image/boot follow-up exactly matches32 Master RX/16 Slave T4
+records and isolates one8.54ns return step to fine linearization, coarse
+return unchanged. This later step follows a real WR action; not action-free.
+See [same-boot follow-up](SAME_BOOT_FOLLOWUP.md), including separate manifest,
+additional failed strict postflight and the next calibration boundary.
+
 Root only; frozen milestones/protected Pain archive untouched. No advisor,
 port change, reset, power-cycle, calibration or parameter change. Baseline
 c8460b08a3d94d0285ee4bbcf21637ad5d57f691. Firmware/RTL/QSF/SDC/generated IP

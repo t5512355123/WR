@@ -36,6 +36,18 @@ class DescriptiveTests(unittest.TestCase):
         self.assertEqual(saved['maximum_qualified_span_ms'], 0)
         self.assertEqual(saved['verdict'], 'NOT_ESTABLISHED')
 
+    def test_same_boot_packet_provenance_and_control_action_not_hidden(self):
+        import step6_paired_return_details as details
+        result = details.details(HERE / 'raw/observe/20261003T083252Z-paired-return.log')
+        self.assertEqual(result['gate']['errors'], [])
+        self.assertEqual(len(result['rows']), 16)
+        self.assertEqual(result['ranges']['coarse_return_ps'], [176000, 176000])
+        step = next(d for d in result['differences'] if d['from_ucnt'] == 1816)
+        self.assertEqual(step['coarse_return_ps'], 0)
+        self.assertEqual(step['previous_phase_action_ps'], -697)
+        self.assertEqual(step['raw_return_ps'], step['linearization_correction_ps'])
+        self.assertGreater(step['raw_return_ps'], 8500)
+
 
 if __name__ == '__main__':
     unittest.main()

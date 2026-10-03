@@ -17,6 +17,11 @@ packet-time atomic. Strict startup/acquisition/postflight:0fresh<60 entries,
 0ms qualified hold; no300s extension. Next boundary is Master RX coarse/fine
 continuity and calibration provenance, not an automatic Ki sweep. See the
 [completed report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
+Same-boot follow-up:16 exact Master RX→Slave T4 pairs isolate one8.54ns
+return change to fine linearization with constant coarse return. That step
+follows a WR action, not action-free. Master T24P remains unmeasured2389ps;
+next is bounded same-gateware calibration, not a guessed value. See the
+[follow-up](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/SAME_BOOT_FOLLOWUP.md).
 See the [current plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
 Preceding completed experiment: `EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`.
 Fresh two-board compile/one Slave-to-Master programming pair completed from

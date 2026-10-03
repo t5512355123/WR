@@ -41,7 +41,7 @@ def main():
         assert json.loads(json.dumps(result)) == json.loads(remote.read_text()), raw
         verified.append(str(raw.relative_to(HERE)))
     captures = list((HERE / 'raw/observe').glob('*main-timestamp-pair.log'))
-    assert len(captures) == 1 and len(verified) == 3
+    assert len(captures) == 1 and len(verified) == 4
     result = pair.analyze(captures[0])
     assert result == json.loads((HERE / 'analysis' / (captures[0].stem + '.json')).read_text())
     verified.append(str(captures[0].relative_to(HERE)))

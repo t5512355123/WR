@@ -14,6 +14,12 @@ zero fresh<60 entries and0ms qualified hold, no300s extension. Final Slave
 invalid/CKO−1313ps, allfive locks1; Mastervalid. Next is Master packet coarse/
 ahead/phase/calibration/freshness provenance, not a relaxed threshold or gain
 sweep. See the [report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
+Same-boot exact Master RX→T4 follow-up:16/16 matched, constant176000ps
+coarse return; one8.54ns fine-correction step after actual−697ps WR action.
+Master T24P2389ps not established as measured calibration. Additional20s
+postflight0 entries/0ms. Next is same-gateware bounded calibration with
+verified role restoration; no guessed T24P or relaxed gate. See the
+[follow-up](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/SAME_BOOT_FOLLOWUP.md).
 See the [plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
 Preceding completed experiment: EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003.
 Slave Main nearest admission8/9 only, complete physical step16 unchanged.

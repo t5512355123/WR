@@ -1,4 +1,4 @@
-White Rabbit Step 1-6 dashboard  2026-10-02T17:57:26+08:00  (read-only)
+White Rabbit Step 1-6 dashboard  2026-10-03T22:12:10+08:00  (read-only)
 Sampling interval: 10s; per-board comparison window: 2000ms
 
 +------------------------------------------------------------+
@@ -18,8 +18,8 @@ Sampling interval: 10s; per-board comparison window: 2000ms
 | WR PTP servo state           NA                          |
 | WR phase offset              NA ps                       |
 | Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
-| Snapshot                     snapshot=1 stable=1 count=2330 |
-| PPS registers                CR=20000006 EN=0 ESCR=55394700 |
+| Snapshot                     snapshot=1 stable=1 count=725 |
+| PPS registers                CR=20000006 EN=0 ESCR=524   |
 | PPS register validity        TM=1 PPS=1                  |
 | Step5 result                 NOT_APPLICABLE_MASTER       |
 +------------------------------------------------------------+
@@ -38,10 +38,10 @@ Sampling interval: 10s; per-board comparison window: 2000ms
 |                              MainLock=1  PSTAT=1             |
 | Global-Time reason           TIME_VALID snapshot valid   |
 | WR PTP servo state           WAIT_OFFSET_STABLE          |
-| WR phase offset              3443 ps (diagnostic only)   |
+| WR phase offset              -227 ps (diagnostic only)   |
 | Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
-| Snapshot                     snapshot=1 stable=1 count=2198 |
-| PPS registers                CR=20000006 EN=0 ESCR=2316  |
+| Snapshot                     snapshot=1 stable=1 count=622 |
+| PPS registers                CR=20000006 EN=0 ESCR=524   |
 | PPS register validity        TM=1 PPS=1                  |
 | Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
 +------------------------------------------------------------+
@@ -49,8 +49,8 @@ Sampling interval: 10s; per-board comparison window: 2000ms
 Global Time summary (125 MHz reference; 1 cycle = 8 ns)
 ------------------------------------------------------------
   MASTER  (DE5_1-11.1)
-    TAI=2329         CYCLES=124999999    TIME_VALID
+    TAI=724          CYCLES=124999999    TIME_VALID
   SLAVE   (DE5_1-11.2)
-    TAI=2333         CYCLES=124999999    TIME_VALID
+    TAI=728          CYCLES=124999999    TIME_VALID
 ------------------------------------------------------------
 Dashboard read complete.

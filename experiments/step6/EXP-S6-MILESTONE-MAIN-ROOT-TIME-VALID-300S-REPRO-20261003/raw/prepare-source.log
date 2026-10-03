@@ -1,0 +1,6 @@
+source.tar.gz: OK
+master.sof: OK
+slave.sof: OK
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+STEP6_SOURCE_READY=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source

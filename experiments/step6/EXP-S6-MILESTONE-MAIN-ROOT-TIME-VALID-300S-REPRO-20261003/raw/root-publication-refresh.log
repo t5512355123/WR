@@ -1,0 +1,4 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/build/20261003T165500Z-current.GpWMfT
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/

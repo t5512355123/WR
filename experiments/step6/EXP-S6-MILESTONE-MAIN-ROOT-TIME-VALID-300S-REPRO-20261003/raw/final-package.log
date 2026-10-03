@@ -1,0 +1,15 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.060s
+
+OK
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+source.tar.gz: OK
+master.sof: OK
+slave.sof: OK
+STEP6_PACKAGE=QUALIFIED_ROOT_ONLY
+STEP6_PREVIOUS_PACKAGE_BACKUP=/home/b10504072/04_WR_step6_package_backups/20261003T165502Z
+STEP6_PACKAGE_STAGE=/tmp/wr-step6-package.NbUzei

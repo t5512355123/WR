@@ -1,0 +1,16 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+source.tar.gz: OK
+master.sof: OK
+slave.sof: OK
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+STEP6_SOURCE_READY=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source
+............
+----------------------------------------------------------------------
+Ran 12 tests in 0.991s
+
+OK
+UNQUALIFIED_REBUILD_BACKUP=/home/b10504072/04_WR_step6_package_backups/20261003T165122Z-unqualified-rebuild
+CANONICAL_PACKAGE=QUALIFIED_ROOT_ONLY
+STANDALONE_REPRODUCTION=NOT_ESTABLISHED

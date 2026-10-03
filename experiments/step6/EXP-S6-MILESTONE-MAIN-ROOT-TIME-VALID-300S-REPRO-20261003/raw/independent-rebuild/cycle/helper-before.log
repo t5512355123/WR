@@ -1,0 +1,57 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Oct  4 00:22:31 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_helper_passive.tcl 3 250
+Info: Quartus(args): 3 250
+HELPER_PASSIVE board={DE5 [1-11.1]} sample=1 valid=0 start_ms=1791044552342 end_ms=1791044552460 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.1]} sample=1 field=freq_error start_ms=1791044552460 end_ms=1791044552471 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=1 field=output start_ms=1791044552471 end_ms=1791044552482 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=1 field=update_count start_ms=1791044552482 end_ms=1791044552493 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.1]} sample=1 start_ms=1791044552493 end_ms=1791044552495 raw={52 213EE69400100000 53 0000080000000000 54 00000C0000000000 55 00000C0000000000 56 0000000000000000 57 03C0000000000000 58 0000000000000000 59 0000EFFF00000000 60 0000000000000000 61 0030000200000000}
+HELPER_PASSIVE board={DE5 [1-11.1]} sample=2 valid=0 start_ms=1791044553604 end_ms=1791044553726 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.1]} sample=2 field=freq_error start_ms=1791044553726 end_ms=1791044553737 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=2 field=output start_ms=1791044553737 end_ms=1791044553748 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=2 field=update_count start_ms=1791044553748 end_ms=1791044553759 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.1]} sample=2 start_ms=1791044553759 end_ms=1791044553762 raw={52 2504FBD200100000 53 0000080000000000 54 00000C0000000000 55 00000C0000000000 56 0000000000000000 57 03C0000000000000 58 0000000000000000 59 0000EFFF00000000 60 0000000000000000 61 0030000200000000}
+HELPER_PASSIVE board={DE5 [1-11.1]} sample=3 valid=0 start_ms=1791044554876 end_ms=1791044554999 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.1]} sample=3 field=freq_error start_ms=1791044554999 end_ms=1791044555011 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=3 field=output start_ms=1791044555011 end_ms=1791044555022 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.1]} sample=3 field=update_count start_ms=1791044555022 end_ms=1791044555033 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.1]} sample=3 start_ms=1791044555033 end_ms=1791044555036 raw={52 28D1251500100000 53 0000080000000000 54 00000C0000000000 55 00000C0000000000 56 0000000000000000 57 03C0000000000000 58 0000000000000000 59 0000EFFF00000000 60 0000000000000000 61 0030000200000000}
+HELPER_PASSIVE board={DE5 [1-11.2]} sample=1 valid=0 start_ms=1791044556302 end_ms=1791044556421 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.2]} sample=1 field=freq_error start_ms=1791044556421 end_ms=1791044556432 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=1 field=output start_ms=1791044556432 end_ms=1791044556443 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=1 field=update_count start_ms=1791044556443 end_ms=1791044556454 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.2]} sample=1 start_ms=1791044556454 end_ms=1791044556456 raw={52 649FDEFD00100000 53 0000000000000000 54 0000000000000000 55 0000000000000000 56 0000000000000000 57 0000000000000000 58 0000000000000000 59 0000000000000000 60 0000000000000000 61 0000000200000000}
+HELPER_PASSIVE board={DE5 [1-11.2]} sample=2 valid=0 start_ms=1791044557569 end_ms=1791044557692 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.2]} sample=2 field=freq_error start_ms=1791044557692 end_ms=1791044557703 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=2 field=output start_ms=1791044557703 end_ms=1791044557714 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=2 field=update_count start_ms=1791044557714 end_ms=1791044557724 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.2]} sample=2 start_ms=1791044557724 end_ms=1791044557727 raw={52 686927CE00100000 53 0000000000000000 54 0000000000000000 55 0000000000000000 56 0000000000000000 57 0000000000000000 58 0000000000000000 59 0000000000000000 60 0000000000000000 61 0000000200000000}
+HELPER_PASSIVE board={DE5 [1-11.2]} sample=3 valid=0 start_ms=1791044558830 end_ms=1791044558949 epoch=INVALID raw={00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000} freq_error=INVALID output=INVALID
+HELPER_SCALAR board={DE5 [1-11.2]} sample=3 field=freq_error start_ms=1791044558949 end_ms=1791044558960 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=3 field=output start_ms=1791044558960 end_ms=1791044558971 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_SCALAR board={DE5 [1-11.2]} sample=3 field=update_count start_ms=1791044558971 end_ms=1791044558982 raw=00000000 transport_valid=1 cross_field_coherent=0
+HELPER_L2 board={DE5 [1-11.2]} sample=3 start_ms=1791044558982 end_ms=1791044558985 raw={52 6C287F4500100000 53 0000000000000000 54 0000000000000000 55 0000000000000000 56 0000000000000000 57 0000000000000000 58 0000000000000000 59 0000000000000000 60 0000000000000000 61 0000000200000000}
+HELPER_PASSIVE_DONE boards=2 samples=3 production_writes=0
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_helper_passive.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 772 megabytes
+    Info: Processing ended: Sun Oct  4 00:22:39 2026
+    Info: Elapsed time: 00:00:08
+    Info: Total CPU time (on all processors): 00:00:00

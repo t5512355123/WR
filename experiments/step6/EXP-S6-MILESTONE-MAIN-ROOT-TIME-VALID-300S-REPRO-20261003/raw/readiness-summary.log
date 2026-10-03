@@ -1,0 +1,2 @@
+READINESS_SUMMARY board=SLAVE samples=376 time_valid=0 invalid=376
+READINESS_SUMMARY board=MASTER samples=376 time_valid=376 invalid=0

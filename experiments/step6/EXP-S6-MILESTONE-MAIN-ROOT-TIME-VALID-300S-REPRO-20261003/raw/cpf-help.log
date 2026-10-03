@@ -1,0 +1,63 @@
+Quartus Prime Convert_programming_file
+Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+
+Usage:
+------
+
+quartus_cpf [-h | --help[=<option|topic>] | -v]
+quartus_cpf -c [options] <input_file> <output_file> --- to convert file
+quartus_cpf -w <option_filename> --- to create option file for configuration device
+quartus_cpf -p <input_msf_file> <input_sof_file> <output_pmsf_file> -- to generate the pmsf file for partial reconfiguration
+quartus_cpf -e -k <keyfile>:<key_id>[:<key_id>] <input_sof_file> <output_ekp_file> --- to generate an encryption key programming file
+
+Description:
+------------
+
+
+Options:
+--------
+
+	-f <argument file>
+	-a <hexadecimal number> | --start_address=<hexadecimal number>
+	-c | --convert
+	-d <device name> | --device=<device name>
+	-g <voltage> | --voltage=<voltage>
+	-i | --info
+	-k <filename and key id> | --key=<filename and key id>
+	-m <PS|AP|FPP|PPA|PPS|ASx1|ASx4|AVSTx8|AVSTx16|AVSTx32> | --configuration_mode=<PS|AP|FPP|PPA|PPS|ASx1|ASx4|AVSTx8|AVSTx16|AVSTx32>
+	-n <pb|v|p> | --operation=<pb|v|p>
+	-o <filename> | --option=<filename>
+	-p <msf_filename> | --genpmsf=<msf_filename>
+	-q <frequency with units> | --frequency=<frequency with units>
+	-s <device name> | --sfl_device=<device name>
+	-u <up|down> | --count_dir=<up|down>
+	-w | --write
+	--cvp
+	--genppb=<psm_filename>
+	--hps
+	--lower_priority
+	--merge_msf=<msf_filename>
+	--merge_pmsf=<pmsf_filename>
+	--update_emb
+	--verify_invariance=<invariant_msf and static_sof and pr_sof>
+
+Help Topics:
+------------
+
+	arguments
+	design_security
+	hexout
+	isc
+	jam
+	jbc
+	jic
+	pof
+	rbf
+	return_codes
+	rpd
+	svf
+	ttf
+
+For more information on specific options, use --help=<option|topic>.
+

@@ -1,49 +1,95 @@
-# Packaging verification — 2026-10-02
+# Current-root Step6 archive and independent fresh reproduction
 
-The two fresh hardware qualification cycles completed **before** packaging:
-16:28:17–16:58:29 and 16:59:49–17:31:23 (+08:00). Each board had 1192/1192
-valid rows with sample spans >302.7 seconds in both cycles. The independent
-raw/image/compile-input pair auditor passed on Laptop and Pain.
+Root qualification remains PASS: Master1191/1191 over302747ms and
+Slave1190/1190 over302799ms, zero invalid rows. That evidence is separate
+from the new independent reproduction below; it does not certify this boot.
 
-Final archive SHA256:
-`54950148ab09c0a5367f9779e59eaf993fcbef66877b8e7e461d642f8c7e2598`.
-Source checkout snapshot `0bb02c6f91dd4c7a578e1b8cb02a553ce9ce9787`;
-actual retained-image compile `7b6550123986a9d7cea5f4be0dbb8af1f5a019ab`.
-Only packaging/tests/documentation changed after the qualified compile;
-production source diff is empty and all 3110 compile-input hashes match.
+STANDALONE_TIME_VALID_300S = NOT_ESTABLISHED
 
-On Pain, `prepare_source.sh` verified the archive, both alias SOFs, all 3110
-production inputs and retained output SOFs, then initialized an independent
-Git repository at the exact `.../step6_global_time/source` path. All **273**
-root script files compare byte-identically against the extracted source.
-Both extracted SOFs and root milestone aliases compare byte-identically with
-main-root output. All **64** parent published product checksums passed.
-The extracted package's 36 source/diagnostic/time-valid/pair tests passed;
-46 related tests passed on Laptop. No old milestone source dependency remains
-in those selected tests. Installer also rejects stale archive extractions.
+## Package and independent build
 
-At **17:57:26 +08:00**, the dashboard run from the extracted `source/` showed:
+Laptop published the qualified products/report and packaging support;
+Pain pulled2141bdfb. Packaging verified production manifest SHA256
+`418bb2546c08cb7b67c09309b58ce1de4c4668e39e3ec84dc94a4add850c6e6a`,
+all3117 inputs, root SOFs, root programming success and unchanged300s analyzer.
+The previous WHOLE package was recoverably moved outside the canonical path:
+`/home/b10504072/04_WR_step6_package_backups/20261003T160324Z/step6_global_time`.
+The protected04_WR_archive_step6_pass directory was never modified.
 
-- Master TIME_VALID=1, PPS_VALID=1, Helper=1, TAI=2329, cycles=124999999.
-- Slave TIME_VALID=1, PPS_VALID=1, all five displayed lock bits=1,
-  TAI=2333, cycles=124999999.
-- Both link/RX/TX gates good. Dashboard layout unchanged.
+Prepared an independent source repository inside the canonical milestone.
+Native22-case actual-servo C tests with UBSan and12 source/analyzer tests PASS.
+Fresh build began2026-10-04T00:04:49+08:00, using independent compile identity
+`8e7d796353ccdfd8f359ec9c86b83206bff4f003`. Both full compiles completed;
+Slave-to-Master programming succeeded from milestone/source/output, not root.
 
-`verification-dashboard.log` retains that exact read-only result. This is a
-**same-live-session packaging usability check**, not a third fresh programming
-qualification, not proof of equal absolute time labels or physical alignment.
-The two complete root build/compile/program/capture cycles are the PASS evidence.
-The dashboard's Step5 INFO reflects its separate stability classifier; no
-300-second Step5 lock verdict is inferred from this one-shot sample.
+| Board | Fresh MIF SHA256 | Actual newly programmed SOF SHA256 |
+|---|---|---|
+| Master | `18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea` | `cd7285f7c6799ad2200c3f69e3af6f13442ac72029edf2e26881632885fc086d` |
+| Slave | `91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379` | `ade6b05fc99f01d5818badaa8e9d615f5aaff933e9a0650924293076891a2ce3` |
 
-There is only one operational Step6 version in this folder. Old root milestone
-and extracted packages were moved recoverably outside the repository:
+Production source bytes and MIFs match the qualified root version. Full timing
+closure is not an acceptance gate. No control/gain/threshold/calibration/PHY/
+reset/SDC/firmware timeout modifications or power cycle occurred.
 
-- Pain: `/home/b10504072/WR_milestone_backups/step6-before-two-cycle-20261002`.
-- Pain temporary old extraction:
-  `/home/b10504072/WR_milestone_backups/step6-extraction-before-self-contained-tests-20261002`.
-- Laptop: `C:/Users/zenbook/.codex/backups/WR-step6-before-two-cycle-20261002`.
+## First acquisition attempt: TIMEOUT, not a PASS
 
-Git history retains previous tracked packages. The protected
-`04_WR_archive_step6_pass` was not accessed or changed. Compiler caches and
-external toolchain installations are not part of the frozen source package.
+Observer began00:22:39+08:00 with a600s host acquisition bound. It timed out;
+no full303s capture was started. Keep every readiness poll and the initial
+cycle log. A compile/program success is NOT TIME_VALID300s reproduction.
+
+Post-timeout read-only dashboard at00:33:56: both link paths PASS; Master
+TIME_VALID/PPS_VALID1, Slave five lock flags1 but TIME_VALID/PPS_VALID0,
+WR servo WAIT_OFFSET_STABLE and pointwise CKO-2353ps. This observation is not
+proof of a cause or of persistent phase behaviour across the whole interval.
+
+## FPGA configuration comparison
+
+Quartus17.0 CPF converted both root-qualified and freshly rebuilt SOF pairs
+to RBFs. `cmp` reports BYTE-IDENTICAL configuration data per corresponding
+board, despite different SOF hashes/compile path metadata.
+
+| Payload pair | Same RBF SHA256 |
+|---|---|
+| Root/fresh Master | `8e5f1ab2c0c44376493f5ff1dedc50c3e6423835e7f96de42ceda96758007f09` |
+| Root/fresh Slave | `886650e7345968e1739087d3e82fb054caa31950d0eb0f7657e97b148ba908dc` |
+
+Therefore missing archived production inputs or different FPGA configuration
+is not supported as the reason for this session's failure to acquire TIME_VALID.
+Runtime acquisition differs; its deeper physical/servo cause is NOT established.
+Do not infer that all future boots will acquire identically from the root PASS.
+
+## One bounded, same-session passive continuation
+
+After the preserved first timeout and RBF audit, Laptop published the amended
+plan/support script9be4c4ce and Pain pulled it. A second600s host observer wait
+began00:39:05, in the SAME already-programmed session, without reprogramming,
+reset, power cycle or controller changes. This only extends passive observation;
+it does not modify firmware timeouts or weaken the unchanged300s analyzer.
+Initial timeout remains a timeout even if this continuation later passes.
+
+The continuation ALSO TIMED OUT. There was no303s qualification capture and
+no qualification PASS. Across94 readiness polls, each with four samples per
+board: Master376/376 TIME_VALID1, Slave0/376 TIME_VALID1. These discontinuous
+readiness windows must NOT be treated as a continuous300s capture.
+
+Final read-only dashboard2026-10-04T00:50:32+08:00: both link paths PASS,
+Master TIME_VALID/PPS_VALID1; Slave five lock flags1 but TIME_VALID/PPS_VALID0,
+WAIT_OFFSET_STABLE, pointwise CKO-2460ps. No further programming/tuning follows.
+
+The ENTIRE unqualified independent repository, including caches/new SOFs/Git
+identity/runtime records, was recoverably moved outside the canonical package:
+`/home/b10504072/04_WR_step6_package_backups/20261003T165122Z-unqualified-rebuild/source`.
+Fresh products, compile/program records, all94 readiness polls, configuration
+comparison RBFs and post-failure dashboards are also copied into this experiment.
+The canonical archive/alias pair remains the previously qualified ROOT version,
+not the failed fresh pair. Its prepared source/output is restored byte-for-byte
+to those qualified aliases;12 source/analyzer tests passed after restoration.
+
+Final verdict: source/package integrity established; root TIME_VALID300s
+qualification preserved; NEW FRESH STANDALONE REPRODUCTION NOT ESTABLISHED.
+This does not disprove the earlier root PASS, nor prove acquisition reliability
+across boots. The archive is not advertised as a newly reproduced300s PASS.
+
+This work targets sampled TIME_VALID retention only, not strict±120ps offset,
+absolute UTC/TAI accuracy, simultaneous board windows, physical PPS/SMA skew
+or full timing closure. Existing historical servo acquisition is not forced.

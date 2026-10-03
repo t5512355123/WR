@@ -1,0 +1,233 @@
+CYCLE_BEGIN cycle=cycle1 root=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source source=8e7d796353ccdfd8f359ec9c86b83206bff4f003 time=2026-10-04T00:04:49+08:00
+WRPC master MIF: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: OK
+build/firmware/slave/wrc.mif: OK
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003
+Master Quartus build passed: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/build/20261003T162103Z-current.t5fT47
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Oct  4 00:21:43 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/output/DE5a_wr_slave_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.2]"
+Info (213011): Using programming file /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/output/DE5a_wr_slave_jtag.sof with checksum 0x30B1E229 for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sun Oct  4 00:21:47 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sun Oct  4 00:22:02 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1650 megabytes
+    Info: Processing ended: Sun Oct  4 00:22:02 2026
+    Info: Elapsed time: 00:00:19
+    Info: Total CPU time (on all processors): 00:00:05
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Oct  4 00:22:02 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/output/DE5a_wr_master_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.1]"
+Info (213011): Using programming file /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/output/DE5a_wr_master_jtag.sof with checksum 0x30ADD65B for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sun Oct  4 00:22:06 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sun Oct  4 00:22:21 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1649 megabytes
+    Info: Processing ended: Sun Oct  4 00:22:21 2026
+    Info: Elapsed time: 00:00:19
+    Info: Total CPU time (on all processors): 00:00:05
+CURRENT_PROGRAM=PASS order=slave,master
+White Rabbit Step 1-6 dashboard  2026-10-04T00:22:30+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INVALID                     |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      FAIL                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=0  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           TIME_VALID snapshot valid   |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=3 |
+| PPS registers                CR=20000006 EN=0 ESCR=20000012 |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       INVALID                     |
+| Step 3  WR Handshake         INVALID                     |
+| Step 4  SoftPLL Startup      INFO                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=0  MainFreq=0  MainPhase=0 |
+|                              MainLock=0  PSTAT=0             |
+| Global-Time reason           TIME_VALID=0, PPS_VALID=0   |
+| WR PTP servo state           UNINITIALIZED               |
+| WR phase offset              0 ps (diagnostic only)      |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=0     |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 UPSTREAM_NOT_READY          |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=2            CYCLES=124999999    TIME_VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+TIME_VALID_WAIT elapsed_s=3/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-0.log
+TIME_VALID_WAIT elapsed_s=15/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-13.log
+TIME_VALID_WAIT elapsed_s=28/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-25.log
+TIME_VALID_WAIT elapsed_s=41/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-38.log
+TIME_VALID_WAIT elapsed_s=54/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-51.log
+TIME_VALID_WAIT elapsed_s=67/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-64.log
+TIME_VALID_WAIT elapsed_s=79/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-77.log
+TIME_VALID_WAIT elapsed_s=92/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-89.log
+TIME_VALID_WAIT elapsed_s=105/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-102.log
+TIME_VALID_WAIT elapsed_s=118/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-115.log
+TIME_VALID_WAIT elapsed_s=130/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-128.log
+TIME_VALID_WAIT elapsed_s=143/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-140.log
+TIME_VALID_WAIT elapsed_s=156/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-153.log
+TIME_VALID_WAIT elapsed_s=169/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-166.log
+TIME_VALID_WAIT elapsed_s=182/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-179.log
+TIME_VALID_WAIT elapsed_s=194/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-192.log
+TIME_VALID_WAIT elapsed_s=207/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-204.log
+TIME_VALID_WAIT elapsed_s=220/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-217.log
+TIME_VALID_WAIT elapsed_s=233/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-230.log
+TIME_VALID_WAIT elapsed_s=246/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-243.log
+TIME_VALID_WAIT elapsed_s=258/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-256.log
+TIME_VALID_WAIT elapsed_s=271/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-268.log
+TIME_VALID_WAIT elapsed_s=284/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-281.log
+TIME_VALID_WAIT elapsed_s=297/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-294.log
+TIME_VALID_WAIT elapsed_s=309/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-307.log
+TIME_VALID_WAIT elapsed_s=322/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-319.log
+TIME_VALID_WAIT elapsed_s=335/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-332.log
+TIME_VALID_WAIT elapsed_s=348/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-345.log
+TIME_VALID_WAIT elapsed_s=361/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-358.log
+TIME_VALID_WAIT elapsed_s=373/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-371.log
+TIME_VALID_WAIT elapsed_s=386/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-383.log
+TIME_VALID_WAIT elapsed_s=399/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-396.log
+TIME_VALID_WAIT elapsed_s=412/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-409.log
+TIME_VALID_WAIT elapsed_s=425/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-422.log
+TIME_VALID_WAIT elapsed_s=437/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-435.log
+TIME_VALID_WAIT elapsed_s=450/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-447.log
+TIME_VALID_WAIT elapsed_s=463/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-460.log
+TIME_VALID_WAIT elapsed_s=476/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-473.log
+TIME_VALID_WAIT elapsed_s=489/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-486.log
+TIME_VALID_WAIT elapsed_s=501/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-499.log
+TIME_VALID_WAIT elapsed_s=514/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-511.log
+TIME_VALID_WAIT elapsed_s=527/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-524.log
+TIME_VALID_WAIT elapsed_s=540/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-537.log
+TIME_VALID_WAIT elapsed_s=552/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-550.log
+TIME_VALID_WAIT elapsed_s=565/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-562.log
+TIME_VALID_WAIT elapsed_s=578/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-575.log
+TIME_VALID_WAIT elapsed_s=591/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T162239Z-ready-588.log
+TIME_VALID acquisition timeout; evidence saved.
+CYCLE_CONTINUATION initial_acquisition=TIMEOUT unchanged_program=1 time=2026-10-04T00:39:05+08:00
+TIME_VALID_WAIT elapsed_s=3/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-0.log
+TIME_VALID_WAIT elapsed_s=16/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-13.log
+TIME_VALID_WAIT elapsed_s=29/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-26.log
+TIME_VALID_WAIT elapsed_s=42/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-39.log
+TIME_VALID_WAIT elapsed_s=55/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-52.log
+TIME_VALID_WAIT elapsed_s=67/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-65.log
+TIME_VALID_WAIT elapsed_s=80/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-77.log
+TIME_VALID_WAIT elapsed_s=93/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-90.log
+TIME_VALID_WAIT elapsed_s=106/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-103.log
+TIME_VALID_WAIT elapsed_s=119/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-116.log
+TIME_VALID_WAIT elapsed_s=131/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-129.log
+TIME_VALID_WAIT elapsed_s=144/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-141.log
+TIME_VALID_WAIT elapsed_s=157/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-154.log
+TIME_VALID_WAIT elapsed_s=170/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-167.log
+TIME_VALID_WAIT elapsed_s=183/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-180.log
+TIME_VALID_WAIT elapsed_s=195/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-193.log
+TIME_VALID_WAIT elapsed_s=208/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-205.log
+TIME_VALID_WAIT elapsed_s=221/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-218.log
+TIME_VALID_WAIT elapsed_s=234/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-231.log
+TIME_VALID_WAIT elapsed_s=246/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-244.log
+TIME_VALID_WAIT elapsed_s=259/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-256.log
+TIME_VALID_WAIT elapsed_s=272/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-269.log
+TIME_VALID_WAIT elapsed_s=285/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-282.log
+TIME_VALID_WAIT elapsed_s=297/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-295.log
+TIME_VALID_WAIT elapsed_s=310/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-307.log
+TIME_VALID_WAIT elapsed_s=323/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-320.log
+TIME_VALID_WAIT elapsed_s=336/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-333.log
+TIME_VALID_WAIT elapsed_s=349/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-346.log
+TIME_VALID_WAIT elapsed_s=361/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-359.log
+TIME_VALID_WAIT elapsed_s=374/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-371.log
+TIME_VALID_WAIT elapsed_s=387/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-384.log
+TIME_VALID_WAIT elapsed_s=400/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-397.log
+TIME_VALID_WAIT elapsed_s=413/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-410.log
+TIME_VALID_WAIT elapsed_s=425/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-423.log
+TIME_VALID_WAIT elapsed_s=438/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-435.log
+TIME_VALID_WAIT elapsed_s=451/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-448.log
+TIME_VALID_WAIT elapsed_s=464/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-461.log
+TIME_VALID_WAIT elapsed_s=476/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-474.log
+TIME_VALID_WAIT elapsed_s=489/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-486.log
+TIME_VALID_WAIT elapsed_s=502/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-499.log
+TIME_VALID_WAIT elapsed_s=515/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-512.log
+TIME_VALID_WAIT elapsed_s=528/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-525.log
+TIME_VALID_WAIT elapsed_s=540/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-538.log
+TIME_VALID_WAIT elapsed_s=553/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-550.log
+TIME_VALID_WAIT elapsed_s=566/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-563.log
+TIME_VALID_WAIT elapsed_s=579/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-576.log
+TIME_VALID_WAIT elapsed_s=592/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T163905Z-ready-589.log
+TIME_VALID acquisition timeout; evidence saved.

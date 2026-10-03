@@ -3,8 +3,10 @@
 Active main-root candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
 The user resumed with the TIME_VALID-only criterion. The 3110 qualified
 production inputs from `0bb02c6f` are restored in the main root; frozen
-milestones/archive are untouched. A NEW root build/program/capture is pending,
-so this candidate is not yet a PASS image. Historical WR validity behavior is
+milestones/archive were untouched during the root run. A NEW root
+build/program/capture completed: **TIME_VALID300s PASS on both boards**.
+Master1191/1191 over302747ms; Slave1190/1190 over302799ms, zero invalid rows.
+Historical WR validity behavior is
 used, not the superseded strict full64 offset revocation. This does not prove
 offset within +/-120ps, absolute-time accuracy or physical PPS skew.
 
@@ -13,6 +15,9 @@ Use the same four main-root scripts: `build_current.sh`, `compile_current.sh`,
 subdirectories. Stop any dashboard before another JTAG reader. Qualification
 uses `scripts/monitor/verify_time_valid_300s.sh`, not one dashboard frame.
 See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
+See the [completed root report](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md).
+Requested canonical Step6 replacement/standalone reproduction is pending:
+[milestone plan](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/PLAN.md).
 The strict-offset research below is historical context, not this round's gate.
 
 # DE5a White Rabbit

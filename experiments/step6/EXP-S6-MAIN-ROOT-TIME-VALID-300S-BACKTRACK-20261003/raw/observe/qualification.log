@@ -1,0 +1,84 @@
+TIME_VALID_WAIT elapsed_s=3/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-0.log
+TIME_VALID_WAIT elapsed_s=15/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-13.log
+TIME_VALID_WAIT elapsed_s=28/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-26.log
+TIME_VALID_WAIT elapsed_s=41/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-38.log
+TIME_VALID_WAIT elapsed_s=54/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-51.log
+TIME_VALID_WAIT elapsed_s=67/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-64.log
+TIME_VALID_WAIT elapsed_s=79/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-77.log
+TIME_VALID_WAIT elapsed_s=92/600 poll=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-ready-89.log
+TIME_VALID_CAPTURE_PATH=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/observe/20261003T140009Z-current-time-valid-303s.log
+TIME_VALID_RESULT_PATH=experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/analysis/20261003T140009Z-current-time-valid-300s.json
+{
+  "acceptance_signal": "STATUS_TIME_VALID",
+  "boards": {
+    "1-11.1": {
+      "board_id": "1-11.1",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303003,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.1] samples=1191 elapsed_ms=303003"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 257,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302747,
+      "pps_valid_rows": 1191,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1191,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1191,
+      "snapshot_valid_rows": 1191,
+      "step1_link_ready_rows": 1191,
+      "time_valid_rows": 1191,
+      "verdict": "PASS_TIME_VALID_300S"
+    },
+    "1-11.2": {
+      "board_id": "1-11.2",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303053,
+      "done_records": [
+        "GLOBAL_TIME_DONE board=DE5 [1-11.2] samples=1190 elapsed_ms=303053"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": true,
+      "max_sample_gap_ms": 257,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302799,
+      "pps_valid_rows": 1190,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 1190,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 1190,
+      "snapshot_valid_rows": 1190,
+      "step1_link_ready_rows": 1190,
+      "time_valid_rows": 1190,
+      "verdict": "PASS_TIME_VALID_300S"
+    }
+  },
+  "boards_observed_sequentially": true,
+  "capture_complete": true,
+  "capture_errors": [],
+  "discovered_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "requested_duration_ms": 303000,
+  "required_boards": [
+    "1-11.1",
+    "1-11.2"
+  ],
+  "required_duration_ms": 300000,
+  "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+  "verdict": "PASS_TIME_VALID_300S"
+}

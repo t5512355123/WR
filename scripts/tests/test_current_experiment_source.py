@@ -28,6 +28,25 @@ CURRENT_HASHES = {
 class CurrentSourceTests(unittest.TestCase):
     def test_all_3110_qualified_inputs_match(self):
         paths = ('firmware', 'vendor', 'quartus', 'quartus_generated')
+        has_history = subprocess.run(
+            ['git', 'cat-file', '-e', BASELINE + '^{commit}'], cwd=ROOT,
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+        if not has_history:
+            # A prepared standalone milestone intentionally has one independent
+            # Git commit, not the parent repo's history. Verify its pinned real
+            # qualified production manifest instead of depending on that repo.
+            self.assertEqual(ROOT.name, 'source')
+            self.assertEqual(ROOT.parent.name, 'step6_global_time')
+            self.assertTrue((ROOT / '.archive-sha256').is_file())
+            manifest = (ROOT / 'output/SOURCE_SHA256SUMS').read_bytes()
+            self.assertEqual(hashlib.sha256(manifest).hexdigest(),
+                '418bb2546c08cb7b67c09309b58ce1de4c4668e39e3ec84dc94a4add850c6e6a')
+            entries = manifest.decode().splitlines()
+            self.assertEqual(len(entries), 3110 + len(INERT_ADDITIONS))
+            for entry in entries:
+                digest, path = entry.split('  ', 1)
+                self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), digest, path)
+            return
         historical = subprocess.check_output(
             ['git', 'ls-tree', '-r', '--name-only', BASELINE, '--', *paths],
             cwd=ROOT, text=True).splitlines()

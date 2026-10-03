@@ -1,15 +1,19 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003.
-Fresh full compiles/one Slave→Master program pair from25603ae2 completed;
-root output contains the latest actual passive phase/progress diagnostic SOFs.
-All32 history rows/31 consecutive updates validated, both producers progressing;
-Main phase error−411..+502ps with phase-lock flags1, tracker age1–126ms.
-WR CKO−307..+242ps. Strict startup/postflight longest holds603/605ms,
-not300s; final TIME_VALID1/CKO71ps is one point, not sustained PASS.
-Next single candidate is Main Kp300→600 with Ki1 and every threshold unchanged;
-not implemented/tested in this completed round. See the
+Active experiment: EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003.
+Fresh full compiles/one programming pair from78948729 completed; root output
+contains latest actual Kp600 candidate SOFs, NOT a strict PASS milestone.
+Only Slave Main Kp300→600 changed; Master MIF unchanged, Slave binary differs
+by two instruction bytes. Main phase error−198..+229ps (mean absolute87.55ps,
+previous219.39ps), WR CKO−301..+274ps (24/32 inclusive120ps).
+Main/tracker31/31 progress; tracker age3–128ms, all sampled phase flags1.
+Strict acquisition/postflight holds2109/901ms, no300s extension. Final
+TIME_VALID1/CKO−105ps is pointwise only. Next boundary is actual Main
+command-to-DCO application/service, not an automatic gain/Ki sweep. See the
+[Kp600 report](experiments/step6/EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003/REPORT.md).
+The preceding phase/progress products are superseded: compiles/program from
+25603ae2, Main error−411..+502ps, CKO−307..+242ps, holds603/605ms. See the
 [report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
 The preceding paired products below are superseded; historical evidence remains.
 Observer-only paired provenance round completed; production inputs unchanged.

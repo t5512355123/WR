@@ -1,0 +1,75 @@
+
+build/firmware/slave/wrc.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+00000964 <mpll_init>:
+     964:	ff010113          	addi	sp,sp,-16
+     968:	00812423          	sw	s0,8(sp)
+     96c:	00112623          	sw	ra,12(sp)
+     970:	00008737          	lui	a4,0x8
+     974:	02e52023          	sw	a4,32(a0)
+     978:	00c00713          	li	a4,12
+     97c:	00e52823          	sw	a4,16(a0)
+     980:	25800713          	li	a4,600
+     984:	00e52623          	sw	a4,12(a0)
+     988:	4b000713          	li	a4,1200
+     98c:	00500793          	li	a5,5
+     990:	06e52a23          	sw	a4,116(a0)
+     994:	3e800713          	li	a4,1000
+     998:	02f52423          	sw	a5,40(a0)
+     99c:	06e52623          	sw	a4,108(a0)
+     9a0:	000107b7          	lui	a5,0x10
+     9a4:	06400713          	li	a4,100
+     9a8:	ffb78793          	addi	a5,a5,-5 # fffb <wr_state_change.lto_priv.0+0x137>
+     9ac:	06e52823          	sw	a4,112(a0)
+     9b0:	00022737          	lui	a4,0x22
+     9b4:	82274703          	lbu	a4,-2014(a4) # 21822 <spll_n_chan_ref>
+     9b8:	02f52623          	sw	a5,44(a0)
+     9bc:	00100793          	li	a5,1
+     9c0:	02f52223          	sw	a5,36(a0)
+     9c4:	00f52423          	sw	a5,8(a0)
+     9c8:	03200793          	li	a5,50
+     9cc:	08f52623          	sw	a5,140(a0)
+     9d0:	08f52223          	sw	a5,132(a0)
+     9d4:	00a00793          	li	a5,10
+     9d8:	08f52423          	sw	a5,136(a0)
+     9dc:	0cc52e23          	sw	a2,220(a0)
+     9e0:	01400793          	li	a5,20
+     9e4:	40e60633          	sub	a2,a2,a4
+     9e8:	0e052623          	sw	zero,236(a0)
+     9ec:	0e052823          	sw	zero,240(a0)
+     9f0:	0e052423          	sw	zero,232(a0)
+     9f4:	0af52623          	sw	a5,172(a0)
+     9f8:	0cb52c23          	sw	a1,216(a0)
+     9fc:	0ec52223          	sw	a2,228(a0)
+     a00:	00050413          	mv	s0,a0
+     a04:	06061063          	bnez	a2,a64 <mpll_init+0x100>
+     a08:	08f52623          	sw	a5,140(a0)
+     a0c:	00100793          	li	a5,1
+     a10:	0ef42a23          	sw	a5,244(s0)
+     a14:	00061663          	bnez	a2,a20 <mpll_init+0xbc>
+     a18:	b15ff0ef          	jal	ra,52c <spll_main_diag_reset>
+     a1c:	c0dff0ef          	jal	ra,628 <spll_main_f4l_diag_reset>
+     a20:	09842783          	lw	a5,152(s0)
+     a24:	00078663          	beqz	a5,a30 <mpll_init+0xcc>
+     a28:	0007a223          	sw	zero,4(a5)
+     a2c:	0207a423          	sw	zero,40(a5)
+     a30:	00840513          	addi	a0,s0,8
+     a34:	ee5ff0ef          	jal	ra,918 <pi_init>
+     a38:	00c12083          	lw	ra,12(sp)
+     a3c:	02042c23          	sw	zero,56(s0)
+     a40:	08042823          	sw	zero,144(s0)
+     a44:	08042023          	sw	zero,128(s0)
+     a48:	08042a23          	sw	zero,148(s0)
+     a4c:	06042c23          	sw	zero,120(s0)
+     a50:	06042423          	sw	zero,104(s0)
+     a54:	06042e23          	sw	zero,124(s0)
+     a58:	00812403          	lw	s0,8(sp)
+     a5c:	01010113          	addi	sp,sp,16
+     a60:	00008067          	ret
+     a64:	fff60793          	addi	a5,a2,-1
+     a68:	0037f793          	andi	a5,a5,3
+     a6c:	00378793          	addi	a5,a5,3
+     a70:	fa1ff06f          	j	a10 <mpll_init+0xac>

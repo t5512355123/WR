@@ -1,0 +1,26 @@
+{
+  "verdict": "NOT_ESTABLISHED",
+  "required_duration_ms": 300000,
+  "maximum_qualified_span_ms": 2109,
+  "best_window": {
+    "start_ms": 84416,
+    "end_ms": 86525,
+    "entry_ms": 84416,
+    "unique_updates": 3
+  },
+  "rows": 130,
+  "fresh_strict_entry_observations": 9,
+  "pointwise_valid_outside_retention": 0,
+  "rejected_rows": 61,
+  "trusted_cko_range_ps": [
+    -6781,
+    9936
+  ],
+  "states": {
+    "5": 52,
+    "3": 3,
+    "4": 14
+  },
+  "errors": [],
+  "scope": "Coherent Slave publication, bracketed live health and interleaved fresh Master validity, contiguous sampled producer updates. Not analogue skew or cycle-atomic cross-domain proof."
+}

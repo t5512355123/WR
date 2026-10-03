@@ -1,0 +1,116 @@
+{
+  "baseline_kp300": {
+    "rows": 32,
+    "states": {
+      "5": 20,
+      "4": 11,
+      "3": 1
+    },
+    "main_progress_pairs": 31,
+    "tracker_progress_pairs": 31,
+    "ranges": {
+      "cko_ps": [
+        -306.5032958984375,
+        242.49267578125
+      ],
+      "main_error_ps": [
+        -411.1328125,
+        501.953125
+      ],
+      "pi_output": [
+        11773,
+        11935
+      ],
+      "tracker_age_ms": [
+        1,
+        126
+      ]
+    },
+    "firmware_window_ms": 31311,
+    "main_flags": [
+      383
+    ],
+    "sample_n_delta": 119436,
+    "tracker_publication_delta": 234,
+    "freq_error_range": [
+      -19,
+      16
+    ],
+    "no_wr_action_pairs": 19,
+    "cko_ps": {
+      "mean": -29.381275177001953,
+      "mean_abs": 116.25242233276367,
+      "median_abs": 102.0050048828125,
+      "population_stdev": 134.0837933058543,
+      "rms": 137.2651556598169,
+      "strict_under60_rows": 8,
+      "inclusive120_rows": 20
+    },
+    "main_error_ps": {
+      "mean": -16.204833984375,
+      "mean_abs": 219.390869140625,
+      "median_abs": 217.7734375,
+      "population_stdev": 250.24495752712986,
+      "rms": 250.76908783224496,
+      "strict_under60_rows": 5,
+      "inclusive120_rows": 7
+    }
+  },
+  "candidate_kp600": {
+    "rows": 32,
+    "states": {
+      "5": 15,
+      "4": 17
+    },
+    "main_progress_pairs": 31,
+    "tracker_progress_pairs": 31,
+    "ranges": {
+      "cko_ps": [
+        -300.506591796875,
+        274.4903564453125
+      ],
+      "main_error_ps": [
+        -198.2421875,
+        228.515625
+      ],
+      "pi_output": [
+        11408,
+        11624
+      ],
+      "tracker_age_ms": [
+        3,
+        128
+      ]
+    },
+    "firmware_window_ms": 32473,
+    "main_flags": [
+      383
+    ],
+    "sample_n_delta": 123868,
+    "tracker_publication_delta": 242,
+    "freq_error_range": [
+      -23,
+      12
+    ],
+    "no_wr_action_pairs": 16,
+    "cko_ps": {
+      "mean": 7.025241851806641,
+      "mean_abs": 91.12405776977539,
+      "median_abs": 65.01007080078125,
+      "population_stdev": 123.06901606605435,
+      "rms": 123.26936658611952,
+      "strict_under60_rows": 14,
+      "inclusive120_rows": 24
+    },
+    "main_error_ps": {
+      "mean": 5.035400390625,
+      "mean_abs": 87.554931640625,
+      "median_abs": 78.125,
+      "population_stdev": 108.62944019903414,
+      "rms": 108.74608284922009,
+      "strict_under60_rows": 14,
+      "inclusive120_rows": 22
+    }
+  },
+  "scope": "Different boots; post-WR independently copied Main/tracker groups. Descriptive only, not randomised causal proof, packet-time phase, physical skew, or300s TIME_VALID proof."
+}

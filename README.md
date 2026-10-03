@@ -5,14 +5,19 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003`.
-Completed fresh native tests/full compiles/one programming pair from
-`25603ae2f2ff41f0f43ae93a4f9ef2829294a299`; root output retains THESE latest
-diagnostic SOFs, not a strict PASS image. All32 accepted WR-history rows validated.
-Main and tracker progressed31/31 intervals; tracker age1–126ms. Actual Main
-phase error−411..+502ps despite all phase-lock flags1; CKO−307..+242ps.
-Startup/postflight qualified holds only603/605ms; no300s extension. The final
-dashboard's CKO71ps/TIME_VALID1 is pointwise only. See the
+Active experiment: `EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`.
+Fresh native tests/full compiles/one programming pair completed from
+`78948729bc18c5a78aaede3b6a8f7a363042efc7`; root output retains THESE actual
+Kp600 candidate SOFs, not a strict PASS image. The sole functional change is
+Slave shared Main Kp300→600; Ki1 and all thresholds remain fixed. Master MIF
+is identical; Slave binary changed only two instruction bytes. Main phase
+error narrowed to−198..+229ps, but WR CKO remains−301..+274ps. The120s
+acquisition/postflight longest qualified holds were2109/901ms; no300s extension.
+Final TIME_VALID1/CKO−105ps is pointwise only. See the
+[Kp600 report](experiments/step6/EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003/REPORT.md).
+The previous phase/progress round completed from25603ae2; its products are
+superseded, not erased. Main/tracker progressed31/31 intervals; Main error
+−411..+502ps and WR CKO−307..+242ps, qualified holds603/605ms. See the
 [phase/progress report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
 The preceding paired provenance experiment is retained below for comparison;
 its SOFs are superseded, its evidence is not erased.

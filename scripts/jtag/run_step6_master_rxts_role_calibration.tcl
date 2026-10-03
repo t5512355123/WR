@@ -14,6 +14,22 @@ proc rxcal_budget {maximum} {
   if {$left<=0} { error "RXCAL actual deadline reached" }
   return [expr {min($left,$maximum)}]
 }
+proc rxcal_capture {hw timeout_ms} {
+  # Unlike a passive quiet-time reader, a control command must actually finish.
+  # Free-Master lock wait prints dots ~1s apart;500ms silence is NOT completion.
+  set until [expr {[clock milliseconds]+$timeout_ms}]
+  set hex ""; set text ""
+  while {[clock milliseconds]<$until && [string length $hex]<4096} {
+    lassign [read_uart_available $hw 256] status chunk_hex chunk_text
+    append hex $chunk_hex; append text $chunk_text
+    if {$status eq "TIMEOUT"} { return [list TIMEOUT $hex $text] }
+    if {[string length $hex]>=4096} { return [list LIMIT $hex $text] }
+    if {[regexp {wrc# $} $text]} { return [list OK $hex $text] }
+    if {$status eq "LIMIT" && $chunk_hex eq ""} { return [list LIMIT $hex $text] }
+    after 20
+  }
+  return [list TIMEOUT $hex $text]
+}
 proc rxcal_command {target command} {
   if {$command ni {"ptp master start" "ptp slave start" "ptp" "calibration status"}} {
     error "Non-allowlisted control command"
@@ -25,7 +41,7 @@ proc rxcal_command {target command} {
   if {$status ne "OK"} { error "RXCAL pre-drain failure" }
   rxcal_budget 45000
   if {[send_vuart_command $hw $command] ne "OK"} { error "RXCAL delivery failure; no retry" }
-  lassign [capture_vuart_reply $hw [rxcal_budget 45000]] status hex text
+  lassign [rxcal_capture $hw [rxcal_budget 45000]] status hex text
   puts "RXCAL_REPLY board={$hw} command={$command} status=$status hex=$hex"
   if {$status ne "OK" || [regexp -nocase {unknown (?:sub)?command|unrecognized command|command failed|Command "[^"]+": error -?[0-9]+} $text]} {
     error "RXCAL incomplete/failed command; no retry"

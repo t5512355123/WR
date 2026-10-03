@@ -56,8 +56,12 @@ proc send_vuart_command {hw command} {
     default {error "Forbidden write"}
   };return OK
 }
-proc capture_vuart_reply {hw timeout} {
+proc read_uart_available {hw maximum} {
   lassign $::key hw command;set text "wrc# "
+  if {$::case eq "command_error" && $hw eq "S" && $command eq "ptp master start"} {
+    set text "Lock timeout\\nCommand \\\"ptp\\\": error -110\\nwrc# "
+    binary scan $text H* hex;return [list OK $hex $text]
+  }
   if {$command eq "ptp"} {
     set role $::role($hw);if {$::case eq "wrong_role"} {set role gm}
     set text "running; e2e $role\\nwrc# "
@@ -99,7 +103,43 @@ def validate_code(case):
 
 
 CASES = ('good', 'old_scan', 'duplicate', 'preflight_lock', 'no_lock', 'missing_scan', 'bad_midpoint',
-         'temporary_master', 'wrong_role', 'reset', 'transport', 'restore_lost')
+         'temporary_master', 'wrong_role', 'reset', 'transport', 'restore_lost', 'command_error')
+
+
+def extra_native(case):
+    code = setup()
+    if case == 'prompt':
+        code += '''
+set ::n 0
+proc read_uart_available {hw maximum} {
+  incr ::n;incr ::now 1000
+  switch $::n {1 {set text "Locking PLL."} 2 - 3 {set text ""} 4 {set text "..\\nLock timeout\\nwrc# "}}
+  binary scan $text H* hex;return [list OK $hex $text]
+}
+set reply [rxcal_capture M 45000]
+if {$::n!=4 || [lindex $reply 0] ne "OK" || ![string match {*Lock timeout*wrc# } [lindex $reply 2]]} {error "Premature quiet capture"}
+proc read_uart_available {hw maximum} {incr ::now 1000;return [list OK {} {}]}
+if {[lindex [rxcal_capture M 100] 0] ne "TIMEOUT"} {error "Missing prompt accepted"}
+'''
+    elif case == 'status':
+        code += '''
+set ::events {};set ::mode(M) 2;set ::mode(S) 3;set ::scans 0
+proc get_hardware_names {} {return {M S}}
+rename string real_string
+proc string {sub args} {
+  if {$sub eq "first" && [lindex $args 0] eq "1-11.1"} {return [expr {[lindex $args 1] eq "M" ? 0 : -1}]}
+  if {$sub eq "first" && [lindex $args 0] eq "1-11.2"} {return [expr {[lindex $args 1] eq "S" ? 0 : -1}]}
+  return [real_string $sub {*}$args]
+}
+proc get_device_names {args} {return device}
+rename wb_read old_wb_read
+proc wb_read {hw addr} {if {$addr eq "0x00100B44"} {return 00000001};return [old_wb_read $hw $addr]}
+set argv {}
+source {%s}
+if {$::events ne {{M {calibration status}} {S {calibration status}}} || ![string match {*RXSTATUS_DONE boards=2*} $::output]} {error "Read-only status failed"}
+''' % (ROOT / 'scripts/jtag/read_step6_rxts_calibration_status.tcl').as_posix()
+    else: raise ValueError(case)
+    return code + f'\nreal_puts "ACTUAL_QUARTUS_RXCAL=PASS hardware_session=0 case={case}"\n'
 
 
 class SourceTests(unittest.TestCase):
@@ -154,6 +194,27 @@ class TclTests(unittest.TestCase):
         for cmd in ('calibration', 'calibration force', 'calibration setp T24P 4000', 'pll sps 4000', 'ptp stop'):
             with self.assertRaisesRegex(tkinter.TclError, 'Non-allowlisted'): t.call('rxcal_command', 'M device MASTER', cmd)
 
+    def test_control_capture_waits_for_prompt_not_quiet(self):
+        t = tkinter.Tcl(); t.eval(setup())
+        t.eval('''set ::n 0
+          proc read_uart_available {hw maximum} {
+            incr ::n;incr ::now 1000
+            switch $::n {
+              1 {set text "Locking PLL."}
+              2 - 3 {set text ""}
+              4 {set text "..\\nLock timeout\\nCommand \\\"ptp\\\": error -110\\nwrc# "}
+            };binary scan $text H* hex;return [list OK $hex $text]
+          }
+          set ::capture [rxcal_capture M 45000]
+        ''')
+        result = t.splitlist(t.eval('set ::capture'))
+        self.assertEqual(result[0], 'OK'); self.assertEqual(t.eval('set ::n'), '4')
+        self.assertIn('Lock timeout', result[2]); self.assertTrue(result[2].endswith('wrc# '))
+        t.eval('proc read_uart_available {hw maximum} {incr ::now 1000;return [list OK {} {}]}')
+        self.assertEqual(t.splitlist(t.call('rxcal_capture', 'M', 100))[0], 'TIMEOUT')
+        t.eval('proc read_uart_available {hw maximum} {return [list TIMEOUT {} {}]}')
+        self.assertEqual(t.splitlist(t.call('rxcal_capture', 'M', 100))[0], 'TIMEOUT')
+
     def test_independent_analysis_keeps_failure_not_goal(self):
         for case in CASES:
             t = tkinter.Tcl(); t.eval(setup(case))
@@ -167,11 +228,32 @@ class TclTests(unittest.TestCase):
                     self.assertEqual(r['errors'], []); self.assertEqual(r['measured_t24p_ps'], 7625)
                 else: self.assertEqual(r['verdict'], 'NOT_QUALIFIED', case)
 
+    def test_read_only_status_whole_script(self):
+        t = tkinter.Tcl(); t.eval(setup())
+        t.eval('''set ::events {};set ::mode(M) 2;set ::mode(S) 3;set ::scans 0
+          proc get_hardware_names {} {return {M S}}
+          rename string real_string
+          proc string {sub args} {
+            if {$sub eq "first" && [lindex $args 0] eq "1-11.1"} {return [expr {[lindex $args 1] eq "M" ? 0 : -1}]}
+            if {$sub eq "first" && [lindex $args 0] eq "1-11.2"} {return [expr {[lindex $args 1] eq "S" ? 0 : -1}]}
+            return [real_string $sub {*}$args]
+          }
+          proc get_device_names {args} {return device}
+          rename wb_read old_wb_read
+          proc wb_read {hw addr} {if {$addr eq "0x00100B44"} {return 00000001};return [old_wb_read $hw $addr]}
+          set argv {}
+        ''')
+        t.call('source', str(ROOT / 'scripts/jtag/read_step6_rxts_calibration_status.tcl'))
+        self.assertEqual(t.eval('set ::events'), '{M {calibration status}} {S {calibration status}}')
+        self.assertIn('RXSTATUS_DONE boards=2', t.eval('set ::output'))
+
 
 if __name__ == '__main__':
     if len(sys.argv) == 4 and sys.argv[1] == '--emit-native-tcl':
         case = sys.argv[3]
-        if case not in CASES: raise ValueError(case)
-        Path(sys.argv[2]).write_text(setup(case) + validate_code(case))
+        if case in ('prompt', 'status'): code = extra_native(case)
+        elif case in CASES: code = setup(case) + validate_code(case)
+        else: raise ValueError(case)
+        Path(sys.argv[2]).write_text(code)
     else:
         unittest.main()

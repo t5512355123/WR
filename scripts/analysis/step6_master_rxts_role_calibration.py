@@ -68,11 +68,12 @@ def analyze(path):
                 sig = d['RESET']
                 if board in baseline and baseline[board] != sig: raise ValueError('boot/reset changed')
                 baseline[board] = sig
-                if int(d['CALFAIL']) != 0: raise ValueError('built-in calibration failed')
+                calfail = int(d['CALFAIL'])
+                if '1-11.1' in board and calfail != 0: raise ValueError('fresh Master calibration failed')
                 h, m, p, spll = (int(d[k], 16) for k in ('H', 'M', 'P', 'SPLL'))
                 health.append(dict(board=board, mode=(spll >> 16) & 255,
                                    helper=h & 1, main_locked=(m & 14) == 14 and bool(p & 2),
-                                   status_raw=d['STATUS'], reset=sig))
+                                   status_raw=d['STATUS'], reset=sig, calibration_fail_count=calfail))
             elif line.startswith('RXCAL_REPLY '):
                 d = fields(line); command, board = d['command'], d['board']
                 if d['status'] != 'OK': raise ValueError('command transport failed')

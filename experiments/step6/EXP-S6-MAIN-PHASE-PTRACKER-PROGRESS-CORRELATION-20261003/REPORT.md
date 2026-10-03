@@ -136,8 +136,11 @@ nonexecuted WR tracking-gain branch.
 
 Next unique control experiment: **Slave Main Kp300→600 only**, retaining Main
 Ki1, frequency threshold20, bumpless preload, WR /2+/12 and strict60/120 gate,
-all Helper/DCO/service/timeout/topology/RTL unchanged.600 is the source's normal
-nonlegacy default, not an arbitrary gain sweep. Test whether increased Main
+all Helper/DCO/service/timeout/topology/RTL unchanged.600 is one of the source's
+two explicitly permitted F4K A/B values (300 or600); current default is300.
+It is not a new arbitrary gain sweep. Audit the historical600 arm before any
+build to distinguish a genuinely new current-baseline test from an already
+failed identical configuration. Test whether increased Main
 proportional action reduces actual completed phase-error/CKO variation rather
 than loosening lock detection. This is a hypothesis, not a promised fix or
 proof the present Kp is the cause. Keep the same passive history and independent

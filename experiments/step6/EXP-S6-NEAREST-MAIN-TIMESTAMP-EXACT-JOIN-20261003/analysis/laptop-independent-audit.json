@@ -1,0 +1,97 @@
+{
+  "independent_json_equality": [
+    "raw\\observe\\20261003T080346Z-strict-offset-validity.log",
+    "raw\\observe\\20261003T080550Z-strict-offset-validity.log",
+    "raw\\observe\\20261003T081852Z-strict-offset-validity.log",
+    "raw\\observe\\20261003T080841Z-main-timestamp-pair.log"
+  ],
+  "descriptive": {
+    "ucnt_first": 382,
+    "ucnt_last": 397,
+    "producer_span_ms": 15435,
+    "main_update_delta": 58876,
+    "main_progress_intervals": 15,
+    "tracker_progress_intervals": 15,
+    "intervals": 15,
+    "large_cko_steps": [
+      {
+        "from_ucnt": 386,
+        "to_ucnt": 387,
+        "previous_setpoint_action_ps": -1281,
+        "main_updates": 3078,
+        "tracker_publications": 6,
+        "cko_ps": 1433.990478515625,
+        "main_error_ps": -18.5546875,
+        "forward_ps": -1587.9974365234375,
+        "return_ps": 1279.998779296875,
+        "raw_forward_ps": -1587.9974365234375,
+        "raw_return_ps": 1279.998779296875,
+        "asym_ps": 0.0,
+        "tracker_circular_delta_ps": -1294
+      },
+      {
+        "from_ucnt": 388,
+        "to_ucnt": 389,
+        "previous_setpoint_action_ps": 0,
+        "main_updates": 3292,
+        "tracker_publications": 6,
+        "cko_ps": 4060.9893798828125,
+        "main_error_ps": -147.4609375,
+        "forward_ps": -113.9984130859375,
+        "return_ps": 8007.0037841796875,
+        "raw_forward_ps": -113.9984130859375,
+        "raw_return_ps": 8007.0037841796875,
+        "asym_ps": 0.0,
+        "tracker_circular_delta_ps": -7
+      },
+      {
+        "from_ucnt": 389,
+        "to_ucnt": 390,
+        "previous_setpoint_action_ps": 0,
+        "main_updates": 4368,
+        "tracker_publications": 9,
+        "cko_ps": -4214.0045166015625,
+        "main_error_ps": 267.578125,
+        "forward_ps": 220.001220703125,
+        "return_ps": -8207.992553710938,
+        "raw_forward_ps": 220.001220703125,
+        "raw_return_ps": -8207.992553710938,
+        "asym_ps": 0.0,
+        "tracker_circular_delta_ps": 222
+      },
+      {
+        "from_ucnt": 393,
+        "to_ucnt": 394,
+        "previous_setpoint_action_ps": 0,
+        "main_updates": 2029,
+        "tracker_publications": 4,
+        "cko_ps": 4098.0072021484375,
+        "main_error_ps": -364.2578125,
+        "forward_ps": -41.0003662109375,
+        "return_ps": 8154.0069580078125,
+        "raw_forward_ps": -41.0003662109375,
+        "raw_return_ps": 8154.0069580078125,
+        "asym_ps": 0.0,
+        "tracker_circular_delta_ps": -157
+      },
+      {
+        "from_ucnt": 395,
+        "to_ucnt": 396,
+        "previous_setpoint_action_ps": 0,
+        "main_updates": 2677,
+        "tracker_publications": 5,
+        "cko_ps": -3955.0018310546875,
+        "main_error_ps": 32.2265625,
+        "forward_ps": -76.995849609375,
+        "return_ps": -7986.99951171875,
+        "raw_forward_ps": -76.995849609375,
+        "raw_return_ps": -7986.99951171875,
+        "asym_ps": 0.0,
+        "tracker_circular_delta_ps": -11
+      }
+    ],
+    "strict60_rows": 0,
+    "inclusive120_rows": 0,
+    "scope": "Full source-validated history, no row selection in formal gates. Main/tracker copied post-accept, not simultaneous with packet RX. Action-free WR steps are not frozen physical PLL/DAC outputs. No causal or 300s PASS claim."
+  }
+}

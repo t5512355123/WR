@@ -2,16 +2,25 @@
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
 Active experiment: EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003.
-Passive paired history observer only; production inputs identical toc8460b08.
-Laptop9 tests passed. Native/full compile/program pending; retained root
-output is preceding nearest pair, not a new diagnostic/strict PASS milestone.
+Completed passive paired history observer; production inputs identical toc8460b08.
+Native/firmware tests, full two-board compile and one Slave→Master program
+from1ab27d25 passed. Root output contains these actual products, not a strict
+PASS milestone. Observer-only correction8b7e211b needed no new program.
+All16 same accepted updates exactly joined;15/15 Main/tracker progress,
+58876 Main updates. Four action-free CKO~4ns steps coincide with return~8ns
+changes, post-accept Main error−239..+183ps. Source copies not packet-time
+atomic; no calibration/Ki causal conclusion. Strict20/120/20s windows have
+zero fresh<60 entries and0ms qualified hold, no300s extension. Final Slave
+invalid/CKO−1313ps, allfive locks1; Mastervalid. Next is Master packet coarse/
+ahead/phase/calibration/freshness provenance, not a relaxed threshold or gain
+sweep. See the [report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
 See the [plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
 Preceding completed experiment: EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003.
 Slave Main nearest admission8/9 only, complete physical step16 unchanged.
 Source/integer/native actual-controller/pin/C/Tcl tests and byte-identical
 role MIF builds passed. Full compiles/one Slave-to-Master programming pair
-froma45da741 completed. Root output is this actual candidate, not a strict
-PASS milestone.60 coherent rows/59 progress intervals:9526 Main completions,
+froma45da741 completed. These products are superseded, not erased.
+60 coherent rows/59 progress intervals:9526 Main completions,
 residual-11..+11, CKO-254..+143ps, no observed ACK/timeout/L2 error.
 Strict acquisition/postflight qualified holds3187/607ms; no300s extension.
 Postflight coherent TRACK/WAIT rows include13/21 outside120ps; JTAG timing

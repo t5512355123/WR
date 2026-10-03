@@ -1,5 +1,5 @@
 Analysis & Synthesis report for DE5a_wr_slave_jtag
-Sat Oct  3 15:05:20 2026
+Sat Oct  3 15:51:41 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -734,7 +734,7 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +-----------------------------+-------------------------------------------------+
-; Analysis & Synthesis Status ; Successful - Sat Oct  3 15:05:19 2026           ;
+; Analysis & Synthesis Status ; Successful - Sat Oct  3 15:51:41 2026           ;
 ; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
 ; Revision Name               ; DE5a_wr_slave_jtag                              ;
 ; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
@@ -847,24 +847,24 @@ agreement for further details.
 ; Number detected on machine ; 28          ;
 ; Maximum allowed            ; 16          ;
 ;                            ;             ;
-; Average used               ; 2.27        ;
+; Average used               ; 2.28        ;
 ; Maximum used               ; 16          ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;  15.6%      ;
-;     Processor 3            ;  15.6%      ;
-;     Processor 4            ;   9.7%      ;
-;     Processor 5            ;   8.4%      ;
-;     Processor 6            ;   8.4%      ;
-;     Processor 7            ;   8.3%      ;
-;     Processor 8            ;   8.3%      ;
-;     Processor 9            ;   7.8%      ;
-;     Processor 10           ;   7.7%      ;
-;     Processor 11           ;   6.5%      ;
-;     Processor 12           ;   6.3%      ;
+;     Processor 2            ;  15.3%      ;
+;     Processor 3            ;  15.3%      ;
+;     Processor 4            ;   9.3%      ;
+;     Processor 5            ;   8.7%      ;
+;     Processor 6            ;   8.6%      ;
+;     Processor 7            ;   8.2%      ;
+;     Processor 8            ;   8.2%      ;
+;     Processor 9            ;   8.1%      ;
+;     Processor 10           ;   8.1%      ;
+;     Processor 11           ;   7.0%      ;
+;     Processor 12           ;   6.9%      ;
 ;     Processor 13           ;   6.3%      ;
-;     Processor 14           ;   6.2%      ;
+;     Processor 14           ;   6.3%      ;
 ;     Processor 15           ;   6.2%      ;
 ;     Processor 16           ;   6.1%      ;
 +----------------------------+-------------+
@@ -18681,7 +18681,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 15:04:25 2026
+    Info: Processing started: Sat Oct  3 15:50:46 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
@@ -21727,7 +21727,7 @@ Info (12128): Elaborating entity "xwb_clock_monitor" for hierarchy "xwr_core:u_x
 Info (12128): Elaborating entity "clock_monitor_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwb_clock_monitor:\gen_with_clock_monitor:inst_clock_monitor|clock_monitor_wb:U_WB_Slave" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/xwb_clock_monitor.vhd Line: 154
 Warning (10541): VHDL Signal Declaration warning at clock_monitor_wb.vhd(27): used implicit default value for signal "int_o" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations. File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/clock_monitor_wb.vhd Line: 27
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.10.03.15:04:43 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.10.03.15:51:05 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: "Transforming system: alt_sld_fab"
 Info (11172): Alt_sld_fab: Running transform generation_view_transform
@@ -21747,9 +21747,9 @@ Info (11172): Ident: Running transform generation_view_transform took 0.000s
 Info (11172): A10xcvrfabric: Running transform generation_view_transform
 Info (11172): A10xcvrfabric: Running transform generation_view_transform took 0.000s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.015s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.017s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.009s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.010s
 Info (11172): Alt_sld_fab: "Naming system components in system: alt_sld_fab"
 Info (11172): Alt_sld_fab: "Processing generation queue"
 Info (11172): Alt_sld_fab: "Generating: alt_sld_fab"
@@ -21970,10 +21970,10 @@ Info (21057): Implemented 28663 device resources after synthesis - the final res
     Info (21064): Implemented 406 RAM segments
     Info (21062): Implemented 4 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 265 warnings
-    Info: Peak virtual memory: 1717 megabytes
-    Info: Processing ended: Sat Oct  3 15:05:20 2026
+    Info: Peak virtual memory: 1714 megabytes
+    Info: Processing ended: Sat Oct  3 15:51:41 2026
     Info: Elapsed time: 00:00:55
-    Info: Total CPU time (on all processors): 00:01:31
+    Info: Total CPU time (on all processors): 00:01:32
 
 
 +------------------------------------------+

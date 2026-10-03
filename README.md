@@ -6,15 +6,22 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003`.
-Pending passive diagnostic: exact accepted-update joins between existing
-Main/tracker history and four timestamp history, no production input change.
-Laptop9 observer/analyzer tests passed; native/full compile/program pending.
-Current retained output is the preceding nearest pair below, NOT new products.
+Completed passive exact accepted-update join; native/firmware tests, fresh
+two-board full compile and one Slave→Master programming pair passed from
+`1ab27d25c6935ed5e6ddb5af129982f66a2265ac`. Root output contains THESE
+actual diagnostic SOFs, not a strict PASS milestone. Production inputs/MIFs
+unchanged; observer correction8b7e211b required no reprogram.16 exact common
+updates, Main15/15 progress,58876 updates; four action-free CKO~4ns steps
+correspond to return~8ns changes. Post-accept Main error−239..+183ps is not
+packet-time atomic. Strict startup/acquisition/postflight:0fresh<60 entries,
+0ms qualified hold; no300s extension. Next boundary is Master RX coarse/fine
+continuity and calibration provenance, not an automatic Ki sweep. See the
+[completed report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
 See the [current plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
 Preceding completed experiment: `EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`.
 Fresh two-board compile/one Slave-to-Master programming pair completed from
-`a45da74188d9ae325ac1c176bde74920018c0be4`; root output now contains THESE
-actual nearest-admission candidate SOFs, NOT a strict PASS milestone.
+`a45da74188d9ae325ac1c176bde74920018c0be4`; those nearest-admission SOFs
+are superseded by the paired diagnostic products above, not erased.
 Slave admission8(up)/9(down), consistent midpoint tie; completion still16.
 Master, Helper, firmware/Kp600/Ki1, strict60/120 and observers unchanged.
 Native/source/firmware tests passed.60 coherent snapshots:59/59 Main progress,

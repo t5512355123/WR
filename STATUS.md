@@ -1,11 +1,21 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003.
+Active experiment: EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003.
+Fresh full compiles/one Slave→Master program pair from25603ae2 completed;
+root output contains the latest actual passive phase/progress diagnostic SOFs.
+All32 history rows/31 consecutive updates validated, both producers progressing;
+Main phase error−411..+502ps with phase-lock flags1, tracker age1–126ms.
+WR CKO−307..+242ps. Strict startup/postflight longest holds603/605ms,
+not300s; final TIME_VALID1/CKO71ps is one point, not sustained PASS.
+Next single candidate is Main Kp300→600 with Ki1 and every threshold unchanged;
+not implemented/tested in this completed round. See the
+[report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
+The preceding paired products below are superseded; historical evidence remains.
 Observer-only paired provenance round completed; production inputs unchanged.
 Fresh native checks/full compile/one Slave→Master programming pair succeeded
-from `31bfaeb55f667719dbcc8690139f859598683ed4`. Root output contains these
-actual diagnostic products, NOT a strict PASS. Master32/Slave16 histories
+from `31bfaeb55f667719dbcc8690139f859598683ed4`. Those preceding diagnostic
+products are now superseded, NOT a strict PASS. Master32/Slave16 histories
 validated;14exact full64 RX→T4 pairs,13consecutive differences. No>=1ns CKO
 step in this overlap, but action-free275→276 moved−925.995ps, with constant
 coarse return and fine correction changing−834.991ps. Both forward/return

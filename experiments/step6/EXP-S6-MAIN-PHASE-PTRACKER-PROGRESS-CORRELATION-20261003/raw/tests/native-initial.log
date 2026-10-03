@@ -1,0 +1,5 @@
+In file included from /home/b10504072/04_WR/scripts/tests/phase_history/test.c:6:0:
+/home/b10504072/04_WR/scripts/tests/phase_history/../../../vendor/wrpc-sw/lib/phase-history.c:4:10: fatal error: phase-history.h: No such file or directory
+ #include "phase-history.h"
+          ^~~~~~~~~~~~~~~~~
+compilation terminated.

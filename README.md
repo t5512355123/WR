@@ -5,11 +5,21 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003`.
-This observer-only round completed native tests, two full compiles and one
+Active experiment: `EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003`.
+Completed fresh native tests/full compiles/one programming pair from
+`25603ae2f2ff41f0f43ae93a4f9ef2829294a299`; root output retains THESE latest
+diagnostic SOFs, not a strict PASS image. All32 accepted WR-history rows validated.
+Main and tracker progressed31/31 intervals; tracker age1–126ms. Actual Main
+phase error−411..+502ps despite all phase-lock flags1; CKO−307..+242ps.
+Startup/postflight qualified holds only603/605ms; no300s extension. The final
+dashboard's CKO71ps/TIME_VALID1 is pointwise only. See the
+[phase/progress report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
+The preceding paired provenance experiment is retained below for comparison;
+its SOFs are superseded, its evidence is not erased.
+That preceding observer-only round completed native tests, two full compiles and one
 Slave→Master programming pair from
-`31bfaeb55f667719dbcc8690139f859598683ed4`. Retained root output contains THESE
-actual diagnostic SOFs, not a strict PASS milestone. Production inputs and MIF
+`31bfaeb55f667719dbcc8690139f859598683ed4`. Its diagnostic SOFs are now superseded,
+not a strict PASS milestone. In that paired round, production inputs and MIF
 pins are unchanged. All32 Master/16 Slave records validated;14accepted T4
 values exactly matched Master RX, with13consecutive differences. The~4ns jump
 was not reproduced in this snapshot, but action-free CKO still moved~926ps.

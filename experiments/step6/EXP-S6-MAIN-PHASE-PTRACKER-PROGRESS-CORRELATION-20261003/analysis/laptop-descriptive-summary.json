@@ -1,0 +1,14 @@
+{
+  "records": 32,
+  "firmware_window_ms": 31311,
+  "main_flags": [
+    383
+  ],
+  "phase_branch": 32,
+  "cko_strict_entry_rows": 8,
+  "cko_hold_rows": 20,
+  "main_error_over120": 25,
+  "no_wr_action_differences": 19,
+  "sample_n_delta": 119436,
+  "tracker_publication_delta": 234
+}

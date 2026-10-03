@@ -2428,6 +2428,7 @@ fe524c74f2ad031327e02600f41cd7193f6c014f96d93bb8ad86d8db9bbe9fce  vendor/wrpc-sw
 63fc245c67e560ce9ca239fb8d8006b72fe21c4b95efbc0859a57b30c844d210  vendor/wrpc-sw/include/libwr/shmem.h
 70c9e5238dfdf085f9988c5db9ed4e8f2ca315d998fb60a9298cf106515521f6  vendor/wrpc-sw/include/net.h
 58d35ab6b66eef257a2580575dfa951bee10a05f7e210737c80bbbba4183d0cc  vendor/wrpc-sw/include/netconsole.h
+d1e2225b86549fddd9e268b1ca91de6b4805ea816d359ad51e97ff61429c80ec  vendor/wrpc-sw/include/phase-history.h
 84f38a7ded26d9cc1dea205de802d5018dfdddb4cb255916bb2799d7b133b850  vendor/wrpc-sw/include/revision.h
 a69b78409139c843e32fdca9f2fea3d6fc4a35bbbfb186f8f7362cf2fd1af7e1  vendor/wrpc-sw/include/rxts-diag.h
 c5dff462ff3ef7626a1a2332e50214d8b4372b867f8cfe269d1748b655ace5e3  vendor/wrpc-sw/include/sdb.h
@@ -2470,11 +2471,12 @@ a05b88f5b2bfc865be416ce82d4b00766aec1083b98032baef85b68e2bc70328  vendor/wrpc-sw
 b51cab332642a0c36c57cb187d24b0f54552936b3402686b827345d9999187a4  vendor/wrpc-sw/lib/ipv4.h
 99b84f1d0f09b3b9faa4f90647d4647251201a74f7ebc60eda1ba1234d58c9cf  vendor/wrpc-sw/lib/latency.c
 3c2773df268c0cd9576a52ab8fa2e63386b48659b37a0f7491756dbe67c3f0bb  vendor/wrpc-sw/lib/latency.h
-8a40e013f3782c0066e336ee240865887d9744c383211ebdb2cb181774079fe6  vendor/wrpc-sw/lib/lib.mk
+ea284fe0aba0a37f5881506b97bbd46acbcf6c6b6913bcddd91a2395f96430d2  vendor/wrpc-sw/lib/lib.mk
 c1c64c477b213be2b00bd46e6625e9ef944cd5506ed3430f0c731ef523abba62  vendor/wrpc-sw/lib/lldp.c
 6d923f000f2dac0ce510d4ed97530c8c22de732a8650a3040a0c556dd130f035  vendor/wrpc-sw/lib/lldp.h
 afeacb81caa0bbb5cb316d6a4a724a72414fd524c4dd462f7098f147a5f1f8f0  vendor/wrpc-sw/lib/net.c
 51f186453de64d00b56346cb2cf8e04d7202d12eebb454cefc36b139c199fd91  vendor/wrpc-sw/lib/netconsole.c
+49ae7f76bd332fad6e53aaa464ce5c850b19bda92dbca20bf259fba6d80dd1fd  vendor/wrpc-sw/lib/phase-history.c
 b9446d5f626b2739fbf8e6486393b337e0275d8aa8be4a09d1ce40a834995e61  vendor/wrpc-sw/lib/rxts-diag.c
 57927f1de5d46c18ddb9eca0c280d1d7c93ff92d67f22bf814a52b6343c12c36  vendor/wrpc-sw/lib/snmp.c
 0af2030dcfd728c3190ca31975ee009d092041ca57fe952e12a786452602b228  vendor/wrpc-sw/lib/syslog.c
@@ -2744,7 +2746,7 @@ da29a354783c967276055efb434fe1f9dd9bc8b201bbe2a353f7659ef71dec01  vendor/wrpc-sw
 ce37924e5c123dcac9f82924ba5bf2654111abcc321e68f84fbb65988f1dcde6  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-api.h
 44501954dc87ea20ad3406a9f99aaa6640322f0ea21b4625d16cabf72b243a40  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-constants.h
 083e68109aa576ad16debf349a8f02b8d5647fa32f028539df29f2e7af0296d3  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-msg.c
-6fbcd430a654e411064c70e1cdc883744abfe8a50f663455ee04bc893dd8c1b0  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-servo.c
+8350cac71153ff673978b09117a352eaeab8cc77cf16a5f380b7f009cf0f4357  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-servo.c
 5031c651a5ae88e87b1451b82a6124a1db1630459026c54b10c505be9926304d  vendor/wrpc-sw/ppsi/proto-ext-whiterabbit/wr-state-machine.c
 41090c4814b16e2b98b08691d74671bb697d43d77e79d32ddcdfbe9587210088  vendor/wrpc-sw/ppsi/proto-standard/Makefile
 a8116cd9ca3abdb04be7d6b886b226c0636b514490b33e85089c9456345d25e0  vendor/wrpc-sw/ppsi/proto-standard/README-cfield
@@ -2936,7 +2938,7 @@ adc4f998763e984b455ed9592c0447eb16db5054291da928c8763563fa6dbe89  vendor/wrpc-sw
 628bb1cdee8c7ff7469bf8d876d066a0605df302b8febd6002dd22db5c953197  vendor/wrpc-sw/shell/cmd_ll.c
 50e58d23791059b798c883b65042f726436222a2da5cc09b777aa5df3b6af23c  vendor/wrpc-sw/shell/cmd_mac.c
 77e82cd42bbe758da554740985f8c86d1f0e6eedcbc0c80979e587d0cb1a7b3d  vendor/wrpc-sw/shell/cmd_netconsole.c
-0abd18ea6eb3e04411e0574d94b6ffe2fe86463fd49d82bc26615952cde8b78a  vendor/wrpc-sw/shell/cmd_pll.c
+19d96188d68fc163fae6573977f35081979b7c3cec5d821f3f9eccf0c50fc2f1  vendor/wrpc-sw/shell/cmd_pll.c
 fc7fef441edf801b5c6e27cf57340a5ee99df77a1a77b67680dbfc3859ad8a79  vendor/wrpc-sw/shell/cmd_pps.c
 aa17b901580ff7c028d3f15baf0aacb3be3261b3dd2b7c4efda188f872a6365a  vendor/wrpc-sw/shell/cmd_ps.c
 52c568ea2858c33ba902a2e78d0612b40329c298b73479d491d06fdcdd25370c  vendor/wrpc-sw/shell/cmd_ptp.c
@@ -2968,8 +2970,9 @@ a684f4cba159d2e60aca403a7a7a40525c2cc9f5d070df4ddbcec63090739564  vendor/wrpc-sw
 cfd18de118ba63f66e8cbf9665e6104857f4787c0e22c11ce5d50b0bad9ec8ec  vendor/wrpc-sw/softpll/spll_main.h
 91f95f96fe53b44d61aec79dd3a24fc3fa494d4651bc4ef15e45169810d9325a  vendor/wrpc-sw/softpll/spll_main_diag.h
 816e9f18460adf8f7cf055a8ca172286fe7ef3bba6135c5a02d5c2ea3b794d31  vendor/wrpc-sw/softpll/spll_main_f4l_diag.h
-382e3907bae2026a0507b8b4149b1d586439ef49e0e8b68267eca32e66d9ff3b  vendor/wrpc-sw/softpll/spll_ptracker.c
+4c9efd61e710c32f585721a8c88de31d0f93be9f76f04513ad92ddd43ff92b6c  vendor/wrpc-sw/softpll/spll_ptracker.c
 d7b7d01053a78117d6f776a4ddaa9e142eb233af17407af141fa5ae888e62e9e  vendor/wrpc-sw/softpll/spll_ptracker.h
+c82540e7b9a6180864f38991991ebc77c38fb5d6e90335859609e5b2331240fd  vendor/wrpc-sw/softpll/spll_ptracker_diag.h
 d71d625c5242c8015b2416d94f136fc0d10fd3b590d547b8bfc8fae3718b14e9  vendor/wrpc-sw/system_checks.c
 7e259fc1cbf691327aeecd3812c964ea30eb041b77fd24ffe303527b19ed96c7  vendor/wrpc-sw/test/snmp/.gitignore
 ac813da988a9f0178bdc34f9a5e6291c691dafc4d394acc0a10697d70ae4ee26  vendor/wrpc-sw/test/snmp/Makefile

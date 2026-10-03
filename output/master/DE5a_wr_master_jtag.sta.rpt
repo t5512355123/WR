@@ -1,5 +1,5 @@
 TimeQuest Timing Analyzer report for DE5a_wr_master_jtag
-Sat Oct  3 09:01:42 2026
+Sat Oct  3 10:15:40 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -99,26 +99,26 @@ agreement for further details.
 ; Number detected on machine ; 28          ;
 ; Maximum allowed            ; 16          ;
 ;                            ;             ;
-; Average used               ; 1.50        ;
+; Average used               ; 1.46        ;
 ; Maximum used               ; 16          ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;   3.4%      ;
-;     Processor 3            ;   3.4%      ;
-;     Processor 4            ;   3.4%      ;
-;     Processor 5            ;   3.4%      ;
-;     Processor 6            ;   3.3%      ;
-;     Processor 7            ;   3.3%      ;
-;     Processor 8            ;   3.3%      ;
-;     Processor 9            ;   3.3%      ;
-;     Processor 10           ;   3.3%      ;
-;     Processor 11           ;   3.3%      ;
-;     Processor 12           ;   3.3%      ;
-;     Processor 13           ;   3.3%      ;
-;     Processor 14           ;   3.3%      ;
-;     Processor 15           ;   3.3%      ;
-;     Processor 16           ;   3.3%      ;
+;     Processor 2            ;   3.1%      ;
+;     Processor 3            ;   3.1%      ;
+;     Processor 4            ;   3.1%      ;
+;     Processor 5            ;   3.1%      ;
+;     Processor 6            ;   3.1%      ;
+;     Processor 7            ;   3.1%      ;
+;     Processor 8            ;   3.1%      ;
+;     Processor 9            ;   3.1%      ;
+;     Processor 10           ;   3.1%      ;
+;     Processor 11           ;   3.1%      ;
+;     Processor 12           ;   3.1%      ;
+;     Processor 13           ;   3.1%      ;
+;     Processor 14           ;   3.1%      ;
+;     Processor 15           ;   3.0%      ;
+;     Processor 16           ;   3.0%      ;
 +----------------------------+-------------+
 
 
@@ -127,8 +127,8 @@ agreement for further details.
 +--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
 ; SDC File Path                                                                                                                                                      ; Status ; Read at                  ;
 +--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
-; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc ; OK     ; Sat Oct  3 09:01:39 2026 ;
-; DE5a_wr_master_jtag.sdc                                                                                                                                            ; OK     ; Sat Oct  3 09:01:39 2026 ;
+; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/altera_xcvr_native_a10_170/synth/altera_xcvr_native_a10_false_paths.sdc ; OK     ; Sat Oct  3 10:15:37 2026 ;
+; DE5a_wr_master_jtag.sdc                                                                                                                                            ; OK     ; Sat Oct  3 10:15:37 2026 ;
 +--------------------------------------------------------------------------------------------------------------------------------------------------------------------+--------+--------------------------+
 
 
@@ -997,7 +997,7 @@ Entries labeled "false path" only account for clock-to-clock false paths and not
 Info: *******************************************************************
 Info: Running Quartus Prime TimeQuest Timing Analyzer
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 09:01:29 2026
+    Info: Processing started: Sat Oct  3 10:15:27 2026
 Info: Command: quartus_sta DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -1312,9 +1312,9 @@ Info (332114): Report Metastability: Found 1182 synchronizer chains.
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
-    Info: Peak virtual memory: 4523 megabytes
-    Info: Processing ended: Sat Oct  3 09:01:42 2026
+    Info: Peak virtual memory: 4522 megabytes
+    Info: Processing ended: Sat Oct  3 10:15:40 2026
     Info: Elapsed time: 00:00:13
-    Info: Total CPU time (on all processors): 00:00:51
+    Info: Total CPU time (on all processors): 00:00:50
 
 

@@ -1,0 +1,59 @@
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c: In function ‘spll_ptracker_diag_copy’:
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:18:17: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(ch==0); memset(p,0,sizeof(*p)); p->epoch=6; p->generation=2;
+                 ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:18:5: error: ‘assert’ undeclared (first use in this function)
+     assert(ch==0); memset(p,0,sizeof(*p)); p->epoch=6; p->generation=2;
+     ^~~~~~
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:18:5: note: each undeclared identifier is reported only once for each function it appears in
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:17:38: error: unused parameter ‘ch’ [-Werror=unused-parameter]
+ int spll_ptracker_diag_copy(unsigned ch,struct spll_ptracker_diag_frame *p) {
+                                      ^~
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c: In function ‘pp_printf’:
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:26:49: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(k>=0 && (unsigned)k<sizeof(printed)-n); n+=(unsigned)k; return k;
+                                                 ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:26:5: error: ‘assert’ undeclared (first use in this function)
+     assert(k>=0 && (unsigned)k<sizeof(printed)-n); n+=(unsigned)k; return k;
+     ^~~~~~
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c: In function ‘main’:
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:30:50: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(wr_phase_history_show_page(1)==-EAGAIN);
+                                                  ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:30:5: error: ‘assert’ undeclared (first use in this function)
+     assert(wr_phase_history_show_page(1)==-EAGAIN);
+     ^~~~~~
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:31:51: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(wr_phase_history_show_page(16)==-EINVAL);
+                                                   ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:34:52: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(count==32 && total==40 && ring[7][0]==40);
+                                                    ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:35:66: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(ring[7][10]==0xffffffff && ring[7][11]==(uint32_t)-100);
+                                                                  ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:36:60: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(ring[7][20]==(uint32_t)-200 && ring[7][25]==1000);
+                                                            ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:37:44: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(wr_phase_history_show_page(0)==0);
+                                            ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:38:52: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(snapshot[0][0]==9 && snapshot[31][0]==40);
+                                                    ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:39:77: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(n+64<1024 && strstr(printed,"PHIST_END snapshot=00000001 page=0"));
+                                                                             ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:42:49: error: macro "assert" requires 3 arguments, but only 1 given
+     n=0; assert(wr_phase_history_show_page(1)==0);
+                                                 ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:43:78: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(memcmp(frozen,snapshot[2],sizeof(frozen))==0 && snapshot_total==40);
+                                                                              ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:45:66: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(ring[(head+31)%32][16]==0 && ring[(head+31)%32][26]==0);
+                                                                  ^
+/home/b10504072/04_WR/scripts/tests/phase_history/test.c:46:66: error: macro "assert" requires 3 arguments, but only 1 given
+     assert(ring[(head+31)%32][17]==0 && ring[(head+31)%32][30]==0);
+                                                                  ^
+cc1: all warnings being treated as errors

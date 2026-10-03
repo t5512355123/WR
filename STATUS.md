@@ -1,7 +1,13 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003.
+Active experiment: EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003.
+Slave Main nearest admission8/9 only, complete physical step16 unchanged.
+Source/integer/native actual-controller/pin/C/Tcl tests and byte-identical
+role MIF builds passed. Full compile/program/hardware capture still pending;
+retained root output is the previous pair, not this new candidate. No new
+strict300s claim or milestone. See the [plan](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md).
+Preceding completed experiment: EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003.
 Private Main DCO capture only; firmware/functional controller unchanged.
 Native cycle equivalence, actual pin/C tests, fresh two-board compiles and one
 programming pair fromf0f0f7ef passed. Root output is that actual candidate,

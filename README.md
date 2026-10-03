@@ -5,7 +5,16 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`.
+Active experiment: `EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`.
+Pending hardware validation: Slave Main admission8(up)/9(down), consistent
+midpoint tie; completion still16. Master admission, Helper, firmware/Kp600/Ki1,
+strict60/120 and observers unchanged. Source/native tests and unchanged MIF
+rebuilds passed; full compile/program/strict observation remain pending.
+Latest retained output below is the preceding capture pair, NOT this new
+candidate. Do not relabel or program it as a nearest-step image. See the
+[current plan](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md)
+and [build precheck](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/BUILD_PRECHECK.md).
+Preceding experiment: `EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`.
 Fresh native equivalence/full compiles/one programming pair completed from
 `f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1`; root output retains THESE actual
 passive-capture candidate SOFs. Firmware/control unchanged from Kp600.

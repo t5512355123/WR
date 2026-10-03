@@ -53,3 +53,30 @@ loss, insufficient overlap or actual deadline. Do not reprogram on timeout.
 Afterward actual products/raw/checksums toLaptop experiments, independent
 reanalysis, REPORT/README/STATUS/push, Painffsync. Do not promote milestone or
 blame Ki from correlation. Protected Pain archive and milestones untouched.
+
+Same-image follow-up after the completed paired history: that capture found
+four action-free~4ns CKO/~8ns return steps. Before choosing any calibration
+or controller change, use ONE existing paired-return capture in this same
+still-live1ab27d25 programmed session. Do not reprogram solely to collect
+Master RX data: boot phase is a relevant uncontrolled variable. This is an
+additional observation of this experiment, not a new functional candidate.
+Laptop reruns existing paired-return11/details3/strict-reader1 tests and
+pushes this plan before Pain ff pull. No compile input or observer changed.
+Verify existing output/SOURCE checksums, current HEAD and no JTAG owner.
+
+Existing360s actual capture gate,32 Master RX/16 Slave TS4 records, exact
+live peer identity/sequence/full64 timestamp matches and>=8 paired updates
+stay unchanged. Shell commands are read-only MAC and passive ring pages.
+One page-zero per board, no retry. Preserve complete/partial raw on stop;
+no second capture if no overlap or no jump. If jump appears, decompose
+coarse return, fine correction, ahead/selected edge/T24P and raw phase at
+the exact accepted updates. A different time window is not the earlier
+Main-history snapshot and cannot be joined by approximate host time.
+
+An8ns jump must be distinguished from normal compensating ahead changes;
+correctly reproduced linearizer arithmetic alone does not establish its
+physical calibration. No fitted smoothing, packet drop rule, threshold
+relaxation, validity forcing or live calibration. After capture,20s strict
+postflight with original extension gate; record/upload/reanalyze on Laptop,
+then sync Pain. Keep prior95-file transfer manifest immutable; follow-up
+files receive a separate manifest. No claim300s without actual qualification.

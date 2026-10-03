@@ -6,26 +6,31 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`.
-Pending hardware validation: Slave Main admission8(up)/9(down), consistent
-midpoint tie; completion still16. Master admission, Helper, firmware/Kp600/Ki1,
-strict60/120 and observers unchanged. Source/native tests and unchanged MIF
-rebuilds passed; full compile/program/strict observation remain pending.
-Latest retained output below is the preceding capture pair, NOT this new
-candidate. Do not relabel or program it as a nearest-step image. See the
+Fresh two-board compile/one Slave-to-Master programming pair completed from
+`a45da74188d9ae325ac1c176bde74920018c0be4`; root output now contains THESE
+actual nearest-admission candidate SOFs, NOT a strict PASS milestone.
+Slave admission8(up)/9(down), consistent midpoint tie; completion still16.
+Master, Helper, firmware/Kp600/Ki1, strict60/120 and observers unchanged.
+Native/source/firmware tests passed.60 coherent snapshots:59/59 Main progress,
+9526 completions, residual-11..+11, CKO-254..+143ps. Strict acquisition/postflight
+qualified spans3187/607ms; no300s extension. Final Slave invalid/CKO104ps means
+WAIT after an excursion, not a false validity claim. See the
+[completed report](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/REPORT.md),
 [current plan](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md)
 and [build precheck](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/BUILD_PRECHECK.md).
 Preceding experiment: `EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`.
 Fresh native equivalence/full compiles/one programming pair completed from
-`f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1`; root output retains THESE actual
-passive-capture candidate SOFs. Firmware/control unchanged from Kp600.
+`f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1`; these passive-capture products
+are superseded, not erased. Firmware/control unchanged from Kp600.
 Final observer source70193e25 corrects session ownership, actual Quartus
 instance tuples and independent seven-read publication groups without reprogram.
 60 coherent snapshots: Main progress59/59,641 completions, latency1.22882ms;
 59/60 residuals below16 code, but CKO-201..+227ps. Strict acquisition/postflight
 qualified spans604/0ms, no300s extension. Final TIME_VALID1/CKO-55ps is pointwise.
 See the [DCO correlation report](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md).
-Next boundary is a tested nearest-step admission candidate, not a Ki/gain sweep;
-physical step and strict60/120 requirements must remain unchanged.
+Nearest-admission testing above did not establish stable WR offset. Next
+boundary is coherent Main phase/tracker versus timestamp provenance, not an
+automatic Ki/gain sweep; physical step and strict60/120 stay unchanged.
 The preceding Kp600 products below are superseded; evidence is not erased.
 Previous experiment: `EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`.
 Previous native tests/full compiles/one programming pair completed from

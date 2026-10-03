@@ -1,8 +1,8 @@
 === BUILD IDENTITY ===
-2026-10-03T14:05:31+08:00
+2026-10-03T15:00:03+08:00
 HOST=pain
 ROOT=/home/b10504072/04_WR
-GIT_COMMIT=f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1
+GIT_COMMIT=a45da74188d9ae325ac1c176bde74920018c0be4
 GIT_BRANCH=feat/file_cleanup
 Quartus Prime Shell
 Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
@@ -29,16 +29,16 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Sat Oct  3 14:05:32 2026
+    Info: Processing started: Sat Oct  3 15:00:04 2026
 Info: Command: quartus_sh --clean DE5a_wr_master_jtag.qpf
 Info: Quartus(args): DE5a_wr_master_jtag.qpf
 Info: /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl version #1
 Info: Removed 1058 files/folders from project.
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 0 warnings
-    Info: Peak virtual memory: 753 megabytes
-    Info: Processing ended: Sat Oct  3 14:05:34 2026
-    Info: Elapsed time: 00:00:02
+    Info: Peak virtual memory: 757 megabytes
+    Info: Processing ended: Sat Oct  3 15:00:07 2026
+    Info: Elapsed time: 00:00:03
     Info: Total CPU time (on all processors): 00:00:01
 === QUARTUS COMPILE ===
 Info: *******************************************************************
@@ -58,7 +58,7 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Sat Oct  3 14:05:34 2026
+    Info: Processing started: Sat Oct  3 15:00:07 2026
 Info: Command: quartus_sh --flow compile DE5a_wr_master_jtag.qpf
 Info: Quartus(args): compile DE5a_wr_master_jtag.qpf
 Info: Project Name = /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag
@@ -66,7 +66,7 @@ Info: Revision Name = DE5a_wr_master_jtag
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 14:05:34 2026
+    Info: Processing started: Sat Oct  3 15:00:08 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
@@ -1024,54 +1024,54 @@ Info (12021): Found 2 design units, including 1 entities, in source file /home/b
 Warning (10236): Verilog HDL Implicit Net warning at urv_cpu.v(251): created implicit net for "d2x_is_add" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/urv-core/rtl/urv_cpu.v Line: 251
 Warning (10236): Verilog HDL Implicit Net warning at urv_cpu.v(393): created implicit net for "sys_tick" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/urv-core/rtl/urv_cpu.v Line: 393
 Info (12127): Elaborating entity "DE5a_wr_master_jtag" for the top level hierarchy
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(257): object "cpu_last_store_seen" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 257
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(325): object "sync_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 325
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(327): object "cpu_debug_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 327
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(329): object "cpu_marker_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 329
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(332): object "cpu_store_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 332
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(334): object "cpu_store_count_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 334
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(336): object "cpu_exception_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 336
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(338): object "reset_sticky_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 338
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(426): object "dco_busy" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 426
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(427): object "dco_error" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 427
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(428): object "dco_step_count" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 428
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(462): object "si_corr_source0" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 462
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(463): object "si_corr_source1" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 463
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(464): object "si_corr_source2" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 464
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(465): object "si_corr_source3" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 465
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(466): object "si_corr_source4" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 466
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(467): object "si_corr_source5" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 467
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(468): object "si_corr_source6" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 468
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(469): object "si_corr_source7" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 469
-Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(495): used explicit default value for signal "reconfig_read" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 495
-Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(496): used explicit default value for signal "reconfig_write" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 496
-Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(497): used explicit default value for signal "reconfig_address" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 497
-Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(498): used explicit default value for signal "reconfig_writedata" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 498
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(499): object "reconfig_readdata" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 499
-Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(500): object "reconfig_waitrequest" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 500
-Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(501): used explicit default value for signal "reconfig_clk" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 501
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "cpu_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "wr_core_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "external_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "si_config_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "sys_pll_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "software_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "phy_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(873): inferring latch(es) for signal or variable "wr_ready_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(260): object "cpu_last_store_seen" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 260
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(328): object "sync_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 328
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(330): object "cpu_debug_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 330
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(332): object "cpu_marker_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 332
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(335): object "cpu_store_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 335
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(337): object "cpu_store_count_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 337
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(339): object "cpu_exception_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 339
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(341): object "reset_sticky_source" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 341
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(429): object "dco_busy" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 429
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(430): object "dco_error" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 430
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(431): object "dco_step_count" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 431
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(465): object "si_corr_source0" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 465
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(466): object "si_corr_source1" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 466
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(467): object "si_corr_source2" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 467
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(468): object "si_corr_source3" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 468
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(469): object "si_corr_source4" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 469
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(470): object "si_corr_source5" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 470
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(471): object "si_corr_source6" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 471
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(472): object "si_corr_source7" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 472
+Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(498): used explicit default value for signal "reconfig_read" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 498
+Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(499): used explicit default value for signal "reconfig_write" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 499
+Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(500): used explicit default value for signal "reconfig_address" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 500
+Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(501): used explicit default value for signal "reconfig_writedata" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 501
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(502): object "reconfig_readdata" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 502
+Warning (10036): Verilog HDL or VHDL warning at DE5a_wr_master_jtag.vhd(503): object "reconfig_waitrequest" assigned a value but never read File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 503
+Warning (10540): VHDL Signal Declaration warning at DE5a_wr_master_jtag.vhd(504): used explicit default value for signal "reconfig_clk" because signal was never assigned a value File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 504
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "cpu_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "wr_core_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "external_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "si_config_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "sys_pll_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "software_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "phy_reset_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Warning (10631): VHDL Process Statement warning at DE5a_wr_master_jtag.vhd(876): inferring latch(es) for signal or variable "wr_ready_drop_seen", which holds its previous value in one or more paths through the process File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(130): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 130
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(268): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 268
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(270): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 270
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(272): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 272
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(285): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 285
-Info (10041): Inferred latch for "wr_ready_drop_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "phy_reset_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "software_reset_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "sys_pll_drop_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "si_config_drop_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "external_reset_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "wr_core_reset_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (10041): Inferred latch for "cpu_reset_seen" at DE5a_wr_master_jtag.vhd(873) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 873
-Info (12128): Elaborating entity "wr_sys_clk_625" for hierarchy "wr_sys_clk_625:u_sys_clk_625" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 514
+Info (10041): Inferred latch for "wr_ready_drop_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "phy_reset_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "software_reset_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "sys_pll_drop_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "si_config_drop_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "external_reset_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "wr_core_reset_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (10041): Inferred latch for "cpu_reset_seen" at DE5a_wr_master_jtag.vhd(876) File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 876
+Info (12128): Elaborating entity "wr_sys_clk_625" for hierarchy "wr_sys_clk_625:u_sys_clk_625" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 517
 Info (12128): Elaborating entity "altpll" for hierarchy "wr_sys_clk_625:u_sys_clk_625|altpll:u_altpll" File: /home/b10504072/04_WR/quartus/wr_sys_clk_625.vhd Line: 94
 Info (12130): Elaborated megafunction instantiation "wr_sys_clk_625:u_sys_clk_625|altpll:u_altpll" File: /home/b10504072/04_WR/quartus/wr_sys_clk_625.vhd Line: 94
 Info (12133): Instantiated megafunction "wr_sys_clk_625:u_sys_clk_625|altpll:u_altpll" with the following parameter: File: /home/b10504072/04_WR/quartus/wr_sys_clk_625.vhd Line: 94
@@ -1137,9 +1137,9 @@ Info (12133): Instantiated megafunction "wr_sys_clk_625:u_sys_clk_625|altpll:u_a
 Info (12021): Found 1 design units, including 1 entities, in source file db/wr_sys_clk_625_altpll.v
     Info (12023): Found entity 1: wr_sys_clk_625_altpll File: /home/b10504072/04_WR/quartus/db/wr_sys_clk_625_altpll.v Line: 30
 Info (12128): Elaborating entity "wr_sys_clk_625_altpll" for hierarchy "wr_sys_clk_625:u_sys_clk_625|altpll:u_altpll|wr_sys_clk_625_altpll:auto_generated" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altpll.tdf Line: 898
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_reset_sticky_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 970
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_reset_sticky_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 970
-Info (12133): Instantiated megafunction "altsource_probe:u_reset_sticky_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 970
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_reset_sticky_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 973
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_reset_sticky_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 973
+Info (12133): Instantiated megafunction "altsource_probe:u_reset_sticky_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 973
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_RESET_STICKY_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1154,9 +1154,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy 
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_reset_sticky_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_reset_sticky_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
 Info (12128): Elaborating entity "sld_rom_sr" for hierarchy "altsource_probe:u_reset_sticky_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst|sld_rom_sr:\instance_id_gen:rom_info_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 756
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_dco_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1128
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_dco_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1128
-Info (12133): Instantiated megafunction "altsource_probe:u_dco_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1128
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_dco_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1131
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_dco_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1131
+Info (12133): Instantiated megafunction "altsource_probe:u_dco_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1131
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_DCO_ACTIVITY_CLEAN9F_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1170,9 +1170,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_dco_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_dco_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_dco_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1143
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1143
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1143
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1146
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1146
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1146
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1186,9 +1186,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe0|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe0|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe0|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1149
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1149
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1149
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1152
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1152
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1152
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_1_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1202,9 +1202,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe1|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe1|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe1|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1155
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1155
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe2" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1155
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1158
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1158
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe2" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1158
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_2_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1218,9 +1218,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe2|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe2|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe2|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1161
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1161
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe3" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1161
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1164
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1164
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe3" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1164
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_3_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1234,9 +1234,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe3|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe3|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe3|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe4" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1167
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe4" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1167
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe4" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1167
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe4" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1170
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe4" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1170
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe4" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1170
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_4_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1250,9 +1250,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe4|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe4|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe4|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe5" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1173
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe5" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1173
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe5" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1173
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe5" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1176
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe5" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1176
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe5" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1176
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_5_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1266,9 +1266,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe5|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe5|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe5|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe6" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1179
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe6" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1179
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe6" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1179
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe6" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1182
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe6" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1182
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe6" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1182
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_6_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1282,9 +1282,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe6|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe6|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe6|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe7" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1185
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe7" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1185
-Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe7" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1185
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_si_corr_probe7" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1188
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_si_corr_probe7" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1188
+Info (12133): Instantiated megafunction "altsource_probe:u_si_corr_probe7" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1188
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SI_CORRELATION_7_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1298,9 +1298,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_si_corr_probe7|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_si_corr_probe7|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_si_corr_probe7|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_wr_sync_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1215
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_wr_sync_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1215
-Info (12133): Instantiated megafunction "altsource_probe:u_wr_sync_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1215
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_wr_sync_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1218
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_wr_sync_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1218
+Info (12133): Instantiated megafunction "altsource_probe:u_wr_sync_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1218
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_SYNC_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1314,9 +1314,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_wr_sync_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_wr_sync_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_wr_sync_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_clock_activity_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1230
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_clock_activity_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1230
-Info (12133): Instantiated megafunction "altsource_probe:u_clock_activity_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1230
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_clock_activity_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1233
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_clock_activity_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1233
+Info (12133): Instantiated megafunction "altsource_probe:u_clock_activity_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1233
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CLOCK_ACTIVITY_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1330,9 +1330,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_clock_activity_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_clock_activity_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_clock_activity_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_snapshot_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1245
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_snapshot_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1245
-Info (12133): Instantiated megafunction "altsource_probe:u_global_time_snapshot_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1245
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_snapshot_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1248
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_snapshot_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1248
+Info (12133): Instantiated megafunction "altsource_probe:u_global_time_snapshot_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1248
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_GLOBAL_TIME_SNAPSHOT_0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1346,9 +1346,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_global_time_snapshot_probe0|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_global_time_snapshot_probe0|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_global_time_snapshot_probe0|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_snapshot_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1260
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_snapshot_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1260
-Info (12133): Instantiated megafunction "altsource_probe:u_global_time_snapshot_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1260
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_snapshot_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1263
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_snapshot_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1263
+Info (12133): Instantiated megafunction "altsource_probe:u_global_time_snapshot_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1263
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_GLOBAL_TIME_SNAPSHOT_1_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1362,9 +1362,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_global_time_snapshot_probe1|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_global_time_snapshot_probe1|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_global_time_snapshot_probe1|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_live_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1275
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_live_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1275
-Info (12133): Instantiated megafunction "altsource_probe:u_global_time_live_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1275
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_global_time_live_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1278
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_global_time_live_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1278
+Info (12133): Instantiated megafunction "altsource_probe:u_global_time_live_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1278
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_GLOBAL_TIME_LIVE_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1378,9 +1378,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_global_time_live_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_global_time_live_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_global_time_live_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_tx_comma_counter_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1290
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_tx_comma_counter_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1290
-Info (12133): Instantiated megafunction "altsource_probe:u_tx_comma_counter_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1290
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_tx_comma_counter_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1293
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_tx_comma_counter_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1293
+Info (12133): Instantiated megafunction "altsource_probe:u_tx_comma_counter_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1293
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6_TX_COMMA_COUNTER_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1394,9 +1394,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_tx_comma_counter_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_tx_comma_counter_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_tx_comma_counter_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_tx_observer_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1305
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_tx_observer_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1305
-Info (12133): Instantiated megafunction "altsource_probe:u_tx_observer_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1305
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_tx_observer_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1308
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_tx_observer_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1308
+Info (12133): Instantiated megafunction "altsource_probe:u_tx_observer_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1308
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6_TX_OBSERVER_STATUS_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1410,9 +1410,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_tx_observer_status_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_tx_observer_status_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_tx_observer_status_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_target_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1320
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_target_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1320
-Info (12133): Instantiated megafunction "altsource_probe:u_step6b_target_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1320
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_target_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1323
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_target_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1323
+Info (12133): Instantiated megafunction "altsource_probe:u_step6b_target_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1323
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6B_TARGET_TAI_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1426,9 +1426,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step6b_target_tai_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step6b_target_tai_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step6b_target_tai_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_arm_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1329
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_arm_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1329
-Info (12133): Instantiated megafunction "altsource_probe:u_step6b_arm_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1329
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_arm_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1332
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_arm_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1332
+Info (12133): Instantiated megafunction "altsource_probe:u_step6b_arm_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1332
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6B_ARM_STATUS_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1442,9 +1442,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step6b_arm_status_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step6b_arm_status_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step6b_arm_status_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_latched_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1338
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_latched_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1338
-Info (12133): Instantiated megafunction "altsource_probe:u_step6b_latched_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1338
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_latched_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1341
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_latched_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1341
+Info (12133): Instantiated megafunction "altsource_probe:u_step6b_latched_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1341
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6B_LATCHED_TAI_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1458,9 +1458,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step6b_latched_tai_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step6b_latched_tai_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step6b_latched_tai_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_actual_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1345
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_actual_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1345
-Info (12133): Instantiated megafunction "altsource_probe:u_step6b_actual_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1345
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_actual_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1348
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_actual_tai_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1348
+Info (12133): Instantiated megafunction "altsource_probe:u_step6b_actual_tai_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1348
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6B_ACTUAL_TAI_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1474,9 +1474,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step6b_actual_tai_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step6b_actual_tai_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step6b_actual_tai_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_actual_cycles_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1352
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_actual_cycles_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1352
-Info (12133): Instantiated megafunction "altsource_probe:u_step6b_actual_cycles_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1352
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step6b_actual_cycles_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1355
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step6b_actual_cycles_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1355
+Info (12133): Instantiated megafunction "altsource_probe:u_step6b_actual_cycles_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1355
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP6B_ACTUAL_CYCLES_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1490,9 +1490,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step6b_actual_cycles_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step6b_actual_cycles_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step6b_actual_cycles_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1361
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1361
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1361
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1364
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_status_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1364
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_status_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1364
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_STATUS_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1506,9 +1506,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_status_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_status_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_status_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_pending_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1367
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_pending_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1367
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_pending_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1367
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_pending_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1370
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_pending_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1370
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_pending_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1370
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_PENDING_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1522,9 +1522,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_pending_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_pending_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_pending_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_start_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1373
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_start_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1373
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_start_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1373
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_start_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1376
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_start_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1376
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_start_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1376
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_START_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1538,9 +1538,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_start_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_start_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_start_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_completed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1379
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_completed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1379
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_completed_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1379
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_completed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1382
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_completed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1382
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_completed_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1382
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_COMPLETED_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1554,9 +1554,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_completed_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_completed_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_completed_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_failed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1385
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_failed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1385
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_failed_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1385
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_failed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1388
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_failed_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1388
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_failed_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1388
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_FAILED_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1570,9 +1570,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_failed_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_failed_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_failed_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1391
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1391
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_wait_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1391
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1394
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1394
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_wait_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1394
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_WAIT_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1586,9 +1586,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_wait_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_wait_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_wait_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_current_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1397
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_current_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1397
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_current_wait_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1397
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_current_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1400
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_current_wait_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1400
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_current_wait_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1400
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_CURRENT_WAIT_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1602,9 +1602,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_current_wait_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_current_wait_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_current_wait_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_latency_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1403
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_latency_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1403
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_latency_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1403
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_latency_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1406
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_latency_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1406
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_latency_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1406
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_LATENCY_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1618,9 +1618,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_latency_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_latency_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_latency_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_failure_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1409
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_failure_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1409
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_failure_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1409
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_failure_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1412
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_failure_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1412
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_failure_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1412
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_FAILURE_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1634,9 +1634,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_failure_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_failure_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_failure_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_first_loss_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1415
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_first_loss_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1415
-Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_first_loss_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1415
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_step5_liveness_first_loss_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1418
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_step5_liveness_first_loss_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1418
+Info (12133): Instantiated megafunction "altsource_probe:u_step5_liveness_first_loss_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1418
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_STEP5_LIVENESS_FIRST_LOSS_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1650,9 +1650,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_step5_liveness_first_loss_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_step5_liveness_first_loss_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_step5_liveness_first_loss_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_debug_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1434
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_debug_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1434
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_debug_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1434
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_debug_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1437
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_debug_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1437
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_debug_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1437
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_DEBUG_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1666,9 +1666,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_debug_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_debug_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_debug_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_marker_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1453
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_marker_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1453
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_marker_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1453
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_marker_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1456
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_marker_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1456
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_marker_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1456
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_MARKER_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1682,9 +1682,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_marker_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_marker_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_marker_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_entry_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1473
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_entry_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1473
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_entry_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1473
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_entry_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1476
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_entry_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1476
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_entry_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1476
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_ENTRY_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1698,9 +1698,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_entry_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_entry_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_entry_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_store_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1491
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_store_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1491
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_store_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1491
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_store_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1494
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_store_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1494
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_store_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1494
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_STORE_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1714,9 +1714,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_store_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_store_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_store_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_store_count_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1509
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_store_count_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1509
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_store_count_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1509
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_store_count_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1512
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_store_count_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1512
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_store_count_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1512
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_STORE_COUNT_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1730,9 +1730,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_store_count_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_store_count_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_store_count_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_exception_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1527
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_exception_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1527
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_exception_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1527
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_exception_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1530
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_exception_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1530
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_exception_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1530
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_EXCEPTION_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1746,9 +1746,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_exception_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_exception_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_exception_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_data_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1549
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_data_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1549
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_data_diag_addr_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1549
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_data_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1552
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_data_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1552
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_data_diag_addr_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1552
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_DATA_DIAG_ADDR_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1762,9 +1762,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_data_diag_addr_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_data_diag_addr_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_data_diag_addr_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_data_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1564
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_data_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1564
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_data_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1564
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_data_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1567
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_data_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1567
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_data_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1567
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_DATA_DIAG_META_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1778,9 +1778,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_data_diag_meta_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_data_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_data_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1588
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1588
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_addr_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1588
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1591
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_addr_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1591
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_addr_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1591
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_DIAG_ADDR_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1794,9 +1794,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_addr_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_diag_addr_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_addr_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_q_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1603
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_q_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1603
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_q_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1603
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_q_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1606
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_q_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1606
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_q_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1606
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_DIAG_Q_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1810,9 +1810,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_q_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_diag_q_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_q_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1618
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1618
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1618
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1621
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1621
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1621
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_DIAG_META_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1826,9 +1826,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_meta_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_q0_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1638
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_q0_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1638
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_q0_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1638
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_diag_q0_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1641
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_diag_q0_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1641
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_diag_q0_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1641
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_DIAG_Q0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1842,9 +1842,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_q0_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_diag_q0_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_diag_q0_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1662
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1662
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1662
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1665
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1665
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1665
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_INIT_DIAG_0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1858,9 +1858,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe0|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe0|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe0|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1677
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1677
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1677
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1680
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1680
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1680
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_INIT_DIAG_1_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1874,9 +1874,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe1|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe1|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe1|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1692
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1692
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe2" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1692
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1695
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe2" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1695
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe2" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1695
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_INIT_DIAG_2_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1890,9 +1890,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe2|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe2|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe2|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1707
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1707
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe3" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1707
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1710
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_probe3" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1710
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_probe3" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1710
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_INIT_DIAG_3_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1906,9 +1906,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe3|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe3|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_probe3|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1722
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1722
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1722
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_init_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1725
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_init_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1725
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_init_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1725
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_INIT_DIAG_META_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1922,9 +1922,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_meta_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_init_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_init_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1745
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1745
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1745
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1748
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1748
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1748
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PRIMITIVE_DIAG_0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1938,9 +1938,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe0|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe0|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe0|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1760
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1760
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1760
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1763
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1763
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1763
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PRIMITIVE_DIAG_1_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1954,9 +1954,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe1|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe1|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_probe1|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1775
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1775
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1775
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1778
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1778
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_primitive_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1778
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PRIMITIVE_DIAG_META_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1970,9 +1970,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_meta_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_primitive_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1797
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1797
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1797
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1800
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_probe0" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1800
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_probe0" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1800
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PORT_A_DIAG_0_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -1986,9 +1986,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe0|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe0|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe0|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1812
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1812
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1812
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1815
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_probe1" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1815
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_probe1" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1815
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PORT_A_DIAG_1_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -2002,9 +2002,9 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe1|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe1|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_probe1|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1827
-Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1827
-Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1827
+Info (12128): Elaborating entity "altsource_probe" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1830
+Info (12130): Elaborated megafunction instantiation "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1830
+Info (12133): Instantiated megafunction "altsource_probe:u_cpu_ram_port_a_diag_meta_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1830
     Info (12134): Parameter "enable_metastability" = "NO"
     Info (12134): Parameter "instance_id" = "WR_CPU_RAM_PORT_A_DIAG_META_MASTER"
     Info (12134): Parameter "lpm_hint" = "altsource_probe"
@@ -2018,66 +2018,66 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "alts
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_meta_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "altsource_probe:u_cpu_ram_port_a_diag_meta_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 508
-Info (12128): Elaborating entity "si5340a_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1856
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(405): truncated value with size 16 to match size of target (8) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 405
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(406): truncated value with size 16 to match size of target (8) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 406
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(829): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 829
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(957): truncated value with size 32 to match size of target (16) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 957
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(960): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 960
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(975): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 975
-Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(1099): truncated value with size 32 to match size of target (16) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 1099
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "dpll_dir", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "dco_error", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "same_code_test_fired", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "force_burst_remaining", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "force_burst_reverse", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "burst_trigger_count", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(702): inferring latch(es) for variable "forced_hpll_pending_count", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[0]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[1]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[2]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[3]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[4]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[5]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[6]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[7]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[8]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[9]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[10]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[11]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[12]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[13]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[14]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "forced_hpll_pending_count[15]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[0]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[1]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[2]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[3]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[4]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[5]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[6]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "burst_trigger_count[7]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_reverse" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[0]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[1]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[2]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[3]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[4]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[5]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[6]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[7]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[8]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[9]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[10]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[11]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[12]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[13]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[14]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "force_burst_remaining[15]" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "same_code_test_fired" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "dco_error" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (10041): Inferred latch for "dpll_dir" at si5340a_controller_dco.v(702) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 702
-Info (12128): Elaborating entity "si5340a_i2c_reg_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller|si5340a_i2c_reg_controller_dco:u_static_reg_controller" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 655
+Info (12128): Elaborating entity "si5340a_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1859
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(418): truncated value with size 16 to match size of target (8) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 418
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(419): truncated value with size 16 to match size of target (8) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 419
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(842): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 842
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(970): truncated value with size 32 to match size of target (16) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 970
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(973): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 973
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(988): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 988
+Warning (10230): Verilog HDL assignment warning at si5340a_controller_dco.v(1112): truncated value with size 32 to match size of target (16) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 1112
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "dpll_dir", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "dco_error", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "same_code_test_fired", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "force_burst_remaining", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "force_burst_reverse", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "burst_trigger_count", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Warning (10240): Verilog HDL Always Construct warning at si5340a_controller_dco.v(715): inferring latch(es) for variable "forced_hpll_pending_count", which holds its previous value in one or more paths through the always construct File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[0]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[1]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[2]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[3]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[4]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[5]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[6]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[7]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[8]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[9]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[10]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[11]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[12]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[13]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[14]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "forced_hpll_pending_count[15]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[0]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[1]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[2]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[3]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[4]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[5]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[6]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "burst_trigger_count[7]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_reverse" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[0]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[1]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[2]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[3]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[4]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[5]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[6]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[7]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[8]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[9]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[10]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[11]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[12]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[13]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[14]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "force_burst_remaining[15]" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "same_code_test_fired" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "dco_error" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (10041): Inferred latch for "dpll_dir" at si5340a_controller_dco.v(715) File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 715
+Info (12128): Elaborating entity "si5340a_i2c_reg_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller|si5340a_i2c_reg_controller_dco:u_static_reg_controller" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 668
 Warning (10036): Verilog HDL or VHDL warning at si5340a_i2c_reg_controller_dco.v(339): object "IO_VDD_SEL" assigned a value but never read File: /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v Line: 339
 Warning (10230): Verilog HDL assignment warning at si5340a_i2c_reg_controller_dco.v(573): truncated value with size 32 to match size of target (8) File: /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v Line: 573
 Warning (10270): Verilog HDL Case Statement warning at si5340a_i2c_reg_controller_dco.v(587): incomplete case statement has no default case item File: /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v Line: 587
@@ -2085,11 +2085,11 @@ Info (12128): Elaborating entity "si5340a_freq_prameter_selector" for hierarchy 
 Warning (10034): Output port "NX_DEN" at si5340a_freq_prameter_selector.v(9) has no driver File: /home/b10504072/04_WR/quartus/si5340_controller/si5340a_freq_prameter_selector.v Line: 9
 Info (12128): Elaborating entity "edge_detector" for hierarchy "si5340a_controller_dco:u_si5340a_controller|si5340a_i2c_reg_controller_dco:u_static_reg_controller|edge_detector:u1" File: /home/b10504072/04_WR/quartus/si5340a_i2c_reg_controller_dco.v Line: 723
 Warning (10230): Verilog HDL assignment warning at edge_detector.v(52): truncated value with size 32 to match size of target (16) File: /home/b10504072/04_WR/quartus/si5340_controller/edge_detector.v Line: 52
-Info (12128): Elaborating entity "initial_config" for hierarchy "si5340a_controller_dco:u_si5340a_controller|initial_config:u_initial_config" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 662
+Info (12128): Elaborating entity "initial_config" for hierarchy "si5340a_controller_dco:u_si5340a_controller|initial_config:u_initial_config" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 675
 Warning (10230): Verilog HDL assignment warning at initial_config.v(91): truncated value with size 32 to match size of target (21) File: /home/b10504072/04_WR/quartus/si5340_controller/initial_config.v Line: 91
-Info (12128): Elaborating entity "clock_divider" for hierarchy "si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 678
+Info (12128): Elaborating entity "clock_divider" for hierarchy "si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 691
 Warning (10230): Verilog HDL assignment warning at clock_divider.v(68): truncated value with size 32 to match size of target (7) File: /home/b10504072/04_WR/quartus/si5340_controller/clock_divider.v Line: 68
-Info (12128): Elaborating entity "i2c_bus_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 698
+Info (12128): Elaborating entity "i2c_bus_controller_dco" for hierarchy "si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus" File: /home/b10504072/04_WR/quartus/si5340a_controller_dco.v Line: 711
 Warning (10036): Verilog HDL or VHDL warning at i2c_bus_controller_dco.v(173): object "shift_enable" assigned a value but never read File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 173
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(183): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 183
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(184): truncated value with size 32 to match size of target (1) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 184
@@ -2098,7 +2098,7 @@ Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(420)
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(532): truncated value with size 32 to match size of target (8) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 532
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(543): truncated value with size 32 to match size of target (3) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 543
 Warning (10034): Output port "test_start" at i2c_bus_controller_dco.v(141) has no driver File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 141
-Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1936
+Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1939
 Info (12128): Elaborating entity "gc_sync_ffs" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|gc_sync_ffs:mgmt_rst_sync" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 212
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 398
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy|wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy:xcvr_native_a10_0" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/synth/wr_arria10_e3p1_det_phy.v Line: 954
@@ -2130,7 +2130,7 @@ Info (12128): Elaborating entity "alt_xcvr_atx_pll_rcfg_opt_logic_7zpwg4q" for h
 Info (12128): Elaborating entity "a10_xcvr_atx_pll" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|a10_xcvr_atx_pll:a10_xcvr_atx_pll_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 584
 Info (12128): Elaborating entity "twentynm_xcvr_avmm" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 699
 Info (12128): Elaborating entity "alt_xcvr_resync" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst|alt_xcvr_resync:avmm_atom_insts[0].avmm_reset_sync_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/twentynm_xcvr_avmm.sv Line: 270
-Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1988
+Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1991
 Info (12128): Elaborating entity "altsource_probe" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12130): Elaborated megafunction instantiation "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12133): Instantiated megafunction "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
@@ -2147,7 +2147,7 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "wr_j
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_source_gen:wider_source_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 536
-Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 1999
+Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_master_jtag.vhd Line: 2002
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(130): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 130
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(268): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 268
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(270): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 270
@@ -2872,7 +2872,7 @@ Info (12128): Elaborating entity "xwb_clock_monitor" for hierarchy "xwr_core:u_x
 Info (12128): Elaborating entity "clock_monitor_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwb_clock_monitor:\gen_with_clock_monitor:inst_clock_monitor|clock_monitor_wb:U_WB_Slave" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/xwb_clock_monitor.vhd Line: 154
 Warning (10541): VHDL Signal Declaration warning at clock_monitor_wb.vhd(27): used implicit default value for signal "int_o" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations. File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/clock_monitor_wb.vhd Line: 27
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.10.03.14:05:50 Progress: Loading sld47b33ef0/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.10.03.15:00:26 Progress: Loading sld47b33ef0/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: "Transforming system: alt_sld_fab"
 Info (11172): Alt_sld_fab: Running transform generation_view_transform
@@ -2892,9 +2892,9 @@ Info (11172): Ident: Running transform generation_view_transform took 0.000s
 Info (11172): A10xcvrfabric: Running transform generation_view_transform
 Info (11172): A10xcvrfabric: Running transform generation_view_transform took 0.000s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.017s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.016s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.009s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.010s
 Info (11172): Alt_sld_fab: "Naming system components in system: alt_sld_fab"
 Info (11172): Alt_sld_fab: "Processing generation queue"
 Info (11172): Alt_sld_fab: "Generating: alt_sld_fab"
@@ -3114,14 +3114,14 @@ Info (21057): Implemented 26180 device resources after synthesis - the final res
     Info (21064): Implemented 406 RAM segments
     Info (21062): Implemented 4 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 263 warnings
-    Info: Peak virtual memory: 1677 megabytes
-    Info: Processing ended: Sat Oct  3 14:06:21 2026
-    Info: Elapsed time: 00:00:47
+    Info: Peak virtual memory: 1673 megabytes
+    Info: Processing ended: Sat Oct  3 15:00:58 2026
+    Info: Elapsed time: 00:00:50
     Info: Total CPU time (on all processors): 00:01:25
 Info: *******************************************************************
 Info: Running Quartus Prime Fitter
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 14:06:22 2026
+    Info: Processing started: Sat Oct  3 15:00:59 2026
 Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Info: qfit2_default_script.tcl version: #1
 Info: Project  = DE5a_wr_master_jtag
@@ -3231,51 +3231,51 @@ Info (176235): Finished register packing
     Extra Info (176218): Packed 134 registers into blocks of type DSP block
 Warning (16067): 4 out of 4 DSP blocks in the design are not fully utilizing recommended internal DSP register banks. Design performance may be limited. To take full advantage of device resources, you should either enable the register banks directly (if using WYSIWYG entry) or provide additional registers in your design that the Quartus register packing optimization algorithm can convert to internal DSP register banks.
     Warning (16069): 4 DSP blocks are partially registered - they use some, but not all of the recommended internal DSP register banks. Intel advises using all the recommended internal DSP register banks for high performance designs.
-Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:36
-Info (11165): Fitter preparation operations ending: elapsed time is 00:00:36
+Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:37
+Info (11165): Fitter preparation operations ending: elapsed time is 00:00:37
 Info (170189): Fitter placement preparation operations beginning
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (14951): The Fitter is using Advanced Physical Optimization.
 Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:17
 Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
-Info (170192): Fitter placement operations ending: elapsed time is 00:00:11
+Info (170192): Fitter placement operations ending: elapsed time is 00:00:12
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Placement is 8.53 seconds.
+Info (11888): Total time spent on timing analysis during Placement is 8.47 seconds.
 Info (170193): Fitter routing operations beginning
 Info (170195): Router estimated average interconnect usage is 0% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 29% of the available device resources in the region that extends from location X153_Y47 to location X164_Y58
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (11888): Total time spent on timing analysis during Routing is 5.38 seconds.
+Info (11888): Total time spent on timing analysis during Routing is 5.37 seconds.
 Info (16607): Fitter routing operations ending: elapsed time is 00:00:30
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Post-Routing is 0.40 seconds.
-Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:27
+Info (11888): Total time spent on timing analysis during Post-Routing is 0.39 seconds.
+Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:26
 Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.fit.smsg
 Info (11793): Fitter databases successfully split.
 Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings
-    Info: Peak virtual memory: 12501 megabytes
-    Info: Processing ended: Sat Oct  3 14:08:58 2026
-    Info: Elapsed time: 00:02:36
-    Info: Total CPU time (on all processors): 00:15:17
+    Info: Peak virtual memory: 12488 megabytes
+    Info: Processing ended: Sat Oct  3 15:03:38 2026
+    Info: Elapsed time: 00:02:39
+    Info: Total CPU time (on all processors): 00:15:32
 Info: *******************************************************************
 Info: Running Quartus Prime Assembler
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 14:09:00 2026
+    Info: Processing started: Sat Oct  3 15:03:41 2026
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info: Quartus Prime Assembler was successful. 0 errors, 1 warning
-    Info: Peak virtual memory: 6966 megabytes
-    Info: Processing ended: Sat Oct  3 14:09:26 2026
+    Info: Peak virtual memory: 6968 megabytes
+    Info: Processing ended: Sat Oct  3 15:04:07 2026
     Info: Elapsed time: 00:00:26
     Info: Total CPU time (on all processors): 00:00:26
 Info (293026): Skipped module PowerPlay Power Analyzer due to the assignment FLOW_ENABLE_POWER_ANALYZER
 Info: *******************************************************************
 Info: Running Quartus Prime TimeQuest Timing Analyzer
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sat Oct  3 14:09:27 2026
+    Info: Processing started: Sat Oct  3 15:04:08 2026
 Info: Command: quartus_sta DE5a_wr_master_jtag -c DE5a_wr_master_jtag
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -3586,14 +3586,14 @@ Info (332114): Report Metastability: Found 1182 synchronizer chains.
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
-    Info: Peak virtual memory: 4525 megabytes
-    Info: Processing ended: Sat Oct  3 14:09:40 2026
+    Info: Peak virtual memory: 4513 megabytes
+    Info: Processing ended: Sat Oct  3 15:04:21 2026
     Info: Elapsed time: 00:00:13
     Info: Total CPU time (on all processors): 00:00:50
 Info (293000): Quartus Prime Full Compilation was successful. 0 errors, 298 warnings
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 298 warnings
-    Info: Peak virtual memory: 788 megabytes
-    Info: Processing ended: Sat Oct  3 14:09:41 2026
-    Info: Elapsed time: 00:04:07
-    Info: Total CPU time (on all processors): 00:18:00
+    Info: Peak virtual memory: 789 megabytes
+    Info: Processing ended: Sat Oct  3 15:04:22 2026
+    Info: Elapsed time: 00:04:15
+    Info: Total CPU time (on all processors): 00:18:16

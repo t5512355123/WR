@@ -1,0 +1,10 @@
+ACTUAL_PHASE_HISTORY_C=PASS signed64 freeze wrap fifo coherent-invalid no-control-input
+ACTUAL_PTRACKER_PASSIVE_C=PASS actual512average unchanged-starts bounded-seqlock private-ABI
+ACTUAL_TS4_RECORDER_C=PASS raw/cal fields action boundary filtering overwrite frozen pages signed64 no-control-input
+ACTUAL_WRH_SERVO_C_TEST=PASS cases=35 acquisition_divisor=2 tracking_divisor=12 master_gm_preserved=1
+ACTUAL_FIXED_SETP_C_TEST=PASS in_band_updates=100 full64_revocations=8 all_phase_paths_guarded=1
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: OK
+build/firmware/slave/wrc.mif: OK
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003

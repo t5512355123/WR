@@ -4,13 +4,19 @@
 Active experiment: EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003.
 Slave Main nearest admission8/9 only, complete physical step16 unchanged.
 Source/integer/native actual-controller/pin/C/Tcl tests and byte-identical
-role MIF builds passed. Full compile/program/hardware capture still pending;
-retained root output is the previous pair, not this new candidate. No new
-strict300s claim or milestone. See the [plan](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md).
+role MIF builds passed. Full compiles/one Slave-to-Master programming pair
+froma45da741 completed. Root output is this actual candidate, not a strict
+PASS milestone.60 coherent rows/59 progress intervals:9526 Main completions,
+residual-11..+11, CKO-254..+143ps, no observed ACK/timeout/L2 error.
+Strict acquisition/postflight qualified holds3187/607ms; no300s extension.
+Postflight coherent TRACK/WAIT rows include13/21 outside120ps; JTAG timing
+rejections also exist, but are not the sole failure. Final Slave invalid with
+all locks1 and CKO104ps is WAIT for a new strict60 entry. No milestone/merge.
+See the [report](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/REPORT.md).
 Preceding completed experiment: EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003.
 Private Main DCO capture only; firmware/functional controller unchanged.
 Native cycle equivalence, actual pin/C tests, fresh two-board compiles and one
-programming pair fromf0f0f7ef passed. Root output is that actual candidate,
+programming pair fromf0f0f7ef passed. Those actual products are superseded,
 not a strict PASS milestone. Observer-only fixes through70193e25 were pulled
 and native-tested without another program.60 coherent snapshots over63936ms:
 Main59/59 intervals advanced,641 completions, max latency1.22882ms,

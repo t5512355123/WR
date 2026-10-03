@@ -16,6 +16,10 @@ mod=importlib.util.module_from_spec(spec);spec.loader.exec_module(mod)
 def old(path):return subprocess.check_output(['git','show',BASE+':'+path],cwd=ROOT).decode()
 def without_diag(text):
     text=re.sub(r'^\s*(?://|--) MAIN_CAPTURE_DIAG_BEGIN_\w+\n.*?^\s*(?://|--) MAIN_CAPTURE_DIAG_END_\w+\n','',text,flags=re.M|re.S)
+    # Explicitly scoped successor: four Main admission thresholds only. The
+    # separate nearest-step source/native tests must prove this exception.
+    text=re.sub(r'^\s*(?://|--) MAIN_NEAREST_BEGIN_\w+\n.*?^\s*(?://|--) MAIN_NEAREST_END_\w+\n','',text,flags=re.M|re.S)
+    text=text.replace('DPLL_UP_ADMISSION_CODE','DPLL_STEP_CODE').replace('DPLL_DOWN_ADMISSION_CODE','DPLL_STEP_CODE')
     return '\n'.join(line for line in text.splitlines() if line.strip())
 def row(n=0):
     meta=(((4000000000+n*50000000)&0xffffffff)<<32)|(1<<29)|(1<<17)|(((n+1)&65535)<<1)|(n&1)
@@ -45,7 +49,7 @@ class CaptureTests(unittest.TestCase):
     def result(self,text):
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'trace';path.write_text(text);return mod.analyze(path)
-    def test_control_source_identical_outside_private_blocks(self):
+    def test_control_source_identical_except_private_and_scoped_nearest(self):
         for path in ('quartus/si5340a_controller_dco.v','quartus/DE5a_wr_master_jtag.vhd','quartus/DE5a_wr_slave_jtag.vhd'):
             self.assertEqual(without_diag((ROOT/path).read_text()),without_diag(old(path)),path)
         for path in ('firmware/configs/de5a_slave_identity.h','firmware/configs/de5a_master_identity.h',

@@ -16,6 +16,10 @@ parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
 parameter integer STEP5_BOOTSTRAP_REVERSE = 0,
 parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
 parameter integer DPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 16,
+// MAIN_NEAREST_BEGIN_PARAM
+// Slave-only causal candidate. Defaults preserve the full-step admission.
+parameter integer ENABLE_DPLL_NEAREST_STEP = 0,
+// MAIN_NEAREST_END_PARAM
 parameter integer JTAG_HPLL_BURST_SIZE = 32,
 // After a completed normal HPLL transaction, require this many accepted
 // Helper target loads before admitting another transaction. This models the
@@ -281,6 +285,15 @@ localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 localparam signed [31:0] HPLL_HALF_STEP_CODE =
   (HPLL_STEP_CODE > 1) ? (HPLL_STEP_CODE >>> 1) : 1;
 localparam [31:0] DPLL_STEP_CODE = DPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
+// MAIN_NEAREST_BEGIN_THRESHOLDS
+// A completed transaction still moves one FULL physical step. Only admission
+// changes. Positive midpoint rounds upward; negative midpoint stays put.
+// Using >=half in BOTH directions would chatter forever at an exact midpoint.
+localparam [31:0] DPLL_UP_ADMISSION_CODE = ENABLE_DPLL_NEAREST_STEP ?
+  ((DPLL_STEP_CODE + 1) >> 1) : DPLL_STEP_CODE;
+localparam [31:0] DPLL_DOWN_ADMISSION_CODE = ENABLE_DPLL_NEAREST_STEP ?
+  ((DPLL_STEP_CODE >> 1) + 1) : DPLL_STEP_CODE;
+// MAIN_NEAREST_END_THRESHOLDS
 localparam [31:0] DPLL_START_POSITION = 32'd32768;
 localparam [31:0] DCO_DIAG_TIMEOUT_CYCLES = 32'd5000000;
 
@@ -853,9 +866,9 @@ always @(posedge iCLK or negedge iRST_n) begin
       end
       if (dpll_tracker_initialized &&
           ((({16'd0, iDPLL_DATA} > dpll_applied_position) &&
-            (({16'd0, iDPLL_DATA} - dpll_applied_position) >= DPLL_STEP_CODE)) ||
+            (({16'd0, iDPLL_DATA} - dpll_applied_position) >= DPLL_UP_ADMISSION_CODE)) ||
            ((dpll_applied_position > {16'd0, iDPLL_DATA}) &&
-            ((dpll_applied_position - {16'd0, iDPLL_DATA}) >= DPLL_STEP_CODE)))) begin
+            ((dpll_applied_position - {16'd0, iDPLL_DATA}) >= DPLL_DOWN_ADMISSION_CODE)))) begin
         dpll_pending <= 1'b1;
       end
       dpll_prev_data <= iDPLL_DATA;
@@ -920,9 +933,9 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_bootstrap <= 1'b0;
         end else if (static_controller_ready && dpll_tracker_initialized &&
             (((dpll_target_position > dpll_applied_position) &&
-              ((dpll_target_position - dpll_applied_position) >= DPLL_STEP_CODE)) ||
+              ((dpll_target_position - dpll_applied_position) >= DPLL_UP_ADMISSION_CODE)) ||
              ((dpll_applied_position > dpll_target_position) &&
-              ((dpll_applied_position - dpll_target_position) >= DPLL_STEP_CODE)))) begin
+              ((dpll_applied_position - dpll_target_position) >= DPLL_DOWN_ADMISSION_CODE)))) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b1;

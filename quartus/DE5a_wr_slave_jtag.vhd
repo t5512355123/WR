@@ -57,6 +57,9 @@ architecture rtl of DE5a_wr_slave_jtag is
       STEP5_BOOTSTRAP_REVERSE : integer := 0;
       HPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 34;
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP : integer := 16;
+      -- MAIN_NEAREST_BEGIN_INTERFACE
+      ENABLE_DPLL_NEAREST_STEP : integer := 0;
+      -- MAIN_NEAREST_END_INTERFACE
       JTAG_HPLL_BURST_SIZE : integer := 32;
       STEP5_NORMAL_HPLL_COOLDOWN_LOADS : integer := 0
     );
@@ -2203,6 +2206,9 @@ begin
       -- step account and all PI gains unchanged.
       STEP5_NORMAL_HPLL_COOLDOWN_LOADS => 0,
       DPLL_TRACKER_CODE_PER_PHYSICAL_STEP => 16,
+      -- MAIN_NEAREST_BEGIN_MAP
+      ENABLE_DPLL_NEAREST_STEP => 1,
+      -- MAIN_NEAREST_END_MAP
       JTAG_HPLL_BURST_SIZE => 32
     )
     port map (

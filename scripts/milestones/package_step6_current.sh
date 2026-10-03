@@ -67,5 +67,5 @@ cp scripts/milestones/step6_time_valid_milestone.md "$MILESTONE/README.md"
 (cd "$MILESTONE"; sha256sum source.tar.gz > ARCHIVE_SHA256SUMS; \
   sha256sum master.sof slave.sof > SHA256SUMS; \
   sha256sum -c ARCHIVE_SHA256SUMS; sha256sum -c SHA256SUMS)
-printf 'STEP6_PACKAGE=MAIN_ROOT_QUALIFIED_REBUILD_PENDING\nSTEP6_PREVIOUS_PACKAGE_BACKUP=%s\n' "$BACKUP"
+printf 'STEP6_PACKAGE=QUALIFIED_ROOT_ONLY\nSTEP6_PREVIOUS_PACKAGE_BACKUP=%s\n' "$BACKUP"
 printf 'STEP6_PACKAGE_STAGE=%s\n' "$STAGE"

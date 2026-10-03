@@ -16,8 +16,12 @@ subdirectories. Stop any dashboard before another JTAG reader. Qualification
 uses `scripts/monitor/verify_time_valid_300s.sh`, not one dashboard frame.
 See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
 See the [completed root report](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md).
-Requested canonical Step6 replacement/standalone reproduction is pending:
-[milestone plan](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/PLAN.md).
+Canonical Step6 contains this qualified root version only. The new independent
+build/program succeeded, but two600s same-session waits never acquired Slave
+TIME_VALID: **fresh standalone300s reproduction NOT ESTABLISHED**. Root/fresh
+RBF configurations match byte-for-byte; do not promise identical acquisition
+on every boot. Unqualified products are preserved outside the canonical package.
+See the [milestone reproduction report](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md).
 The strict-offset research below is historical context, not this round's gate.
 
 # DE5a White Rabbit

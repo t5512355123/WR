@@ -8,9 +8,18 @@ Root qualification: Master1191/1191 over302747ms; Slave1190/1190 over302799ms,
 zero invalid samples or capture errors. Source compile identity:
 `00b2342b22c8de000b08be4f4fc9ac1eb44f215e`.
 
-**Main-root qualification PASS; standalone fresh reproduction PENDING.**
-The new independent milestone build/program must pass before that stronger
-claim is added. A copy checksum alone is not reproduction evidence.
+**Main-root qualification PASS; new standalone reproduction NOT ESTABLISHED.**
+The independent fresh build/compile and two-board programming succeeded on
+2026-10-04, but Slave never acquired TIME_VALID in two bounded600s readiness
+attempts in that same boot. No full303s capture began. Allfive PLL locks were1
+afterward, with WAIT_OFFSET_STABLE and CKO-2460ps. Root/fresh Master and Slave
+RBF configuration payloads are byte-identical; the deeper startup/acquisition
+cause is not established. This archive does NOT promise PASS on every boot.
+See the external experiment report:
+`experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md`.
+The failed rebuilt repository/products are preserved outside this canonical
+package, not promoted as qualified images. A copy checksum is not a new300s
+qualification. No control changes were made to manufacture a PASS.
 
 ## Standalone workflow on Pain
 
@@ -48,8 +57,8 @@ the package, extracts `source/` and creates its own independent Git identity.
 Fresh compile provenance therefore differs from the parent's root commit.
 
 `master.sof` and `slave.sof` are the retained qualified root pair, duplicated
-byte-for-byte in archived `source/output/`. Fresh reproduction products are
-retained separately in extracted `source/output/`, with their actual hashes.
+byte-for-byte in archived and extracted `source/output/`. Unqualified fresh
+products and all failure evidence are kept outside this operational package.
 `ARCHIVE_SHA256SUMS` and `SHA256SUMS` identify the sealed archive and alias SOFs.
 
 The historical WR validity policy is restored. Controller numerical entry/

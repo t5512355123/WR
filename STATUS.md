@@ -12,8 +12,12 @@ threshold. Strict offset <=120ps retention is no longer this round's gate and
 must not be inferred from a TIME_VALID-only PASS. Frozen packages unchanged.
 See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
 See the [completed report](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md).
-Canonical milestone replacement/fresh standalone reproduction remains pending,
-per the [new plan](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/PLAN.md).
+Canonical Step6 is replaced with this qualified root version only. New fresh
+milestone build/compile/program PASS; standalone300s qualification
+**NOT_ESTABLISHED**, both600s readiness attempts timed out (Slave0/376 valid
+readiness samples, five PLL lock flags1 afterward). Root/fresh RBFs match
+byte-for-byte. Unqualified products are outside the successful package.
+See the [fresh reproduction report](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md).
 
 The preceding unchanged-image check failed on Slave (434/1192 invalid rows):
 [completed report](experiments/step6/EXP-S6-CURRENT-IMAGE-TIME-VALID-300S-ONLY-20261003/REPORT.md).

@@ -66,3 +66,14 @@ Afterpush/Painpull/native tests, permit one bounded actual capture using the
 same exact SOFs. Preserve both failed preflights and inventory. No reprogram,
 no relaxed data guards, and do not confuse these reader preflights with
 hardware failure or valid DCO data.
+
+Third attempt passed actual image and private capture checks, then stopped
+before sample0 because the combined10-read WR/lock publication group could not
+pass its600ms coherence guard. Established strict primary has seven reads.
+Observer amendment: preserve that failed raw, keep600ms/group and120s total,
+split WR(UCNT/CKO/SSTAT) and locks(H/M/P) into independently guarded seven-read
+groups, with their own start/end bounds and epochs/CTRL in log schema2. Never
+claim cross-group atomicity. Emit the private frozen64-bit raw before later
+reads so failure cannot erase the obtained capture. Laptop/native tests include
+both torn groups and lock-loss rejection; one same-image bounded retry after
+push/pull/tests. No firmware/HDL/control/reprogram change or threshold relaxation.

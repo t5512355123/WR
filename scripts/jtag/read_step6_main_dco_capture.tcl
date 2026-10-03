@@ -45,27 +45,35 @@ proc dco_capture {} {
   if {$a ne $b} { error "Capture changed/second observer" }
   return [list $a $p $c $b]
 }
-proc dco_frame {hw} {
+proc dco_guarded_group {hw addresses} {
   set deadline [expr {[clock milliseconds]+600}]
   while {[clock milliseconds]<$deadline} {
     set e0 [wb_read $hw 0x00100B34]; set c0 [wb_read $hw 0x00100A04]
-    set u [wb_read $hw 0x00100A48]; set k [wb_read $hw 0x00100A40]
-    set s [wb_read $hw 0x00100A08]; set h [wb_read $hw 0x00100ABC]
-    set m [wb_read $hw 0x00100AC4]; set p [wb_read $hw 0x00100A0C]
+    set payload {}
+    foreach address $addresses {lappend payload [wb_read $hw $address]}
     set e1 [wb_read $hw 0x00100B34]; set c1 [wb_read $hw 0x00100A04]
     set good 1
-    foreach raw [list $e0 $c0 $u $k $s $h $m $p $e1 $c1] {
+    foreach raw [concat [list $e0 $c0 $e1 $c1] $payload] {
       if {![is_hex $raw]} {set good 0}
     }
     if {$good && ([word32 $c0]&1) && ([word32 $c1]&1) &&
         (([word32 $e0]^[word32 $e1])&0xffff)==0} {
-      if {!([word32 $h]&1) || ([word32 $m]&0xe)!=0xe || !([word32 $p]&2)} {
-        error "Slave lock loss"
-      }
-      return [list $e0 $c0 $u $k $s $h $m $p $e1 $c1]
+      return [concat [list $e0 $c0] $payload [list $e1 $c1]]
     }
   }
-  error "No fresh coherent WR frame within600ms"
+  error "No fresh coherent diagnostic group within600ms"
+}
+proc dco_frame {hw} {
+  # Same seven-read publication frame as the established strict reader.
+  return [dco_guarded_group $hw {0x00100A48 0x00100A40 0x00100A08}]
+}
+proc dco_lock_frame {hw} {
+  set values [dco_guarded_group $hw {0x00100ABC 0x00100AC4 0x00100A0C}]
+  lassign $values e0 c0 h m p e1 c1
+  if {!([word32 $h]&1) || ([word32 $m]&0xe)!=0xe || !([word32 $p]&2)} {
+    error "Slave lock loss"
+  }
+  return $values
 }
 if {[info exists ::dco_capture_library_only] && $::dco_capture_library_only} {return}
 set begin [clock milliseconds]; set deadline [expr {$begin+120000}]; set targets {}
@@ -76,7 +84,7 @@ foreach name {1-11.1 1-11.2} role {MASTER SLAVE} {
   if {![llength $devices]} {error "Missing device"}
   lappend targets [list $hw [lindex $devices 0] $role]
 }
-puts "MAIN_DCO_CONFIG schema=1 samples=60 max_actual_ms=120000 control_changed=0 applied_position_is_virtual=1 cross_group_atomic=0"
+puts "MAIN_DCO_CONFIG schema=2 samples=60 max_actual_ms=120000 control_changed=0 applied_position_is_virtual=1 cross_group_atomic=0"
 set completed 0
 if {[catch {
   foreach target $targets {ts4_health $target}
@@ -86,14 +94,20 @@ if {[catch {
   for {set n 0} {$n<60} {incr n} {
     set start [clock milliseconds]; if {$start>=$deadline} {error "Actual deadline"}
     lassign [dco_capture] a pos cnt b; set capture_end [clock milliseconds]
-    lassign [dco_frame $hw] e0 c0 u k s h m p e1 c1
+    puts "MAIN_DCO_CAPTURE_RAW n=$n start_ms=[expr {$start-$begin}] capture_end_ms=[expr {$capture_end-$begin}] META0=$a POSITION=$pos COUNTS=$cnt META1=$b"
+    flush stdout
+    set wr_start [clock milliseconds]
+    lassign [dco_frame $hw] e0 c0 u k s e1 c1
+    set wr_end [clock milliseconds]; set lock_start [clock milliseconds]
+    lassign [dco_lock_frame $hw] le0 lc0 h m p le1 lc1
+    set lock_end [clock milliseconds]
     set l2 [dco_raw 52]; set failed [dco_raw 56]; set wait [dco_raw 57]
     set current_wait [dco_raw 58]; set latency [dco_raw 59]; set failure [dco_raw 60]
     if {([word64 $l2]&0xf0)!=0 || [word64 $failed]!=0 || [word64 $failure]!=0} {
       error "L2 ACK/timeout/first-loss/DCO-error/failure evidence"
     }
     set end [clock milliseconds]
-    puts "MAIN_DCO_SAMPLE n=$n start_ms=[expr {$start-$begin}] capture_end_ms=[expr {$capture_end-$begin}] end_ms=[expr {$end-$begin}] META0=$a POSITION=$pos COUNTS=$cnt META1=$b E0=$e0 C0=$c0 UCNT=$u CKO=$k SSTAT=$s H=$h M=$m P=$p E1=$e1 C1=$c1 L2=$l2 FAILED=$failed WAIT=$wait CURRENT_WAIT=$current_wait LATENCY=$latency FAILURE=$failure"
+    puts "MAIN_DCO_SAMPLE n=$n start_ms=[expr {$start-$begin}] capture_end_ms=[expr {$capture_end-$begin}] wr_start_ms=[expr {$wr_start-$begin}] wr_end_ms=[expr {$wr_end-$begin}] lock_start_ms=[expr {$lock_start-$begin}] lock_end_ms=[expr {$lock_end-$begin}] end_ms=[expr {$end-$begin}] META0=$a POSITION=$pos COUNTS=$cnt META1=$b E0=$e0 C0=$c0 UCNT=$u CKO=$k SSTAT=$s E1=$e1 C1=$c1 LE0=$le0 LC0=$lc0 H=$h M=$m P=$p LE1=$le1 LC1=$lc1 L2=$l2 FAILED=$failed WAIT=$wait CURRENT_WAIT=$current_wait LATENCY=$latency FAILURE=$failure"
     incr completed; if {$completed==3} {puts "MAIN_DCO_SMOKE_PASS samples=3"}
     if {$completed%10==0} {foreach target $targets {ts4_health $target}; ts4_select $slave}
     flush stdout

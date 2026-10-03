@@ -19,20 +19,25 @@ def without_diag(text):
     return '\n'.join(line for line in text.splitlines() if line.strip())
 def row(n=0):
     meta=(((4000000000+n*50000000)&0xffffffff)<<32)|(1<<29)|(1<<17)|(((n+1)&65535)<<1)|(n&1)
-    f=dict(n=str(n),start_ms=str(100+n*1000),capture_end_ms=str(150+n*1000),end_ms=str(350+n*1000),
+    f=dict(n=str(n),start_ms=str(100+n*1000),capture_end_ms=str(150+n*1000),
+        wr_start_ms=str(150+n*1000),wr_end_ms=str(200+n*1000),
+        lock_start_ms=str(200+n*1000),lock_end_ms=str(300+n*1000),end_ms=str(350+n*1000),
         META0=f'{meta:016X}',META1=f'{meta:016X}',POSITION=f'{32768:08X}{32775:08X}',
-        COUNTS=f'{n:08X}{n:08X}',E0='00000002',E1='00000002',C0='1',C1='1',
-        UCNT=f'{100+n:08X}',CKO='FFFFFFFE',SSTAT='00000401',H='1',M='F',P='3',
+        COUNTS=f'{n:08X}{n:08X}',E0='00000002',E1='00000002',C0='00000001',C1='00000001',
+        UCNT=f'{100+n:08X}',CKO='FFFFFFFE',SSTAT='00000401',
+        LE0='00000002',LE1='00000002',LC0='00000001',LC1='00000001',H='00000001',M='0000000F',P='00000003',
         L2='0000000000000000',FAILED='0000000000000000',FAILURE='0000000000000000',
         LATENCY='000000000000C350',WAIT='0000000000000000',CURRENT_WAIT='0000000000000000')
     return f
 def health(role):
     return f'TS4_HEALTH_OK role={role} STATUS=00000001000080df ESCR=0000000c H=00000001 M=0000000e P=00000002 RESET={{1 0 0 0 0}}'
 def fixture(change=None):
-    lines=['MAIN_DCO_CONFIG schema=1 samples=60 max_actual_ms=120000 control_changed=0 applied_position_is_virtual=1 cross_group_atomic=0',health('MASTER'),health('SLAVE')]
+    lines=['MAIN_DCO_CONFIG schema=2 samples=60 max_actual_ms=120000 control_changed=0 applied_position_is_virtual=1 cross_group_atomic=0',health('MASTER'),health('SLAVE')]
     for n in range(60):
         f=row(n)
         if change:change(n,f)
+        lines.append('MAIN_DCO_CAPTURE_RAW '+' '.join(k+'='+f[k] for k in
+            ('n','start_ms','capture_end_ms','META0','POSITION','COUNTS','META1')))
         lines.append('MAIN_DCO_SAMPLE '+' '.join(k+'='+v for k,v in f.items()))
     return '\n'.join(lines+['MAIN_DCO_SMOKE_PASS samples=3',health('MASTER'),health('SLAVE'),'MAIN_DCO_DONE samples=60 elapsed_ms=61000'])
 
@@ -80,6 +85,12 @@ class CaptureTests(unittest.TestCase):
     def test_unsigned_boundary_applied65536_allowed(self):
         f=row();f['POSITION']='000100000000FFFF'
         self.assertEqual(mod.decode(f)['residual'],-1)
+    def test_separate_group_guards_timing_and_raw_preservation_required(self):
+        for key,value in [('LE1','00000003'),('LC1','00000000'),
+                          ('wr_end_ms','140'),('lock_end_ms','1000')]:
+            self.assertEqual(self.result(fixture(lambda n,f:f.update({key:value}) if n==0 else None))['verdict'],'INCONCLUSIVE')
+        text='\n'.join(line for line in fixture().splitlines() if not line.startswith('MAIN_DCO_CAPTURE_RAW '))
+        self.assertEqual(self.result(text)['verdict'],'INCONCLUSIVE')
     @unittest.skipIf(tkinter is None,'Use native Quartus Tcl runner on Pain')
     def test_actual_native_tcl_fixture_session_ownership_and_wrong_image(self):
         t=tkinter.Tcl();t.eval('package provide ::quartus::insystem_source_probe 1.0')

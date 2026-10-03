@@ -1,0 +1,9 @@
+test_all_controller_and_hardware_inputs_unchanged (test_step6_main_kp600_scope.ScopeTests.test_all_controller_and_hardware_inputs_unchanged) ... ok
+test_current_good_frequency_acceptance_ki_preload_not_reverted (test_step6_main_kp600_scope.ScopeTests.test_current_good_frequency_acceptance_ki_preload_not_reverted) ... ok
+test_diagnostics_and_strict_proof_are_not_relaxed (test_step6_main_kp600_scope.ScopeTests.test_diagnostics_and_strict_proof_are_not_relaxed) ... ok
+test_only_slave_main_kp_value_changes (test_step6_main_kp600_scope.ScopeTests.test_only_slave_main_kp_value_changes) ... ok
+
+----------------------------------------------------------------------
+Ran 4 tests in 0.727s
+
+OK

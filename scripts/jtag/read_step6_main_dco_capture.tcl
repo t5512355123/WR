@@ -8,6 +8,16 @@ proc dco_raw {instance} {
   if {![regexp {^[0-9a-fA-F]{1,16}$} $raw]} { error "Invalid probe$instance" }
   return [string toupper [string repeat 0 [expr {16-[string length $raw]}]]$raw]
 }
+proc dco_require_image {hw device} {
+  # ts4_health leaves its last board session open. Quartus instance discovery
+  # opens its own session, so close ours first; never run two JTAG sessions.
+  end_insystem_source_probe
+  set instances [get_insystem_source_probe_instance_info -hardware_name $hw -device_name $device]
+  foreach id {WR_S6_MAIN_DCO_META_V1 WR_S6_MAIN_DCO_POSITION_V1 WR_S6_MAIN_DCO_COUNTS_V1} {
+    if {[string first $id $instances]<0} {error "Wrong image: missing$id"}
+  }
+  return $instances
+}
 proc dco_capture {} {
   set old [word64 [dco_raw 72]]
   set toggle [expr {($old&1)^1}]; set seq [expr {((($old>>1)&0xffff)+1)&0xffff}]
@@ -62,10 +72,7 @@ set completed 0
 if {[catch {
   foreach target $targets {ts4_health $target}
   set slave [lindex $targets 1]; lassign $slave hw device role
-  set instances [get_insystem_source_probe_instance_info -hardware_name $hw -device_name $device]
-  foreach id {WR_S6_MAIN_DCO_META_V1 WR_S6_MAIN_DCO_POSITION_V1 WR_S6_MAIN_DCO_COUNTS_V1} {
-    if {[string first $id $instances]<0} {error "Wrong image: missing$id"}
-  }
+  set instances [dco_require_image $hw $device]
   puts "MAIN_DCO_INSTANCES {$instances}"; ts4_select $slave
   for {set n 0} {$n<60} {incr n} {
     set start [clock milliseconds]; if {$start>=$deadline} {error "Actual deadline"}

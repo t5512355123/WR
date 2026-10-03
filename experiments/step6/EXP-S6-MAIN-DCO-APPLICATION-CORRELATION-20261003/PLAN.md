@@ -47,3 +47,11 @@ qualified data/errorsnone may extend with one360s actual strict300s attempt.
 Return actual build/output/raw/checksums to Laptop, independent analysis,
 REPORT/README/STATUS/push, Pain ff sync. Preserve all frozen milestones and
 never touch /home/b10504072/04_WR_archive_step6_pass/. No advisors/powercycle.
+
+Execution amendment: the first actual DCO observer stopped before sample0,
+because image-instance discovery tried to open a second session after health
+left the Slave session open. Both health groups passed. Preserve that failed
+raw. Laptop fixes ONLY observer session ownership and adds an offline native
+Tcl lifecycle/wrong-image test ->push ->Pain pull/native tests ->one bounded
+retry on the same programmed pair. No control/source-image change, no compile
+input change, no reprogram. Compiled source identity remains f0f0f7ef.

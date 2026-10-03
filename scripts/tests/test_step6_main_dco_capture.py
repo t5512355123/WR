@@ -81,6 +81,11 @@ class CaptureTests(unittest.TestCase):
         f=row();f['POSITION']='000100000000FFFF'
         self.assertEqual(mod.decode(f)['residual'],-1)
     @unittest.skipIf(tkinter is None,'Use native Quartus Tcl runner on Pain')
+    def test_actual_native_tcl_fixture_session_ownership_and_wrong_image(self):
+        t=tkinter.Tcl();t.eval('package provide ::quartus::insystem_source_probe 1.0')
+        t.call('source',str(ROOT/'scripts/tests/test_step6_main_dco_capture.tcl'))
+        self.assertEqual(t.eval('set ::test_active'),'0')
+    @unittest.skipIf(tkinter is None,'Use native Quartus Tcl runner on Pain')
     def test_actual_tcl_capture_only_writes_private_source_and_checks_freeze(self):
         t=tkinter.Tcl();t.eval('package provide ::quartus::insystem_source_probe 1.0;set argv {};set ::dco_capture_library_only 1')
         t.call('source',str(ROOT/'scripts/jtag/read_step6_main_dco_capture.tcl'))

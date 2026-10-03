@@ -10,10 +10,6 @@
 // #include "wrs-constants.h"
 #include "../proto-standard/common-fun.h"
 #include "wrh-servo_state_name.h"
-#if CONFIG_ARCH_IS_WRPC
-#include "../arch-wrpc/wrpc.h"
-#include "../../include/wrh-fixed-diag.h"
-#endif
 
 #if CONFIG_ARCH_IS_WRS
 #include <libwr/shmem.h>
@@ -29,34 +25,9 @@
 /* Enable tracking by default. Disabling the tracking is used for demos. */
 static int wrh_tracking_enabled = 1;
 
-#if CONFIG_ARCH_IS_WRPC
-/* Boot-lifetime diagnostic latch, independent of IPC. No init/reset clears it. */
-static struct wrh_fixed_diag fixed_diag = {
-	.enabled = WRH_FIXED_SETP_DIAGNOSTIC
-};
-void wrh_fixed_diag_get(struct wrh_fixed_diag *result)
-{
-	*result = fixed_diag;
-}
-#define FIXED_SETP (WRH_FIXED_SETP_DIAGNOSTIC && fixed_diag.latched)
-#else
-#define FIXED_SETP 0
-#endif
-
 /* prototypes */
 static int __wrh_servo_update(struct pp_instance *ppi);
 static void  setState(struct pp_instance *ppi, int newState);
-static void invalidate_slave_time(struct pp_instance *ppi)
-{
-#if CONFIG_ARCH_IS_WRPC
-	/* WR hooks/reset also run on a free-running Master. Its local time must
-	 * stay enabled; only an effective Slave owns this offset qualification.
-	 * Use effective timing mode, not configured role (BMC can change it). */
-	if (WRPC_ARCH_I(ppi)->timingMode != WRH_TM_BOUNDARY_CLOCK)
-		return;
-#endif
-	TOPS(ppi)->enable_timing_output(GLBS(ppi), 0);
-}
 
 /* External data */
 extern struct wrs_shm_head *ppsi_head;
@@ -72,12 +43,7 @@ int wrh_servo_init(struct pp_instance *ppi)
 	struct pp_servo *gs=SRV(ppi);
 	int ret=0;
 
-	/* Reinitialization can itself write a phase setpoint. Revoke first. */
-	invalidate_slave_time(ppi);
 	pp_servo_init(ppi); // Initialize the standard servo data
-#if CONFIG_ARCH_IS_WRPC
-	fixed_diag.servo_inits++;
-#endif
 
 	/* shmem lock */
 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
@@ -93,17 +59,12 @@ int wrh_servo_init(struct pp_instance *ppi)
 	 * The softpll code uses the module anyways, but if we unplug-replug
 	 * the fiber it will always increase, so don't scare the user
 	 */
-	if (!FIXED_SETP && s->cur_setpoint_ps > s->clock_period_ps)
+	if (s->cur_setpoint_ps > s->clock_period_ps)
 		s->cur_setpoint_ps %= s->clock_period_ps;
 
 	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 
-	if (!FIXED_SETP) {
-		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
-#if CONFIG_ARCH_IS_WRPC
-		fixed_diag.phase_writes++;
-#endif
-	}
+	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 
 	gs->flags |= PP_SERVO_FLAG_VALID;
 	TOPS(ppi)->get(ppi, &gs->update_time);
@@ -216,11 +177,6 @@ static void setState(struct pp_instance *ppi, int newState)
 {
 	struct pp_servo *gs=SRV(ppi);
 	const char *state_name = wrh_servo_state_name[newState];
-	/* Valid time is a live qualification, not a one-shot acquisition latch.
-	 * Invalidate before any coarse/phase reacquisition or reset operation. */
-	if (newState != WRH_TRACK_PHASE)
-		invalidate_slave_time(ppi);
-	gs->servo_locked = (newState == WRH_TRACK_PHASE);
 	pp_diag(ppi, servo, 1, "new state %s\n", state_name);
 	gs->state=newState;
 	gs->servo_state_name = state_name;
@@ -230,6 +186,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 {
 	struct pp_servo *gs=SRV(ppi);
 	wrh_servo_t *s=WRH_SRV(ppi);
+	int remaining_offset;
 	int32_t  offset_ticks;
 	int64_t prev_delayMM_ps = 0;
 	int locking_poll_ret;
@@ -238,18 +195,14 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	int32_t  offset_ps;
 
 	if ( gs->state==WRH_UNINITIALIZED ) {
-		invalidate_slave_time(ppi);
 		pp_error("%s : Servo not initialized !!!!\n",__FUNCTION__);
 		return 0;
 	}
 
 	prev_delayMM_ps = s->delayMM_ps;
 
-	if ( !pp_servo_calculate_delays(ppi) ) {
-		/* No trustworthy measurement: reacquire rather than retain VALID. */
-		setState(ppi, WRH_SYNC_PHASE);
+	if ( !pp_servo_calculate_delays(ppi) )
 		return 0;
-	}
 
 	s->delayMM_ps=pp_time_to_picos(&gs->delayMM);
 	s->delayMS_ps=pp_time_to_picos(&gs->delayMS);
@@ -261,36 +214,14 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	gs->update_count++;
 	TOPS(ppi)->get(ppi, &gs->update_time);
 
-	if (!s->readyForSync ) {
-		setState(ppi, WRH_SYNC_PHASE);
+	if (!s->readyForSync )
 		return 1; /* We have to wait before to start the synchronization */
-	}
 
 	locking_poll_ret = WRH_OPER()->locking_poll(ppi);
 	if (locking_poll_ret != WRH_SPLL_LOCKED ){
-		setState(ppi, WRH_SYNC_PHASE);
 		pp_error("%s: PLL error detected (Err=%d). Force restart.\n",__func__,locking_poll_ret);
 		s->doRestart = TRUE;
 		return 0;
-	}
-
-	/* Use the full signed 64-bit measured offset, not its wrapped residual.
-	 * This safety check must precede the hardware-busy early return and must
-	 * remain active even when IPC/demo tracking adjustments are disabled.
-	 * Comparisons avoid abs(int64_t)->int truncation and INT64_MIN overflow. */
-	if (gs->state == WRH_TRACK_PHASE &&
-	    (s->offsetMS_ps > 2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD ||
-	     s->offsetMS_ps < -2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD)) {
-		if (FIXED_SETP) {
-			/* Continue measuring at fixed phase, but never preserve/re-enable
-			 * valid output after an excursion. This is NOT a PASS bypass. */
-			invalidate_slave_time(ppi);
-#if CONFIG_ARCH_IS_WRPC
-			fixed_diag.revoked = 1;
-#endif
-		} else {
-			setState(ppi, WRH_SYNC_PHASE);
-		}
 	}
 
 	/* After each action on the hardware, we must verify if it is over. */
@@ -341,17 +272,12 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	case WRH_SYNC_PHASE:
-		if (FIXED_SETP)
-			break; /* A coarse/reinit exit remains invalid; observer stops. */
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
 		s->cur_setpoint_ps += (offset_ps / 2);
 		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
-#if CONFIG_ARCH_IS_WRPC
-		fixed_diag.phase_writes++;
-#endif
 
 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
 		setState(ppi,WRH_WAIT_OFFSET_STABLE);
@@ -371,23 +297,12 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	case WRH_WAIT_OFFSET_STABLE:
-		if (FIXED_SETP)
-			break; /* One-shot qualification: no second VALID entry. */
 
-		/* Strict acquisition band: exactly +/-60 ps is not an entry. */
-		if (s->offsetMS_ps < WRH_SERVO_OFFSET_STABILITY_THRESHOLD &&
-		    s->offsetMS_ps > -WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
-			s->missed_iters = 0;
+		/* ts_to_picos() below returns phase alone */
+		remaining_offset = abs(pp_time_to_picos(&offsetMS));
+		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
 			s->prev_delayMS_ps = s->delayMS_ps;
-#if CONFIG_ARCH_IS_WRPC
-			if (WRH_FIXED_SETP_DIAGNOSTIC &&
-			    WRPC_ARCH_I(ppi)->timingMode == WRH_TM_BOUNDARY_CLOCK) {
-				fixed_diag.frozen_setpoint = s->cur_setpoint_ps;
-				fixed_diag.entry_update = gs->update_count;
-				fixed_diag.latched = 1;
-			}
-#endif
 			setState(ppi,WRH_TRACK_PHASE);
 		} else {
 			s->missed_iters++;
@@ -402,15 +317,18 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		s->skew_ps = s->delayMS_ps - s->prev_delayMS_ps;
 
 		/* Can be disabled for manually tweaking and testing */
-		if(wrh_tracking_enabled && !FIXED_SETP) {
+		if(wrh_tracking_enabled) {
+			if (abs(offset_ps) >
+			    2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+				setState(ppi,WRH_SYNC_PHASE);
+				break;
+			}
+
 			// adjust phase towards offset = 0 make ck0 0
 			s->cur_setpoint_ps += (offset_ps / 12);
 
 			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
-#if CONFIG_ARCH_IS_WRPC
-			fixed_diag.phase_writes++;
-#endif
 			pp_diag(ppi, time, 1, "adjust phase %i\n",
 				s->cur_setpoint_ps);
 
@@ -429,8 +347,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 
 	/* Increase number of servo updates with offset exceeded
 	 * SNMP_MAX_OFFSET_PS (Used by SNMP) */
-	if (s->offsetMS_ps > SNMP_MAX_OFFSET_PS ||
-	    s->offsetMS_ps < -SNMP_MAX_OFFSET_PS)
+	if (abs(s->offsetMS_ps) > SNMP_MAX_OFFSET_PS)
 		s->n_err_offset++;
 
 	/* Increase number of servo updates with delta rtt exceeded

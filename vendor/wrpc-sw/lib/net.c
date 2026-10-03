@@ -26,7 +26,6 @@
 #include "softpll_ng.h"
 #include "ipv4.h"
 #include "dev/rxts_calibrator.h"
-#include "rxts-diag.h"
 
 static struct wrpc_socket *socks[NET_MAX_SOCKETS];
 
@@ -245,13 +244,6 @@ int ptpd_netif_recvfrom(struct wrpc_socket *s, struct wr_sockaddr *from, void *d
 						  hwts.ahead,
 						  s->nif->phase_transition,
 						  REF_CLOCK_PERIOD_PS);
-
-		/* Copy only: preserve the timestamp used by PPSI, calibration and all
-		 * control paths. The diagnostic has no return value or HW accesses. */
-		if (from->ethertype == 0x88f7)
-			rxts_diag_record(data, min(size, data_length), rx_timestamp,
-					 hwts.sec, s->nif->phase_transition,
-					 REF_CLOCK_PERIOD_PS);
 	}
 
 	net_verbose("%s: called from %p\n",

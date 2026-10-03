@@ -1,3 +1,20 @@
+# Latest main-root status — 2026-10-03
+
+Target: **both boards TIME_VALID=1 for >=300s, sampled**.
+Candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
+Status: **PREPARED / HARDWARE_VALIDATION_PENDING**, not a new PASS yet.
+Restores the 3110 historical qualified production inputs from `0bb02c6f`,
+Master bootstrap2048/account64 and Slave Kp300/Ki1, full-step16, WR /2+/12.
+Historical WR validity semantics are restored; no forced valid bit or new
+threshold. Strict offset <=120ps retention is no longer this round's gate and
+must not be inferred from a TIME_VALID-only PASS. Frozen packages unchanged.
+See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
+
+The preceding unchanged-image check failed on Slave (434/1192 invalid rows):
+[completed report](experiments/step6/EXP-S6-CURRENT-IMAGE-TIME-VALID-300S-ONLY-20261003/REPORT.md).
+The strict-offset status below is retained historical context, superseded as
+the current acceptance criterion by the user's TIME_VALID-only request.
+
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**

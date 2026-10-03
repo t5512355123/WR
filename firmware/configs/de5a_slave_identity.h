@@ -14,7 +14,7 @@
 
 /* F4K: independent, role-specific Main Kp override.  A1/A2 use 300;
  * the approved B arm changes only this value to 600. */
-#define DE5A_MAIN_PI_KP_OVERRIDE 600
+#define DE5A_MAIN_PI_KP_OVERRIDE 300
 /* Threshold20 image: make F4L the diagnostic owner on both boards. */
 #define DE5A_F4L_MAIN_PHASE_DIAG 1
 

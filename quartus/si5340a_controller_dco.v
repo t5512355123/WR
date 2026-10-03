@@ -16,10 +16,6 @@ parameter integer STEP5_BOOTSTRAP_STEPS = 6336,
 parameter integer STEP5_BOOTSTRAP_REVERSE = 0,
 parameter integer HPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 34,
 parameter integer DPLL_TRACKER_CODE_PER_PHYSICAL_STEP = 16,
-// MAIN_NEAREST_BEGIN_PARAM
-// Slave-only causal candidate. Defaults preserve the full-step admission.
-parameter integer ENABLE_DPLL_NEAREST_STEP = 0,
-// MAIN_NEAREST_END_PARAM
 parameter integer JTAG_HPLL_BURST_SIZE = 32,
 // After a completed normal HPLL transaction, require this many accepted
 // Helper target loads before admitting another transaction. This models the
@@ -40,12 +36,6 @@ input     [15:0]        iHPLL_DATA,
 input                   iFORCE_HPLL_ONE_STEP,
 input                   iFORCE_HPLL_REVERSE,
 input     [15:0]        iFORCE_HPLL_BURST_SIZE,
-// MAIN_CAPTURE_DIAG_BEGIN_PORTS
-input                   iDIAG_MAIN_CAPTURE_TOGGLE,
-output    [63:0]        oDIAG_MAIN_CAPTURE_META,
-output    [63:0]        oDIAG_MAIN_CAPTURE_POSITION,
-output    [63:0]        oDIAG_MAIN_CAPTURE_COUNTS,
-// MAIN_CAPTURE_DIAG_END_PORTS
 output                  I2C_CLK,
 inout                   I2C_DATA,
 output                  oPLL_I2C_ID_READ_ERROR,
@@ -238,45 +228,6 @@ reg        liveness_tx_failure_seen;
 reg        liveness_tx_timeout_reported;
 reg [31:0] liveness_tx_start_time;
 
-// MAIN_CAPTURE_DIAG_BEGIN_LOGIC
-// Private observation only. No signal here feeds functional control. All
-// payloads freeze on one iCLK edge; request/ACK crosses only this debug path.
-// Applied position is the controller's virtual completion account, NOT a
-// readback of the SI5340 physical oscillator or acknowledgement guarantee.
-reg main_capture_meta_ff, main_capture_sync_ff, main_capture_ack;
-reg [15:0] main_capture_seq;
-reg [63:0] main_capture_meta, main_capture_position, main_capture_counts;
-assign oDIAG_MAIN_CAPTURE_META = main_capture_meta;
-assign oDIAG_MAIN_CAPTURE_POSITION = main_capture_position;
-assign oDIAG_MAIN_CAPTURE_COUNTS = main_capture_counts;
-always @(posedge iCLK or negedge iRST_n) begin
-  if (!iRST_n) begin
-    main_capture_meta_ff <= 1'b0;
-    main_capture_sync_ff <= 1'b0;
-    main_capture_ack <= 1'b0;
-    main_capture_seq <= 16'd0;
-    main_capture_meta <= 64'd0;
-    main_capture_position <= 64'd0;
-    main_capture_counts <= 64'd0;
-  end else begin
-    main_capture_meta_ff <= iDIAG_MAIN_CAPTURE_TOGGLE;
-    main_capture_sync_ff <= main_capture_meta_ff;
-    if (main_capture_sync_ff != main_capture_ack) begin
-      main_capture_ack <= main_capture_sync_ff;
-      main_capture_seq <= main_capture_seq + 1'b1;
-      main_capture_meta <= {liveness_time, 3'b001,
-        rt_select_dpll, rt_dir, rt_state, liveness_tx_timeout_reported,
-        dco_error, i2c_ack_error, liveness_tx_owner_dpll, liveness_tx_active,
-        dpll_pending, dpll_tracker_initialized,
-        (main_capture_seq + 16'd1), main_capture_sync_ff};
-      main_capture_position <= {dpll_applied_position, dpll_target_position};
-      main_capture_counts <= {liveness_dpll_success_count,
-                              liveness_dpll_service_count};
-    end
-  end
-end
-// MAIN_CAPTURE_DIAG_END_LOGIC
-
 localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 // Admit the nearest physical step once the residual is at least half a
 // step. This removes the rail dead zone where an absolute target can be
@@ -285,15 +236,6 @@ localparam signed [31:0] HPLL_STEP_CODE = HPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
 localparam signed [31:0] HPLL_HALF_STEP_CODE =
   (HPLL_STEP_CODE > 1) ? (HPLL_STEP_CODE >>> 1) : 1;
 localparam [31:0] DPLL_STEP_CODE = DPLL_TRACKER_CODE_PER_PHYSICAL_STEP;
-// MAIN_NEAREST_BEGIN_THRESHOLDS
-// A completed transaction still moves one FULL physical step. Only admission
-// changes. Positive midpoint rounds upward; negative midpoint stays put.
-// Using >=half in BOTH directions would chatter forever at an exact midpoint.
-localparam [31:0] DPLL_UP_ADMISSION_CODE = ENABLE_DPLL_NEAREST_STEP ?
-  ((DPLL_STEP_CODE + 1) >> 1) : DPLL_STEP_CODE;
-localparam [31:0] DPLL_DOWN_ADMISSION_CODE = ENABLE_DPLL_NEAREST_STEP ?
-  ((DPLL_STEP_CODE >> 1) + 1) : DPLL_STEP_CODE;
-// MAIN_NEAREST_END_THRESHOLDS
 localparam [31:0] DPLL_START_POSITION = 32'd32768;
 localparam [31:0] DCO_DIAG_TIMEOUT_CYCLES = 32'd5000000;
 
@@ -866,9 +808,9 @@ always @(posedge iCLK or negedge iRST_n) begin
       end
       if (dpll_tracker_initialized &&
           ((({16'd0, iDPLL_DATA} > dpll_applied_position) &&
-            (({16'd0, iDPLL_DATA} - dpll_applied_position) >= DPLL_UP_ADMISSION_CODE)) ||
+            (({16'd0, iDPLL_DATA} - dpll_applied_position) >= DPLL_STEP_CODE)) ||
            ((dpll_applied_position > {16'd0, iDPLL_DATA}) &&
-            ((dpll_applied_position - {16'd0, iDPLL_DATA}) >= DPLL_DOWN_ADMISSION_CODE)))) begin
+            ((dpll_applied_position - {16'd0, iDPLL_DATA}) >= DPLL_STEP_CODE)))) begin
         dpll_pending <= 1'b1;
       end
       dpll_prev_data <= iDPLL_DATA;
@@ -933,9 +875,9 @@ always @(posedge iCLK or negedge iRST_n) begin
           hpll_pending_bootstrap <= 1'b0;
         end else if (static_controller_ready && dpll_tracker_initialized &&
             (((dpll_target_position > dpll_applied_position) &&
-              ((dpll_target_position - dpll_applied_position) >= DPLL_UP_ADMISSION_CODE)) ||
+              ((dpll_target_position - dpll_applied_position) >= DPLL_STEP_CODE)) ||
              ((dpll_applied_position > dpll_target_position) &&
-              ((dpll_applied_position - dpll_target_position) >= DPLL_DOWN_ADMISSION_CODE)))) begin
+              ((dpll_applied_position - dpll_target_position) >= DPLL_STEP_CODE)))) begin
           rt_state <= 3'd1;
           rt_state_enter_count <= rt_state_enter_count + 1'b1;
           rt_select_dpll <= 1'b1;

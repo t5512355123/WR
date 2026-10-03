@@ -1,3 +1,20 @@
+# Current target: TIME_VALID 300s (2026-10-03)
+
+Active main-root candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
+The user resumed with the TIME_VALID-only criterion. The 3110 qualified
+production inputs from `0bb02c6f` are restored in the main root; frozen
+milestones/archive are untouched. A NEW root build/program/capture is pending,
+so this candidate is not yet a PASS image. Historical WR validity behavior is
+used, not the superseded strict full64 offset revocation. This does not prove
+offset within +/-120ps, absolute-time accuracy or physical PPS skew.
+
+Use the same four main-root scripts: `build_current.sh`, `compile_current.sh`,
+`program_current.sh`, then `step1_6_dashboard.sh`, in their existing `scripts/`
+subdirectories. Stop any dashboard before another JTAG reader. Qualification
+uses `scripts/monitor/verify_time_valid_300s.sh`, not one dashboard frame.
+See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
+The strict-offset research below is historical context, not this round's gate.
+
 # DE5a White Rabbit
 
 This repository develops and records the two-board White Rabbit system on Terasic DE5a / Arria 10. The only intended current hardware workflow is the JTAG-based Master/Slave design; frozen milestone snapshots preserve each validated research checkpoint.

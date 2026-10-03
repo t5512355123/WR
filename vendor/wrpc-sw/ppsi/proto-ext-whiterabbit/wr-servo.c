@@ -6,6 +6,7 @@
 #include "../arch-wrpc/wrpc.h"
 #include "../../include/wrh-fixed-diag.h"
 #include "../../include/wr-ts-diag.h"
+#include "../../include/phase-history.h"
 #include "../pp_printf/pp-printf.h"
 #include <errno.h>
 
@@ -76,6 +77,10 @@ static void ts_record(struct pp_instance *ppi, uint32_t before_count,
 	ts_put_time(r + 72, &gs->meanDelay); ts_put_time(r + 76, &gs->offsetFromMaster);
 	ts_put_time(r + 80, &se->rawDelayMM);
 	ts_put64(r + 84, ppi->portDS->delayAsymmetry);
+	wr_phase_history_record(gs->update_count, r[2], before_setp,
+		s->cur_setpoint_ps, d.phase_writes,
+		gs->offsetFromMaster.secs, gs->offsetFromMaster.scaled_nsecs,
+		gs->delayMS.secs, gs->delayMS.scaled_nsecs);
 	ts_head = (ts_head + 1) % WR_TS_DIAG_RECORDS;
 	if (ts_count < WR_TS_DIAG_RECORDS)
 		ts_count++;

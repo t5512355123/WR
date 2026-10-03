@@ -1,0 +1,46 @@
+test_bad_group_and_generation_never_pass (test_step6_phase_history.HistoryTests.test_bad_group_and_generation_never_pass) ... ok
+test_control_source_not_modified (test_step6_phase_history.HistoryTests.test_control_source_not_modified) ... ok
+test_fifo_worst_page (test_step6_phase_history.HistoryTests.test_fifo_worst_page) ... ok
+test_missing_duplicate_deadline_health (test_step6_phase_history.HistoryTests.test_missing_duplicate_deadline_health) ... ok
+test_signed_conversion_progress_and_not_step6_pass (test_step6_phase_history.HistoryTests.test_signed_conversion_progress_and_not_step6_pass) ... ok
+test_stalled_main_is_reported_not_silently_removed (test_step6_phase_history.HistoryTests.test_stalled_main_is_reported_not_silently_removed) ... ok
+test_bad_schema_stops_without_retry (test_step6_phase_history.TclTests.test_bad_schema_stops_without_retry) ... ok
+test_whole_actual_observer_one_freeze_and_frozen_pages (test_step6_phase_history.TclTests.test_whole_actual_observer_one_freeze_and_frozen_pages) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.595s
+
+OK
+test_complete_snapshot_reproduces_half_return_jump_not_pass (test_step6_four_timestamps.FourStampTests.test_complete_snapshot_reproduces_half_return_jump_not_pass) ... ok
+test_duplicate_updates_and_unknown_schema_reject (test_step6_four_timestamps.FourStampTests.test_duplicate_updates_and_unknown_schema_reject) ... ok
+test_false_health_and_reset_are_not_accepted (test_step6_four_timestamps.FourStampTests.test_false_health_and_reset_are_not_accepted) ... ok
+test_full_seconds_larger_than_signed64_picos (test_step6_four_timestamps.FourStampTests.test_full_seconds_larger_than_signed64_picos) ... ok
+test_incorrect_or_changed_math_reject (test_step6_four_timestamps.FourStampTests.test_incorrect_or_changed_math_reject) ... ok
+test_negative64_setpoint_and_correct_delta_add_sub (test_step6_four_timestamps.FourStampTests.test_negative64_setpoint_and_correct_delta_add_sub) ... ok
+test_only_passive_hook_added_normal_feedback_restored (test_step6_four_timestamps.FourStampTests.test_only_passive_hook_added_normal_feedback_restored) ... ok
+test_torn_missing_or_wrong_records_reject (test_step6_four_timestamps.FourStampTests.test_torn_missing_or_wrong_records_reject) ... ok
+test_wrong_control_mode_and_generation_reject (test_step6_four_timestamps.FourStampTests.test_wrong_control_mode_and_generation_reject) ... ok
+test_real_tcl_math_large_tai_and_half_period (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_math_large_tai_and_half_period) ... ok
+test_real_tcl_rejects_missing_changed_or_duplicate_record (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_rejects_missing_changed_or_duplicate_record) ... ok
+test_real_tcl_rejects_wrong_fixed_flag_math_and_marker (test_step6_four_timestamps.TclExecutionTests.test_real_tcl_rejects_wrong_fixed_flag_math_and_marker) ... ok
+test_whole_observer_smoke_and_same_snapshot_extension (test_step6_four_timestamps.TclExecutionTests.test_whole_observer_smoke_and_same_snapshot_extension) ... ok
+test_whole_observer_stops_on_bad_math_and_reset_not_restarts (test_step6_four_timestamps.TclExecutionTests.test_whole_observer_stops_on_bad_math_and_reset_not_restarts) ... ok
+
+----------------------------------------------------------------------
+Ran 14 tests in 2.137s
+
+OK
+test_300s_all_updates_in_band_after_entry_passes (test_step6_strict_offset_300s.StrictOffsetTests.test_300s_all_updates_in_band_after_entry_passes) ... ok
+test_exact_120_retains_but_121_resets_dwell (test_step6_strict_offset_300s.StrictOffsetTests.test_exact_120_retains_but_121_resets_dwell) ... ok
+test_exact_60_never_qualifies_entry (test_step6_strict_offset_300s.StrictOffsetTests.test_exact_60_never_qualifies_entry) ... ok
+test_frozen_ucnt_skipped_update_and_torn_epoch_do_not_pass (test_step6_strict_offset_300s.StrictOffsetTests.test_frozen_ucnt_skipped_update_and_torn_epoch_do_not_pass) ... ok
+test_master_invalid_stale_or_reset_breaks_window (test_step6_strict_offset_300s.StrictOffsetTests.test_master_invalid_stale_or_reset_breaks_window) ... ok
+test_missing_completion_is_inconclusive (test_step6_strict_offset_300s.StrictOffsetTests.test_missing_completion_is_inconclusive) ... ok
+test_observed_valid_overlimit_is_not_hidden_by_later_good_window (test_step6_strict_offset_300s.StrictOffsetTests.test_observed_valid_overlimit_is_not_hidden_by_later_good_window) ... ok
+test_old_valid_latch_and_short_capture_do_not_pass (test_step6_strict_offset_300s.StrictOffsetTests.test_old_valid_latch_and_short_capture_do_not_pass) ... ok
+test_revocation_state_reset_or_transport_breaks_window (test_step6_strict_offset_300s.StrictOffsetTests.test_revocation_state_reset_or_transport_breaks_window) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.925s
+
+OK

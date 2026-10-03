@@ -11,6 +11,12 @@ static int accept=1, e2e=1, phase_actions;
 struct test_arch ts_arch={WRH_TM_BOUNDARY_CLOCK};
 volatile uint32_t wrpc_spll_init_count=7;
 static struct wrh_fixed_diag diagnostic={.phase_writes=41,.servo_inits=2};
+static unsigned history_calls;
+void wr_phase_history_record(uint32_t u,uint32_t state,int32_t a,int32_t b,
+    uint32_t writes,int64_t cs,int64_t cn,int64_t ds,int64_t dn) {
+    history_calls++; assert(u && (state & 0xffff)==4 && b==a+7);
+    assert(writes==diagnostic.phase_writes && cs==0 && cn==-444 && ds==0 && dn==222);
+}
 void wrh_fixed_diag_get(struct wrh_fixed_diag *d) { *d=diagnostic; }
 int pp_printf(const char *fmt, ...) {
     va_list ap; int n;
@@ -61,6 +67,7 @@ int main(void) {
     assert(wr_ts_diag_show_page(16)==-EINVAL);
     before_t1=p.t1; wr_servo_got_sync(&p); assert(wr_servo_got_resp(&p)==1);
     assert(ts_total==1 && phase_actions==1);
+    assert(history_calls==1);
     assert(ts_ring[0][0]==1 && ts_ring[0][1]==1 && ts_ring[0][2]==0x50004);
     assert(ts_ring[0][3]==(uint32_t)-987 && ts_ring[0][4]==(uint32_t)-980);
     assert(ts_ring[0][5]==0xabcd1234 && ts_ring[0][6]==0x09030004);

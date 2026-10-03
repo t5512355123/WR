@@ -17,6 +17,7 @@
 #include "rxts-diag.h"
 #include "wrh-fixed-diag.h"
 #include "wr-ts-diag.h"
+#include "phase-history.h"
 
 #define CMD_INIT 0
 #define CMD_CL 1
@@ -31,6 +32,7 @@
 #define CMD_RXTS 10
 #define CMD_FIXED 11
 #define CMD_TS4 12
+#define CMD_PHIST 13
 
 
 
@@ -49,7 +51,8 @@ static const char * const pll_menu[] =
 	[CMD_GAIN] = "gain",
 	[CMD_RXTS] = "rxts",
 	[CMD_FIXED] = "fixed",
-	[CMD_TS4] = "ts4"
+	[CMD_TS4] = "ts4",
+	[CMD_PHIST] = "phist"
 };
 
 /* Number of arguments for the sub-commands.  Mind the order!  */
@@ -67,7 +70,8 @@ static const unsigned char nargs[] =
 	[CMD_GAIN] = 5,
 	[CMD_RXTS] = 1,
 	[CMD_FIXED] = 0,
-	[CMD_TS4] = 1
+	[CMD_TS4] = 1,
+	[CMD_PHIST] = 1
 };
 
 static int cmd_pll(const char *args[])
@@ -89,6 +93,8 @@ static int cmd_pll(const char *args[])
 		return -EINVAL;
 
 	switch (icmd) {
+	case CMD_PHIST:
+		return wr_phase_history_show_page((unsigned)vals[1]);
 	case CMD_TS4:
 		return wr_ts_diag_show_page((unsigned)vals[1]);
 	case CMD_FIXED:

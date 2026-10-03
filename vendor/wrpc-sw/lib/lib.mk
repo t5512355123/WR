@@ -10,7 +10,7 @@ obj-$(CONFIG_WRPC_PPSI) += \
 
 obj-$(CONFIG_EMBEDDED_NODE) += lib/task-diags.o lib/task-stats.o
 
-obj-$(CONFIG_WR_NODE) += lib/net.o lib/rxts-diag.o
+obj-$(CONFIG_WR_NODE) += lib/net.o lib/rxts-diag.o lib/phase-history.o
 
 obj-$(CONFIG_IP) += lib/ipv4.o lib/arp.o lib/icmp.o lib/udp.o lib/bootp.o
 obj-$(CONFIG_SYSLOG) += lib/syslog.o

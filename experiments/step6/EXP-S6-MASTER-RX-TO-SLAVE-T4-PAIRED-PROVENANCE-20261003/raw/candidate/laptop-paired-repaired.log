@@ -1,0 +1,15 @@
+test_exact_pair_and_eight_ns_linearizer_step_not_step6_pass (test_step6_paired_return.PairedTests.test_exact_pair_and_eight_ns_linearizer_step_not_step6_pass) ... ok
+test_fifo_bounds_with_shell_echo_crlf_and_prompt (test_step6_paired_return.PairedTests.test_fifo_bounds_with_shell_echo_crlf_and_prompt) ... ok
+test_high_tai_preserves_full_seconds_and_overlaps (test_step6_paired_return.PairedTests.test_high_tai_preserves_full_seconds_and_overlaps) ... ok
+test_no_forced_pairing_of_nonoverlapping_history (test_step6_paired_return.PairedTests.test_no_forced_pairing_of_nonoverlapping_history) ... ok
+test_raw_mac_not_fallback_and_source_port_domain_bound (test_step6_paired_return.PairedTests.test_raw_mac_not_fallback_and_source_port_domain_bound) ... ok
+test_same_sequence_wrong_whole_time_or_incorrect_stamp_rejects (test_step6_paired_return.PairedTests.test_same_sequence_wrong_whole_time_or_incorrect_stamp_rejects) ... ok
+test_unrelated_historical_snapshots_cannot_be_joined (test_step6_paired_return.PairedTests.test_unrelated_historical_snapshots_cannot_be_joined) ... ok
+test_wrong_math_missing_duplicate_pages_never_complete (test_step6_paired_return.PairedTests.test_wrong_math_missing_duplicate_pages_never_complete) ... ok
+test_actual_observer_stops_on_bad_math_and_reset_no_restart (test_step6_paired_return.WholeObserverTests.test_actual_observer_stops_on_bad_math_and_reset_no_restart) ... ok
+test_actual_whole_observer_primes_both_before_any_page_read (test_step6_paired_return.WholeObserverTests.test_actual_whole_observer_primes_both_before_any_page_read) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 3.203s
+
+OK

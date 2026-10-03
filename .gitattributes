@@ -44,6 +44,8 @@ build/*.log -text -eol -diff -whitespace
 *.log -text
 experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/analysis/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/analysis/** -text -eol -diff -whitespace
 *.sha256 -text
 SHA256SUMS -text
 /experiments/repository-cleanup/EXP-REPO-ARTIFACTS-CONSOLIDATION-20260924/analysis/*.tsv -text

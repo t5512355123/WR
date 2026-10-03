@@ -1,7 +1,10 @@
 # Current status
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003.
+Active experiment: EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003.
+Observer-only paired provenance candidate prepared; production inputs unchanged.
+Fresh native checks/compile/program for this round pending. Retained output
+belongs to the preceding completed TS4 round described below, not a new PASS.
 Current root restores normal feedback and adds a passive coherent T1..T4/RTT
 producer RAM history. Native tests, fresh full compile and one programming pair
 completed from `4e0c2324095c8644dac7fb5426f69de0eadb392c`. Root output is THIS

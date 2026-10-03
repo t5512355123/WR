@@ -83,6 +83,7 @@ int main(void) {
     assert(ts_snapshot_total==31 && ts_snapshot[0][0]==16 && ts_snapshot[15][0]==31);
     assert(strstr(printed,"TS4_PAGE v=1 snapshot=00000001 total=0000001f page=0 count=16 words=86"));
     assert(printed_len<2048 && strstr(printed,"TS4_END snapshot=00000001 page=0"));
+    assert(printed_len+64<1024); /* echo, CRLF and prompt reserve; held FIFO */
     memcpy(frozen,ts_snapshot[1],sizeof(frozen));
     for(i=0;i<20;i++) wr_servo_got_resp(&p);
     clear_print(); assert(wr_ts_diag_show_page(1)==0);

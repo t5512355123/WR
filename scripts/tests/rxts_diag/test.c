@@ -20,6 +20,7 @@ static void show(unsigned page)
     used = 0; printed[0] = 0;
     assert(rxts_diag_show_page(page) == 0);
     assert(used < 1024);
+    assert(used+64<1024); /* echo, CRLF and prompt reserve; held FIFO */
     assert(strstr(printed, "RXTS_END"));
 }
 int main(void)

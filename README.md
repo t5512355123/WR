@@ -5,7 +5,13 @@ This repository develops and records the two-board White Rabbit system on Terasi
 ## Current code and four-step workflow
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003`.
+Active experiment: `EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003`.
+The next round adds only an observer to rapidly request both existing snapshots
+before draining replies, then match actual Master RX to accepted Slave T4 by
+live peer identity/domain/port/sequence/full time. Production inputs remain
+unchanged. Fresh new-round compile/program is pending; retained output still
+belongs to the preceding TS4 round below. See the
+[paired plan](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/PLAN.md).
 Current source restores normal /2 acquisition + /12 tracking and adds a passive
 same-update four-timestamp/RTT RAM history. Fresh two-board build/program from
 `4e0c2324095c8644dac7fb5426f69de0eadb392c` completed; root output contains those

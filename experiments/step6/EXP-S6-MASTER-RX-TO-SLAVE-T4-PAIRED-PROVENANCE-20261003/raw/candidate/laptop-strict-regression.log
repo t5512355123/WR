@@ -1,0 +1,15 @@
+test_300s_all_updates_in_band_after_entry_passes (test_step6_strict_offset_300s.StrictOffsetTests.test_300s_all_updates_in_band_after_entry_passes) ... ok
+test_exact_120_retains_but_121_resets_dwell (test_step6_strict_offset_300s.StrictOffsetTests.test_exact_120_retains_but_121_resets_dwell) ... ok
+test_exact_60_never_qualifies_entry (test_step6_strict_offset_300s.StrictOffsetTests.test_exact_60_never_qualifies_entry) ... ok
+test_frozen_ucnt_skipped_update_and_torn_epoch_do_not_pass (test_step6_strict_offset_300s.StrictOffsetTests.test_frozen_ucnt_skipped_update_and_torn_epoch_do_not_pass) ... ok
+test_master_invalid_stale_or_reset_breaks_window (test_step6_strict_offset_300s.StrictOffsetTests.test_master_invalid_stale_or_reset_breaks_window) ... ok
+test_missing_completion_is_inconclusive (test_step6_strict_offset_300s.StrictOffsetTests.test_missing_completion_is_inconclusive) ... ok
+test_observed_valid_overlimit_is_not_hidden_by_later_good_window (test_step6_strict_offset_300s.StrictOffsetTests.test_observed_valid_overlimit_is_not_hidden_by_later_good_window) ... ok
+test_old_valid_latch_and_short_capture_do_not_pass (test_step6_strict_offset_300s.StrictOffsetTests.test_old_valid_latch_and_short_capture_do_not_pass) ... ok
+test_revocation_state_reset_or_transport_breaks_window (test_step6_strict_offset_300s.StrictOffsetTests.test_revocation_state_reset_or_transport_breaks_window) ... ok
+test_actual_reader_parses_and_reports_strict_health (test_step6_strict_reader_tcl.StrictReaderTests.test_actual_reader_parses_and_reports_strict_health) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.851s
+
+OK

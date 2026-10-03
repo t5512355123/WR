@@ -27,9 +27,8 @@ void wr_phase_history_record(uint32_t update, uint32_t state, int32_t before,
     r[0] = ++total; r[1] = update; r[2] = state;
     r[3] = (uint32_t)before; r[4] = (uint32_t)after; r[5] = writes;
     r[6] = wrpc_spll_init_count;
-    /* Timestamp precedes the two independent copies. Not a Main publication
-     * timestamp; sample_n/update_id progression establishes fresh updates. */
-    r[7] = timer_get_tics();
+    /* The completion timestamp below is not a Main publication timestamp;
+     * sample_n/update_id progression establishes fresh completed updates. */
     put64(r + 8, cko_sec); put64(r + 10, cko_scaled_ns);
     put64(r + 12, dms_sec); put64(r + 14, dms_scaled_ns);
     r[16] = spll_main_diag_copy(&m);
@@ -46,6 +45,9 @@ void wr_phase_history_record(uint32_t update, uint32_t state, int32_t before,
         r[32] = (uint32_t)p.reference_tag; r[33] = (uint32_t)p.input_tag;
         r[34] = p.epoch;
     }
+    /* After the copies: a publication that interrupts a copy cannot appear
+     * spuriously almost2^32 ms old due to a preceding host capture timestamp. */
+    r[7] = timer_get_tics();
     head = (head + 1) % WR_PHASE_HISTORY_RECORDS;
     if (count < WR_PHASE_HISTORY_RECORDS) count++;
 }

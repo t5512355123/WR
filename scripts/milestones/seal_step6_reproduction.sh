@@ -50,6 +50,8 @@ cp "$ROOT/scripts/milestones/step6_time_valid_milestone.md" \
   "$STAGE/source/scripts/milestones/step6_time_valid_milestone.md"
 cp "$ROOT/scripts/milestones/seal_step6_reproduction.sh" \
   "$STAGE/source/scripts/milestones/seal_step6_reproduction.sh"
+cp "$ROOT/scripts/experiments/continue_step6_reproduction_capture.sh" \
+  "$STAGE/source/scripts/experiments/continue_step6_reproduction_capture.sh"
 (cd "$STAGE/source"; sha256sum -c output/SOURCE_SHA256SUMS >/dev/null; \
   sha256sum -c output/SHA256SUMS; sha256sum -c output/PUBLISHED_SHA256SUMS >/dev/null)
 tar -czf "$STAGE/source.tar.gz" -C "$STAGE/source" .
@@ -79,6 +81,8 @@ cp "$ROOT/scripts/milestones/step6_time_valid_milestone.md" \
   source/scripts/milestones/step6_time_valid_milestone.md
 cp "$ROOT/scripts/milestones/seal_step6_reproduction.sh" \
   source/scripts/milestones/seal_step6_reproduction.sh
+cp "$ROOT/scripts/experiments/continue_step6_reproduction_capture.sh" \
+  source/scripts/experiments/continue_step6_reproduction_capture.sh
 cmp master.sof source/output/DE5a_wr_master_jtag.sof
 cmp slave.sof source/output/DE5a_wr_slave_jtag.sof
 printf 'STEP6_SEALED=PASS standalone_compile=%s staging=%s\n' \

@@ -181,6 +181,12 @@ class TclTests(unittest.TestCase):
             self.assertEqual(len(commands), len(set(commands)))
             self.assertIn('MTP_STOP ', '\n'.join(t.splitlist(t.eval('set ::output'))))
 
+    def test_options_rejected_before_hardware_calls(self):
+        t = tkinter.Tcl()
+        t.eval('package provide ::quartus::insystem_source_probe 1.0;set argv {unexpected};set ::mtp_library_only 1')
+        with self.assertRaisesRegex(tkinter.TclError, 'No options'):
+            t.call('source', str(ROOT / 'scripts/jtag/read_step6_main_timestamp_pair.tcl'))
+
 
 if __name__ == '__main__':
     if len(sys.argv) in (3, 4) and sys.argv[1] == '--emit-native-tcl':

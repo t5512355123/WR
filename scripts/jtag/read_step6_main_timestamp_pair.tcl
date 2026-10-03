@@ -1,8 +1,8 @@
 # Existing passive RAM pages only. TS4 freezes first; the longer PHIST ring
 # then overlaps it. One UART: drain page0 before the second freeze (FIFO1024).
-set saved_args $argv; set argv {}; set ::phist_library_only 1
+set mtp_saved_args $argv; set argv {}; set ::phist_library_only 1
 source [file join [file dirname [info script]] read_step6_phase_history.tcl]
-unset ::phist_library_only; set argv $saved_args
+unset ::phist_library_only; set argv $mtp_saved_args
 if {[llength $argv]} { error "No options: one immutable paired history" }
 proc mtp_reply {hw kind page begin deadline} {
     set start [clock milliseconds]

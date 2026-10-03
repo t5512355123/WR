@@ -50,6 +50,10 @@ class HistoryTests(unittest.TestCase):
         r=self.result(fixture(lambda i,w:w.__setitem__(25,100)))
         self.assertEqual(r['errors'],[]);self.assertEqual(r['main_progress_pairs'],0)
         self.assertEqual(len(r['rows']),32)
+    def test_counter_reset_is_not_wrapped_into_false_progress(self):
+        for index in (17,25,28):
+            r=self.result(fixture(lambda i,w:w.__setitem__(index,0) if i==2 else None))
+            self.assertEqual(r['verdict'],'INCONCLUSIVE')
     def test_missing_duplicate_deadline_health(self):
         for text in (fixture().replace('page=4 start','page=5 start'),
                      fixture().replace('elapsed_ms=2000','elapsed_ms=240001'),

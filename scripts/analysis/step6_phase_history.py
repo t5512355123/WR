@@ -83,6 +83,9 @@ def analyze(path):
     for a,b in zip(rows,rows[1:]):
         if (b['ucnt']-a['ucnt'])&0xffffffff!=1: errors.append('nonconsecutive WR history');continue
         if not 0<((b['ms']-a['ms'])&0xffffffff)<10000:errors.append('WR history time order')
+        for key in ('sample_n','main_update','tracker_publications'):
+            if ((b[key]-a[key])&0xffffffff)>=2**31:
+                errors.append(key+' reset/decreased; not fresh progression')
         steps.append({'from_ucnt':a['ucnt'],'to_ucnt':b['ucnt'],
             'cko_delta_ps':b['cko_ps']-a['cko_ps'],
             'main_error_delta_ps':b['main_error_ps']-a['main_error_ps'] if None not in (a['main_error_ps'],b['main_error_ps']) else None,

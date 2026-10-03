@@ -87,7 +87,10 @@ One snapshot, page0 smoke valid, all32 rows complete, elapsed162614ms within240s
 UCNT171–202,31 consecutive WR updates over31311ms of firmware timer.
 Bracket health five times per role: both link/clock/reset gates and Slave locks
 good; Master validity good; reset signature unchanged {1 1 1 0 1}.
-SPLL init1, Main init1, ptracker generation4 throughout. No source-copy errors.
+SPLL init counter1, Main frame init_generation1, ptracker generation4 throughout.
+Main frame init_generation itself uses SPLL init count, NOT an independent
+Main-only reinit counter; the forward update/sample counts provide additional
+continuity evidence. No source-copy errors.
 
 | Measurement | Actual result |
 |---|---|
@@ -164,3 +167,8 @@ SHA2560bee1a8bfd61a7e4b2de69fad1a6d98e96c39ce2eb065a4796441c78ee680b9e.
 Independent Laptop analysis reproduces Pain JSON values exactly; host newline
 bytes differ, so byte-identical JSON is NOT claimed. Laptop-derived summary and
 reanalysis are additional files, not part of the original85 returned files.
+
+Post-capture validator audit added an explicit half-range counter-decrease/reset
+rejection; zero progress remains a reported stall, not silently filtered. It
+does not change the valid capture's result/rows.9history offline tests now PASS.
+This is observer validation only, no new firmware build/program or gain change.

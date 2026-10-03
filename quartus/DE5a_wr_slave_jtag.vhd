@@ -75,6 +75,12 @@ architecture rtl of DE5a_wr_slave_jtag is
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
       iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(15 downto 0);
+      -- MAIN_CAPTURE_DIAG_BEGIN_PORTS
+      iDIAG_MAIN_CAPTURE_TOGGLE : in std_logic;
+      oDIAG_MAIN_CAPTURE_META : out std_logic_vector(63 downto 0);
+      oDIAG_MAIN_CAPTURE_POSITION : out std_logic_vector(63 downto 0);
+      oDIAG_MAIN_CAPTURE_COUNTS : out std_logic_vector(63 downto 0);
+      -- MAIN_CAPTURE_DIAG_END_PORTS
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -275,6 +281,12 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal dco_step5_liveness_latency_probe : std_logic_vector(63 downto 0);
   signal dco_step5_liveness_failure_probe : std_logic_vector(63 downto 0);
   signal dco_step5_liveness_first_loss_probe : std_logic_vector(63 downto 0);
+  -- MAIN_CAPTURE_DIAG_BEGIN_SIGNALS
+  signal main_capture_source : std_logic_vector(0 downto 0);
+  signal main_capture_meta_probe : std_logic_vector(63 downto 0);
+  signal main_capture_position_probe : std_logic_vector(63 downto 0);
+  signal main_capture_counts_probe : std_logic_vector(63 downto 0);
+  -- MAIN_CAPTURE_DIAG_END_SIGNALS
   signal step5_polarity_probe : std_logic_vector(63 downto 0);
   signal step5_polarity_source : std_logic_vector(0 downto 0);
   signal step5_burst_size_source : std_logic_vector(15 downto 0);
@@ -1431,6 +1443,28 @@ begin
     port map (probe => step6b_actual_cycles_probe, source => open,
               source_clk => CLK_50_B2J, source_ena => '1');
 
+  -- MAIN_CAPTURE_DIAG_BEGIN_PROBES
+  -- One private coherent DCO-account capture, with no control-side consumer.
+  u_main_capture_meta : altsource_probe
+    generic map (instance_id => "WR_S6_MAIN_DCO_META_V1",
+      probe_width => 64, sld_auto_instance_index => "NO",
+      sld_instance_index => 72, source_width => 1, source_initial_value => "0")
+    port map (probe => main_capture_meta_probe, source => main_capture_source,
+      source_clk => CLK_50_B2J, source_ena => '1');
+  u_main_capture_position : altsource_probe
+    generic map (instance_id => "WR_S6_MAIN_DCO_POSITION_V1",
+      probe_width => 64, sld_auto_instance_index => "NO",
+      sld_instance_index => 73, source_width => 1)
+    port map (probe => main_capture_position_probe, source => open,
+      source_clk => CLK_50_B2J, source_ena => '1');
+  u_main_capture_counts : altsource_probe
+    generic map (instance_id => "WR_S6_MAIN_DCO_COUNTS_V1",
+      probe_width => 64, sld_auto_instance_index => "NO",
+      sld_instance_index => 74, source_width => 1)
+    port map (probe => main_capture_counts_probe, source => open,
+      source_clk => CLK_50_B2J, source_ena => '1');
+  -- MAIN_CAPTURE_DIAG_END_PROBES
+
   -- 唯讀 DCO probe。只觀察 clean-9f controller 的 request、I2C state、
   -- step count 與輸入資料，不參與 WR、SoftPLL 或 SI5340 控制。
   dco_probe <= dco_debug;
@@ -2186,6 +2220,12 @@ begin
       iFORCE_HPLL_ONE_STEP   => force_hpll_source(0),
       iFORCE_HPLL_REVERSE    => step5_polarity_source(0),
       iFORCE_HPLL_BURST_SIZE => step5_burst_size_source,
+      -- MAIN_CAPTURE_DIAG_BEGIN_MAP
+      iDIAG_MAIN_CAPTURE_TOGGLE => main_capture_source(0),
+      oDIAG_MAIN_CAPTURE_META => main_capture_meta_probe,
+      oDIAG_MAIN_CAPTURE_POSITION => main_capture_position_probe,
+      oDIAG_MAIN_CAPTURE_COUNTS => main_capture_counts_probe,
+      -- MAIN_CAPTURE_DIAG_END_MAP
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,

@@ -75,6 +75,12 @@ architecture rtl of DE5a_wr_master_jtag is
       iFORCE_HPLL_ONE_STEP  : in    std_logic;
       iFORCE_HPLL_REVERSE   : in    std_logic;
       iFORCE_HPLL_BURST_SIZE : in   std_logic_vector(15 downto 0);
+      -- MAIN_CAPTURE_DIAG_BEGIN_PORTS
+      iDIAG_MAIN_CAPTURE_TOGGLE : in std_logic;
+      oDIAG_MAIN_CAPTURE_META : out std_logic_vector(63 downto 0);
+      oDIAG_MAIN_CAPTURE_POSITION : out std_logic_vector(63 downto 0);
+      oDIAG_MAIN_CAPTURE_COUNTS : out std_logic_vector(63 downto 0);
+      -- MAIN_CAPTURE_DIAG_END_PORTS
       I2C_CLK               : out   std_logic;
       I2C_DATA              : inout std_logic;
       oPLL_I2C_ID_READ_ERROR: out   std_logic;
@@ -1881,6 +1887,12 @@ begin
       iFORCE_HPLL_ONE_STEP   => '0',
       iFORCE_HPLL_REVERSE    => '0',
       iFORCE_HPLL_BURST_SIZE => (others => '0'),
+      -- MAIN_CAPTURE_DIAG_BEGIN_MAP
+      iDIAG_MAIN_CAPTURE_TOGGLE => '0',
+      oDIAG_MAIN_CAPTURE_META => open,
+      oDIAG_MAIN_CAPTURE_POSITION => open,
+      oDIAG_MAIN_CAPTURE_COUNTS => open,
+      -- MAIN_CAPTURE_DIAG_END_MAP
       I2C_CLK                => SI5340A_I2C_SCL,
       I2C_DATA               => SI5340A_I2C_SDA,
       oPLL_I2C_ID_READ_ERROR => si_id_error,

@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import unittest
+import tempfile
 from pathlib import Path
 try:
     import tkinter
@@ -9,6 +10,8 @@ except ImportError:
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / 'scripts/jtag/run_step6_master_rxts_role_calibration.tcl'
+sys.path.insert(0, str(ROOT / 'scripts/analysis'))
+import step6_master_rxts_role_calibration as analysis
 
 
 def setup(case='good'):
@@ -114,6 +117,12 @@ class SourceTests(unittest.TestCase):
                          'vendor/wrpc-sw/softpll', 'vendor/wrpc-sw/dev/rxts_calibrator.c',
                          'vendor/wrpc-sw/ppsi'], cwd=ROOT), b'')
 
+    def test_independent_c_midpoint_and_bad_status(self):
+        text = 'RXTS_DIAG active_t24p_ps=6001 phase_ps=0 ptracker_ready=1\nRXTS_SCAN phase_ps=9500 rising_state=2 rising_count=5 rising_ps=0 falling_state=2 falling_count=5 falling_ps=1\n'
+        self.assertEqual(analysis.midpoint(analysis.status(text)), 6001)
+        for bad in (text + text, text.replace('9500', '9600'), text.replace('6001', '6000')):
+            with self.assertRaises(ValueError): analysis.midpoint(analysis.status(bad))
+
 
 @unittest.skipIf(tkinter is None, 'Use generated native Quartus Tcl fixtures')
 class TclTests(unittest.TestCase):
@@ -144,6 +153,19 @@ class TclTests(unittest.TestCase):
         t.eval('set argv {}'); t.call('source', str(SCRIPT))
         for cmd in ('calibration', 'calibration force', 'calibration setp T24P 4000', 'pll sps 4000', 'ptp stop'):
             with self.assertRaisesRegex(tkinter.TclError, 'Non-allowlisted'): t.call('rxcal_command', 'M device MASTER', cmd)
+
+    def test_independent_analysis_keeps_failure_not_goal(self):
+        for case in CASES:
+            t = tkinter.Tcl(); t.eval(setup(case))
+            raw = '\n'.join(t.splitlist(t.eval('set ::output')))
+            raw = raw.replace('board={M}', 'board={DE5 [1-11.1]}').replace('board={S}', 'board={DE5 [1-11.2]}')
+            with tempfile.TemporaryDirectory() as temp:
+                p = Path(temp) / 'raw.log'; p.write_text(raw)
+                r = analysis.analyze(p)
+                self.assertFalse(r['goal_pass'])
+                if case == 'good':
+                    self.assertEqual(r['errors'], []); self.assertEqual(r['measured_t24p_ps'], 7625)
+                else: self.assertEqual(r['verdict'], 'NOT_QUALIFIED', case)
 
 
 if __name__ == '__main__':

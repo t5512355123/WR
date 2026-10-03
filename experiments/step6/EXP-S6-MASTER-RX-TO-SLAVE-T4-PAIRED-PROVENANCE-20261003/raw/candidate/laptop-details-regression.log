@@ -1,0 +1,8 @@
+test_exact_all_pairs_and_eight_ns_decomposition (test_step6_paired_return_details.DetailsTests.test_exact_all_pairs_and_eight_ns_decomposition) ... ok
+test_high_tai_and_partial_overlap_do_not_create_missing_pairs (test_step6_paired_return_details.DetailsTests.test_high_tai_and_partial_overlap_do_not_create_missing_pairs) ... ok
+test_refuses_unvalidated_data (test_step6_paired_return_details.DetailsTests.test_refuses_unvalidated_data) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 1.101s
+
+OK

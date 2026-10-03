@@ -1,0 +1,34 @@
+{
+  "verdict": "PASS_PAIRED_RETURN_DATA_ONLY",
+  "slave_timestamp_verdict": "PASS_COHERENT_TIMESTAMP_DATA_ONLY",
+  "master_records": 32,
+  "paired_updates": 14,
+  "unpaired_slave_updates": 2,
+  "paired_ucnt": [
+    266,
+    267,
+    268,
+    269,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279
+  ],
+  "consecutive_paired_differences": 13,
+  "master_t24p_ps": [
+    2389
+  ],
+  "paired_cko_range_ps": [
+    -685.5010986328125,
+    240.4937744140625
+  ],
+  "large_cko_transition_pairs": [],
+  "errors": [],
+  "scope": "Exact source/port/domain/DelayResp sequence plus full64 time joins. Complete32/16 immutable histories; only overlapping accepted pairs used. Not simultaneous acquisition, physical accuracy, causality or strict300s PASS."
+}

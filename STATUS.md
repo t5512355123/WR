@@ -2,13 +2,21 @@
 
 **Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
 Active experiment: EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003.
-Observer-only paired provenance candidate prepared; production inputs unchanged.
-Fresh native checks/compile/program for this round pending. Retained output
-belongs to the preceding completed TS4 round described below, not a new PASS.
+Observer-only paired provenance round completed; production inputs unchanged.
+Fresh native checks/full compile/one Slave→Master programming pair succeeded
+from `31bfaeb55f667719dbcc8690139f859598683ed4`. Root output contains these
+actual diagnostic products, NOT a strict PASS. Master32/Slave16 histories
+validated;14exact full64 RX→T4 pairs,13consecutive differences. No>=1ns CKO
+step in this overlap, but action-free275→276 moved−925.995ps, with constant
+coarse return and fine correction changing−834.991ps. Both forward/return
+terms varied; physical jitter versus phase estimation remains unproven.
+The120s startup had9fresh<60ps entries, longest qualified hold1501ms. Postflight
+had1entry, no positive qualified span, CKO−221..+339ps; no300s extension.
+See the [paired report](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/REPORT.md).
 Current root restores normal feedback and adds a passive coherent T1..T4/RTT
 producer RAM history. Native tests, fresh full compile and one programming pair
-completed from `4e0c2324095c8644dac7fb5426f69de0eadb392c`. Root output is THIS
-normal-feedback diagnostic, not a strict PASS image. All16same-source records
+completed from `4e0c2324095c8644dac7fb5426f69de0eadb392c`. These preceding
+products are now superseded by the paired diagnostic. All16same-source records
 passed full timestamp/RTT/CKO identities. With phase action absent, ~8.2ns return
 jumps correspond to ~4.2ns CKO jumps; timestamp provenance is the next boundary.
 The120s acquisition had13fresh<60ps entries, longest qualified hold2102ms.

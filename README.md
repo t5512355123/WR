@@ -6,16 +6,20 @@ This repository develops and records the two-board White Rabbit system on Terasi
 
 **Current root: strict WR validity candidate, NOT YET QUALIFIED.**
 Active experiment: `EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003`.
-The next round adds only an observer to rapidly request both existing snapshots
-before draining replies, then match actual Master RX to accepted Slave T4 by
-live peer identity/domain/port/sequence/full time. Production inputs remain
-unchanged. Fresh new-round compile/program is pending; retained output still
-belongs to the preceding TS4 round below. See the
-[paired plan](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/PLAN.md).
+This observer-only round completed native tests, two full compiles and one
+Slave→Master programming pair from
+`31bfaeb55f667719dbcc8690139f859598683ed4`. Retained root output contains THESE
+actual diagnostic SOFs, not a strict PASS milestone. Production inputs and MIF
+pins are unchanged. All32 Master/16 Slave records validated;14accepted T4
+values exactly matched Master RX, with13consecutive differences. The~4ns jump
+was not reproduced in this snapshot, but action-free CKO still moved~926ps.
+The120s startup had9fresh<60ps entries and only1501ms qualified hold;
+postflight failed the extension gate. See the
+[paired report](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/REPORT.md).
 Current source restores normal /2 acquisition + /12 tracking and adds a passive
 same-update four-timestamp/RTT RAM history. Fresh two-board build/program from
-`4e0c2324095c8644dac7fb5426f69de0eadb392c` completed; root output contains those
-actual diagnostic SOFs, NOT a strict300s PASS milestone. All16consecutive
+`4e0c2324095c8644dac7fb5426f69de0eadb392c` completed in the preceding round;
+its diagnostic products are now superseded by the paired round. All16consecutive
 timestamp records passed identities. Action-free ~8.2ns return-leg jumps
 correspond to ~4.2ns CKO jumps. The120s acquisition observation reached<60ps,
 but qualified hold was only2102ms; postflight did not satisfy the extension

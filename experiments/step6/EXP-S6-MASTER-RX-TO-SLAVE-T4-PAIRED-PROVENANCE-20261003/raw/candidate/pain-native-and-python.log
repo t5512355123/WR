@@ -1,0 +1,39 @@
+ACTUAL_TS4_RECORDER_C=PASS raw/cal fields action boundary filtering overwrite frozen pages signed64 no-control-input
+RXTS_NATIVE=PASS input-immutable filter packing ring-wrap frozen-pages bounded-output
+ACTUAL_WRH_SERVO_C_TEST=PASS cases=35 acquisition_divisor=2 tracking_divisor=12 master_gm_preserved=1
+ACTUAL_FIXED_SETP_C_TEST=PASS in_band_updates=100 full64_revocations=8 all_phase_paths_guarded=1
+test_exact_pair_and_eight_ns_linearizer_step_not_step6_pass (test_step6_paired_return.PairedTests) ... ok
+test_fifo_bounds_with_shell_echo_crlf_and_prompt (test_step6_paired_return.PairedTests) ... ok
+test_high_tai_preserves_full_seconds_and_overlaps (test_step6_paired_return.PairedTests) ... ok
+test_no_forced_pairing_of_nonoverlapping_history (test_step6_paired_return.PairedTests) ... ok
+test_partial_overlap_exact_eight_pair_boundary (test_step6_paired_return.PairedTests) ... ok
+test_raw_mac_not_fallback_and_source_port_domain_bound (test_step6_paired_return.PairedTests) ... ok
+test_same_sequence_wrong_whole_time_or_incorrect_stamp_rejects (test_step6_paired_return.PairedTests) ... ok
+test_unrelated_historical_snapshots_cannot_be_joined (test_step6_paired_return.PairedTests) ... ok
+test_wrong_math_missing_duplicate_pages_never_complete (test_step6_paired_return.PairedTests) ... ok
+test_actual_observer_stops_on_bad_math_and_reset_no_restart (test_step6_paired_return.WholeObserverTests) ... skipped 'Tcl unavailable'
+test_actual_whole_observer_primes_both_before_any_page_read (test_step6_paired_return.WholeObserverTests) ... skipped 'Tcl unavailable'
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.086s
+
+OK (skipped=2)
+test_complete_snapshot_reproduces_half_return_jump_not_pass (test_step6_four_timestamps.FourStampTests) ... ok
+test_duplicate_updates_and_unknown_schema_reject (test_step6_four_timestamps.FourStampTests) ... ok
+test_false_health_and_reset_are_not_accepted (test_step6_four_timestamps.FourStampTests) ... ok
+test_full_seconds_larger_than_signed64_picos (test_step6_four_timestamps.FourStampTests) ... ok
+test_incorrect_or_changed_math_reject (test_step6_four_timestamps.FourStampTests) ... ok
+test_negative64_setpoint_and_correct_delta_add_sub (test_step6_four_timestamps.FourStampTests) ... ok
+test_only_passive_hook_added_normal_feedback_restored (test_step6_four_timestamps.FourStampTests) ... ok
+test_torn_missing_or_wrong_records_reject (test_step6_four_timestamps.FourStampTests) ... ok
+test_wrong_control_mode_and_generation_reject (test_step6_four_timestamps.FourStampTests) ... ok
+test_real_tcl_math_large_tai_and_half_period (test_step6_four_timestamps.TclExecutionTests) ... skipped 'Tcl interpreter unavailable'
+test_real_tcl_rejects_missing_changed_or_duplicate_record (test_step6_four_timestamps.TclExecutionTests) ... skipped 'Tcl interpreter unavailable'
+test_real_tcl_rejects_wrong_fixed_flag_math_and_marker (test_step6_four_timestamps.TclExecutionTests) ... skipped 'Tcl interpreter unavailable'
+test_whole_observer_smoke_and_same_snapshot_extension (test_step6_four_timestamps.TclExecutionTests) ... skipped 'Tcl interpreter unavailable'
+test_whole_observer_stops_on_bad_math_and_reset_not_restarts (test_step6_four_timestamps.TclExecutionTests) ... skipped 'Tcl interpreter unavailable'
+
+----------------------------------------------------------------------
+Ran 14 tests in 0.031s
+
+OK (skipped=5)

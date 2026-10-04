@@ -6,6 +6,9 @@ cd "$ROOT"
 source scripts/build/current_experiment.env
 POST_PROGRAM_WAIT_S=${POST_PROGRAM_WAIT_S:-0}
 case "$POST_PROGRAM_WAIT_S" in ''|*[!0-9]*) echo 'POST_PROGRAM_WAIT_S must be non-negative integer' >&2; exit 2 ;; esac
+mkdir -p "$ROOT/build"
+exec 9>"$ROOT/build/.current-pipeline.lock"
+flock -n 9 || { echo 'Another main-root pipeline is still running.' >&2; exit 2; }
 if pgrep -x quartus_stp >/dev/null || pgrep -x quartus_pgm >/dev/null; then
   echo 'Stop the other JTAG dashboard/reader/programmer first.' >&2; exit 2
 fi

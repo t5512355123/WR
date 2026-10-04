@@ -15,6 +15,7 @@ class EditableWorkflowTests(unittest.TestCase):
         self.root=Path(self.tmp.name)
         self.env=dict(os.environ,PATH=str(self.root/'bin')+os.pathsep+os.environ.get('PATH',''))
         self.put('bin/pgrep','#!/usr/bin/env bash\nexit 1\n')
+        self.put('bin/flock','#!/usr/bin/env bash\nexit 0\n')
         self.put('bin/sha256sum','#!/usr/bin/env bash\necho SHA_MUST_NOT_RUN >&2\nexit 77\n')
         self.put('scripts/build/current_experiment.env','CURRENT_EXPERIMENT=TEST\nCURRENT_BUILD_POLICY=editable\n')
     def tearDown(self): self.tmp.cleanup()
@@ -69,6 +70,11 @@ class EditableWorkflowTests(unittest.TestCase):
         self.assertLess(result.stdout.index('POST_PROGRAM_SETTLING_DONE'),result.stdout.index('STEP=dashboard'))
     def test_invalid_wait_never_builds(self):
         self.make_pipeline(); self.env['POST_PROGRAM_WAIT_S']='bad'
+        result=self.run_script('scripts/run_current.sh')
+        self.assertEqual(result.returncode,2)
+        self.assertNotIn('STEP=build',result.stdout)
+    def test_competing_pipeline_never_builds(self):
+        self.make_pipeline(); self.put('bin/flock','#!/usr/bin/env bash\nexit 1\n')
         result=self.run_script('scripts/run_current.sh')
         self.assertEqual(result.returncode,2)
         self.assertNotIn('STEP=build',result.stdout)

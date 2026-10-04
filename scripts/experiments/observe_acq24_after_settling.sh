@@ -8,7 +8,9 @@ test "$CURRENT_EXPERIMENT" = EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004
 PIPELINE=$(realpath "${1:?Pass the completed pipeline directory}")
 case "$PIPELINE" in "$ROOT/experiments/step6/$CURRENT_EXPERIMENT/raw/pipeline/"*) ;; *) exit 2 ;; esac
 grep -q '^CURRENT_PROGRAM_COMPLETED .*wait_s=900$' "$PIPELINE/pipeline.log"
-grep -q '^POST_PROGRAM_SETTLING_DONE elapsed_s=900 ' "$PIPELINE/pipeline.log"
+settling_elapsed=$(sed -n 's/^POST_PROGRAM_SETTLING_DONE elapsed_s=\([0-9][0-9]*\) .*/\1/p' "$PIPELINE/pipeline.log")
+case "$settling_elapsed" in ''|*[!0-9]*) exit 2 ;; esac
+test "$settling_elapsed" -ge 900
 grep -q '^CURRENT_PIPELINE_EXIT=0 ' "$PIPELINE/pipeline.log"
 if pgrep -x quartus_stp >/dev/null || pgrep -x quartus_pgm >/dev/null; then
   echo 'Another JTAG reader/programmer is running.' >&2; exit 2

@@ -105,6 +105,73 @@ reproduce)
   cmp "$RECORD/analysis/qualified-result.json" "$RECORD/analysis/recomputed-result.json"
   echo 'STANDALONE_TIME_VALID_300S=PASS'
   ;;
+seal)
+  REPORT="$RECORD/REPORT.md"
+  test -f "$REPORT"
+  grep -Fx 'STANDALONE_TIME_VALID_300S = PASS' "$REPORT" >/dev/null
+  grep -Fx 'STANDALONE_TIME_VALID_300S=PASS' "$RECORD/raw/reproduction.log" >/dev/null
+  grep -Fx 'CURRENT_PROGRAM=PASS order=slave,master' "$RECORD/raw/reproduction.log" >/dev/null
+  test "$(realpath "$SOURCE")" = "$SOURCE"
+  cd "$SOURCE"
+  sha256sum -c output/SOURCE_SHA256SUMS >/dev/null
+  test "$(sha256sum output/SOURCE_SHA256SUMS | awk '{print $1}')" = "$MANIFEST"
+  sha256sum -c output/SHA256SUMS
+  sha256sum -c output/PUBLISHED_SHA256SUMS >/dev/null
+  test "$(cat output/SOURCE_COMMIT)" = "$(cat "$RECORD/raw/independent-source-commit.txt")"
+  git diff --quiet "$(cat output/SOURCE_COMMIT)" -- firmware vendor quartus quartus_generated
+  python3 scripts/analysis/step6_time_valid_300s.py "$RECORD/raw/qualified-capture.log" \
+    --required-duration-ms 300000 --max-sample-gap-ms 1000 \
+    --minimum-samples 301 --boards 1-11.1,1-11.2 >/dev/null
+  # Laptop independently verified this exact capture before promotion.
+  sha256sum -c "$RECORD/analysis/laptop-verified-capture.sha256"
+  STAGE=$(mktemp -d /tmp/wr-current-step6-seal.XXXXXX)
+  mkdir "$STAGE/source"
+  git ls-files -z | tar --null --exclude='.archive-sha256' -T - -cf - \
+    | tar -xf - -C "$STAGE/source"
+  NEW_RECORD="$STAGE/source/experiments/step6/$EXP"
+  mkdir -p "$NEW_RECORD/raw" "$NEW_RECORD/analysis"
+  cp "$REPORT" "$NEW_RECORD/REPORT.md"
+  cp "$RECORD/raw/qualified-capture.log" "$RECORD/raw/dashboard-after.log" \
+    "$RECORD/raw/build_info_master.txt" "$RECORD/raw/build_info_slave.txt" \
+    "$RECORD/raw/reproduction.log" "$NEW_RECORD/raw/"
+  cp "$RECORD/analysis/qualified-result.json" "$NEW_RECORD/analysis/"
+  cp "$ROOT/scripts/milestones/current_step6_reproduced.md" "$STAGE/source/README.md"
+  cp "$ROOT/scripts/milestones/current_step6_reproduced.md" \
+    "$STAGE/source/scripts/milestones/step6_time_valid_milestone.md"
+  (cd "$STAGE/source"; sha256sum -c output/SOURCE_SHA256SUMS >/dev/null;
+    sha256sum -c output/SHA256SUMS; sha256sum -c output/PUBLISHED_SHA256SUMS >/dev/null)
+  tar -czf "$STAGE/source.tar.gz" -C "$STAGE/source" .
+  test "$(stat -c %s "$STAGE/source.tar.gz")" -lt 100000000
+  cp output/DE5a_wr_master_jtag.sof "$STAGE/master.sof"
+  cp output/DE5a_wr_slave_jtag.sof "$STAGE/slave.sof"
+  cp "$ROOT/scripts/milestones/step6_prepare_source.sh" "$STAGE/prepare_source.sh"
+  cp "$ROOT/scripts/milestones/current_step6_reproduced.md" "$STAGE/README.md"
+  cp "$REPORT" "$STAGE/VERIFICATION.md"
+  cp "$RECORD/raw/qualified-capture.log" "$STAGE/verification-capture.log"
+  cp "$RECORD/raw/dashboard-after.log" "$STAGE/verification-dashboard.log"
+  cp "$RECORD/analysis/qualified-result.json" "$STAGE/verification-result.json"
+  (cd "$STAGE"; sha256sum source.tar.gz > ARCHIVE_SHA256SUMS;
+    sha256sum master.sof slave.sof > SHA256SUMS;
+    sha256sum verification-capture.log verification-dashboard.log \
+      verification-result.json VERIFICATION.md > VERIFICATION_SHA256SUMS)
+  BACKUP=$(cat "$RECORD/raw/candidate-backup-path.txt")
+  case "$BACKUP" in /home/b10504072/04_WR_step6_package_backups/*-current-reseal) ;; *) exit 2 ;; esac
+  test "$(realpath "$BACKUP")" = "$BACKUP"
+  test ! -e "$BACKUP/previous-package"
+  # Recoverable atomic directory replacement, never recursive deletion.
+  mv -- "$MILESTONE" "$BACKUP/previous-package"
+  mkdir "$MILESTONE"
+  for file in source.tar.gz master.sof slave.sof prepare_source.sh README.md \
+    VERIFICATION.md verification-capture.log verification-dashboard.log \
+    verification-result.json ARCHIVE_SHA256SUMS SHA256SUMS VERIFICATION_SHA256SUMS; do
+    cp "$STAGE/$file" "$MILESTONE/$file"
+  done
+  bash "$MILESTONE/prepare_source.sh"
+  (cd "$MILESTONE"; sha256sum -c VERIFICATION_SHA256SUMS;
+    cmp master.sof source/output/DE5a_wr_master_jtag.sof;
+    cmp slave.sof source/output/DE5a_wr_slave_jtag.sof)
+  echo "STEP6_SEALED=PASS backup=$BACKUP staging=$STAGE"
+  ;;
 restore-failed)
   BACKUP=$(cat "$RECORD/raw/candidate-backup-path.txt")
   case "$BACKUP" in /home/b10504072/04_WR_step6_package_backups/*-current-reseal) ;; *) exit 2 ;; esac
@@ -118,5 +185,5 @@ restore-failed)
   (cd "$MILESTONE"; sha256sum -c ARCHIVE_SHA256SUMS; sha256sum -c SHA256SUMS)
   echo "UNQUALIFIED_SOURCE_PRESERVED=$BACKUP/unqualified-source"
   ;;
-*) echo 'Usage: reseal_current_step6.sh prepare|reproduce|restore-failed' >&2; exit 2 ;;
+*) echo 'Usage: reseal_current_step6.sh prepare|reproduce|seal|restore-failed' >&2; exit 2 ;;
 esac

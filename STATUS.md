@@ -1,5 +1,22 @@
 # Latest main-root status — 2026-10-04
 
+**Sealed Step6 milestone source restored; new hardware qualification NOT_RUN.**
+Restoration: EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004.
+The archived production code is restored. Initialization/acquisition/tracking
+phase writes are restored, acquire/2+track/12 and60/120ps remain.
+Scripts are unchanged from the previous editable workflow, NOT copied from the
+milestone. Build/program SHA acceptance gates remain disabled. The four manual
+command names are unchanged. Their existing experiment-directory label remains
+historical and must not be used to identify the loaded controller.
+Existing build/output products and user experiment evidence are preserved.
+No new firmware/FPGA build, programming, JTAG observation or power-cycle is
+performed for this code-only restoration. Historical TIME_VALID300s success
+does not establish a new pass or guaranteed acquisition after reprogramming.
+Milestone contents and protected Pain archive remain unchanged.
+See the [restoration record](experiments/step6/EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004/REPORT.md).
+
+## Previous no-phase-correction diagnostic preparation
+
 **WR fine-phase correction OFF; hardware result NOT_RUN.**
 Experiment: EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004.
 User requested code-only equivalent of acquire/0+track/0. Safe implementation

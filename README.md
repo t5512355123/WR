@@ -1,6 +1,37 @@
-# Current diagnostic: WR phase correction OFF (2026-10-04)
+# Current main-root: restored sealed Step6 milestone source (2026-10-04)
 
-Main-root now sets `WRH_PHASE_CORRECTION_ENABLED=0`: no WR phase-setpoint
+The production code has been restored to the read-only
+`artifacts/milestones/step6_global_time/source.tar.gz` contents.
+WR phase correction is active again: initialization is restored, acquisition
+uses `/2`, tracking uses `/12`, and the 60/120ps state gates are unchanged.
+The sealed milestone and protected Pain archive were not modified.
+
+Scripts were NOT restored from the milestone. The existing editable workflow
+is retained, without SHA acceptance checks. From Pain's main folder, use the
+same four commands, in order, to generate and deploy NEW root products:
+
+```sh
+cd /home/b10504072/04_WR
+bash scripts/build/build_current.sh
+bash scripts/build/compile_current.sh
+bash scripts/program/program_current.sh
+bash scripts/monitor/step1_6_dashboard.sh
+```
+
+Stop any dashboard/JTAG reader before programming. This restoration does not
+compile, program, replace existing SOFs, or establish a new TIME_VALID300s PASS.
+The milestone records historical sampled300s success but also a failed fresh
+standalone acquisition; identical source is not a guarantee of lock on every boot.
+Extra historical diagnostics and experiment records remain preserved and are
+not part of the current four-step workflow. The no-correction observer and its
+source tests describe the previous diagnostic, not this active controller.
+The unchanged script configuration still uses the previous diagnostic's log
+directory name; that label does not identify the loaded firmware. See the
+[restoration record](experiments/step6/EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004/REPORT.md).
+
+## Previous diagnostic: WR phase correction OFF (2026-10-04)
+
+The previous diagnostic set `WRH_PHASE_CORRECTION_ENABLED=0`: no WR phase-setpoint
 arithmetic/write from initialization, acquisition or tracking. This is the safe
 meaning of requested "/0+/0", NOT division by zero. The /2+/12 reference branch
 and60/120ps gates remain, but the phase correction branch is compiled out.

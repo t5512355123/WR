@@ -25,16 +25,6 @@
 /* Enable tracking by default. Disabling the tracking is used for demos. */
 static int wrh_tracking_enabled = 1;
 
-/* Diagnostic: disable WR fine-phase correction, not division by zero.
- * Measurement, coarse counter sync and the existing state gates stay active.
- * Set to 1 to restore the historical acquire/2 + track/12 controller. */
-#ifndef WRH_PHASE_CORRECTION_ENABLED
-#define WRH_PHASE_CORRECTION_ENABLED 0
-#endif
-#if (WRH_PHASE_CORRECTION_ENABLED != 0) && (WRH_PHASE_CORRECTION_ENABLED != 1)
-#error "WRH_PHASE_CORRECTION_ENABLED must be 0 or 1"
-#endif
-
 /* prototypes */
 static int __wrh_servo_update(struct pp_instance *ppi);
 static void  setState(struct pp_instance *ppi, int newState);
@@ -64,7 +54,6 @@ int wrh_servo_init(struct pp_instance *ppi)
 	   FIXME: isn't it fixed ?  */
 	s->clock_period_ps = WRH_OPER()->get_clock_period();
 
-#if WRH_PHASE_CORRECTION_ENABLED
 	/*
 	 * Do not reset cur_setpoint, but trim it to be less than one tick.
 	 * The softpll code uses the module anyways, but if we unplug-replug
@@ -76,11 +65,10 @@ int wrh_servo_init(struct pp_instance *ppi)
 	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 
 	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
-#endif /* WRH_PHASE_CORRECTION_ENABLED */
 
 	gs->flags |= PP_SERVO_FLAG_VALID;
 	TOPS(ppi)->get(ppi, &gs->update_time);
-	s->tracking_enabled = WRH_PHASE_CORRECTION_ENABLED && wrh_tracking_enabled;
+	s->tracking_enabled = wrh_tracking_enabled;
 	setState(ppi,WRH_SYNC_TAI);
 
 	/* shmem unlock */
@@ -220,7 +208,7 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	s->delayMS_ps=pp_time_to_picos(&gs->delayMS);
 	offsetMS=gs->offsetFromMaster;
 	s->offsetMS_ps=pp_time_to_picos(&offsetMS);
-	s->tracking_enabled = WRH_PHASE_CORRECTION_ENABLED && wrh_tracking_enabled;
+	s->tracking_enabled = wrh_tracking_enabled;
 
 	// Servo updated
 	gs->update_count++;
@@ -284,7 +272,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	case WRH_SYNC_PHASE:
-#if WRH_PHASE_CORRECTION_ENABLED
 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
 			s->cur_setpoint_ps, offset_ticks,
 			offset_ps);
@@ -293,7 +280,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 
 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
-#endif /* WRH_PHASE_CORRECTION_ENABLED */
 		setState(ppi,WRH_WAIT_OFFSET_STABLE);
 
 		if (CONFIG_ARCH_IS_WRS) {
@@ -338,7 +324,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 				break;
 			}
 
-#if WRH_PHASE_CORRECTION_ENABLED
 			// adjust phase towards offset = 0 make ck0 0
 			s->cur_setpoint_ps += (offset_ps / 12);
 
@@ -346,7 +331,6 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
 			pp_diag(ppi, time, 1, "adjust phase %i\n",
 				s->cur_setpoint_ps);
-#endif /* WRH_PHASE_CORRECTION_ENABLED */
 
 			s->prev_delayMS_ps = s->delayMS_ps;
 		}

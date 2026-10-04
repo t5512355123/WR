@@ -20,7 +20,8 @@ class EditableWorkflowTests(unittest.TestCase):
     def tearDown(self): self.tmp.cleanup()
     def put(self,path,body):
         target=self.root/path; target.parent.mkdir(parents=True,exist_ok=True)
-        target.write_text(body,newline='\n'); target.chmod(0o755)
+        with target.open('w',newline='\n') as stream: stream.write(body)
+        target.chmod(0o755)
     def copy(self,path): self.put(path,(ROOT/path).read_text())
     def run_script(self,path):
         return subprocess.run([BASH,(self.root/path).as_posix()],cwd=self.root,env=self.env,text=True,capture_output=True)

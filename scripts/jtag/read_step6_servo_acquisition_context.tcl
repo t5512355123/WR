@@ -19,6 +19,17 @@ set board_filter "1-11.2"
 set phase_context 2
 set ::wb_library_mode 1
 source [file join [file dirname [info script]] read_wb_runtime.tcl]
+source [file join [file dirname [info script]] step6_main_phase_readback_lib.tcl]
+set ::s6_acq_main_readback 0
+set ::s6_acq_smoke_only 0
+foreach {name global_name} {S6_ACQ_MAIN_READBACK ::s6_acq_main_readback
+                            S6_ACQ_SMOKE_ONLY ::s6_acq_smoke_only} {
+  if {[info exists ::env($name)]} {
+    if {$::env($name) ni {0 1}} { error "$name must be 0 or 1" }
+    set $global_name $::env($name)
+  }
+}
+set ::s6_acq_last_ucnt NA
 set ::s6_acq_rows 0
 set ::s6_acq_samples 0
 set ::s6_acq_structurally_trusted 0
@@ -362,6 +373,7 @@ proc s6_a_capture {hardware_name sample elapsed_ms} {
   set row_end_us [s6_a_us]
 
   set ucnt [word32 $ucnt_raw]
+  set ::s6_acq_last_ucnt $ucnt_raw
   set sstat [word32 $sstat_raw]
   set dc0 [word32 $diag_ctrl_before_raw]
   set dc1 [word32 $diag_ctrl_after_raw]
@@ -565,6 +577,7 @@ set ::s6_acq_stop_reason "NO_MATCHING_BOARD"
 set ::s6_acq_requested_duration_ms $duration_ms
 puts "S6_ACQ_CONFIG board_filter=$board_filter sample_ms=$sample_ms phase_context=2 context_join=MATCHED_UCNT_SEPARATE_FRAMES arming_timeout_ms=$arming_timeout_ms health_stable_ms=$health_stable_ms health_min_rows=$health_min_rows requested_duration_ms=$duration_ms structural_valid_ignores_global_time=1 read_only=1 wb_register_writes=0 fpga_program=0 reset=0"
 puts "S6_ACQ_CONTEXT_FIELDS primary=CKO,SSTAT,UCNT,epoch_before,epoch_after,frame_valid context=UCNT,SETP,DMS_HI,DMS_LO,epoch_before,epoch_after,frame_valid"
+puts "S6_ACQ_OPTIONAL main_readback=$::s6_acq_main_readback smoke_only=$::s6_acq_smoke_only main_group_is_separately_guarded=1"
 flush stdout
 
 foreach hardware_name [get_hardware_names] {
@@ -648,6 +661,22 @@ foreach hardware_name [get_hardware_names] {
     if {$::s6_acq_invalid_streak >= 5} {
       set ::s6_acq_stop_reason "FIVE_CONSECUTIVE_STRUCTURALLY_INVALID_ROWS"
       break
+    }
+
+    if {$::s6_acq_main_readback &&
+        (($sample_index % 4) == 0 || ($structural_trusted && $servo_state == 4))} {
+      s6_main_phase_readback $hardware_name $sample_index \
+        $::s6_acq_last_ucnt $arm_start_us
+    }
+    # Fixed20s live smoke only: preserve real state/health, but do not confuse
+    # a pre-existing TRACK state with newly observed boot acquisition.
+    if {$::s6_acq_smoke_only} {
+      if {[expr {([s6_a_us] - $arm_start_us) / 1000}] >= 20000} {
+        set ::s6_acq_stop_reason SMOKE_DONE
+        break
+      }
+      after $sample_ms
+      continue
     }
 
     if {$observer_phase eq "ARMING"} {

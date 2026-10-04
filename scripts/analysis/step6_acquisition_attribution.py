@@ -113,6 +113,47 @@ def analyze(text):
         data = [item[key] for item in values]
         return {'min': min(data), 'max': max(data)} if data else None
 
+    main_rows = [fields(line) for line in text.splitlines()
+                 if line.startswith('S6_MAIN_PHASE_SAMPLE ')]
+    main_valid = []
+    main_pairs = []
+    accepted_by_sample = {item['sample']: item for item in accepted}
+    for row in main_rows:
+        try:
+            e0, e1 = int(row['EPOCH_BEFORE'], 16), int(row['EPOCH_AFTER'], 16)
+            epoch = int(row['SOURCE_EPOCH'], 16)
+            vp = int(row['VERSION_PAGE'], 16)
+            update = int(row['UPDATE_ID'], 16)
+            if (row['FRAME_VALID'] != '1' or e0 <= 0 or e0 != e1 or e0 & 1
+                    or epoch <= 0 or epoch & 1 or (vp & 255) != 1
+                    or ((vp >> 8) & 255) >= 3 or update <= 0
+                    or int(row['MAGIC'], 16) != 0x46344c31):
+                continue
+            item = dict(sample=int(row['sample']), update=update,
+                init=int(row['INIT_GENERATION'], 16),
+                producer=int(row['PRODUCER_IDENTITY'], 16),
+                current_units=int(row['PHASE_CURRENT_UNITS']),
+                current_ps=int(row['PHASE_CURRENT_PS']))
+            main_valid.append(item)
+            servo = accepted_by_sample.get(item['sample'])
+            if (servo and row['SERVO_UPDATE_MATCH'] == '1'
+                    and int(row['SERVO_UCNT_BEFORE'], 16) == servo['ucnt']
+                    and int(row['SERVO_UCNT_AFTER'], 16) == servo['ucnt']
+                    and int(row['PAIR_UCNT'], 16) == servo['ucnt']):
+                setp = servo['SETP_PS']
+                ideal_units = trunc_div(trunc_div(setp * 16384, 8000), 2)
+                main_pairs.append(dict(sample=item['sample'], ucnt=servo['ucnt'],
+                    setpoint_ps=setp, current_units=item['current_units'],
+                    ideal_target_units=ideal_units,
+                    current_minus_ideal_units=item['current_units'] - ideal_units,
+                    negative_conversion_risk=setp <= -131072))
+        except (KeyError, ValueError):
+            continue
+    main_progress = []
+    for previous, current in zip(main_valid, main_valid[1:]):
+        if (previous['init'], previous['producer']) == (current['init'], current['producer']):
+            main_progress.append((current['update'] - previous['update']) & 0xffffffff)
+
     return {
         'scope': 'guarded_phase_context_diagnostic_only',
         'rows': len(raw_rows), 'accepted_rows': len(accepted),
@@ -145,6 +186,16 @@ def analyze(text):
         'adjacent_arithmetic_pairs': arithmetic,
         'software_arithmetic_match_does_not_prove_actuator_response': True,
         'health_and_phase_groups_are_not_atomic': True,
+        'main_phase_readback': {
+            'raw_rows': len(main_rows), 'valid_frames': len(main_valid),
+            'matched_servo_publication_pairs': main_pairs,
+            'update_progress_deltas_same_identity': main_progress,
+            'current_phase_ps_min': min((i['current_ps'] for i in main_valid), default=None),
+            'current_phase_ps_max': max((i['current_ps'] for i in main_valid), default=None),
+            'current_is_firmware_pre_shifter_observation_not_physical_phase': True,
+            'same_servo_publication_does_not_prove_atomic_or_fresh_target_pair': True,
+            'ideal_target_is_source_model_not_target_register_readback': True,
+        },
         'has_reader_done': any(line in ('S6_INTERLEAVED_DONE', 'S6_ACQ_DONE')
                                for line in text.splitlines()),
         'acquisition_stop_lines': [line for line in text.splitlines()

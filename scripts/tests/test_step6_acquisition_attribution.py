@@ -14,6 +14,41 @@ def row(sample, count, state, cko, setp, **overrides):
 
 
 class AttributionTests(unittest.TestCase):
+    def main_row(self, **overrides):
+        data = dict(sample='0', FRAME_VALID='1', EPOCH_BEFORE='00000002',
+            EPOCH_AFTER='00000002', SOURCE_EPOCH='00000002', MAGIC='46344C31',
+            VERSION_PAGE='00000101', UPDATE_ID='00000010', INIT_GENERATION='00000001',
+            PRODUCER_IDENTITY='00000002', PHASE_CURRENT_UNITS='-1024',
+            PHASE_CURRENT_PS='-1000', SERVO_UPDATE_MATCH='1',
+            SERVO_UCNT_BEFORE='0000000A', SERVO_UCNT_AFTER='0000000A', PAIR_UCNT='0000000A')
+        data.update(overrides)
+        return 'S6_MAIN_PHASE_SAMPLE ' + ' '.join(f'{k}={v}' for k,v in data.items())
+
+    def test_main_current_join_and_quantization(self):
+        result = analyze(row(0, 10, 5, 100, -1000) + '\n' + self.main_row())
+        main = result['main_phase_readback']
+        self.assertEqual(main['valid_frames'], 1)
+        self.assertEqual(main['matched_servo_publication_pairs'][0]['current_minus_ideal_units'], 0)
+
+    def test_main_torn_header_not_accepted(self):
+        for change in (dict(EPOCH_AFTER='00000004'), dict(MAGIC='00000000'),
+                       dict(SOURCE_EPOCH='00000003'), dict(VERSION_PAGE='00000301')):
+            result = analyze(self.main_row(**change))
+            self.assertEqual(result['main_phase_readback']['valid_frames'], 0)
+
+    def test_main_changed_ucnt_not_paired(self):
+        result = analyze(row(0, 10, 5, 100, -1000) + '\n' + self.main_row(SERVO_UCNT_AFTER='0000000B'))
+        self.assertEqual(result['main_phase_readback']['valid_frames'], 1)
+        self.assertEqual(result['main_phase_readback']['matched_servo_publication_pairs'], [])
+
+    def test_main_progress_not_inferred_across_generation(self):
+        result = analyze(self.main_row() + '\n' + self.main_row(UPDATE_ID='00000020', INIT_GENERATION='00000002'))
+        self.assertEqual(result['main_phase_readback']['update_progress_deltas_same_identity'], [])
+
+    def test_main_progress_requires_actual_update_id_change(self):
+        result = analyze(self.main_row() + '\n' + self.main_row(UPDATE_ID='00000020'))
+        self.assertEqual(result['main_phase_readback']['update_progress_deltas_same_identity'], [16])
+
     def test_negative_truncation(self):
         self.assertEqual(trunc_div(-5, 2), -2)
         self.assertEqual(trunc_div(-13, 12), -1)

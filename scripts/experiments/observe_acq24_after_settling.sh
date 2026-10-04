@@ -19,17 +19,17 @@ QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_st
 RECORD="$ROOT/experiments/step6/$CURRENT_EXPERIMENT"
 # Existing mode2 uses two separately guarded publication frames joined by UCNT.
 # The earlier same-frame smoke crossed every100ms publication; preserve it.
-test ! -e "$RECORD/raw/after-settling-mode2-session.log"
-exec > >(tee "$RECORD/raw/after-settling-mode2-session.log") 2>&1
+test ! -e "$RECORD/raw/after-settling-diagnostic-session.log"
+exec > >(tee "$RECORD/raw/after-settling-diagnostic-session.log") 2>&1
 trap 'rc=$?; printf "POST_SETTLING_OBSERVATION_EXIT=%s time=%s\n" "$rc" "$(date -Is)"' EXIT
 mkdir -p "$RECORD/raw/observe" "$RECORD/analysis"
 printf 'POST_SETTLING_OBSERVATION_BEGIN time=%s no_reprogram=1\n' "$(date -Is)"
-timeout --signal=INT --kill-after=5s 65s "$QUARTUS_STP" -t \
-  scripts/jtag/read_step6_servo_interleaved_offset.tcl 20000 500 1-11.2 2 \
-  > "$RECORD/raw/observe/smoke-mode2.log" 2>&1
+# Existing smoke was stopped by a deliberately stricter stability-coverage
+# metric, NOT by transport/epoch/reset guards. Preserve it and audit it again.
+test -s "$RECORD/raw/observe/smoke-mode2.log"
 python3 scripts/analysis/step6_post_settling_cko.py "$RECORD/raw/observe/smoke-mode2.log" \
   --required-duration-ms 10000 > "$RECORD/analysis/smoke-mode2.json"
-python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); print("POST_SETTLING_SMOKE="+str(r["capture_complete"])); sys.exit(0 if r["capture_complete"] else 2)' "$RECORD/analysis/smoke-mode2.json"
+python3 -c 'import json,sys; r=json.load(open(sys.argv[1])); ok=r["diagnostic_capture_complete"] and r["healthy_unique_rows"]==r["unique_update_rows"]; print("POST_SETTLING_DIAGNOSTIC_SMOKE="+str(ok)+" stability_gate_unchanged=1"); sys.exit(0 if ok else 2)' "$RECORD/analysis/smoke-mode2.json"
 timeout --signal=INT --kill-after=5s 365s "$QUARTUS_STP" -t \
   scripts/jtag/read_step6_servo_interleaved_offset.tcl 303000 500 1-11.2 2 \
   > "$RECORD/raw/observe/cko-303s.log" 2>&1

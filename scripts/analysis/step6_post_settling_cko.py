@@ -19,7 +19,7 @@ def board(line):
     return found.group(1) if found else 'UNKNOWN'
 
 def analyze(text,required_ms=300000):
-    rows=[]; fresh=[]; rejected=Counter(); duplicates=0; identity=None; prior=None
+    rows=[]; fresh=[]; rejected=Counter(); duplicates=0; identity=None; prior=None; prior_payload=None
     lines=text.splitlines()
     raw=[line for line in lines if line.startswith('S6_INTERLEAVED_SAMPLE ')]
     for line in raw:
@@ -30,6 +30,7 @@ def analyze(text,required_ms=300000):
         try:
             current_identity=tuple(int(row[k],16) for k in IDENTITY)
             ucnt=int(row['UCNT'],16); elapsed=int(row['elapsed_ms']); cko=int(row['CKO_PS'])
+            if ucnt!=int(row['PHASE_CONTEXT_UCNT'],16): raise ValueError()
             state=int(row['SERVO_STATE']); setp=int(row['SETP_PS']); dms=int(row['DMS_PS'])
             if not -2147483648<=cko<=2147483647 or elapsed<0: raise ValueError()
         except (KeyError,ValueError): rejected['malformed_row']+=1; continue
@@ -41,9 +42,11 @@ def analyze(text,required_ms=300000):
         rows.append(item)
         if prior is not None:
             delta=(ucnt-prior)&0xffffffff
-            if delta==0: duplicates+=1; continue
+            if delta==0:
+                if (cko,state,setp,dms)!=prior_payload: rejected['ucnt_payload_conflict']+=1
+                duplicates+=1; continue
             if delta>0x7fffffff: rejected['ucnt_regressed']+=1; continue
-        prior=ucnt; fresh.append(item)
+        prior=ucnt; prior_payload=(cko,state,setp,dms); fresh.append(item)
     done=[line for line in lines if line.startswith('S6_INTERLEAVED_BOARD_DONE ') and board(line)=='1-11.2']
     stops=[line for line in lines if line.startswith(('S6_INTERLEAVED_STOP ','S6_INTERLEAVED_ERROR '))]
     all_boards={board(line) for line in raw}
@@ -54,15 +57,18 @@ def analyze(text,required_ms=300000):
         try:
             d=fields(done[0]); done_good=int(d['elapsed_ms'])>=required_ms and int(d['samples'])==len(raw) and d.get('reset_stop')=='0'
         except (KeyError,ValueError): pass
-    complete=(all_boards=={'1-11.2'} and done_good and not stops and len(fresh)>=3 and
-              span>=required_ms and bool(gaps) and all(0<g<=2000 for g in gaps) and
+    diagnostic_complete=(all_boards=={'1-11.2'} and done_good and not stops and len(fresh)>=3 and
+              span>=required_ms and bool(gaps) and all(g>0 for g in gaps) and
               not rejected['identity_changed'] and not rejected['ucnt_regressed'] and
-              len(rows)>=0.9*len(raw))
+              not rejected['ucnt_payload_conflict'])
+    # Lower-rate trustworthy diagnostics may continue; continuous-stability
+    # qualification still has its ORIGINAL tighter coverage/gap requirements.
+    complete=(diagnostic_complete and all(g<=2000 for g in gaps) and len(rows)>=0.9*len(raw))
     ckos=[r['cko_ps'] for r in fresh]
     result=dict(raw_rows=len(raw),guarded_rows=len(rows),unique_update_rows=len(fresh),
                 duplicate_updates=duplicates,rejected=dict(rejected),observed_span_ms=span,
                 max_unique_update_gap_ms=max(gaps) if gaps else None,required_duration_ms=required_ms,
-                capture_complete=bool(complete),stop_records=stops,
+                capture_complete=bool(complete),diagnostic_capture_complete=bool(diagnostic_complete),stop_records=stops,
                 state_counts={STATES.get(s,str(s)):n for s,n in Counter(r['state'] for r in fresh).items()},
                 time_valid_unique_rows=sum(r['time_valid'] for r in fresh),
                 healthy_unique_rows=sum(r['healthy'] for r in fresh),

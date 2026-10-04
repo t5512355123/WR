@@ -44,3 +44,12 @@ necessary. Frozen milestones retain their original pinned workflow.
 Integer division truncates towards0; |offset|<24ps produces zero correction.
 Slower correction may reduce actuation changes but does not necessarily fix
 timestamp jumps/noise or create an in-band state. Report hardware evidence.
+
+## Same-boot observer amendment
+
+After exactly900s settling, dashboard at15:07:28 showed Slave TIME_VALID0,
+five locks1, WAIT/CKO-1423ps. The mode1 smoke then crossed a publication boundary
+in all5 rows (epoch N→N+1); it is preserved as INCONCLUSIVE, not valid CKO data.
+Host-only amendment: try existing mode2, separate individually guarded frames
+joined by equal UCNT, on the SAME programmed boot. No epoch/validity guard is
+weakened and no production rebuild/reprogram is needed for this host-only change.

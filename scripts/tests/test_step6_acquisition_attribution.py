@@ -58,6 +58,34 @@ class AttributionTests(unittest.TestCase):
         self.assertEqual(result['valid_with_abs_cko_gt120_observations'], 1)
         self.assertNotIn('PASS', result.values())
 
+    def test_acquisition_reader_uses_structural_guard(self):
+        text = row(0, 10, 5, 2400, 1000).replace('S6_INTERLEAVED_SAMPLE', 'S6_ACQ_SAMPLE')
+        text = text.replace('PHASE_OBSERVATION_VALID=1', 'STRUCTURALLY_TRUSTED_ROW=1')
+        result = analyze(text + '\nS6_ACQ_DONE')
+        self.assertEqual(result['accepted_rows'], 1)
+        self.assertTrue(result['has_reader_done'])
+
+    def test_invalid_acquisition_frame_is_not_accepted(self):
+        text = row(0, 10, 5, 2400, 1000).replace('S6_INTERLEAVED_SAMPLE', 'S6_ACQ_SAMPLE')
+        text = text.replace('PHASE_OBSERVATION_VALID=1', 'STRUCTURALLY_TRUSTED_ROW=0')
+        self.assertEqual(analyze(text)['accepted_rows'], 0)
+
+    def test_coarse_time_not_used_as_fine_phase_distribution(self):
+        result = analyze(row(0, 10, 1, 987654321, 1000))
+        self.assertEqual(result['before_time_valid']['unique_fine_phase_updates'], 0)
+
+    def test_pre_and_post_valid_are_distinct(self):
+        result = analyze(row(0, 10, 5, 2400, 1000) + '\n' +
+                         row(1, 11, 4, 30, 1000, STATUS_TIME_VALID='1'))
+        self.assertEqual(result['before_time_valid']['cko_min_ps'], 2400)
+        self.assertEqual(result['after_time_valid']['strict_lt60_updates'], 1)
+        self.assertEqual(result['first_accepted_time_valid_elapsed_ms'], 300)
+
+    def test_normal_duration_stop_preserved_separately_from_errors(self):
+        result = analyze('S6_ACQ_STOP STOP_REASON=DURATION_LIMIT\nS6_ACQ_DONE')
+        self.assertEqual(len(result['acquisition_stop_lines']), 1)
+        self.assertEqual(result['reader_error_lines'], [])
+
 
 if __name__ == '__main__':
     unittest.main()

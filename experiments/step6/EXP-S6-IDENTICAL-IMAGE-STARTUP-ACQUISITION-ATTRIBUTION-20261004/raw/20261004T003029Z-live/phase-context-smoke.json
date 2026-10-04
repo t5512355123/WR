@@ -1,0 +1,67 @@
+{
+  "accepted_rows": 20,
+  "adjacent_arithmetic_pairs": [
+    {
+      "divisor": 2,
+      "expected_delta": -60,
+      "matches": true,
+      "sample": 3,
+      "setpoint_delta": -60,
+      "state_after": 5,
+      "state_before": 3,
+      "ucnt": 1092
+    },
+    {
+      "divisor": 2,
+      "expected_delta": 86,
+      "matches": true,
+      "sample": 9,
+      "setpoint_delta": 86,
+      "state_after": 5,
+      "state_before": 3,
+      "ucnt": 1096
+    },
+    {
+      "divisor": 2,
+      "expected_delta": 96,
+      "matches": true,
+      "sample": 15,
+      "setpoint_delta": 96,
+      "state_after": 5,
+      "state_before": 3,
+      "ucnt": 1100
+    }
+  ],
+  "cko_ps": {
+    "max": 412,
+    "min": -516
+  },
+  "dms_ps": {
+    "max": 174343,
+    "min": 173734
+  },
+  "duplicate_rows": 5,
+  "has_reader_done": true,
+  "health_and_phase_groups_are_not_atomic": true,
+  "reader_error_lines": [],
+  "rejected": {
+    "frame_or_context_guard": 4
+  },
+  "rows": 24,
+  "same_ucnt_payload_conflicts": 0,
+  "scope": "guarded_phase_context_diagnostic_only",
+  "setpoint_ps": {
+    "max": -5262,
+    "min": -5444
+  },
+  "skipped_update_intervals": 0,
+  "software_arithmetic_match_does_not_prove_actuator_response": true,
+  "state_unique_update_counts": {
+    "SYNC_PHASE": 3,
+    "TRACK_PHASE": 2,
+    "WAIT_OFFSET_STABLE": 10
+  },
+  "time_valid_accepted_rows": 20,
+  "unique_updates": 15,
+  "valid_with_abs_cko_gt120_observations": 15
+}

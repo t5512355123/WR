@@ -18,8 +18,13 @@ def fields(line):
 
 
 def analyze(text):
-    raw_rows = [fields(line) for line in text.splitlines()
-                if line.startswith('S6_INTERLEAVED_SAMPLE ')]
+    raw_rows = []
+    for line in text.splitlines():
+        if line.startswith(('S6_INTERLEAVED_SAMPLE ', 'S6_ACQ_SAMPLE ')):
+            data = fields(line)
+            if line.startswith('S6_ACQ_SAMPLE '):
+                data['PHASE_OBSERVATION_VALID'] = data.get('STRUCTURALLY_TRUSTED_ROW')
+            raw_rows.append(data)
     rejected = Counter()
     accepted = []
     prior = None
@@ -91,6 +96,15 @@ def analyze(text):
     states = Counter(STATE_NAMES.get(item['SERVO_STATE'], 'UNKNOWN') for item in unique.values())
     values = list(unique.values())
 
+    def validity_group(valid):
+        group = [item for item in values if item['STATUS_TIME_VALID'] == valid
+                 and item['SERVO_STATE'] in (3, 4, 5)]
+        return {'unique_fine_phase_updates': len(group),
+                'cko_min_ps': min((i['CKO_PS'] for i in group), default=None),
+                'cko_max_ps': max((i['CKO_PS'] for i in group), default=None),
+                'strict_lt60_updates': sum(abs(i['CKO_PS']) < 60 for i in group),
+                'states': dict(Counter(STATE_NAMES[i['SERVO_STATE']] for i in group))}
+
     def bounds(key):
         data = [item[key] for item in values]
         return {'min': min(data), 'max': max(data)} if data else None
@@ -104,15 +118,23 @@ def analyze(text):
         'state_unique_update_counts': dict(states),
         'cko_ps': bounds('CKO_PS'), 'setpoint_ps': bounds('SETP_PS'),
         'dms_ps': bounds('DMS_PS'),
+        'before_time_valid': validity_group(0),
+        'after_time_valid': validity_group(1),
+        'first_accepted_time_valid_elapsed_ms': next((i['elapsed_ms'] for i in accepted
+                                                    if i['STATUS_TIME_VALID'] == 1), None),
         'time_valid_accepted_rows': sum(item['STATUS_TIME_VALID'] == 1 for item in accepted),
         'valid_with_abs_cko_gt120_observations': sum(
             item['STATUS_TIME_VALID'] == 1 and abs(item['CKO_PS']) > 120 for item in accepted),
         'adjacent_arithmetic_pairs': arithmetic,
         'software_arithmetic_match_does_not_prove_actuator_response': True,
         'health_and_phase_groups_are_not_atomic': True,
-        'has_reader_done': 'S6_INTERLEAVED_DONE' in text.splitlines(),
+        'has_reader_done': any(line in ('S6_INTERLEAVED_DONE', 'S6_ACQ_DONE')
+                               for line in text.splitlines()),
+        'acquisition_stop_lines': [line for line in text.splitlines()
+                                   if line.startswith('S6_ACQ_STOP ')],
         'reader_error_lines': [line for line in text.splitlines()
-            if line.startswith(('S6_INTERLEAVED_ERROR ', 'S6_INTERLEAVED_STOP '))],
+            if line.startswith(('S6_INTERLEAVED_ERROR ', 'S6_INTERLEAVED_STOP ',
+                                'S6_ACQ_ERROR '))],
     }
 
 

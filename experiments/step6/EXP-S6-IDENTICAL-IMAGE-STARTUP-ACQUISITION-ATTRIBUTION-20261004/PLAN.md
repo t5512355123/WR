@@ -54,3 +54,15 @@ Return/checksum raw records to Laptop, independently rerun analysis, write
 REPORT.md and push before choosing the next controlled action. Keep the goal
 active until the unexpected same-configuration behaviour is causally explained;
 do not close it merely because another favourable boot happens to pass.
+
+Controlled replay runner: scripts/experiments/replay_identical_image_acquisition.sh.
+It requires the preserved current live qualification first, builds firmware and
+both images through existing root scripts, checks all3117 input bytes and both
+RBF payload hashes before programming. It captures the existing dedicated
+acquisition reader (300s health arming ceiling,10s healthy streak,600s acquisition
+ceiling; first TRACK is a stop). Unexpected observer stops are INCONCLUSIVE,
+not failed firmware acquisition. No repeated programming to fish for a pass.
+If initial time validity is observed, unchanged303s-per-board qualification
+follows in that same boot. Freeze every functional input, include normal
+termination/censoring and programming wall times, and report the outcome even
+when it is unfavourable.

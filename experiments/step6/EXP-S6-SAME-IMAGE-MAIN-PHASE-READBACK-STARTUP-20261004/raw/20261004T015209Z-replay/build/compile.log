@@ -1,0 +1,7 @@
+Master Quartus build passed: /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/build/20261004T020830Z-current.n2dNWx
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/

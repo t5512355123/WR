@@ -1,0 +1,149 @@
+{
+  "accepted_rows": 25,
+  "acquisition_stop_lines": [
+    "S6_ACQ_STOP board=DE5 [1-11.2] ARMING_TIMEOUT_MS=300000 REQUESTED_DURATION_MS=600000 LAST_ROW_START_MS=19835 LAST_ROW_END_MS=20181 ARM_ELAPSED_MS=10482 ACQ_ELAPSED_MS=9700 TOTAL_ELAPSED_MS=20182 ELAPSED_MS=20182 STOP_REASON=SMOKE_DONE"
+  ],
+  "adjacent_arithmetic_pairs": [
+    {
+      "divisor": 2,
+      "expected_delta": -883,
+      "matches": true,
+      "sample": 9,
+      "setpoint_delta": -883,
+      "state_after": 5,
+      "state_before": 3,
+      "ucnt": 2591
+    },
+    {
+      "divisor": 2,
+      "expected_delta": -398,
+      "matches": true,
+      "sample": 26,
+      "setpoint_delta": -398,
+      "state_after": 5,
+      "state_before": 3,
+      "ucnt": 2602
+    }
+  ],
+  "after_health_arming_phase_cko_ps": {
+    "max": -386,
+    "min": -1155
+  },
+  "after_time_valid": {
+    "cko_max_ps": -386,
+    "cko_min_ps": -1928,
+    "states": {
+      "SYNC_PHASE": 2,
+      "WAIT_OFFSET_STABLE": 17
+    },
+    "strict_lt60_updates": 0,
+    "unique_phase_labelled_updates": 19
+  },
+  "before_time_valid": {
+    "cko_max_ps": null,
+    "cko_min_ps": null,
+    "states": {},
+    "strict_lt60_updates": 0,
+    "unique_phase_labelled_updates": 0
+  },
+  "cko_ps": {
+    "max": -386,
+    "min": -1928
+  },
+  "dms_ps": {
+    "max": 174218,
+    "min": 173476
+  },
+  "duplicate_rows": 6,
+  "first_accepted_time_valid_elapsed_ms": 0,
+  "first_accepted_time_valid_total_elapsed_ms": 275,
+  "has_reader_done": true,
+  "health_and_phase_groups_are_not_atomic": true,
+  "main_phase_readback": {
+    "current_is_firmware_pre_shifter_observation_not_physical_phase": true,
+    "current_phase_ps_max": 7603,
+    "current_phase_ps_min": 6322,
+    "ideal_target_is_source_model_not_target_register_readback": true,
+    "matched_servo_publication_pairs": [
+      {
+        "current_minus_ideal_units": 0,
+        "current_units": 7786,
+        "ideal_target_units": 7786,
+        "negative_conversion_risk": false,
+        "sample": 0,
+        "setpoint_ps": 7604,
+        "ucnt": 2584
+      },
+      {
+        "current_minus_ideal_units": 0,
+        "current_units": 7786,
+        "ideal_target_units": 7786,
+        "negative_conversion_risk": false,
+        "sample": 8,
+        "setpoint_ps": 7604,
+        "ucnt": 2590
+      },
+      {
+        "current_minus_ideal_units": 0,
+        "current_units": 6882,
+        "ideal_target_units": 6882,
+        "negative_conversion_risk": false,
+        "sample": 12,
+        "setpoint_ps": 6721,
+        "ucnt": 2593
+      },
+      {
+        "current_minus_ideal_units": 0,
+        "current_units": 6882,
+        "ideal_target_units": 6882,
+        "negative_conversion_risk": false,
+        "sample": 16,
+        "setpoint_ps": 6721,
+        "ucnt": 2595
+      },
+      {
+        "current_minus_ideal_units": 0,
+        "current_units": 6474,
+        "ideal_target_units": 6474,
+        "negative_conversion_risk": false,
+        "sample": 28,
+        "setpoint_ps": 6323,
+        "ucnt": 2603
+      }
+    ],
+    "raw_rows": 8,
+    "same_servo_publication_does_not_prove_atomic_or_fresh_target_pair": true,
+    "update_progress_deltas_same_identity": [
+      14495,
+      7248,
+      7247,
+      14495,
+      7248,
+      14495,
+      7247
+    ],
+    "valid_frames": 8
+  },
+  "negative_setpoint_signed32_product_overflow_updates": 0,
+  "phase_label_does_not_establish_coarse_time_settled": true,
+  "reader_error_lines": [],
+  "rejected": {
+    "frame_or_context_guard": 6
+  },
+  "rows": 31,
+  "same_ucnt_payload_conflicts": 0,
+  "scope": "guarded_phase_context_diagnostic_only",
+  "setpoint_ps": {
+    "max": 7604,
+    "min": 6323
+  },
+  "skipped_update_intervals": 0,
+  "software_arithmetic_match_does_not_prove_actuator_response": true,
+  "state_unique_update_counts": {
+    "SYNC_PHASE": 2,
+    "WAIT_OFFSET_STABLE": 17
+  },
+  "time_valid_accepted_rows": 25,
+  "unique_updates": 19,
+  "valid_with_abs_cko_gt120_observations": 25
+}

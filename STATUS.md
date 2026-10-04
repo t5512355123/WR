@@ -1,5 +1,25 @@
 # Latest main-root status — 2026-10-04
 
+**Latest same-image600s acquisition = NOT_ACQUIRED; failure preserved.**
+Experiment: EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004.
+Source640436ca, actual root build/full compiles/one programming pair succeeded.
+RBF payloads exactly equal the successful and failed prior configurations.
+Immediate reader stopped with structurally invalid startup data; later SAME
+boot link recovered without programming and600210ms acquisition was validly
+observed:789 accepted rows,545 unique updates, no TRACK/TIME_VALID.
+Slave five PLL locks1 throughout trusted rows; Main231 valid frames/230
+progress intervals, total2319210 updates. Late actual current/target5312/5312ps,
+PPS counter not busy; final WAIT/CKO−2317ps/TIME_VALID0. Main-stall and permanently
+busy shifter explanations alone are not supported. Slave T24P6800 differs from
+successful boot7150; Master default-valued2389 is not yet proven incorrect.
+Initial acquisition versus retained validity is source-proven; physical cause
+of boot-dependent CKO remains unresolved. No300s verifier ran without entry.
+Current root products are the actual unqualified new compile, Master6f826945 /
+Slavee4e3f7a6. No milestone/archive mutation or gain/calibration/control change.
+See the [latest report](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md).
+
+## Previous root replay — successful acquisition/retention, not deterministic
+
 **Fresh root TIME_VALID300s = PASS; deterministic startup NOT_ESTABLISHED.**
 Experiment: EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004.
 Live08:11 successful boot preserved and qualified; then actual fresh root

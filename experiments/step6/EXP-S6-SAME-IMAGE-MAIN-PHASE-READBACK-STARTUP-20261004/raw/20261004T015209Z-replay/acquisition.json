@@ -1,0 +1,59 @@
+{
+  "accepted_rows": 0,
+  "acquisition_stop_lines": [
+    "S6_ACQ_STOP board=DE5 [1-11.2] ARMING_TIMEOUT_MS=300000 REQUESTED_DURATION_MS=600000 LAST_ROW_START_MS=2953 LAST_ROW_END_MS=3361 ARM_ELAPSED_MS=3361 ACQ_ELAPSED_MS=NA TOTAL_ELAPSED_MS=3361 ELAPSED_MS=3361 STOP_REASON=FIVE_CONSECUTIVE_STRUCTURALLY_INVALID_ROWS"
+  ],
+  "adjacent_arithmetic_pairs": [],
+  "after_health_arming_phase_cko_ps": {
+    "max": null,
+    "min": null
+  },
+  "after_time_valid": {
+    "cko_max_ps": null,
+    "cko_min_ps": null,
+    "states": {},
+    "strict_lt60_updates": 0,
+    "unique_phase_labelled_updates": 0
+  },
+  "before_time_valid": {
+    "cko_max_ps": null,
+    "cko_min_ps": null,
+    "states": {},
+    "strict_lt60_updates": 0,
+    "unique_phase_labelled_updates": 0
+  },
+  "cko_ps": null,
+  "dms_ps": null,
+  "duplicate_rows": 0,
+  "first_accepted_time_valid_elapsed_ms": null,
+  "first_accepted_time_valid_total_elapsed_ms": null,
+  "has_reader_done": true,
+  "health_and_phase_groups_are_not_atomic": true,
+  "main_phase_readback": {
+    "current_is_firmware_pre_shifter_observation_not_physical_phase": true,
+    "current_phase_ps_max": null,
+    "current_phase_ps_min": null,
+    "ideal_target_is_source_model_not_target_register_readback": true,
+    "matched_servo_publication_pairs": [],
+    "raw_rows": 1,
+    "same_servo_publication_does_not_prove_atomic_or_fresh_target_pair": true,
+    "update_progress_deltas_same_identity": [],
+    "valid_frames": 0
+  },
+  "negative_setpoint_signed32_product_overflow_updates": 0,
+  "phase_label_does_not_establish_coarse_time_settled": true,
+  "reader_error_lines": [],
+  "rejected": {
+    "frame_or_context_guard": 5
+  },
+  "rows": 5,
+  "same_ucnt_payload_conflicts": 0,
+  "scope": "guarded_phase_context_diagnostic_only",
+  "setpoint_ps": null,
+  "skipped_update_intervals": 0,
+  "software_arithmetic_match_does_not_prove_actuator_response": true,
+  "state_unique_update_counts": {},
+  "time_valid_accepted_rows": 0,
+  "unique_updates": 0,
+  "valid_with_abs_cko_gt120_observations": 0
+}

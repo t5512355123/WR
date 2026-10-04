@@ -1,8 +1,22 @@
-# Current target: TIME_VALID 300s — identical-image diagnosis (2026-10-04)
+# Current target: TIME_VALID 300s — same-image failure preserved (2026-10-04)
+
+Latest fresh root replay reproduced an acquisition failure despite identical
+FPGA configuration: all five Slave PLL locks1, Main231/231 valid frames and
+230 progressing intervals, but TIME_VALID0 in789 accepted rows across the
+600s acquisition window. Actual Slave phase current/target later5312/5312ps;
+final CKO−2317ps in WAIT. This is not a missing Main-update stream or proof
+of a continuously stuck shifter. Root `output/` now contains the actual new
+compile from `640436ca`, not a newly qualified300s image. Calibration/runtime
+phases differ under equal RBFs; their causal significance remains unresolved.
+See the [latest preserved-failure report](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md).
+Canonical milestones/archive remain unchanged. The earlier success below
+is historical evidence, not the current boot's result.
+
+## Previous identical-image replay: successful, not deterministic startup
 
 Fresh **main-root** build/compile/program and sampled300s verification passed
 again on both boards: Master/Slave1190/1190 valid rows over302852/302870ms.
-Current `output/` contains that actual build from `3bf9f3b4`, not a new control
+That run's `output/` contained the actual build from `3bf9f3b4`, not a new control
 candidate. All3117 production inputs/MIFs are unchanged; FPGA RBF payloads
 match both the qualified root and the earlier failed standalone boot exactly.
 The startup trace first observed TIME_VALID after159381ms of observer time.

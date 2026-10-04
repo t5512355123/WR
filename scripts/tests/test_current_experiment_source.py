@@ -1,4 +1,4 @@
-"""Guard the TIME_VALID-only backtrack, not the superseded strict candidate."""
+"""Guard the acq24/track24 candidate: no other production-control edits."""
 from pathlib import Path
 import hashlib
 import re
@@ -17,8 +17,6 @@ INERT_ADDITIONS = {
     'vendor/wrpc-sw/softpll/spll_ptracker_diag.h',
 }
 CURRENT_HASHES = {
-    'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
-        '0eb04e6a35dee436d21f81b0b9d5bb493e0299847304fc095e9be1ffa48cd97f',
     'quartus/DE5a_wr_master_jtag.vhd':
         '1cbaf7b40f831bd7d1ba32702dbfc80b1a7dfb3948eca5d7dd8922e57cc880ed',
     'quartus/DE5a_wr_slave_jtag.vhd':
@@ -56,16 +54,24 @@ class CurrentSourceTests(unittest.TestCase):
             cwd=ROOT, text=True).splitlines()
         for line in diff:
             status, path = line.split('\t', 1)
+            if status == 'M' and path == 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
+                historical = subprocess.check_output(['git','show',f'{BASELINE}:{path}'],cwd=ROOT).decode()
+                current = (ROOT/path).read_text()
+                expected = historical.replace('offset_ps / 2);','offset_ps / 24);').replace('offset_ps / 12);','offset_ps / 24);')
+                self.assertEqual(current, expected)
+                continue
             self.assertEqual(status, 'A', line)
             self.assertIn(path, INERT_ADDITIONS)
-        self.assertEqual({line.split('\t', 1)[1] for line in diff}, INERT_ADDITIONS)
+        self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('A\t')}, INERT_ADDITIONS)
+        self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('M\t')}, {'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c'})
 
     def test_qualified_hashes_and_controller_contract(self):
         for path, expected in CURRENT_HASHES.items():
             self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), expected)
         text = (ROOT / 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c').read_text()
-        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 2);'), 1)
-        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 12);'), 1)
+        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 24);'), 2)
+        self.assertNotIn('offset_ps / 2);', text)
+        self.assertNotIn('offset_ps / 12);', text)
         self.assertIn('2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD', text)
         self.assertNotIn('invalidate_slave_time', text)
         self.assertNotIn('FIXED_SETP', text)
@@ -84,10 +90,10 @@ class CurrentSourceTests(unittest.TestCase):
         used = set(re.findall(r'(\w+)\s*=>', mapping))
         self.assertTrue(used <= declared, f'undeclared generic(s): {used - declared}')
 
-    def test_firmware_identity_is_pinned_without_fake_checkout_identity(self):
+    def test_editable_workflow_without_fake_checkout_identity(self):
         text = (ROOT / 'scripts/build/current_experiment.env').read_text()
-        self.assertIn('CURRENT_MASTER_MIF_SHA256=18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea', text)
-        self.assertIn('CURRENT_SLAVE_MIF_SHA256=91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379', text)
+        self.assertIn('CURRENT_BUILD_POLICY=editable',text)
+        self.assertNotIn('MIF_SHA256=',text)
         for role in ('master', 'slave'):
             text = (ROOT / f'scripts/build/build_{role}.sh').read_text()
             self.assertIn('git -C "$ROOT" rev-parse HEAD', text)

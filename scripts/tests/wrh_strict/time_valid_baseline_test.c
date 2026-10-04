@@ -6,6 +6,15 @@
 #include "ppsi/ppsi.h"
 #include "../../../vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c"
 
+/* Historical callers retain /2 and /12; new experiments supply explicit
+ * arithmetic expectations while executing the SAME actual source body. */
+#ifndef EXPECTED_ACQUIRE_DIV
+#define EXPECTED_ACQUIRE_DIV 2
+#endif
+#ifndef EXPECTED_TRACK_DIV
+#define EXPECTED_TRACK_DIV 12
+#endif
+
 static int output, enables, busy, pll, delays_ok, phase_calls, counter_calls;
 static struct pp_servo gs;
 struct test_arch_data test_arch;
@@ -61,9 +70,9 @@ int main(void) {
     }
     fixture(WRH_SYNC_PHASE,200); ws.cur_setpoint_ps=1000;
     __wrh_servo_update(&instance);
-    assert(ws.cur_setpoint_ps==1100 && output==0 && enables==0);
+    assert(ws.cur_setpoint_ps==1000+200/EXPECTED_ACQUIRE_DIV && output==0 && enables==0);
     fixture(WRH_TRACK_PHASE,60); ws.cur_setpoint_ps=1000;
-    __wrh_servo_update(&instance); assert(ws.cur_setpoint_ps==1005);
+    __wrh_servo_update(&instance); assert(ws.cur_setpoint_ps==1000+60/EXPECTED_TRACK_DIV);
     fixture(WRH_TRACK_PHASE,0); pll=1; __wrh_servo_update(&instance);
     assert(ws.doRestart && phase_calls==0);
     fixture(WRH_WAIT_OFFSET_STABLE,0); pll=1; __wrh_servo_update(&instance);
@@ -76,6 +85,6 @@ int main(void) {
     assert(output==0 && enables==0);
     fixture(WRH_UNINITIALIZED,0); __wrh_servo_update(&instance);
     assert(output==0 && enables==0 && phase_calls==0);
-    puts("ACTUAL_TIME_VALID_BASELINE_C_TEST=PASS cases=22 no_forced_entry=1 acquire=2 track=12 historical_validity=1");
+    printf("ACTUAL_TIME_VALID_BASELINE_C_TEST=PASS cases=22 no_forced_entry=1 acquire=%d track=%d historical_validity=1\n",EXPECTED_ACQUIRE_DIV,EXPECTED_TRACK_DIV);
     return 0;
 }

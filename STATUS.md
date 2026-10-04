@@ -1,12 +1,29 @@
 # Latest main-root status — 2026-10-04
 
+**WR fine-phase correction OFF; hardware result NOT_RUN.**
+Experiment: EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004.
+User requested code-only equivalent of acquire/0+track/0. Safe implementation
+sets WRH_PHASE_CORRECTION_ENABLED=0, excluding initialization/acquisition/
+tracking phase arithmetic and writes, not division by zero. Measurement and
+update counts continue, effective tracking status is0;60/120ps state gates,
+coarse time sync and all SoftPLL/control/RTL settings remain unchanged.
+Only wrh-servo.c changed among production inputs. Existing scripts remain;
+new optional read-only CKO summary wrapper is available after fresh programming.
+No firmware/FPGA build, programming, capture, power-cycle or consultant call
+performed for this candidate. Existing Pain builds/active milestone dashboard
+preserved, frozen milestone/archive unchanged. No new valid/precision PASS.
+See the [diagnostic plan](experiments/step6/EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004/PLAN.md).
+
+## Previous requested restoration — source-only
+
 **Restored acquisition/2 + tracking/12; new hardware qualification PENDING.**
 Experiment: EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004.
 User requested returning to the previously successful TIME_VALID parameters.
 All3110 qualified production inputs restored;7 inert declarations retained.
 No other control/threshold changes. Editable one-command workflow remains.
-Root output is still the previous /24 compile until new compile/export succeeds;
-do not program old outputs and claim the restored parameters are running.
+No restoration firmware/FPGA build or programming performed by the assistant.
+User-generated Pain products are separate from retained Git outputs; do not
+identify the currently loaded image from a source checkout alone.
 See the [restoration plan](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
 
 ## Previous /24+/24 candidate — negative result preserved

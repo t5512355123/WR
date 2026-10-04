@@ -1,4 +1,4 @@
-"""Guard the restored qualified acq2/track12 production inputs."""
+"""Guard no-WR-phase-correction diagnostics against the qualified baseline."""
 from pathlib import Path
 import hashlib
 import re
@@ -22,6 +22,18 @@ CURRENT_HASHES = {
     'quartus/DE5a_wr_slave_jtag.vhd':
         'cf4db299a18e954fba52b379673717494be22448b47df6a40af4c6845cdb449e',
 }
+
+MODE_HEADER = '''/* Diagnostic: disable WR fine-phase correction, not division by zero.
+ * Measurement, coarse counter sync and the existing state gates stay active.
+ * Set to 1 to restore the historical acquire/2 + track/12 controller. */
+#ifndef WRH_PHASE_CORRECTION_ENABLED
+#define WRH_PHASE_CORRECTION_ENABLED 0
+#endif
+#if (WRH_PHASE_CORRECTION_ENABLED != 0) && (WRH_PHASE_CORRECTION_ENABLED != 1)
+#error "WRH_PHASE_CORRECTION_ENABLED must be 0 or 1"
+#endif
+
+'''
 
 class CurrentSourceTests(unittest.TestCase):
     def test_all_3110_qualified_inputs_match(self):
@@ -54,10 +66,23 @@ class CurrentSourceTests(unittest.TestCase):
             cwd=ROOT, text=True).splitlines()
         for line in diff:
             status, path = line.split('\t', 1)
+            if status == 'M' and path == 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
+                current = (ROOT / path).read_text()
+                self.assertEqual(current.count(MODE_HEADER), 1)
+                self.assertEqual(current.count('#if WRH_PHASE_CORRECTION_ENABLED\n'), 3)
+                self.assertEqual(current.count('#endif /* WRH_PHASE_CORRECTION_ENABLED */\n'), 3)
+                normalized = current.replace(MODE_HEADER, '')
+                normalized = normalized.replace('#if WRH_PHASE_CORRECTION_ENABLED\n', '')
+                normalized = normalized.replace('#endif /* WRH_PHASE_CORRECTION_ENABLED */\n', '')
+                normalized = normalized.replace('WRH_PHASE_CORRECTION_ENABLED && wrh_tracking_enabled', 'wrh_tracking_enabled')
+                original = subprocess.check_output(['git', 'show', f'{BASELINE}:{path}'], cwd=ROOT).decode()
+                self.assertEqual(normalized, original)
+                continue
             self.assertEqual(status, 'A', line)
             self.assertIn(path, INERT_ADDITIONS)
         self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('A\t')}, INERT_ADDITIONS)
-        self.assertFalse(any(line.startswith('M\t') for line in diff))
+        self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('M\t')},
+                         {'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c'})
 
     def test_qualified_hashes_and_controller_contract(self):
         for path, expected in CURRENT_HASHES.items():
@@ -66,6 +91,9 @@ class CurrentSourceTests(unittest.TestCase):
         self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 2);'), 1)
         self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 12);'), 1)
         self.assertNotIn('offset_ps / 24);', text)
+        self.assertIn('#define WRH_PHASE_CORRECTION_ENABLED 0', text)
+        self.assertNotRegex(text, r'/\s*0\b')
+        self.assertEqual(text.count('WRH_PHASE_CORRECTION_ENABLED && wrh_tracking_enabled'), 2)
         self.assertIn('2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD', text)
         self.assertNotIn('invalidate_slave_time', text)
         self.assertNotIn('FIXED_SETP', text)

@@ -3,8 +3,10 @@ from pathlib import Path
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
+from scripts.tests.test_post_settling_cko import capture
 
 ROOT=Path(__file__).resolve().parents[2]
 BASH=shutil.which('bash') or r'C:/Program Files/Git/bin/bash.exe'
@@ -78,5 +80,45 @@ class EditableWorkflowTests(unittest.TestCase):
         result=self.run_script('scripts/run_current.sh')
         self.assertEqual(result.returncode,2)
         self.assertNotIn('STEP=build',result.stdout)
+
+    def make_cko_observer(self, text=None):
+        self.copy('scripts/monitor/observe_cko_no_correction.sh')
+        self.copy('scripts/analysis/step6_post_settling_cko.py')
+        self.put('scripts/build/current_experiment.env',
+                 'CURRENT_EXPERIMENT=EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004\nCURRENT_BUILD_POLICY=editable\n')
+        self.put('bin/python3', '#!/usr/bin/env bash\nexec "'+Path(sys.executable).as_posix()+'" "$@"\n')
+        self.put('bin/git', '#!/usr/bin/env bash\necho MOCK_SOURCE\n')
+        self.put('fixture.log', text or capture(offset=2000))
+        self.put('bin/quartus_stp', '#!/usr/bin/env bash\necho "MOCK_READER_ARGS=$*"\ncat "$CKO_CAPTURE_FIXTURE"\n')
+        self.env['QUARTUS_STP']=(self.root/'bin/quartus_stp').as_posix()
+        self.env['CKO_CAPTURE_FIXTURE']=(self.root/'fixture.log').as_posix()
+
+    def test_cko_observer_preserves_other_jtag_owner(self):
+        self.make_cko_observer(); self.put('bin/pgrep', '#!/usr/bin/env bash\nexit 0\n')
+        result=self.run_script('scripts/monitor/observe_cko_no_correction.sh')
+        self.assertEqual(result.returncode,2,result.stderr)
+        self.assertFalse((self.root/'experiments').exists())
+
+    def test_cko_observer_rejects_bad_duration_before_reading(self):
+        self.make_cko_observer(); self.env['DURATION_MS']='-1'
+        result=self.run_script('scripts/monitor/observe_cko_no_correction.sh')
+        self.assertEqual(result.returncode,2,result.stderr)
+        self.assertFalse((self.root/'experiments').exists())
+
+    def test_cko_observer_mock_complete_without_hardware(self):
+        self.make_cko_observer(); result=self.run_script('scripts/monitor/observe_cko_no_correction.sh')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertIn('loaded_mode_not_automatically_verified=1', result.stdout)
+        self.assertIn('SAMPLED_SETP_CONSTANT=True', result.stdout)
+        self.assertIn('"cko_peak_to_peak_ps": 0', result.stdout)
+        raw=list((self.root/'experiments').glob('**/*-cko.log'))
+        self.assertEqual(len(raw),1)
+        self.assertIn('303000 500 1-11.2 2', raw[0].read_text())
+
+    def test_cko_observer_incomplete_is_not_success(self):
+        self.make_cko_observer(capture(short=True)); result=self.run_script('scripts/monitor/observe_cko_no_correction.sh')
+        self.assertEqual(result.returncode,2,result.stderr)
+        self.assertEqual(len(list((self.root/'experiments').glob('**/*-cko.log'))),1)
+        self.assertIn('"diagnostic_capture_complete": false', result.stdout)
 
 if __name__=='__main__': unittest.main()

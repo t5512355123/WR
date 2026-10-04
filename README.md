@@ -1,9 +1,14 @@
-# Current editable workflow and restored /2+/12 baseline (2026-10-04)
+# Current diagnostic: WR phase correction OFF (2026-10-04)
 
-Main-root restores the previously qualified WR correction: acquisition/2,
-tracking/12, unchanged60/120ps thresholds. The new boot's300s qualification is
-pending; historical success is not a guarantee of startup. See the
-[restoration plan](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
+Main-root now sets `WRH_PHASE_CORRECTION_ENABLED=0`: no WR phase-setpoint
+arithmetic/write from initialization, acquisition or tracking. This is the safe
+meaning of requested "/0+/0", NOT division by zero. The /2+/12 reference branch
+and60/120ps gates remain, but the phase correction branch is compiled out.
+CKO measurements remain live; SoftPLL and coarse time synchronization still
+operate. This is not a physical oscillator-jitter measurement or a Step6 PASS.
+Set the source mode default to1 to restore /2+/12, then rebuild/program.
+Code-only preparation; existing SOFs/hardware have NOT been updated by us.
+See the [diagnostic plan](experiments/step6/EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004/PLAN.md).
 After any source edit, run from Pain's main folder:
 
 ```sh
@@ -27,15 +32,27 @@ SHA verification. Hashes are generated only as experiment records. Build errors,
 missing outputs and competing JTAG sessions still stop the pipeline. Stop the
 dashboard before running another reader/programmer. Frozen milestones unchanged.
 
+After a successful fresh build/program, stop the dashboard and optionally run
+`bash scripts/monitor/observe_cko_no_correction.sh` for303s of guarded Slave
+CKO data and a min/max/peak-to-peak summary, saved in the current experiment.
+It does not build/program/reset or force validity; it cannot identify loaded
+firmware independently. Results require actual hardware observation.
+
+## Previous requested restoration — source-only
+
+The previous /2+/12 restoration was synchronized but not rebuilt/programmed by
+the assistant, at the user's request. Its plan is retained
+[here](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
+
 ## Previous /24+/24 candidate — negative result preserved
 
 See [the previous candidate plan](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md).
 Actual fresh build/program and15-minute settling completed. Slave remained
 TIME_VALID0; later250 trusted new updates over301797ms had CKO−2085..+2986ps,
 zero inside±120ps, all five PLL locks1. **This /24+/24 candidate is NOT a
-TIME_VALID300s PASS.** Until the restoration's new full compile/export finishes,
-root `output/` contains those /24 SOFs from`6eb0c2c1`, not the restored image.
-Use the full pipeline before programming. See the
+TIME_VALID300s PASS.** The retained Git outputs are those /24 SOFs from`6eb0c2c1`,
+not the new diagnostic implementation; Pain may have separate user builds.
+Use the full pipeline before programming this candidate. See the
 [completed experiment report](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md).
 
 # Previous target: TIME_VALID 300s — same-image failure preserved

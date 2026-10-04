@@ -47,6 +47,14 @@ The preserved no-correction source assertions/observer describe the previous
 diagnostic and must not be interpreted as the restored controller. The native
 historical-controller regression is `run_wrh_time_valid_baseline_c.sh`.
 
+After Laptop push and Pain fast-forward pull, Pain also passes the same 28
+offline Python tests and all 22 native historical-controller C cases with
+undefined-behavior checking. The native test executes the real restored servo
+using substitute hardware interfaces: acquire=2, track=12, no forced entry.
+This is a host-side test, not firmware/FPGA compilation or a hardware capture.
+Pain has no working-tree differences in production code, scripts or artifacts
+after pulling; existing user-modified build/output products are preserved.
+
 `git diff --check` PASS. No tracked changes to `scripts/`, `artifacts/`, `build/`
 or `output/`. Existing products and untracked experiment evidence are preserved.
 The protected external Pain archive is not modified or used as a working tree.

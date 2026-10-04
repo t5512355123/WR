@@ -1,0 +1,22 @@
+{
+  "capture_complete": false,
+  "cko_stable_within_120ps_300s": "INCONCLUSIVE_INCOMPLETE_CAPTURE",
+  "duplicate_updates": 0,
+  "guarded_rows": 0,
+  "healthy_unique_rows": 0,
+  "max_unique_update_gap_ms": null,
+  "observed_span_ms": 0,
+  "raw_rows": 5,
+  "rejected": {
+    "untrusted_phase_frame": 5
+  },
+  "required_duration_ms": 10000,
+  "simultaneous_packet_or_physical_measurement": false,
+  "state_counts": {},
+  "stop_records": [
+    "S6_INTERLEAVED_STOP board=DE5 [1-11.2] sample=4 elapsed_ms=2852 reason=five_consecutive_invalid_phase_observations"
+  ],
+  "time_valid_300s_verdict": "NOT_ASSESSED_USE_SEPARATE_VERIFIER",
+  "time_valid_unique_rows": 0,
+  "unique_update_rows": 0
+}

@@ -1,5 +1,24 @@
 # Latest main-root status — 2026-10-04
 
+**Editable one-command pipeline = PASS; /24+/24 TIME_VALID300s = NOT_ESTABLISHED.**
+Experiment: EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004.
+Fresh root firmware/full compile/one Slave→Master programming pair from6eb0c2c1
+succeeded. After900s without JTAG/control writes, Slave still TIME_VALID0.
+Later SAME-boot303571ms diagnostic:358 rows,309 guarded,250 unique updates
+over301797ms; all250 link/five PLL locks1, TIME_VALID0; no TRACK,22 SYNC/228 WAIT.
+CKO−2085..+2986ps, zero within±120ps or strict<60. Coverage86.3%/max gap4296ms
+fails the unchanged strict-stability coverage rule; diagnostic completion is
+not a formal CKO300s PASS. No TIME_VALID verifier ran without valid entry.
+Root `output/` contains actual candidate SOFs Master9f3ee3cb/Slave88efdcb9.
+Only WR acquisition/2→24 and tracking/12→24 changed;60/120 thresholds unchanged.
+`bash scripts/run_current.sh` now supports edits without fixed SHA verification;
+`POST_PROGRAM_WAIT_S=900` requests15-minute post-program settling.29 Python
+tests passed on both hosts and42 native actual-servo cases passed. Milestones
+and protected archive unchanged; no auto gain sweep/reprogram or promotion.
+See the [completed report](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md).
+
+## Previous same-image600s acquisition — negative result preserved
+
 **Latest same-image600s acquisition = NOT_ACQUIRED; failure preserved.**
 Experiment: EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004.
 Source640436ca, actual root build/full compiles/one programming pair succeeded.
@@ -14,7 +33,7 @@ busy shifter explanations alone are not supported. Slave T24P6800 differs from
 successful boot7150; Master default-valued2389 is not yet proven incorrect.
 Initial acquisition versus retained validity is source-proven; physical cause
 of boot-dependent CKO remains unresolved. No300s verifier ran without entry.
-Current root products are the actual unqualified new compile, Master6f826945 /
+That run's root products were the actual unqualified new compile, Master6f826945 /
 Slavee4e3f7a6. No milestone/archive mutation or gain/calibration/control change.
 See the [latest report](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md).
 

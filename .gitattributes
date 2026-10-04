@@ -52,6 +52,9 @@ experiments/step6/EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-2026100
 experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/analysis/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/SMOKE_QUALIFIED.json -text
+experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/analysis/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/TRANSFER_* -text -eol
 experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/analysis/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/raw/** -text -eol -diff -whitespace

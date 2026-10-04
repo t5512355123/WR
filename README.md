@@ -26,15 +26,21 @@ missing outputs and competing JTAG sessions still stop the pipeline. Stop the
 dashboard before running another reader/programmer. Frozen milestones unchanged.
 
 See [this candidate plan](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md).
+Actual fresh build/program and15-minute settling completed. Slave remained
+TIME_VALID0; later250 trusted new updates over301797ms had CKO−2085..+2986ps,
+zero inside±120ps, all five PLL locks1. **This /24+/24 candidate is NOT a
+TIME_VALID300s PASS.** Root `output/` now contains its actual fresh SOFs from
+`6eb0c2c1`, not a qualified milestone. See the
+[completed experiment report](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md).
 
 # Previous target: TIME_VALID 300s — same-image failure preserved
 
-Latest fresh root replay reproduced an acquisition failure despite identical
+The previous fresh root replay reproduced an acquisition failure despite identical
 FPGA configuration: all five Slave PLL locks1, Main231/231 valid frames and
 230 progressing intervals, but TIME_VALID0 in789 accepted rows across the
 600s acquisition window. Actual Slave phase current/target later5312/5312ps;
 final CKO−2317ps in WAIT. This is not a missing Main-update stream or proof
-of a continuously stuck shifter. Root `output/` now contains the actual new
+of a continuously stuck shifter. That run's `output/` contained the actual
 compile from `640436ca`, not a newly qualified300s image. Calibration/runtime
 phases differ under equal RBFs; their causal significance remains unresolved.
 See the [latest preserved-failure report](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md).

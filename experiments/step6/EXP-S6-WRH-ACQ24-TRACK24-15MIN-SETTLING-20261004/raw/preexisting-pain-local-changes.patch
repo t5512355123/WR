@@ -1,0 +1,425 @@
+diff --git a/scripts/build/current_experiment.env b/scripts/build/current_experiment.env
+index f33814b6..ce9fe261 100644
+--- a/scripts/build/current_experiment.env
++++ b/scripts/build/current_experiment.env
+@@ -1,8 +1,8 @@
+ # Main-root backtrack to the three fresh TIME_VALID-only qualified cycles.
+ # Candidate until a NEW full build/program/300s capture passes. No forced valid.
+ # Historical WR validity semantics; this is NOT strict-offset qualification.
+-CURRENT_EXPERIMENT=EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003
++CURRENT_EXPERIMENT=EXP-S6-12-12
+ FIRMWARE_VERSION=master-diagnostic-baseline-20260817-1451-g4c1adf73-dirty
+ # Pin qualified firmware bytes; Quartus records the real new compile commit.
+-CURRENT_MASTER_MIF_SHA256=18a51d784d08acfdc3bc6f24cff768661ea3918d234c6b19a2d360614a0da3ea
+-CURRENT_SLAVE_MIF_SHA256=91c5d7f9629a8a5d2a05116f12efd9515326ad25ee897a85ab97c71fc242c379
++CURRENT_MASTER_MIF_SHA256=f4c1427c1b2a8839f452e549c7a97c07d95711198c3a2c1772656dfa29d0bdc7
++CURRENT_SLAVE_MIF_SHA256=e73cf02c542c67cfd4a53cba15e64d6677d270b23f1924263a4efae046e0fa65
+diff --git a/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c b/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+index 6b4e1ef3..6f0e671b 100644
+--- a/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
++++ b/vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c
+@@ -15,7 +15,10 @@
+ #include <libwr/shmem.h>
+ #else
+ /* No shmem */
+-#define wrs_shm_write(ppi, FLAG) do {} while (0)
++#define wrs_shm_write(ppi, FLAG) \
++	do                           \
++	{                            \
++	} while (0)
+ #endif
+ 
+ /* Define threshold values for SNMP */
+@@ -27,7 +30,7 @@ static int wrh_tracking_enabled = 1;
+ 
+ /* prototypes */
+ static int __wrh_servo_update(struct pp_instance *ppi);
+-static void  setState(struct pp_instance *ppi, int newState);
++static void setState(struct pp_instance *ppi, int newState);
+ 
+ /* External data */
+ extern struct wrs_shm_head *ppsi_head;
+@@ -39,9 +42,9 @@ void wrh_servo_enable_tracking(int enable)
+ 
+ int wrh_servo_init(struct pp_instance *ppi)
+ {
+-	wrh_servo_t *s=WRH_SRV(ppi);
+-	struct pp_servo *gs=SRV(ppi);
+-	int ret=0;
++	wrh_servo_t *s = WRH_SRV(ppi);
++	struct pp_servo *gs = SRV(ppi);
++	int ret = 0;
+ 
+ 	pp_servo_init(ppi); // Initialize the standard servo data
+ 
+@@ -62,31 +65,31 @@ int wrh_servo_init(struct pp_instance *ppi)
+ 	if (s->cur_setpoint_ps > s->clock_period_ps)
+ 		s->cur_setpoint_ps %= s->clock_period_ps;
+ 
+-	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
++	pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n", __func__, __LINE__, s->cur_setpoint_ps);
+ 
+ 	WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 
+ 	gs->flags |= PP_SERVO_FLAG_VALID;
+ 	TOPS(ppi)->get(ppi, &gs->update_time);
+ 	s->tracking_enabled = wrh_tracking_enabled;
+-	setState(ppi,WRH_SYNC_TAI);
++	setState(ppi, WRH_SYNC_TAI);
+ 
+ 	/* shmem unlock */
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_END);
+ 	return ret;
+ }
+ 
+-
+ void wrh_servo_reset(struct pp_instance *ppi)
+ {
+-	if ( ppi->extState==PP_EXSTATE_ACTIVE ) {
++	if (ppi->extState == PP_EXSTATE_ACTIVE)
++	{
+ 		/* shmem lock */
+ 		wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
+ 		ppi->flags = 0;
+ 
+ 		WRH_SERVO_RESET_DATA(WRH_SRV(ppi));
+ 
+-		setState(ppi,WRH_UNINITIALIZED);
++		setState(ppi, WRH_UNINITIALIZED);
+ 
+ 		/* shmem unlock */
+ 		wrs_shm_write(ppsi_head, WRS_SHM_WRITE_END);
+@@ -98,19 +101,24 @@ void wrh_servo_reset(struct pp_instance *ppi)
+  */
+ int wrh_servo_got_sync(struct pp_instance *ppi)
+ {
+-	struct pp_servo *gs=SRV(ppi);
++	struct pp_servo *gs = SRV(ppi);
+ 
+ 	/* shmem lock */
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
+ 
+-	gs->t1=ppi->t1;apply_faulty_stamp(ppi,1);
+-	gs->t2=ppi->t2;apply_faulty_stamp(ppi,2);
++	gs->t1 = ppi->t1;
++	apply_faulty_stamp(ppi, 1);
++	gs->t2 = ppi->t2;
++	apply_faulty_stamp(ppi, 2);
+ 
+-	if ( is_delayMechanismP2P(ppi) && gs->got_sync) {
+-		gs->got_sync=0;
++	if (is_delayMechanismP2P(ppi) && gs->got_sync)
++	{
++		gs->got_sync = 0;
+ 		__wrh_servo_update(ppi);
+-	} else {
+-		gs->got_sync=1;
++	}
++	else
++	{
++		gs->got_sync = 1;
+ 	}
+ 
+ 	/* shmem unlock */
+@@ -125,23 +133,25 @@ int wrh_servo_got_sync(struct pp_instance *ppi)
+ 
+ int wrh_servo_got_resp(struct pp_instance *ppi)
+ {
+-	struct pp_servo *gs=SRV(ppi);
++	struct pp_servo *gs = SRV(ppi);
+ 	int ret;
+-	static int errcount=0;
++	static int errcount = 0;
+ 
+ 	if (!gs->got_sync)
+ 		return 0; /* t1 & t2 not available yet */
+-	gs->got_sync=0;
++	gs->got_sync = 0;
+ 
+-	if (is_timestamp_incorrect_thres(ppi,&errcount,0xC /* mask=t3&t4 */))
++	if (is_timestamp_incorrect_thres(ppi, &errcount, 0xC /* mask=t3&t4 */))
+ 		return 0;
+ 
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
+ 
+-	gs->t3 = ppi->t3; apply_faulty_stamp(ppi,3);
+-	gs->t4 = ppi->t4; apply_faulty_stamp(ppi,4);
++	gs->t3 = ppi->t3;
++	apply_faulty_stamp(ppi, 3);
++	gs->t4 = ppi->t4;
++	apply_faulty_stamp(ppi, 4);
+ 
+-	ret=__wrh_servo_update(ppi);
++	ret = __wrh_servo_update(ppi);
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_END);
+ 	return ret;
+ }
+@@ -152,20 +162,24 @@ int wrh_servo_got_resp(struct pp_instance *ppi)
+  */
+ int wrh_servo_got_presp(struct pp_instance *ppi)
+ {
+-	struct pp_servo *gs=SRV(ppi);
+-	static int errcount=0;
++	struct pp_servo *gs = SRV(ppi);
++	static int errcount = 0;
+ 
+-	if (is_timestamp_incorrect_thres(ppi,&errcount,0x3C /* t3,t4,t5,t6 */))
++	if (is_timestamp_incorrect_thres(ppi, &errcount, 0x3C /* t3,t4,t5,t6 */))
+ 		return 0;
+ 
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_BEGIN);
+ 
+-	gs->t3 = ppi->t3; apply_faulty_stamp(ppi,3);
+-	gs->t4 = ppi->t4; apply_faulty_stamp(ppi,4);
+-	gs->t5 = ppi->t5; apply_faulty_stamp(ppi,5);
+-	gs->t6 = ppi->t6; apply_faulty_stamp(ppi,6);
++	gs->t3 = ppi->t3;
++	apply_faulty_stamp(ppi, 3);
++	gs->t4 = ppi->t4;
++	apply_faulty_stamp(ppi, 4);
++	gs->t5 = ppi->t5;
++	apply_faulty_stamp(ppi, 5);
++	gs->t6 = ppi->t6;
++	apply_faulty_stamp(ppi, 6);
+ 
+-	gs->got_sync=1;
++	gs->got_sync = 1;
+ 
+ 	wrs_shm_write(ppsi_head, WRS_SHM_WRITE_END);
+ 
+@@ -175,85 +189,94 @@ int wrh_servo_got_presp(struct pp_instance *ppi)
+ 
+ static void setState(struct pp_instance *ppi, int newState)
+ {
+-	struct pp_servo *gs=SRV(ppi);
++	struct pp_servo *gs = SRV(ppi);
+ 	const char *state_name = wrh_servo_state_name[newState];
+ 	pp_diag(ppi, servo, 1, "new state %s\n", state_name);
+-	gs->state=newState;
++	gs->state = newState;
+ 	gs->servo_state_name = state_name;
+ }
+ 
+ static int __wrh_servo_update(struct pp_instance *ppi)
+ {
+-	struct pp_servo *gs=SRV(ppi);
+-	wrh_servo_t *s=WRH_SRV(ppi);
++	struct pp_servo *gs = SRV(ppi);
++	wrh_servo_t *s = WRH_SRV(ppi);
+ 	int remaining_offset;
+-	int32_t  offset_ticks;
++	int32_t offset_ticks;
+ 	int64_t prev_delayMM_ps = 0;
+ 	int locking_poll_ret;
+ 
+-	struct pp_time offsetMS ;
+-	int32_t  offset_ps;
++	struct pp_time offsetMS;
++	int32_t offset_ps;
+ 
+-	if ( gs->state==WRH_UNINITIALIZED ) {
+-		pp_error("%s : Servo not initialized !!!!\n",__FUNCTION__);
++	if (gs->state == WRH_UNINITIALIZED)
++	{
++		pp_error("%s : Servo not initialized !!!!\n", __FUNCTION__);
+ 		return 0;
+ 	}
+ 
+ 	prev_delayMM_ps = s->delayMM_ps;
+ 
+-	if ( !pp_servo_calculate_delays(ppi) )
++	if (!pp_servo_calculate_delays(ppi))
+ 		return 0;
+ 
+-	s->delayMM_ps=pp_time_to_picos(&gs->delayMM);
+-	s->delayMS_ps=pp_time_to_picos(&gs->delayMS);
+-	offsetMS=gs->offsetFromMaster;
+-	s->offsetMS_ps=pp_time_to_picos(&offsetMS);
++	s->delayMM_ps = pp_time_to_picos(&gs->delayMM);
++	s->delayMS_ps = pp_time_to_picos(&gs->delayMS);
++	offsetMS = gs->offsetFromMaster;
++	s->offsetMS_ps = pp_time_to_picos(&offsetMS);
+ 	s->tracking_enabled = wrh_tracking_enabled;
+ 
+ 	// Servo updated
+ 	gs->update_count++;
+ 	TOPS(ppi)->get(ppi, &gs->update_time);
+ 
+-	if (!s->readyForSync )
++	if (!s->readyForSync)
+ 		return 1; /* We have to wait before to start the synchronization */
+ 
+ 	locking_poll_ret = WRH_OPER()->locking_poll(ppi);
+-	if (locking_poll_ret != WRH_SPLL_LOCKED ){
+-		pp_error("%s: PLL error detected (Err=%d). Force restart.\n",__func__,locking_poll_ret);
++	if (locking_poll_ret != WRH_SPLL_LOCKED)
++	{
++		pp_error("%s: PLL error detected (Err=%d). Force restart.\n", __func__, locking_poll_ret);
+ 		s->doRestart = TRUE;
+ 		return 0;
+ 	}
+ 
+ 	/* After each action on the hardware, we must verify if it is over. */
+-	if (!WRH_OPER()->adjust_in_progress()) {
++	if (!WRH_OPER()->adjust_in_progress())
++	{
+ 		gs->flags &= ~PP_SERVO_FLAG_WAIT_HW;
+-	} else {
++	}
++	else
++	{
+ 		pp_diag(ppi, servo, 1, "servo:busy\n");
+ 		return 1;
+ 	}
+ 
+ 	/* So, we didn't return. Choose the right state */
+-	if (offsetMS.secs) {/* so bad... */
+-		setState(ppi,WRH_SYNC_TAI);
++	if (offsetMS.secs)
++	{ /* so bad... */
++		setState(ppi, WRH_SYNC_TAI);
+ 		pp_diag(ppi, servo, 2, "offsetMS: %li sec ...\n",
+ 				(long)offsetMS.secs);
+-	} else {
++	}
++	else
++	{
+ 		pp_time_hardwarize(&offsetMS, s->clock_period_ps,
+-			      &offset_ticks, &offset_ps);
++						   &offset_ticks, &offset_ps);
+ 		pp_diag(ppi, servo, 2, "offsetMS: %li sec %09li ticks (%li ps)\n",
+-			(long)offsetMS.secs, (long)offset_ticks,
+-			(long)offset_ps);
++				(long)offsetMS.secs, (long)offset_ticks,
++				(long)offset_ps);
+ 
+ 		if (offset_ticks) /* not that bad */
+-			setState(ppi,WRH_SYNC_NSEC);
+-	/* else, let the states below choose the sequence */
++			setState(ppi, WRH_SYNC_NSEC);
++		/* else, let the states below choose the sequence */
+ 	}
+ 
+ 	pp_diag(ppi, servo, 3, "wrh_servo state: %s%s\n",
+ 			gs->servo_state_name,
+ 			gs->flags & PP_SERVO_FLAG_WAIT_HW ? " (wait for hw)" : "");
+ 
+-	switch (gs->state) {
++	switch (gs->state)
++	{
+ 	case WRH_SYNC_TAI:
+ 		WRH_OPER()->adjust_counters(offsetMS.secs, 0);
+ 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
+@@ -262,37 +285,38 @@ static int __wrh_servo_update(struct pp_instance *ppi)
+ 		 * Else, we must ensure we leave this status towards
+ 		 * fine tuning
+ 		 */
+-		setState(ppi,WRH_SYNC_PHASE);
++		setState(ppi, WRH_SYNC_PHASE);
+ 		break;
+ 
+ 	case WRH_SYNC_NSEC:
+ 		WRH_OPER()->adjust_counters(0, offset_ticks);
+ 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
+-		setState(ppi,WRH_SYNC_PHASE);
++		setState(ppi, WRH_SYNC_PHASE);
+ 		break;
+ 
+ 	case WRH_SYNC_PHASE:
+ 		pp_diag(ppi, servo, 2, "oldsetp %i, offset %i:%04i\n",
+-			s->cur_setpoint_ps, offset_ticks,
+-			offset_ps);
+-		s->cur_setpoint_ps += (offset_ps / 2);
+-		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
++				s->cur_setpoint_ps, offset_ticks,
++				offset_ps);
++		s->cur_setpoint_ps += (offset_ps / 12);
++		pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n", __func__, __LINE__, s->cur_setpoint_ps);
+ 		WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 
+ 		gs->flags |= PP_SERVO_FLAG_WAIT_HW;
+-		setState(ppi,WRH_WAIT_OFFSET_STABLE);
++		setState(ppi, WRH_WAIT_OFFSET_STABLE);
+ 
+-		if (CONFIG_ARCH_IS_WRS) {
++		if (CONFIG_ARCH_IS_WRS)
++		{
+ 			/*
+ 			 * Now, let's fix system time. We pass here
+ 			 * once only, so that's the best place to do
+ 			 * it. We use current WR time.
+ 			 * */
+ 			struct pp_time t;
+-			TOPS(ppi)->get(ppi,&t);
++			TOPS(ppi)->get(ppi, &t);
+ 			unix_time_ops.set(ppi, &t);
+ 			pp_diag(ppi, time, 1, "system time set to %s TAI\n",
+-				time_to_string(&t));
++					time_to_string(&t));
+ 		}
+ 		break;
+ 
+@@ -300,16 +324,20 @@ static int __wrh_servo_update(struct pp_instance *ppi)
+ 
+ 		/* ts_to_picos() below returns phase alone */
+ 		remaining_offset = abs(pp_time_to_picos(&offsetMS));
+-		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+-			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
++		if (remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD)
++		{
++			TOPS(ppi)->enable_timing_output(GLBS(ppi), 1);
+ 			s->prev_delayMS_ps = s->delayMS_ps;
+-			setState(ppi,WRH_TRACK_PHASE);
+-		} else {
++			setState(ppi, WRH_TRACK_PHASE);
++		}
++		else
++		{
+ 			s->missed_iters++;
+ 		}
+-		if (s->missed_iters >= 10) {
++		if (s->missed_iters >= 10)
++		{
+ 			s->missed_iters = 0;
+-			setState(ppi,WRH_SYNC_PHASE);
++			setState(ppi, WRH_SYNC_PHASE);
+ 		}
+ 		break;
+ 
+@@ -317,28 +345,29 @@ static int __wrh_servo_update(struct pp_instance *ppi)
+ 		s->skew_ps = s->delayMS_ps - s->prev_delayMS_ps;
+ 
+ 		/* Can be disabled for manually tweaking and testing */
+-		if(wrh_tracking_enabled) {
++		if (wrh_tracking_enabled)
++		{
+ 			if (abs(offset_ps) >
+-			    2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
+-				setState(ppi,WRH_SYNC_PHASE);
++				2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD)
++			{
++				setState(ppi, WRH_SYNC_PHASE);
+ 				break;
+ 			}
+ 
+ 			// adjust phase towards offset = 0 make ck0 0
+ 			s->cur_setpoint_ps += (offset_ps / 12);
+ 
+-			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
++			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n", __func__, __LINE__, s->cur_setpoint_ps);
+ 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+ 			pp_diag(ppi, time, 1, "adjust phase %i\n",
+-				s->cur_setpoint_ps);
++					s->cur_setpoint_ps);
+ 
+ 			s->prev_delayMS_ps = s->delayMS_ps;
+ 		}
+ 		break;
+-
+ 	}
+ 
+-	gs->servo_locked = (gs->state==WRH_TRACK_PHASE);
++	gs->servo_locked = (gs->state == WRH_TRACK_PHASE);
+ 
+ 	/* Increase number of servo updates with state different than
+ 	 * WRH_TRACK_PHASE. (Used by SNMP) */

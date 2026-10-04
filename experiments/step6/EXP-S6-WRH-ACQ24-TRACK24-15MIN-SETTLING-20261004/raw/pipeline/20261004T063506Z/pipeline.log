@@ -1,0 +1,167 @@
+CURRENT_PIPELINE_BEGIN root=/home/b10504072/04_WR time=2026-10-04T14:35:06+08:00
+CURRENT_PIPELINE_RECORD=/home/b10504072/04_WR/experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/raw/pipeline/20261004T063506Z
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+CURRENT_BUILD_POLICY=editable sha_verification=disabled
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004
+Master Quartus build passed: /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+CURRENT_EXPORT_POLICY=editable local_edits_allowed=1 sha_verification=disabled
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/raw/build/20261004T065122Z-current.IL2miW
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/
+CURRENT_BUILD_POLICY=editable sha_verification=disabled
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Oct  4 14:51:41 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.2]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof with checksum 0x30B1E229 for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sun Oct  4 14:51:45 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sun Oct  4 14:51:59 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1647 megabytes
+    Info: Processing ended: Sun Oct  4 14:51:59 2026
+    Info: Elapsed time: 00:00:18
+    Info: Total CPU time (on all processors): 00:00:05
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sun Oct  4 14:52:00 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.1]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof with checksum 0x30ADD65B for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sun Oct  4 14:52:03 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sun Oct  4 14:52:18 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1646 megabytes
+    Info: Processing ended: Sun Oct  4 14:52:18 2026
+    Info: Elapsed time: 00:00:18
+    Info: Total CPU time (on all processors): 00:00:05
+CURRENT_PROGRAM=PASS order=slave,master
+CURRENT_PROGRAM_COMPLETED time=2026-10-04T14:52:18+08:00 wait_s=900
+POST_PROGRAM_SETTLING elapsed_s=0/900 time=2026-10-04T14:52:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=30/900 time=2026-10-04T14:52:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=60/900 time=2026-10-04T14:53:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=90/900 time=2026-10-04T14:53:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=120/900 time=2026-10-04T14:54:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=150/900 time=2026-10-04T14:54:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=180/900 time=2026-10-04T14:55:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=210/900 time=2026-10-04T14:55:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=240/900 time=2026-10-04T14:56:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=270/900 time=2026-10-04T14:56:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=300/900 time=2026-10-04T14:57:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=330/900 time=2026-10-04T14:57:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=360/900 time=2026-10-04T14:58:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=390/900 time=2026-10-04T14:58:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=420/900 time=2026-10-04T14:59:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=450/900 time=2026-10-04T14:59:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=480/900 time=2026-10-04T15:00:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=510/900 time=2026-10-04T15:00:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=540/900 time=2026-10-04T15:01:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=570/900 time=2026-10-04T15:01:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=600/900 time=2026-10-04T15:02:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=630/900 time=2026-10-04T15:02:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=660/900 time=2026-10-04T15:03:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=690/900 time=2026-10-04T15:03:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=720/900 time=2026-10-04T15:04:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=750/900 time=2026-10-04T15:04:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=780/900 time=2026-10-04T15:05:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=810/900 time=2026-10-04T15:05:48+08:00
+POST_PROGRAM_SETTLING elapsed_s=840/900 time=2026-10-04T15:06:18+08:00
+POST_PROGRAM_SETTLING elapsed_s=870/900 time=2026-10-04T15:06:48+08:00
+POST_PROGRAM_SETTLING_DONE elapsed_s=900 time=2026-10-04T15:07:18+08:00
+White Rabbit Step 1-6 dashboard  2026-10-04T15:07:28+08:00  (read-only)
+Sampling interval: 10s; per-board comparison window: 2000ms
+
++------------------------------------------------------------+
+| MASTER   DE5_1-11.1                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         INFO                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          VALID                       |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=NA  MainPhase=NA |
+|                              MainLock=NA  PSTAT=NA             |
+| Global-Time reason           TIME_VALID snapshot valid   |
+| WR PTP servo state           NA                          |
+| WR phase offset              NA ps                       |
+| Global-Time validity         TIME_VALID=1 PPS_VALID=1     |
+| Snapshot                     snapshot=1 stable=1 count=904 |
+| PPS registers                CR=20000006 EN=0 ESCR=780   |
+| PPS register validity        TM=1 PPS=1                  |
+| Step5 result                 NOT_APPLICABLE_MASTER       |
++------------------------------------------------------------+
++------------------------------------------------------------+
+| SLAVE    DE5_1-11.2                                      |
++------------------------------------------------------------+
+| Step 1  PHY / Link           PASS                        |
+| Step 2  Endpoint / PTP       PASS                        |
+| Step 3  WR Handshake         PASS                        |
+| Step 4  SoftPLL Startup      PASS                        |
+| Step 5  Closed-loop Lock     INFO                        |
+| Step 6  Global Time          WAITING                     |
++------------------------------------------------------------+
+| Link health                  Link=1  TM=1  RX=1  TX=1 |
+| Lock signals                 Helper=1  MainFreq=1  MainPhase=1 |
+|                              MainLock=1  PSTAT=1             |
+| Global-Time reason           TIME_VALID=0, PPS_VALID=0   |
+| WR PTP servo state           WAIT_OFFSET_STABLE          |
+| WR phase offset              -1423 ps (diagnostic only)  |
+| Global-Time validity         TIME_VALID=0 PPS_VALID=0     |
+| Snapshot                     snapshot=0 stable=1 count=0 |
+| PPS registers                CR=20000006 EN=0 ESCR=768   |
+| PPS register validity        TM=0 PPS=0                  |
+| Step5 result                 LOCK_ACQUIRED_NOT_STABLE    |
++------------------------------------------------------------+
+
+Global Time summary (125 MHz reference; 1 cycle = 8 ns)
+------------------------------------------------------------
+  MASTER  (DE5_1-11.1)
+    TAI=903          CYCLES=124999999    TIME_VALID
+  SLAVE   (DE5_1-11.2)
+    TAI=--           CYCLES=--           WAITING (TIME_VALID=0, PPS_VALID=0)
+------------------------------------------------------------
+Dashboard read complete.
+CURRENT_PIPELINE_EXIT=0 time=2026-10-04T15:07:28+08:00

@@ -1,0 +1,2 @@
+ACTUAL_TIME_VALID_BASELINE_C_TEST=PASS cases=22 no_forced_entry=1 acquire=24 track=24 historical_validity=1
+ACTUAL_SERVO_SLOW24_NATIVE=PASS cases=42 signed_truncation=1 unchanged_60_120=1

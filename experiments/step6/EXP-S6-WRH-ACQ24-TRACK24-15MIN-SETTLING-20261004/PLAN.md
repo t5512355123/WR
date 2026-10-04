@@ -53,3 +53,14 @@ in all5 rows (epoch N→N+1); it is preserved as INCONCLUSIVE, not valid CKO dat
 Host-only amendment: try existing mode2, separate individually guarded frames
 joined by equal UCNT, on the SAME programmed boot. No epoch/validity guard is
 weakened and no production rebuild/reprogram is needed for this host-only change.
+
+The mode2 smoke yielded17 unique guarded updates over19.449s, all healthy
+but TIME_VALID0. Five publication-crossing rows were rejected; max fresh-update
+gap2493ms and coverage19/24 do not satisfy the separate strict stability gate.
+Host amendment ce7db061 allows a bounded303s diagnostic using individually
+guarded mode2 frames and equal UCNT, without lowering the strict stability
+coverage/gap rules. The existing smoke is retained and re-audited rather than
+running another smoke or resetting/programming either board. A completed
+diagnostic is NOT automatically a CKO stability PASS or a TIME_VALID300s PASS.
+Any identity change, regressed UCNT or inconsistent repeated-UCNT payload
+invalidates diagnostic completion; no rejected row enters the CKO statistics.

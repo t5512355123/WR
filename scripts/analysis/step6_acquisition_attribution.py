@@ -53,6 +53,8 @@ def analyze(text):
                 'sample', 'elapsed_ms', 'SERVO_STATE', 'CKO_PS', 'SETP_PS', 'DMS_PS',
                 'STATUS_TIME_VALID')}
             item['ucnt'] = count
+            item['total_elapsed_ms'] = int(row.get('TOTAL_ELAPSED_MS', item['elapsed_ms']))
+            item['observer_phase'] = row.get('OBSERVER_PHASE', 'UNSPECIFIED')
             signature = tuple(item[key] for key in (
                 'SERVO_STATE', 'CKO_PS', 'SETP_PS', 'DMS_PS'))
             item['signature'] = signature
@@ -99,7 +101,9 @@ def analyze(text):
     def validity_group(valid):
         group = [item for item in values if item['STATUS_TIME_VALID'] == valid
                  and item['SERVO_STATE'] in (3, 4, 5)]
-        return {'unique_fine_phase_updates': len(group),
+        # A phase-labelled state can still publish the low32 offset from a
+        # pending coarse-time action; do NOT call every such value fine phase.
+        return {'unique_phase_labelled_updates': len(group),
                 'cko_min_ps': min((i['CKO_PS'] for i in group), default=None),
                 'cko_max_ps': max((i['CKO_PS'] for i in group), default=None),
                 'strict_lt60_updates': sum(abs(i['CKO_PS']) < 60 for i in group),
@@ -118,10 +122,23 @@ def analyze(text):
         'state_unique_update_counts': dict(states),
         'cko_ps': bounds('CKO_PS'), 'setpoint_ps': bounds('SETP_PS'),
         'dms_ps': bounds('DMS_PS'),
+        # Current CONFIG_WRPC_PPSI from_picos computes -ps * (1<<14)
+        # in signed32 before assigning to uint64. RV32 disassembly confirms
+        # mul followed by srai31/sign-extension. This flag is a source risk,
+        # not proof that the hardware failure was caused by it.
+        'negative_setpoint_signed32_product_overflow_updates': sum(
+            item['SETP_PS'] <= -131072 for item in values),
         'before_time_valid': validity_group(0),
         'after_time_valid': validity_group(1),
         'first_accepted_time_valid_elapsed_ms': next((i['elapsed_ms'] for i in accepted
                                                     if i['STATUS_TIME_VALID'] == 1), None),
+        'first_accepted_time_valid_total_elapsed_ms': next((i['total_elapsed_ms'] for i in accepted
+                                                          if i['STATUS_TIME_VALID'] == 1), None),
+        'phase_label_does_not_establish_coarse_time_settled': True,
+        'after_health_arming_phase_cko_ps': {
+            'min': min((i['CKO_PS'] for i in values if i['observer_phase'] == 'ACQUISITION'), default=None),
+            'max': max((i['CKO_PS'] for i in values if i['observer_phase'] == 'ACQUISITION'), default=None),
+        },
         'time_valid_accepted_rows': sum(item['STATUS_TIME_VALID'] == 1 for item in accepted),
         'valid_with_abs_cko_gt120_observations': sum(
             item['STATUS_TIME_VALID'] == 1 and abs(item['CKO_PS']) > 120 for item in accepted),

@@ -1,4 +1,26 @@
-# Latest main-root status — 2026-10-03
+# Latest main-root status — 2026-10-04
+
+**Fresh root TIME_VALID300s = PASS; deterministic startup NOT_ESTABLISHED.**
+Experiment: EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004.
+Live08:11 successful boot preserved and qualified; then actual fresh root
+build/compile from3bf9f3b4, one Slave→Master program09:06:05/09:06:24.
+All3117 source inputs/MIFs/RBF payloads exact match prior qualified and failed
+images. No production/control changes. Current root products are this new
+build: Master SOF2707402e, Slave11549fc1. First observed valid TRACK occurred
+159381ms after observer start, with CKO−43ps; not firmware boot elapsed.
+New formal Master/Slave windows1190/1190 over302852/302870ms; zero invalid.
+Readonly calibration/phase readbacks differ between successful boots; that
+does not identify the earlier failed boot's physical cause. Source-proven
+distinction: five PLL locks alone do not enable WR time; acquisition must
+enter the legacy<60ps gate, whereas TRACK>120 fallback does not revoke an
+already-enabled timing output. Final valid dashboard CKO−1987ps is not a
+precision PASS. Sampled windows are sequential, not physical equality proof.
+See the [latest report](experiments/step6/EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004/REPORT.md).
+Canonical milestone and protected archive unchanged; the previously failed
+fresh standalone reproduction remains NOT_ESTABLISHED, not overwritten by
+this successful ROOT replay. Acquisition diagnostic goal remains active.
+
+## Qualified root baseline — 2026-10-03
 
 Target: **both boards TIME_VALID=1 for >=300s, sampled**.
 Candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
@@ -24,10 +46,10 @@ The preceding unchanged-image check failed on Slave (434/1192 invalid rows):
 The strict-offset status below is retained historical context, superseded as
 the current acceptance criterion by the user's TIME_VALID-only request.
 
-# Current status
+# Historical strict-offset status (superseded criterion/products)
 
-**Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
-Active experiment: EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003.
+**Historical STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
+Historical experiment: EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003.
 Prepared bounded same-gateware role exchange; adds passive status dispatch
 only. Native tests/full compile/program and actual calibration pending.
 No guessed calibration, Ki/gain changes or relaxed strict60/120/300s gate.

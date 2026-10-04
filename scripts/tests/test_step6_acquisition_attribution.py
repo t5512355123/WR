@@ -72,7 +72,7 @@ class AttributionTests(unittest.TestCase):
 
     def test_coarse_time_not_used_as_fine_phase_distribution(self):
         result = analyze(row(0, 10, 1, 987654321, 1000))
-        self.assertEqual(result['before_time_valid']['unique_fine_phase_updates'], 0)
+        self.assertEqual(result['before_time_valid']['unique_phase_labelled_updates'], 0)
 
     def test_pre_and_post_valid_are_distinct(self):
         result = analyze(row(0, 10, 5, 2400, 1000) + '\n' +
@@ -85,6 +85,23 @@ class AttributionTests(unittest.TestCase):
         result = analyze('S6_ACQ_STOP STOP_REASON=DURATION_LIMIT\nS6_ACQ_DONE')
         self.assertEqual(len(result['acquisition_stop_lines']), 1)
         self.assertEqual(result['reader_error_lines'], [])
+
+    def test_negative_converter_boundary_is_only_a_risk_flag(self):
+        result = analyze(row(0, 10, 5, 2400, -131071) + '\n' +
+                         row(1, 11, 5, 2400, -131072))
+        self.assertEqual(result['negative_setpoint_signed32_product_overflow_updates'], 1)
+        self.assertNotIn('root_cause', result)
+
+    def test_observer_elapsed_not_confused_with_boot_or_total_elapsed(self):
+        result = analyze(row(0, 10, 4, 30, 1000, STATUS_TIME_VALID='1',
+                             TOTAL_ELAPSED_MS='159381', OBSERVER_PHASE='ACQUISITION'))
+        self.assertEqual(result['first_accepted_time_valid_total_elapsed_ms'], 159381)
+        self.assertEqual(result['first_accepted_time_valid_elapsed_ms'], 0)
+
+    def test_phase_label_not_proof_coarse_adjustment_finished(self):
+        result = analyze(row(0, 10, 3, 1070173867, 1000))
+        self.assertTrue(result['phase_label_does_not_establish_coarse_time_settled'])
+        self.assertIsNone(result['after_health_arming_phase_cko_ps']['min'])
 
 
 if __name__ == '__main__':

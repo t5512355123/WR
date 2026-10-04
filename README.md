@@ -1,4 +1,17 @@
-# Current target: TIME_VALID 300s (2026-10-03)
+# Current target: TIME_VALID 300s — identical-image diagnosis (2026-10-04)
+
+Fresh **main-root** build/compile/program and sampled300s verification passed
+again on both boards: Master/Slave1190/1190 valid rows over302852/302870ms.
+Current `output/` contains that actual build from `3bf9f3b4`, not a new control
+candidate. All3117 production inputs/MIFs are unchanged; FPGA RBF payloads
+match both the qualified root and the earlier failed standalone boot exactly.
+The startup trace first observed TIME_VALID after159381ms of observer time.
+**Deterministic initial acquisition is NOT_ESTABLISHED.** Current TIME_VALID
+PASS does not imply±120ps accuracy; final CKO was−1987ps with validity still1.
+See the [latest acquisition/retention diagnosis](experiments/step6/EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004/REPORT.md).
+Milestones and protected archive were not changed in this diagnosis.
+
+## Qualified baseline and independent milestone-reproduction limitation
 
 Active main-root candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
 The user resumed with the TIME_VALID-only criterion. The 3110 qualified
@@ -28,10 +41,10 @@ The strict-offset research below is historical context, not this round's gate.
 
 This repository develops and records the two-board White Rabbit system on Terasic DE5a / Arria 10. The only intended current hardware workflow is the JTAG-based Master/Slave design; frozen milestone snapshots preserve each validated research checkpoint.
 
-## Current code and four-step workflow
+## Historical strict-offset research (superseded criterion/products)
 
-**Current root: strict WR validity candidate, NOT YET QUALIFIED.**
-Active experiment: `EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003`.
+**Historical strict WR validity candidate, NOT QUALIFIED.**
+Historical experiment: `EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003`.
 Prepared bounded same-gateware role exchange and passive calibration-status
 query. Native tests/build/program/hardware calibration pending; no guessed
 T24P and no gain/strict-gate changes. Output still contains the preceding
@@ -132,7 +145,7 @@ both fresh compiles/programming completed from
 The90s preflight reached <60ps with a2669ms qualified span, not300s. Packet
 math validated, but fine stability remains NOT_ESTABLISHED; see the
 [RXTS report](experiments/step6/EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003/REPORT.md).
-The requested gate now also requires a <60 ps acquisition and a 300 s interval
+The then-requested strict gate also required a <60 ps acquisition and a 300 s interval
 within +/-120 ps, with Slave validity revoked on excursions. The old
 TIME_VALID-only pass does not prove this. The preceding role-corrected candidate
 was compiled from `4ba9df5935fc0a6afae2c7bd29603f190936e627`
@@ -168,6 +181,8 @@ This is the user's sampled TIME_VALID-only gate. Sequential board reads do
 not establish physical time accuracy, cycle-by-cycle continuity, offset <60 ps,
 or universal startup reliability. Timing closure is not required.
 
+## Current four-step workflow
+
 Run on Pain from `/home/b10504072/04_WR`:
 
 ```sh
@@ -177,7 +192,7 @@ bash scripts/program/program_current.sh      # 3. program Slave, then Master
 bash scripts/monitor/step1_6_dashboard.sh      # 4. live read-only dashboard
 ```
 
-The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running any verifier. `bash scripts/monitor/verify_time_valid_300s.sh` checks the historical TIME_VALID-only gate; the current strict goal instead requires `bash scripts/monitor/verify_strict_offset_time_valid_300s.sh` and its coherent fresh-offset/Master-health checks. Neither the dashboard nor the old bit-only verifier establishes the strict goal. Timing closure is not a gate.
+The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running any verifier. `bash scripts/monitor/verify_time_valid_300s.sh` checks the CURRENT sampled TIME_VALID-only gate. `verify_strict_offset_time_valid_300s.sh` remains for the superseded precision research; neither the dashboard nor the bit-only verifier establishes that stricter accuracy criterion. Timing closure is not a gate. Do not reprogram a failing live boot before preserving acquisition evidence.
 
 Firmware version text stays pinned for reproducibility; the passive diagnostic changes the MIF and has separately pinned hashes. `output/SOURCE_COMMIT` records the real checkout used for compilation. Until the new compile/export finishes, retained `output/` files still belong to the preceding build; the source-manifest gate prevents programming those stale files as the new source.
 

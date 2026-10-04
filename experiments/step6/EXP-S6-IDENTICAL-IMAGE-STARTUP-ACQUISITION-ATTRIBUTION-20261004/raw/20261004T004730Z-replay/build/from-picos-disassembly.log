@@ -1,0 +1,37 @@
+
+build/firmware/slave/wrc.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text:
+
+000022f8 <from_picos>:
+    22f8:	fe010113          	addi	sp,sp,-32
+    22fc:	00112e23          	sw	ra,28(sp)
+    2300:	04054063          	bltz	a0,2340 <from_picos+0x48>
+    2304:	41f55793          	srai	a5,a0,0x1f
+    2308:	01255713          	srli	a4,a0,0x12
+    230c:	00e79793          	slli	a5,a5,0xe
+    2310:	00e51513          	slli	a0,a0,0xe
+    2314:	000025b7          	lui	a1,0x2
+    2318:	00e7e7b3          	or	a5,a5,a4
+    231c:	00a12423          	sw	a0,8(sp)
+    2320:	f4058593          	addi	a1,a1,-192 # 1f40 <fill_udp+0x1c0>
+    2324:	00810513          	addi	a0,sp,8
+    2328:	00f12623          	sw	a5,12(sp)
+    232c:	1e1110ef          	jal	ra,13d0c <__div64_32>
+    2330:	00812503          	lw	a0,8(sp)
+    2334:	01c12083          	lw	ra,28(sp)
+    2338:	02010113          	addi	sp,sp,32
+    233c:	00008067          	ret
+    2340:	ffffc7b7          	lui	a5,0xffffc
+    2344:	02f50533          	mul	a0,a0,a5
+    2348:	000025b7          	lui	a1,0x2
+    234c:	f4058593          	addi	a1,a1,-192 # 1f40 <fill_udp+0x1c0>
+    2350:	00a12423          	sw	a0,8(sp)
+    2354:	41f55513          	srai	a0,a0,0x1f
+    2358:	00a12623          	sw	a0,12(sp)
+    235c:	00810513          	addi	a0,sp,8
+    2360:	1ad110ef          	jal	ra,13d0c <__div64_32>
+    2364:	00812503          	lw	a0,8(sp)
+    2368:	40a00533          	neg	a0,a0
+    236c:	fc9ff06f          	j	2334 <from_picos+0x3c>

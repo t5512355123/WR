@@ -1,5 +1,5 @@
 Fitter report for DE5a_wr_slave_jtag
-Sat Oct  3 21:57:17 2026
+Sun Oct  4 09:03:02 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -72,7 +72,7 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Fitter Summary                                                                ;
 +-----------------------------+-------------------------------------------------+
-; Fitter Status               ; Successful - Sat Oct  3 21:57:16 2026           ;
+; Fitter Status               ; Successful - Sun Oct  4 09:03:00 2026           ;
 ; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
 ; Revision Name               ; DE5a_wr_slave_jtag                              ;
 ; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
@@ -6271,30 +6271,30 @@ Info (11165): Fitter preparation operations ending: elapsed time is 00:00:35
 Info (170189): Fitter placement preparation operations beginning
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
 Info (14951): The Fitter is using Advanced Physical Optimization.
-Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:19
+Info (170190): Fitter placement preparation operations ending: elapsed time is 00:00:17
 Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
 Info (170192): Fitter placement operations ending: elapsed time is 00:00:12
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Placement is 9.08 seconds.
+Info (11888): Total time spent on timing analysis during Placement is 8.81 seconds.
 Info (170193): Fitter routing operations beginning
 Info (170195): Router estimated average interconnect usage is 1% of the available device resources
     Info (170196): Router estimated peak interconnect usage is 29% of the available device resources in the region that extends from location X165_Y35 to location X176_Y46
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (11888): Total time spent on timing analysis during Routing is 5.67 seconds.
-Info (16607): Fitter routing operations ending: elapsed time is 00:07:55
+Info (11888): Total time spent on timing analysis during Routing is 5.63 seconds.
+Info (16607): Fitter routing operations ending: elapsed time is 00:07:52
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Post-Routing is 0.44 seconds.
-Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:27
+Info (11888): Total time spent on timing analysis during Post-Routing is 0.42 seconds.
+Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:28
 Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.fit.smsg
 Info (11793): Fitter databases successfully split.
 Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings
-    Info: Peak virtual memory: 12993 megabytes
-    Info: Processing ended: Sat Oct  3 21:57:19 2026
-    Info: Elapsed time: 00:10:06
-    Info: Total CPU time (on all processors): 00:23:42
+    Info: Peak virtual memory: 12633 megabytes
+    Info: Processing ended: Sun Oct  4 09:03:03 2026
+    Info: Elapsed time: 00:10:00
+    Info: Total CPU time (on all processors): 00:23:15
 
 
 +----------------------------+

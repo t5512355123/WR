@@ -1,4 +1,4 @@
-"""Guard the acq24/track24 candidate: no other production-control edits."""
+"""Guard the restored qualified acq2/track12 production inputs."""
 from pathlib import Path
 import hashlib
 import re
@@ -54,24 +54,18 @@ class CurrentSourceTests(unittest.TestCase):
             cwd=ROOT, text=True).splitlines()
         for line in diff:
             status, path = line.split('\t', 1)
-            if status == 'M' and path == 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c':
-                historical = subprocess.check_output(['git','show',f'{BASELINE}:{path}'],cwd=ROOT).decode()
-                current = (ROOT/path).read_text()
-                expected = historical.replace('offset_ps / 2);','offset_ps / 24);').replace('offset_ps / 12);','offset_ps / 24);')
-                self.assertEqual(current, expected)
-                continue
             self.assertEqual(status, 'A', line)
             self.assertIn(path, INERT_ADDITIONS)
         self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('A\t')}, INERT_ADDITIONS)
-        self.assertEqual({line.split('\t', 1)[1] for line in diff if line.startswith('M\t')}, {'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c'})
+        self.assertFalse(any(line.startswith('M\t') for line in diff))
 
     def test_qualified_hashes_and_controller_contract(self):
         for path, expected in CURRENT_HASHES.items():
             self.assertEqual(hashlib.sha256((ROOT / path).read_bytes()).hexdigest(), expected)
         text = (ROOT / 'vendor/wrpc-sw/ppsi/proto-ext-common/wrh-servo.c').read_text()
-        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 24);'), 2)
-        self.assertNotIn('offset_ps / 2);', text)
-        self.assertNotIn('offset_ps / 12);', text)
+        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 2);'), 1)
+        self.assertEqual(text.count('s->cur_setpoint_ps += (offset_ps / 12);'), 1)
+        self.assertNotIn('offset_ps / 24);', text)
         self.assertIn('2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD', text)
         self.assertNotIn('invalidate_slave_time', text)
         self.assertNotIn('FIXED_SETP', text)

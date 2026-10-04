@@ -1,7 +1,9 @@
-# Current editable workflow and /24+/24 candidate (2026-10-04)
+# Current editable workflow and restored /2+/12 baseline (2026-10-04)
 
-Main-root now tests slower WR correction: acquisition/24, tracking/24, unchanged
-60/120ps thresholds. This is a candidate, NOT a newly qualified milestone.
+Main-root restores the previously qualified WR correction: acquisition/2,
+tracking/12, unchanged60/120ps thresholds. The new boot's300s qualification is
+pending; historical success is not a guarantee of startup. See the
+[restoration plan](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
 After any source edit, run from Pain's main folder:
 
 ```sh
@@ -9,8 +11,8 @@ cd /home/b10504072/04_WR
 bash scripts/run_current.sh
 ```
 
-For this experiment, wait15minutes after successful programming before showing
-the dashboard:
+Optionally wait15minutes after successful programming before showing the
+dashboard:
 
 ```sh
 POST_PROGRAM_WAIT_S=900 bash scripts/run_current.sh
@@ -25,12 +27,15 @@ SHA verification. Hashes are generated only as experiment records. Build errors,
 missing outputs and competing JTAG sessions still stop the pipeline. Stop the
 dashboard before running another reader/programmer. Frozen milestones unchanged.
 
-See [this candidate plan](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md).
+## Previous /24+/24 candidate — negative result preserved
+
+See [the previous candidate plan](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md).
 Actual fresh build/program and15-minute settling completed. Slave remained
 TIME_VALID0; later250 trusted new updates over301797ms had CKO−2085..+2986ps,
 zero inside±120ps, all five PLL locks1. **This /24+/24 candidate is NOT a
-TIME_VALID300s PASS.** Root `output/` now contains its actual fresh SOFs from
-`6eb0c2c1`, not a qualified milestone. See the
+TIME_VALID300s PASS.** Until the restoration's new full compile/export finishes,
+root `output/` contains those /24 SOFs from`6eb0c2c1`, not the restored image.
+Use the full pipeline before programming. See the
 [completed experiment report](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md).
 
 # Previous target: TIME_VALID 300s — same-image failure preserved

@@ -1,5 +1,16 @@
 # Latest main-root status — 2026-10-04
 
+**Restored acquisition/2 + tracking/12; new hardware qualification PENDING.**
+Experiment: EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004.
+User requested returning to the previously successful TIME_VALID parameters.
+All3110 qualified production inputs restored;7 inert declarations retained.
+No other control/threshold changes. Editable one-command workflow remains.
+Root output is still the previous /24 compile until new compile/export succeeds;
+do not program old outputs and claim the restored parameters are running.
+See the [restoration plan](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
+
+## Previous /24+/24 candidate — negative result preserved
+
 **Editable one-command pipeline = PASS; /24+/24 TIME_VALID300s = NOT_ESTABLISHED.**
 Experiment: EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004.
 Fresh root firmware/full compile/one Slave→Master programming pair from6eb0c2c1

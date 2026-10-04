@@ -55,6 +55,9 @@ experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/SMOKE_Q
 experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/analysis/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/TRANSFER_* -text -eol
+experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/raw/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/analysis/** -text -eol -diff -whitespace
+experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/TRANSFER_* -text -eol
 experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/raw/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/analysis/** -text -eol -diff -whitespace
 experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/raw/** -text -eol -diff -whitespace

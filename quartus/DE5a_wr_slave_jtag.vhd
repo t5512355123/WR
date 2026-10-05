@@ -464,8 +464,6 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal uart_toggle_count     : unsigned(7 downto 0) := (others => '0');
   signal sfp_scl_toggle_count  : unsigned(7 downto 0) := (others => '0');
   signal dco_busy              : std_logic;
-  signal si_startup_chip_reset_n : std_logic;
-  signal si_startup_controller_reset_n : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
   signal dco_static_state       : std_logic_vector(7 downto 0);
@@ -2144,17 +2142,7 @@ begin
   -- Keep all non-active QSFP-A lanes electrically inactive.
   QSFPA_TX_p(3 downto 1) <= (others => '0');
   SI5340A_OE_n    <= '0';
-  -- Warm FPGA programming need not toggle the board reset or remove power
-  -- from the external SI5340. Establish a fresh IC/controller origin before
-  -- replaying the unchanged static table and 3388-step coarse bootstrap.
-  u_si_startup_reset : entity work.wr_si5340_startup_reset
-    port map (
-      clk_i => CLK_50_B2J,
-      board_reset_n_i => CPU_RESET_n,
-      chip_reset_n_o => si_startup_chip_reset_n,
-      controller_reset_n_o => si_startup_controller_reset_n
-    );
-  SI5340A_RST_n <= si_startup_chip_reset_n;
+  SI5340A_RST_n   <= CPU_RESET_n;
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
@@ -2166,11 +2154,12 @@ begin
       ENABLE_STEP5_HPLL_PLANT_TEST => 0,
       ENABLE_NORMAL_HPLL_TRACKER => 1,
       ENABLE_STEP5_BOOTSTRAP => 1,
-      -- Restore the last known-good operating point after the 3216 and 3860
-      -- bracket candidates both hit an actuator rail.  The 3388 run produced
-      -- Helper lock and Main frequency progress; F3a changes only the
-      -- firmware phase-guard duration.
-      STEP5_BOOTSTRAP_STEPS => 3388,
+      -- Step7 external-power topology: the former 3388 FINC origin produced
+      -- positive Helper frequency error (+543..+577) at minimum DAC code.
+      -- Historical plant slope +0.216/count gives a provisional 512-step
+      -- origin with negative residual and usable positive fine-loop range.
+      -- This operating point requires fresh hardware qualification.
+      STEP5_BOOTSTRAP_STEPS => 512,
       STEP5_BOOTSTRAP_REVERSE => 1,
       -- Keep the virtual position account aligned with the measured physical
       -- SI5340 FINC/FDEC step; the 32-code experiment was not physically
@@ -2185,7 +2174,7 @@ begin
     )
     port map (
       iCLK                   => CLK_50_B2J,
-      iRST_n                 => si_startup_controller_reset_n,
+      iRST_n                 => CPU_RESET_n,
       iStart                 => not BUTTON(0),
       iPLL_OUT0_FREQ_SEL     => SI5340_125M,
       iPLL_OUT1_FREQ_SEL     => SI5340_124M992,

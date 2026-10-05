@@ -46,23 +46,24 @@ class StartupResetTests(unittest.TestCase):
             self.assertEqual(model.outputs(), (True, True))
 
     def test_hdl_initialization_and_board_clock(self):
-        text = (ROOT / 'quartus/wr_si5340_startup_reset.vhd').read_text()
+        text = (ROOT / 'experiments/step7/EXP-S7-SLAVE-SI5340-STARTUP-RESET-20261005/source/wr_si5340_startup_reset.vhd').read_text()
         self.assertRegex(text, r'signal elapsed.*:= 0;')
         self.assertIn('elapsed < c_release', text)
         self.assertIn("if board_reset_n_i = '0' then", text)
         values = dict(re.findall(r'g_(reset|settle)_cycles : positive := (\d+)', text))
         self.assertEqual(values, {'reset': '50000', 'settle': '2500000'})
         slave = (ROOT / 'quartus/DE5a_wr_slave_jtag.vhd').read_text()
-        block = slave.split('u_si_startup_reset :', 1)[1].split('u_si5340a_controller :', 1)[0]
-        self.assertIn('clk_i => CLK_50_B2J', block)
-        self.assertIn('SI5340A_RST_n <= si_startup_chip_reset_n;', block)
+        self.assertNotIn('u_si_startup_reset', slave)
+        self.assertRegex(slave, r'SI5340A_RST_n\s*<= CPU_RESET_n;')
         controller = slave.split('u_si5340a_controller :', 1)[1].split('u_wr_arria10_transceiver :', 1)[0]
-        self.assertRegex(controller, r'iRST_n\s*=> si_startup_controller_reset_n')
-        self.assertRegex(controller, r'STEP5_BOOTSTRAP_STEPS\s*=> 3388')
+        self.assertRegex(controller, r'iRST_n\s*=> CPU_RESET_n')
+        self.assertRegex(controller, r'STEP5_BOOTSTRAP_STEPS\s*=> 512')
         self.assertRegex(controller, r'HPLL_TRACKER_CODE_PER_PHYSICAL_STEP\s*=> 64')
         master = (ROOT / 'quartus/DE5a_wr_master_jtag.vhd').read_text()
         self.assertNotIn('u_si_startup_reset', master)
         self.assertRegex(master, r'SI5340A_RST_n\s*<= CPU_RESET_n;')
+        qsf = (ROOT / 'quartus/DE5a_wr_slave_jtag.qsf').read_text()
+        self.assertNotIn('wr_si5340_startup_reset', qsf)
 
 
 if __name__ == '__main__':

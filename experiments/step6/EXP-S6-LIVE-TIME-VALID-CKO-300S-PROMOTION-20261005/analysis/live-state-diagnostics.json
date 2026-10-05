@@ -1,0 +1,26 @@
+{
+  "one_counts": {
+    "GLOBAL_TIME_VALID": 359,
+    "HELPER_LOCK": 359,
+    "MAIN_FREQ_LOCK": 359,
+    "MAIN_LOCK": 359,
+    "MAIN_PHASE_LOCK": 359,
+    "PSTAT_LOCK": 359,
+    "READS_VALID": 359,
+    "STATUS_PPS_VALID": 359,
+    "STATUS_TIME_VALID": 359,
+    "STEP1_GATE": 359
+  },
+  "reset_changed_rows": 0,
+  "reset_signatures": [
+    [
+      "00000001",
+      "00000001",
+      "00000001",
+      "00000001"
+    ]
+  ],
+  "rows": 359,
+  "tai_first": "53883",
+  "tai_last": "54186"
+}

@@ -1,4 +1,47 @@
-# Latest main-root status — 2026-10-04
+# Latest main-root status — 2026-10-05
+
+**PASS_TIME_VALID_300S_BOTH_BOARDS — current live Pain session verified.**
+Experiment: EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005.
+Authoritative observation/doc baseline: Pain `feat/file_cleanup` at `9b8a231c`;
+retained full builds record source `bcb84305`. No rebuild/program/reset occurred
+during this observation. Existing controls `/2 + /12`, 60/120 ps and the editable
+four-step scripts are unchanged. Frozen milestones and protected archive are
+not modified.
+
+| Signal / measure | Master | Slave |
+|---|---|---|
+| TIME_VALID samples | 1190/1190 | 359/359 |
+| Actual sample span | 302874 ms | 302667 ms |
+| Maximum sample gap | 257 ms | 909 ms |
+| Invalid TIME_VALID samples | 0 | 0 |
+| Independent sampled 300 s verdict | PASS | PASS |
+| PPS_VALID samples | 1190/1190 | 359/359 |
+| Slave Helper/Main frequency/Main phase/Main/PSTAT lock | Not applicable | Each 359/359 = 1 |
+
+Slave READS_VALID/STEP1_GATE/GLOBAL_TIME_VALID are each 359/359 = 1; reset identity
+stays `(1,1,1,1)` with zero RESET_CHANGED rows. CKO diagnostic: 359 raw rows,
+289 guarded, 46 duplicates, 243 trusted new updates over 302667 ms; 70 untrusted
+phase frames rejected. CKO −490..+459 ps, peak-to-peak 949 ps, median −44 ps,
+standard deviation 171.293 ps. Strict <60 ps: 68/243; within ±120 ps: 131/243.
+SETP 2567..2975 ps confirms phase correction is active, not the previous `/0+/0`
+diagnostic. State counts: SYNC_PHASE 42, TRACK_PHASE 75, WAIT_OFFSET_STABLE 126.
+
+**This is TIME_VALID retention PASS, NOT sustained offset-accuracy PASS.**
+Phase coverage is 80.5% and its maximum unique-update gap is 4302 ms: the existing
+stricter continuous-CKO verifier remains INCONCLUSIVE_INCOMPLETE_CAPTURE.
+Trusted out-of-band observations independently show that the displayed CKO
+series is not confined to ±120 ps. No physical jitter/skew measurement or
+deterministic fresh-start success is claimed. Master/Slave windows are separate
+and sequential. Interleaved-reader diagnostic `live_time_monotonic=false` and
+`step1_link_ready_rows=0` reflect unsupported LIVE fields/alternate field names
+in that analyzer branch, not observed clock/link failure; raw STEP1_GATE is 1
+in 359/359 reads. Master live-time progression is verified.
+
+The existing dashboard's short-window Step5 INFO label is retained; current
+sampled locks and 300 s qualification are supported by the saved long capture.
+See the [report and chart](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md).
+
+## Previous source-only restoration — 2026-10-04
 
 **Sealed Step6 milestone source restored; new hardware qualification NOT_RUN.**
 Restoration: EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004.

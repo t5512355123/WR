@@ -1,0 +1,45 @@
+{
+  "acceptance_signal": "STATUS_TIME_VALID",
+  "boards": {
+    "1-11.2": {
+      "board_id": "1-11.2",
+      "board_identity_valid": true,
+      "capture_complete": true,
+      "capture_elapsed_ms": 303464,
+      "done_records": [
+        "S6_INTERLEAVED_BOARD_DONE board=DE5 [1-11.2] samples=359 elapsed_ms=303464 reset_stop=0 invalid_streak=0"
+      ],
+      "done_sample_count_matches": true,
+      "first_invalid_rows": [],
+      "gap_limit_ms": 1000,
+      "invalid_row_count": 0,
+      "live_time_monotonic": false,
+      "max_sample_gap_ms": 909,
+      "minimum_samples": 301,
+      "observed_sample_span_ms": 302667,
+      "pps_valid_rows": 359,
+      "requested_duration_ms": 303000,
+      "required_duration_ms": 300000,
+      "sample_rows": 359,
+      "sample_sequence_ok": true,
+      "snapshot_time_valid_rows": 359,
+      "snapshot_valid_rows": 359,
+      "step1_link_ready_rows": 0,
+      "time_valid_rows": 359,
+      "verdict": "PASS_TIME_VALID_300S"
+    }
+  },
+  "boards_observed_sequentially": true,
+  "capture_complete": true,
+  "capture_errors": [],
+  "discovered_boards": [
+    "1-11.2"
+  ],
+  "requested_duration_ms": 303000,
+  "required_boards": [
+    "1-11.2"
+  ],
+  "required_duration_ms": 300000,
+  "snapshot_pps_link_locks_tai_cycles_and_phase_are_diagnostic_only": true,
+  "verdict": "PASS_TIME_VALID_300S"
+}

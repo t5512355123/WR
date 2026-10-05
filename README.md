@@ -1,4 +1,58 @@
-# Current main-root: restored sealed Step6 milestone source (2026-10-04)
+# DE5a White Rabbit — Step6 TIME_VALID 300s PASS
+
+Latest live verification: **2026-10-05, Pain main-root session**.
+Master **1190/1190** valid samples over **302.874 s**; Slave **359/359** over
+**302.667 s**. Both independently pass the unchanged sampled 300 s TIME_VALID
+criterion, with zero invalid samples or capture errors. Slave's five PLL lock
+signals remained 1 in 359/359 reads; the sampled reset signature did not change.
+The boards were read sequentially, not simultaneously.
+
+## Slave CKO over time
+
+![Slave CKO versus elapsed time with a separate TIME_VALID status panel](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.png)
+
+2026-10-05 **11:34:03–11:39:06, Asia/Taipei**. Horizontal axis is observation
+elapsed time in seconds; vertical axis is CKO in picoseconds. The 243 trusted
+unique updates range **−490..+459 ps**, peak-to-peak **949 ps (0.949 ns)**,
+median **−44 ps**, standard deviation **171.3 ps**. Seventy untrusted phase
+frames and 46 repeated updates are excluded; the line does not bridge omitted
+rows. The separate bottom panel contains all 359 raw TIME_VALID status reads.
+
+**TIME_VALID retention is PASS; sustained ±60/120 ps offset accuracy is not
+established.** CKO is a WR timestamp/servo diagnostic, not a measurement of
+physical oscillator jitter or SMA/PPS edge skew. Cold-start reproducibility
+and timing closure remain separate limitations; timing closure is not a gate.
+
+[Full observation report](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md)
+· [CSV](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.csv)
+· [SVG](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.svg)
+· [Raw capture](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/raw/observe/cko-303s.log)
+
+## Main-root build → compile → program → dashboard
+
+```sh
+cd /home/b10504072/04_WR
+bash scripts/build/build_current.sh
+bash scripts/build/compile_current.sh
+bash scripts/program/program_current.sh
+bash scripts/monitor/step1_6_dashboard.sh
+```
+
+Run each step only after the preceding step succeeds; stop other JTAG readers
+before programming. New SOFs are retained in `output/DE5a_wr_master_jtag.sof`
+and `output/DE5a_wr_slave_jtag.sof`. The editable workflow remains unchanged,
+without SHA acceptance checks. Actual WR control is acquisition `/2`, tracking
+`/12`, with 60/120 ps numerical gates. The historical no-correction experiment
+directory name is not an identifier of active firmware.
+
+Pain's retained products were built from `bcb84305` and collected in `9b8a231c`.
+This live check did not rebuild, program, reset, power-cycle, change controls
+or modify the read-only Step6 milestone/archive. Its hardware-window evidence
+qualifies this already-running session, not every future startup. Dashboard
+Step5 `INFO/LOCK_ACQUIRED_NOT_STABLE` is a short-window presentation result,
+not a rejection of the 359-row lock observation above.
+
+## Previous source-only milestone restoration (2026-10-04)
 
 The production code has been restored to the read-only
 `artifacts/milestones/step6_global_time/source.tar.gz` contents.

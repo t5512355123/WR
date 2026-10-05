@@ -464,6 +464,8 @@ architecture rtl of DE5a_wr_slave_jtag is
   signal uart_toggle_count     : unsigned(7 downto 0) := (others => '0');
   signal sfp_scl_toggle_count  : unsigned(7 downto 0) := (others => '0');
   signal dco_busy              : std_logic;
+  signal si_startup_chip_reset_n : std_logic;
+  signal si_startup_controller_reset_n : std_logic;
   signal dco_error             : std_logic;
   signal dco_step_count        : std_logic_vector(15 downto 0);
   signal dco_static_state       : std_logic_vector(7 downto 0);
@@ -2142,7 +2144,17 @@ begin
   -- Keep all non-active QSFP-A lanes electrically inactive.
   QSFPA_TX_p(3 downto 1) <= (others => '0');
   SI5340A_OE_n    <= '0';
-  SI5340A_RST_n   <= CPU_RESET_n;
+  -- Warm FPGA programming need not toggle the board reset or remove power
+  -- from the external SI5340. Establish a fresh IC/controller origin before
+  -- replaying the unchanged static table and 3388-step coarse bootstrap.
+  u_si_startup_reset : entity work.wr_si5340_startup_reset
+    port map (
+      clk_i => CLK_50_B2J,
+      board_reset_n_i => CPU_RESET_n,
+      chip_reset_n_o => si_startup_chip_reset_n,
+      controller_reset_n_o => si_startup_controller_reset_n
+    );
+  SI5340A_RST_n <= si_startup_chip_reset_n;
 
   u_si5340a_controller : si5340a_controller_dco
     generic map (
@@ -2173,7 +2185,7 @@ begin
     )
     port map (
       iCLK                   => CLK_50_B2J,
-      iRST_n                 => CPU_RESET_n,
+      iRST_n                 => si_startup_controller_reset_n,
       iStart                 => not BUTTON(0),
       iPLL_OUT0_FREQ_SEL     => SI5340_125M,
       iPLL_OUT1_FREQ_SEL     => SI5340_124M992,

@@ -49,6 +49,28 @@ class EditableWorkflowTests(unittest.TestCase):
         self.copy('scripts/program/program_current.sh')
         result=self.run_script('scripts/program/program_current.sh')
         self.assertNotEqual(result.returncode,0)
+    def test_step7_program_logs_use_step7_group(self):
+        self.copy('scripts/program/program_current.sh')
+        self.put('scripts/build/current_experiment.env',
+                 'CURRENT_EXPERIMENT=TEST\nCURRENT_EXPERIMENT_GROUP=step7\nCURRENT_BUILD_POLICY=editable\n')
+        for role in ('master','slave'):
+            self.put(f'output/DE5a_wr_{role}_jtag.sof', 'fresh')
+            self.put(f'scripts/program/program_{role}.sh',
+                     '#!/usr/bin/env bash\necho "Programmer was successful"\n')
+        result=self.run_script('scripts/program/program_current.sh')
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(len(list((self.root/'experiments/step7/TEST/raw/program').glob('*.log'))),2)
+        self.assertFalse((self.root/'experiments/step6').exists())
+    def test_invalid_experiment_group_never_programs(self):
+        self.copy('scripts/program/program_current.sh')
+        self.put('scripts/build/current_experiment.env',
+                 'CURRENT_EXPERIMENT=TEST\nCURRENT_EXPERIMENT_GROUP=../outside\nCURRENT_BUILD_POLICY=editable\n')
+        for role in ('master','slave'):
+            self.put(f'output/DE5a_wr_{role}_jtag.sof','fresh')
+            self.put(f'scripts/program/program_{role}.sh','#!/usr/bin/env bash\necho MUST_NOT_PROGRAM\n')
+        result=self.run_script('scripts/program/program_current.sh')
+        self.assertEqual(result.returncode,2)
+        self.assertNotIn('MUST_NOT_PROGRAM',result.stdout)
     def make_pipeline(self,failed=None):
         self.copy('scripts/run_current.sh')
         for step,path in [('build','scripts/build/build_current.sh'),('compile','scripts/build/compile_current.sh'),('program','scripts/program/program_current.sh'),('dashboard','scripts/monitor/step1_6_dashboard.sh')]:

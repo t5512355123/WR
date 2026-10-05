@@ -2,6 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "$ROOT/scripts/build/current_experiment.env"
+case "${CURRENT_EXPERIMENT_GROUP:-step6}" in step[1-7]) ;; *) echo 'Invalid CURRENT_EXPERIMENT_GROUP' >&2; exit 2 ;; esac
 QUARTUS_STP=${QUARTUS_STP:-/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin/quartus_stp}
 ACQUISITION_TIMEOUT_S=${TIME_VALID_ACQUISITION_TIMEOUT_S:-1800}
 case "$ACQUISITION_TIMEOUT_S" in
@@ -13,7 +14,7 @@ if pgrep -x quartus_stp >/dev/null; then
 fi
 cd "$ROOT"
 RUN_TAG=$(date -u +%Y%m%dT%H%M%SZ)
-BASE="experiments/step6/$CURRENT_EXPERIMENT"
+BASE="experiments/${CURRENT_EXPERIMENT_GROUP:-step6}/$CURRENT_EXPERIMENT"
 mkdir -p "$BASE/raw/observe" "$BASE/analysis"
 LOG="$BASE/raw/observe/$RUN_TAG-current-time-valid-303s.log"
 RESULT="$BASE/analysis/$RUN_TAG-current-time-valid-300s.json"

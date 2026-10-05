@@ -2,6 +2,7 @@
 set -euo pipefail
 ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 source "$ROOT/scripts/build/current_experiment.env"
+case "${CURRENT_EXPERIMENT_GROUP:-step6}" in step[1-7]) ;; *) echo 'Invalid CURRENT_EXPERIMENT_GROUP' >&2; exit 2 ;; esac
 COMPILED_COMMIT=$(sed -n 's/^GIT_COMMIT=//p' "$ROOT/build/build_info_master.txt")
 case "${CURRENT_BUILD_POLICY:-pinned}" in pinned|editable) ;; *) echo 'Invalid CURRENT_BUILD_POLICY' >&2; exit 2 ;; esac
 # Export may be repeated after documentation changes, but never after changing
@@ -57,7 +58,7 @@ if [ "${CURRENT_BUILD_POLICY:-pinned}" = pinned ]; then sha256sum -c output/PUBL
 # Record uncommitted production edits without rejecting a legitimate fresh build.
 git diff --binary -- firmware vendor quartus quartus_generated > output/LOCAL_SOURCE_CHANGES.patch
 git status --porcelain -- firmware vendor quartus quartus_generated > output/LOCAL_SOURCE_STATUS.txt
-RECORD_BASE="$ROOT/experiments/step6/$CURRENT_EXPERIMENT/raw/build"
+RECORD_BASE="$ROOT/experiments/${CURRENT_EXPERIMENT_GROUP:-step6}/$CURRENT_EXPERIMENT/raw/build"
 mkdir -p "$RECORD_BASE"
 RECORD=$(mktemp -d "$RECORD_BASE/$(date -u +%Y%m%dT%H%M%SZ)-current.XXXXXX")
 for role in master slave; do

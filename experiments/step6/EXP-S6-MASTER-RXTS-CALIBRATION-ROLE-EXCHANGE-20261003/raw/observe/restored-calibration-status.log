@@ -1,0 +1,75 @@
+Info: *******************************************************************
+Info: Running Quartus Prime SignalTap II
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Oct  3 19:19:19 2026
+Info: Command: quartus_stp -t scripts/jtag/read_step6_rxts_calibration_status.tcl
+RXSTATUS_CONFIG read_only=1 max_actual_ms=120000 role_changed=0
+RXCAL_HEALTH board={DE5 [1-11.1]} STATUS=324242E1375882FF H=03E80101 M=00000000 P=00000003 SPLL=00020008 CALFAIL=0 RESET={1 1 1 0 1}
+RXCAL_PREDRAIN board={DE5 [1-11.1]} status=OK hex=
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=00 byte=0x63 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=01 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=02 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=03 byte=0x69 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=04 byte=0x62 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=05 byte=0x72 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=06 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=07 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=08 byte=0x69 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=09 byte=0x6F result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=10 byte=0x6E result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=11 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=12 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=13 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=14 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=15 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=16 byte=0x75 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=17 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.1] command=calibration status index=18 byte=0x0A result=OK
+RXCAL_REPLY board={DE5 [1-11.1]} command={calibration status} status=OK hex=1B5B3140631B5B3140611B5B31406C1B5B3140691B5B3140621B5B3140721B5B3140611B5B3140741B5B3140691B5B31406F1B5B31406E1B5B3140201B5B3140731B5B3140741B5B3140611B5B3140741B5B3140751B5B3140730D0A525854535F44494147206163746976655F743234705F70733D323338392070686173655F70733D353435372070747261636B65725F72656164793D310D0A525854535F5343414E2070686173655F70733D3020726973696E675F73746174653D3020726973696E675F636F756E743D3020726973696E675F70733D302066616C6C696E675F73746174653D302066616C6C696E675F636F756E743D302066616C6C696E675F70733D300D0A7772632320
+RXCAL_HEALTH board={DE5 [1-11.1]} STATUS=A24292E1375882FF H=03E80101 M=00000000 P=00000003 SPLL=00020008 CALFAIL=0 RESET={1 1 1 0 1}
+RXSTATUS_DATA board={DE5 [1-11.1]} INIT=2 data={active 2389 ready 1 scan 0 rising_state 0 rising_count 0 rising 0 falling_state 0 falling_count 0 falling 0}
+RXCAL_HEALTH board={DE5 [1-11.2]} STATUS=4B82126134BC82FF H=03E80001 M=3E80320F P=00000003 SPLL=00030008 CALFAIL=1113 RESET={1 1 1 0 1}
+RXCAL_PREDRAIN board={DE5 [1-11.2]} status=OK hex=4552524F523A20736C6176655F68616E646C655F666F6C6C6F7775703A20536C61766520776173206E6F742077616974696E67206120666F6C6C6F77207570206D6573736167650D0A
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=00 byte=0x63 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=01 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=02 byte=0x6C result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=03 byte=0x69 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=04 byte=0x62 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=05 byte=0x72 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=06 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=07 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=08 byte=0x69 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=09 byte=0x6F result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=10 byte=0x6E result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=11 byte=0x20 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=12 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=13 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=14 byte=0x61 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=15 byte=0x74 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=16 byte=0x75 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=17 byte=0x73 result=OK
+STEP6_VUART_TX board=DE5 [1-11.2] command=calibration status index=18 byte=0x0A result=OK
+RXCAL_REPLY board={DE5 [1-11.2]} command={calibration status} status=OK hex=1B5B3140631B5B3140611B5B31406C1B5B3140691B5B3140621B5B3140721B5B3140611B5B3140741B5B3140691B5B31406F1B5B31406E1B5B3140201B5B3140731B5B3140741B5B3140611B5B3140741B5B3140751B5B3140730D0A525854535F44494147206163746976655F743234705F70733D373330302070686173655F70733D31322070747261636B65725F72656164793D310D0A525854535F5343414E2070686173655F70733D3935303020726973696E675F73746174653D3220726973696E675F636F756E743D3520726973696E675F70733D373430302066616C6C696E675F73746174653D322066616C6C696E675F636F756E743D352066616C6C696E675F70733D333430300D0A7772632320
+RXCAL_HEALTH board={DE5 [1-11.2]} STATUS=1E828E41245082FF H=03E80001 M=3E80320F P=00000003 SPLL=00030008 CALFAIL=1113 RESET={1 1 1 0 1}
+RXSTATUS_DATA board={DE5 [1-11.2]} INIT=3 data={active 7300 ready 1 scan 9500 rising_state 2 rising_count 5 rising 7400 falling_state 2 falling_count 5 falling 3400}
+RXSTATUS_DONE boards=2 elapsed_ms=9205 goal_pass=0
+Info (23030): Evaluation of Tcl script scripts/jtag/read_step6_rxts_calibration_status.tcl was successful
+Info: Quartus Prime SignalTap II was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 779 megabytes
+    Info: Processing ended: Sat Oct  3 19:19:29 2026
+    Info: Elapsed time: 00:00:10
+    Info: Total CPU time (on all processors): 00:00:01

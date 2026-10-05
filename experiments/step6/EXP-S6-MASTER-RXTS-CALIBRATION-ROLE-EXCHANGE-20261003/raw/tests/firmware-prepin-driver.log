@@ -1,0 +1,4 @@
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+cbfdd2333b971cfb8da613d511c61c4fd5708c4f9c56123610ff993fe11c2c9c  build/firmware/master/wrc.mif
+58090f280a319e0747bb3b16d1ebe09d35285d4f61b4090c797a15055345d81d  build/firmware/slave/wrc.mif

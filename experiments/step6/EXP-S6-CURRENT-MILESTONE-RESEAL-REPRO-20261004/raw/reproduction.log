@@ -1,0 +1,22 @@
+STEP6_REPRODUCTION_BEGIN source=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source time=2026-10-04T11:03:53+08:00
+............
+----------------------------------------------------------------------
+Ran 12 tests in 1.264s
+
+OK
+WRPC master MIF: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: OK
+build/firmware/slave/wrc.mif: OK
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003
+Master Quartus build passed: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/artifacts/milestones/step6_global_time/source/experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/build/20261004T032022Z-current.b2Kqpg
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+Stop the other JTAG reader/programmer first.
+STEP6_REPRODUCTION_EXIT=2 time=2026-10-04T11:20:23+08:00

@@ -1,0 +1,141 @@
+{
+  "verdict": "NOT_QUALIFIED",
+  "measured_t24p_ps": null,
+  "commands": [
+    [
+      "DE5 [1-11.1]",
+      "calibration status"
+    ],
+    [
+      "DE5 [1-11.2]",
+      "ptp master start"
+    ],
+    [
+      "DE5 [1-11.1]",
+      "ptp master start"
+    ],
+    [
+      "DE5 [1-11.1]",
+      "ptp"
+    ],
+    [
+      "DE5 [1-11.2]",
+      "ptp slave start"
+    ],
+    [
+      "DE5 [1-11.2]",
+      "ptp"
+    ],
+    [
+      "DE5 [1-11.1]",
+      "calibration status"
+    ]
+  ],
+  "role_confirmations": [
+    [
+      "DE5 [1-11.1]",
+      "master"
+    ],
+    [
+      "DE5 [1-11.2]",
+      "slave"
+    ]
+  ],
+  "health": [
+    {
+      "board": "DE5 [1-11.1]",
+      "mode": 2,
+      "helper": 1,
+      "main_locked": false,
+      "status_raw": "314244C1275082FF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 0
+    },
+    {
+      "board": "DE5 [1-11.2]",
+      "mode": 3,
+      "helper": 1,
+      "main_locked": true,
+      "status_raw": "4182BAE134BC82FF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 1113
+    },
+    {
+      "board": "DE5 [1-11.1]",
+      "mode": 2,
+      "helper": 1,
+      "main_locked": false,
+      "status_raw": "514292E137BC82FF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 0
+    },
+    {
+      "board": "DE5 [1-11.2]",
+      "mode": 2,
+      "helper": 0,
+      "main_locked": false,
+      "status_raw": "B88274C1245082FF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 1113
+    },
+    {
+      "board": "DE5 [1-11.1]",
+      "mode": 2,
+      "helper": 1,
+      "main_locked": false,
+      "status_raw": "4242F6C1275082DF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 0
+    },
+    {
+      "board": "DE5 [1-11.2]",
+      "mode": 2,
+      "helper": 0,
+      "main_locked": false,
+      "status_raw": "58827461245482FF",
+      "reset": "1 1 1 0 1",
+      "calibration_fail_count": 1113
+    }
+  ],
+  "scan_statuses": [
+    [
+      "DE5 [1-11.1]",
+      {
+        "active": 2389,
+        "ready": 1,
+        "scan": 0,
+        "rising_state": 0,
+        "rising_count": 0,
+        "rising": 0,
+        "falling_state": 0,
+        "falling_count": 0,
+        "falling": 0
+      }
+    ],
+    [
+      "DE5 [1-11.1]",
+      {
+        "active": 2389,
+        "ready": 1,
+        "scan": 0,
+        "rising_state": 0,
+        "rising_count": 0,
+        "rising": 0,
+        "falling_state": 0,
+        "falling_count": 0,
+        "falling": 0
+      }
+    ]
+  ],
+  "errors": [
+    "firmware command failed",
+    "no fresh boot scan followed by confirmations and retention",
+    "no two measured Slave-mode lock confirmations",
+    "operator explicitly failed",
+    "unqualified measurement/restoration or actual deadline",
+    "wrong/missing role confirmation sequence",
+    "wrong/missing/repeated fixed control sequence"
+  ],
+  "goal_pass": false,
+  "scope": "Measured calibration and role restoration only; no300s TIME_VALID or causal-isolation claim."
+}

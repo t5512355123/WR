@@ -1,0 +1,4 @@
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+RXCAL_LOG=experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/raw/observe/20261003T110743Z-master-rxts-role-calibration.log
+RXCAL_CAPTURE_RC=3

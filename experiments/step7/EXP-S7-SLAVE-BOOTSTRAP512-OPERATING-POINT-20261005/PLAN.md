@@ -23,3 +23,7 @@ Laptop 修改/test/push → Pain pull exact source，既有 build/compile/progra
 先恢復 TX/RX/link；上游 gate 無效不進 300 秒。若 link 無法恢復、reset/generation 改變、transport 無效、或粗調已完成但持續 rail，保存 evidence，停止此候選，不靠延長觀測當 PASS。
 
 最多 900 秒 acquisition。取得兩板 TIME_VALID 後既有 verifier 各觀測 303 秒、每筆 STATUS_TIME_VALID=1、span >=300000 ms、gap <=1000 ms、至少 301 samples 才 PASS。兩板 sequential，不宣稱 physical SMA skew 或 offset <60 ps。
+
+## 使用者指定的本輪終點（2026-10-05）
+
+15:12:52 dashboard 已由使用者確認兩板 TIME_VALID/PPS_VALID=1；使用者接著指示「現在寫好實驗報告就好了」。因此停止追加硬體實驗，不再啟動 300 秒 acceptance capture。REPORT 的 verdict 僅為本次數位 TIME_VALID 恢復；300 秒與 Step7 實體 edge-skew 量測均記為 NOT_RUN，不能沿用歷史 Step6 的 300 秒 PASS。

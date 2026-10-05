@@ -1,5 +1,5 @@
 Analysis & Synthesis report for DE5a_wr_slave_jtag
-Sun Oct  4 19:46:39 2026
+Mon Oct  5 14:51:07 2026
 Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 
 
@@ -725,7 +725,7 @@ agreement for further details.
 +-------------------------------------------------------------------------------+
 ; Analysis & Synthesis Summary                                                  ;
 +-----------------------------+-------------------------------------------------+
-; Analysis & Synthesis Status ; Successful - Sun Oct  4 19:46:38 2026           ;
+; Analysis & Synthesis Status ; Successful - Mon Oct  5 14:51:07 2026           ;
 ; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
 ; Revision Name               ; DE5a_wr_slave_jtag                              ;
 ; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
@@ -838,26 +838,26 @@ agreement for further details.
 ; Number detected on machine ; 28          ;
 ; Maximum allowed            ; 16          ;
 ;                            ;             ;
-; Average used               ; 2.65        ;
+; Average used               ; 2.46        ;
 ; Maximum used               ; 16          ;
 ;                            ;             ;
 ; Usage by Processor         ; % Time Used ;
 ;     Processor 1            ; 100.0%      ;
-;     Processor 2            ;  25.0%      ;
-;     Processor 3            ;  25.0%      ;
-;     Processor 4            ;  24.9%      ;
-;     Processor 5            ;  23.9%      ;
-;     Processor 6            ;   7.7%      ;
+;     Processor 2            ;  24.6%      ;
+;     Processor 3            ;  24.6%      ;
+;     Processor 4            ;  23.8%      ;
+;     Processor 5            ;   7.6%      ;
+;     Processor 6            ;   6.2%      ;
 ;     Processor 7            ;   6.2%      ;
 ;     Processor 8            ;   6.2%      ;
-;     Processor 9            ;   6.0%      ;
-;     Processor 10           ;   6.0%      ;
-;     Processor 11           ;   5.9%      ;
+;     Processor 9            ;   6.1%      ;
+;     Processor 10           ;   6.1%      ;
+;     Processor 11           ;   6.0%      ;
 ;     Processor 12           ;   5.9%      ;
-;     Processor 13           ;   5.7%      ;
-;     Processor 14           ;   5.7%      ;
-;     Processor 15           ;   5.6%      ;
-;     Processor 16           ;   5.5%      ;
+;     Processor 13           ;   5.8%      ;
+;     Processor 14           ;   5.8%      ;
+;     Processor 15           ;   5.7%      ;
+;     Processor 16           ;   5.6%      ;
 +----------------------------+-------------+
 
 
@@ -1079,14 +1079,14 @@ agreement for further details.
 +---------------------------------------------+--------------------------------------------------------------------------------------------+
 ; Resource                                    ; Usage                                                                                      ;
 +---------------------------------------------+--------------------------------------------------------------------------------------------+
-; Estimate of Logic utilization (ALMs needed) ; 12019                                                                                      ;
+; Estimate of Logic utilization (ALMs needed) ; 12016                                                                                      ;
 ;                                             ;                                                                                            ;
-; Combinational ALUT usage for logic          ; 15553                                                                                      ;
+; Combinational ALUT usage for logic          ; 15537                                                                                      ;
 ;     -- 7 input functions                    ; 300                                                                                        ;
-;     -- 6 input functions                    ; 2882                                                                                       ;
+;     -- 6 input functions                    ; 2874                                                                                       ;
 ;     -- 5 input functions                    ; 2145                                                                                       ;
-;     -- 4 input functions                    ; 3079                                                                                       ;
-;     -- <=3 input functions                  ; 7147                                                                                       ;
+;     -- 4 input functions                    ; 3078                                                                                       ;
+;     -- <=3 input functions                  ; 7140                                                                                       ;
 ;                                             ;                                                                                            ;
 ; Dedicated logic registers                   ; 18890                                                                                      ;
 ;                                             ;                                                                                            ;
@@ -1107,7 +1107,7 @@ agreement for further details.
 ; HSSI PMA TX SERs                            ; 1                                                                                          ;
 ; Maximum fan-out node                        ; wr_sys_clk_625:u_sys_clk_625|altpll:u_altpll|wr_sys_clk_625_altpll:auto_generated|fb_clkin ;
 ; Maximum fan-out                             ; 8219                                                                                       ;
-; Total fan-out                               ; 146979                                                                                     ;
+; Total fan-out                               ; 146937                                                                                     ;
 ; Average fan-out                             ; 4.20                                                                                       ;
 +---------------------------------------------+--------------------------------------------------------------------------------------------+
 
@@ -1117,7 +1117,7 @@ agreement for further details.
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------+
 ; Compilation Hierarchy Node                                                                                                              ; Combinational ALUTs ; Dedicated Logic Registers ; Block Memory Bits ; DSP Blocks ; Pins ; Virtual Pins ; Full Hierarchy Name                                                                                                                                                                                                                                                                                                                                                                                                      ; Entity Name                                                 ; Library Name                                          ;
 +-----------------------------------------------------------------------------------------------------------------------------------------+---------------------+---------------------------+-------------------+------------+------+--------------+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-------------------------------------------------------------+-------------------------------------------------------+
-; |DE5a_wr_slave_jtag                                                                                                                     ; 15553 (727)         ; 18890 (1151)              ; 1676928           ; 4          ; 41   ; 0            ; |DE5a_wr_slave_jtag                                                                                                                                                                                                                                                                                                                                                                                                      ; DE5a_wr_slave_jtag                                          ; work                                                  ;
+; |DE5a_wr_slave_jtag                                                                                                                     ; 15537 (727)         ; 18890 (1151)              ; 1676928           ; 4          ; 41   ; 0            ; |DE5a_wr_slave_jtag                                                                                                                                                                                                                                                                                                                                                                                                      ; DE5a_wr_slave_jtag                                          ; work                                                  ;
 ;    |altsource_probe:u_clock_activity_probe|                                                                                             ; 25 (0)              ; 74 (0)                    ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_clock_activity_probe                                                                                                                                                                                                                                                                                                                                                               ; altsource_probe                                             ; work                                                  ;
 ;       |altsource_probe_body:altsource_probe_body_inst|                                                                                  ; 25 (3)              ; 74 (0)                    ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_clock_activity_probe|altsource_probe_body:altsource_probe_body_inst                                                                                                                                                                                                                                                                                                                ; altsource_probe_body                                        ; work                                                  ;
 ;          |altsource_probe_impl:\wider_probe_gen:wider_probe_inst|                                                                       ; 22 (8)              ; 74 (66)                   ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_clock_activity_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst                                                                                                                                                                                                                                                         ; altsource_probe_impl                                        ; work                                                  ;
@@ -1394,7 +1394,7 @@ agreement for further details.
 ;       |altsource_probe_body:altsource_probe_body_inst|                                                                                  ; 26 (2)              ; 74 (0)                    ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_wr_sync_probe|altsource_probe_body:altsource_probe_body_inst                                                                                                                                                                                                                                                                                                                       ; altsource_probe_body                                        ; work                                                  ;
 ;          |altsource_probe_impl:\wider_probe_gen:wider_probe_inst|                                                                       ; 24 (10)             ; 74 (66)                   ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_wr_sync_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst                                                                                                                                                                                                                                                                ; altsource_probe_impl                                        ; work                                                  ;
 ;             |sld_rom_sr:\instance_id_gen:rom_info_inst|                                                                                 ; 14 (14)             ; 8 (8)                     ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|altsource_probe:u_wr_sync_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_probe_gen:wider_probe_inst|sld_rom_sr:\instance_id_gen:rom_info_inst                                                                                                                                                                                                                      ; sld_rom_sr                                                  ; work                                                  ;
-;    |si5340a_controller_dco:u_si5340a_controller|                                                                                        ; 1679 (1514)         ; 1120 (1061)               ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller                                                                                                                                                                                                                                                                                                                                                          ; si5340a_controller_dco                                      ; work                                                  ;
+;    |si5340a_controller_dco:u_si5340a_controller|                                                                                        ; 1663 (1498)         ; 1120 (1061)               ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller                                                                                                                                                                                                                                                                                                                                                          ; si5340a_controller_dco                                      ; work                                                  ;
 ;       |clock_divider:u_clock_divider|                                                                                                   ; 7 (7)               ; 7 (7)                     ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|clock_divider:u_clock_divider                                                                                                                                                                                                                                                                                                                            ; clock_divider                                               ; work                                                  ;
 ;       |edge_detector:u_start_edge|                                                                                                      ; 5 (5)               ; 2 (2)                     ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|edge_detector:u_start_edge                                                                                                                                                                                                                                                                                                                               ; edge_detector                                               ; work                                                  ;
 ;       |i2c_bus_controller_dco:u_i2c_bus|                                                                                                ; 47 (47)             ; 18 (18)                   ; 0                 ; 0          ; 0    ; 0            ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|i2c_bus_controller_dco:u_i2c_bus                                                                                                                                                                                                                                                                                                                         ; i2c_bus_controller_dco                                      ; work                                                  ;
@@ -2530,11 +2530,11 @@ Encoding Type:  One-Hot
 ; Statistic                                    ; Value ;
 +----------------------------------------------+-------+
 ; Total registers                              ; 18890 ;
-; Number of registers using Synchronous Clear  ; 9897  ;
-; Number of registers using Synchronous Load   ; 4256  ;
+; Number of registers using Synchronous Clear  ; 9889  ;
+; Number of registers using Synchronous Load   ; 4273  ;
 ; Number of registers using Asynchronous Clear ; 10162 ;
 ; Number of registers using Asynchronous Load  ; 0     ;
-; Number of registers using Clock Enable       ; 12888 ;
+; Number of registers using Clock Enable       ; 12896 ;
 ; Number of registers using Preset             ; 0     ;
 +----------------------------------------------+-------+
 
@@ -2598,8 +2598,8 @@ Encoding Type:  One-Hot
 ; 3:1                ; 4 bits    ; 8 LEs         ; 4 LEs                ; 4 LEs                  ; Yes        ; |DE5a_wr_slave_jtag|xwr_core:u_xwr_core|wr_core:WRPC|xwr_pps_gen:PPS_GEN|wr_pps_gen:WRAPPED_PPSGEN|pps_gen_wb:Uwb_slave|rddata_reg[29]                                                                                                                                                                                                                                                             ;
 ; 3:1                ; 12 bits   ; 24 LEs        ; 0 LEs                ; 24 LEs                 ; Yes        ; |DE5a_wr_slave_jtag|dac_dpll_count[8]                                                                                                                                                                                                                                                                                                                                                              ;
 ; 3:1                ; 2 bits    ; 4 LEs         ; 2 LEs                ; 2 LEs                  ; Yes        ; |DE5a_wr_slave_jtag|xwr_core:u_xwr_core|wr_core:WRPC|wrc_urv_wrapper:U_CPU|urv_cpu:U_cpu_core|urv_exec:execute|urv_exceptions:exception_unit|csr_mcause_code[0]                                                                                                                                                                                                                                    ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 8 LEs                ; 8 LEs                  ; Yes        ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|bootstrap_remaining[0]                                                                                                                                                                                                                                                                                                             ;
-; 3:1                ; 8 bits    ; 16 LEs        ; 0 LEs                ; 16 LEs                 ; Yes        ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|bootstrap_remaining[12]                                                                                                                                                                                                                                                                                                            ;
+; 3:1                ; 9 bits    ; 18 LEs        ; 9 LEs                ; 9 LEs                  ; Yes        ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|bootstrap_remaining[0]                                                                                                                                                                                                                                                                                                             ;
+; 3:1                ; 7 bits    ; 14 LEs        ; 7 LEs                ; 7 LEs                  ; Yes        ; |DE5a_wr_slave_jtag|si5340a_controller_dco:u_si5340a_controller|bootstrap_remaining[11]                                                                                                                                                                                                                                                                                                            ;
 ; 3:1                ; 18 bits   ; 36 LEs        ; 0 LEs                ; 36 LEs                 ; Yes        ; |DE5a_wr_slave_jtag|si_corr_post_arm_count[15]                                                                                                                                                                                                                                                                                                                                                     ;
 ; 3:1                ; 24 bits   ; 48 LEs        ; 0 LEs                ; 48 LEs                 ; Yes        ; |DE5a_wr_slave_jtag|xwr_core:u_xwr_core|wr_core:WRPC|wrc_urv_wrapper:U_CPU|urv_cpu:U_cpu_core|urv_timer:ctimer|presc[4]                                                                                                                                                                                                                                                                            ;
 ; 3:1                ; 16 bits   ; 32 LEs        ; 0 LEs                ; 32 LEs                 ; Yes        ; |DE5a_wr_slave_jtag|xwr_core:u_xwr_core|wr_core:WRPC|wrc_periph:PERIPH|diag_adr[14]                                                                                                                                                                                                                                                                                                                ;
@@ -6309,7 +6309,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; ENABLE_STEP5_HPLL_PLANT_TEST         ; 0     ; Signed Integer                            ;
 ; ENABLE_NORMAL_HPLL_TRACKER           ; 1     ; Signed Integer                            ;
 ; ENABLE_STEP5_BOOTSTRAP               ; 1     ; Signed Integer                            ;
-; STEP5_BOOTSTRAP_STEPS                ; 3388  ; Signed Integer                            ;
+; STEP5_BOOTSTRAP_STEPS                ; 512   ; Signed Integer                            ;
 ; STEP5_BOOTSTRAP_REVERSE              ; 1     ; Signed Integer                            ;
 ; HPLL_TRACKER_CODE_PER_PHYSICAL_STEP  ; 64    ; Signed Integer                            ;
 ; DPLL_TRACKER_CODE_PER_PHYSICAL_STEP  ; 16    ; Signed Integer                            ;
@@ -18291,15 +18291,15 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; boundary_port                           ; 1517      ;
 ; twentynm_atx_pll                        ; 1         ;
 ; twentynm_ff                             ; 18144     ;
-;     CLR                                 ; 3531      ;
+;     CLR                                 ; 3523      ;
 ;     CLR SCLR                            ; 29        ;
 ;     CLR SCLR SLD                        ; 1         ;
 ;     CLR SLD                             ; 21        ;
 ;     ENA                                 ; 2117      ;
-;     ENA CLR                             ; 1234      ;
-;     ENA CLR SCLR                        ; 1069      ;
+;     ENA CLR                             ; 1233      ;
+;     ENA CLR SCLR                        ; 1061      ;
 ;     ENA CLR SCLR SLD                    ; 3434      ;
-;     ENA CLR SLD                         ; 160       ;
+;     ENA CLR SLD                         ; 177       ;
 ;     ENA SCLR                            ; 3564      ;
 ;     ENA SCLR SLD                        ; 209       ;
 ;     ENA SLD                             ; 398       ;
@@ -18340,7 +18340,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; twentynm_hssi_tx_pld_pcs_interface      ; 1         ;
 ; twentynm_io_obuf                        ; 3         ;
 ; twentynm_iopll                          ; 1         ;
-; twentynm_lcell_comb                     ; 14184     ;
+; twentynm_lcell_comb                     ; 14168     ;
 ;     arith                               ; 3783      ;
 ;         0 data inputs                   ; 4         ;
 ;         1 data inputs                   ; 3301      ;
@@ -18350,14 +18350,14 @@ Note: In order to hide this table in the UI and the text report file, please set
 ;         5 data inputs                   ; 120       ;
 ;     extend                              ; 255       ;
 ;         7 data inputs                   ; 255       ;
-;     normal                              ; 9888      ;
+;     normal                              ; 9872      ;
 ;         0 data inputs                   ; 2         ;
 ;         1 data inputs                   ; 71        ;
-;         2 data inputs                   ; 1343      ;
+;         2 data inputs                   ; 1336      ;
 ;         3 data inputs                   ; 1209      ;
-;         4 data inputs                   ; 2869      ;
+;         4 data inputs                   ; 2868      ;
 ;         5 data inputs                   ; 1831      ;
-;         6 data inputs                   ; 2563      ;
+;         6 data inputs                   ; 2555      ;
 ;     shared                              ; 258       ;
 ;         1 data inputs                   ; 60        ;
 ;         2 data inputs                   ; 196       ;
@@ -18366,7 +18366,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 ; twentynm_ram_block                      ; 406       ;
 ;                                         ;           ;
 ; Max LUT depth                           ; 17.00     ;
-; Average LUT depth                       ; 2.82      ;
+; Average LUT depth                       ; 2.81      ;
 +-----------------------------------------+-----------+
 
 
@@ -18421,7 +18421,7 @@ Note: In order to hide this table in the UI and the text report file, please set
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sun Oct  4 19:45:40 2026
+    Info: Processing started: Mon Oct  5 14:50:09 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
@@ -20645,7 +20645,7 @@ Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(420)
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(532): truncated value with size 32 to match size of target (8) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 532
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(543): truncated value with size 32 to match size of target (3) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 543
 Warning (10034): Output port "test_start" at i2c_bus_controller_dco.v(141) has no driver File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 141
-Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2229
+Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2230
 Info (12128): Elaborating entity "gc_sync_ffs" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|gc_sync_ffs:mgmt_rst_sync" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 212
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 398
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy|wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy:xcvr_native_a10_0" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/synth/wr_arria10_e3p1_det_phy.v Line: 954
@@ -20677,7 +20677,7 @@ Info (12128): Elaborating entity "alt_xcvr_atx_pll_rcfg_opt_logic_7zpwg4q" for h
 Info (12128): Elaborating entity "a10_xcvr_atx_pll" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|a10_xcvr_atx_pll:a10_xcvr_atx_pll_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 584
 Info (12128): Elaborating entity "twentynm_xcvr_avmm" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 699
 Info (12128): Elaborating entity "alt_xcvr_resync" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst|alt_xcvr_resync:avmm_atom_insts[0].avmm_reset_sync_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/twentynm_xcvr_avmm.sv Line: 270
-Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2281
+Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2282
 Info (12128): Elaborating entity "altsource_probe" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12130): Elaborated megafunction instantiation "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12133): Instantiated megafunction "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
@@ -20694,7 +20694,7 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "wr_j
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_source_gen:wider_source_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 536
-Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2292
+Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2293
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(130): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 130
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(268): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 268
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(270): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 270
@@ -21419,7 +21419,7 @@ Info (12128): Elaborating entity "xwb_clock_monitor" for hierarchy "xwr_core:u_x
 Info (12128): Elaborating entity "clock_monitor_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwb_clock_monitor:\gen_with_clock_monitor:inst_clock_monitor|clock_monitor_wb:U_WB_Slave" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/xwb_clock_monitor.vhd Line: 154
 Warning (10541): VHDL Signal Declaration warning at clock_monitor_wb.vhd(27): used implicit default value for signal "int_o" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations. File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/clock_monitor_wb.vhd Line: 27
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.10.04.19:45:57 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.10.05.14:50:25 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: "Transforming system: alt_sld_fab"
 Info (11172): Alt_sld_fab: Running transform generation_view_transform
@@ -21439,9 +21439,9 @@ Info (11172): Ident: Running transform generation_view_transform took 0.000s
 Info (11172): A10xcvrfabric: Running transform generation_view_transform
 Info (11172): A10xcvrfabric: Running transform generation_view_transform took 0.000s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.018s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.019s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.012s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.009s
 Info (11172): Alt_sld_fab: "Naming system components in system: alt_sld_fab"
 Info (11172): Alt_sld_fab: "Processing generation queue"
 Info (11172): Alt_sld_fab: "Generating: alt_sld_fab"
@@ -21653,18 +21653,18 @@ Warning (21074): Design contains 5 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "QSFPA_RX_p[2]" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 27
     Warning (15610): No output dependent on input pin "QSFPA_RX_p[3]" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 27
     Warning (15610): No output dependent on input pin "SI5340A_INTR" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 34
-Info (21057): Implemented 28202 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 28186 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 20 input pins
     Info (21059): Implemented 23 output pins
     Info (21060): Implemented 3 bidirectional pins
-    Info (21061): Implemented 27710 logic cells
+    Info (21061): Implemented 27694 logic cells
     Info (21064): Implemented 406 RAM segments
     Info (21062): Implemented 4 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 264 warnings
-    Info: Peak virtual memory: 1709 megabytes
-    Info: Processing ended: Sun Oct  4 19:46:39 2026
-    Info: Elapsed time: 00:00:59
-    Info: Total CPU time (on all processors): 00:01:45
+    Info: Peak virtual memory: 1706 megabytes
+    Info: Processing ended: Mon Oct  5 14:51:07 2026
+    Info: Elapsed time: 00:00:58
+    Info: Total CPU time (on all processors): 00:01:37
 
 
 +------------------------------------------+

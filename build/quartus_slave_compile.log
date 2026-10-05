@@ -1,9 +1,9 @@
 === BUILD IDENTITY ===
-2026-10-04T19:45:38+08:00
+2026-10-05T14:50:07+08:00
 HOST=pain
 ROOT=/home/b10504072/04_WR
-GIT_COMMIT=bcb84305a1a1472cb249fb8d19879a9d9dfa200b
-GIT_BRANCH=feat/file_cleanup
+GIT_COMMIT=4d7e38189e26707afffb2ecc404f3ad0e8a08326
+GIT_BRANCH=step7-physical-measurement
 Quartus Prime Shell
 Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
 Copyright (C) 2017  Intel Corporation. All rights reserved.
@@ -29,15 +29,15 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Sun Oct  4 19:45:38 2026
+    Info: Processing started: Mon Oct  5 14:50:07 2026
 Info: Command: quartus_sh --clean DE5a_wr_slave_jtag.qpf
 Info: Quartus(args): DE5a_wr_slave_jtag.qpf
 Info: /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl version #1
-Info: Removed 1198 files/folders from project.
+Info: Removed 1200 files/folders from project.
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_clean.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 0 warnings
     Info: Peak virtual memory: 753 megabytes
-    Info: Processing ended: Sun Oct  4 19:45:40 2026
+    Info: Processing ended: Mon Oct  5 14:50:09 2026
     Info: Elapsed time: 00:00:02
     Info: Total CPU time (on all processors): 00:00:01
 === QUARTUS COMPILE ===
@@ -58,7 +58,7 @@ Info: Running Quartus Prime Shell
     Info: devices manufactured by Intel and sold by Intel or its 
     Info: authorized distributors.  Please refer to the applicable 
     Info: agreement for further details.
-    Info: Processing started: Sun Oct  4 19:45:40 2026
+    Info: Processing started: Mon Oct  5 14:50:09 2026
 Info: Command: quartus_sh --flow compile DE5a_wr_slave_jtag.qpf
 Info: Quartus(args): compile DE5a_wr_slave_jtag.qpf
 Info: Project Name = /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag
@@ -66,7 +66,7 @@ Info: Revision Name = DE5a_wr_slave_jtag
 Info: *******************************************************************
 Info: Running Quartus Prime Analysis & Synthesis
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sun Oct  4 19:45:40 2026
+    Info: Processing started: Mon Oct  5 14:50:09 2026
 Info: Command: quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info (20030): Parallel compilation is enabled and will use 16 of the 20 processors detected
@@ -2290,7 +2290,7 @@ Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(420)
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(532): truncated value with size 32 to match size of target (8) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 532
 Warning (10230): Verilog HDL assignment warning at i2c_bus_controller_dco.v(543): truncated value with size 32 to match size of target (3) File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 543
 Warning (10034): Output port "test_start" at i2c_bus_controller_dco.v(141) has no driver File: /home/b10504072/04_WR/quartus/i2c_bus_controller_dco.v Line: 141
-Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2229
+Info (12128): Elaborating entity "wr_arria10_transceiver" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2230
 Info (12128): Elaborating entity "gc_sync_ffs" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|gc_sync_ffs:mgmt_rst_sync" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 212
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy" File: /home/b10504072/04_WR/vendor/wr-cores-arria10/platform/altera/wr_arria10_phy.vhd Line: 398
 Info (12128): Elaborating entity "wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_det_phy:\det_phy:e3p1_phy:inst_phy|wr_arria10_e3p1_det_phy_altera_xcvr_native_a10_170_6qfnzyy:xcvr_native_a10_0" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/synth/wr_arria10_e3p1_det_phy.v Line: 954
@@ -2322,7 +2322,7 @@ Info (12128): Elaborating entity "alt_xcvr_atx_pll_rcfg_opt_logic_7zpwg4q" for h
 Info (12128): Elaborating entity "a10_xcvr_atx_pll" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|a10_xcvr_atx_pll:a10_xcvr_atx_pll_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 584
 Info (12128): Elaborating entity "twentynm_xcvr_avmm" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q.sv Line: 699
 Info (12128): Elaborating entity "alt_xcvr_resync" for hierarchy "wr_arria10_transceiver:u_wr_arria10_transceiver|wr_arria10_e3p1_atx_pll:\det_phy:e3p1_pll_and_reset:atx_pll:inst_atx_pll|wr_arria10_e3p1_atx_pll_altera_xcvr_atx_pll_a10_170_7zpwg4q:xcvr_atx_pll_a10_0|twentynm_xcvr_avmm:a10_xcvr_avmm_inst|alt_xcvr_resync:avmm_atom_insts[0].avmm_reset_sync_inst" File: /home/b10504072/04_WR/quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/altera_xcvr_atx_pll_a10_170/synth/twentynm_xcvr_avmm.sv Line: 270
-Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2281
+Info (12128): Elaborating entity "wr_jtag_wb_mailbox" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2282
 Info (12128): Elaborating entity "altsource_probe" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12130): Elaborated megafunction instantiation "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
 Info (12133): Instantiated megafunction "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe" with the following parameter: File: /home/b10504072/04_WR/quartus/wr_jtag_wb_mailbox.vhd Line: 64
@@ -2339,7 +2339,7 @@ Info (12128): Elaborating entity "sld_jtag_endpoint_adapter" for hierarchy "wr_j
 Info (12128): Elaborating entity "sld_jtag_endpoint_adapter_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|sld_jtag_endpoint_adapter:jtag_signal_adapter|sld_jtag_endpoint_adapter_impl:sld_jtag_endpoint_adapter_impl_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/sld_jtag_endpoint_adapter.vhd Line: 232
 Info (12128): Elaborating entity "altsource_probe_body" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe.v Line: 205
 Info (12128): Elaborating entity "altsource_probe_impl" for hierarchy "wr_jtag_wb_mailbox:u_jtag_wb_mailbox|altsource_probe:u_mailbox_probe|altsource_probe_body:altsource_probe_body_inst|altsource_probe_impl:\wider_source_gen:wider_source_inst" File: /mnt/ds1515/opt/intelFPGA/17.0/quartus/libraries/megafunctions/altsource_probe_body.vhd Line: 536
-Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2292
+Info (12128): Elaborating entity "xwr_core" for hierarchy "xwr_core:u_xwr_core" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 2293
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(130): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 130
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(268): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 268
 Warning (10445): VHDL Subtype or Type Declaration warning at xwr_core.vhd(270): subtype or type has null range File: /home/b10504072/04_WR/vendor/wr-cores/modules/wrc_core/xwr_core.vhd Line: 270
@@ -3064,7 +3064,7 @@ Info (12128): Elaborating entity "xwb_clock_monitor" for hierarchy "xwr_core:u_x
 Info (12128): Elaborating entity "clock_monitor_wb" for hierarchy "xwr_core:u_xwr_core|wr_core:WRPC|xwb_clock_monitor:\gen_with_clock_monitor:inst_clock_monitor|clock_monitor_wb:U_WB_Slave" File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/xwb_clock_monitor.vhd Line: 154
 Warning (10541): VHDL Signal Declaration warning at clock_monitor_wb.vhd(27): used implicit default value for signal "int_o" because signal was never assigned a value or an explicit default value. Use of implicit default value may introduce unintended design optimizations. File: /home/b10504072/04_WR/vendor/wr-cores/ip_cores/general-cores/modules/wishbone/wb_clock_monitor/clock_monitor_wb.vhd Line: 27
 Info (11170): Starting IP generation for the debug fabric: alt_sld_fab.
-Info (11172): 2026.10.04.19:45:57 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
+Info (11172): 2026.10.05.14:50:25 Progress: Loading sld8f72919e/alt_sld_fab_wrapper_hw.tcl
 Info (11172): Alt_sld_fab.alt_sld_fab: SLD fabric agents which did not specify prefer_host were connected to JTAG
 Info (11172): Alt_sld_fab: "Transforming system: alt_sld_fab"
 Info (11172): Alt_sld_fab: Running transform generation_view_transform
@@ -3084,9 +3084,9 @@ Info (11172): Ident: Running transform generation_view_transform took 0.000s
 Info (11172): A10xcvrfabric: Running transform generation_view_transform
 Info (11172): A10xcvrfabric: Running transform generation_view_transform took 0.000s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.018s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.019s
 Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform
-Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.012s
+Info (11172): Alt_sld_fab: Running transform merlin_avalon_transform took 0.009s
 Info (11172): Alt_sld_fab: "Naming system components in system: alt_sld_fab"
 Info (11172): Alt_sld_fab: "Processing generation queue"
 Info (11172): Alt_sld_fab: "Generating: alt_sld_fab"
@@ -3298,22 +3298,22 @@ Warning (21074): Design contains 5 input pin(s) that do not drive logic
     Warning (15610): No output dependent on input pin "QSFPA_RX_p[2]" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 27
     Warning (15610): No output dependent on input pin "QSFPA_RX_p[3]" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 27
     Warning (15610): No output dependent on input pin "SI5340A_INTR" File: /home/b10504072/04_WR/quartus/DE5a_wr_slave_jtag.vhd Line: 34
-Info (21057): Implemented 28202 device resources after synthesis - the final resource count might be different
+Info (21057): Implemented 28186 device resources after synthesis - the final resource count might be different
     Info (21058): Implemented 20 input pins
     Info (21059): Implemented 23 output pins
     Info (21060): Implemented 3 bidirectional pins
-    Info (21061): Implemented 27710 logic cells
+    Info (21061): Implemented 27694 logic cells
     Info (21064): Implemented 406 RAM segments
     Info (21062): Implemented 4 DSP elements
 Info: Quartus Prime Analysis & Synthesis was successful. 0 errors, 264 warnings
-    Info: Peak virtual memory: 1709 megabytes
-    Info: Processing ended: Sun Oct  4 19:46:39 2026
-    Info: Elapsed time: 00:00:59
-    Info: Total CPU time (on all processors): 00:01:45
+    Info: Peak virtual memory: 1706 megabytes
+    Info: Processing ended: Mon Oct  5 14:51:07 2026
+    Info: Elapsed time: 00:00:58
+    Info: Total CPU time (on all processors): 00:01:37
 Info: *******************************************************************
 Info: Running Quartus Prime Fitter
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sun Oct  4 19:46:40 2026
+    Info: Processing started: Mon Oct  5 14:51:08 2026
 Info: Command: quartus_fit --read_settings_files=off --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Info: qfit2_default_script.tcl version: #1
 Info: Project  = DE5a_wr_slave_jtag
@@ -3420,7 +3420,7 @@ Info (176235): Finished register packing
     Extra Info (176218): Packed 134 registers into blocks of type DSP block
 Warning (16067): 4 out of 4 DSP blocks in the design are not fully utilizing recommended internal DSP register banks. Design performance may be limited. To take full advantage of device resources, you should either enable the register banks directly (if using WYSIWYG entry) or provide additional registers in your design that the Quartus register packing optimization algorithm can convert to internal DSP register banks.
     Warning (16069): 4 DSP blocks are partially registered - they use some, but not all of the recommended internal DSP register banks. Intel advises using all the recommended internal DSP register banks for high performance designs.
-Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:37
+Info (12263): Fitter periphery placement operations ending: elapsed time is 00:00:36
 Info (11165): Fitter preparation operations ending: elapsed time is 00:00:35
 Info (170189): Fitter placement preparation operations beginning
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
@@ -3430,41 +3430,41 @@ Info (170191): Fitter placement operations beginning
 Info (170137): Fitter placement was successful
 Info (170192): Fitter placement operations ending: elapsed time is 00:00:12
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Placement is 9.14 seconds.
+Info (11888): Total time spent on timing analysis during Placement is 8.98 seconds.
 Info (170193): Fitter routing operations beginning
-Info (170195): Router estimated average interconnect usage is 1% of the available device resources
-    Info (170196): Router estimated peak interconnect usage is 29% of the available device resources in the region that extends from location X165_Y35 to location X176_Y46
+Info (170195): Router estimated average interconnect usage is 0% of the available device resources
+    Info (170196): Router estimated peak interconnect usage is 30% of the available device resources in the region that extends from location X165_Y23 to location X176_Y34
 Info (170199): The Fitter performed an Auto Fit compilation.  Optimizations were skipped to reduce compilation time.
     Info (170201): Optimizations that may affect the design's routability were skipped
-Info (11888): Total time spent on timing analysis during Routing is 5.66 seconds.
-Info (16607): Fitter routing operations ending: elapsed time is 00:07:52
+Info (11888): Total time spent on timing analysis during Routing is 5.98 seconds.
+Info (16607): Fitter routing operations ending: elapsed time is 00:00:30
 Warning (335093): TimeQuest Timing Analyzer is analyzing 2 combinational loops as latches. For more details, run the Check Timing command in the TimeQuest Timing Analyzer or view the "User-Specified and Inferred Latches" table in the Analysis & Synthesis report.
-Info (11888): Total time spent on timing analysis during Post-Routing is 0.42 seconds.
+Info (11888): Total time spent on timing analysis during Post-Routing is 0.43 seconds.
 Info (16557): Fitter post-fit operations ending: elapsed time is 00:00:28
 Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
 Info (144001): Generated suppressed messages file /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.fit.smsg
 Info (11793): Fitter databases successfully split.
 Info: Quartus Prime Fitter was successful. 0 errors, 22 warnings
-    Info: Peak virtual memory: 13048 megabytes
-    Info: Processing ended: Sun Oct  4 19:56:40 2026
-    Info: Elapsed time: 00:10:00
-    Info: Total CPU time (on all processors): 00:23:23
+    Info: Peak virtual memory: 12538 megabytes
+    Info: Processing ended: Mon Oct  5 14:53:46 2026
+    Info: Elapsed time: 00:02:38
+    Info: Total CPU time (on all processors): 00:16:11
 Info: *******************************************************************
 Info: Running Quartus Prime Assembler
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sun Oct  4 19:56:43 2026
+    Info: Processing started: Mon Oct  5 14:53:48 2026
 Info: Command: quartus_asm --read_settings_files=off --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
 Info: Quartus Prime Assembler was successful. 0 errors, 1 warning
-    Info: Peak virtual memory: 6974 megabytes
-    Info: Processing ended: Sun Oct  4 19:57:09 2026
+    Info: Peak virtual memory: 6973 megabytes
+    Info: Processing ended: Mon Oct  5 14:54:14 2026
     Info: Elapsed time: 00:00:26
     Info: Total CPU time (on all processors): 00:00:26
 Info (293026): Skipped module PowerPlay Power Analyzer due to the assignment FLOW_ENABLE_POWER_ANALYZER
 Info: *******************************************************************
 Info: Running Quartus Prime TimeQuest Timing Analyzer
     Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
-    Info: Processing started: Sun Oct  4 19:57:10 2026
+    Info: Processing started: Mon Oct  5 14:54:15 2026
 Info: Command: quartus_sta DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
 Info: qsta_default_script.tcl version: #1
 Warning (18236): Number of processors has not been specified which may cause overloading on shared machines.  Set the global assignment NUM_PARALLEL_PROCESSORS in your QSF to an appropriate value for best performance.
@@ -3510,185 +3510,185 @@ Warning (332060): Node: CPU_RESET_n was determined to be a clock but was found w
 Info (332123): Deriving Clock Uncertainty. Please refer to report_sdc in TimeQuest to see clock uncertainties.
 Info: Found TIMEQUEST_REPORT_SCRIPT_INCLUDE_DEFAULT_ANALYSIS = ON
 Info: Analyzing Slow 900mV 100C Model
-Critical Warning (332148): Timing requirements not met
-    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the TimeQuest Timing Analyzer.
-Info (332146): Worst-case setup slack is -0.659
+Info (332146): Worst-case setup slack is 0.119
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    -0.659              -1.140 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.104               0.000 clk_50m 
-    Info (332119):     1.211               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     2.080               0.000 qsfp_ref_125m 
-    Info (332119):     2.393               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     6.649               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     6.656               0.000 qsfp_dmtd_124m992 
-    Info (332119):     8.786               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.035
+    Info (332119):     0.119               0.000 clk_50m 
+    Info (332119):     0.537               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     1.023               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     1.399               0.000 qsfp_ref_125m 
+    Info (332119):     2.103               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     6.535               0.000 qsfp_dmtd_124m992 
+    Info (332119):     6.762               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     9.805               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.038
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.035               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.044               0.000 altera_reserved_tck 
-    Info (332119):     0.046               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.038               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.039               0.000 altera_reserved_tck 
     Info (332119):     0.049               0.000 qsfp_ref_125m 
-    Info (332119):     0.067               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.074               0.000 clk_50m 
-    Info (332119):     0.124               0.000 qsfp_dmtd_124m992 
-    Info (332119):     2.842               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case recovery slack is 0.650
+    Info (332119):     0.050               0.000 clk_50m 
+    Info (332119):     0.051               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.068               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.130               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.908               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 0.473
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.650               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     2.211               0.000 qsfp_ref_125m 
-    Info (332119):     4.784               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     7.151               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):    14.814               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):    16.394               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    29.084               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 0.216
+    Info (332119):     0.473               0.000 qsfp_ref_125m 
+    Info (332119):     1.192               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     4.604               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.163               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    14.800               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.298               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    29.115               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.267
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.216               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.368               0.000 altera_reserved_tck 
-    Info (332119):     0.384               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.405               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.417               0.000 qsfp_ref_125m 
-    Info (332119):    10.219               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    12.753               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case minimum pulse width slack is 3.626
+    Info (332119):     0.267               0.000 altera_reserved_tck 
+    Info (332119):     0.268               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.353               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.355               0.000 qsfp_ref_125m 
+    Info (332119):     0.429               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):    10.308               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    12.710               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.620
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     3.626               0.000 qsfp_ref_125m 
-    Info (332119):     3.659               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.620               0.000 qsfp_ref_125m 
+    Info (332119):     3.677               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
     Info (332119):     3.705               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     3.739               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.736               0.000 ~ALTERA_CLKUSR~ 
     Info (332119):     3.873               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
     Info (332119):     3.904               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
-    Info (332119):     3.941               0.000 qsfp_dmtd_124m992 
-    Info (332119):     7.610               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     9.916               0.000 clk_50m 
+    Info (332119):     3.935               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.607               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.906               0.000 clk_50m 
     Info (332119):    16.575               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 1209 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 1209
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 7.351 ns
+    Info (332114): Worst Case Available Settling Time: 7.338 ns
 Info: Analyzing Slow 900mV 0C Model
-Info (332146): Worst-case setup slack is 0.090
+Info (332146): Worst-case setup slack is 0.124
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.090               0.000 clk_50m 
-    Info (332119):     0.549               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     1.248               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     2.261               0.000 qsfp_ref_125m 
-    Info (332119):     2.515               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     6.696               0.000 qsfp_dmtd_124m992 
-    Info (332119):     6.741               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     9.216               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.036
+    Info (332119):     0.124               0.000 clk_50m 
+    Info (332119):     1.210               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     1.270               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     1.560               0.000 qsfp_ref_125m 
+    Info (332119):     2.304               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     6.569               0.000 qsfp_dmtd_124m992 
+    Info (332119):     6.777               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    10.136               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.037
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.036               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.042               0.000 altera_reserved_tck 
-    Info (332119):     0.042               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.046               0.000 qsfp_ref_125m 
-    Info (332119):     0.065               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.067               0.000 clk_50m 
-    Info (332119):     0.092               0.000 qsfp_dmtd_124m992 
-    Info (332119):     2.734               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case recovery slack is 1.253
+    Info (332119):     0.037               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.039               0.000 altera_reserved_tck 
+    Info (332119):     0.045               0.000 qsfp_ref_125m 
+    Info (332119):     0.046               0.000 clk_50m 
+    Info (332119):     0.050               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.061               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.115               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.780               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 0.697
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     1.253               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     2.386               0.000 qsfp_ref_125m 
-    Info (332119):     4.863               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     7.144               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):    14.718               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):    16.551               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    29.108               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is -0.264
+    Info (332119):     0.697               0.000 qsfp_ref_125m 
+    Info (332119):     1.701               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     4.710               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.155               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    14.755               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.474               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    29.140               0.000 altera_reserved_tck 
+Critical Warning (332148): Timing requirements not met
+    Info (11105): For recommendations on closing timing, run Report Timing Closure Recommendations in the TimeQuest Timing Analyzer.
+Info (332146): Worst-case removal slack is -0.187
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    -0.264              -1.035 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.354               0.000 altera_reserved_tck 
-    Info (332119):     0.389               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.391               0.000 qsfp_ref_125m 
-    Info (332119):     0.398               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     9.794               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    12.726               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    -0.187              -0.734 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.262               0.000 altera_reserved_tck 
+    Info (332119):     0.339               0.000 qsfp_ref_125m 
+    Info (332119):     0.344               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.411               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     9.867               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    12.684               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
 Info (332146): Worst-case minimum pulse width slack is 3.596
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
     Info (332119):     3.596               0.000 qsfp_ref_125m 
-    Info (332119):     3.679               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.677               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
     Info (332119):     3.684               0.000 ~ALTERA_CLKUSR~ 
     Info (332119):     3.693               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
     Info (332119):     3.855               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
     Info (332119):     3.888               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
-    Info (332119):     3.917               0.000 qsfp_dmtd_124m992 
+    Info (332119):     3.921               0.000 qsfp_dmtd_124m992 
     Info (332119):     7.590               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     9.848               0.000 clk_50m 
+    Info (332119):     9.849               0.000 clk_50m 
     Info (332119):    16.514               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 1209 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 1209
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 7.399 ns
+    Info (332114): Worst Case Available Settling Time: 7.395 ns
 Info: Analyzing Fast 900mV 100C Model
-Info (332146): Worst-case setup slack is -0.130
+Info (332146): Worst-case setup slack is 0.798
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):    -0.130              -0.130 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     1.381               0.000 clk_50m 
-    Info (332119):     1.747               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     2.616               0.000 qsfp_ref_125m 
-    Info (332119):     3.735               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     7.002               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     7.152               0.000 qsfp_dmtd_124m992 
-    Info (332119):    10.636               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.013
+    Info (332119):     0.798               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     1.351               0.000 clk_50m 
+    Info (332119):     1.609               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     1.937               0.000 qsfp_ref_125m 
+    Info (332119):     3.470               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     7.073               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.132               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    11.549               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.014
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.013               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.018               0.000 altera_reserved_tck 
-    Info (332119):     0.020               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.022               0.000 qsfp_ref_125m 
-    Info (332119):     0.023               0.000 clk_50m 
-    Info (332119):     0.025               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.067               0.000 qsfp_dmtd_124m992 
-    Info (332119):     2.319               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case recovery slack is 0.716
+    Info (332119):     0.014               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.017               0.000 altera_reserved_tck 
+    Info (332119):     0.019               0.000 qsfp_ref_125m 
+    Info (332119):     0.020               0.000 clk_50m 
+    Info (332119):     0.022               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.028               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.068               0.000 qsfp_dmtd_124m992 
+    Info (332119):     2.376               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 1.215
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.716               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     3.008               0.000 qsfp_ref_125m 
-    Info (332119):     5.422               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     7.443               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):    16.573               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):    16.756               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    29.995               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 0.221
+    Info (332119):     1.215               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     2.184               0.000 qsfp_ref_125m 
+    Info (332119):     5.272               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.431               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    16.589               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    16.673               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    30.401               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.180
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.221               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.230               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.250               0.000 qsfp_ref_125m 
-    Info (332119):     0.278               0.000 altera_reserved_tck 
-    Info (332119):     0.486               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):    10.930               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    11.822               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case minimum pulse width slack is 3.667
+    Info (332119):     0.180               0.000 altera_reserved_tck 
+    Info (332119):     0.200               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.211               0.000 qsfp_ref_125m 
+    Info (332119):     0.273               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.413               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):    11.011               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    11.808               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.657
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     3.667               0.000 qsfp_ref_125m 
-    Info (332119):     3.681               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     3.657               0.000 qsfp_ref_125m 
+    Info (332119):     3.694               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
     Info (332119):     3.831               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     3.861               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.860               0.000 ~ALTERA_CLKUSR~ 
     Info (332119):     3.941               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
     Info (332119):     3.955               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
-    Info (332119):     3.957               0.000 qsfp_dmtd_124m992 
-    Info (332119):     7.617               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     3.967               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.616               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
     Info (332119):     9.870               0.000 clk_50m 
     Info (332119):    16.492               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 1209 synchronizer chains.
@@ -3696,80 +3696,80 @@ Info (332114): Report Metastability: Found 1209 synchronizer chains.
     Info (332114): Number of Synchronizer Chains Found: 1209
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 7.560 ns
+    Info (332114): Worst Case Available Settling Time: 7.562 ns
 Info: Analyzing Fast 900mV 0C Model
-Info (332146): Worst-case setup slack is 1.663
+Info (332146): Worst-case setup slack is 1.689
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     1.663               0.000 clk_50m 
-    Info (332119):     1.896               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     2.081               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     2.871               0.000 qsfp_ref_125m 
-    Info (332119):     4.257               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     7.162               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     7.253               0.000 qsfp_dmtd_124m992 
-    Info (332119):    11.635               0.000 altera_reserved_tck 
-Info (332146): Worst-case hold slack is 0.008
+    Info (332119):     1.689               0.000 clk_50m 
+    Info (332119):     1.978               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     2.003               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     2.313               0.000 qsfp_ref_125m 
+    Info (332119):     4.093               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):     7.190               0.000 qsfp_dmtd_124m992 
+    Info (332119):     7.273               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    12.424               0.000 altera_reserved_tck 
+Info (332146): Worst-case hold slack is 0.010
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.008               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.014               0.000 qsfp_ref_125m 
-    Info (332119):     0.015               0.000 altera_reserved_tck 
-    Info (332119):     0.016               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     0.021               0.000 clk_50m 
-    Info (332119):     0.024               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.068               0.000 qsfp_dmtd_124m992 
-    Info (332119):     1.959               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case recovery slack is 2.556
+    Info (332119):     0.010               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.013               0.000 altera_reserved_tck 
+    Info (332119):     0.015               0.000 qsfp_ref_125m 
+    Info (332119):     0.018               0.000 clk_50m 
+    Info (332119):     0.018               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     0.026               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.069               0.000 qsfp_dmtd_124m992 
+    Info (332119):     1.967               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case recovery slack is 2.534
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     2.556               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     3.199               0.000 qsfp_ref_125m 
-    Info (332119):     5.688               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     7.484               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):    16.953               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):    17.716               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    30.536               0.000 altera_reserved_tck 
-Info (332146): Worst-case removal slack is 0.194
+    Info (332119):     2.534               0.000 qsfp_ref_125m 
+    Info (332119):     3.043               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):     5.555               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     7.470               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):    16.987               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+    Info (332119):    17.658               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    30.684               0.000 altera_reserved_tck 
+Info (332146): Worst-case removal slack is 0.151
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     0.194               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     0.202               0.000 ~ALTERA_CLKUSR~ 
-    Info (332119):     0.203               0.000 qsfp_ref_125m 
-    Info (332119):     0.235               0.000 altera_reserved_tck 
-    Info (332119):     0.406               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):    10.387               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
-    Info (332119):    11.493               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-Info (332146): Worst-case minimum pulse width slack is 3.691
+    Info (332119):     0.151               0.000 altera_reserved_tck 
+    Info (332119):     0.169               0.000 qsfp_ref_125m 
+    Info (332119):     0.175               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     0.229               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
+    Info (332119):     0.347               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
+    Info (332119):    10.446               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
+    Info (332119):    11.479               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
+Info (332146): Worst-case minimum pulse width slack is 3.679
     Info (332119):     Slack       End Point TNS Clock 
     Info (332119): ========= =================== =====================
-    Info (332119):     3.691               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
-    Info (332119):     3.696               0.000 qsfp_ref_125m 
+    Info (332119):     3.679               0.000 qsfp_ref_125m 
+    Info (332119):     3.694               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_clkout 
     Info (332119):     3.844               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|tx_pma_clk 
-    Info (332119):     3.900               0.000 ~ALTERA_CLKUSR~ 
+    Info (332119):     3.898               0.000 ~ALTERA_CLKUSR~ 
     Info (332119):     3.941               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|rx_pma_clk 
     Info (332119):     3.956               0.000 u_wr_arria10_transceiver|\det_phy:e3p1_phy:inst_phy|xcvr_native_a10_0|avmmclk 
     Info (332119):     3.978               0.000 qsfp_dmtd_124m992 
     Info (332119):     7.672               0.000 u_sys_clk_625|u_altpll|auto_generated|wire_generic_pll1_outclk 
-    Info (332119):     9.914               0.000 clk_50m 
+    Info (332119):     9.912               0.000 clk_50m 
     Info (332119):    16.507               0.000 altera_reserved_tck 
 Info (332114): Report Metastability: Found 1209 synchronizer chains.
     Info (332114): The design MTBF is not calculated because there are no specified synchronizers in the design.
     Info (332114): Number of Synchronizer Chains Found: 1209
     Info (332114): Shortest Synchronizer Chain: 2 Registers
     Info (332114): Fraction of Chains for which MTBFs Could Not be Calculated: 1.000
-    Info (332114): Worst Case Available Settling Time: 7.635 ns
+    Info (332114): Worst Case Available Settling Time: 7.643 ns
 Info (332102): Design is not fully constrained for setup requirements
 Info (332102): Design is not fully constrained for hold requirements
 Info: Quartus Prime TimeQuest Timing Analyzer was successful. 0 errors, 12 warnings
-    Info: Peak virtual memory: 4573 megabytes
-    Info: Processing ended: Sun Oct  4 19:57:23 2026
-    Info: Elapsed time: 00:00:13
+    Info: Peak virtual memory: 4567 megabytes
+    Info: Processing ended: Mon Oct  5 14:54:29 2026
+    Info: Elapsed time: 00:00:14
     Info: Total CPU time (on all processors): 00:00:53
 Info (293000): Quartus Prime Full Compilation was successful. 0 errors, 299 warnings
 Info (23030): Evaluation of Tcl script /mnt/ds1515/opt/intelFPGA/17.0/quartus/common/tcl/internal/qsh_flow.tcl was successful
 Info: Quartus Prime Shell was successful. 0 errors, 299 warnings
-    Info: Peak virtual memory: 791 megabytes
-    Info: Processing ended: Sun Oct  4 19:57:24 2026
-    Info: Elapsed time: 00:11:44
-    Info: Total CPU time (on all processors): 00:26:31
+    Info: Peak virtual memory: 789 megabytes
+    Info: Processing ended: Mon Oct  5 14:54:29 2026
+    Info: Elapsed time: 00:04:20
+    Info: Total CPU time (on all processors): 00:19:09

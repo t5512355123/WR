@@ -48,6 +48,8 @@ Slave programming 14:13:35–14:13:54、Master 14:13:54–14:14:13，兩者各�
 
 這幾個隔離 snapshot 不構成連續觀測，也不排除中斷期间其他 reset；不能直接認定 reset pin 的 electrical waveform 或某個 PHY causal branch 已被證明。結果只足以拒絕此 candidate。
 
+恢復連線後 `uptime -s` 為 2026-10-05 14:23:24，確認中斷期間 Pain 曾重啟。原 `/tmp/wr-step7-preflight.iKUw6A` 已不存在；完整 helper-detail temporary log 未保存成功，僅留工具輸出的摘要摘錄於 `analysis/helper-detail-transcript-extract.md`。其他 baseline raw 已先取回 Laptop，不受此次重啟影響。
+
 未啟動 300 秒 acceptance capture（upstream gate 失敗）；未調整 valid 判定、PLL gain 或 threshold。新增 VHDL 留在本實驗 `source/`，不再接入 active Quartus。
 
 Pain 額外保存此輪 output/build/logs 的 recoverable backup：`/tmp/wr-step7-reset-evidence.BVA4NR/reset-build-and-logs.tar.gz`；Laptop 以 raw/build、raw/program、raw/observe 歸檔 evidence。

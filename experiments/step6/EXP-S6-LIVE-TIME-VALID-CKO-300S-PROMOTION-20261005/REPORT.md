@@ -1,148 +1,143 @@
-# Live Step6 TIME_VALID 300 s revalidation and CKO timeline
+# Step6 TIME_VALID 300 秒再次驗證與 CKO 時間軸
 
-Date: 2026-10-05, Asia/Taipei. Source of truth: live Pain
-`/home/b10504072/04_WR`, initially `feat/file_cleanup` at `9b8a231c`.
-Pain's existing documentation is the baseline for README/STATUS/MILESTONES
-updates. Retained products record full-build source `bcb84305`, with Master and
-Slave compilation completed on 2026-10-04 at 19:45/19:57 and successful recorded
-programming pair `20261004T122705Z`. Checkout/build records are not independent
-on-chip image identification. This run directly observes hardware state.
+日期：2026-10-05，臺北時間（Asia/Taipei）。
+本次以 Pain 的 `/home/b10504072/04_WR` 為準，觀測開始時為
+`feat/file_cleanup` 的 `9b8a231c`，並以 Pain 既有文件作為 README／STATUS／MILESTONES 更新依據。
+現有產物記錄的完整建置原始碼為 `bcb84305`，
+Master／Slave 分別於 2026-10-04 19:45／19:57 完成編譯，
+成功燒錄紀錄的兩板組合為 `20261004T122705Z`。
+工作目錄版本與建置紀錄，不等於獨立辨識晶片內實際映像；本次直接觀測硬體狀態。
 
-## Outcome
+## 結果
 
-**PASS_TIME_VALID_300S_BOTH_BOARDS**, for this already-running root session.
-No new firmware/FPGA build, programming, reset, power-cycle, consultant request,
-control/gain/threshold change or operational-script change was performed.
-Frozen milestones and `/home/b10504072/04_WR_archive_step6_pass/` are unchanged.
+**PASS_TIME_VALID_300S_BOTH_BOARDS：兩台 TIME_VALID 300 秒採樣驗證通過。**
+本結論適用於這次主程式已經運行的狀態。
+未重新建置韌體／FPGA、燒錄、重置、斷電、詢問顧問，
+也未改控制參數、增益、門檻或操作腳本。
+唯讀 milestone 與 `/home/b10504072/04_WR_archive_step6_pass/` 保持不變。
 
-| Board / saved capture | Valid samples | Actual sample span | Maximum gap | Verdict |
+| 板子／保存的觀測紀錄 | 有效採樣 | 實際採樣跨度 | 最大間隔 | 判定 |
 |---|---:|---:|---:|---|
-| Slave, `cko-303s.log` | 359/359 | 302667 ms | 909 ms | PASS_TIME_VALID_300S |
-| Master, `master-time-valid-303s.log` | 1190/1190 | 302874 ms | 257 ms | PASS_TIME_VALID_300S |
+| Slave，`cko-303s.log` | 359/359 | 302667 ms | 909 ms | PASS_TIME_VALID_300S |
+| Master，`master-time-valid-303s.log` | 1190/1190 | 302874 ms | 257 ms | PASS_TIME_VALID_300S |
 
-Both use the existing `step6_time_valid_300s.py`, >=300000 ms actual sample span,
->=301 numbered samples, <=1000 ms gap, exact board identity, matching DONE count,
-every exported STATUS_TIME_VALID=1 and no capture errors. Reader/analyzer exits
-are 0; invalid TIME_VALID rows are 0. No gap threshold or validity definition was
-relaxed. Each board is analyzed independently with its actual reader/filter;
-raw files are not stitched or edited to manufacture a combined capture.
-Windows are sequential, not a simultaneous-clock or physical-skew measurement.
+兩台皆使用既有 `step6_time_valid_300s.py`，要求實際採樣跨度至少 300000 ms、
+至少 301 筆具編號採樣、間隔不超過 1000 ms、板號正確、DONE 筆數相符、
+每筆 STATUS_TIME_VALID = 1，且沒有讀取錯誤。
+讀取器／分析器結束碼皆為 0，TIME_VALID 無效筆數皆為 0，未放寬門檻或有效性定義。
+每台依實際讀取器與篩選條件分開分析，原始資料沒有拼接或修改以製造完整觀測。
+兩個觀測窗依序進行，並非同時量測時鐘或實體邊緣時間差。
 
-Slave capture command ran 11:34:02–11:39:07; Master 11:40:10–11:45:14 local time.
-The final dashboard at 11:48:17 shows both TIME_VALID/PPS_VALID = 1, Slave all five
-locks = 1, TRACK_PHASE and current CKO −48 ps. Dashboard labels are short-window
-presentation: Step5 INFO/LOCK_ACQUIRED_NOT_STABLE does not negate the saved
-359-row/302.667 s lock observation. No dashboard logic was changed.
+Slave 觀測命令運行於 11:34:02–11:39:07，Master 為 11:40:10–11:45:14。
+11:48:17 的最後儀表板顯示兩台 TIME_VALID／PPS_VALID = 1，
+Slave 五項鎖定皆為 1、處於 TRACK_PHASE，當下 CKO 為 −48 ps。
+儀表板顯示的是短觀測窗結果，Step5 的 INFO／LOCK_ACQUIRED_NOT_STABLE
+不會推翻已保存的 359 筆／302.667 秒鎖定觀測；本次沒有修改儀表板邏輯。
 
-## CKO versus time
+## CKO 隨時間變化
 
-![Slave CKO time series and independently sampled TIME_VALID](analysis/cko-timeseries.png)
+![Slave CKO 時間軸與獨立採樣的 TIME_VALID 狀態](analysis/cko-timeseries.png)
 
-Actual CKO-host timestamps: **11:34:03–11:39:06, Asia/Taipei**. The horizontal
-axis is elapsed observer sample time in seconds, not firmware boot elapsed.
-Vertical axis is picoseconds. The figure is generated from raw capture data,
-not a sketch, synthetic signal or interpolated replacement dataset.
+實際 CKO 主機時間戳記為 **11:34:03–11:39:06，臺北時間（Asia/Taipei）**。
+橫軸是開始觀測後經過的秒數，不是韌體啟動後時間；縱軸單位為皮秒（ps）。
+圖表來自原始採樣，不是示意圖、合成信號或插值補出的資料。
 
-| CKO diagnostic | Result |
+| CKO 診斷項目 | 結果 |
 |---|---:|
-| Raw rows | 359 |
-| Guarded phase rows | 289 |
-| Rejected untrusted phase frames | 70 |
-| Duplicate UCNT updates omitted | 46 |
-| Trusted unique updates plotted | 243 |
-| Trusted-update span | 302667 ms |
-| Minimum / maximum | −490 / +459 ps |
-| Peak-to-peak | 949 ps = 0.949 ns |
-| Median | −44 ps |
-| Population standard deviation | 171.293 ps |
-| Fitted slope over this observed window | −0.1741 ps/s |
-| Strict abs(CKO)<60 ps | 68/243 |
+| 原始筆數 | 359 |
+| 通過相位資料檢查的筆數 | 289 |
+| 排除的不可信相位資料 | 70 |
+| 排除的重複 UCNT 更新 | 46 |
+| 圖中可信且不重複的更新 | 243 |
+| 可信更新跨度 | 302667 ms |
+| 最小值／最大值 | −490 / +459 ps |
+| 峰對峰 | 949 ps = 0.949 ns |
+| 中位數 | −44 ps |
+| 母體標準差 | 171.293 ps |
+| 此觀測窗的擬合斜率 | −0.1741 ps/s |
+| 嚴格 abs(CKO)<60 ps | 68/243 |
 | abs(CKO)<=120 ps | 131/243 |
-| Maximum gap between trusted new updates | 4302 ms |
-| SETP range | 2567..2975 ps |
-| DMS range | 174500..175388 ps |
-| State counts | SYNC_PHASE 42 / TRACK_PHASE 75 / WAIT_OFFSET_STABLE 126 |
+| 可信新更新的最大間隔 | 4302 ms |
+| SETP 範圍 | 2567～2975 ps |
+| DMS 範圍 | 174500～175388 ps |
+| 狀態筆數 | SYNC_PHASE 42／TRACK_PHASE 75／WAIT_OFFSET_STABLE 126 |
 
-Only rows passing the existing READS_VALID/phase/frame/epoch/context guards and
-matching phase-context UCNT are admitted. Boot/reset identity is held constant;
-repeated and regressed UCNT updates are not new measurements. Plot export count,
-minimum, maximum and median are cross-checked against the existing analyzer.
-Each line segment connects adjacent retained raw sample IDs only; omitted rows
-create breaks. The CSV preserves sample ID, elapsed time, UCNT, CKO, SETP, DMS,
-servo state, TIME_VALID, health and CKO host timestamp.
+只採用通過既有 READS_VALID／phase／frame／epoch／context 檢查，
+且 phase-context UCNT 相符的資料。啟動／重置識別資訊須保持不變；
+重複或倒退的 UCNT 不當成新量測。
+圖表匯出的筆數、最小值、最大值與中位數，皆與既有分析器交叉核對。
+折線只連接原始採樣編號相鄰、且被保留的點；排除的資料會留下斷線。
+CSV 保留採樣編號、經過時間、UCNT、CKO、SETP、DMS、伺服狀態、
+TIME_VALID、健康狀態與 CKO 主機時間戳記。
 
-The TIME_VALID panel uses all 359 separate status reads, not only the 243 phase
-rows. Health/time/lock and phase publications are separately acquired; this
-figure does not claim single-cycle or atomic cross-domain correspondence.
+TIME_VALID 面板使用全部 359 筆獨立狀態讀取，不限於 243 筆相位資料。
+健康／時間／鎖定狀態與相位發布資料是分開取得，
+不能用本圖主張單個時鐘週期因果關係或跨時鐘域原子對應。
 
-**Diagnostic capture completed, but strict continuous-CKO qualification remains
-INCONCLUSIVE_INCOMPLETE_CAPTURE** under the unchanged >=90% guarded-row and
-<=2000 ms unique-update-gap rules: 289/359 = 80.5%, max gap 4302 ms. Trusted out-of-band
-samples also directly contradict confinement of this observed series to ±120 ps.
-There is no sustained ±60/120 ps accuracy PASS. A sampled TIME_VALID 300 s PASS
-does not depend on CKO meeting these accuracy limits.
+**診斷觀測已完成，但較嚴格的連續 CKO 驗證仍為
+INCONCLUSIVE_INCOMPLETE_CAPTURE（資料不足以判定）。**
+原有規則要求至少 90% 的資料通過相位檢查，且新更新間隔不超過 2000 ms；
+本次為 289/359 = 80.5%，最大間隔 4302 ms。
+可信的超出範圍採樣也直接表明：這次 CKO 序列未限制在 ±120 ps 內。
+本次不是持續 ±60/120 ps 精度通過；TIME_VALID 300 秒採樣通過不要求 CKO 符合這些精度限制。
 
-CKO spread is a timestamp/WR-servo diagnostic, not physical oscillator jitter.
-No oscilloscope/PPS edge-skew or simultaneous physical measurement was made.
-Active SETP changes show this is not the earlier fixed-SETP/no-correction run.
-Compared with the historical `/0+/0` diagnostic's 929 ps peak-to-peak spread, the
-present 949 ps spread is similar in magnitude but its median is near zero rather
-than −6120 ps. The boots and control conditions differ: this is context, not a
-causal gain/jitter conclusion. No new tuning is authorized or performed here.
+CKO 變動是時間戳記／WR 伺服診斷，不是實體振盪器抖動。
+未使用示波器量測 PPS 邊緣時間差，也未做同時實體量測。
+SETP 持續改變表示這次不是先前固定 SETP／不校正的觀測。
+歷史 `/0+/0` 診斷峰對峰為 929 ps，本次為 949 ps，變動幅度接近，
+但中位數已由 −6120 ps 移至接近零。
+啟動與控制條件不同，因此這只是背景比較，不是增益／抖動的因果結論；
+本次未新增調參授權，也沒有調參。
 
-## Other observed signals and data-quality qualifications
+## 其他信號與資料品質限制
 
-In all 359 Slave raw status rows, READS_VALID, STEP1_GATE, GLOBAL_TIME_VALID,
-STATUS_TIME_VALID, STATUS_PPS_VALID, Helper/Main frequency/Main phase/Main/PSTAT
-lock are 1. Reset signature `(BOOT_GENERATION,CPU_RESET_COUNT,WR_CORE_RESET_COUNT,
-SI_CONFIG_DROP_COUNT)` stays `(1,1,1,1)`; RESET_CHANGED rows 0. Slave snapshot TAI
-advances 53883→54186. Master 1190/1190 rows have PPS/snapshot/link prerequisites = 1
-and the dedicated LIVE time fields progress monotonically.
+Slave 全部 359 筆原始狀態中，READS_VALID、STEP1_GATE、GLOBAL_TIME_VALID、
+STATUS_TIME_VALID、STATUS_PPS_VALID，以及 Helper／Main 頻率／Main 相位／Main／PSTAT 鎖定皆為 1。
+重置識別資訊 `(BOOT_GENERATION,CPU_RESET_COUNT,WR_CORE_RESET_COUNT,SI_CONFIG_DROP_COUNT)`
+維持 `(1,1,1,1)`，RESET_CHANGED 為 1 的筆數是 0。
+Slave 快照 TAI 由 53883 前進至 54186。
+Master 1190/1190 筆 PPS／快照／連線前置信號皆為 1，專用 LIVE 時間欄位單調遞增。
 
-The existing generic TIME_VALID analyzer reports Slave
-`step1_link_ready_rows=0` and `live_time_monotonic=false`: the interleaved reader
-uses alternate Step1 field names and lacks the dedicated LIVE_* fields that
-those diagnostic calculations expect. These are not evidence of a stopped
-clock or failed link. `live-state-diagnostics.json` recomputes the actual raw
-STEP1_GATE counts separately. Acceptance remains the explicitly selected
-STATUS_TIME_VALID signal; unsupported diagnostic fields are not changed to 1.
+既有通用 TIME_VALID 分析器對 Slave 顯示
+`step1_link_ready_rows=0`、`live_time_monotonic=false`，
+原因是交錯讀取器使用不同 Step1 欄位名稱，且沒有該診斷計算所需的專用 LIVE_* 欄位。
+這不是時鐘停住或連線失敗的證據。
+`live-state-diagnostics.json` 另行重算實際原始 STEP1_GATE 筆數；
+驗收仍採明確選定的 STATUS_TIME_VALID，不把不支援的診斷欄位改成 1。
 
-Both preflight and postflight are saved. Reading boards sequentially explains
-why their printed TAI labels are not required to match; this observation is not
-a same-PPS comparison, calibrated absolute UTC/TAI proof or physical PPS skew
-test. Timing is still not closed and is not this functional milestone's gate.
-The earlier failed fresh standalone acquisition remains documented: no new
-cold/fresh startup was tested, so deterministic acquisition is NOT_ESTABLISHED.
+前置與後置檢查皆已保存。兩台依序讀取，因此列出的 TAI 不要求相同；
+這不是相同 PPS 時刻對照、經校準的絕對 UTC／TAI 證明或實體 PPS 邊緣時間差測試。
+時序仍未收斂，且不是這個功能 milestone 的門檻。
+先前全新獨立啟動失敗的紀錄仍保留；本次沒有新做冷啟動，
+所以每次啟動必定取得鎖定的能力仍為 NOT_ESTABLISHED（尚未建立）。
 
-## Reproduction and files
+## 重現方法與檔案
 
-- [Raw CKO capture](raw/observe/cko-303s.log)
-- [Raw Master Global-Time capture](raw/observe/master-time-valid-303s.log)
-- [Slave TIME_VALID verdict](analysis/slave-time-valid-from-cko.json)
-- [Master TIME_VALID verdict](analysis/master-time-valid-300s.json)
-- [Guarded CKO statistics](analysis/cko-300s.json)
-- [Raw status/lock counts](analysis/live-state-diagnostics.json)
-- [Chart CSV](analysis/cko-timeseries.csv), [SVG](analysis/cko-timeseries.svg)
-- [Chart source](analysis/plot_cko.py)
+- [原始 CKO 觀測紀錄](raw/observe/cko-303s.log)
+- [原始 Master Global Time 觀測紀錄](raw/observe/master-time-valid-303s.log)
+- [Slave TIME_VALID 判定](analysis/slave-time-valid-from-cko.json)
+- [Master TIME_VALID 判定](analysis/master-time-valid-300s.json)
+- [通過相位資料檢查的 CKO 統計](analysis/cko-300s.json)
+- [原始狀態與鎖定筆數](analysis/live-state-diagnostics.json)
+- [圖表 CSV](analysis/cko-timeseries.csv)、[SVG](analysis/cko-timeseries.svg)
+- [圖表產生程式](analysis/plot_cko.py)
 
-From repository root, reproduce the portable SVG/CSV:
+在儲存庫根目錄重現 SVG／CSV：
 
 ```sh
 python3 experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/plot_cko.py
 ```
 
-The PNG is a 1800×1140 rasterization of this SVG. It has been visually inspected
-for visible marks, axis units, reference bands, missing-row breaks and no label
-clipping. SVG/CSV contain the same 243 reviewed observations. The portable chart
-renderer uses only Python standard library plus the repository's existing
-analyzer; PNG rasterization used the bundled local Sharp renderer.
-Existing TIME_VALID/CKO analyzer tests: 16 PASS. Laptop reanalysis reproduces
-Pain's saved verdicts and statistics; floating-point slope differs only by
-6e-17 ps/s between Python runtimes. No SHA acceptance check was added
-to the user's editable build/compile/program/dashboard workflow.
+PNG 是 SVG 轉出的 1800×1140 點陣圖。
+已目視檢查資料點、座標軸單位、參考帶、資料缺口與標籤，確認沒有裁切。
+繁體中文版沿用同一批 243 筆可信觀測與座標，不修改原始紀錄或 CSV。
+圖表產生器只使用 Python 標準函式庫與儲存庫既有分析器；
+PNG 使用本機內附的 Sharp 轉出，字體採用可顯示繁體中文的字體設定。
+既有 TIME_VALID／CKO 分析測試共 16 項通過。
+本機重算與 Pain 保存的判定及統計一致；兩個 Python 執行環境的浮點斜率僅差 6e-17 ps/s。
+使用者可編輯的建置／編譯／燒錄／儀表板流程未加入 SHA 驗收檢查。
 
-README embeds the chart near the top for the GitHub `main` homepage.
-Root MILESTONES now distinguishes live-root qualification from the sealed
-package and fixes its formerly stale Step6 source/SOF references using the
-package's existing records; no frozen file was rewritten or resealed.
-Only root documents and this evidence folder are part of the new publication.
+README 在 GitHub `main` 首頁開頭嵌入圖表。
+根目錄 MILESTONES 區分主程式既有運行狀態的驗證與唯讀封存，
+並依封存既有紀錄修正過時的 Step6 原始碼／SOF 參照；未改寫或重新封存任何唯讀檔案。
+本次新增發布範圍限於根目錄文件與這個證據資料夾。

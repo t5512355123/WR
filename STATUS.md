@@ -1,47 +1,46 @@
-# Latest main-root status — 2026-10-05
+# 主程式最新狀態 — 2026-10-05
 
-**PASS_TIME_VALID_300S_BOTH_BOARDS — current live Pain session verified.**
-Experiment: EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005.
-Authoritative observation/doc baseline: Pain `feat/file_cleanup` at `9b8a231c`;
-retained full builds record source `bcb84305`. No rebuild/program/reset occurred
-during this observation. Existing controls `/2 + /12`, 60/120 ps and the editable
-four-step scripts are unchanged. Frozen milestones and protected archive are
-not modified.
+**PASS_TIME_VALID_300S_BOTH_BOARDS：Pain 目前運行狀態的兩板驗證通過。**
+實驗名稱：EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005。
+觀測與文件以 Pain 的 `feat/file_cleanup`、版本 `9b8a231c` 為依據；
+現有完整建置產物記錄的原始碼版本為 `bcb84305`。
+本次觀測未重新建置、燒錄或重置。
+控制參數 `/2 + /12`、60/120 ps 門檻及四步驟操作腳本皆維持不變，
+唯讀 milestone 與受保護的封存資料夾也未修改。
 
-| Signal / measure | Master | Slave |
+| 信號／指標 | Master | Slave |
 |---|---|---|
-| TIME_VALID samples | 1190/1190 | 359/359 |
-| Actual sample span | 302874 ms | 302667 ms |
-| Maximum sample gap | 257 ms | 909 ms |
-| Invalid TIME_VALID samples | 0 | 0 |
-| Independent sampled 300 s verdict | PASS | PASS |
-| PPS_VALID samples | 1190/1190 | 359/359 |
-| Slave Helper/Main frequency/Main phase/Main/PSTAT lock | Not applicable | Each 359/359 = 1 |
+| TIME_VALID 有效採樣 | 1190/1190 | 359/359 |
+| 實際採樣跨度 | 302874 ms | 302667 ms |
+| 最大採樣間隔 | 257 ms | 909 ms |
+| TIME_VALID 無效採樣 | 0 | 0 |
+| 各板獨立 300 秒採樣判定 | 通過（PASS） | 通過（PASS） |
+| PPS_VALID 有效採樣 | 1190/1190 | 359/359 |
+| Slave Helper／Main 頻率／Main 相位／Main／PSTAT 鎖定 | 不適用 | 各項皆為 359/359 = 1 |
 
-Slave READS_VALID/STEP1_GATE/GLOBAL_TIME_VALID are each 359/359 = 1; reset identity
-stays `(1,1,1,1)` with zero RESET_CHANGED rows. CKO diagnostic: 359 raw rows,
-289 guarded, 46 duplicates, 243 trusted new updates over 302667 ms; 70 untrusted
-phase frames rejected. CKO −490..+459 ps, peak-to-peak 949 ps, median −44 ps,
-standard deviation 171.293 ps. Strict <60 ps: 68/243; within ±120 ps: 131/243.
-SETP 2567..2975 ps confirms phase correction is active, not the previous `/0+/0`
-diagnostic. State counts: SYNC_PHASE 42, TRACK_PHASE 75, WAIT_OFFSET_STABLE 126.
+Slave 的 READS_VALID、STEP1_GATE、GLOBAL_TIME_VALID 各有 359/359 筆為 1；
+重置識別資訊維持 `(1,1,1,1)`，RESET_CHANGED 為 1 的筆數是 0。
+CKO 共 359 筆原始資料，289 筆通過相位資料檢查；排除 46 筆重複更新後，
+剩餘 243 筆可信的新更新，跨度為 302667 ms，另有 70 筆不可信相位資料被排除。
+CKO 為 −490～+459 ps，峰對峰 949 ps，中位數 −44 ps，標準差 171.293 ps。
+嚴格小於 60 ps 的筆數為 68/243；位於 ±120 ps 內的筆數為 131/243。
+SETP 為 2567～2975 ps，表示相位校正仍在運作，不是前次 `/0+/0` 診斷模式。
+狀態筆數：SYNC_PHASE 42、TRACK_PHASE 75、WAIT_OFFSET_STABLE 126。
 
-**This is TIME_VALID retention PASS, NOT sustained offset-accuracy PASS.**
-Phase coverage is 80.5% and its maximum unique-update gap is 4302 ms: the existing
-stricter continuous-CKO verifier remains INCONCLUSIVE_INCOMPLETE_CAPTURE.
-Trusted out-of-band observations independently show that the displayed CKO
-series is not confined to ±120 ps. No physical jitter/skew measurement or
-deterministic fresh-start success is claimed. Master/Slave windows are separate
-and sequential. Interleaved-reader diagnostic `live_time_monotonic=false` and
-`step1_link_ready_rows=0` reflect unsupported LIVE fields/alternate field names
-in that analyzer branch, not observed clock/link failure; raw STEP1_GATE is 1
-in 359/359 reads. Master live-time progression is verified.
+**本次通過的是 TIME_VALID 維持門檻，不是持續 offset 精度門檻。**
+可信相位資料覆蓋率為 80.5%，新更新的最大間隔為 4302 ms；
+原有較嚴格的連續 CKO 驗證仍判為 `INCONCLUSIVE_INCOMPLETE_CAPTURE`（資料不足以判定）。
+可信的超出範圍採樣也直接表明：這次顯示的 CKO 並未限制在 ±120 ps 內。
+本次沒有實體抖動／邊緣時間差量測，也未證明每次全新啟動都能成功。
+Master／Slave 的觀測窗各自獨立、依序進行。
+交錯讀取器的 `live_time_monotonic=false`、`step1_link_ready_rows=0`
+來自分析分支不支援的 LIVE 欄位／不同欄位名稱，不是觀測到時鐘或連線故障；
+原始 STEP1_GATE 在 359/359 筆皆為 1，Master 即時時間的單調遞增也已驗證。
 
-The existing dashboard's short-window Step5 INFO label is retained; current
-sampled locks and 300 s qualification are supported by the saved long capture.
-See the [report and chart](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md).
+保留儀表板原有的短觀測窗 Step5 INFO 顯示；鎖定與 300 秒驗證以保存的長時間紀錄為依據。
+詳見[實驗報告與圖表](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md)。
 
-## Previous source-only restoration — 2026-10-04
+## 歷史紀錄：僅還原原始碼 — 2026-10-04
 
 **Sealed Step6 milestone source restored; new hardware qualification NOT_RUN.**
 Restoration: EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004.

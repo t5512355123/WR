@@ -1,34 +1,33 @@
-# DE5a White Rabbit — Step6 TIME_VALID 300s PASS
+# DE5a White Rabbit — Step6 TIME_VALID 維持 300 秒：通過
 
-Latest live verification: **2026-10-05, Pain main-root session**.
-Master **1190/1190** valid samples over **302.874 s**; Slave **359/359** over
-**302.667 s**. Both independently pass the unchanged sampled 300 s TIME_VALID
-criterion, with zero invalid samples or capture errors. Slave's five PLL lock
-signals remained 1 in 359/359 reads; the sampled reset signature did not change.
-The boards were read sequentially, not simultaneously.
+最新實機驗證：**2026-10-05，Pain 主程式既有運行狀態**。
+Master 在 **302.874 秒**內有 **1190/1190** 筆有效採樣；Slave 在
+**302.667 秒**內有 **359/359** 筆有效採樣。兩台分別通過原有的
+TIME_VALID 300 秒採樣門檻，無無效採樣或讀取錯誤。
+Slave 的五項 PLL 鎖定信號在 359/359 筆讀取中皆為 1，採樣中的重置資訊也未改變。
+兩台是依序觀測，並非同時量測。
 
-## Slave CKO over time
+## Slave CKO 隨時間變化
 
-![Slave CKO versus elapsed time with a separate TIME_VALID status panel](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.png)
+![Slave CKO 時間軸圖；下方另列 TIME_VALID 狀態](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.png)
 
-2026-10-05 **11:34:03–11:39:06, Asia/Taipei**. Horizontal axis is observation
-elapsed time in seconds; vertical axis is CKO in picoseconds. The 243 trusted
-unique updates range **−490..+459 ps**, peak-to-peak **949 ps (0.949 ns)**,
-median **−44 ps**, standard deviation **171.3 ps**. Seventy untrusted phase
-frames and 46 repeated updates are excluded; the line does not bridge omitted
-rows. The separate bottom panel contains all 359 raw TIME_VALID status reads.
+觀測時間：2026-10-05 **11:34:03–11:39:06，臺北時間（Asia/Taipei）**。
+橫軸為開始觀測後經過的秒數，縱軸為 CKO，單位是皮秒（ps）。
+243 筆可信且不重複的更新介於 **−490～+459 ps**，峰對峰為
+**949 ps（0.949 ns）**，中位數 **−44 ps**，標準差 **171.3 ps**。
+已排除 70 筆不可信的相位資料與 46 筆重複更新；折線不跨越被排除的採樣。
+下方獨立面板保留全部 359 筆原始 TIME_VALID 狀態讀取。
 
-**TIME_VALID retention is PASS; sustained ±60/120 ps offset accuracy is not
-established.** CKO is a WR timestamp/servo diagnostic, not a measurement of
-physical oscillator jitter or SMA/PPS edge skew. Cold-start reproducibility
-and timing closure remain separate limitations; timing closure is not a gate.
+**TIME_VALID 維持門檻已通過；尚未證明 offset 能長時間維持在 ±60/120 ps。**
+CKO 是 WR 時間戳記／伺服控制的診斷值，不是實體振盪器抖動或 SMA/PPS 邊緣時間差的量測。
+冷啟動可重現性與時序收斂仍是獨立限制；時序收斂不是本次通過門檻。
 
-[Full observation report](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md)
+[完整觀測報告](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/REPORT.md)
 · [CSV](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.csv)
 · [SVG](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/analysis/cko-timeseries.svg)
-· [Raw capture](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/raw/observe/cko-303s.log)
+· [原始觀測紀錄](experiments/step6/EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005/raw/observe/cko-303s.log)
 
-## Main-root build → compile → program → dashboard
+## 主程式：建置 → 編譯 → 燒錄 → 開啟儀表板
 
 ```sh
 cd /home/b10504072/04_WR
@@ -38,21 +37,20 @@ bash scripts/program/program_current.sh
 bash scripts/monitor/step1_6_dashboard.sh
 ```
 
-Run each step only after the preceding step succeeds; stop other JTAG readers
-before programming. New SOFs are retained in `output/DE5a_wr_master_jtag.sof`
-and `output/DE5a_wr_slave_jtag.sof`. The editable workflow remains unchanged,
-without SHA acceptance checks. Actual WR control is acquisition `/2`, tracking
-`/12`, with 60/120 ps numerical gates. The historical no-correction experiment
-directory name is not an identifier of active firmware.
+前一步成功後才執行下一步；燒錄前請停止其他 JTAG 讀取程序。
+新 SOF 存放於 `output/DE5a_wr_master_jtag.sof` 與 `output/DE5a_wr_slave_jtag.sof`。
+保留原本可編輯的操作流程，不加入 SHA 驗收檢查。
+實際 WR 控制參數為相位取得 `/2`、追蹤 `/12`，狀態切換門檻維持 60/120 ps。
+歷史「不校正」實驗的資料夾名稱，不代表目前載入的韌體模式。
 
-Pain's retained products were built from `bcb84305` and collected in `9b8a231c`.
-This live check did not rebuild, program, reset, power-cycle, change controls
-or modify the read-only Step6 milestone/archive. Its hardware-window evidence
-qualifies this already-running session, not every future startup. Dashboard
-Step5 `INFO/LOCK_ACQUIRED_NOT_STABLE` is a short-window presentation result,
-not a rejection of the 359-row lock observation above.
+Pain 保留的產物來自 `bcb84305`，紀錄整理於 `9b8a231c`。
+本次只觀測既有運行狀態，未重新建置、燒錄、重置、斷電、修改控制參數，
+也未變更唯讀 Step6 milestone 或封存資料夾。
+本次證據驗證的是這次運行狀態，不保證每次未來啟動都會成功。
+儀表板 Step5 的 `INFO/LOCK_ACQUIRED_NOT_STABLE` 是短觀測窗的顯示結果，
+不會推翻上述 359 筆長時間鎖定觀測。
 
-## Previous source-only milestone restoration (2026-10-04)
+## 歷史紀錄：僅還原 milestone 原始碼（2026-10-04）
 
 The production code has been restored to the read-only
 `artifacts/milestones/step6_global_time/source.tar.gz` contents.

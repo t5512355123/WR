@@ -1,60 +1,57 @@
-# Live TIME_VALID/CKO observation and documentation promotion
+# TIME_VALID／CKO 即時觀測與文件更新計畫
 
-Date: 2026-10-05, Asia/Taipei. Authoritative source: current Pain
-`/home/b10504072/04_WR`, branch `feat/file_cleanup`, checkout `9b8a231c`.
-Laptop first fast-forwarded to this Pain/GitHub revision; Pain's existing
-README, STATUS and MILESTONES content is the documentation baseline.
+日期：2026-10-05，臺北時間（Asia/Taipei）。
+資料以 Pain 的 `/home/b10504072/04_WR` 為準，分支為 `feat/file_cleanup`，
+觀測開始時版本為 `9b8a231c`。本機先快轉同步至這個 Pain／GitHub 版本，
+並以 Pain 既有 README、STATUS、MILESTONES 作為文件更新依據。
 
-## Scope
+## 範圍
 
-Read the already running boards. No firmware/FPGA build, programming, reset,
-power-cycle, gain/threshold change or consultant interaction. No changes to
-operational scripts, frozen milestones or `/home/b10504072/04_WR_archive_step6_pass/`.
-Retained root products record source `bcb84305`; the historical no-correction
-directory/configuration label is not an on-chip image identifier. Real main-root
-control has acquisition `/2` and tracking `/12`, with 60/120ps thresholds.
+只讀取已經運行的兩台板子，不建置韌體／FPGA、不燒錄、不重置、不斷電，
+不修改增益或門檻，也不聯絡顧問。
+不修改操作腳本、唯讀 milestone 或 `/home/b10504072/04_WR_archive_step6_pass/`。
+現有主程式產物記錄的原始碼版本為 `bcb84305`；
+歷史「不校正」實驗的資料夾／設定名稱，不是晶片內映像的識別資訊。
+實際主程式控制參數為相位取得 `/2`、追蹤 `/12`，門檻維持 60/120 ps。
 
-Update only root documentation and this observation record, then push
-`feat/file_cleanup` and fast-forward merge it into `main` if the remote remains
-an ancestor. Do not force-push or overwrite unrelated local changes.
+只更新根目錄文件與本次觀測紀錄，推送 `feat/file_cleanup`，
+並在遠端 `main` 仍為其祖先版本時，快轉合併至 `main`。
+不強制推送，也不覆蓋無關的本機變更。
 
-## Observation and unchanged acceptance
+## 觀測流程與不變的驗收門檻
 
-1. Verify no other Quartus reader/programmer owns JTAG; preserve all user processes.
-2. Save one read-only dashboard preflight. This is not a 300s qualification.
-3. Observe Slave with `read_step6_servo_interleaved_offset.tcl 303000 500 1-11.2 2`.
-   Phase context is independently guarded and joined by UCNT; duplicate updates
-   and untrusted phase frames are excluded from CKO statistics.
-4. Analyze Slave STATUS_TIME_VALID with the existing 300s verifier. If this
-   capture meets the original <=1000ms sample-gap and >=301-row requirements,
-   retain it as Slave's independent 300s window. Do not relax coverage limits.
-5. Observe Master with `read_step6_global_time_observability.tcl 303000 250 1-11.1`.
-   Analyze with the same unchanged verifier and Master-only board identity.
-6. If Slave's phase capture lacks TIME_VALID coverage, obtain a separate Slave
-   Global-Time window instead. Do not manufacture a combined raw capture.
-7. Save postflight, raw captures and analyzer results. Report each board/window
-   independently; sequential JTAG reads do not prove simultaneous physical timing.
+1. 確認沒有其他 Quartus 讀取器／燒錄器占用 JTAG；保留使用者所有程序。
+2. 保存一次唯讀儀表板前置檢查；這不是 300 秒驗證。
+3. 使用 `read_step6_servo_interleaved_offset.tcl 303000 500 1-11.2 2` 觀測 Slave。
+   相位背景資料各自通過一致性檢查，再以 UCNT 對齊；重複更新與不可信相位資料不納入 CKO 統計。
+4. 以既有 300 秒驗證器分析 Slave 的 STATUS_TIME_VALID。
+   若符合原有採樣間隔不超過 1000 ms、至少 301 筆的要求，即保留為 Slave 的獨立 300 秒觀測窗；
+   不放寬資料覆蓋要求。
+5. 使用 `read_step6_global_time_observability.tcl 303000 250 1-11.1` 觀測 Master，
+   再以同一個未修改的驗證器與 Master 板號分析。
+6. 若 Slave 相位觀測未取得足夠 TIME_VALID 資料，另取一次 Slave Global Time 觀測窗，
+   不拼接原始紀錄來製造完整觀測窗。
+7. 保存後置檢查、原始資料與分析結果。每台／每個觀測窗分開報告；
+   依序透過 JTAG 讀取不能證明實體時間同步精度。
 
-Required Step6 gate is exported STATUS_TIME_VALID=1 in every sample over an
-actual >=300000ms span, complete numbered capture and matching DONE count,
->=301 samples, <=1000ms gaps, exact board identity and no capture error.
-Both independent board verdicts must pass. CKO, snapshot/PPS, TAI/cycles, link,
-PLL locks and timing closure remain diagnostic, not replacement acceptance gates.
+Step6 必要門檻：實際採樣跨度至少 300000 ms，每筆輸出的 STATUS_TIME_VALID = 1，
+採樣編號完整、DONE 筆數相符，至少 301 筆、採樣間隔不超過 1000 ms，
+板號正確且無讀取錯誤。兩台各自的判定都必須通過。
+CKO、快照／PPS、TAI／cycles、連線、PLL 鎖定及時序收斂仍是診斷資訊，不取代驗收門檻。
 
-Read failures, competing reader/programmer, reset-signature change or repeated
-untrusted phase frames stop the affected observation. Save the evidence and
-report NOT_ESTABLISHED rather than restart hardware or tune controls.
+若讀取失敗、有其他讀取器／燒錄器競爭、重置識別資訊改變，或持續取得不可信相位資料，
+立即停止受影響的觀測，保存證據並報告 NOT_ESTABLISHED（尚未建立），
+不重新啟動硬體，也不調整控制參數。
 
-## Important distinctions
+## 必須區分的結論
 
-TIME_VALID retention is not strict offset stability. Existing historical WR
-behavior can retain enabled timing output during fine-phase reacquisition.
-Even a successful 300s live window does not prove deterministic cold startup,
-physical PPS/SMA skew, civil UTC accuracy or hardware oscillator jitter.
-The sealed Step6 package's previous failed fresh standalone acquisition remains
-historical evidence and is not erased by this successful live-root check.
+TIME_VALID 維持不等於嚴格 offset 穩定。
+既有 WR 行為可能在細相位重新取得期間維持時間輸出啟用。
+即使即時觀測通過 300 秒，也不能證明每次冷啟動都會成功、實體 PPS／SMA 邊緣時間差、
+民用 UTC 準確性或硬體振盪器抖動。
+唯讀 Step6 封存內先前全新獨立啟動失敗的紀錄仍保留，
+不因這次主程式既有運行狀態的成功而刪除。
 
-Laptop sync encountered 76 untracked historical files newly tracked by the
-Pain revision. They were moved intact to
-`experiments/local_preserved/20261005-sync-untracked-conflicts/` before the
-fast-forward, not deleted or included in this new evidence commit.
+本機同步時，76 個未追蹤的歷史檔案與 Pain 版本新納入追蹤的檔案衝突。
+已在快轉前完整移至 `experiments/local_preserved/20261005-sync-untracked-conflicts/`，
+沒有刪除，也未納入本次證據提交。

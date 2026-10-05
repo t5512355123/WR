@@ -1,17 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title description">
-<title id="title">Slave CKO versus observation time and TIME_VALID</title>
-<desc id="description">Actual guarded Slave CKO updates; missing and duplicate observations are not filled. Reference bands are plus/minus 60 and 120 picoseconds. TIME_VALID is shown separately from raw status reads.</desc>
+<title id="title">Slave CKO 隨觀測時間變化與 TIME_VALID 狀態</title>
+<desc id="description">實際通過資料檢查的 Slave CKO 更新；不填補缺漏或重複資料。參考線為正負 60 與 120 皮秒。TIME_VALID 另以原始狀態讀取顯示。</desc>
 <rect width="1200" height="760" fill="#ffffff"/>
-<g font-family="Arial, sans-serif" fill="#24303d">
-<text x="85" y="40" font-size="28" font-weight="600">Slave CKO vs. time</text>
-<text x="85" y="68" font-size="16" >DE5 [1-11.2]  |  2026-10-05 11:34:03 - 11:39:06 (Asia/Taipei)  |  acquire /2, track /12</text>
-<text x="85" y="100" font-size="17" >Min -490 ps    Max +459 ps    Peak-to-peak 949 ps    Std dev 171.3 ps</text>
+<g font-family="Microsoft JhengHei, Noto Sans CJK TC, sans-serif" fill="#24303d">
+<text x="85" y="40" font-size="28" font-weight="600">Slave CKO 隨時間變化</text>
+<text x="85" y="68" font-size="16" >DE5 [1-11.2]  |  2026-10-05 11:34:03 - 11:39:06（臺北時間）  |  相位取得 /2、追蹤 /12</text>
+<text x="85" y="100" font-size="17" >最小 -490 ps    最大 +459 ps    峰對峰 949 ps    標準差 171.3 ps</text>
 <circle cx="88" cy="130" r="3" fill="#245fa8"/>
-<text x="100" y="135" font-size="14" >243 trusted unique CKO updates</text>
+<text x="100" y="135" font-size="14" >243 筆可信且不重複的 CKO 更新</text>
 <line x1="450.00" y1="130.00" x2="484.00" y2="130.00" stroke="#ad770d" stroke-width="1.3" stroke-dasharray="5 5"/>
-<text x="492" y="135" font-size="14" >+/-120 ps reference</text>
+<text x="492" y="135" font-size="14" >±120 ps 參考線</text>
 <line x1="730.00" y1="130.00" x2="764.00" y2="130.00" stroke="#71808e" stroke-width="1.2" stroke-dasharray="5 5"/>
-<text x="772" y="135" font-size="14" >+/-60 ps reference</text>
+<text x="772" y="135" font-size="14" >±60 ps 參考線</text>
 <rect x="85" y="289.00" width="1065" height="62.00" fill="#faf3df"/>
 <line x1="85.00" y1="475.00" x2="1150.00" y2="475.00" stroke="#e4e8ec" stroke-width="1"/>
 <text x="73" y="480.0" font-size="14" text-anchor="end">-600</text>
@@ -52,7 +52,7 @@
 <line x1="85.00" y1="320.00" x2="1150.00" y2="320.00" stroke="#66717b" stroke-width="1.2"/>
 <line x1="85.00" y1="165.00" x2="85.00" y2="475.00" stroke="#66717b" stroke-width="1"/>
 <line x1="85.00" y1="475.00" x2="1150.00" y2="475.00" stroke="#66717b" stroke-width="1"/>
-<text x="25" y="320.0" font-size="16" transform="rotate(-90 25 320.0)" text-anchor="middle">CKO (ps)</text>
+<text x="25" y="320.0" font-size="16" transform="rotate(-90 25 320.0)" text-anchor="middle">CKO（皮秒，ps）</text>
 <circle cx="85.00" cy="377.87" r="2.6" fill="#245fa8"/>
 <line x1="85.00" y1="377.87" x2="87.69" y2="356.68" stroke="#6c98cb" stroke-width="1"/>
 <circle cx="87.69" cy="356.68" r="2.6" fill="#245fa8"/>
@@ -454,7 +454,7 @@
 <circle cx="1147.19" cy="353.07" r="2.6" fill="#245fa8"/>
 <line x1="1147.19" y1="353.07" x2="1150.00" y2="361.33" stroke="#6c98cb" stroke-width="1"/>
 <circle cx="1150.00" cy="361.33" r="2.6" fill="#245fa8"/>
-<text x="85" y="528" font-size="17" >STATUS_TIME_VALID (separate status reads): 359/359 = 1</text>
+<text x="85" y="528" font-size="17" >STATUS_TIME_VALID（獨立狀態讀取）：359/359 筆為 1</text>
 <line x1="85.00" y1="555.00" x2="1150.00" y2="555.00" stroke="#e4e8ec" stroke-width="1"/>
 <line x1="85.00" y1="610.00" x2="1150.00" y2="610.00" stroke="#e4e8ec" stroke-width="1"/>
 <line x1="85.00" y1="549.00" x2="85.00" y2="610.00" stroke="#66717b" stroke-width="1"/>
@@ -1535,8 +1535,8 @@
 <line x1="1147.19" y1="555.00" x2="1150.00" y2="555.00" stroke="#245fa8" stroke-width="1.5"/>
 <line x1="1150.00" y1="555.00" x2="1150.00" y2="555.00" stroke="#245fa8" stroke-width="1.5"/>
 <circle cx="1150.00" cy="555.00" r="1.7" fill="#245fa8"/>
-<text x="617.5" y="680" font-size="17" text-anchor="middle">Observation elapsed time (seconds)</text>
-<text x="85" y="715" font-size="14" >CKO: 70 untrusted rows excluded; 46 duplicate updates omitted.</text>
-<text x="85" y="739" font-size="13" >Lines connect only adjacent retained samples. TIME_VALID retention is not +/-60/120 ps accuracy or physical jitter.</text>
+<text x="617.5" y="680" font-size="17" text-anchor="middle">開始觀測後經過時間（秒）</text>
+<text x="85" y="715" font-size="14" >CKO：排除 70 筆不可信資料與 46 筆重複更新。</text>
+<text x="85" y="739" font-size="13" >只連接相鄰保留點；TIME_VALID 維持不代表 ±60/120 ps 精度，也不是實體抖動量測。</text>
 </g>
 </svg>

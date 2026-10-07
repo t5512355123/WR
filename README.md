@@ -114,15 +114,19 @@ bash scripts/monitor/step1_6_dashboard.sh
 
 ## 歷史紀錄：僅還原 milestone 原始碼（2026-10-04）
 
-The production code has been restored to the read-only
-`artifacts/milestones/step6_global_time/source.tar.gz` contents.
-WR phase correction is active again: initialization is restored, acquisition
-uses `/2`, tracking uses `/12`, and the 60/120ps state gates are unchanged.
-The sealed milestone and protected Pain archive were not modified.
+以下保留歷次實驗當時的說明、門檻與產物版本，並於 2026-10-08 統一翻譯為繁體中文。
+文中的「當時」設定不代表目前啟用的設定；最新狀態與操作方式請以上方 Step7 說明、
+[Step6 編譯方式](artifacts/milestones/step6_global_time/SOURCE_USAGE.md)及
+[Step7 編譯方式](artifacts/milestones/step7_physical_measurement/SOURCE_USAGE.md)為準。
 
-Scripts were NOT restored from the milestone. The existing editable workflow
-is retained, without SHA acceptance checks. From Pain's main folder, use the
-same four commands, in order, to generate and deploy NEW root products:
+主程式原始碼已還原為唯讀封存
+`artifacts/milestones/step6_global_time/source.tar.gz` 的內容。
+WR 相位校正重新啟用：恢復初始化，相位取得使用 `/2`、追蹤使用 `/12`，
+60/120 ps 狀態切換門檻不變。已封存的 milestone 與受保護的 Pain archive 均未修改。
+
+這次**沒有從 milestone 還原腳本**，保留原本可編輯的操作流程，
+不加入 SHA 驗收檢查。從 Pain 主資料夾依序執行以下四個指令，
+即可產生並部署新的主程式產物：
 
 ```sh
 cd /home/b10504072/04_WR
@@ -132,339 +136,408 @@ bash scripts/program/program_current.sh
 bash scripts/monitor/step1_6_dashboard.sh
 ```
 
-Stop any dashboard/JTAG reader before programming. This restoration does not
-compile, program, replace existing SOFs, or establish a new TIME_VALID300s PASS.
-The milestone records historical sampled300s success but also a failed fresh
-standalone acquisition; identical source is not a guarantee of lock on every boot.
-Extra historical diagnostics and experiment records remain preserved and are
-not part of the current four-step workflow. The no-correction observer and its
-source tests describe the previous diagnostic, not this active controller.
-The unchanged script configuration still uses the previous diagnostic's log
-directory name; that label does not identify the loaded firmware. See the
-[restoration record](experiments/step6/EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004/REPORT.md).
+燒錄前請停止所有儀表板／JTAG 讀取程序。
+這次還原本身沒有編譯、燒錄或替換既有 SOF，也沒有建立新的 TIME_VALID 300 秒 PASS。
+milestone 保留了歷史 300 秒採樣成功的紀錄，也記錄過全新獨立啟動未能完成相位取得；
+相同原始碼不保證每次啟動都會鎖定。
 
-## Previous diagnostic: WR phase correction OFF (2026-10-04)
+額外的歷史診斷與實驗紀錄仍保留，但不屬於目前四步驟操作流程。
+「不校正」觀測器及其原始碼測試描述的是前一輪診斷，不是此次啟用的控制器。
+未改動的腳本設定仍使用前一輪診斷的 log 資料夾名稱；
+該名稱不能用來識別實際載入的韌體。
+詳見[還原紀錄](experiments/step6/EXP-S6-MAIN-RESTORE-SEALED-MILESTONE-SOURCE-20261004/REPORT.md)。
 
-The previous diagnostic set `WRH_PHASE_CORRECTION_ENABLED=0`: no WR phase-setpoint
-arithmetic/write from initialization, acquisition or tracking. This is the safe
-meaning of requested "/0+/0", NOT division by zero. The /2+/12 reference branch
-and60/120ps gates remain, but the phase correction branch is compiled out.
-CKO measurements remain live; SoftPLL and coarse time synchronization still
-operate. This is not a physical oscillator-jitter measurement or a Step6 PASS.
-Set the source mode default to1 to restore /2+/12, then rebuild/program.
-Code-only preparation; existing SOFs/hardware have NOT been updated by us.
-See the [diagnostic plan](experiments/step6/EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004/PLAN.md).
-After any source edit, run from Pain's main folder:
+## 前一輪診斷：關閉 WR 相位校正（2026-10-04）
+
+前一輪診斷將 `WRH_PHASE_CORRECTION_ENABLED=0`，
+使初始化、相位取得與追蹤都不執行 WR 相位設定值的運算／寫入。
+這是使用者要求「/0+/0」的安全實作方式，**不是除以零**。
+`/2+/12` 參考控制分支與 60/120 ps 門檻仍保留，但相位校正分支在編譯時被停用。
+CKO 量測仍持續運作，SoftPLL 與粗時間同步也維持運作。
+這不是實體振盪器抖動量測，也不是 Step6 PASS。
+
+將原始碼的模式預設值設回 1，即可恢復 `/2+/12`，之後需重新建置／燒錄。
+當時只完成程式碼準備，助手沒有更新既有 SOF 或硬體。
+詳見[診斷計畫](experiments/step6/EXP-S6-WRH-NO-PHASE-CORRECTION-CKO-OBSERVATION-20261004/PLAN.md)。
+修改原始碼後，從 Pain 主資料夾執行：
 
 ```sh
 cd /home/b10504072/04_WR
 bash scripts/run_current.sh
 ```
 
-Optionally wait15minutes after successful programming before showing the
-dashboard:
+也可以設定燒錄成功後先等待 15 分鐘，再顯示儀表板：
 
 ```sh
 POST_PROGRAM_WAIT_S=900 bash scripts/run_current.sh
 ```
 
-The four separate commands remain `scripts/build/build_current.sh`,
-`scripts/build/compile_current.sh`, `scripts/program/program_current.sh`,
-`scripts/monitor/step1_6_dashboard.sh` (each with `bash`). New SOFs are in
-`output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`.
-Editable main workflow does not require fixed SHA values, a clean Git tree or
-SHA verification. Hashes are generated only as experiment records. Build errors,
-missing outputs and competing JTAG sessions still stop the pipeline. Stop the
-dashboard before running another reader/programmer. Frozen milestones unchanged.
+四個獨立指令仍為 `scripts/build/build_current.sh`、
+`scripts/build/compile_current.sh`、`scripts/program/program_current.sh`、
+`scripts/monitor/step1_6_dashboard.sh`，各自以 `bash` 執行。
+新的 SOF 存放於 `output/DE5a_wr_master_jtag.sof` 與
+`output/DE5a_wr_slave_jtag.sof`。
 
-After a successful fresh build/program, stop the dashboard and optionally run
-`bash scripts/monitor/observe_cko_no_correction.sh` for303s of guarded Slave
-CKO data and a min/max/peak-to-peak summary, saved in the current experiment.
-It does not build/program/reset or force validity; it cannot identify loaded
-firmware independently. Results require actual hardware observation.
+可編輯的主程式流程不要求固定 SHA、乾淨的 Git 工作目錄或 SHA 驗證；
+雜湊值僅作為實驗紀錄。
+建置錯誤、缺少輸出或其他 JTAG 程序競爭仍會中止流程。
+執行另一個讀取器／燒錄器前請停止儀表板；凍結 milestone 不變。
 
-## Previous requested restoration — source-only
+完成一次成功的全新建置／燒錄後，可停止儀表板，再選擇執行
+`bash scripts/monitor/observe_cko_no_correction.sh`，
+取得經可信度檢查的 303 秒 Slave CKO 資料，以及最小值／最大值／峰對峰摘要，
+並保存於當輪實驗資料夾。
+此觀測器不會建置、燒錄、重置或強制設為有效，
+也無法獨立識別已載入的韌體；結果必須以實際硬體觀測為依據。
 
-The previous /2+/12 restoration was synchronized but not rebuilt/programmed by
-the assistant, at the user's request. Its plan is retained
-[here](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md).
+## 前一次要求的還原：僅修改原始碼
 
-## Previous /24+/24 candidate — negative result preserved
+前一次 `/2+/12` 還原已同步，但依使用者要求，助手沒有重新建置或燒錄。
+其計畫保留於[此處](experiments/step6/EXP-S6-WRH-RESTORE-ACQ2-TRACK12-TIME-VALID-20261004/PLAN.md)。
 
-See [the previous candidate plan](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md).
-Actual fresh build/program and15-minute settling completed. Slave remained
-TIME_VALID0; later250 trusted new updates over301797ms had CKO−2085..+2986ps,
-zero inside±120ps, all five PLL locks1. **This /24+/24 candidate is NOT a
-TIME_VALID300s PASS.** The retained Git outputs are those /24 SOFs from`6eb0c2c1`,
-not the new diagnostic implementation; Pain may have separate user builds.
-Use the full pipeline before programming this candidate. See the
-[completed experiment report](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md).
+## 前一次 /24+/24 候選：保留失敗結果
 
-# Previous target: TIME_VALID 300s — same-image failure preserved
+詳見[前一次候選計畫](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/PLAN.md)。
+當時已完成全新建置／燒錄與 15 分鐘穩定等待，Slave 仍為 TIME_VALID=0。
+後續在 301797 ms 內取得 250 筆可信的新更新，CKO 為 −2085～+2986 ps，
+沒有任何一筆位於 ±120 ps 內，五項 PLL 鎖定皆為 1。
+**此 /24+/24 候選不是 TIME_VALID 300 秒 PASS。**
 
-The previous fresh root replay reproduced an acquisition failure despite identical
-FPGA configuration: all five Slave PLL locks1, Main231/231 valid frames and
-230 progressing intervals, but TIME_VALID0 in789 accepted rows across the
-600s acquisition window. Actual Slave phase current/target later5312/5312ps;
-final CKO−2317ps in WAIT. This is not a missing Main-update stream or proof
-of a continuously stuck shifter. That run's `output/` contained the actual
-compile from `640436ca`, not a newly qualified300s image. Calibration/runtime
-phases differ under equal RBFs; their causal significance remains unresolved.
-See the [latest preserved-failure report](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md).
-Canonical milestones/archive remain unchanged. The earlier success below
-is historical evidence, not the current boot's result.
+當時 Git 保留的輸出為 `6eb0c2c1` 的 /24 SOF，
+不是後來的新診斷實作；Pain 可能另有使用者自行建置的版本。
+燒錄此候選前應先執行完整流程。
+詳見[已完成的實驗報告](experiments/step6/EXP-S6-WRH-ACQ24-TRACK24-15MIN-SETTLING-20261004/REPORT.md)。
 
-## Previous identical-image replay: successful, not deterministic startup
+# 前一次目標：TIME_VALID 300 秒——保留相同映像的失敗紀錄
 
-Fresh **main-root** build/compile/program and sampled300s verification passed
-again on both boards: Master/Slave1190/1190 valid rows over302852/302870ms.
-That run's `output/` contained the actual build from `3bf9f3b4`, not a new control
-candidate. All3117 production inputs/MIFs are unchanged; FPGA RBF payloads
-match both the qualified root and the earlier failed standalone boot exactly.
-The startup trace first observed TIME_VALID after159381ms of observer time.
-**Deterministic initial acquisition is NOT_ESTABLISHED.** Current TIME_VALID
-PASS does not imply±120ps accuracy; final CKO was−1987ps with validity still1.
-See the [latest acquisition/retention diagnosis](experiments/step6/EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004/REPORT.md).
-Milestones and protected archive were not changed in this diagnosis.
+前一次從主資料夾全新重跑，在 FPGA 組態相同的情況下仍重現相位取得失敗：
+Slave 五項 PLL 鎖定皆為 1，Main 有 231/231 筆有效 frame 與 230 個持續前進的區間，
+但在 600 秒相位取得觀測窗的 789 筆通過檢查資料中，TIME_VALID 皆為 0。
+後來讀到的 Slave 實際相位目前值／目標值為 5312/5312 ps；
+最後 CKO=−2317 ps，狀態為 WAIT。
 
-## Qualified baseline and independent milestone-reproduction limitation
+這不是缺少 Main 更新串流，也不能證明相位移動器一直卡住。
+該輪 `output/` 是 `640436ca` 的實際編譯產物，不是新通過 300 秒驗證的映像。
+相同 RBF 下，校準／執行時相位仍可能不同；其因果意義尚未釐清。
+詳見[當時保留的失敗報告](experiments/step6/EXP-S6-SAME-IMAGE-MAIN-PHASE-READBACK-STARTUP-20261004/REPORT.md)。
 
-Active main-root candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
-The user resumed with the TIME_VALID-only criterion. The 3110 qualified
-production inputs from `0bb02c6f` are restored in the main root; frozen
-milestones/archive were untouched during the root run. A NEW root
-build/program/capture completed: **TIME_VALID300s PASS on both boards**.
-Master1191/1191 over302747ms; Slave1190/1190 over302799ms, zero invalid rows.
-Historical WR validity behavior is
-used, not the superseded strict full64 offset revocation. This does not prove
-offset within +/-120ps, absolute-time accuracy or physical PPS skew.
+正式 milestone／archive 維持不變。
+下方較早的成功紀錄是歷史證據，不是該次啟動的結果。
 
-Use the same four main-root scripts: `build_current.sh`, `compile_current.sh`,
-`program_current.sh`, then `step1_6_dashboard.sh`, in their existing `scripts/`
-subdirectories. Stop any dashboard before another JTAG reader. Qualification
-uses `scripts/monitor/verify_time_valid_300s.sh`, not one dashboard frame.
-See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
-See the [completed root report](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md).
-Canonical Step6 contains this qualified root version only. The new independent
-build/program succeeded, but two600s same-session waits never acquired Slave
-TIME_VALID: **fresh standalone300s reproduction NOT ESTABLISHED**. Root/fresh
-RBF configurations match byte-for-byte; do not promise identical acquisition
-on every boot. Unqualified products are preserved outside the canonical package.
-See the [milestone reproduction report](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md).
-The strict-offset research below is historical context, not this round's gate.
+## 前一次相同映像重跑：成功，但啟動尚非確定可重現
+
+從**主資料夾**全新建置／編譯／燒錄，再次通過兩板 300 秒採樣驗證：
+Master／Slave 各有 1190/1190 筆有效資料，跨度分別為 302852/302870 ms。
+該輪 `output/` 是 `3bf9f3b4` 的實際建置產物，不是新的控制候選。
+
+全部 3117 個主程式輸入／MIF 均未改動；
+FPGA RBF 內容與已通過驗證的主程式，以及較早失敗的獨立啟動版本完全一致。
+啟動追蹤首次觀察到 TIME_VALID 時，觀測器已經過 159381 ms。
+**啟動時能否確定完成相位取得仍為 NOT_ESTABLISHED（尚未建立證據）。**
+當次 TIME_VALID PASS 不代表 ±120 ps 精度；
+最後 CKO=−1987 ps，validity 仍為 1。
+
+詳見[當時的相位取得／維持診斷](experiments/step6/EXP-S6-IDENTICAL-IMAGE-STARTUP-ACQUISITION-ATTRIBUTION-20261004/REPORT.md)。
+該輪診斷沒有修改 milestone 或受保護 archive。
+
+## 已通過的基準版本與獨立 milestone 重現限制
+
+當時主資料夾的候選為 `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`。
+使用者恢復以「只要求 TIME_VALID」作為門檻；
+主資料夾還原了 `0bb02c6f` 的 3110 個已通過驗證的主程式輸入。
+主資料夾實驗期間，凍結 milestone／archive 均未修改。
+
+新的主資料夾建置／燒錄／觀測已完成：**兩板 TIME_VALID 300 秒 PASS**。
+Master 為 1191/1191 筆、302747 ms；Slave 為 1190/1190 筆、302799 ms，
+無無效採樣。
+採用的是歷史 WR validity 行為，不是已被取代的 strict full64 offset 撤銷判定。
+這不能證明 offset 維持在 ±120 ps、絕對時間精度或實體 PPS 邊緣偏差。
+
+從主資料夾依序執行相同的四個腳本：
+`build_current.sh`、`compile_current.sh`、`program_current.sh`、
+`step1_6_dashboard.sh`，位於各自原有的 `scripts/` 子資料夾。
+啟動另一個 JTAG 讀取器前請停止儀表板。
+驗收使用 `scripts/monitor/verify_time_valid_300s.sh`，不是單張儀表板 frame。
+詳見[當輪計畫](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md)
+及[已完成的主資料夾報告](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md)。
+
+正式 Step6 只保留此已通過驗證的主資料夾版本。
+新的獨立建置／燒錄雖成功，但在同一 session 內兩次等待 600 秒，
+仍未取得 Slave TIME_VALID：
+**全新獨立啟動的 300 秒重現為 NOT_ESTABLISHED（尚未建立證據）**。
+主資料夾與全新獨立版本的 RBF 組態逐位元組相同，
+但不能保證每次啟動都能取得相同鎖定結果。
+未通過驗收的產物保存於正式封存外。
+詳見[milestone 重現報告](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md)。
+
+下方嚴格 offset 研究是歷史背景，不是該輪驗收門檻。
 
 # DE5a White Rabbit
 
-This repository develops and records the two-board White Rabbit system on Terasic DE5a / Arria 10. The only intended current hardware workflow is the JTAG-based Master/Slave design; frozen milestone snapshots preserve each validated research checkpoint.
+此儲存庫開發並記錄 Terasic DE5a／Arria 10 上的雙板 White Rabbit 系統。
+目前唯一主要硬體操作流程為透過 JTAG 的 Master／Slave 設計；
+凍結 milestone 快照保留各個已驗證的研究檢查點。
 
-## Historical strict-offset research (superseded criterion/products)
+## 歷史嚴格 offset 研究（門檻與產物已被取代）
 
-**Historical strict WR validity candidate, NOT QUALIFIED.**
-Historical experiment: `EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003`.
-Prepared bounded same-gateware role exchange and passive calibration-status
-query. Native tests/build/program/hardware calibration pending; no guessed
-T24P and no gain/strict-gate changes. Output still contains the preceding
-diagnostic products until a real new compile. See the
-[current plan](experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/PLAN.md).
-Preceding completed experiment: `EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003`.
-Completed passive exact accepted-update join; native/firmware tests, fresh
-two-board full compile and one Slave→Master programming pair passed from
-`1ab27d25c6935ed5e6ddb5af129982f66a2265ac`. Root output contains THESE
-actual diagnostic SOFs, not a strict PASS milestone. Production inputs/MIFs
-unchanged; observer correction8b7e211b required no reprogram.16 exact common
-updates, Main15/15 progress,58876 updates; four action-free CKO~4ns steps
-correspond to return~8ns changes. Post-accept Main error−239..+183ps is not
-packet-time atomic. Strict startup/acquisition/postflight:0fresh<60 entries,
-0ms qualified hold; no300s extension. Next boundary is Master RX coarse/fine
-continuity and calibration provenance, not an automatic Ki sweep. See the
-[completed report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
-Same-boot follow-up:16 exact Master RX→Slave T4 pairs isolate one8.54ns
-return change to fine linearization with constant coarse return. That step
-follows a WR action, not action-free. Master T24P remains unmeasured2389ps;
-next is bounded same-gateware calibration, not a guessed value. See the
-[follow-up](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/SAME_BOOT_FOLLOWUP.md).
-See the [current plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
-Preceding completed experiment: `EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`.
-Fresh two-board compile/one Slave-to-Master programming pair completed from
-`a45da74188d9ae325ac1c176bde74920018c0be4`; those nearest-admission SOFs
-are superseded by the paired diagnostic products above, not erased.
-Slave admission8(up)/9(down), consistent midpoint tie; completion still16.
-Master, Helper, firmware/Kp600/Ki1, strict60/120 and observers unchanged.
-Native/source/firmware tests passed.60 coherent snapshots:59/59 Main progress,
-9526 completions, residual-11..+11, CKO-254..+143ps. Strict acquisition/postflight
-qualified spans3187/607ms; no300s extension. Final Slave invalid/CKO104ps means
-WAIT after an excursion, not a false validity claim. See the
-[completed report](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/REPORT.md),
-[current plan](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md)
-and [build precheck](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/BUILD_PRECHECK.md).
-Preceding experiment: `EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`.
-Fresh native equivalence/full compiles/one programming pair completed from
-`f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1`; these passive-capture products
-are superseded, not erased. Firmware/control unchanged from Kp600.
-Final observer source70193e25 corrects session ownership, actual Quartus
-instance tuples and independent seven-read publication groups without reprogram.
-60 coherent snapshots: Main progress59/59,641 completions, latency1.22882ms;
-59/60 residuals below16 code, but CKO-201..+227ps. Strict acquisition/postflight
-qualified spans604/0ms, no300s extension. Final TIME_VALID1/CKO-55ps is pointwise.
-See the [DCO correlation report](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md).
-Nearest-admission testing above did not establish stable WR offset. Next
-boundary is coherent Main phase/tracker versus timestamp provenance, not an
-automatic Ki/gain sweep; physical step and strict60/120 stay unchanged.
-The preceding Kp600 products below are superseded; evidence is not erased.
-Previous experiment: `EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`.
-Previous native tests/full compiles/one programming pair completed from
-`78948729bc18c5a78aaede3b6a8f7a363042efc7`; those products are now superseded,
-not a strict PASS image. The sole functional change was
-Slave shared Main Kp300→600; Ki1 and all thresholds remain fixed. Master MIF
-is identical; Slave binary changed only two instruction bytes. Main phase
-error narrowed to−198..+229ps, but WR CKO remains−301..+274ps. The120s
-acquisition/postflight longest qualified holds were2109/901ms; no300s extension.
-Final TIME_VALID1/CKO−105ps is pointwise only. See the
-[Kp600 report](experiments/step6/EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003/REPORT.md).
-The previous phase/progress round completed from25603ae2; its products are
-superseded, not erased. Main/tracker progressed31/31 intervals; Main error
-−411..+502ps and WR CKO−307..+242ps, qualified holds603/605ms. See the
-[phase/progress report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
-The preceding paired provenance experiment is retained below for comparison;
-its SOFs are superseded, its evidence is not erased.
-That preceding observer-only round completed native tests, two full compiles and one
-Slave→Master programming pair from
-`31bfaeb55f667719dbcc8690139f859598683ed4`. Its diagnostic SOFs are now superseded,
-not a strict PASS milestone. In that paired round, production inputs and MIF
-pins are unchanged. All32 Master/16 Slave records validated;14accepted T4
-values exactly matched Master RX, with13consecutive differences. The~4ns jump
-was not reproduced in this snapshot, but action-free CKO still moved~926ps.
-The120s startup had9fresh<60ps entries and only1501ms qualified hold;
-postflight failed the extension gate. See the
-[paired report](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/REPORT.md).
-Current source restores normal /2 acquisition + /12 tracking and adds a passive
-same-update four-timestamp/RTT RAM history. Fresh two-board build/program from
-`4e0c2324095c8644dac7fb5426f69de0eadb392c` completed in the preceding round;
-its diagnostic products are now superseded by the paired round. All16consecutive
-timestamp records passed identities. Action-free ~8.2ns return-leg jumps
-correspond to ~4.2ns CKO jumps. The120s acquisition observation reached<60ps,
-but qualified hold was only2102ms; postflight did not satisfy the extension
-gate. See the [completed report](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/REPORT.md).
-The preceding completed fixed-setpoint diagnostic had fresh
-two-board builds and one Slave→Master programming pair succeeded from
-`fbd8febf3eab38e6d2734f859d911f1e6b10365f`; those products are now superseded.
-In that previous diagnostic, first strict entry froze WR setpoint, but >120ps
-still revoked Slave time, without automatic re-enable in that boot. This was NOT
-a production PASS image. Late-entry read-only capture found CKO/DMS jumps near
-4ns with unchanged WR phase-write/init counts and SETP; 38 fresh updates did
-not meet the preset 40-update diagnostic gate. Strict 300s remains
-NOT_ESTABLISHED, diagnostic INCONCLUSIVE. See the
-[report](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/REPORT.md).
-Preceding source added passive packet-specific timestamp RAM snapshots;
-both fresh compiles/programming completed from
-`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`, now superseded by the fixed-SETP build.
-The90s preflight reached <60ps with a2669ms qualified span, not300s. Packet
-math validated, but fine stability remains NOT_ESTABLISHED; see the
-[RXTS report](experiments/step6/EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003/REPORT.md).
-The then-requested strict gate also required a <60 ps acquisition and a 300 s interval
-within +/-120 ps, with Slave validity revoked on excursions. The old
-TIME_VALID-only pass does not prove this. The preceding role-corrected candidate
-was compiled from `4ba9df5935fc0a6afae2c7bd29603f190936e627`
-and programmed on 2026-10-02. Master validity was restored; its completed660s
-strict capture had no <60 ps entry, CKO -3158..+3839 ps, and no qualified hold.
-Slave correctly remained invalid. These are NOT PASS
-milestone images. Any further production-source change still requires rebuild.
+**歷史嚴格 WR validity 候選：未通過驗收。**
 
-**Historical Step6 TIME_VALID-only PASS — two root cycles (2026-10-02).**
-Historical experiment: `EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`.
-Each cycle freshly built firmware, fully compiled both FPGA projects, programmed
-Slave then Master, and sampled each board for more than 300 seconds.
-All four windows had 1192/1192 TIME_VALID rows; no invalid rows or transport
-errors. The two cycles used identical 3110 production inputs and firmware MIFs.
-See the [qualification report](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md).
-The frozen Step6 package also passed a new full independent-directory
-build/compile/program reproduction: Master/Slave 1192/1192 valid rows over
-302952/302872 ms. See the [standalone rebuild report](experiments/step6/EXP-S6-MILESTONE-STANDALONE-FRESH-REBUILD-TIME-VALID-300S-20261002/REPORT.md).
+歷史實驗：`EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003`。
+已準備有範圍限制、使用相同 gateware 的角色交換，以及被動校準狀態查詢。
+原生測試／建置／燒錄／硬體校準當時尚待執行；
+不猜測 T24P，也不修改增益或嚴格判定門檻。
+完成實際的新編譯前，output 仍是前一輪診斷產物。
+詳見[當輪計畫](experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/PLAN.md)。
 
-The production change is Master `HPLL_TRACKER_CODE_PER_PHYSICAL_STEP` 34 → 64;
-Master bootstrap remains 2048, Slave control remains `/2 acquisition + /12 tracking`.
-Master Helper was locked and its phase tracker ready after qualification.
-The earlier byte-identical bootstrap2048 archive failed after reprogramming:
-copy equality alone was not reproduction evidence. That failure is retained
-in the new report, not hidden by this PASS.
+前一個已完成實驗：`EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003`。
+已完成被動觀測，依實際通過檢查的更新精確配對。
+原生／韌體測試、全新雙板完整編譯，以及一次 Slave→Master 燒錄，
+均以 `1ab27d25c6935ed5e6ddb5af129982f66a2265ac` 完成。
+當時主資料夾 output 為這組實際診斷 SOF，不是嚴格門檻 PASS milestone。
 
-The [single Step6 milestone](artifacts/milestones/step6_global_time/README.md)
-contains the qualified source, all scripts/dashboard, products and evidence.
-Run `prepare_source.sh` there and use its independent `source/` directory.
-Only `artifacts/milestones/` holds frozen operational snapshots;
-`experiments/` holds evidence, not a different current build entrypoint.
-This is the user's sampled TIME_VALID-only gate. Sequential board reads do
-not establish physical time accuracy, cycle-by-cycle continuity, offset <60 ps,
-or universal startup reliability. Timing closure is not required.
+主程式輸入／MIF 未改動；
+觀測器修正 `8b7e211b` 不需重新燒錄。
+取得 16 筆精確共同更新；Main 在 15/15 個區間持續前進，共 58876 次更新。
+四次未伴隨控制動作的 CKO 約 4 ns 跳變，對應回傳路徑約 8 ns 的變化。
+接受更新後的 Main error 為 −239～+183 ps，但不是與封包時間原子一致的資料。
+嚴格門檻啟動／相位取得／結束後檢查：0 次新鮮的 <60 ps 進入、
+合格維持時間 0 ms，沒有延長為 300 秒觀測。
+下一個邊界是 Master RX 粗／細時間的連續性與校準來源，不是自動掃描 Ki。
+詳見[已完成報告](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md)。
 
-## Current four-step workflow
+同次啟動的後續觀測取得 16 組精確 Master RX→Slave T4 配對，
+將一次 8.54 ns 回傳變化定位到細時間線性化，而粗時間回傳值保持不變。
+該變化發生於 WR 控制動作之後，不屬於無控制動作的跳變。
+Master T24P 仍為未實測的 2389 ps；
+下一步是有範圍限制、相同 gateware 的校準，而不是猜測設定值。
+詳見[後續紀錄](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/SAME_BOOT_FOLLOWUP.md)
+及[當輪計畫](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md)。
 
-Run on Pain from `/home/b10504072/04_WR`:
+前一個已完成實驗：`EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003`。
+以 `a45da74188d9ae325ac1c176bde74920018c0be4` 完成全新雙板編譯與一次
+Slave→Master 燒錄。其 nearest-admission SOF 已被上方配對診斷產物取代，
+但沒有刪除歷史證據。
+Slave admission 為向上 8／向下 9，中點相等時的判定一致；completion 仍為 16。
+Master、Helper、韌體／Kp600／Ki1、嚴格 60/120 ps 門檻與觀測器不變。
+
+原生／原始碼／韌體測試通過。
+60 筆一致性快照中，Main 在 59/59 個區間前進，共 9526 次完成；
+residual 為 −11～+11，CKO 為 −254～+143 ps。
+嚴格相位取得／結束後檢查的合格跨度為 3187/607 ms，未延長至 300 秒。
+最後 Slave 無效、CKO=104 ps，表示曾超出範圍後處於 WAIT，
+不是誤宣稱 validity 成立。
+詳見[已完成報告](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/REPORT.md)、
+[當輪計畫](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/PLAN.md)
+及[建置前檢查](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/BUILD_PRECHECK.md)。
+
+前一輪實驗：`EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003`。
+以 `f0f0f7ef14b4e1a139f80e1ce131ecaa042575f1` 完成全新原生等價性測試、
+完整編譯與一次雙板燒錄；這組被動觀測產物已被取代，證據沒有刪除。
+韌體／控制維持 Kp600 版本不變。
+
+最終觀測器原始碼 `70193e25` 修正 session 所有權、實際 Quartus instance 組合，
+以及各自獨立、每組七次讀取的資料發布組，不需重新燒錄。
+60 筆一致性快照：Main 在 59/59 個區間前進，641 次完成，延遲 1.22882 ms；
+59/60 筆 residual 小於 16 code，但 CKO 為 −201～+227 ps。
+嚴格相位取得／結束後檢查的合格跨度為 604/0 ms，未延長至 300 秒。
+最後 TIME_VALID=1／CKO=−55 ps，只是逐點結果。
+詳見[DCO 關聯報告](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md)。
+
+上方 nearest-admission 測試沒有建立穩定 WR offset 的證據。
+下一個邊界是具一致性的 Main 相位／tracker 與時間戳記來源，
+不是自動掃描 Ki／增益；實體步階與嚴格 60/120 ps 門檻不變。
+下方較早的 Kp600 產物已被取代，證據沒有刪除。
+
+前一次實驗：`EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003`。
+以 `78948729bc18c5a78aaede3b6a8f7a363042efc7` 完成原生測試、
+完整編譯與一次雙板燒錄；這些產物已被取代，不是嚴格門檻 PASS 映像。
+唯一功能變因是 Slave 共用 Main Kp 從 300→600；
+Ki=1 與全部門檻固定不變。
+Master MIF 相同；Slave binary 只有兩個指令位元組改變。
+Main phase error 縮小至 −198～+229 ps，但 WR CKO 仍為 −301～+274 ps。
+120 秒相位取得／結束後檢查的最長合格維持時間為 2109/901 ms，
+未延長至 300 秒。
+最後 TIME_VALID=1／CKO=−105 ps，只是逐點結果。
+詳見[Kp600 報告](experiments/step6/EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003/REPORT.md)。
+
+前一次相位／更新進度實驗以 `25603ae2` 完成；產物已被取代，證據沒有刪除。
+Main／tracker 在 31/31 個區間前進；
+Main error 為 −411～+502 ps，WR CKO 為 −307～+242 ps，
+合格維持時間為 603/605 ms。
+詳見[相位／更新進度報告](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md)。
+
+更早的配對來源實驗保留如下供比較：SOF 已被取代，證據沒有刪除。
+該輪只增加觀測，原生測試、兩份完整編譯與一次 Slave→Master 燒錄，
+皆以 `31bfaeb55f667719dbcc8690139f859598683ed4` 完成。
+其診斷 SOF 已被取代，不是嚴格門檻 PASS milestone。
+主程式輸入與 MIF 固定值均未改動。
+
+全部 32 筆 Master／16 筆 Slave 紀錄通過檢查；
+14 筆通過檢查的 T4 值精確對應 Master RX，取得 13 組連續差值。
+這批快照未重現約 4 ns 跳變，但未伴隨控制動作的 CKO 仍變動約 926 ps。
+120 秒啟動觀測有 9 次新鮮的 <60 ps 進入，合格維持僅 1501 ms；
+結束後檢查未通過延長觀測的門檻。
+詳見[配對報告](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/REPORT.md)。
+
+當時原始碼恢復正常的相位取得 /2、追蹤 /12，
+並新增同一次更新的被動四時間戳記／RTT RAM 歷史資料。
+前一輪以 `4e0c2324095c8644dac7fb5426f69de0eadb392c` 完成全新雙板建置／燒錄；
+診斷產物後來被配對實驗取代。
+全部 16 筆連續時間戳記紀錄通過關係式檢查。
+未伴隨控制動作的回傳路徑約 8.2 ns 跳變，對應 CKO 約 4.2 ns 跳變。
+120 秒相位取得觀測曾達到 <60 ps，但合格維持僅 2102 ms；
+結束後檢查未符合延長觀測的門檻。
+詳見[已完成報告](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/REPORT.md)。
+
+更早完成的固定設定值診斷，以 `fbd8febf3eab38e6d2734f859d911f1e6b10365f`
+成功完成全新雙板建置與一次 Slave→Master 燒錄；產物已被取代。
+首次進入嚴格門檻後，WR 設定值被凍結，
+但超過 120 ps 仍會撤銷 Slave 時間有效性，且該次啟動不會自動重新啟用。
+這不是主程式 PASS 映像。
+
+較晚進入的唯讀觀測發現 CKO／DMS 接近 4 ns 的跳變；
+WR phase-write／init count 與 SETP 均未改變。
+38 筆新更新未達預設 40 筆的診斷門檻。
+嚴格 300 秒判定仍為 NOT_ESTABLISHED，診斷為 INCONCLUSIVE（資料不足以判定）。
+詳見[報告](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/REPORT.md)。
+
+更早的原始碼新增封包專屬的被動時間戳記 RAM 快照；
+以 `13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf` 完成兩份全新編譯／燒錄，
+後來被固定 SETP 版本取代。
+90 秒預檢曾達到 <60 ps，合格跨度 2669 ms，不是 300 秒。
+封包運算已驗證，但細時間穩定性仍為 NOT_ESTABLISHED。
+詳見[RXTS 報告](experiments/step6/EXP-S6-RXTS-RAW-AHEAD-PHASE-DIAGNOSTIC-20261003/REPORT.md)。
+
+當時要求的嚴格門檻還包含 <60 ps 相位取得，以及 300 秒維持在 ±120 ps 內，
+超出範圍就撤銷 Slave validity。較早只要求 TIME_VALID 的 PASS 無法證明此門檻。
+更早的角色修正候選由 `4ba9df5935fc0a6afae2c7bd29603f190936e627` 編譯，
+並於 2026-10-02 燒錄。
+Master validity 恢復，但已完成的 660 秒嚴格觀測沒有 <60 ps 進入，
+CKO 為 −3158～+3839 ps，無合格維持時間；Slave 正確保持無效。
+這些不是 PASS milestone 映像。後續若修改主程式原始碼，仍需重新建置。
+
+**歷史 Step6：只要求 TIME_VALID 的 PASS——主資料夾兩輪重現（2026-10-02）。**
+
+歷史實驗：`EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002`。
+每輪都重新建置韌體、完整編譯兩份 FPGA 專案，
+先燒錄 Slave 再燒錄 Master，並各自採樣超過 300 秒。
+四個觀測窗皆為 1192/1192 筆 TIME_VALID，沒有無效採樣或傳輸錯誤。
+兩輪使用相同的 3110 個主程式輸入與韌體 MIF。
+詳見[驗收報告](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md)。
+
+凍結 Step6 封存也通過一次新的獨立資料夾建置／編譯／燒錄重現：
+Master／Slave 各有 1192/1192 筆有效採樣，跨度為 302952/302872 ms。
+詳見[獨立重建報告](experiments/step6/EXP-S6-MILESTONE-STANDALONE-FRESH-REBUILD-TIME-VALID-300S-20261002/REPORT.md)。
+
+主程式變因為 Master `HPLL_TRACKER_CODE_PER_PHYSICAL_STEP` 從 34→64；
+Master bootstrap 維持 2048，Slave 控制維持相位取得 /2、追蹤 /12。
+驗收後 Master Helper 已鎖定，相位 tracker 也已準備完成。
+更早的逐位元組相同 bootstrap2048 封存，在重新燒錄後曾失敗；
+單純複製一致不能當作重現證據。
+該失敗保留於新報告中，沒有被此次 PASS 隱藏。
+
+[單一 Step6 milestone](artifacts/milestones/step6_global_time/README.md)
+包含已通過驗證的原始碼、全部腳本／儀表板、產物與證據。
+當時操作方式是在該處執行 `prepare_source.sh`，再使用獨立的 `source/` 資料夾；
+目前已發布的 source 操作方式請以上方 SOURCE_USAGE.md 為準。
+只有 `artifacts/milestones/` 保存凍結的可操作快照；
+`experiments/` 保存證據，不是另一套目前建置入口。
+
+這是使用者訂定的「採樣中只要求 TIME_VALID」門檻。
+依序讀取兩台板子，不能證明實體時間精度、每個週期連續有效、
+offset <60 ps，或每次啟動都可靠。此門檻不要求 timing closure。
+
+## 當時的四步驟操作流程
+
+在 Pain 的 `/home/b10504072/04_WR` 執行：
 
 ```sh
-bash scripts/build/build_current.sh          # 1. build firmware
-bash scripts/build/compile_current.sh        # 2. compile both FPGA images
-bash scripts/program/program_current.sh      # 3. program Slave, then Master
-bash scripts/monitor/step1_6_dashboard.sh      # 4. live read-only dashboard
+bash scripts/build/build_current.sh          # 1. 建置韌體
+bash scripts/build/compile_current.sh        # 2. 編譯兩份 FPGA 映像
+bash scripts/program/program_current.sh      # 3. 先燒錄 Slave，再燒錄 Master
+bash scripts/monitor/step1_6_dashboard.sh      # 4. 持續唯讀儀表板
 ```
 
-The retained images are `output/DE5a_wr_master_jtag.sof` and `output/DE5a_wr_slave_jtag.sof`, with build metadata and checksums. Firmware binaries/MIF and compile reports are retained in `build/`. Stop the dashboard before running any verifier. `bash scripts/monitor/verify_time_valid_300s.sh` checks the CURRENT sampled TIME_VALID-only gate. `verify_strict_offset_time_valid_300s.sh` remains for the superseded precision research; neither the dashboard nor the bit-only verifier establishes that stricter accuracy criterion. Timing closure is not a gate. Do not reprogram a failing live boot before preserving acquisition evidence.
+保留映像為 `output/DE5a_wr_master_jtag.sof` 與
+`output/DE5a_wr_slave_jtag.sof`，附建置資訊與檢查碼。
+韌體 binary／MIF 及編譯報告保留於 `build/`。
+執行任何驗收器前請停止儀表板。
+`bash scripts/monitor/verify_time_valid_300s.sh` 檢查當輪採樣中只要求 TIME_VALID 的門檻。
+`verify_strict_offset_time_valid_300s.sh` 保留供已被取代的精度研究使用；
+儀表板或只檢查狀態位元的驗收器，都不能證明該較嚴格的精度門檻。
+時序收斂不是此門檻。
+正在運行的啟動若失敗，應先保存相位取得證據，再重新燒錄。
 
-Firmware version text stays pinned for reproducibility; the passive diagnostic changes the MIF and has separately pinned hashes. `output/SOURCE_COMMIT` records the real checkout used for compilation. Until the new compile/export finishes, retained `output/` files still belong to the preceding build; the source-manifest gate prevents programming those stale files as the new source.
+韌體版本字串固定，以利重現；
+被動診斷會改變 MIF，並另有固定的雜湊值紀錄。
+`output/SOURCE_COMMIT` 記錄實際編譯所用版本。
+新的編譯／匯出完成前，`output/` 保留的仍是前一輪產物；
+當時的原始碼清單檢查可避免將舊檔誤當成新原始碼產物燒錄。
 
-## System architecture
+## 系統架構
 
 ```mermaid
 flowchart LR
-  subgraph M[Master DE5a]
-    MCPU[uRV WRPC firmware] <--> MCORE[xwr_core and PPSI]
-    MCORE <--> MPHYS[Arria 10 WR PHY]
-    MREF[QSFP-B reference clock] --> MDMTD[DMTD / SoftPLL]
-    MDMTD --> MDCO[SI5340 / DCO]
-    MCORE --> MPPS[PPS output]
+  subgraph M["Master DE5a"]
+    MCPU["uRV WRPC 韌體"] <--> MCORE["xwr_core 與 PPSI"]
+    MCORE <--> MPHYS["Arria 10 WR PHY"]
+    MREF["QSFP-B 參考時鐘"] --> MDMTD["DMTD／SoftPLL"]
+    MDMTD --> MDCO["SI5340／DCO"]
+    MCORE --> MPPS["PPS 輸出"]
   end
-  subgraph S[Slave DE5a]
-    SCPU[uRV WRPC firmware] <--> SCORE[xwr_core and PPSI]
-    SCORE <--> SPHYS[Arria 10 WR PHY]
-    SREF[QSFP-B reference clock] --> SDMTD[DMTD / SoftPLL]
-    SDMTD --> SDCO[SI5340 / DCO]
-    SCORE --> SPPS[PPS output]
+  subgraph S["Slave DE5a"]
+    SCPU["uRV WRPC 韌體"] <--> SCORE["xwr_core 與 PPSI"]
+    SCORE <--> SPHYS["Arria 10 WR PHY"]
+    SREF["QSFP-B 參考時鐘"] --> SDMTD["DMTD／SoftPLL"]
+    SDMTD --> SDCO["SI5340／DCO"]
+    SCORE --> SPPS["PPS 輸出"]
   end
-  MPHYS <-->|QSFP-A lane 0 / White Rabbit Ethernet| SPHYS
-  JTAG[Host / JTAG Wishbone observer] -. read-only diagnostics .-> MCORE
-  JTAG -. read-only diagnostics .-> SCORE
-  MPPS --> MSMA[SMA_CLKOUT]
-  SPPS --> SSMA[SMA_CLKOUT]
+  MPHYS <-->|QSFP-A lane 0／White Rabbit 乙太網路| SPHYS
+  JTAG["主機／JTAG Wishbone 觀測器"] -. 唯讀診斷 .-> MCORE
+  JTAG -. 唯讀診斷 .-> SCORE
+  MPPS --> MSMA["SMA_CLKOUT"]
+  SPPS --> SSMA["SMA_CLKOUT"]
 ```
 
-The diagram is a functional overview, not a pin-level schematic. Each board runs the White Rabbit core and WRPC firmware; the Master and Slave roles use unique endpoint identities. QSFP-A lane 0 is the fixed inter-board WR Ethernet data path. The local reference clock feeds DMTD; SoftPLL uses DMTD phase measurements to control the SI5340-based DCO. The WR core's PPS output is routed to `SMA_CLKOUT`. A healthy PHY/link indication alone does not prove valid PTP time, PPS, SoftPLL lock, or global-time agreement.
+此圖是功能概觀，不是接腳層級的線路圖。
+每張板子執行 White Rabbit core 與 WRPC 韌體；
+Master／Slave 角色各自使用唯一的 endpoint 身分。
+QSFP-A lane 0 是固定的板間 WR 乙太網路資料路徑。
+本地參考時鐘送入 DMTD；SoftPLL 使用 DMTD 相位量測控制以 SI5340 為基礎的 DCO。
+WR core 的 PPS 輸出連到 `SMA_CLKOUT`。
+PHY／link 健康本身，不能證明 PTP 時間有效、PPS 有效、SoftPLL 已鎖定或全域時間一致。
 
-The current design uses the Arria 10 White Rabbit PHY and its required generated IP inputs. Master and Slave are separate JTAG Quartus projects with the top-level entities shown below. On Pain, the board cables are `DE5 [1-11.1]` for Master and `DE5 [1-11.2]` for Slave. Runtime status and Wishbone-register observation use the JTAG scripts under `scripts/jtag/`; the Step 1–6 dashboard is read-only.
+設計使用 Arria 10 White Rabbit PHY，以及它所需的產生式 IP 輸入。
+Master／Slave 是兩個獨立的 JTAG Quartus 專案，top-level entity 如下。
+Pain 上的板卡 cable 名稱：Master 為 `DE5 [1-11.1]`，Slave 為 `DE5 [1-11.2]`。
+執行狀態與 Wishbone 寄存器透過 `scripts/jtag/` 內的 JTAG 腳本觀測；
+Step1～6 儀表板為唯讀。
 
-The RS422-named pins in the JTAG top-level are retained only as the board's
-WRPC physical-UART console sideband. They do not define a second White Rabbit
-architecture or a build/program/diagnostic workflow; all current FPGA project
-builds/programming and all milestone acceptance/diagnostic observations use
-JTAG. The UART sideband may be used only as the WRPC text console.
+JTAG top-level 中以 RS422 命名的接腳，只保留作 WRPC 實體 UART 文字主控台旁路。
+它們不構成第二種 White Rabbit 架構，也不是另一套建置／燒錄／診斷流程；
+目前 FPGA 專案的建置／燒錄，以及 milestone 驗收／診斷觀測均使用 JTAG。
+UART 旁路只能作為 WRPC 文字主控台。
 
-Canonical Quartus top-level entities:
+正式 Quartus top-level entity：
 
 ```text
 DE5a_wr_master_jtag
 DE5a_wr_slave_jtag
 ```
 
-## Current milestone status
+## 當時的 milestone 狀態
 
-Steps 1–5 retain independently validated frozen checkpoints. The single Step6
-package is now the Master-step64 version qualified by two fresh complete root
-cycles. Current images are in `output/`. Earlier common-PPS/digital-trigger
-results remain in their experiment reports, not as a second Step6 package.
-See [STATUS.md](STATUS.md) and [MILESTONES.md](MILESTONES.md).
+Step1～5 保留各自獨立驗證的凍結檢查點。
+當時單一 Step6 封存為 Master step64 版本，已通過兩輪主資料夾全新完整重跑。
+當輪映像位於 `output/`。
+較早的共同 PPS／數位觸發結果保留於各實驗報告，不另作第二套 Step6 封存。
+詳見 [STATUS.md](STATUS.md) 與 [MILESTONES.md](MILESTONES.md)。
 
-## Reproduce the validated Step 2 checkpoint
+## 重現已驗證的 Step2 檢查點
 
-Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware toolchain are used by the validated milestone. On Pain, set the Quartus executables and toolchain `PATH`, then run from the repository root:
+已驗證 milestone 使用 Quartus Prime Standard Edition 17.0.0 Build 595，
+以及 RISC-V 韌體工具鏈。
+在 Pain 設好 Quartus 執行檔與工具鏈 `PATH`，再從儲存庫根目錄執行：
 
 ```sh
 cd artifacts/milestones/step2_endpoint_ptp/source
@@ -474,51 +547,52 @@ CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
 CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
 
-The programming wrappers use the freshly built JTAG images in that frozen source directory. The validated order for this Step 2 reproduction was Master then Slave. Build success alone is not runtime validation; use the acceptance procedure in the milestone README and experiment report.
+燒錄腳本使用該凍結 source 資料夾內重新建置的 JTAG 映像。
+此 Step2 重現已驗證的燒錄順序是先 Master、再 Slave。
+建置成功不等於執行時驗證通過；
+請依 milestone README 與實驗報告的驗收程序操作。
 
-## Reproduce the validated Step 3 checkpoint
+## 重現已驗證的 Step3 檢查點
 
-The exact Step 3 SOF files programmed and validated on 2026-09-24 are:
+2026-09-24 實際燒錄並驗證的 Step3 SOF：
 
-- Master: [`artifacts/milestones/step3_wr_handshake/master.sof`](artifacts/milestones/step3_wr_handshake/master.sof)
-- Slave: [`artifacts/milestones/step3_wr_handshake/slave.sof`](artifacts/milestones/step3_wr_handshake/slave.sof)
+- Master：[`artifacts/milestones/step3_wr_handshake/master.sof`](artifacts/milestones/step3_wr_handshake/master.sof)
+- Slave：[`artifacts/milestones/step3_wr_handshake/slave.sof`](artifacts/milestones/step3_wr_handshake/slave.sof)
 
-On Pain, the independent build outputs are under
+Pain 的獨立建置輸出位於
 `artifacts/milestones/step3_wr_handshake/source/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof`
-and
-`artifacts/milestones/step3_wr_handshake/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`.
-Their SHA-256 hashes match the two files above. Program Master first, then
-Slave, using the wrappers in
-`artifacts/milestones/step3_wr_handshake/source/scripts/program/`. See the
-[Step 3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)
-for the exact verification boundary and limitations.
+與
+`artifacts/milestones/step3_wr_handshake/source/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof`。
+SHA-256 與上方兩個檔案相同。
+使用 `artifacts/milestones/step3_wr_handshake/source/scripts/program/` 的腳本，
+先燒錄 Master，再燒錄 Slave。
+精確驗證邊界與限制請參閱
+[Step3 milestone README](artifacts/milestones/step3_wr_handshake/README.md)。
 
-## Reproduce the validated Step 4 SoftPLL-startup checkpoint
+## 重現已驗證的 Step4 SoftPLL 啟動檢查點
 
-The exact Step 4 SOFs rebuilt from the frozen source and programmed on
-2026-09-24 are:
+2026-09-24 從凍結原始碼重建並燒錄的 Step4 SOF：
 
-- Master: [`artifacts/milestones/step4_softpll_startup/master.sof`](artifacts/milestones/step4_softpll_startup/master.sof)
-- Slave: [`artifacts/milestones/step4_softpll_startup/slave.sof`](artifacts/milestones/step4_softpll_startup/slave.sof)
+- Master：[`artifacts/milestones/step4_softpll_startup/master.sof`](artifacts/milestones/step4_softpll_startup/master.sof)
+- Slave：[`artifacts/milestones/step4_softpll_startup/slave.sof`](artifacts/milestones/step4_softpll_startup/slave.sof)
 
-Their SHA-256 hashes are recorded in the milestone `SHA256SUMS` and
-`MILESTONES.md`. The independent source snapshot is
-`artifacts/milestones/step4_softpll_startup/source/`. Rebuild both projects
-from that directory with the wrappers documented in its README. The validated
-programming order was Master, wait approximately 45 seconds, then Slave. Use
-the acceptance procedure and known limitations in the
-[Step 4 milestone README](artifacts/milestones/step4_softpll_startup/README.md)
-and the
-[Step 4 reproduction report](experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md).
+SHA-256 記錄於 milestone 的 `SHA256SUMS` 與 `MILESTONES.md`。
+獨立原始碼快照位於 `artifacts/milestones/step4_softpll_startup/source/`。
+依其 README 從該目錄重建兩份專案。
+已驗證的燒錄順序是先 Master，等待約 45 秒，再 Slave。
+請依[Step4 milestone README](artifacts/milestones/step4_softpll_startup/README.md)
+與[Step4 重現報告](experiments/step4/EXP-S4-MILESTONE-REPRO-20260924/REPORT.md)
+的驗收程序及已知限制操作。
 
-## Reproduce the validated Step 5 full-lock checkpoint
+## 重現已驗證的 Step5 完整鎖定檢查點
 
-The exact Step 5 SOFs rebuilt and validated on 2026-09-24 are:
+2026-09-24 重建並驗證的 Step5 SOF：
 
-- Master: [artifacts/milestones/step5_softpll_lock/master.sof](artifacts/milestones/step5_softpll_lock/master.sof), SHA-256 f72501285cef7f6a892b9334e7de93a5a86f8aff7311417f577c14acfd213a30.
-- Slave: [artifacts/milestones/step5_softpll_lock/slave.sof](artifacts/milestones/step5_softpll_lock/slave.sof), SHA-256 d4efd77c91ddc96cd6444e3f47cadf529a4f19da4c9f6b0876ce00557d63ca20.
+- Master：[artifacts/milestones/step5_softpll_lock/master.sof](artifacts/milestones/step5_softpll_lock/master.sof)，SHA-256 `f72501285cef7f6a892b9334e7de93a5a86f8aff7311417f577c14acfd213a30`。
+- Slave：[artifacts/milestones/step5_softpll_lock/slave.sof](artifacts/milestones/step5_softpll_lock/slave.sof)，SHA-256 `d4efd77c91ddc96cd6444e3f47cadf529a4f19da4c9f6b0876ce00557d63ca20`。
 
-The independent frozen build source is artifacts/milestones/step5_softpll_lock/source/. On Pain, with the recorded Quartus and RISC-V toolchains on PATH:
+獨立凍結原始碼位於 `artifacts/milestones/step5_softpll_lock/source/`。
+在 Pain 將紀錄中的 Quartus 與 RISC-V 工具鏈加入 PATH 後執行：
 
 ```sh
 cd artifacts/milestones/step5_softpll_lock/source
@@ -530,19 +604,24 @@ CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
 CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 ```
 
-The validated program order was Master, wait at least 90 seconds, then Slave; wait at least 120 seconds after both before read-only preflight. The 300-second F4L invocation and full acceptance evidence are in the [Step 5 reproduction report](experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md). The [Step 5 milestone README](artifacts/milestones/step5_softpll_lock/README.md) records the exact acceptance boundary and caveats.
+已驗證的燒錄順序是先 Master，至少等待 90 秒，再 Slave；
+兩板都燒錄完後至少等待 120 秒，再做唯讀預檢。
+300 秒 F4L 指令與完整驗收證據請參閱
+[Step5 重現報告](experiments/step5/EXP-S5-MILESTONE-REPRO-20260924/REPORT.md)。
+[Step5 milestone README](artifacts/milestones/step5_softpll_lock/README.md)
+記錄了精確驗收邊界與限制。
 
-## Reproduce the validated Step 6 TIME_VALID checkpoint
+## 重現已驗證的 Step6 TIME_VALID 檢查點
 
-The current Step 6 research index, including successful and failed runs, is
-[`experiments/step6/README.md`](experiments/step6/README.md).
+Step6 研究索引（含成功與失敗紀錄）位於
+[`experiments/step6/README.md`](experiments/step6/README.md)。
 
-The exact second-cycle Step6 SOFs compiled and programmed on 2026-10-02 are:
+2026-10-02 第二輪實際編譯並燒錄的 Step6 SOF：
 
-- Master: [master.sof](artifacts/milestones/step6_global_time/master.sof), SHA-256 `9f66cef3f06697085325916126e6da61d76ace7138e7203af068df1a69d30036`.
-- Slave: [slave.sof](artifacts/milestones/step6_global_time/slave.sof), SHA-256 `b92e3356580691814e113e8c3278f1044bee621e2808d207541c9efc3ba59727`.
+- Master：[master.sof](artifacts/milestones/step6_global_time/master.sof)，SHA-256 `9f66cef3f06697085325916126e6da61d76ace7138e7203af068df1a69d30036`。
+- Slave：[slave.sof](artifacts/milestones/step6_global_time/slave.sof)，SHA-256 `b92e3356580691814e113e8c3278f1044bee621e2808d207541c9efc3ba59727`。
 
-On Pain, prepare the standalone source and then use its original scripts:
+當時在 Pain 先準備獨立 source，再使用其中的原版腳本：
 
 ```sh
 cd artifacts/milestones/step6_global_time
@@ -554,110 +633,124 @@ bash scripts/program/program_current.sh
 bash scripts/monitor/step1_6_dashboard.sh
 ```
 
-To program the frozen milestone SOFs, from the same `source/` directory use
-Slave first, then Master:
+上方是歷史解包流程；現在已提交完整 source，不必再次執行 prepare_source。
+請依 [SOURCE_USAGE.md](artifacts/milestones/step6_global_time/SOURCE_USAGE.md) 直接編譯。
+
+若要燒錄凍結 milestone SOF，從相同的 `source/` 目錄，
+先 Slave 再 Master：
 
 ```sh
 SOF=../slave.sof CABLE='DE5 [1-11.2]' bash scripts/program/program_slave.sh
 SOF=../master.sof CABLE='DE5 [1-11.1]' bash scripts/program/program_master.sh
 ```
 
-Stop the dashboard before running `bash scripts/monitor/verify_time_valid_300s.sh`.
-The [milestone README](artifacts/milestones/step6_global_time/README.md) documents
-retained-image programming without rebuilding, checksums and external tools.
-Historical digital-trigger evidence remains in its experiment reports;
-physical SMA skew is not claimed by this TIME_VALID qualification.
+執行 `bash scripts/monitor/verify_time_valid_300s.sh` 前請停止儀表板。
+[milestone README](artifacts/milestones/step6_global_time/README.md)
+說明不重建而直接燒錄保留映像、檢查碼與外部工具。
+歷史數位觸發證據保留於實驗報告；
+此 TIME_VALID 驗收沒有宣稱實體 SMA 邊緣偏差精度。
 
-## Current development source, build, and programming
+## 當時的開發原始碼、建置與燒錄說明
 
-The canonical JTAG projects are flattened directly under `quartus/`. The
-Quartus-generated PHY/IP inputs required by the build are under
-`quartus_generated/`, and the SI5340 controller RTL is under
-`quartus/si5340_controller/`. Current development uses only
-`DE5a_wr_master_jtag` and `DE5a_wr_slave_jtag`. The RS422 UART sideband is not
-an alternate project or management path; the QSFP-B reference-clock input is
-not the inter-board White Rabbit packet link.
+正式 JTAG 專案直接展平放在 `quartus/`。
+建置所需的 Quartus 產生式 PHY／IP 輸入位於 `quartus_generated/`，
+SI5340 控制器 RTL 位於 `quartus/si5340_controller/`。
+開發只使用 `DE5a_wr_master_jtag` 與 `DE5a_wr_slave_jtag`。
+RS422 UART 旁路不是另一套專案或管理路徑；
+QSFP-B 參考時鐘輸入也不是板間 White Rabbit 封包連線。
 
-Use Quartus Prime Standard Edition 17.0.0 Build 595 and the RISC-V firmware
-toolchain recorded in the experiment provenance. From the repository root on
-Pain, use the pinned current-root wrappers to build firmware and clean-compile
-both canonical Quartus projects (including retained-output export):
+使用實驗來源紀錄中的 Quartus Prime Standard Edition 17.0.0 Build 595，
+以及 RISC-V 韌體工具鏈。
+在 Pain 儲存庫根目錄，以當時固定版本的主資料夾腳本建置韌體，
+再乾淨編譯兩份正式 Quartus 專案，包含保留輸出的匯出：
 
 ```sh
 bash scripts/build/build_current.sh
 bash scripts/build/compile_current.sh
 ```
 
-`QUARTUS_BIN` may be set to the installed Quartus `bin` directory; the default
-is `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`. Then program the matching JTAG
-images with source/MIF/SOF checks and the current experiment's programming order:
+`QUARTUS_BIN` 可指定已安裝的 Quartus `bin` 目錄；
+預設為 `/mnt/ds1515/opt/intelFPGA/17.0/quartus/bin`。
+當時燒錄相符的 JTAG 映像，會檢查 source／MIF／SOF，
+並採用該輪實驗的燒錄順序：
 
 ```sh
 bash scripts/program/program_current.sh
 ```
 
-The freshly built current-development SOFs are:
+新建置的開發版 SOF：
 
 ```text
 Master: output/DE5a_wr_master_jtag.sof
 Slave:  output/DE5a_wr_slave_jtag.sof
 ```
 
-These are not frozen milestone binaries. For a validated checkpoint, use the
-paired SOFs in `artifacts/milestones/stepX_*/` and the matching independent
-source snapshot under that directory's `source/`. For example, the Step 3
-handshake pair is `artifacts/milestones/step3_wr_handshake/master.sof` and
-`slave.sof`.
+這些不是凍結 milestone 的 binary。
+已驗證的檢查點應使用 `artifacts/milestones/stepX_*/` 的配對 SOF，
+以及其 `source/` 內相符的獨立原始碼快照。
+例如 Step3 握手版本為 `artifacts/milestones/step3_wr_handshake/master.sof`
+與 `slave.sof`。
 
-Run the live, read-only dashboard from the repository root with
-`bash scripts/monitor/step1_6_dashboard.sh`. It samples every 10 seconds by
-default. `WAIT_FOR_GLOBAL_TIME_SECONDS` is an optional maximum wait for all
-visible boards to satisfy the Step 1 and Step 6 gates; it is not a required
-fixed delay. Its default is `0`, so a live dashboard displays the current
-state immediately. A value such as `120` is a host-side maximum selected by
-the caller—not an FPGA timeout and not a mandatory 120-second delay. If that
-maximum expires, the result is `INCOMPLETE`, not a hardware-failure verdict;
-the dashboard still prints the latest state. Continuous monitoring always
-shows each sample immediately and ignores this optional wait; use `ONCE=1`
-when deliberately requesting a one-shot readiness gate. On an invalid Slave
-Global-Time gate, the panel also shows the WR PTP servo state and signed phase
-offset. In `WAIT_OFFSET_STABLE`, the firmware withholds timing output until
-the offset is below its source-defined 60 ps threshold; that is how firmware
-first asserts TIME_VALID. The historical frozen milestone checked a300-second
-TIME_VALID-only hold. The CURRENT root instead requires fresh strict<60ps
-acquisition, then inclusive+/-120ps retention with live invalidation outside
-that band, plus300seconds of qualified fresh offset/time/Master-health samples.
-The exported status bit or dashboard alone cannot establish this stricter gate.
+從儲存庫根目錄執行 `bash scripts/monitor/step1_6_dashboard.sh`，
+可啟動持續、唯讀儀表板，預設每 10 秒採樣一次。
+`WAIT_FOR_GLOBAL_TIME_SECONDS` 是可選的等待上限，
+用於等待全部可見板卡滿足 Step1 與 Step6 門檻，不是必要的固定延遲。
+預設值為 `0`，所以持續儀表板立即顯示目前狀態。
 
-## Source and evidence policy
+例如設定 `120`，代表使用者選擇的主機端等待上限，
+不是 FPGA timeout，也不是強制等待 120 秒。
+超過上限時結果為 `INCOMPLETE`，不直接判定硬體失敗；
+儀表板仍印出最新狀態。
+持續監控總是立即顯示每筆採樣，忽略此可選等待；
+刻意要求單次 readiness gate 時請使用 `ONCE=1`。
 
-- Current development source is `quartus/`, `quartus_generated/`,
-  `firmware/`, `vendor/`, and `scripts/`.
-- `artifacts/milestones/stepX_*/source/` is frozen, self-contained historical
-  source. Do not edit it for ordinary development.
-- `experiments/stepX/EXP-.../` stores experiment plans, raw build/program
-  evidence, runtime captures, analysis, reports, and checksums.
-- `experiments/legacy/` retains imported historical reports under their
-  original group layout; they are evidence, not current design instructions.
-- A milestone is PASS only after its own frozen source is clean-built,
-  programmed on both DE5a boards, and passes that step's runtime criteria.
-  Never use a later-step SOF to stand in for an earlier checkpoint.
-- Record historical and rebuilt SOF hashes separately. Build success alone is
-  not runtime validation; report timing closure separately from functional
-  status.
+Slave Global-Time 門檻無效時，面板也顯示 WR PTP servo 狀態與帶正負號的相位 offset。
+在 `WAIT_OFFSET_STABLE` 狀態，韌體會先暫停 timing output，
+直到 offset 小於原始碼定義的 60 ps 門檻，才首次設定 TIME_VALID。
+歷史凍結 milestone 驗證的是 300 秒、只要求 TIME_VALID 的維持。
 
-Repository directories:
+此段原始說明所指的**當時嚴格 offset 研究版本**，
+則要求以新鮮資料取得 <60 ps，之後含邊界維持在 ±120 ps，
+超出即時設為無效；還要求 300 秒合格且新鮮的 offset／time／Master 健康採樣。
+匯出的狀態位元或儀表板本身不能證明該較嚴格門檻。
+這是歷史版本說明，不是目前 Step7 的驗收要求。
 
-| Path | Purpose |
+## 原始碼與證據管理原則
+
+- 主要開發原始碼位於 `quartus/`、`quartus_generated/`、
+  `firmware/`、`vendor/` 與 `scripts/`。
+- `artifacts/milestones/stepX_*/source/` 保存自成一套的歷史原始碼。
+  一般開發不應修改凍結版本；目前 Step6／Step7 已發布的 source
+  可作編譯工作區，頂層原始封存仍保持唯讀。
+- `experiments/stepX/EXP-.../` 保存實驗計畫、原始建置／燒錄證據、
+  執行時觀測、分析、報告與檢查碼。
+- `experiments/legacy/` 以原有分組方式保留匯入的歷史報告；
+  這些是證據，不是目前設計指示。
+- milestone 必須以其自身凍結原始碼完成乾淨建置、燒錄兩台 DE5a，
+  並通過該階段執行時門檻，才能標為 PASS。
+  不可拿較後階段的 SOF 代替較早的檢查點。
+- 分開記錄歷史 SOF 與重建 SOF 的雜湊值。
+  建置成功不等於執行時驗證通過；
+  時序收斂應獨立於功能狀態記錄。
+
+儲存庫資料夾：
+
+| 路徑 | 用途 |
 |---|---|
-| `quartus/` | Current Master/Slave JTAG projects and project-owned RTL. |
-| `quartus_generated/` | Version-controlled Quartus/Qsys generated PHY/IP build inputs. |
-| `firmware/` | Master/Slave WRPC firmware configuration and build scripts. |
-| `vendor/` | Pinned White Rabbit RTL and firmware dependencies. |
-| `scripts/` | Build, program, JTAG, monitoring, analysis, and test tools. |
-| `experiments/` | Step-indexed research records and raw evidence. |
-| `artifacts/milestones/` | Frozen, independently reproducible step checkpoints. |
+| `quartus/` | 目前 Master／Slave JTAG 專案與專案自有 RTL。 |
+| `quartus_generated/` | 受版本控制的 Quartus／Qsys 產生式 PHY／IP 建置輸入。 |
+| `firmware/` | Master／Slave WRPC 韌體設定與建置腳本。 |
+| `vendor/` | 固定版本的 White Rabbit RTL 與韌體相依程式。 |
+| `scripts/` | 建置、燒錄、JTAG、監控、分析與測試工具。 |
+| `experiments/` | 依 Step 分類的研究紀錄與原始證據。 |
+| `artifacts/milestones/` | 凍結、具獨立重現流程的各階段檢查點。 |
 
-Every milestone has its own source snapshot and is marked PASS only after that snapshot is clean-built, programmed on both DE5a boards, and passes its own runtime acceptance criteria. Never use a later-Step SOF to stand in for an earlier milestone. Historical SOF hash mismatches are recorded, not hidden. Timing closure is reported separately and is not silently inferred from functional PASS.
+每個 milestone 都有自己的原始碼快照。
+只有該快照完成乾淨建置、燒錄兩台 DE5a，並通過自身執行時驗收門檻，才能標為 PASS。
+不可拿較後階段的 SOF 代替較早 milestone。
+歷史 SOF 雜湊不一致的情況應記錄，不隱藏。
+時序收斂獨立記錄，不能從功能 PASS 默認推論。
+Step7 的階段性實體觀測仍依本文上方的證據與限制描述，不改寫為完整重現 PASS。
 
-See [`artifacts/README.md`](artifacts/README.md) for artifact policy and [`experiments/README.md`](experiments/README.md) for evidence conventions.
+封存原則請參閱 [`artifacts/README.md`](artifacts/README.md)，
+證據管理慣例請參閱 [`experiments/README.md`](experiments/README.md)。

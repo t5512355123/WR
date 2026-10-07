@@ -1,6 +1,20 @@
 # White Rabbit milestone 索引
 
-## 主程式最新實機驗證 — 2026-10-05
+## 最新：Step7 實體 PPS 階段性驗證 — 2026-10-07 整理
+
+[唯讀 Step7 milestone](artifacts/milestones/step7_physical_measurement/README.md)
+封存目前 Step7 程式、完整操作腳本／儀表板、韌體與 SOF，以及使用者提供的實體觀測圖。
+Master／Slave 的 PPS 上升緣呈現奈秒等級對齊；使用者未見明顯漂移。
+示波器平均 −86.44 ps 為儀器顯示的通道延遲估計，**不是已校準的皮秒精度證明**。
+
+Step7 狀態為 `STAGEWISE_PHYSICAL_ALIGNMENT_OBSERVED`，不套用下表 Step1–6 的
+fresh-build／300 秒正式 PASS 定義；本次沒有重新燒錄或量測。
+保留 SOF 來源 `4d7e38189e26707afffb2ecc404f3ad0e8a08326`；截圖 loaded-image 未獨立驗證。
+Master SOF SHA-256：`0fd28157e3652dfaa56e5c14f57c66bc4bd2d4d6ae1a6a74576617e76c5319dd`；
+Slave：`3565f6b18929341613616e7b03a6aac10a53da0e5953444611ca74e8e3d1e32d`。
+[觀測與限制](experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007/REPORT.md)。
+
+## 歷史 Step6 實機驗證 — 2026-10-05（切入 Step7 前）
 
 **兩台 Step6 TIME_VALID 300 秒採樣驗證皆通過（PASS）。**
 本次觀測 Pain 主程式已運行的狀態：

@@ -31,6 +31,9 @@ artifacts/milestones/step6_global_time/source.tar.gz -text -eol
 *.elf binary
 *.mif binary
 *.sof binary
+artifacts/milestones/step7_physical_measurement/*.tar.gz binary
+experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007/**/*.png binary
+artifacts/milestones/step7_physical_measurement/*.png binary
 output/** -text -eol -diff -whitespace
 build/firmware/master/** -text -eol -diff -whitespace
 build/firmware/slave/** -text -eol -diff -whitespace

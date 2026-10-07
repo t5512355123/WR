@@ -1,6 +1,62 @@
-# DE5a White Rabbit — Step6 TIME_VALID 維持 300 秒：通過
+# DE5a White Rabbit — Step7 實體 PPS 同步：階段性驗證
 
-最新實機驗證：**2026-10-05，Pain 主程式既有運行狀態**。
+最新紀錄整理日期：**2026-10-07**；分支：`step7-physical-measurement`。
+
+將 Master 與 Slave 的 SMA PPS 輸出接入 **RIGOL DS1104Z Plus** 示波器後，
+可觀察到兩台脈衝的上升緣在**奈秒（ns）等級對齊**。
+使用者在本次觀測期間未見明顯漂移；此結果作為 White Rabbit
+**實體同步的階段性驗證**，不等同於已完成校準的皮秒（ps）精度認證。
+
+![Master（CH1，黃色）與 Slave（CH2，青色）的 PPS 上升緣觀測](experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007/raw/observe/master-slave-pulse.png)
+
+### 輸出訊號：每秒一次、脈寬 10 ms 的 PPS
+
+- 參考時鐘為 **125 MHz**，**Clock Period = 8 ns**。
+- PPS 的重複週期為 **1 秒（1 Hz）**，不是 8 ns。
+- 脈寬設定為 **10 ms**，對應 **1,250,000 個 8 ns 時鐘週期**，占空比約 1%。
+- 兩台 top-level 的 `SMA_CLKOUT` 都連接 WR Core 的 `pps_p_o`；SMA 輸出不是連續的 125 MHz clock。
+
+以上為設定值與原始碼核查；這張 5 ns/div 的局部上升緣截圖本身，
+不能驗證完整的 10 ms 脈寬或 1 秒重複週期。
+
+### 示波器觀測結果與量測限制
+
+本次畫面為 **500 MSa/s**，即每 **2 ns** 取得一個樣本；水平刻度為 **5 ns/div**。
+CH1 黃色為 Master，CH2 青色為 Slave。畫面中的 CH1→CH2 上升緣延遲統計為：
+
+| 指標 | 示波器顯示值 |
+|---|---:|
+| 平均延遲 | −86.44 ps（−0.08644 ns） |
+| 最小／最大延遲 | −1.700 ns／+1.400 ns |
+| 顯示統計的峰對峰範圍 | 3.100 ns |
+| 當前延遲 | −600.0 ps（−0.6000 ns） |
+
+圖上標註的 **60 次 pulse** 為使用者提供的統計次數，未附逐筆波形資料。
+延遲正負號依示波器 CH1→CH2 的量測定義記錄。
+
+數位示波器取得的是離散採樣點；顯示曲線與邊緣時間估計可能使用插值／重建。
+因此，小於 2 ns 的延遲估計並非不可能，但**顯示到 ps 位數不代表具備相同的實際量測準確度**。
+估計結果仍受插值方法、100 MHz 類比頻寬、雜訊、邊緣門檻及兩路通道／線材延遲影響。
+本圖未記錄所選插值模式，也未提供通道與線材去偏差校準。
+儀器頻寬與採樣規格可參閱 [RIGOL 官方 DS1000Z 資料表](https://www.rigol.com/dam/global/downloads/brochures/en/data-sheet/oscilloscopes/DS1000Z_DataSheet_EN.pdf)。
+
+所以，本次支持的是**奈秒等級的實體脈衝對齊**，不是「同步誤差已被證明為 −86.44 ps」。
+「未見明顯漂移」是本次使用者的觀察；單張統計截圖無法量化長時間漂移、
+抖動分布或重新啟動的可重現性，也不能拿它替代新的 TIME_VALID 300 秒驗證。
+此處的示波器通道延遲與韌體 CKO 是不同的量測量，不混為一談。
+
+[完整 Step7 觀測報告](experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007/REPORT.md)
+· [唯讀 Step7 milestone：程式碼、腳本、儀表板與 SOF](artifacts/milestones/step7_physical_measurement/README.md)
+
+目前可編輯主程式保留 Step7 的 Slave bootstrap=512、Master bootstrap=2048，
+WR 相位取得 `/2`、追蹤 `/12`，60/120 ps 門檻不變。
+本次只整理使用者量測與封存，沒有修改控制程式、重新燒錄或合併 main。
+現有 SOF 建置來源為 `4d7e38189e26707afffb2ecc404f3ad0e8a08326`；
+本次截圖未附量測當時的 loaded-image 識別紀錄，故不把它當成 exact-image 重現證明。
+
+## 歷史 Step6：TIME_VALID 維持 300 秒（原拓樸，2026-10-05）
+
+歷史實機驗證：**2026-10-05，切入 Step7 前的 Pain 主程式既有運行狀態**。
 Master 在 **302.874 秒**內有 **1190/1190** 筆有效採樣；Slave 在
 **302.667 秒**內有 **359/359** 筆有效採樣。兩台分別通過原有的
 TIME_VALID 300 秒採樣門檻，無無效採樣或讀取錯誤。
@@ -43,7 +99,7 @@ bash scripts/monitor/step1_6_dashboard.sh
 實際 WR 控制參數為相位取得 `/2`、追蹤 `/12`，狀態切換門檻維持 60/120 ps。
 歷史「不校正」實驗的資料夾名稱，不代表目前載入的韌體模式。
 
-Pain 保留的產物來自 `bcb84305`，紀錄整理於 `9b8a231c`。
+本歷史 Step6 觀測的產物來自 `bcb84305`，紀錄整理於 `9b8a231c`；不是目前 Step7 的 SOF。
 本次只觀測既有運行狀態，未重新建置、燒錄、重置、斷電、修改控制參數，
 也未變更唯讀 Step6 milestone 或封存資料夾。
 本次證據驗證的是這次運行狀態，不保證每次未來啟動都會成功。

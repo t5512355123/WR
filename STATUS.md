@@ -1,4 +1,32 @@
-# 主程式最新狀態 — 2026-10-05
+# 主程式最新狀態 — Step7 實體 PPS 觀測（2026-10-07 整理）
+
+**PHYSICAL_PPS_NS_ALIGNMENT = OBSERVED：奈秒等級實體對齊的階段性驗證。**
+
+使用者提供 RIGOL DS1104Z Plus 的雙通道 PPS 上升緣截圖：
+Master=CH1 黃色、Slave=CH2 青色；500 MSa/s（2 ns/sample）、5 ns/div。
+延遲顯示平均 −86.44 ps、最小 −1.700 ns、最大 +1.400 ns，範圍 3.100 ns。
+圖上標註 60 次 pulse，未提供逐筆資料或通道／線材去偏差校準。
+使用者表示本次未見明顯漂移；尚未量化長時間漂移。
+
+- `STEP7_STAGEWISE_PHYSICAL_VALIDATION = OBSERVED`
+- `CALIBRATED_PICOSECOND_ACCURACY = NOT_ESTABLISHED`
+- `STEP7_FRESH_REPRODUCTION = NOT_RUN`
+- `STEP7_NEW_TIME_VALID_300S = NOT_RUN`
+
+PPS 設定：125 MHz／8 ns clock，1 秒重複週期、10 ms 脈寬（1,250,000 ticks）。
+SMA 仍接 `pps_p_o`，不是 125 MHz 連續時鐘。截圖僅涵蓋局部上升緣。
+目前保留程式來源為 `4d7e38189e26707afffb2ecc404f3ad0e8a08326`：
+Slave bootstrap=512、Master bootstrap=2048；`/2 + /12`、60/120 ps 不變。
+2026-10-05 的 Step7 恢復報告已記錄兩板 TIME_VALID/PPS_VALID 的逐點恢復；
+本次不把它改寫成新的 300 秒 PASS，也不改動歷史 Step6 的通過紀錄。
+
+本次只新增圖檔、文件與唯讀 Step7 封存；不修改 production 控制、
+不建置／燒錄／重置、不合併 main，Step1–6 與受保護 archive 保持不變。
+截圖當時的 loaded-image 身分未獨立核實。
+詳見[Step7 報告](experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007/REPORT.md)
+與[Step7 milestone](artifacts/milestones/step7_physical_measurement/README.md)。
+
+## 歷史 Step6 狀態 — 2026-10-05（切入 Step7 前）
 
 **PASS_TIME_VALID_300S_BOTH_BOARDS：Pain 目前運行狀態的兩板驗證通過。**
 實驗名稱：EXP-S6-LIVE-TIME-VALID-CKO-300S-PROMOTION-20261005。

@@ -1,0 +1,13 @@
+{
+  "checked_on": "2026-10-07",
+  "package_integrity": "PASS",
+  "committed_files_verified": 3614,
+  "production_and_script_bytes": "IDENTICAL",
+  "standalone_publication_manifest": "SCOPED_TO_BUILD_OUTPUT",
+  "sof_aliases_match_root": "PASS",
+  "original_image_and_copies_sha256": "1cd861f73b7728eba6f651d40330f09d2b91c67279da1a82c8eb950a37e4955f",
+  "image_copy": "PASS",
+  "unsafe_archive_members": 0,
+  "hardware_actions": "NOT_RUN",
+  "snapshot_commit": "5af558553a57f9caf7abe6a4f6d0f2cb149eccfa"
+}

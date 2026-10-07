@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "documented_date": "2026-10-07",
+  "branch": "step7-physical-measurement",
+  "snapshot_commit": "5af558553a57f9caf7abe6a4f6d0f2cb149eccfa",
+  "retained_compile_source_commit": "4d7e38189e26707afffb2ecc404f3ad0e8a08326",
+  "physical_validation": "STAGEWISE_NS_ALIGNMENT_OBSERVED",
+  "picosecond_accuracy": "NOT_ESTABLISHED",
+  "screenshot_loaded_image_identity": "NOT_INDEPENDENTLY_VERIFIED",
+  "fresh_hardware_reproduction": "NOT_RUN",
+  "new_time_valid_300s": "NOT_RUN",
+  "included_paths": [
+    "firmware",
+    "vendor",
+    "quartus",
+    "quartus_generated",
+    "scripts",
+    "build",
+    "output",
+    "README.md",
+    "STATUS.md",
+    "MILESTONES.md",
+    ".gitignore",
+    ".gitattributes",
+    "experiments/step7/EXP-S7-PHYSICAL-PPS-SMA-OBSERVATION-20261007",
+    "experiments/step7/EXP-S7-SLAVE-BOOTSTRAP512-OPERATING-POINT-20261005"
+  ],
+  "standalone_manifest_change": "Only build/output publication entries retained; production bytes unchanged.",
+  "files": {
+    "README.md": {
+      "bytes": 3730,
+      "sha256": "bb3dee56caf00c3ba6a7edbbe96373c34b45e52bdb292abf48e0030036d31ebd"
+    },
+    "prepare_source.sh": {
+      "bytes": 2163,
+      "sha256": "c8ce3ca066bcf77e2c358a9ab1ff2646b9482e2bb8f73a93a97292c3058e85ea"
+    },
+    "seal_read_only.sh": {
+      "bytes": 788,
+      "sha256": "8f4687ab0acfac4e5f13caed3cee338ddab428ae2947278c4a83d42faee148c0"
+    },
+    "source.tar.gz": {
+      "bytes": 17814647,
+      "sha256": "1abd5ccdbf88459264c461e206acd21252351100b74593871c817eb02f3adf5b"
+    },
+    "master.sof": {
+      "bytes": 36818536,
+      "sha256": "0fd28157e3652dfaa56e5c14f57c66bc4bd2d4d6ae1a6a74576617e76c5319dd"
+    },
+    "slave.sof": {
+      "bytes": 36831090,
+      "sha256": "3565f6b18929341613616e7b03a6aac10a53da0e5953444611ca74e8e3d1e32d"
+    },
+    "master-slave-pulse.png": {
+      "bytes": 1268065,
+      "sha256": "1cd861f73b7728eba6f651d40330f09d2b91c67279da1a82c8eb950a37e4955f"
+    },
+    "VERIFICATION.md": {
+      "bytes": 5742,
+      "sha256": "9d2b405a243df90f67a4e14ee71eee91dab3d013797cdc7e892777f721f1405b"
+    }
+  }
+}

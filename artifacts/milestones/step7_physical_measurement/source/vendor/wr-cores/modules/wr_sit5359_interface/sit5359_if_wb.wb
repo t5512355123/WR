@@ -1,0 +1,93 @@
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+	 name = "SiTime 5359 interface";
+	 hdl_entity = "sit5359_if_wb";
+	 prefix = "sit5359";
+
+
+	 reg {
+      name = "Control Register";
+      prefix = "CR";
+			field {
+         name = "Sit5359 I2C Address";
+         size = 8;
+         type = SLV;
+				 prefix = "I2C_ADDR";
+         access_bus = READ_WRITE;
+         access_dev = READ_ONLY;
+      };
+			field {
+		 name = "I2C Clock Divider (1 I2C bit = 4*(CLK_DIV+1)*clk_sys-period)";
+				 prefix = "CLK_DIV";
+         size = 8;
+         type = SLV;
+         access_bus = READ_WRITE;
+         access_dev = READ_ONLY;
+      };
+			field {
+         name = "Sit5359 SPLL input enable";
+				 prefix = "SPLL_EN";
+         type = BIT;
+         access_bus = READ_WRITE;
+         access_dev = READ_ONLY;
+      };
+			field {
+         name = "Sit5359 Oscillator Output Enable";
+				 prefix = "OSC_OE";
+         type = BIT;
+         access_bus = READ_WRITE;
+         access_dev = READ_ONLY;
+      };
+};
+	 
+   reg {
+      name = "GPIO Set/Readback Register";
+      prefix = "GPSR";
+
+
+      field {
+         name = "Sit5359 I2C bitbanged SCL";
+         prefix = "scl";
+         description = "write 1: Set FMC SCL line to 1 (pullup)\
+                        read : returns the current status of the SCL line.";
+         type = BIT;
+         access_bus = READ_WRITE;
+         access_dev = READ_WRITE;
+         load = LOAD_EXT;
+      };
+
+      field {
+         name = "Sit5359 I2C bitbanged SDA";
+         prefix = "sda";
+         description = "write 1: Set FMC SDA line to 1 (pullup)\
+                        read : returns the current status of the SCL line.";
+         type = BIT;
+         access_bus = READ_WRITE;
+         access_dev = READ_WRITE;
+         load = LOAD_EXT;
+      };
+   };
+
+reg {
+      name = "GPIO Clear Register";
+      prefix = "GPCR";
+
+   
+      field {
+         name = "Sit5359 I2C bitbanged SCL";
+         prefix = "scl";
+         description = "write 1: Set SCL line to 0\
+                        read : returns the current status of the SCL line.";
+         type = MONOSTABLE;
+      };
+
+      field {
+         name = "Sit5359 I2C bitbanged SDA";
+         prefix = "sda";
+         description = "write 1: Set SDA line to 0\
+                        read : returns the current status of the SCL line.";
+         type = MONOSTABLE;
+      };
+   };
+};

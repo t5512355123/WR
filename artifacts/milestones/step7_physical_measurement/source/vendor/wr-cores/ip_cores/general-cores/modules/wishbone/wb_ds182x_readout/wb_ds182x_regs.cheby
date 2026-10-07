@@ -1,0 +1,45 @@
+memory-map:
+  bus: wb-32-be
+  name: wb_ds182x_regs
+  description: Direct read of unique id and temperature
+  x-hdl:
+    busgroup: True
+  children:
+  - reg:
+     name: id
+     description: unique id
+     width: 64
+     access: ro
+     type: unsigned
+  - reg:
+     name: temperature
+     description: temperature
+     width: 32
+     access: ro
+     children:
+     - field:
+        name: data
+        description: temperature value
+        range: 15-0
+     - field:
+        name: error
+        description: temperature is not valid
+        range: 31
+  - reg:
+     name: status
+     description: status
+     width: 32
+     access: ro
+     children:
+     - field:
+        name: id_read
+        description: Set when unique id was read
+        range: 0
+     - field:
+        name: id_ok
+        description: Set when unique id was read, persist after reset
+        range: 1
+     - field:
+        name: temp_ok
+        description: Set when the temperature register is correctly read
+        range: 2

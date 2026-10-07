@@ -1,0 +1,31 @@
+#!/bin/sh
+
+SCRIPT_DIR=$(readlink -f $(dirname "${BASH_SOURCE[0]}"))
+SERIAL_LINE=$($SCRIPT_DIR/udev-find wrc)
+
+# override default serial line if need be
+if [ x"$1" != x"" ] ; then
+	SERIAL_LINE="$1"
+fi
+
+# ensure existence of the serial line
+if ! [ -c "$SERIAL_LINE" ] ; then
+	echo "serial device $SERIAL_LINE not present, exiting" >&2
+	exit 1
+fi
+
+# ensure permissions on the serial line
+chmod -f 777 "$SERIAL_LINE" ||
+	[ -r $SERIAL_LINE -o -w $SERIAL_LINE ] ||
+	( echo "cannot r/w serial line $SERIAL_LINE, please run as root" 2>&1
+	exit )
+
+# wrc.bin embedded firmware loading
+BOOTLOADER=$SCRIPT_DIR/usb-bootloader.py
+SPEED=921600
+WRC_BIN=$SCRIPT_DIR/../lib/wrc.bin
+PYTHON=$SCRIPT_DIR/../pyenv/bin/python3
+
+# load wrc.bin firmware
+$PYTHON $BOOTLOADER -b default -s $SPEED -p $SERIAL_LINE $WRC_BIN
+sleep 7

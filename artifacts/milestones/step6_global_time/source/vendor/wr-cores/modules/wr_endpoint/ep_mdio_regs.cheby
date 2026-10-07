@@ -1,0 +1,598 @@
+##############################################################################;
+## Title      : 802.3 PCS Register Block (slave)
+## Project    : White Rabbit MAC/Endpoint
+##############################################################################;
+## File       : ep_mdio_registers.cheby
+## Author     : Tomasz Włostowski
+## Company    : CERN BE-CO-HT
+## Created    : 2010-11-18
+## Last update: 2013-03-10
+##############################################################################
+## Description: Standard PCS register block + WR-specific PCS fields:
+## RX bitslide and calibration pattern control.
+##############################################################################
+##
+## Copyright (c) 2011 CERN / BE-CO-HT
+##
+## This source file is free software; you can redistribute it
+## and/or modify it under the terms of the GNU Lesser General
+## Public License as published by the Free Software Foundation;
+## either version 2.1 of the License, or (at your option) any
+## later version.
+##
+## This source is distributed in the hope that it will be
+## useful, but WITHOUT ANY WARRANTY; without even the implied
+## warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+## PURPOSE.  See the GNU Lesser General Public License for more
+## details.
+##
+## You should have received a copy of the GNU Lesser General
+## Public License along with this source; if not, download it
+## from http://www.gnu.org/licenses/lgpl-2.1l.html
+##
+##############################################################################-
+
+memory-map:
+  name: ep_mdio
+  description: WR Endpoint 1000Base-X MDIO register block
+  bus: wb-32-be
+  x-hdl:
+    busgroup: True
+    iogroup: mdio_regs
+    name-suffix: _regs
+  schema-version:
+    core: 2.0.0
+    x-conversions: 1.0.0
+    x-hdl: 1.0.0
+    x-map-info: 1.0.0
+    x-wbgen: 1.0.0
+  children:
+  - reg:
+      name: MCR
+      description: MDIO Control Register
+      width: 32
+      access: rw
+      address: 0x0
+      children:
+      - field:
+          name: RESV
+          description: Reserved
+          comment: Always return 0s, writes ignored.
+          range: 4-0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: uni_en
+          description: Unidirectional Enable
+          comment: 1 = Enable transmit regardless of whether a valid link has been established; 0 = Normal operation
+          range: 5
+      - field:
+          name: SPEED1000
+          description: Speed Selection (MSB)
+          comment: Always 1, indicating (together with bit 13) a fixed speed of 1000 Mbps
+          range: 6
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: ctst
+          description: Collision Test
+          comment: Always equal to 0, since collision detection is not supported
+          range: 7
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: fulldplx
+          description: Duplex Mode
+          comment: Always equal to 1 to indicate Full-Duplex operation
+          range: 8
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: anrestart
+          description: Restart Auto-Negotiation
+          comment: write 1 = restart Auto-Negotiation process; write 0 = no effect
+          range: 9
+          x-hdl:
+            type: autoclear
+      - field:
+          name: isolate
+          description: Isolate
+          comment: GMII Electrical isolation enable. Ignored since the PCS does not use GMII.
+          range: 10
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: pdown
+          description: Power Down
+          comment: 1 = Power down; 0 = Normal operation. This bit controls directly the PHY Enable pin
+          range: 11
+      - field:
+          name: anenable
+          description: Auto-Negotiation Enable
+          comment: 1 = Enable Auto-Negotiation process; 0 = Disable Auto-Negotiation process
+          range: 12
+      - field:
+          name: SPEED100
+          description: Speed Selection (LSB)
+          comment: Always 0, indicating (together with bit 6) a fixed speed of 1000 Mbps
+          range: 13
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: loopback
+          description: Loopback
+          comment: 1 enable loopback mode; 0 = disable loopback mode; With the TBI version, loopback bit is connected to PHY loopback enable pin. When set to 1, indicates to the external PHY to enter loopback mode
+          range: 14
+      - field:
+          name: reset
+          description: Reset
+          comment: Write 1 = triggers reset of the PCS core; write 0 = no effect
+          range: 15
+          x-hdl:
+            type: autoclear
+  - reg:
+      name: MSR
+      description: MDIO Status Register
+      width: 32
+      access: ro
+      address: 0x4
+      x-hdl:
+        read-strobe: True
+      children:
+      - field:
+          name: ERCAP
+          description: Extended Capability
+          comment: Always 0, since extended register set is not supported
+          range: 0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: JCD
+          description: Jabber Detect
+          comment: Always 0, since Jabber Detect is not supported
+          range: 1
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: LSTATUS
+          description: Link Status
+          comment: 1 = Link is up; 0 = Link is down (or has been down); Latches 0 if Link Status goes down. Clears to current Link Status on read.
+          range: 2
+      - field:
+          name: ANEGCAPABLE
+          description: Auto-Negotiation Ability
+          comment: Always 1, to indicate the support for Auto-Negotiation.
+          range: 3
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: RFAULT
+          description: Remote Fault
+          comment: 1 = Remote fault condition detected; 0 = No remote fault condition detected.
+          range: 4
+      - field:
+          name: anegcomplete
+          description: Auto-Negotiation Complete
+          comment: 1 = Auto-Negotiation process completed; 0 = Auto-Negotiation process not completed
+          range: 5
+      - field:
+          name: mfsuppress
+          description: MF Preamble Suppression
+          comment: Always 0, feature not supported.
+          range: 6
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: unidirable
+          description: Unidirectional Ability
+          comment: Always 1, as the Unidirectional mode is supported.
+          range: 7
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: estaten
+          description: Extended Status Capable
+          comment: Always 1, indicating the presence of the Extended Status Register
+          range: 8
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: 100half2
+          description: 100BASE-T2 Half Duplex
+          comment: Always 0 (unsupported medium)
+          range: 9
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 100full2
+          description: 100BASE-T2 Full Duplex
+          comment: Always 0 (unsupported medium)
+          range: 10
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 10half
+          description: 10 Mbps Half Duplex
+          comment: Always 0 (unsupported medium)
+          range: 11
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 10full
+          description: 10 Mbps Full Duplex
+          comment: Always 0 (unsupported medium)
+          range: 12
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 100half
+          description: 100BASE-X Half Duplex
+          comment: Always 0 (unsupported medium)
+          range: 13
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 100full
+          description: 100BASE-X Full Duplex
+          comment: Always 0 (unsupported medium)
+          range: 14
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 100base4
+          description: 100BASE-T4
+          comment: Always 0 (unsupported medium)
+          range: 15
+          preset: 0x0
+          x-hdl:
+            type: const
+  - reg:
+      name: PHYSID1
+      description: MDIO PHY Identification Register 1
+      width: 32
+      access: ro
+      address: 0x8
+      children:
+      - field:
+          name: OUI
+          description:  Organizationally Unique Identifier (bits 7-21)
+          comment: Always 0.
+          range: 15-0
+          preset: 0x0
+          x-hdl:
+            type: const
+  - reg:
+      name: PHYSID2
+      description: MDIO PHY Identification Register 2
+      width: 32
+      access: ro
+      address: 0xc
+      children:
+      - field:
+          name: REV_NUM
+          description: Revision Number
+          comment: Always 0.
+          range: 3-0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: MMNUM
+          description: Manufacturer Model Number
+          comment: Always 0.
+          range: 9-4
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: OUI
+          description: Organizationally Unique Identifier (bits 0-5)
+          comment: Always 0.
+          range: 15-10
+          preset: 0x0
+          x-hdl:
+            type: const
+  - reg:
+      name: ADVERTISE
+      description: MDIO Auto-Negotiation Advertisement Register
+      width: 32
+      access: rw
+      address: 0x10
+      children:
+      - field:
+          name: RSVD3
+          description: Reserved
+          comment: Always 0.
+          range: 4-0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: FULL
+          description: Full Duplex
+          comment: Always 1, since Full Duplex Mode is the only supported mode.
+          range: 5
+          preset: 0x1
+          x-hdl:
+            type: const
+      - field:
+          name: HALF
+          description: Half Duplex
+          comment: Always 0, since Half Duplex Mode is not supported.
+          range: 6
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: PAUSE
+          description: Pause
+          comment: 00 = No PAUSE; 01 = Symmetric PAUSE; 10 = Asymmetric PAUSE towards link partner; 11 = Both Symmetric PAUSE and Asymmetric PAUSE towards link partner
+          range: 8-7
+          preset: 00
+      - field:
+          name: RSVD2
+          description: Reserved
+          comment: Always 0.
+          range: 11-9
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: RFAULT
+          description: Remote Fault
+          comment: 00 = No Error; 01 = Offline; 10 = Link Failure; 11 = Auto-Negotiation Error
+          range: 13-12
+      - field:
+          name: RSVD1
+          description: Reserved
+          comment: Always 0.
+          range: 14
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: NPAGE
+          description: Next Page
+          comment: Always 0, since Next Page feature is not supported
+          range: 15
+          preset: 0x0
+          x-hdl:
+            type: const
+  - reg:
+      name: LPA
+      description: MDIO Auto-Negotiation Link Partner Ability Register
+      width: 32
+      access: ro
+      address: 0x14
+      children:
+      - field:
+          name: RSVD3
+          description: Reserved
+          comment: Always 0.
+          range: 4-0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: FULL
+          description: Full Duplex
+          comment: 1 = Remote partner supports Full Duplex operation; 0 = It does not
+          range: 5
+      - field:
+          name: HALF
+          description: Half Duplex
+          comment: 1 = Remote partner supports Half Duplex operation; 0 = It does not
+          range: 6
+      - field:
+          name: PAUSE
+          description: Pause
+          comment: 00 = No PAUSE; 01 = Symmetric PAUSE ; 10 = Asymmetric PAUSE towards link partner; 11 = Both Symmetric PAUSE and Asymmetric PAUSE towards link partner
+          range: 8-7
+      - field:
+          name: RSVD2
+          description: Reserved
+          comment: Always 0.
+          range: 11-9
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: RFAULT
+          description: Remote Fault
+          comment: 00 = No Error; 01 = Offline; 10 = Link Failure; 11 = Auto-Negotiation Error
+          range: 13-12
+      - field:
+          name: LPACK
+          description: Acknowledge
+          comment: Used by Auto-Negotiation function to indicate reception of a link partners base or next page.
+          range: 14
+      - field:
+          name: NPAGE
+          description: Next Page
+          comment: 1 = Next Page functionality is supported; 0 = It is not
+          range: 15
+  - reg:
+      name: EXPANSION
+      description: MDIO Auto-Negotiation Expansion Register
+      width: 32
+      access: ro
+      address: 0x18
+      children:
+      - field:
+          name: RSVD1
+          description: Reserved
+          comment: Always 0.
+          range: 0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: LWCP
+          description: Page Received
+          comment: Always 0, since we do not support the Next Page function
+          range: 1
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: ENABLENPAGE
+          description: Next Page Able
+          comment: Always 0, since we do not support the Next Page function
+          range: 2
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: RSVD2
+          description: Reserved
+          comment: Always 0.
+          range: 15-3
+          preset: 0x0
+          x-hdl:
+            type: const
+  - reg:
+      name: ESTATUS
+      description: MDIO Extended Status Register
+      width: 32
+      access: ro
+      address: 0x3c
+      children:
+      - field:
+          name: RSVD1
+          description: Reserved
+          comment: Always 0.
+          range: 11-0
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 1000_THALF
+          description: 1000Base-T Half Duplex
+          comment: Always 0, since this mode is not supported.
+          range: 12
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 1000_TFULL
+          description: 1000Base-T Full Duplex
+          comment: Always 0, since this mode is not supported.
+          range: 13
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 1000_XHALF
+          description: 1000Base-X Half Duplex
+          comment: Always 0, since this mode is not supported.
+          range: 14
+          preset: 0x0
+          x-hdl:
+            type: const
+      - field:
+          name: 1000_XFULL
+          description: 1000Base-X Full Duplex
+          comment: Always 1, indicating the support for 1000Base-X Full Duplex mode.
+          range: 15
+          preset: 0x1
+          x-hdl:
+            type: const
+  - reg:
+      name: WR_SPEC
+      description: White Rabbit-specific Configuration Register
+      width: 32
+      access: rw
+      address: 0x40
+      children:
+      - field:
+          name: TX_CAL
+          description: TX Calibration Pattern
+          comment: Controls the transmission of WR PHY calibration pattern. 1 = PCS is sending calibration pattern; 0 = Normal PCS operation
+          range: 0
+      - field:
+          name: RX_CAL_STAT
+          description: Calibration Pattern RX Status
+          comment: 1 = Valid calibration pattern is being received; 0 = no calibration pattern detected by the receiver
+          range: 1
+          x-hdl:
+            type: wire
+      - field:
+          name: CAL_CRST
+          description: Reset calibration counter
+          comment: 1 = resets the calibration pattern valid counter; 0 = no effect
+          range: 2
+          x-hdl:
+            type: autoclear
+      - field:
+          name: BSLIDE
+          description: PHY RX Bitslide
+          comment: Current receive path bit slide (valid only for transceivers which support manual bitslip)
+          range: 8-4
+          x-hdl:
+            type: wire
+  - reg:
+      name: ECTRL
+      description: MDIO Extended Control Register
+      width: 32
+      access: rw
+      address: 0x44
+      children:
+      - field:
+          name: lpbck_vec
+          description: Loopback - detailed
+          comment: Loopback vector for Xilinx PHYs. 100 = far end loopback mode; 000 = normal mode; \
+                   See also Transceiver documentation (for example Xilinx UG476 Table 2-37 and Figure 2-23. \
+                   LOOPBACK bit set to 1 in MCR register may override LPBCK_VEC depending on the PHY wrapper implementation.
+          range: 2-0
+          preset: 0x0
+      - field:
+          name: sfp_tx_fault
+          description: SFP TX Fault Status
+          comment: 1 = Some kind of laser failure; 0 = SFP Laser okay
+          range: 3
+          x-hdl:
+            type: wire
+      - field:
+          name: sfp_loss
+          description: SFP LOS
+          comment: 1 = Loss of signal; 0 = SFP Receiver signal strength okay
+          range: 4
+          x-hdl:
+            type: wire
+      - field:
+          name: sfp_tx_disable
+          description: SFP TX Disable
+          comment: Disables the SFP Transmitter. 1 = SFP TX Disabled; 0 = SFP TX Enabled
+          range: 5
+          preset: 0x0
+      - field:
+          name: tx_prbs_sel
+          description: tx_prbs_sel
+          comment: PRBS selection. 000 = Normal mode; 0010 = PRBS-7
+          range: 10-8
+          preset: 0x0
+  - submap:
+      name: phy_specific_regs
+      size: 0x2000
+      description: Custom PHY-specific registers.
+      interface: wb-32-be
+      x-hdl:
+        busgroup: True

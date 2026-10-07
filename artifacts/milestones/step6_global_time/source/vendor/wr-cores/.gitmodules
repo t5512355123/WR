@@ -1,0 +1,15 @@
+[submodule "ip_cores/general-cores"]
+	path = ip_cores/general-cores
+	url = https://ohwr.org/project/general-cores.git
+[submodule "ip_cores/etherbone-core"]
+	path = ip_cores/etherbone-core
+	url = https://ohwr.org/project/etherbone-core.git
+[submodule "ip_cores/gn4124-core"]
+	path = ip_cores/gn4124-core
+	url = https://ohwr.org/project/gn4124-core.git
+[submodule "ip_cores/vme64x-core"]
+	path = ip_cores/vme64x-core
+	url = https://ohwr.org/project/vme64x-core.git
+[submodule "ip_cores/urv-core"]
+	path = ip_cores/urv-core
+	url = https://ohwr.org/project/urv-core.git

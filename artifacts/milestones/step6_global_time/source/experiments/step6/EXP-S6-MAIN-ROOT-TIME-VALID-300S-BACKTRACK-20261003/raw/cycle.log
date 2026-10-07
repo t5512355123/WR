@@ -1,0 +1,88 @@
+2026-10-03T21:41:43+08:00
+NATIVE_AND_SOURCE_TESTS=PASS
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+build/firmware/master/wrc.mif: OK
+build/firmware/slave/wrc.mif: OK
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003
+FIRMWARE_STAGE_DONE
+2026-10-03T21:42:01+08:00
+Master Quartus build passed: /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/raw/build/20261003T135808Z-current.YWgD2i
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/
+COMPILE_STAGE_DONE
+2026-10-03T21:58:08+08:00
+output/DE5a_wr_master_jtag.sof: OK
+output/DE5a_wr_slave_jtag.sof: OK
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Oct  3 21:59:22 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.2]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof with checksum 0x30B1E229 for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sat Oct  3 21:59:26 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sat Oct  3 21:59:41 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1649 megabytes
+    Info: Processing ended: Sat Oct  3 21:59:41 2026
+    Info: Elapsed time: 00:00:19
+    Info: Total CPU time (on all processors): 00:00:05
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Sat Oct  3 21:59:41 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.1]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof with checksum 0x30ADD65B for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Sat Oct  3 21:59:44 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Sat Oct  3 21:59:59 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1648 megabytes
+    Info: Processing ended: Sat Oct  3 21:59:59 2026
+    Info: Elapsed time: 00:00:18
+    Info: Total CPU time (on all processors): 00:00:05
+CURRENT_PROGRAM=PASS order=slave,master
+PROGRAM_STAGE_DONE
+TIME_VALID_300S_STAGE=PASS
+2026-10-03T22:12:10+08:00

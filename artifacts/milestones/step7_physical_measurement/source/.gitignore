@@ -1,0 +1,82 @@
+# Quartus and other rebuildable outputs
+build/*
+!build/firmware/
+build/firmware/*
+!build/firmware/master/
+!build/firmware/slave/
+db/
+incremental_db/
+output_files/
+simulation/
+**/db/
+**/incremental_db/
+**/output_files/
+**/output_files_*/
+*.rpt
+*.summary
+*.log
+*.sof
+*.pof
+*.elf
+*.bin
+*.mif
+*.o
+*.d
+*.a
+*.so
+*.map
+*.size
+*.bram
+*.vhd.tmp
+*.qdb
+*.qws
+*.qmsg
+*.qdf
+*.srf
+*.done
+*.pin
+*.jdi
+*.smsg
+
+# 正式實驗的原始證據需保留並提交至 GitHub。
+!experiments/**/*.log
+
+# Generated files inside the vendored WRPC source tree
+vendor/wrpc-sw/wrc.*
+vendor/wrpc-sw/.config*
+vendor/wrpc-sw/*.d
+vendor/wrpc-sw/*.o
+vendor/wrpc-sw/*.elf
+vendor/wrpc-sw/*.bin
+vendor/wrpc-sw/*.mif
+
+# Local/editor/OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+__pycache__/
+
+# Legacy local-only bundles are not canonical artifacts. Experiment evidence
+# belongs under experiments/ and is intentionally tracked there.
+artifacts/EXP-*/
+
+# Rebuilt milestone bitstreams are release artifacts and must be versioned.
+!artifacts/milestones/**/master.sof
+!artifacts/milestones/**/slave.sof
+
+# A historical source snapshot may contain a tracked upstream log that is
+# part of its recorded source tree; preserve such files inside frozen sources.
+!artifacts/milestones/**/source/**/*.log
+
+# Published current build outputs, not temporary compiler object/cache trees.
+artifacts/milestones/step6_global_time/source/
+artifacts/milestones/step6_global_time/.source-extract.*/
+!artifacts/milestones/step6_global_time/verification-dashboard.log
+!experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/cycles/**/*.sof
+!build/firmware/master/**
+!build/firmware/slave/**
+!build/build_info_*.txt
+!build/build_*.log
+!build/quartus_*_compile.log
+!output/**

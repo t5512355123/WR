@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+declare -A warn
+
+
+for n in warn-build*; do
+    test -d $n || continue
+    file=$n/build
+    S=$(grep -wi warning $file | sort | md5sum | awk '{print $1}')
+    warn[$S]=$n
+done
+for n in ${warn[*]}; do
+    echo "############################ $n"
+    file=$n/build
+    $HOW
+done

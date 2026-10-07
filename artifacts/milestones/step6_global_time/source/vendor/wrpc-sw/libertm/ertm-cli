@@ -1,0 +1,659 @@
+#!/usr/bin/env python3
+# vim: et ts=8 sw=4 sts=4 ai
+
+import readline
+import cmd
+import pdb
+import os.path
+from ctypes import *
+from ctypes.util import find_library
+
+def load_solibs():
+    cli = os.path.realpath(__file__)
+    clidir = os.path.dirname(cli)
+    cliparent = os.path.dirname(clidir)
+    solib = 'libertm.so'
+    solib_display = 'libertm_display.so'
+    solib_default1 = os.path.join(clidir, solib)
+    solib_display_default1 = os.path.join(clidir, solib_display)
+    solib_default2 = os.path.join(cliparent, 'lib', solib)
+    solib_display_default2 = os.path.join(cliparent, 'lib', solib_display)
+    try:
+        libudev = find_library('udev')
+        CDLL(libudev, mode=RTLD_GLOBAL)
+    except OSError as e:
+        raise
+    try:
+        lib = CDLL(solib_default1, mode=RTLD_GLOBAL)
+        display = CDLL(solib_display_default1)
+    except OSError as e:
+        pass
+    else:
+        return lib, display
+    try:
+        lib = CDLL(solib_default2, mode=RTLD_GLOBAL)
+        display = CDLL(solib_display_default2)
+    except OSError as e:
+        print('could not open solibs at paths:\n'
+            '{}\n{}\n... exiting'.format(
+            solib_default1, solib_default2))
+        exit()
+    else:
+        return lib, display
+
+lib, display = load_solibs()
+
+class ertm_magics(Structure):
+    _fields_ = [
+	("path_max", c_int),
+	("ertm_clka", c_int),
+	("ertm_clkb", c_int),
+	("ertm_lo", c_int),
+	("ertm_ref", c_int),
+
+	("ertm14_sync_source_none", c_int),
+	("ertm14_sync_source_pps", c_int),
+	("ertm14_sync_source_rf_trigger", c_int),
+	("ertm14_max_uart_link_payload", c_int),
+
+	("ertm_wr_master", c_int),
+	("ertm_wr_slave", c_int),
+	("ertm_wr_free_running", c_int),
+
+	("Sensor_Array", c_int),
+	("BoardInfo", c_int),
+    ]
+
+magics = ertm_magics.in_dll(lib, "ertm_magics")
+
+class uart_packet(Structure):
+    ERTM14_MAX_UART_LINK_PAYLOAD = magics.ertm14_max_uart_link_payload
+    _fields_ =[
+        ("ptype", c_ubyte),
+        ("length", c_ushort),
+        ("payload", c_ubyte*ERTM14_MAX_UART_LINK_PAYLOAD),
+    ]
+
+class uart_link(Structure):
+    _fields_ =[
+        ("send_byte", c_void_p),
+        ("recv_byte", c_void_p),
+        ("get_ms_tics", c_void_p),
+        ("priv", c_void_p),
+        ("state", c_int),
+        ("rx_count",  c_int),
+        ("rx_crc, check_crc", c_ushort),
+        ("rx_last_tics", c_uint),
+        ("rx_packet", uart_packet),
+    ]
+
+class ertm_connection(Structure):
+    PATH_MAX = magics.path_max
+    _fields_ = [
+        ("address", c_char_p),
+        ("serial_connection", c_char*PATH_MAX),
+    ]
+
+class ertm_lib_version(Structure):
+    _fields_ = [
+        ("lib_version", c_char_p),
+        ("git_commit", c_char_p),
+        ("git_user", c_char_p),
+        ("git_url", c_char_p),
+    ]
+
+class ertm_sync_states(Structure):
+    _fields_ = [
+        ("sync_state", c_int),
+        ("label", c_char_p),
+        ("description", c_char_p),
+    ]
+
+class ertm_status(Structure):
+    _fields_ = [
+        ("connection", ertm_connection),
+        ("state", c_void_p),
+        ("link", uart_link),
+        ("reserved", 64*c_uint),
+    ]
+
+class ertm_wr_status(Structure):
+    _fields_ = [
+	("VER", c_uint),
+	("CTRL", c_uint),
+	("WDIAG_SSTAT", c_uint),
+	("WDIAG_PSTAT", c_uint),
+	("WDIAG_PTPSTAT", c_uint),
+	("WDIAG_ASTAT", c_uint),
+	("WDIAG_TXFCNT", c_uint),
+	("WDIAG_RXFCNT", c_uint),
+	("WDIAG_SEC_MSB", c_uint),
+	("WDIAG_SEC_LSB", c_uint),
+	("WDIAG_NS", c_uint),
+	("WDIAG_MU_MSB", c_uint),
+	("WDIAG_MU_LSB", c_uint),
+	("WDIAG_DMS_MSB", c_uint),
+	("WDIAG_DMS_LSB", c_uint),
+	("WDIAG_ASYM", c_uint),
+	("WDIAG_CKO", c_uint),
+	("WDIAG_SETP", c_uint),
+	("WDIAG_UCNT", c_uint),
+	("WDIAG_TEMP", c_uint),
+    ]
+
+class ertm_streamer_status(Structure):
+    _fields_ = [
+    ("VER", c_uint),
+    ("SSCR1", c_uint),
+    ("SSCR2", c_uint),
+    ("SSCR3", c_uint),
+    ("RX_STAT0", c_uint),
+    ("RX_STAT1", c_uint),
+    ("TX_STAT2", c_uint),
+    ("TX_STAT3", c_uint),
+    ("RX_STAT4", c_uint),
+    ("RX_STAT5", c_uint),
+    ("RX_STAT6", c_uint),
+    ("RX_STAT7", c_uint),
+    ("RX_STAT8", c_uint),
+    ("RX_STAT9", c_uint),
+    ("RX_STAT10", c_uint),
+    ("RX_STAT11", c_uint),
+    ("RX_STAT12", c_uint),
+    ("RX_STAT13", c_uint),
+    ("TX_CFG0", c_uint),
+    ("TX_CFG1", c_uint),
+    ("TX_CFG2", c_uint),
+    ("TX_CFG3", c_uint),
+    ("TX_CFG4", c_uint),
+    ("TX_CFG5", c_uint),
+    ("RX_CFG0", c_uint),
+    ("RX_CFG1", c_uint),
+    ("RX_CFG2", c_uint),
+    ("RX_CFG3", c_uint),
+    ("RX_CFG4", c_uint),
+    ("RX_CFG5", c_uint),
+    ("CFG", c_uint),
+    ("DBG_CTRL", c_uint),
+    ("DBG_DATA", c_uint),
+    ("DUMMY", c_uint),
+    ("RSTR", c_uint),
+    ("RX_STAT15", c_uint),
+    ("RX_STAT16", c_uint),
+    ("RX_STAT17", c_uint),
+    ("RX_STAT18", c_uint),
+    ("RX_STAT19", c_uint),
+    ("RX_STAT20", c_uint),
+    ("RX_CFG6", c_uint)
+    ]
+
+class ertm_nco_reset(Structure):
+    _fields_ = [
+        ("enabled", c_uint),      
+        ("sync_source", c_uint),      		
+        ("current_stream_id", c_uint),      			
+        ("rx_count", c_uint),      		
+        ("reset_count", c_uint),      		
+        ("connector", c_uint),      		
+        ("unused", 7*c_uint),
+    ]
+ertm_nco_status = 2 * ertm_nco_reset
+
+class ErtmTest(cmd.Cmd):
+
+    prompt = 'ertm> '
+    ruler = '-'
+    intro = ('''ERTM14/15 command line interpreter '''
+            '''- type 'help' for a list of commands''')
+    history = os.path.join(os.path.expanduser('~'), '.ertm_history')
+
+    ERTM_CLKA = magics.ertm_clka
+    ERTM_CLKB  = magics.ertm_clkb
+    ERTM_LO = magics.ertm_lo
+    ERTM_REF = magics.ertm_ref
+
+    ERTM14_SYNC_SOURCE_NONE = magics.ertm14_sync_source_none
+    ERTM14_SYNC_SOURCE_PPS = magics.ertm14_sync_source_pps
+    ERTM14_SYNC_SOURCE_RF_TRIGGER = magics.ertm14_sync_source_rf_trigger
+
+    ERTM_WR_MASTER = magics.ertm_wr_master
+    ERTM_WR_SLAVE = magics.ertm_wr_slave
+    ERTM_WR_FREE_RUNNING = magics.ertm_wr_free_running
+
+    Sensor_Array = magics.Sensor_Array * c_double
+    BoardInfo = magics.BoardInfo * c_uint
+
+    connector_idx = {
+        'lo' : ERTM_LO,
+        'ref' : ERTM_REF,
+        'clka': ERTM_CLKA,
+        'clkb': ERTM_CLKB,
+    }
+
+    def errmsg(self, errcode):
+        ertm_perror = self.lib.ertm_perror
+        ertm_perror.restype = c_char_p
+        msg = self.lib.ertm_perror(errcode)
+        return str(msg, encoding='utf8')
+
+    def my_preloop(self):
+        try:
+            readline.read_history_file(self.history)
+        except FileNotFoundError:
+            readline.write_history_file(self.history)
+        self.lib, self.display = lib, display
+        self.lib.ertm_init.restype = POINTER(ertm_status)
+        self.handle = self.lib.ertm_init(c_char_p(None))
+        self.do_h = self.do_help
+        if not self.handle:
+            print('could not open USB device')
+            exit()
+
+    def do_usb(self, args):
+        "show/change the usb port we connect to."
+        if not args:
+            usb = self.handle[0].connection.serial_connection
+            print(str(usb, encoding='utf-8'))
+            return
+        try:
+            usb = bytes(args, encoding='utf-8')
+            handle = self.lib.ertm_init(c_char_p(usb))
+            if not handle:
+                print('could not open USB device')
+            else:
+                self.handle = handle
+        except TypeError as e:
+            print('bad encoding in devname {}'.format(args))
+
+    def do_lib_version(self, args):
+        "show library version info."
+        self.lib.ertm_lib_version.restype = POINTER(ertm_lib_version)
+        lib_version = self.lib.ertm_lib_version()[0]
+        print('using library at {}\n'
+              'lib version:\t{}\n'
+              'git commit:\t{}\n'
+              'git url:\t{}\n'
+              'built by:\t{}'.format(self.lib._name,
+                   str(lib_version.lib_version, encoding='utf-8'),
+                   str(lib_version.git_commit, encoding='utf-8'),
+                   str(lib_version.git_url, encoding='utf-8'),
+                   str(lib_version.git_user, encoding='utf-8')))
+
+    def do_get_board_state(self, args):
+        "get complete CLKAB and REF/LO status."
+        buf = create_string_buffer(512)
+        self.lib.ertm_get_board_config(self.handle, byref(buf))
+        self.display.display_ertm_state(byref(buf))
+
+    def do_get_power(self, args):
+        "get power of LO/REF PLL output"
+        try:
+            connector = args
+            conn = self.connector_idx[connector.lower()]
+        except (ValueError, KeyError) as e:
+            print('usage: get_power/pow {lo|ref}')
+            return
+        power = c_double()
+        err = self.lib.ertm_get_power(self.handle, conn, byref(power))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_channel_power: {}'.format(err, msg))
+            return
+        print("{:3s} power: {:6.3f} dBm".format(connector.upper(), power.value))
+
+    def do_get_channel_power(self, args):
+        "get output power of individual RF channel."
+        try:
+            connector, channel = args.split()
+            conn = self.connector_idx[connector.lower()]
+            channel = int(channel)
+        except (ValueError, KeyError) as e:
+            print('usage: get_channel_power/gcp {lo|ref} channel')
+            return
+        power = c_double()
+        err = self.lib.ertm_get_channel_power(self.handle, conn, channel, byref(power))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_channel_power: {}'.format(err, msg))
+            return
+        print("{:s}{:02d} power: {:6.3f} dBm".format(
+                 connector.upper(), channel, power.value))
+
+    def do_get_channel_power_all(self, args):
+        "get output power of all RF channels in LO/REF"
+        try:
+            connector, channel = args.split()
+            conn = self.connector_idx[connector.lower()]
+            mask = int(channel, 0)
+        except (ValueError, KeyError) as e:
+            print('usage: get_channel_power_all/gcpa {lo|ref} hex_mask')
+            return
+        charray = 16*c_double
+        powers = charray(0)
+        err = self.lib.ertm_get_channel_power_all(self.handle, conn, mask, byref(powers))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_channel_power_all: {}'.format(err, msg))
+            return
+        for i in range(4, 13):
+            if not (mask & (1<<i)):
+                continue
+            print("{:s}{:02d} power: {:6.3f} dBm".format(
+                 connector.upper(), i, powers[i]))
+
+    def do_set_freq(self, args):
+        "set frequency of connector or connector channel."
+        try:
+            connector, rest = args.split(maxsplit=1)
+            connector = self.connector_idx[connector.lower()]
+            if connector in (self.ERTM_CLKA, self.ERTM_CLKB):
+                channel, freq = rest.split()
+                channel = int(channel)
+                freq = int(freq, 0)     # FIXME: this needs units
+            else:
+                channel = 10            # don't care
+                freq = rest
+                freq = int(freq, 0)     # FIXME: this needs units
+        except (ValueError, KeyError) as e:
+            print('usage: set_freq/sf {clka|clkb|lo|ref} [channel] freq')
+            return
+        err = self.lib.ertm_set_freq(self.handle, connector, channel, freq)
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in set_freq: {}'.format(err, msg))
+            return
+
+    def do_enable_channel(self, args):
+        "enable/disable individual connector channel."
+        try:
+            connector, channel, *enable = args.split()
+            connector = self.connector_idx[connector.lower()]
+            channel = int(channel)
+            enable = int(enable[0]) if enable else 1
+        except (ValueError, KeyError) as e:
+            print('usage: enable_channel/ec {clka|clkb|lo|ref} channel [0|1]')
+            return
+        err = self.lib.ertm_channel_enable(self.handle, connector, channel, enable)
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in enable_channel: {}'.format(err, msg))
+            return
+
+    def do_disable_channel(self, args):
+        "disable individual connector channel."
+        try:
+            connector, channel = args.split()
+            connector = self.connector_idx[connector.lower()]
+            channel = int(channel)
+        except (ValueError, KeyError) as e:
+            print('usage: disable_channel/dc {clka|clkb|lo|ref} channel')
+            return
+        err = self.lib.ertm_channel_enable(self.handle, connector, channel, 0)
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in disable_channel: {}'.format(err, msg))
+            return
+
+    def do_get_channel_enable(self, args):
+        "display channel enable/disable status"
+        try:
+            conn, channel = args.split()
+            connector = self.connector_idx[conn.lower()]
+            channel = int(channel)
+        except (ValueError, KeyError) as e:
+            print('usage: get_channel_enable/gce {clka|clkb|lo|ref} channel')
+            return
+        state = c_uint(0)
+        err = self.lib.ertm_get_enable_state(self.handle, connector, channel, byref(state))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_channel_enable: {}'.format(err, msg))
+            return
+        st = state.value
+        print("{:s}{:02d}: {:s} ({:d})".format(
+                 conn.upper(), channel, "on" if st else "off", st))
+
+    def do_get_sync_state(self, args):
+        "display channel sync state"
+        try:
+            conn, channel = args.split()
+            connector = self.connector_idx[conn.lower()]
+            channel = int(channel)
+        except (ValueError, KeyError) as e:
+            print('usage: get_sync_state/gss  {clka|clkb|lo|ref} channel')
+            return
+        sync_state = c_uint(0)
+        err = self.lib.ertm_get_sync_state(self.handle, connector, channel, byref(sync_state))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_sync_state: {}'.format(err, msg))
+            return
+        st = sync_state.value
+        label = c_char_p(0); description = c_char_p(0);
+        self.lib.ertm_sync_state_translate(st, byref(label), byref(description))
+        print("{:s}{:02d}: {:d}: {:s}\t\t({:s})".format(
+                 conn.upper(), channel, st,
+                 str(label.value, encoding='utf8'),
+                 str(description.value, encoding='utf8')))
+
+    def do_get_level_adjust(self, args):
+        "display amplification level of connector."
+        try:
+            connector = args
+            connector = self.connector_idx[connector.lower()]
+        except (ValueError, KeyError) as e:
+            print('usage: get_level_adjust/gla {lo|ref}')
+            return
+        level = c_double()
+        err = self.lib.ertm_dds_get_level_adjust(self.handle, connector, byref(level))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in get_level_adjust: {}'.format(err, msg))
+            return
+        print('{} level = {}'.format(args.upper(), level.value))
+
+    def do_set_level_adjust(self, args):
+        "set amplification level of connector."
+        try:
+            connector, level = args.split()
+            connector = self.connector_idx[connector.lower()]
+            level = float(level)
+        except (ValueError, KeyError) as e:
+            print('usage: set_level_adjust/sla {lo|ref} LEVEL')
+            return
+        self.lib.ertm_dds_set_level_adjust(self.handle, connector, c_double(level))
+
+    def do_nco_status(self, args):
+        "display NCO subscriptions status."
+        nco = ertm_nco_status()
+        err = self.lib.ertm_nco_reset_get_status(self.handle, byref(nco))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in nco_status: {}'.format(err, msg))
+            return
+        self.display.display_nco_status(byref(nco))
+
+    def do_subscribe_nco_reset(self, args):
+        "configure LO/REF NCO reset."
+        sync_mode = {
+            'none' : self.ERTM14_SYNC_SOURCE_NONE,
+            'pps' : self.ERTM14_SYNC_SOURCE_PPS,
+            'rf_trigger' : self.ERTM14_SYNC_SOURCE_RF_TRIGGER,
+            'rf' : self.ERTM14_SYNC_SOURCE_RF_TRIGGER,
+        }
+        try:
+            connector, *rest  = args.split(maxsplit=1)
+            conn = self.connector_idx[connector.lower()]
+            if conn not in (self.ERTM_LO, self.ERTM_REF):
+                raise ValueError
+            mode = 'rf' if not rest else rest[0]
+            mode = sync_mode[mode]
+            channel = 0xcafe      # don't care
+            stream_id = 0xbabe    # don't care
+        except (ValueError, KeyError) as e:
+            print('usage: subscribe_nco_reset/snco {lo|ref} [none|pps|rf_trigger]')
+            return
+        err = self.lib.ertm_nco_reset_subscribe(self.handle,
+                        conn, mode, channel, stream_id)
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in nco_status: {}'.format(err, msg))
+            return
+
+    def do_wrc_diags(self, args):
+        "get WRC diagnostics."
+        buf = ertm_wr_status()
+        self.lib.ertm_wr_diags(self.handle, byref(buf))
+        self.display.display_wrc_diags_cooked(byref(buf))
+
+    def do_streamer_diags(self, args):
+        "get WR Streamer (NCO) diagnostics."
+        buf = ertm_streamer_status()
+        self.lib.ertm_streamer_diags(self.handle, byref(buf))
+        self.display.display_streamer_diags_cooked(byref(buf))
+
+    def do_wr_status(self, args):
+        "get WRC link/lock status."
+        link_up = c_int()
+        is_locked = c_int()
+        self.lib.ertm_wr_status(self.handle, byref(link_up), byref(is_locked))
+        msg ="link: {} PLL: {}".format(
+                    "up" if link_up else "down",
+                    "locked" if is_locked else "not locked")
+        print(msg)
+
+    def do_wr_enable(self, args):
+        "set mode of WR PTP daemon."
+        wr_modes = {
+            'master' : self.ERTM_WR_MASTER,
+            'slave' : self.ERTM_WR_SLAVE,
+            'disable' : self.ERTM_WR_FREE_RUNNING,
+        }
+        try:
+            mode = wr_modes[args.lower()]
+        except (ValueError, KeyError) as e:
+            print('usage: wr_enable {master|slave|disable}')
+            return
+        self.lib.ertm_wr_enable(self.handle, mode)
+
+    def do_force_measure_channels_power(self, args ):
+        "forces an immediate measurement of REF/LO output power. WARNING, will squelch the signals for ~0.5 second!"
+        self.lib.ertm_force_measure_channels_power(self.handle)
+
+    def do_reset_streamer_diags(self, args):
+        "resets WR (NCO) streamer diagnostic counters."
+        self.lib.ertm_reset_streamer_diags(self.handle)
+
+    def do_wr_disable(self, args):
+        """stop PTP daemon (synonymous to "wr_enable disable")."""
+        self.lib.ertm_wr_enable(self.handle, self.ERTM_WR_FREE_RUNNING)
+
+    def do_temperatures(self, args):
+        """display temperature sensor readings."""
+        temps = self.Sensor_Array()
+        self.lib.ertm_get_temperatures(self.handle, byref(temps))
+        self.display.display_temperatures(byref(temps))
+
+    def do_voltages(self, args):
+        """display voltage sensor readings."""
+        volts = self.Sensor_Array()
+        self.lib.ertm_get_voltages(self.handle, byref(volts))
+        self.display.display_voltages(byref(volts))
+
+    def do_board_info(self, args):
+        """display board version info."""
+        bi = self.BoardInfo()
+        self.lib.ertm_get_board_info(self.handle, byref(bi))
+        self.display.display_version_info(byref(bi))
+
+    def do_fpga(self, args):
+        """display full FPGA buildinfo string."""
+        bi = self.BoardInfo()
+        self.lib.ertm_get_board_info(self.handle, byref(bi))
+        self.display.display_fpga_buildinfo(byref(bi))
+
+    def do_latency(self, args):
+        """display/set streamers latency."""
+        if not args:
+            self.do_get_latency(args)
+        else:
+            self.do_set_latency(args)
+
+    def do_get_latency(self, args):
+        """display streamers latency."""
+
+        latency = c_uint(0)
+        timeout = c_uint(0)
+        err = self.lib.ertm_get_streamers_latency_timeout(
+                self.handle, byref(latency), byref(timeout))
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in latency: {}'.format(err, msg))
+            return
+        latency = latency.value
+        timeout = timeout.value
+        print('latency = {} ({} ns)\ntimeout = {} ({} ns)'.format(
+            latency, latency*16, timeout, timeout*16))
+
+    def do_set_latency(self, args):
+        """set streamers latency."""
+        try:
+            latency = int(args)
+        except (ValueError) as e:
+            print('usage: set_latency latency_in_16ns_units')
+            return
+        err = self.lib.ertm_set_streamers_latency(self.handle, latency)
+        if err:
+            msg = self.errmsg(err)
+            print('error {} in set_latency: {}'.format(err, msg))
+            return
+
+    def my_postloop(self):
+        readline.write_history_file(self.history)
+        self.lib.ertm_exit(self.handle)
+
+    def do_EOF(self, arg):
+        print()
+        return True
+
+    # catch Ctrl-C and drop me back into cli
+    def cmdloop_intr(self, intro=None):
+        self.my_preloop()
+        while True:
+            try:
+                self.cmdloop()
+                break
+            except KeyboardInterrupt as e:
+                self.intro = None
+                print('^C')
+        self.my_postloop()
+
+    # convenience aliases
+    do_q = do_EOF
+    do_quit = do_EOF
+
+    do_EOF.__doc__ = "exit command line interpreter."
+    do_bs = do_board_state = do_get_board_state
+    do_sla = do_set_level_adjust
+    do_gla = do_get_level_adjust
+    do_ec = do_enable_channel
+    do_dc = do_disable_channel
+    do_gss = do_get_sync_state
+    do_wrd = do_wrc_diags
+    do_strd = do_streamer_diags
+    do_rstrd = do_reset_streamer_diags
+    do_temp = do_temperatures
+    do_volt = do_voltages
+    do_bi = do_board_info
+    do_nco = do_nco_status
+    do_snco = do_subscribe_nco_reset
+    do_fpm = do_force_measure_channels_power
+
+    do_gp = do_get_power
+    do_gcp = do_get_channel_power
+    do_gcpa = do_get_channel_power_all
+    do_gce = do_get_channel_enable
+
+if __name__ == '__main__':
+    tst = ErtmTest(completekey='tab')
+    tst.cmdloop_intr()

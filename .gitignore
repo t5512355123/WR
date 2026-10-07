@@ -70,7 +70,7 @@ artifacts/EXP-*/
 !artifacts/milestones/**/source/**/*.log
 
 # Published current build outputs, not temporary compiler object/cache trees.
-artifacts/milestones/step6_global_time/source/
+# Step6/Step7 expanded source snapshots are published in Git, not hidden bundles.
 artifacts/milestones/step6_global_time/.source-extract.*/
 !artifacts/milestones/step6_global_time/verification-dashboard.log
 !experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/raw/cycles/**/*.sof
@@ -80,3 +80,7 @@ artifacts/milestones/step6_global_time/.source-extract.*/
 !build/build_*.log
 !build/quartus_*_compile.log
 !output/**
+
+# Expanded snapshots must not contain embedded repositories or compiler caches.
+artifacts/milestones/step6_global_time/source/.git/
+artifacts/milestones/step7_physical_measurement/source/.git/

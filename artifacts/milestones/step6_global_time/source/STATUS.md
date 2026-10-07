@@ -1,0 +1,193 @@
+# Latest main-root status — 2026-10-03
+
+Target: **both boards TIME_VALID=1 for >=300s, sampled**.
+Candidate: `EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003`.
+Status: **PASS_TIME_VALID_300S_BOTH_BOARDS**, fresh main-root cycle complete.
+Master1191/1191 over302747ms; Slave1190/1190 over302799ms; zero invalid/errors.
+Actual compile00b2342b; native22-case C and12 source/analyzer tests passed.
+Restores the 3110 historical qualified production inputs from `0bb02c6f`,
+Master bootstrap2048/account64 and Slave Kp300/Ki1, full-step16, WR /2+/12.
+Historical WR validity semantics are restored; no forced valid bit or new
+threshold. Strict offset <=120ps retention is no longer this round's gate and
+must not be inferred from a TIME_VALID-only PASS. Frozen packages unchanged.
+See the [current plan](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/PLAN.md).
+See the [completed report](experiments/step6/EXP-S6-MAIN-ROOT-TIME-VALID-300S-BACKTRACK-20261003/REPORT.md).
+Canonical Step6 is replaced with this qualified root version only. New fresh
+milestone build/compile/program PASS; standalone300s qualification
+**NOT_ESTABLISHED**, both600s readiness attempts timed out (Slave0/376 valid
+readiness samples, five PLL lock flags1 afterward). Root/fresh RBFs match
+byte-for-byte. Unqualified products are outside the successful package.
+See the [fresh reproduction report](experiments/step6/EXP-S6-MILESTONE-MAIN-ROOT-TIME-VALID-300S-REPRO-20261003/REPORT.md).
+
+The preceding unchanged-image check failed on Slave (434/1192 invalid rows):
+[completed report](experiments/step6/EXP-S6-CURRENT-IMAGE-TIME-VALID-300S-ONLY-20261003/REPORT.md).
+The strict-offset status below is retained historical context, superseded as
+the current acceptance criterion by the user's TIME_VALID-only request.
+
+# Current status
+
+**Current root: STRICT_OFFSET_TIME_VALID_300S = NOT_ESTABLISHED.**
+Active experiment: EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003.
+Prepared bounded same-gateware role exchange; adds passive status dispatch
+only. Native tests/full compile/program and actual calibration pending.
+No guessed calibration, Ki/gain changes or relaxed strict60/120/300s gate.
+Root output remains preceding products until a real compile. See the
+[current plan](experiments/step6/EXP-S6-MASTER-RXTS-CALIBRATION-ROLE-EXCHANGE-20261003/PLAN.md).
+Preceding completed experiment: EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003.
+Completed passive paired history observer; production inputs identical toc8460b08.
+Native/firmware tests, full two-board compile and one Slave→Master program
+from1ab27d25 passed. Root output contains these actual products, not a strict
+PASS milestone. Observer-only correction8b7e211b needed no new program.
+All16 same accepted updates exactly joined;15/15 Main/tracker progress,
+58876 Main updates. Four action-free CKO~4ns steps coincide with return~8ns
+changes, post-accept Main error−239..+183ps. Source copies not packet-time
+atomic; no calibration/Ki causal conclusion. Strict20/120/20s windows have
+zero fresh<60 entries and0ms qualified hold, no300s extension. Final Slave
+invalid/CKO−1313ps, allfive locks1; Mastervalid. Next is Master packet coarse/
+ahead/phase/calibration/freshness provenance, not a relaxed threshold or gain
+sweep. See the [report](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/REPORT.md).
+Same-boot exact Master RX→T4 follow-up:16/16 matched, constant176000ps
+coarse return; one8.54ns fine-correction step after actual−697ps WR action.
+Master T24P2389ps not established as measured calibration. Additional20s
+postflight0 entries/0ms. Next is same-gateware bounded calibration with
+verified role restoration; no guessed T24P or relaxed gate. See the
+[follow-up](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/SAME_BOOT_FOLLOWUP.md).
+See the [plan](experiments/step6/EXP-S6-NEAREST-MAIN-TIMESTAMP-EXACT-JOIN-20261003/PLAN.md).
+Preceding completed experiment: EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003.
+Slave Main nearest admission8/9 only, complete physical step16 unchanged.
+Source/integer/native actual-controller/pin/C/Tcl tests and byte-identical
+role MIF builds passed. Full compiles/one Slave-to-Master programming pair
+froma45da741 completed. These products are superseded, not erased.
+60 coherent rows/59 progress intervals:9526 Main completions,
+residual-11..+11, CKO-254..+143ps, no observed ACK/timeout/L2 error.
+Strict acquisition/postflight qualified holds3187/607ms; no300s extension.
+Postflight coherent TRACK/WAIT rows include13/21 outside120ps; JTAG timing
+rejections also exist, but are not the sole failure. Final Slave invalid with
+all locks1 and CKO104ps is WAIT for a new strict60 entry. No milestone/merge.
+See the [report](experiments/step6/EXP-S6-MAIN-NEAREST-STEP-ADMISSION-20261003/REPORT.md).
+Preceding completed experiment: EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003.
+Private Main DCO capture only; firmware/functional controller unchanged.
+Native cycle equivalence, actual pin/C tests, fresh two-board compiles and one
+programming pair fromf0f0f7ef passed. Those actual products are superseded,
+not a strict PASS milestone. Observer-only fixes through70193e25 were pulled
+and native-tested without another program.60 coherent snapshots over63936ms:
+Main59/59 intervals advanced,641 completions, max latency1.22882ms,
+59/60 residuals<16 code; the one-17-code row was an active Main transaction.
+CKO-201..+227ps,21/60 strict60 and43/60 inclusive120. No sustained service
+blockage supported in this window; virtual account is not physical readback.
+Strict acquisition/postflight holds604/0ms, no300s extension. All three reader
+pre-sample failures and rejected rows preserved. Final pointwise TIME_VALID1,
+CKO-55ps is not sustained PASS. Next is a carefully tested nearest-step
+admission candidate with consistent ties, not automatic Ki/gain changes.
+See the [DCO report](experiments/step6/EXP-S6-MAIN-DCO-APPLICATION-CORRELATION-20261003/REPORT.md).
+The preceding Kp600 products below are superseded; evidence remains.
+Previous experiment: EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003.
+Full compiles/one programming pair from78948729 completed; those Kp600
+products are now superseded, NOT a strict PASS milestone.
+Only Slave Main Kp300→600 changed; Master MIF unchanged, Slave binary differs
+by two instruction bytes. Main phase error−198..+229ps (mean absolute87.55ps,
+previous219.39ps), WR CKO−301..+274ps (24/32 inclusive120ps).
+Main/tracker31/31 progress; tracker age3–128ms, all sampled phase flags1.
+Strict acquisition/postflight holds2109/901ms, no300s extension. Final
+TIME_VALID1/CKO−105ps is pointwise only. Next boundary is actual Main
+command-to-DCO application/service, not an automatic gain/Ki sweep. See the
+[Kp600 report](experiments/step6/EXP-S6-MAIN-KP600-STRICT-OFFSET-HOLD-20261003/REPORT.md).
+The preceding phase/progress products are superseded: compiles/program from
+25603ae2, Main error−411..+502ps, CKO−307..+242ps, holds603/605ms. See the
+[report](experiments/step6/EXP-S6-MAIN-PHASE-PTRACKER-PROGRESS-CORRELATION-20261003/REPORT.md).
+The preceding paired products below are superseded; historical evidence remains.
+Observer-only paired provenance round completed; production inputs unchanged.
+Fresh native checks/full compile/one Slave→Master programming pair succeeded
+from `31bfaeb55f667719dbcc8690139f859598683ed4`. Those preceding diagnostic
+products are now superseded, NOT a strict PASS. Master32/Slave16 histories
+validated;14exact full64 RX→T4 pairs,13consecutive differences. No>=1ns CKO
+step in this overlap, but action-free275→276 moved−925.995ps, with constant
+coarse return and fine correction changing−834.991ps. Both forward/return
+terms varied; physical jitter versus phase estimation remains unproven.
+The120s startup had9fresh<60ps entries, longest qualified hold1501ms. Postflight
+had1entry, no positive qualified span, CKO−221..+339ps; no300s extension.
+See the [paired report](experiments/step6/EXP-S6-MASTER-RX-TO-SLAVE-T4-PAIRED-PROVENANCE-20261003/REPORT.md).
+Current root restores normal feedback and adds a passive coherent T1..T4/RTT
+producer RAM history. Native tests, fresh full compile and one programming pair
+completed from `4e0c2324095c8644dac7fb5426f69de0eadb392c`. These preceding
+products are now superseded by the paired diagnostic. All16same-source records
+passed full timestamp/RTT/CKO identities. With phase action absent, ~8.2ns return
+jumps correspond to ~4.2ns CKO jumps; timestamp provenance is the next boundary.
+The120s acquisition had13fresh<60ps entries, longest qualified hold2102ms.
+Postflight retained both links/all Slave locks and Master validity, but Slave
+CKO−2866..+2737ps, no qualified hold. Strict300s remains NOT_ESTABLISHED.
+See the [completed TS4 report](experiments/step6/EXP-S6-COHERENT-FOUR-TIMESTAMP-RTT-DIAGNOSTIC-20261003/REPORT.md).
+The preceding main-root intervention froze WR setpoint after first<60ps entry,
+retaining strict >120ps invalidation, no automatic re-enable in that boot.
+Native baseline/fixed C tests passed; both fresh compiles and one programming
+pair completed from `fbd8febf3eab38e6d2734f859d911f1e6b10365f`.
+Those previous fixed-setpoint products are now superseded. Late freeze
+was confirmed; exact entry CKO was not sampled. The 60s capture had 38 fresh
+matched updates, below preset40: diagnostic INCONCLUSIVE. CKO -375..+3731ps,
+DMS176621..180942ps, SETP=-4719 and WR phase-write/init counts unchanged;
+all observed Slave validity remained invalid. This suggests further coherent
+four-timestamp/delay diagnosis, not proof of Ki or physical clock causality.
+See the [completed report](experiments/step6/EXP-S6-FIRST-ENTRY-FIXED-SETP-STRICT-VALIDITY-20261003/REPORT.md).
+Preceding passive RX timestamp recorder: fresh build/program succeeded from
+`13d5c99b2b1898cf9cd9d9864288f7f9d5cccccf`, now superseded.
+90s preflight reached <60ps but retained +/-120ps only2669ms; NOT300s PASS.
+Two packet histories validated mathematically;64 rows,63 correct. Both used
+falling selection; actual ahead/calibration accuracy remains unproven.
+The new firmware revokes Slave validity outside +/-120 ps and reacquires only
+inside strict +/-60 ps. Gains remain /2 acquisition, /12 tracking. Role-corrected
+revision 2 passed 35 actual-C cases and fresh two-board compile/program from
+`4ba9df5935fc0a6afae2c7bd29603f190936e627`. These preceding candidate images
+have been superseded by RXTS, fixed-SETP, then normal-feedback TS4 products, NOT historical PASS images. Master validity is restored;
+the completed 660 s capture had 1882 Slave rows (1849 trusted), CKO
+-3158..+3839 ps, no <60 ps row, and zero qualified hold. All 496 sampled Master
+health rows were valid; Slave TIME_VALID remained 0. No reset/transport errors.
+Offset-bound 300 s qualification is NOT_ESTABLISHED. Frozen packages unchanged.
+
+**Historical TIME_VALID-only Step6: PASS_TWO_INDEPENDENT_ROOT_CYCLES (2026-10-02).**
+The frozen milestone additionally passed fresh standalone build/compile/program
+at 20:03–20:34: 1192/1192 valid samples per board, Master/Slave spans
+302952/302872 ms, no invalid rows or transport errors. See the
+[standalone report](experiments/step6/EXP-S6-MILESTONE-STANDALONE-FRESH-REBUILD-TIME-VALID-300S-20261002/REPORT.md).
+Experiment: EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002.
+Only Master HPLL physical-step accounting changed 34 → 64; Master bootstrap
+2048 and Slave `/2 + /12` firmware stayed unchanged. Both root cycles completed
+fresh firmware builds, full two-board FPGA compiles, Slave→Master programming
+and >300-second sampled TIME_VALID windows on each board.
+
+| Cycle | Master valid rows / span | Slave valid rows / span | Max gaps M/S |
+|---|---|---|---|
+| 1 | 1192/1192 / 302791 ms | 1192/1192 / 302901 ms | 257/257 ms |
+| 2 | 1192/1192 / 302815 ms | 1192/1192 / 302885 ms | 258/256 ms |
+
+No invalid rows or transport errors. All 3110 production inputs and both MIFs
+match between cycles. Master Helper was locked and its phase tracker ready
+after qualification. Frozen milestone images are the second-cycle images, compiled
+from 7b6550123986a9d7cea5f4be0dbb8af1f5a019ab. The single Step6 package is
+`artifacts/milestones/step6_global_time/source.tar.gz`, prepared as `source/`.
+This supports two-run reproduction of the user's sampled TIME_VALID-only gate,
+not universal startup reliability, fine timestamp accuracy or physical SMA skew.
+
+- Branch: feat/file_cleanup.
+- Latest session: both boards passed in two complete cycles; see the [current report](experiments/step6/EXP-S6-MASTER-HPLL-STEP64-REPEATABILITY-20261002/REPORT.md). The earlier bootstrap2048 single-session PASS subsequently failed after reprogramming with identical SOFs. That failure remains recorded; copying equality alone was not startup validation.
+- Current root workflow revalidated 2026-10-02: acquisition `/2`, tracking `/12`, no temporary source checkout. Fresh firmware matched the proven MIFs exactly; both root FPGA builds and Slave→Master programming passed. Master/Slave TIME_VALID were 1190/1190 valid samples across 302868/302813 ms, max gap 257 ms each. Current images and full compile reports are retained in `output/`, firmware products in `build/`; see the [root revalidation report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/ROOT-WORKFLOW-REVALIDATION-20261002.md).
+- Canonical implementation: the two DE5a JTAG projects, with QSFP-A lane 0 as the fixed White Rabbit link.
+- Step 1 PHY/link: PASS, independently rebuilt, programmed, and runtime-validated.
+- Step 2 Endpoint/MiniNIC/PTP: PASS, independently rebuilt, programmed, and runtime-validated.
+- Step 3 WR parent/signaling handshake: PASS, independently rebuilt, programmed, and runtime-validated; see its report for reset-observability limits.
+- Step 4 SoftPLL startup: PASS, independently rebuilt, programmed, and runtime-validated; Master Step 4A and Slave Step 4B event paths passed.
+- Step 5 SoftPLL full lock: PASS, independently rebuilt and programmed; Helper/HPLL, Main frequency, Main phase, and PSTAT locks held for a 300291 ms fresh-data span within a 301253 ms session.
+- Step 6 historical Global Time and dual-board scheduled digital trigger scope: PASS, independently rebuilt and programmed from its frozen source. Five common PPS labels matched exactly; two repeated scheduled triggers fired at matching TAI/cycle labels on both boards.
+- Revised Step 6 target (2026-10-01): **PASS — two independent fresh same-source build/program runs each held exported `STATUS_TIME_VALID` in every sampled row for >300 s on both boards**. Run 1: Master/Slave 1190/1190 rows, spans 302,887/302,880 ms, maximum gaps 257/257 ms. Run 2: 1190/1190 each, spans 302,879/302,870 ms, maximum gaps 256/257 ms. Both runs used `/2 acquisition + /12 tracking`; the boards were observed sequentially at a requested 250 ms interval. This supports repeatability of the sampled-bit criterion, not cycle-by-cycle continuity between reads. The historical SOF binaries were unavailable, so the freshly generated images are not claimed byte-identical to those old files. Timing closure, Step 5 locks, phase offset, and physical SMA edge skew are not gates for this target. See the [300-second repeat report](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/REPORT.md) and [experiment plan](experiments/step6/EXP-S6-TIME-VALID-300S-REPEAT-ACQ2-TRACK12-20261001/PLAN.md). Historical near-pass data and earlier pointwise `abs(CKO)<60 ps` evidence remain detailed in those reports.
+- Earlier Step 6 correlation (2026-09-30; superseded for current pointwise acceptance): 3,763/3,763 accepted rows over 300,032 ms; 140 CKO transition brackets ≥120 ps, with 96 showing both UCNT and corrected DMS changes. Only 7 rows were strictly inside ±60 ps at both boundaries. Pre/post offsets were +447 ps and -3801 ps. This sequential-read correlation remains non-causal; see the [correlation report](experiments/step6/EXP-S6-SERVO-OFFSET-UPDATE-CORRELATION-20260929/REPORT.md).
+- Earlier Step 6 paired-context capture (2026-09-30): valid Global Time and all five Slave lock fields appeared in 958/958 rows; 4/855 UCNT-joined rows met the offset threshold. The follow-on dashboard-equivalent capture above adds explicit Step 1 status gating and is the acceptance evidence for pointwise PASS. See the [paired-context report](experiments/step6/EXP-S6-WRH-SERVO-PHASE-CONTEXT-UCNT-PAIR-20260930/REPORT.md).
+- Earlier one-shot live dashboard check (2026-09-30): both boards had valid/stable time and the Slave's five lock bits high, but the instantaneous offset was −3779 ps, so that particular sample was correctly not qualified. It is superseded for current milestone status by the later pointwise capture, not contradicted. See the [dashboard report](experiments/step6/EXP-S6-CURRENT-DASHBOARD-GATE-20260930/REPORT.md).
+- Step 6 physical SMA/output edge-skew measurement: NOT EVALUATED. The guarded cached QSFP calibration CLI query was inconclusive because its shell-idle precondition did not pass; no command was sent.
+
+Step 5 timing closure remains NO and is not a functional gate. Its F4L raw audit documents eight repeated page-2 histogram-accounting warnings and the known sideband diagnostic limitation; no raw rows were dropped.
+
+Current source layout: canonical JTAG projects are flattened under quartus/, generated Quartus inputs are under quartus_generated/, SI5340 RTL is under quartus/si5340_controller/, and tests are consolidated under scripts/tests/. The canonical-path and stale-reference audit is complete.
+
+Historical Step6 records retain their original scopes. The Master-step64 repair
+now has two independent root reproduction successes; the earlier single-session
+package is superseded, not a second active Step6 milestone. Physical SMA/output
+edge-skew measurement remains separate and is not claimed.

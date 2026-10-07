@@ -1,0 +1,17 @@
+test_all_3110_qualified_inputs_match (scripts.tests.test_current_experiment_source.CurrentSourceTests) ... ok
+test_firmware_identity_is_pinned_without_fake_checkout_identity (scripts.tests.test_current_experiment_source.CurrentSourceTests) ... ok
+test_master_controller_generic_map_matches_declared_interface (scripts.tests.test_current_experiment_source.CurrentSourceTests) ... ok
+test_qualified_hashes_and_controller_contract (scripts.tests.test_current_experiment_source.CurrentSourceTests) ... ok
+test_wrapper_preserves_failed_verdict_and_unchanged_qualification (scripts.tests.test_current_experiment_source.CurrentSourceTests) ... ok
+test_any_sampled_status_time_valid_drop_on_either_board_fails (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_both_boards_pass_from_status_time_valid_alone (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_insufficient_observed_duration_fails (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_live_time_monotonicity_is_diagnostic_only (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_missing_required_board_fails (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_sample_gap_over_limit_fails (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+test_snapshot_pps_link_payload_and_lock_diagnostics_do_not_gate (scripts.tests.test_step6_time_valid_300s.Step6TimeValid300sTests) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.174s
+
+OK

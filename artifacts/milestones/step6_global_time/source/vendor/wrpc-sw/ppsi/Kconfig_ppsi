@@ -1,0 +1,627 @@
+
+choice
+	prompt "Architecture to build for"
+	depends on !WRPC_PPSI
+
+config ARCH_UNIX
+	bool "Unix (Linux and likely other systems)"
+	select ARCH_SUPPORT_VLAN
+	select ARCH_SUPPORT_MULTIPLE_VLAN
+	help
+	  ARCH=unix supports standard Unix system calls, although
+	  the code most likely includes some Linux dependencies.
+	  Choose this architecture if you build for a Linux PC
+	  or embedded system
+
+config ARCH_BARE_I386
+	bool "Bare i386"
+	help
+	  This architecture builds a Linux-i386 executable that
+	  does not rely on the standard C library, but makes
+	  system calls directly.  This architecture is a test case
+	  to ensure the code can run in freestanding environments
+	  (microcontrollers or other contexts with no operating system)
+
+config ARCH_BARE_X86_64
+	bool "Bare x86-64"
+	help
+	  This architecture builds a Linux-x86-64 executable that
+	  does not rely on the standard C library, but makes
+	  system calls directly.  This architecture is a test case
+	  to ensure the code can run in freestanding environments
+	  (microcontrollers or other contexts with no operating system)
+
+config ARCH_WRPC
+	bool "White Rabbit PTP Core (WR Node)"
+	select ARCH_SUPPORT_VLAN
+	help
+	  Build PPSi for use in the WRPC environment (SPEC card or similar
+	  one).  This is a freestanding build, without operating system.
+	  The configuration selects the "White Rabbit" protocol extension.
+
+config ARCH_WRS
+	bool "White Rabbit Switch"
+	select ARCH_SUPPORT_VLAN
+	select ARCH_SUPPORT_MULTIPLE_VLAN
+	help
+	  Build PPSi for use in the WR switch. The computer is a standard
+	  ARM-Linux host with hardware timestamping and internal PLLs
+	  needed to achieve sub-ns synchronization.
+	  The configuration selects the "White Rabbit" protocol extension.
+
+config ARCH_SIMULATOR
+	bool "PPSi Simulator (hosted on Linux)"
+	help
+	  Build a PPSi simulator. It's almost a unix full running slave,
+	  with a simulated master stimulating it for test purposes. This
+	  avoids to wait a long time to see how PPSi behaves.
+	  This architecture uses standard Unix system calls, but the
+	  code includes some Linux dependencies.
+
+endchoice
+
+config ARCH
+       string
+       default "unix" if ARCH_UNIX
+       default "bare-i386" if ARCH_BARE_I386
+       default "bare-x86-64" if ARCH_BARE_X86_64
+       default "wrpc" if ARCH_IS_WRPC=1
+       default "wrs" if ARCH_WRS
+       default "sim" if ARCH_SIMULATOR
+
+	
+config CROSS_COMPILE
+       string "Cross compiler prefix"
+       depends on !WRPC_PPSI
+       default "/opt/gcc-lm32/bin/lm32-elf-" if ARCH_IS_WRPC=1
+       default "/opt/arm-wrswitch/bin/arm-linux-" if ARCH_WRS
+       default ""
+
+config ARCH_CFLAGS
+       string
+       default "-m32" if ARCH_BARE_I386
+       default "-m64" if ARCH_BARE_X86_64
+       default ""
+
+config ARCH_LDFLAGS
+       string
+       default "-m elf_i386" if ARCH_BARE_I386
+       default "-m elf_x86_64" if ARCH_BARE_X86_64
+       default ""
+
+menu "Options" 
+
+menu "PTP Protocol Options"
+        choice
+                prompt "PTP Synchronization Mechanism"
+        config E2E
+                boolean "Delay-Request-Respond"
+                help
+                  Delay-Request-Response uses 4 timestamps
+                  for calculating the link delay and synchronizing.
+        config P2P
+                boolean "Peer Delay"
+                help
+                  Peer Delay uses 4 timestamps for calculating
+                  the link delay and another 2 for synchronizing.
+        endchoice
+
+	config E2E_ONLY
+		boolean "Avoid building P2P code"
+		depends on E2E
+		default y if E2E && (ARCH_BARE_I386 || ARCH_BARE_X86_64 || ARCH_IS_WRPC=1)
+		help
+		  If you choose E2E above, P2P is built anyways,
+		  and you can choose at runtime what to run.
+		  This disables P2P code, for size reasons on wrpc-sw
+
+	config HAS_P2P
+	       int
+	       default 0 if E2E_ONLY
+	       default 1  
+
+	config PTP_OVERWRITE_BASIC_ATTRIBUTES
+		boolean "Overwrite default PTP basic attributes (domain, priority)"
+		depends on WRPC_PPSI
+		default FALSE
+		help
+		  This option allows to overwrite the default values like:
+		  - priority1
+		  - priority2
+		  - domain number
+		  On WRPC if a proper option is enabled, these parameters can be changed
+		  in runtime (still require restart of PPSI).
+
+	if PTP_OVERWRITE_BASIC_ATTRIBUTES
+	config PTP_OPT_DOMAIN_NUMBER
+		int "domain-number"
+		default 0
+		range 0 255
+		help
+		  A domain consists of one or more PTP devices communicating with each
+		  other as defined by the PTP protocol. A domain defines the scope of
+		  PTP message communication, state, operations, data sets, and
+		  timescale. PTP devices may participate in multiple domains.
+		  For more details please refer to the IEEE 1588-2019 standard.
+
+	config PTP_OPT_PRIORITY1
+		int "priority1"
+		default "128"
+		range 0 255
+		help
+		  A user configurable designation that a clock belongs to an ordered
+		  set of PTP devices from which a PTP Master is selected.
+		  For more details please refer to the IEEE 1588-2019 standard
+
+	config PTP_OPT_PRIORITY2
+		int "priority2"
+		default "128"
+		range 0 255
+		help
+		  A user configurable designation that provides finer grained ordering
+		  among otherwise equivalent PTP devices.
+		  For more details please refer to the IEEE 1588-2019 standard
+	endif
+
+	config PTP_OPT_OVERWRITE_ATTRIBUTES
+		boolean "Overwrite default PTP device attributes (class, accuracy, etc)"
+		default FALSE
+		help
+		  This option allows to overwrite the default value depending 
+		  of the timing mode for the clock accuracy, the clock Allan variance.
+		  On WRPC if a proper option is enabled, these parameters can be changed
+		  in runtime (still require restart of PPSI).
+
+	if PTP_OPT_OVERWRITE_ATTRIBUTES
+
+	config PTP_OPT_CLOCK_ACCURACY
+		int "clock-accuracy"
+		default -1
+		range -1 255
+		help
+		  An attribute defining the accuracy of the Local Clock (e.g. local
+		  oscillator) of a Boundary Clock or Ordinary Clock.
+		  Set to -1 to use the default value.
+		  For more details please refer to the IEEE 1588-2019 standard.
+
+	config PTP_OPT_CLOCK_ALLAN_VARIANCE
+		int "clock-allan-variance/offsetScaledLogVariance"
+		default -1
+		range -1 65535
+		help
+		  An attribute defining the stability of the Local Clock of a
+		  Boundary Clock or Ordinary Clock.
+		  Set to -1 to use the default value.
+		  For more details please refer to the IEEE 1588-2019 standard.
+	
+	config PTP_OPT_TIME_SOURCE
+		int "time-source"
+		default -1
+		range -1 255
+		help
+		  This information-only attribute indicates the source of time used
+		  by the grandmaster (or free-running master).
+		
+	endif
+
+	config LEAP_SECONDS_VAL
+		int "Value of Leap Seconds"
+		depends on ARCH_IS_WRPC=1
+		default 37
+		help
+		  Difference in seconds between TAI and UTC.
+endmenu
+
+menu "Enabled profiles"
+
+	config PROFILE_WR
+		bool "WhiteRabbit"
+		default y if ARCH_WRS || ARCH_IS_WRPC=1
+
+	config PROFILE_HA
+		bool "HighAccuracy"
+		default y if ARCH_WRS
+
+	config PROFILE_CUSTOM
+		bool "Custom"
+		default y if ARCH_WRS
+
+endmenu
+
+config PROFILE_PTP
+	bool
+	default y
+
+config HAS_EXT_WR
+	int 
+	range 0 1
+	default 1 if PROFILE_WR
+	default 0
+	
+config HAS_EXT_L1SYNC
+	int 
+	range 0 1 
+	default 1 if PROFILE_HA
+	default 0
+
+config HAS_EXT_NONE
+	int 
+	range 0 1
+	default 1 if !(PROFILE_WR || PROFILE_HA || PROFILE_CUSTOM)
+	default 0
+	
+config HAS_PROFILE_PTP
+	int 
+	range 0 1
+	default 1 if PROFILE_PTP 
+	default 0 
+
+config HAS_PROFILE_HA
+	int 
+	range 0 1
+	default 1 if PROFILE_HA
+	default 0 
+
+config HAS_PROFILE_WR
+	int 
+	range 0 1
+	default 1 if PROFILE_WR 
+	default 0 
+
+config HAS_PROFILE_CUSTOM
+	int 
+	range 0 1
+	default 1 if PROFILE_CUSTOM 
+	default 0 
+
+#default to y if WRPC and VLAN support is enabled in WRPC's Kconfig
+config PPSI_VLAN
+	bool
+	default y if WRPC_PPSI && VLAN
+
+
+config ARCH_SUPPORT_MULTIPLE_VLAN
+	bool
+
+# I want a number, to be used without ifdef
+config VLAN_ARRAY_SIZE
+       int
+       default 0 if !PPSI_VLAN
+       default 1 if !ARCH_SUPPORT_MULTIPLE_VLAN
+       default MAX_VLANS_PER_PORT
+
+# Vlan support: not all architectures have it, so this is set by them
+config ARCH_SUPPORT_VLAN
+	bool
+
+menu "VLAN"
+	depends on !WRPC_PPSI
+
+
+config PPSI_VLAN
+	bool "Enable VLAN support for raw Ethernet"
+	depends on (ARCH_SUPPORT_VLAN || ARCH_SUPPORT_MULTIPLE_VLAN)
+	default y
+	help
+	  PPSI is able to directly emit and receive tagged frames,
+	  with some architectures (if you see this option, it means
+	  the architecture you selected has such support). A
+	  designated master port can send announce on several VLANs,
+	  but the other roles (designated slave or auto) can only bind
+	  to a single VLAN.  This choice is a tradeoff between code
+	  complexity and flexibility.
+	  
+	  Please note that you can always create several PTP ports that
+	  act on different VLANs on the same physical port, and you can
+	  also run VLAN support in your OS without special PPSI code.
+	  Please see the PPSI documentation for details.
+
+config MAX_VLANS_PER_PORT
+	int "Maximum number of VLANs per port"
+	depends on ARCH_SUPPORT_MULTIPLE_VLAN
+	default 32
+	help
+	  This configuration option is mainly used to support
+	  the special case of 1 VLAN per port, useful for
+	  microcontroller-class architectures.  Hosted builds
+	  feature a bigger default, because they have no size constraints.
+	  
+
+
+endmenu
+
+config PPSI_ASSERT
+	bool "Build assertion checks in the PPSI code"
+	default n
+	  help
+	    Build assertions in the PPSI code, to catch unexpected situations.
+	    When an assertion fails the code loops over repeating the
+	    error message every second. OTOH, panic() is always built,
+	    with no Kconfig -- and it does the same, unconditionally.
+
+
+config NR_FOREIGN_RECORDS 
+	int "Size of foreignMasterDS data set"
+	range 1 20
+	default 1 if ARCH_IS_WRPC=1
+	default 5 
+	help 
+		Size of foreignMasterDS data set (Clause 9.3.2.4.5).
+		If the code is optimized with externalPortConfiguration.enable forced to true,
+		the NR_FOREIGN_RECORDS should be set to 1
+
+config SINGLE_FMASTER
+	boolean 
+	default y if NR_FOREIGN_RECORDS=1
+	default n
+	
+config NR_PORTS 
+	int "Number of ports"
+	range 1 64
+	default 1 if ARCH_IS_WRPC=1
+	default 18 if ARCH_WRS
+	default 64
+	help 
+		number of physical ports
+
+config NR_INSTANCES_PER_PORT 
+	int "Max instances per port"
+	range 1 64
+	default 1 if ARCH_IS_WRPC=1
+	default 2 if ARCH_WRS
+	default 1
+	help 
+		Number of PPSi instances per physical port
+
+menu "Code optimization" 
+
+config CODEOPT_ENABLED 
+	boolean "Enable code optimization"
+	default y
+	help 
+		Enable code optimization
+
+config SINGLE_INSTANCE_PER_PORT
+	boolean 
+	default y if NR_INSTANCES_PER_PORT=1
+	default n
+
+config SINGLE_INSTANCE
+	boolean 
+	default y if NR_INSTANCES_PER_PORT=1 && NR_PORTS=1
+	default n
+
+config SINGLE_PORT
+	boolean 
+	default y if NR_PORTS=1
+	default n
+
+config CODEOPT_SINGLE_PORT  
+	boolean "Single port"
+	depends on CODEOPT_ENABLED && SINGLE_PORT 
+	default n
+	help 
+		Code optimization when only one port is used (e.g:WRPC).
+
+config 	CODEOPT_SINGLE_FMASTER
+	boolean "One foreign master"
+	depends on CODEOPT_ENABLED && SINGLE_FMASTER
+	default n
+	help 
+		Only one foreign master per port instance.
+
+config 	CODEOPT_SINGLE_INSTANCE_PER_PORT
+	boolean "One instance per port"
+	depends on CODEOPT_ENABLED && SINGLE_INSTANCE_PER_PORT
+	default n
+	help 
+		Only one instance per port.
+
+config 	CODEOPT_WRPC_SIZE
+	boolean "Size optimizations specific for WRPC"
+	depends on CODEOPT_ENABLED && ARCH_IS_WRPC=1
+	default y
+	help
+		Use optimizations specific to WRPC to reduce the footprint.
+
+config 	CODEOPT_EXT_PORT_CONF_FORCE_DISABLED
+	boolean "Remove external port configuration"
+	depends on CODEOPT_ENABLED
+	default y if ARCH_IS_WRPC=1
+	default n
+	help
+		externalPortConfiguration set to false to reduce the footprint.
+		Saves ~1500B on WRPC
+
+config 	CODEOPT_SO_FORCE_DISABLED
+	boolean "Force disabled slaveOnly"
+	depends on CODEOPT_ENABLED
+	default y if ARCH_IS_WRPC=1
+	default n
+	help
+		Force slaveOnly to false to reduce the footprint.
+		Saves ~650B.
+
+config 	CODEOPT_MO_FORCE_DISABLED
+	boolean "Force disabled masterOnly"
+	depends on CODEOPT_ENABLED
+	default y if ARCH_IS_WRPC=1
+	default n
+	help
+		Force masterOnly to false to reduce the footprint.
+		Saves ~100B.
+
+choice 
+	prompt "Exclusive options"
+	
+	config CODEOPT_EPC_SO_DISABLED 
+		boolean "No optimization"
+		depends on CODEOPT_ENABLED
+		help 
+			No optimization		
+	
+	config CODEOPT_EPC_ENABLED 
+		boolean "Force externalPortConfiguration.enable to true"
+		depends on CODEOPT_ENABLED && !CODEOPT_EXT_PORT_CONF_FORCE_DISABLED
+		help 
+			externalPortConfiguration.enable is set to true and cannot be changed
+	
+	config CODEOPT_SO_ENABLED
+		boolean "Force slaveOnly mode to true"
+		depends on CODEOPT_ENABLED && SINGLE_PORT && !CODEOPT_SO_FORCE_DISABLED
+		help 
+			slaveOnly is set to true and cannot be changed. 
+			It implies that the number of port instances must be set to 1. 
+			
+endchoice
+
+endmenu
+
+endmenu
+
+
+choice
+	prompt "Compilation optimization"
+	depends on !WRPC_PPSI
+
+    config OPTIMIZATION_SPEED
+        boolean "Execution time (-O2)"
+        help
+           GCC performs nearly all supported optimizations that do not involve a space-speed tradeoff.
+           
+     config OPTIMIZATION_SIZE_SPEED
+        boolean "Size and execution time (-Os)"
+        help
+           Optimize for size. Enables all -O2 optimizations except those that often increase code size.
+           
+     config OPTIMIZATION_DEBUGGING
+        boolean "Debugging (-Og)"
+        help
+           Should be the optimization level of choice for the standard edit-compile-debug cycle
+
+     config OPTIMIZATION_NONE_DEBUGGING
+        boolean "Debugging without optimization(-ggdb)"
+        help
+           Compile without optimization and with debug informations 
+endchoice
+
+config OPTIMIZATION
+	string
+	default "-Os -ggdb" if OPTIMIZATION_SIZE_SPEED || ARCH_IS_WRPC=1
+	default "-O2 -ggdb" if OPTIMIZATION_SPEED
+	default "-Og -ggdb" if OPTIMIZATION_DEBUGGING
+	default "-ggdb" if OPTIMIZATION_NONE_DEBUGGING
+	default ""
+
+
+config FAULT_INJECTION_MECHANISM
+	bool "Add fault injection mechanism"
+	help
+	  The implementation is architecture specific.
+	  For wrpc it adds a "fault" shell command, with subcommands.
+	  The same mechanisms are available in the wr switch, through
+	  the configuration file.
+
+config NO_PTPDUMP
+	boolean "Disable dump of ptp payload"
+	depends on WRPC_PPSI
+	default n
+	help
+	  Disable dump of ptp payload used by verbose command.
+
+config HAS_FAULT_INJECTION_MECHANISM
+	int
+	range 0 1
+	default 1 if FAULT_INJECTION_MECHANISM
+	default 0
+
+# We want numbers (0/1) to avoid ifdef
+config HAS_WRPC_FAULTS
+	int
+	range 0 1
+	default 1 if WRPC_FAULTS
+	default 0
+
+config HAS_CODEOPT_SINGLE_FMASTER
+	int 
+	range 0 1
+	default 1 if CODEOPT_SINGLE_FMASTER
+	default 0
+	
+config HAS_CODEOPT_SINGLE_PORT
+	int 
+	range 0 1
+	default 1 if CODEOPT_SINGLE_PORT
+	default 0
+	
+config HAS_CODEOPT_SINGLE_INSTANCE_PER_PORT
+	int 
+	range 0 1
+	default 1 if CODEOPT_SINGLE_INSTANCE_PER_PORT
+	default 0
+
+config HAS_CODEOPT_CODEOPT_WRPC_SIZE
+	int
+	range 0 1
+	default 1 if CODEOPT_WRPC_SIZE
+	default 0
+
+config HAS_CODEOPT_EXT_PORT_CONF_FORCE_DISABLED
+	int
+	range 0 1
+	default 1 if CODEOPT_EXT_PORT_CONF_FORCE_DISABLED
+	default 0
+
+config HAS_CODEOPT_SO_FORCE_DISABLED
+	int
+	range 0 1
+	default 1 if CODEOPT_SO_FORCE_DISABLED
+	default 0
+
+config HAS_CODEOPT_MO_FORCE_DISABLED
+	int
+	range 0 1
+	default 1 if CODEOPT_MO_FORCE_DISABLED
+	default 0
+
+config HAS_CODEOPT_EPC_ENABLED
+	int 
+	range 0 1
+	default 1 if CODEOPT_EPC_ENABLED
+	default 0
+
+config HAS_CODEOPT_SO_ENABLED
+	int 
+	range 0 1
+	default 1 if CODEOPT_SO_ENABLED
+	default 0
+
+config HAS_EXT_WR 
+	int 
+	range 0 1
+	default 1 if EXT_WR
+	default 0
+	
+config HAS_EXT_L1SYNC 
+	int 
+	range 0 1
+	default 1 if EXT_L1SYNC
+	default 0
+	
+config ARCH_IS_WRS
+	int 
+	range 0 1
+	default 1 if ARCH_WRS
+	default 0
+
+config ARCH_IS_WRPC
+	int 
+	range 0 1
+	default 1 if ARCH_WRPC || WRPC_PPSI
+	default 0
+	
+config HAS_PPSI_ASSERT
+	int 
+	range 0 1
+	default 1 if PPSI_ASSERT
+	default 0

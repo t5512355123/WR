@@ -1,0 +1,1753 @@
+\input texinfo    @c -*-texinfo-*-
+%
+% ppsi-manual.in - main file for the documentation
+%
+%%%%
+
+%------------------------------------------------------------------------------
+%
+%                         NOTE FOR THE UNAWARE USER
+%                         =========================
+%
+%    This file is a texinfo source. It isn't the binary file of some strange
+%    editor of mine. If you want ASCII, you should "make ppsi-manual.txt".
+%
+%------------------------------------------------------------------------------
+
+%
+% This is not a conventional info file...
+% I use three extra features:
+%   - The '%' as a comment marker, if at beginning of line ("\%" -> "%")
+%   - leading blanks are allowed (this is something I can't live without)
+%   - braces are automatically escaped when they appear in example blocks
+%
+
+@comment %**start of header
+@documentlanguage en
+@documentencoding ISO-8859-1
+@setfilename ppsi-manual.info
+@settitle ppsi-manual
+@iftex
+@afourpaper
+@end iftex
+@paragraphindent none
+@comment %**end of header
+
+@setchapternewpage off
+
+@set update-month April 2025
+@set release __RELEASE_GIT_ID__
+
+@finalout
+
+@titlepage
+@title PPSi Manual
+@subtitle @value{update-month} (@value{release})
+@subtitle Documentation about ``PTP Ported to Silicon''
+@author A. Rubini, A.Colosimo, A.Wujek, J-C Bau for CERN
+@end titlepage
+@headings single
+
+@c ##########################################################################
+@iftex
+@contents
+@end iftex
+
+@c ##########################################################################
+@node Top
+@top Introduction
+
+PPSi (@sc{ptp} Ported to Silicon) is an application which, in
+its basic operation, implements @sc{ieee} 1588-2019 specification in a way
+that is portable to several architectures, including OS-less ones.
+The current version of PPSi is compatible with @sc{ieee} 1588-2008
+(@sc{ptp} version 2) and includes a number of optional features specified
+in @sc{ieee} 1588-2019 (@sc{ptp} version 2.1).
+
+This manual is mainly aimed at developers: people who are working with
+@sc{ptp} and/or White Rabbit and need to use the protocol in their own
+hardware or software environments.  Users who simply run PPSi on the host
+may want to read @ref{Command Line} and little else.
+
+
+@c ##########################################################################
+@node Project Overview
+@chapter Project Overview
+
+This project originates in the context of @i{White Rabbit}, which is
+shortened to @i{WR} in this manual.
+
+WR is a multi-lab research project that aims at synchronizing
+thousands of I/O devices distributed in a network several kilometers
+wide; its software protocol is an extension of @sc{ptp}, @sc{wr-ptp}.
+A WR network is
+made up of two types of devices: the @i{WR Switch} and the @i{WR Node}.
+For more information please visit:
+@url{https://gitlab.com/ohwr/project/white-rabbit/-/wikis}.
+
+The WR switch is an 18-ports Gigabit Ethernet switch that runs
+@sc{wr-ptp} as a Linux process, synchronizing each Ethernet link as
+either a @sc{ptp} master or a @sc{ptp} slave (it is a @i{boundary clock}). The
+WR node is an I/O device that includes a soft core that runs @sc{wr-ptp}
+in @i{freestanding} mode (i.e., without an operating system).
+
+PPSi, as a software package, is designed to be the @sc{ptp}
+implementation used in WR, running both standard @sc{ptp} and
+@sc{wr-ptp}, in all possible use cases.
+
+The algorithm and computation routines regarding the basic @sc{ieee} 1588
+are derived from the @i{PTPd} project, v.2.1.0 (see AUTHORS for details
+about copyright); but as of March 2013 very little remains of the original
+code base.  In addition to the basic feature set the project inherited from
+@i{PTPd}, the PPSI supports raw Ethernet frames (@t{ETH_P_1588}),
+according to Annex F of the @sc{ieee} 1588 and support for protocol extensions.
+
+Authors thank Danilo Sabato for fixing the @i{bare} architectures
+(see @ref{Architectures}).
+
+The home page of the PPSi project and the source repository are:
+
+@url{https://gitlab.com/ohwr/project/ppsi/-/wikis}
+
+@c ##########################################################################
+@node Status Features and Bugs
+@chapter Status, Features, Bugs
+
+This document tries to summarize the status of
+the project, but the development is still being done on the package,
+so information here may be slightly out of date with respect to code.
+
+The software package is designed to be modular: each of architectures,
+protocols and timing engine
+ can be replaced by providing a proper subdirectory.
+
+@c ==========================================================================
+@node Build-time Configuration
+@section Build-time Configuration
+
+PPSi uses the Kconfig configuration
+engine.  Configuration is performed by running ``@t{make
+menuconfig}'' or equivalent command.
+
+A number of ready-to use configuration files are distributed in the
+@t{configs/} directory: to use any of them name it as target of @i{make}
+(for example: ``@t{make wrs_defconfig}'').
+
+The default configuration is @i{unix_defconfig}, that builds a Unix daemon
+running the standard @sc{ptp} version 2 protocol.
+
+@c ==========================================================================
+@node Architectures
+@section Architectures
+
+When building PPSi, the user can specify which architecture to build
+for, by selecting it in @t{make menuconfig} or equivalent configuration
+command.  When cross-compiling, it is need to tell cross-compiler
+a prefix in the configuration step, or override it at build time
+by passing @t{CROSS_COMPILE=} on the command line.
+
+The package currently supports the following architectures:
+
+@table @i
+
+@item unix
+
+	This is the default architecture and is the normal @i{hosted}
+        environment.  The architecture is usually tested over the Linux
+        kernel using the standard GNU libraries. Most of the code relies
+        on standard @sc{posix} conventions, so this architecture most
+        likely works on @sc{bsd} and other variants as well. In the future
+        the name may change accordingly, after identifying the weak
+        (i.e. unportable) points.  This architecture supports the standard
+        protocol on both @sc{udp} and raw Ethernet, also both at the
+        same time thanks to the per-link split of I/O methods.
+        The architecture relies on @i{time-unix}, but it supports
+        building with different time engines.
+
+@item wrs
+
+	The White Rabbit switch build of PPSi is designed to be a
+        separate architecture, even if the switch itself is a Linux
+        system running on an ARM processor.  The switch is a complex
+        system, with several daemons cooperating through an IPC
+        and shared memory mechanisms: the standard main loop for a 
+        standalone Unix daemon
+        doesn't apply to the WR switch, and modelling it as a
+        separate architecture is the simplest and cleanest approach
+        (even if it leads to some code duplication).
+        The architectures relies on @i{time-wrs}.
+
+@item wrpc
+
+	The @i{White Rabbit PTP Core} architecture is a port of PPSi to
+        run on I/O devices. inside a Field Programmable Gate Array
+        (FPGA) chip. The @i{wrpc} is a ``@i{core}'', i.e. a
+        logic block, that runs in WR-capable I/O cards. Most such cards
+        are developed as open hardware on @i{ohwr.org}; examples are
+        the @sc{spec} (a PCIe carrier for FMC devices) and the @sc{svec}
+        (a VME carrier, with two FMC slots driver by the same WR core).
+        The @i{wrpc} includes a soft-core
+        @sc{cpu} that runs the @sc{wr-ptp} daemon.  PPSi is designed to
+        be able to be linked from @i{wrpc-sw} as its own @i{wr-ptp}
+        engine. PPSi in this environment currently supports only raw
+        Ethernet, not @sc{udp}.  The architecture uses @i{time-wrpc}.
+
+@item sim
+
+	This is a simulator. It uses special time and network operations
+        to simulate a master and a slave exchanging ptp frames.
+        Arch-specific configuration options are implemented in
+        @i{arch-sim/sim-conf.c}. Use of the simulator is briefly
+        described in @ref{Configuring the Simulator}.
+
+@item bare-i386
+
+	This architecture uses system calls towards the Linux kernel but
+        does not rely on standard libraries.  The port only supports
+        raw Ethernet frames and is thought to be a validation for
+        @i{freestanding} ports.  The process built as @i{bare-i386}
+        runs on conventional x86 Linux hosts and demonstrates that
+        PPSi works properly with no added dependencies on external
+        libraries; freedom from dependencies is mandatory to retain
+        the ability to build and run in @i{freestanding} environments
+        like @i{wrpc} or microcontrollers.
+
+@item bare-x86-64
+
+	Like @i{bare-i386}, this architectures makes direct system calls
+        without relying on external libraries. The host in this case is
+        the a 64-bit PC instead of a 32-bit one. Both bare ports use
+        @i{time-bare} for their timing operations.
+
+@end table
+
+@c We plan, over time, to support microcontrollers (a beta version for
+@c ARM7 is working, and we are considering Cortex-M) and @i{bare-arm} (to
+@c be tested on the WR switch).
+
+@c ==========================================================================
+@node Protocols
+@section Protocols
+
+At build time, the user can select the standard protocol (selected by
+default by most architectures) or an extension.
+The code base includes three extensions:
+@indentedblock
+  @itemize @bullet
+  @item White Rabbit (WR) - specified in "White Rabbit Specification", v2.0:
+  
+  @url{http://white-rabbit.web.cern.ch/documents/WhiteRabbitSpec.v2.0.pdf},
+  @item Layer 1 Syntonization (L1Sync, a.k.a. High Accuracy) - the experimental
+        implementation of a profile specified in Annex L of @sc{ieee} 1588-2019.
+  @item @i{Custom} - the experimental profile that allows free access to all
+         options and attributes
+  @end itemize
+@end indentedblock
+White Rabbit extension is the default choice when building for one of the 
+WR architectures.
+ 
+The selection of the used extension (or standard PTP) is done in run-time by
+a proper configuration.
+
+PPSi can be easily expanded with a support of a new @i{ptp} profile.
+
+Each extension lives in a subdirectory called @t{proto-ext-}@i{name}.
+Source files in that directory may override the implementation for the
+standard protocol (which lives in @t{proto-standard}) to provide their
+own functionalities. There is also a subdirectory @t{proto-ext-common}
+which holds common code for all available extensions. 
+To simplify writing extensions, the @i{proto-standard}
+functions already provide @i{hooks} so the extension itself can provide
+callbacks while still using the basic @sc{ptp} engine.
+The set of callbacks is currently based on the needs of
+WR and L1Sync, but it can be easily expanded if more hooks are needed.
+
+The implementation of @i{proto-ext-whiterabbit} can act as a good reference
+for future implementations of protocol extension.
+
+@c ==========================================================================
+@node Time Functions and Network Operations
+@section Time Functions and Network Operations
+
+PPSi supports custom implementations of time functions, so it can
+easily port the daemon to a new timing primitives.
+
+The subdirectories named @i{time-xxxx} are used to implement timing
+functions; timing includes the methods that are part of two data
+structures: @i{pp_time_operations} and @i{pp_network_operations}.  The
+former structure deals with getting and setting system/WR time, while the
+latter deals with frame tx and rx. Network operations are concerned
+with timestamping the actual I/O, and that's why they are considered
+part of the ``timing'' of PPSi.
+
+Each architecture defines its own '@t{TIME=}' choice in the specific
+@t{Makefile}.  The user can override the default by either setting the
+variable on the command line of PPSi, or by setting an environment
+variable if the architecture supports it.  For example, the @i{bare}
+architectures force '@t{TIME=bare}', while the @i{unix} architecture
+suggests Unix timing code ('@t{TIME?=unix}'). The choice for '@t{TIME=}'
+is not currently selected using Kconfig, because nobody is expected
+to diverge from the default choice for the architecture being built.
+
+To support a different timing engine within the Unix build
+system, '@t{make TIME=xyz}' can be used to request building
+the @i{time-xxxx} subdirectory.  Please note that the Unix time
+structures are built anyways for '@t{CONFIG_ARCH=unix}',
+so it can piggy-back on those
+functions, either within own methods or by replacing the
+@t{ppi->t_ops} and @t{ppi->n_ops} for the communications links that do
+not include the hardware support.
+
+@c ==========================================================================
+@node Features
+@section Features
+
+This is a summary of current and planned features for the PPSi
+package.
+
+@table @r
+
+@item Support standard @sc{ptp} and extensions.
+
+	Each protocol extension should fall back to standard @sc{ptp} when
+        it detects that its peers are not able to speak the extended
+        protocol. Many extensions are now supported in
+        a single build. In a near future, the new protocol extension L1SYNC
+        used by the High Accuracy (@sc{HA}) profile will be released.
+
+@item Support both hosted and freestanding environments.
+
+	This is already supported, though PPSi still lacks a microcontroller
+        implementation, and the only freestanding environment is @i{wrpc},
+        running on an LM32 or RISCV soft-processor.
+
+@item Support multi-PTP link operation.
+
+	The daemon manages several PTP links at the same time, being configured
+        as master/slave or auto-detecting its role on each link using
+        @i{best master clock algorithm} (BMCA).
+        The @i{BMCA} is run globally,
+        but communication and timeouts are managed per-link.
+
+@item Support both @sc{udp} and raw Ethernet.
+
+	PPSi uses the multi PTP-link operation to
+        support both @sc{udp} and raw Ethernet on the same network
+	interface (physical port). PPSi supports @sc{udp} in the WR switch,
+        to allow progressive and seamless migration to WR network of devices
+        that already support @sc{ptp} with a @sc{udp}-only implementation.
+
+@item Support fall-back master links.
+
+        This feature is only partly implemented. With the help of BMCA it is
+        possible to track more than one master (other are passive).
+        However, the reconfiguration takes number of seconds.
+        The tracking of more than one master with a switch over
+        from one to the other within a few milliseconds and with no
+        time glitches is not available now.
+
+@item Support hardware timestamping where available.
+
+	Hardware timestamping is supported in WR devices.
+	However, This is not yet implemented for the generic protocol.
+
+@item Allow architectures to state their capabilities.
+
+	Currently the command-line arguments are an all-or-nothing thing.
+        But, for example, @i{bare} architectures don't support
+        @sc{udp} and other architectures may not support raw Ethernet.
+        It is planed to allow architectures to state their capabilities to
+        report proper errors when the user tries to set up unimplemented
+        configurations.
+
+@item Support run-time enable/disable of diagnostics.
+
+	It is planned to allow run-time modification of diagnostics flags
+        with a per-link granularity.  Currently there are configuration-based
+        per-link diagnostic flags and global diagnostic
+        flags. Only some architectures allows that it can be changed
+        at run time (for example, arch-wrpc offers that through a shell
+        command). It is believed that this feature is useful
+        for systems with more than a pair of interfaces and have problems
+        on some of the links but not all of them.
+
+@item Access of internal structures in run-time
+
+        PPSi keeps almost all of its internal data in shared memory.
+        Thanks to this the internal state can be exported and monitored by
+        external tools. For example SNMP agent implemented on WR Switch uses
+        this mechanism to provide monitoring data for external tools.
+        The dumps of PPSi's memory (of live or crashed process) can be used to
+        investigate the internal state. There are tools,
+        @t{wrs_dump_shmem} (for WR Switch) and @t{wrpc-dump} (for WR Node) that
+        can translate binary dumps into user-friendly text form.
+        PPSi increases a special counter before and after each write to
+        the shared memory increases, which can ensure the data consistency.
+
+@item Runtime re-configuration
+
+	Currently, the configuration of PPSi is provided at startup and
+	only some parameters on a limited number of architectures (WR node)
+	can be changed. It would be very useful to be able to
+	change some of the @sc{ptp} and extensions configuration without
+	the need of restarting PPSi (and resynchronizing). Such runtime
+	re-configuration could include ClockClass priority, packet rate
+	or enable/allowed extensions. Implementing full run-time reconfiguration
+	is on project's todo list.
+
+
+@end table
+
+
+@c ==========================================================================
+@c @node Bugs
+@c @section Bugs
+@c 
+@c As of 2013-05 the project suffers from these known bugs:
+@c 
+@c @itemize
+@c @item All frames must be sent according to a pseudo-random distribution;
+@c       this is mostly in place but must be audited project-wide.
+@c @item We removed @i{peer-delay} support. We plan to add it back, and
+@c       actually move White Rabbit to use @i{peer-delay} @sc{ptp} instead of
+@c       @i{end-to-end} @sc{ptp}.
+@c @item The servo for standard-@sc{ptp} must be audited. We are doing
+@c       it now using  @i{arch-sim} support,
+@c @item @sc{udp} over @sc{IPV6} is not yet supported.
+@c @end itemize
+
+@c ##########################################################################
+@node Configuration
+@chapter Configuration
+
+PPSi supports configuration files and individual configuration items
+passed on the command line.  Such support is currently not available
+for freestanding architectures (the @i{bare} ones and @i{wrpc-sw}).
+
+When PPSi starts it parses its own configuration. The command line can
+include a number of @t{-f <file>} and @t{-C <item>} options; they are
+processed in order, so later ones override earlier ones. A
+configuration ``item'' can include several directives, using the
+semicolon as a separator.
+
+If no configuration file is specified, the program reads the default
+one, which is architecture-specific (thus, the default configuration
+file is processed after all the command line configuration items; to change
+the order use explicitly the @t{-f} parameter).  The
+default file name is @t{/etc/ppsi.conf}.  The source tree of PPSi includes
+two example configuration files in its own @t{/etc} subdirectory.
+
+Configuration is made of global options and port-specific options.
+To configure a port, use either @t{port <name>} or  @t{link <name>} 
+followed by its options.
+The parser allocates a new @sc{ptp} instance for each new port, but
+allows changing configuration of an existing port.  For instance, to
+enable frame diagnostics for a specific port, the following command can be used:
+
+@smallexample
+        ./ppsi -f /etc/ppsi.conf -C "port eth1-raw-ptp; diagnostics 02"
+@end smallexample
+
+Each configuration item is made up of a keyword and one or few
+arguments. Many @ref{arg-types,,argument types} are supported by PPSi. 
+The parser looks up keywords in three tables: a global table, an
+architecture-specific table and an extension-specific table.
+Currently, only @i{arch-sim} has specific configuration items.
+
+The list of global and port specific configuration items are described 
+in the following section but also in code source file @t{lib/conf.c} and
+@t{pp_global_arglines} array.
+
+
+@c ==========================================================================
+@node PPSi base configuration
+@section PPSi base configuration
+
+The PPSi configuration is separated into different sections.
+All keywords belonging to the 'global options' can be defined anywhere in
+the configuration, but to increase the readability, it is suggested to define
+them at the beginning.
+
+The 'port-specific' section always begins with the keyword 'port' or 'link'. Then all 
+following 'port-specific' keywords will be associated to this port until 
+a new keyword 'port' or 'link' appears.
+
+@anchor{arg-types}
+An option is a key/value(s) pair separated by at least a space character, e.g.: '@t{key value(s)}'. The '@t{value(s)}' entry
+depends on the option type. The following value types are supported by PPSi:
+
+
+@table @code
+@item Int16
+This is a 16 bits integer value in the range from -32 768 to 32 767 
+@item Int32
+This is a 32 bits integer value in the range from -2 147 483 648 to 2 147 483 647
+@item Int64
+This is a 64 bits integer value in the range from -9 223 372 036 854 775 808 to 9 223 372 036 854 775 807
+@item Int16[2]
+This is an array of 2 Int16.
+@item Double
+This is a 64 bit floating point in the range 1.7E +/- 308 (15 digits). 
+A value can be expressed using two available notations: 
+- E notation: 1.6E-1
+- Decimal notation: 0.16
+@item Boolean
+This is a simple boolean value (True/False). The accepted values for 'True' value are '@t{t/true/1/on/y/yes}'
+and '@t{f/false/0/off/n/no}' for 'False'.
+@item String
+This is free text.
+@item  TextList
+ This is a list of predefined choices specified with predefined text. 
+For each choice, it can use more than one predefined text.
+ For example, the selection of the delay mechanism allows two predefined
+ choices (peer-to-peer or end-to-end), but for each choice it is possible to
+ use a number of different texts for the selection:
+ @example
+end-to_end: "request-response","delay","e2e"
+peer-to-peer: "peer-delay","pdelay","p2p"
+ @end example
+@end table
+
+
+For some options, multiple keyword names (@t{key}) can be used,  e.g. "mechanism", "dm". New keyword names have been added 
+to be more explicit but at the same time old keyword names have not been suppressed just to keep the backward compatibility.
+Some old keywords will be marked '@i{(deprecated)}', and will be removed in the future.
+
+@heading List of global options (i.e. keywords)
+@table @code
+
+@item @b{clock-class} @i{[Int32]}
+	An attribute defining the TAI traceability, synchronization state and
+	expected performance of the time or frequency distributed by a
+	Boundary Clock or Ordinary Clock.
+	For more details please refer to the IEEE 1588 standard
+
+@item @b{clock-accuracy} @i{[Int32]}
+	An attribute defining the accuracy of the Local Clock (e.g. local
+	oscillator) of a Boundary Clock or Ordinary Clock.
+	For more details please refer to the IEEE 1588 standard.
+	
+@item @b{clock-allan-variance}  @i{[Int32]}
+	An attribute defining the stability of the Local Clock of a
+	Boundary Clock or Ordinary Clock.
+	For more details please refer to the IEEE 1588 standard
+
+@item @b{time-source} @i{[Int32]}
+	The source of time used by the grandmaster (or free-running master).
+
+@item @b{domain-number}  @i{[Int32]}
+	A domain consists of one or more PTP devices communicating with each
+	other as defined by the PTP protocol. A domain defines the scope of
+	PTP message communication, state, operations, data sets, and
+	timescale. PTP devices may participate in multiple domains.
+	For more details please refer to the IEEE 1588-2019 standard.
+
+@item @b{priority1}  @i{[Int32]}
+	A user configurable designation that a clock belongs to an ordered
+	set of PTP devices from which a PTP Master is selected.
+	For more details please refer to the IEEE 1588 standard.
+
+@item @b{priority2}  @i{[Int32]}
+	A user configurable designation that provides finer grained ordering
+	among otherwise equivalent PTP devices.
+	For more details please refer to the IEEE 1588 standard.
+
+@item @b{forcePpsGen}  @i{[Boolean]}
+	Configuration of the PPS output. By default, the PPS is generated
+	only when the clock class is set to 6 (Grandmaster), or to 193 
+	(Free-running master), or when the PTP device is a PTP Slave, i.e.
+	it is synchronized via port in Slave state to a PTP Master.
+
+@item @b{ptpFallbackPpsGen}  @i{[Boolean]}
+	If set, PPS is generated even if a PTP Device with enabled
+	protocol extension (WR, L1Sync, ...) is synchronized using standard 
+	PTP communication only. Note: by default, a PTP device that is a
+	a PTP slave and has protocol extension enabled will generate PPS 
+	only if the protocol extension is active on the Slave port.
+
+@item @b{ptpPpsThresholdMs}  @i{[Int32]}
+	This option defines the threshold corresponding to the offset from the 
+	master used to start the generation of the PPS. It is  either used by a PTP slave 
+	instance or a instance using a protocol extension but going into the fallback PTP mode 
+	and with the PTP fallback option active. 
+	A 0 value means that the PPS will be not generated for the considered cases. 
+	When the PPS is generated, it can be also disabled when the offset from master becomes greater
+	than the threshold value + 20%.
+	
+@item @b{gmDelayToGenPpsSec} @i{[Int32]}
+	If this option is set to a value greater than 0, it allows PPS generation 
+	when the PTP device becomes Grandmaster by BMCA (i.e. it is configured to be
+	a Boundary Clock). The value represent a delay in seconds between the 
+	moment the PTP Device becomes Grandmaster and the start of PPS generation.
+
+@item @b{externalPortConfigurationEnabled}  @i{[Boolean]}
+ This option is used to force the state of all port instances. The BMCA is then disabled
+ in PPSi.
+ When enabled, the port-specific option @t{desiredState} must be defined for each port instance.
+ For more details please refer to the IEEE 1588-2019 (clause 17.6.2)
+
+@item @b{slaveOnly}  @i{[Boolean]}
+  A @t{slaveOnly} Ordinary Clock utilizes the slaveOnly state machine
+  which does not enable transition to MASTER state.
+  This option must not be used when @i{externalPortConfigurationEnabled} is
+  enabled.
+  For more details please refer to the IEEE 1588-2019 (clause 9.2.2.1)
+
+@end table
+
+
+@heading List of port-specific options
+
+@table @code
+  @item @b{port} @i{[String]}
+  @itemx @b{link} @i{[String]}
+  Defines a named PTP port instance. The argument correspond to the instance name.
+  
+	@item @b{iface} @i{[String]}
+  Defines the physical port interface name to use (e.g. "eth0", "wri1", ...)
+  
+	@item  @b{proto} @i{[TextList]}
+  Defines the network transport protocol (mapping) to use :
+  @example
+. "raw" : Raw Ethernet
+. "udp" : User Datagram Protocol
+  @end example
+	
+  @item @b{extension} @i{[TextList]} @i{(deprecated)} 
+  @itemx @b{profile} @i{[TextList]}
+  Defines the profile to use : 
+  @example
+. "none", "ptp": Default PTP profile
+. "whiterabbit", "wr": White Rabbit profile
+. "highaccuracy", "ha": High Accuracy profile
+  @end example
+
+  @item @b{mechanism} @i{[TextList]}
+  @itemx @b{dm} @i{[TextList]} 
+  Defines the delay mechanism to use:
+  @example
+. "request-response", "delay", "e2e": end-to-end delay mechanism
+. "peer-delay", "pdelay", "p2p": peer-to-peer delay mechanism
+	@end example
+  
+  @item @b{masterOnly} @i{[Boolean]}
+  If enabled , activates the optional '@i{masterOnly}' feature 
+  (refer to the IEEE 1588-2019 - clause 9.2.2.2).
+  This option cannot be used if the global option '@i{externalPortConfiguration}' is 
+  enabled.
+  If this option is not set, then the standard BMCA algorithm is used.
+  
+  @item @b{sync-interval} @i{[Int32,Unit=logarithm to the base 2]} @i{(deprecated)} 
+  @itemx @b{logSyncInterval} @i{[Int32,Unit=logarithm to the base 2]} 
+  The mean time interval between transmission of successive
+  Sync messages. For more details please refer to the IEEE 1588 standard.
+  
+  @item @b{announce-interval} @i{[Int32,Unit=logarithm to the base 2]}  @i{(deprecated)} 
+  @itemx @b{logAnnounceInterval} @i{[Int32,Unit=logarithm to the base 2]} 
+  The mean time interval between transmissions of successive
+	Announce messages. For more details please refer to the IEEE 1588 standard.
+
+  @item @b{min-delay-req-interval} @i{[Int32,Unit=logarithm to the base 2]}  @i{(deprecated)} 
+  @itemx @b{logMinDelayReqInterval} @i{[Int32,Unit=logarithm to the base 2]} 
+  The minDelayRequestInterval specifies the minimum permitted
+  mean time interval between successive Delay_Req messages.
+  This option is effective only when 'end-to-end' delay mechanism is selected.
+  For more details please refer to the IEEE 1588 standard.
+  
+  @item @b{min-pdelay-req-interval}  @i{[Int32,Unit=logarithm to the base 2]} @i{(deprecated)} 
+  @itemx @b{logMinPDelayReqInterval} @i{[Int32,Unit=logarithm to the base 2]}
+  The minPDelayRequestInterval specifies the minimum permitted
+  mean time interval between successive Pdelay_Req messages.
+  This option is effective only when 'peer-to-peer' delay mechanism is selected.
+  For more details please refer to the IEEE 1588 standard.
+  
+  @item @b{announce-receipt-timeout} @i{[Int32]} @i{(deprecated)} 
+  @itemx @b{announceReceiptTimeout} @i{[Int32]} 
+  The announceReceiptTimeout specifies the number of announceIntervals 
+  that must pass without receipt of an Announce message before the 
+  occurrence of the event ANNOUNCE_RECEIPT_TIMEOUT_EXPIRES.
+  For more details please refer to the IEEE 1588 standard.
+  
+  @item @b{asymmetryCorrectionEnable} @i{[Boolean]}
+  When enabled, this feature calculates delay asymmetry which is then used in the
+  computation of offset from master in the PTP servo.
+  This feature is obligatorily enabled in some profiles when used (e.g. White Rabbit,..).
+  In the Default PTP Profile, this feature is not used by default.
+  For more details please refer to the IEEE 15882-2019 standard.
+    
+  @item @b{constantAsymmetry} @i{[Int64,Unit=picoseconds]}
+  When '@i{asymmetryCorrectionEnable}' feature is used, this parameter allows fine-adjustment
+  of the calculated delay asymmetry. The provided value of @i{constantAsymmetry}
+  will be added to the calculation of the delay asymmetry.
+  For more details please refer to the IEEE 15882-2019 standard.
+  
+  @item @b{desiredState} @i{[TextList]}
+  When the option '@i{externalPortConfigurationEnabled}' is enabled, this parameter indicates
+  the PTP state to apply on a PTP Port :
+@example
+. "initializing": Initializing state
+. "faulty"      : Faulty state
+. "disabled"    : Disabled state
+. "listening"   : Listening state
+. "pre_master"  : Pre-master state
+. "master"      : Master state
+. "passive"     : Passive state
+. "uncalibrated": Uncalibrated state
+. "slave"       : Slave state. During synchronization
+                  with a master, the port instance can
+                  transition to UNCALIBRATED state.
+@end example
+
+  @item @b{egressLatency} @i{[Int64,Unit=picoseconds]}
+  Defines the transmission constant delays (tx fixed delta).
+  For more details please refer to the IEEE 15882-2019 standard.
+  
+  @item @b{ingressLatency} @i{[Int64,Unit=picoseconds]}
+  Defines the reception constant delays (rx fixed delata).
+  For more details please refer to the IEEE 15882-2019 standard.
+  
+  @item @b{delayCoefficient} @i{[Double]} 
+  Defines the relative delay coefficient (alpha parameter). When the feature 
+  '@i{asymmetryCorrectionEnable}' is enabled, this value is used in 
+  calculation of the delay asymmetry.
+  For more details please refer to the IEEE 15882-2019 standard.
+  
+  @item @b{scaledDelayCoefficient} @i{[Int64,Unit=RelativeDifference]]} 
+  Defines the relative delay coefficient (alpha parameter). When the feature 
+  '@i{asymmetryCorrectionEnable}' is enabled, this value is used in 
+  calculation of the delay asymmetry. It overwrites the parameter
+  '@i{delayCoefficient}' if set by providing a value expressed with a
+  better resolution.
+  For more details please refer to the IEEE 15882-2019 standard.
+  
+  @item @b{servo-pi}  @i{[Int16[2]]}
+  If set, it overrides the default PTP servo parameters.
+  The first argument correspond to the
+  proportional coefficient and the second to the integral one.
+  
+  
+@item @b{diagnostic} @i{[String]}
+        Change the diagnostic level. @xref{Diagnostics,,Diagnostics}.
+
+@item @b{vlan} @i{[String]}
+        Specify vlans. @xref{VLAN Support,,VLAN Support}.
+
+@end table
+@c ==========================================================================
+@node Extension-specific configuration
+@section Extension specific configuration
+
+@subsection White Rabbit extension
+
+No specific options are needed when the White Rabbit profile is selected. 
+
+@c ==========================================================================
+@node Configuring Faults
+@section Configuring Faults
+
+Configuration, for @t{arch-unix} and @t{arch-wrs}, allows to provide
+some fault injection.
+In particular, the program allows dropping frames, in both the TX and RX
+paths.  The configuration values state how many frames are dropped every
+1000.  Dropping is randomized, but the user can set the seed to ensure
+a repeatable dropping sequence.
+
+Dropping of transmitted frames is performed by reporting success (and the
+timestamp), while no frame is actually sent.  A diagnostic message
+is generated at @t{frames} level 1, but other than that nothing
+happens.   Please note that @t{arch-wrs} needs to actually send a frame in
+order to get a timestamp back; in this case the program modifies the
+frame, to use a wrong Ethernet type or a wrong UDP port.
+
+Dropping of received frames is performed by actually receiving (and
+timestamping) the frames, but returning a special error code to the caller.
+Again, PPSi creates a diagnostic message at @t{frames} level 1.
+
+The following configuration lines are supported:
+
+@table @code
+
+@item rx-drop <value>
+@itemx tx-drop <value>
+
+	Drop @i{value} frames every 1000 frames received or sent.
+        The randomized sequence is global.
+
+@end table
+
+The randomization seed can be passed by pre-setting the environment
+variable @t{PPSI_DROP_SEED} to a decimal numeric value. For example:
+
+@smallexample
+   export PPSI_DROP_SEED=33
+@end smallexample
+
+@noindent
+before starting the daemon.
+
+@c ==========================================================================
+@node Configuring the Simulator
+@section Configuring the Simulator
+
+To run the PPSi simulator it is need to rely on diagnostics and specific
+configuration items.  The configuration items are defined in
+@i{arch-sim/sim-conf.c} and are not individually documented here at
+this point.
+
+After building with ``@t{make sim_defconfig}'', it can be checked how
+PPSi behaves in different situation. For example, to see how the servo
+works with default parameters activate servo messages at level
+2, and only display the offset from master:
+
+@smallexample
+   ./ppsi -d 0002 | grep 'Offset from master'
+@end smallexample
+
+The diagnostic values are specified in the range 0 to 2 and represent,
+in this order: state machine, time, frames, servo, bmc, extensions.
+See @ref{Diagnostic Macros} for details.
+
+The simulator runs by default for one hour of simulated time (in a
+fraction of a second of running time), and the initial offset from
+master to slave is 0.9 seconds.
+
+To pass configuration options, @t{-C} command line option can be used.
+For example, to start with 0.1 seconds of offset and 1000 ns of
+transmission jitter:
+
+@smallexample
+   ./ppsi -d 0002 -C "sim_init_master_time .1; sim_jit_ns 1000"
+@end smallexample
+
+
+@c ##########################################################################
+@node VLAN Support
+@chapter VLAN Support
+
+PPSi can support vlans, or use the support offered by the Operating System.
+
+@c ==========================================================================
+@node OS VLAN
+@section OS VLAN
+
+If the OS supports vlans, PPSi can rely on it. For example a
+Linux-based architecture can be configured to run on interface
+@t{eth0.20} and thus work on vlan 20.  In this case, use of
+@i{vconfig} is left to the user, and nothing special is performed by
+PPSi itself, nor any special configuration is needed.  In this setup
+both raw Ethernet and UDP can be used.
+
+@c ==========================================================================
+@node PPSi VLAN
+@section PPSi VLAN
+
+Freestanding architectures, like the WR PTP Core (@t{arch-wrpc}) can't
+rely on the underlying Operating System, so the daemon must read and
+write vlan Ethernet headers by itself -- in this situation UDP is not
+supported, unless an architecture's network operations build and
+decode IP and UDP headers (in official PPSi no such support is there).
+
+Another situation where PPSi should deal with vlans directly is when
+a port it to be a master on several vlans at the same time, but
+this is only supported for @i{mandated} masters, at this point in
+time.  A mandated master is a port configured either as '@t{master}' 
+(externalPortConfiguration enabled) or as '@t{masterOnly}'
+in the configuration file.  To run multiple vlans on the
+same physical port, without forcing the port to be a mandated master,
+create multiple PTP interfaces, one per vlan, all relying on
+the same physical port (or different OS-specific vlan ports).
+
+When running a fully-PTP network in end-to-end mode, it won't usually
+need to configure multiple vlans on a single port. In particular, this
+never happens in a White Rabbit network, because each link connects
+two WR-PTP devices, without any non-compliant switches in the middle.
+However, for
+transparent clocks or normal switches, it is possible to have
+a master for the whole network connected to a given port, which may
+be split in several vlans. Clearly this only applies to a @i{trunk}
+port in PTP switch or workstation.
+
+The support of VLANs rely on @i{Kconfig} and architecture-specific
+code, in the following way.
+
+@itemize @bullet
+   @item Each architecture states, in @t{Kconfig}, whether it supports
+   vlans (@t{ARCH_SUPPORT_VLAN}) and multiple vlans (@t{ARCH_SUPPORT_MULTIPLE_VLAN}).
+
+   @item The configuration parser (@t{lib/conf.c}) accepts a @t{vlan}
+   keyword, specifying one or more vlans. If several, they are
+   comma-separated.
+
+   @item Configuration fails (and PPSi refuses to start) if the architecture
+   has no vlan support and vlan is specified, or multiple vlans are specified 
+   for an architecture that supports one vlan only.
+
+   @item Configuration fails also if several vlans are specified for
+   a port that is not a @i{mandated} master.
+@end itemize
+
+When only one vlan is specified, the network operations for the
+architecture are responsible to handle it in a proper way. Currently,
+@t{wrpc} builds and decodes Ethernet frames, ignoring
+any received frame not belonging to the proper vlan. Code for @t{wrs} and
+@t{unix} handles a single vlan like multiple ones (NOTE: 
+automatically creating the vlan-specific interface was considered, but that
+would be very Linux-specific and there was no real need for it).
+
+When multiple vlans are specified for a master port, current code
+(i.e. @t{arch-wrs} and @t{arch-unix}) binds to @t{ETH_P_ALL}, in order
+to receive all frames from that interface, and thus be able to tell
+which vlan they belong to.  A multiple-vlan master sends announce and
+sync (plus follow-up) to all vlans at the same time, and will reply to
+delay requests using the same vlan it receives it from, limited to the
+list of configured vlans.  Frames from
+other vlans, as well as non-PTP frames, are ignored.
+
+Because of the @t{ETH_P_ALL} binding, a multiple-vlan master port will
+receive all the non-PTP traffic that flows on the interface. Please be
+warned that this may increase the load on the PPSi process.  With the
+current release of the White Rabbit Switch this is not a problem,
+because the switching core routes only PTP frames to the CPU. This
+applies to single-vlan ports, because PPSi is not creating the
+Linux-specific interface to have the kernel select traffic.
+
+@c ==========================================================================
+@node Note about vlans in Linux
+@section Note about vlans in Linux
+
+The choices described above depend on how vlans work in Linux (the
+architecture that is used in the White Rabbit Switch, and the one supported
+in @t{arch-unix}).
+
+If a packet socket is bound to a specific Ethernet protocol (for
+example, the PTP Ethernet type, 0x88f7), on a generic Ethernet port
+like @t{eth0}, it receives all frames for that @i{ethertype}, whether
+or not they are tagged on the wire.  To authors' knowledge in this situation,
+it is not possible to tell whether the frame was tagged, and which tag
+were there if any.  Only traffic to vlan-specific ports, like
+@t{eth0.20}, is guaranteed to belong to vlan 20 (or a double-tagged
+frame, whose external tag is 20).
+
+Only a socket bound to all @i{ethertypes} (i.e. @t{ETH_P_ALL}) is able
+to receive auxiliary metadata that reports whether the frame was
+tagged and which tag it was carrying.
+
+The behavior above depends on how hardware acceleration for tags work,
+and even if it is suboptimal for this use case, authors don't know about
+alternatives. Thus, a PPSi port configured for vlan frames, is bound
+to the base ethernet port, but it must receive all @i{ethertypes}.
+
+If this is not ok for an configuration, it is advised to create a new
+vlan-aware Linux port and bind to it. It works correctly with smaller
+CPU overhead, but more administrative work.
+
+@c ##########################################################################
+@node PTP Clock Class
+@chapter PTP Clock Class
+
+The clock class value (@t{clockClass}), a field of the `clock quality'
+structure defined by the IEEE1588 standard, can be specified in
+the configuration file for the architectures
+that support such a file (e.g. White Rabbit Switch) or be set in run-time (e.g.
+White Rabbit Node).
+
+@c ==========================================================================
+@node Default device attributes
+@section Default device attributes
+
+If only the clock class is defined in the PPSi configuration these default values will be
+applied to set device attributes.
+
+@table @code
+@item @b{PTP_GM_LOCKED(6)}
+@example 
+ClockQuality.clockAccuracy          = 100ns
+ClockQuality.offsetScaledLogVariance= 0xB900
+timePropertiesDS.timeSource         = GNSS
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = TRUE
+timePropertiesDS.timeTraceable      = TRUE
+@end example
+
+@item @b{PTP_GM_HOLDOVER(7)}
+@example 
+ClockQuality.clockAccuracy          = 100ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = TRUE
+timePropertiesDS.timeTraceable      = TRUE
+@end example
+
+@item @b{PTP_GM_UNLOCKED_A(52)}
+@example 
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{PTP_GM_UNLOCKED_B(187)}
+@example 
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+ 
+@item @b{ARB_GM_LOCKED(13)}
+@example 
+ClockQuality.clockAccuracy          = 25ns
+ClockQuality.offsetScaledLogVariance= 0xB900
+timePropertiesDS.timeSource         = ATOMIC_CLOCK
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_HOLDOVER(14)}
+@example 
+ClockQuality.clockAccuracy          = 25ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_UNLOCKED_A(58)}
+@example 
+ClockQuality.clockAccuracy          = 25ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_UNLOCKED_B(193)}
+@example 
+ClockQuality.clockAccuracy          = 25ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{Other}
+@example 
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INT_OSC
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+@end table
+
+@c ==========================================================================
+@node Clock class degradation
+@section Clock class degradation
+
+PPSi manages clock class degradation for a set of clock classes and updates accordingly
+clock & time property field.
+As certain clock & time properties may be set in the PPSi configuration, so when a clock class 
+is degraded, all updated clock and time fields are changed in a way to never set them to a better 
+value than their configured one. In such a case, they will remain unchanged.
+
+The following table show how a clock class is degraded when the PLL is in holdover or unlocked:
+
+@table @code
+@item @b{PTP_GM_LOCKED(6)} - PLL holdover detected
+@example 
+ClockQuality.clockClass             = PTP_GM_HOLDOVER(7)
+ClockQuality.clockAccuracy          = 100ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = TRUE
+timePropertiesDS.timeTraceable      = TRUE
+@end example
+
+@item @b{PTP_GM_LOCKED(6)} - PLL unlocked detected
+@example 
+ClockQuality.clockClass             = PTP_GM_UNLOCKED_B(187)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{PTP_GM_HOLDOVER(7)}  - PLL unlocked detected
+@example 
+ClockQuality.clockClass             = PTP_GM_UNLOCKED_B(187)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeTraceable      = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = TRUE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_LOCKED(13)} - PLL holdover detected
+@example 
+ClockQuality.clockClass             = ARB_GM_HOLDOVER(14) 
+ClockQuality.clockAccuracy          = 25ns
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_LOCKED(13) } - PLL unlocked detected
+@example 
+ClockQuality.clockClass             = ARB_GM_UNLOCKED_B(193)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_HOLDOVER(14)} - PLL holdover detected
+@example 
+ClockQuality.clockClass             = ARB_GM_UNLOCKED_B(193)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_UNLOCKED_A(58)} - PLL unlocked detected
+@example 
+ClockQuality.clockClass             = ARB_GM_UNLOCKED_A(58) (idem)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+
+@item @b{ARB_GM_UNLOCKED_B(193)} - PLL holdover detected
+@example 
+ClockQuality.clockClass             = ARB_GM_UNLOCKED_B(193) (idem)
+ClockQuality.clockAccuracy          = Unknown
+ClockQuality.offsetScaledLogVariance= 0xC71D
+timePropertiesDS.timeSource         = INTERNAL_OSCILLATOR
+timePropertiesDS.ptpTimescale       = FALSE
+timePropertiesDS.frequencyTraceable = FALSE
+timePropertiesDS.timeTraceable      = FALSE
+@end example
+@end table
+
+
+@c ==========================================================================
+@node Clock class in a White Rabbit node
+@section Clock class in a White Rabbit node
+
+For the White Rabbit node (@t{arch-wrpc}) the class is defined
+according to build-time constants, set forth in @t{constants.h}.
+
+When the node is configured as grandmaster (WRPC shell command @t{mode
+gm}), the class is set to 6 (a clock synchronized to a primary
+reference time source).  However, if the internal PLL can not lock in
+a 60 seconds timeout, the class is set to 52: a clock that will never
+be a slave, but is not currently connected to a primary time source.
+
+When the node is configured as master, it uses class 187, i.e.
+a clock that may be a slave of another clock.
+
+@c ##########################################################################
+@node Diagnostics
+@chapter Diagnostics
+
+The PPSi verbosity can be controlled
+per-feature and per-port.  This fine-grained control is expected to be
+important while developing features or while diagnosing problems on
+new architectures.
+
+The @t{diagnostics} configuration keyword can be used both as a global
+item and as a port-specific configuration value.
+
+@c ==========================================================================
+@node Diagnostic Macros
+@section Diagnostic Macros
+
+The header file @t{<ppsi/diag-macros.h>} introduces the concept of
+diagnostics flags, which are hosted in both a global variable and
+@i{pp_instance} (i.e. one flags-set for each communication link).  The
+macros use the logical OR of both flags, so developers can activate
+diagnostics on either a single link or globally.
+
+The diagnostic flags are split into topics (called @i{things}). For
+each diagnostic thing the header defines a few bits; there is
+diagnostic levels for each of them, but it is suggested to use only level 1
+and 2 -- the rationale is in the header itself.
+
+The @i{things} currently defined are:
+
+@itemize
+@item Finite State Machine: PPSi reports FSM state transitions.
+
+@item Time: at level 1 PPSi reports @i{time_set} operations
+and timeouts; at level 2 it also reports @i{time_get} operations.
+
+@item Frames: at level 1 PPSi reports any send and receive event; at level 2
+it also shows the frame itself (using @i{ptpdump} code).
+
+@item Servo: report servo operation. At level 2 it also shows the individual
+timestamps and internal averaging.
+
+@item BMC: at level 1 PPSi reports BMC choices, at level 2 it reports
+addition of new masters as well.
+
+@item Extensions: extension-specific information.
+
+@item Configuration: at level 1 PPSi reports errors, at level 2 all
+configuration items being parsed (from either file or command line).
+
+@end itemize
+
+The user is expected to pass diagnostic flags as a string,
+specifying diagnostic levels for each of the things, where trailing
+zeroes are optional.  So for example ``@t{01}'' specifies a
+diagnostic level 1 for time, and ``@t{102}'' specifies FSM at level 1
+and frames at level 2.   The header itself is more detailed about
+the conventions.
+
+To parse the diagnostic string, PPSi offers @i{pp_diag_parse}.  The
+function is used by both the code that reads the command line (string after
+@t{-d} switch)
+and code that parses configuration (@t{diagnostics} option in config file).
+
+Within PPSi, developers should insert diagnostic messages by means
+of the @i{pp_diag} function:
+
+@example
+   pp_diag(ppi, thing, level, ...)
+@end example
+
+The function acts like @i{printf}, with the leading arguments @t{ppi},
+@t{thing} (which is one of the names @i{fsm}, @i{time}, @i{frames}, @i{servo},
+@i{bmc}, @i{ext}) and @t{level}, which should be 1 or 2. For example, the code
+setting system time includes this diagnostic line:
+
+@example
+    pp_diag(ppi, time, 1, "%s: %9li.%09li\n", __func__,
+            tp.tv_sec, tp.tv_nsec);
+@end example
+
+Finally, to shrink the size of binary file, PPSi can be
+build with no diagnostic code at all (i.e., the compiler won't
+even generate the function calls), in this case define @t{PPSI_NO_DIAG} in
+@t{CFLAGS} while building.  This can be achieved by setting
+@t{USER_CFLAGS}:
+
+@example
+   make USER_CFLAGS="-DPPSI_NO_DIAG"
+@end example
+
+For more details please refer to the header file, which is throughly
+commented.
+
+
+@c ==========================================================================
+@c @node Older Diagnostics
+@c @section Older Diagnostics
+@c 
+@c We introduced the diagnostic macros described above at the beginning
+@c of March 2013.  Earlier code used a less-structured approach, which
+@c has later been removed. If you used @t{PP_PRINTF}, it's gone by now.
+
+@c ==========================================================================
+@node Printf
+@section Printf
+
+The code uses @i{pp_printf} as a replacement for @i{printf}.  This
+implementation comes from previous work by Alessandro, which in turn
+uses an older Linux implementation.  Now @i{pp_printf} is published
+separately, as the ``Poor Programmer's Printf'' and included here
+in its own subdirectory.  Please check @i{pp_printf/README} for more
+details about the size of this implementation and the different
+implementation choices.
+
+By avoiding calls to the real @i{printf} function
+the code base can be built for freestanding implementations without ugly
+@t{#ifdef} tricks in the code.
+Please note that @i{pp_printf} and
+@i{printf} can coexist: for example the hosted version of PPSi links
+with the standard library without any problem; in that case
+@i{pp_printf} relies on @i{fputs} to write to @i{stdout}.
+
+If a run-time environment already includes an implementation
+of @i{pp_printf}, it can build with @t{CONFIG_NO_PRINTF} set. For
+example:
+
+@example
+   make USER_CFLAGS="-DCONFIG_NO_PRINTF"
+@end example
+
+The resulting @t{ppsi.o} will include undefined references to the
+@t{pp_printf} symbol, which must be provided externally.  This is how
+the build for @i{arch-wrpc} is done, which already includes its own
+implementation of @i{pp_printf}.  In that specific situation
+the @i{libc} is provided by the compiler, but it is not using
+its own @i{printf} which would bring in most of @i{newlib} and would
+overflow the available RAM by a huge amount.
+
+@c ##########################################################################
+@node Tools
+@chapter Tools
+
+The PPSi package includes some tools, mainly meant to help developers.
+Most of them live in the @i{tools} subdirectory and must be built
+separately with ``@t{make -C tools}''.
+
+@c ==========================================================================
+@node ptpdump
+@section ptpdump
+
+This is a sniffer for @sc{ptp} frames. It reports all Ethernet frames and
+UDP datagrams that talk @sc{ptp}, from a specific network interface. The
+output format is line-oriented to help running @i{grep} over log
+files.  The number of blank lines between frames depends on how much
+time elapsed between them; this should help identifying sync/follow-up
+pairs at a glimpse of the eye.
+
+The program receives one optional argument on the command line, which is
+the name of the interface where it should listen; by default it uses @t{eth0}.
+
+This is, for example, the dump of two UDP frames:
+
+@smallexample
+   TIMEDELTA: 977 ms
+   TIME: (1362504223 - 0x51362a1f) 18:23:43.958091
+   ETH: 0800 (00:22:15:d7:c0:ef -> 01:00:5e:00:01:81)
+   IP: 17 (192.168.16.1 -> 224.0.1.129) len 72
+   UDP: (319 -> 319) len 52
+   VERSION: 2 (type 0, len 44, domain 0)
+   FLAGS: 0x0002 (correction 0x00000000)
+   PORT: 00-22-15-ff-fe-d7-c0-ef-00-01
+   REST: seq 29, ctrl 0, log-interval 0
+   MESSAGE: (E) SYNC
+   MSG-SYNC: 1362504223.957872054
+   DUMP: payload (size 44)
+   DUMP: 80 02 00 2c  00 00 02 00  00 00 00 00  00 00 00 00
+   DUMP: 00 00 00 00  00 22 15 ff  fe d7 c0 ef  00 01 00 1d
+   DUMP: 00 00 00 00  51 36 2a 1f  39 17 f7 b6
+
+   TIMEDELTA: 0 ms
+   TIME: (1362504223 - 0x51362a1f) 18:23:43.958259
+   ETH: 0800 (00:22:15:d7:c0:ef -> 01:00:5e:00:01:81)
+   IP: 17 (192.168.16.1 -> 224.0.1.129) len 72
+   UDP: (320 -> 320) len 52
+   VERSION: 2 (type 8, len 44, domain 0)
+   FLAGS: 0x0002 (correction 0x00000000)
+   PORT: 00-22-15-ff-fe-d7-c0-ef-00-01
+   REST: seq 29, ctrl 2, log-interval 0
+   MESSAGE: (G) FOLLOW_UP
+   MSG-FOLLOW_UP: 1362504223.957953221
+   DUMP: payload (size 44)
+   DUMP: 88 02 00 2c  00 00 02 00  00 00 00 00  00 00 00 00
+   DUMP: 00 00 00 00  00 22 15 ff  fe d7 c0 ef  00 01 00 1d
+   DUMP: 02 00 00 00  51 36 2a 1f  39 19 34 c5
+@end smallexample
+
+@c ==========================================================================
+@node pps-out
+@section pps-out
+
+The tool outputs a pulse-per-second signal to a parallel port or a
+serial port.  Most likely it only works on an x86 Linux system because
+of direct access to I/O ports -- no such portability problem is
+expected for serial ports.  For this reason it is not built by
+default in the distributed @t{tools/Makefile}
+
+The program receives a single argument on the command line, which is
+either an hex port number (with or without leading @t{0x}) or an
+absolute filename:
+
+@example
+   ./tools/pps-out 378
+   ./tools/pps-out /dev/ttyS0
+@end example
+
+When passed a port number, the program toggles all bits assuming it
+refers to a parallel port.  When passed a pathname, the program assumes
+it is a serial port and it toggles the DTR and RTS modem control signals
+(on pins 4 and 7 of the DB9 male connector).
+
+By setting the @t{VERBOSE} environment variable the program
+reports how late it was before and after generating the rising
+edge:
+
+@example
+   morgana$ VERBOSE=1 ./tools/pps-out /dev/ttyS0
+  gettimeofday takes 0.2 usec
+  udelay takes 4.0 usec
+  delayed between   0 and   2 usecs
+  delayed between   0 and   4 usecs
+  [...]
+@end example
+
+@t{pps-out} can be used to verify on a scope the level of
+synchronization of two or more computers, but please note that the
+user-space software-only approach shows some jitter; on example systems the
+delay is usually a few microseconds, up to around a dozen (in general,
+use of the parallel port has less delay and less jitter). In any case
+this offers a second source to check what NTP or @sc{ptp} daemons report.
+
+@c ==========================================================================
+@node jmptime
+@section jmptime
+
+The program uses @i{settimeofday} to make the local time jump forward
+or backward by some amount, specified as floating-point seconds:
+
+@example
+   # date +%H:%M:%S; ./tools/jmptime 1.32; date +%H:%M:%S
+   12:24:28
+   Requesting time-jump: 1.320000 seconds
+   12:24:29
+@end example
+
+@c ==========================================================================
+@node chktime
+@section chktime
+
+This program monitors changes in the current time, but comparing the
+output of @t{clock_gettime(CLOCK_REALTIME)} and
+@t{clock_gettime(CLOCK_MONOTONIC)}.  The delay between successive
+checks, expressed in milliseconds, can be specified on the command
+line and defaults to 10ms.  The program only reports observed changes
+that are bigger than 0.5ms, to avoid excessive reporting of false
+positives that are simply due to process latencies induced by the
+system workload.
+
+By running this program the user can see the effect of @i{tools/jmptime},
+or the insertion of a leap second.
+
+For example, this is what @i{chktime} reports when running
+``@t{jmptime .002}''. The program doesn't need superuser privileges:
+
+@example
+   % ./tools/chktime 50
+   ./tools/chktime: looping every 50 millisecs
+   13-03-12-12:29:41:       1996 us
+@end example
+
+@c ==========================================================================
+@node adjtime
+@section adjtime
+
+This program works like @i{jmptime}, but it requests a slow adjustment
+of the time. It receives the requested adjustment on the command
+line, as a floating point number just like @i{jmptime} described
+above.  Additionally, it reports what was the ongoing adjustment
+using @i{adjtime}. See the @t{adjtime(2)} man page for details.
+
+Adjustments requested by this program cannot be reported by
+@i{tools/chktime}, even when the overall change integrates to more
+than half a millisecond, because the change in clock speed affects
+both @t{CLOCK_REALTIME} and @t{CLOCK_MONOTONIC}.
+
+The adjustment can be seen in one host by comparing with the time of another
+host, for example using @i{tools/mtp}, described in the next section.
+
+The following example shows how on an example host the kernel adjusts the time
+by 15ms every 30s (i.e. 0.05%):
+
+@example
+   # ./tools/adjtime .15; sleep 30; ./tools/adjtime 0
+   Requesting adjustment: 0.150000 seconds
+   Previous adjustment: 0.000000 seconds
+   Requesting adjustment: 0.000000 seconds
+   Previous adjustment: 0.135000 seconds
+@end example
+
+@c ==========================================================================
+@node adjrate
+@section adjrate
+
+The program reads and optionally changes the clock rate of the host
+system using the Linux-specific @i{adjtimex} system call (the same
+being used in the core PPSi program).  It is meant to check adjustment
+and get acquainted with the involved values.
+
+The numerical argument of the system call is parts-per-million scaled
+by 16 bits. For example half @i{ppm} is passed as 32768.
+
+The following are example uses of the program on an ntp-driven host:
+
+@example
+   morgana% ./tools/adjrate --help
+   ./tools/adjrate: use "./tools/adjrate [<adj-value> [ppm]]"
+   morgana% ./tools/adjrate
+   rate: -407582 (-6.219208 ppm)
+   morgana% ./tools/adjrate -6
+   ./tools/adjrate: adjtimex(rate=-6): -1 (Operation not permitted)
+   morgana% sudo ./tools/adjrate -6 ppm
+   morgana% sudo ./tools/adjrate
+   rate: -393216 (-6.000000 ppm)
+@end example
+
+@c ==========================================================================
+@node mtp
+@section mtp
+
+The directory @i{tools/mtp} includes a few example programs written by
+Alessandro for
+an article about time synchronization. MTP means ``mini time protocol'';
+it uses the T1, T2, T3, T4 idea to report the time difference between
+two hosts.  The program comes in two flavors: UDP and raw Ethernet.
+
+To run a listening server on one host, run the program in
+@i{listen} mode:
+
+@example
+   tornado% ./tools/mtp/mtp_udp -l
+@end example
+
+On the other host, run the client that reports the time
+difference it measures, pass either an IP address or an host
+name:
+
+@example
+  morgana% ./tools/mtp/mtp_udp tornado
+  0: rtt  0.000459000   delta   0.099351500
+@end example
+
+It is possible to continuously monitor the difference by running the program in
+a loop:
+
+@example
+   morgana% while true; do ./tools/mtp/mtp_udp tornado; sleep 0.1; done
+@end example
+
+The program @i{mtp_packet} works in the same way by using raw Ethernet
+frames (@t{AF_PACKET}). It needs an interface name as first argument
+and superuser privileges.
+
+@c ==========================================================================
+@node MAKEALL
+@section MAKEALL
+
+The @i{MAKEALL} script, in the top-level directory of PPSi builds the
+program for all known configurations, picking them from @t{configs/}.
+Developers are urged to run it
+before committing each patch, to ensure they are not breaking the
+program for configurations they are not using.
+It may happen, however, that some developers experience errors or
+warnings that others didn't notice, because of differences in compiler
+version or library versions.
+
+@t{MAKEALL} builds all configurations by default, but it can also be
+forced to build only specific configs by listing them on its command line.
+Here's an example showing the build of just a couple configurations:
+
+@example
+
+ % ./MAKEALL bare-i386_defconfig sim_defconfig
+ ##### Building with 'bare-i386_defconfig'
+    text           data     bss     dec     hex filename
+   28057    1356     976   30389    76b5 ppsi.o
+   27347    1356     976   29679    73ef ppsi
+ ##### Building with 'sim_defconfig'
+    text    data     bss     dec     hex filename
+   39996    1744     556   42296    a538 ppsi.o
+   43428    2544     624   46596    b604 ppsi
+
+@end example
+
+@c ##########################################################################
+@node Build Details
+@chapter Build Details
+
+This is a summary about the build process for PPSi.
+
+The main @i{Makefile} creates directory names from @t{$ARCH} and @t{$PROTO_EXT},
+each sub-@i{Makefile} then can augment @t{CFLAGS} with "@t{-ffreestanding}" or
+whatever it needs. Similarly, @t{CROSS_COMPILE} may be set by sub-Makefiles
+but please let the environment override it (as no custom pathnames
+should be edited before building and the pristine package can be used).
+
+The basic state machine is in @i{./fsm.c}. It is a simple file released in
+the public domain as authors would like the idea to be reused and the code
+itself is not worth copylefting -- even thought the file is not completely
+independent from PPSi itself.
+
+All the rest of the package is built as libraries. The link order
+of libraries selects which object files are picked up and which are not.
+Additionally, "@t{CONFIG_PRINTF_XINT}" or one of the other @i{pp_printf}
+configurations can be set to override the default. By default PPSi
+builds the ``full'' implementation.
+
+The state-machine source (i.e.@i{./fsm.c}) refers to a specific state machine 
+by the name @i{pp_state_table}.  The table is picked from a
+library: either from the extension being selected or the @i{proto-standard} one.
+The table includes pointers to functions, and such names
+will select which other object files are picked up from the libraries.
+
+Individual architectures can add files to the "@t{OBJ-y}" make variable,
+in order to add their own stuff (like the @i{main} function or @i{crt0.o}
+for freestanding stuff).  Similarly, architectures can add files
+to the "all" target. The main Makefile only builds @i{ppsi.o},
+leaving the final link to the chosen architecture, so for example
+@i{arch-unix} adds @t{ppsi} to the @t{all} target.
+
+Since code and data space is a problem in the freestanding world (for
+example, the whole PPSi may need to fit in 64kB RAM including data and
+stack), each state in the state machine of the standard protocol must
+be implemented as a separate file. This allows an extension not using
+that particular function to save the overhead of binary size.
+Clearly an extension may implement several functions in the same file,
+if they are known to be all used in the final binary or of it uses
+@t{-ffunction-sections} and @t{-fdata-sections}.
+
+
+@c ##########################################################################
+@node Licensing
+@chapter Licensing
+
+The code is licensed according to the GNU LGPL, version 2.1 or later.
+Some files are individually released to the public domain, when authors
+thought they are especially simple or generic.
+
+Both the full and the partial printf code is distributed according to
+the GPL-2, as it comes from the Linux kernel.  This means that any
+code using PPSi's diagnostics fall under the GPL requirements; one may
+compile and use the diagnostic code internally with own
+proprietary code but it can not distribute binaries with diagnostics
+without the complete source code and associated rights. One may avoid
+the GPL requirements by using different printf implementations; in such case
+please contribute back this into the package.
+
+The same issue about the GPL license applies to the @i{div64_32}
+function.  This implementation is needed in @i{wrpc} code base
+because the default @i{libgcc} division is very big, and @i{wrpc} is always
+tight with in-FPGA memory space.
+
+For binaries without diagnostic code and the size-optimized division,
+the LGPL applies, as detailed below.
+
+For licensing purposes, any `arch-name' or `time-name' subdirectory
+"can be reasonably considered independent and separate works in
+themselves" (quoting the LPGL text).
+
+Code in the directories provided here is all LGPL, and
+one may add own drop-in subdirectories. The LGPL requirements for
+source distribution and associated permissions won't apply to any such
+subdirectory that might be added, even if technically such code is not
+linked as a library.
+
+@c ##########################################################################
+@node Coding Style and Conventions
+@chapter Coding Style and Conventions
+
+The coding style is the one inherited from Linux kernel project (see
+@i{Documentation/CodingStyle} in the kernel sources).  However,
+structures, constants and field names defined by @sc{ieee} 1588 are kept in
+the suggested "camelCase" form. Similarly, the typedefs are left, even
+if they are really a pain to deal with.  Most of this stuff is in
+include/ppsi/ieee1588_types.h file.
+
+The mostly used prefix is @t{pp_}, the short prefix for 'Portable @sc{ptp}',
+which is used for every function related to the algorithm itself (but
+not in the architecture-specific code).
+
+Some prefixes to the @sc{ieee} naming are added, in order to improve
+readability:
+
+@t{EN} means "enumeration type". For instance, Enumeration Time Source
+(defined in IEEE 1588-2008 at table 7, page 57) becomes @t{ENTimeSource}.
+
+@t{PPM_} means "ppsi message", and is used for message types.
+
+@t{Msg} means "message" and is used for message structures.
+
+@t{PPS_} means "ppsi state" and is used for state machine's states
+definition.
+
+@t{DS} means "data set", and is used for the standard Data Sets (e.g.
+@i{DSCurrent} is the "Current Data Set"). The concept of data sets is
+defined in IEEE 1588-2008 in chapter 8, page 63.
+
+@c ##########################################################################
+@node Command Line
+@chapter Command Line
+
+The hosted build, as well as the two @i{bare} ones, include command
+line support.
+
+The command:
+
+@example
+     ./ppsi --help
+@end example
+
+will print help about command line options (it also support the
+question-mark like the original ptp, but it's a bad choice because it
+is a shell wildcard that should be escaped).  Actually, all multi-char
+options will print the help at this point in time, because only
+since-char options are supported. It is intended to avoid dependency on
+@i{getopt} which is not available for all architectures.
+
+For standard operation, simply run @t{./ppsi} with no options. It will
+work like the PTPd executable, with the automatic choice of
+master/slave defined in @sc{ieee} specification (announce/timeout mechanism).
+
+What follows is a list of the most important command line options. For
+a list of the other ones please see the help message.
+
+@table @t
+
+@item -f <file>
+
+	Read configuration file. The program can read several
+        configuration files. If no @t{-f} is passed, it tries to
+        read a configuration file from the standard place @t{/etc/ppsi.conf}.
+
+@item -C <config-item>
+
+	Pass a single configuration item, or several of them using
+        the semicolon as separator. See @ref{Configuration} for details.
+
+@item -d <string>
+
+	Diagnostics. This options receives the string of diagnostic
+        levels for  fsm, time, frames, servo, bmc, extension (in that order).
+        See @ref{Diagnostic Macros} for details.
+
+@item -t
+	Do not adjust the system clock.
+
+@item -w NUMBER
+	specify meanDelay filter stiffness.
+
+@item -g
+
+	Run as slave only.
+
+@end table
+
+@c ##########################################################################
+@bye
+
+
+@c  LocalWords:  gnudd titlepage iftex texinfo CERN documentlanguage settitle
+@c  LocalWords:  documentencoding setfilename afourpaper paragraphindent ppsi
+@c  LocalWords:  setchapternewpage finalout PPSi Alessandro Rubini Colosimo
+@c  LocalWords:  ieee ohwr http PTPd wrpc linux proto whiterabbit printf LGPL
+@c  LocalWords:  diag morgana MAKEALL adjtime

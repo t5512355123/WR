@@ -1,0 +1,5 @@
+config wr_arria10_e3p1_tx_pll_cfg;
+		design wr_arria10_e3p1_tx_pll;
+		instance wr_arria10_e3p1_tx_pll.xcvr_fpll_a10_0 use wr_arria10_e3p1_tx_pll_altera_xcvr_fpll_a10_170.altera_xcvr_fpll_a10;
+endconfig
+

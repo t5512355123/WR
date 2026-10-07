@@ -1,0 +1,192 @@
+
+####################################### 
+# J-C Bau,  29 March 2019  
+# - Correction bring to PPSI to make it compliant with the standard 
+
+First, I have added an hook is_correction_field_compliant() to stay 
+compliant with the old version of WR extension. So modifications I made
+impacts only the HA extension.
+
+Improvements for E2E and P2P:
+1. When a [P]DelayReq is issue, the correction field contains 
+   the value of -delayAsymmetry (-ppi->portDs->delayAsymmetry)
+2. When a [P]DelayReq is received, a [P]DelayResp is sent. It contains on 
+   its correction field, the received correction field (from [P]DelayReq msg)
+   minus the sub-ns part of the sent time stamp: 
+   txCF=RxCF-sub_ns(timestamp)
+3. On reception of [P]DelayResp, the calculated timestamp (t4) is calculated by :
+   t4=rxTimeStamp-rxCF-delayAsymmetry where
+   rxTimeStamp=  receiveTimestamp(E2) or  requestReceiptTimestamp (P2P
+   rxCF= Received correction field in the [P]DelayResp message
+   delayAsymmetry= last calculated delayAsymmetry (ppi->portDs->delayAsymmetry)
+
+# End JCB corrections
+####################################### 
+
+The correctionField makes me mad. We used to have ppi->cField, that
+nobody knows which frame it refers to.  I now keep it for reference,
+associated to the sync message, so we know what the overall TC delay is.
+
+####################################### E2E
+
+Characters:
+
+  T1 T2 T3 T4             The real timestamps
+  I1 I2 I3 I4             Integer-nano part
+  F1 F2 F3 F4             Fractional part
+  P1 P2 P3 P4             The time variables in ppsi (ppi->t1 etc)
+  Tsyn Tfup Treq Trep     The stamps as send in the frames
+  Csyn Cfup Creq Crep     The correctionFields
+  TCsyn  ...              Delay added by TC on the syn path
+
+I ignore the "asymmetry" part of the cFields, because if the standard
+adds/subtract them, conflating them with the other values, it means the
+sign of the result matches.
+
+
+The master sends T1 split with the integer part in the timestamp and
+the fractional part in cField: Csyn = F1 (it is zero for WR). The
+slave receives as that (whether there is a f-up or not is irrelevant:
+one-step puts the fractional part in Csyn, two step in Cfup; TC
+devices are mandated to turn one-step into two-step and modify the
+Cfup.
+
+   Tfup = I1                 (or Tsyn if one-step)
+   Csyn + Cfup = F1 + TCsyn
+
+And ppsi saves the sum of all three. Remember T1 = I1 + F1
+
+   P1 = Tfup + Csyn + Cfup
+   P1 = T1 + TCsyn
+
+On transmission, of delay-request nothing happens, and Creq is 0.
+
+   P2 = T2
+   P3 = T3
+
+The correction-field arrives with the TC delay inside (TCreq).  The
+master copies Creq to Crep and *subtracts* the fractional part of the
+timestamp it collected  (NOTE: we always added)
+
+   Trep = I4
+   Crep = TCreq - F4
+
+So, in ppsi I just subtract this:
+
+   P4 = Trep - Crep
+   P4 = T4 - TCreq
+
+The Crep is received unmodified, because TCs only act on event messages.
+
+Finally, the round trip time is clearly to be calculated as
+
+   T4 - T1 - (T3 - T2)  -  TC
+
+If I do it with ppsi internal stamps:
+
+   P4 - P1 - (P3 - P2)
+
+   T4 - Tcreq - T1 -TCsyn - (T3 - T2)
+
+   T4 - T1 - (T3 - T2)  - (TCsyn + TCreq)
+
+So this actually works as expected.
+
+The unreadable doc says in 11.3, in a 4-line expression, that round-trip is:
+
+   T2 - T3 + (I4 - I1) - Csyn - Cfup - Crep
+
+By expanding  the cFields, this  means:
+
+   T2 - T3 + (I4 - I1) - F1 - TCsyn  - TCreq + F4
+
+   T4 - T1 - (T3 - T2)  - (TCsyn + TCreq)
+
+QED.  So my simplified calculation is correct, and I can merge the
+cField in the timestamp as soon as the frame arrives.
+
+
+#### Bug since the origin of time
+
+Our code has always used Crep = F4 (positive), and *added* the cField
+to the received timestamp (though only later, not at frame rx time).
+
+Which means that it worked as long as there were no TC in the path,
+that it was interoperable with anybody having no fractional part,
+and obviously it worked with itself.
+
+But the code is wrong. And if I fix it (by subtracting instead of
+adding) it will not be compatible with itself, with the error being
+up to two clock cycles.
+
+So I suggest we keep it bugged, well marked in the code, so
+somebody else will try to do better in the final HA implementation.
+
+####################################### P2P
+
+Peer-to-peer is a little more tricky, because it has several
+options. Also note that code does not use T1,T2,T3,T4, because T1 and
+T2 are already used for sync events. We use T3,T4,T5,T6, but this is
+different from the standard.  Here I use T1..4 according to the
+standard, and P3..6 for the ppsi-internal variables
+
+For sync and f-up the same as above applies, so P1 includes
+the correction factors, that I add at recv time.
+
+Then we look at pdelay. By definition, no transparent clock is there
+(if it was there, we would be talking with it).  So the correction
+factors only include the fractional parts.  I still call the nodes
+master and slave, because the link-delay is only used by the slave -
+we lack transparent clock in the code. Correction fields are called
+Cpreq, Cprep, Cpfup.
+
+The slave sends pdelay-request with cfield as zero. Retrieves T1 on tx.
+
+   P3 = T1
+
+The one-step master (node-B) copies the cField (zero) and adds
+the difference T3 - T2; the slave saves T4 locally.
+
+   Cprep = T3 - T2
+   P6 = T4
+
+For two step clocks, there are two options.  The master can send
+0 in pdelay-response and "T3 - T2" in the response-fup; or it can
+send the complete T2 and T3. We do that, because we want to show the
+actual timestamps in diagnostic messages and this is the case
+I dissect, but the result is the same (exercise for the reader).
+Clearly a transparent clock where the absolute time is irrelevant
+may prefer to just send 0 and the difference.
+
+So the response and follow-up are
+
+    Tprep = I2
+    Cprep = -F2
+    Tpfup = I3
+    Cpfup = Cpreq + F3   (I ignore Cpreq here below, as it is asymmetry)
+
+In ppsi, I should subtract and add in the same way:
+
+    P4 = Tprep - Cprep
+    P5 = Tpfup + Cpfup
+
+Then, the standard calculates the round trip time like this
+
+    T4 - T1 - (Tpfup - Tprep) - Cprep - Cpfup
+    T4 - T1 - (I3 - I2) + F2 - F3
+    T4 - T1 - (I3 - I2  - F2 + F3)
+    T4 - T1 - (T3 - T2)
+
+I do it in the usual way, with my own numbering of ppi->tX
+
+    P6 - P3 - (P5 - P4)
+    T4 - T1 - (Tpfup + Cpfup - Tprep + Cprep)
+
+Which is exactly the line mandate by the standard, that reduces
+to T4 - T1 - (T3 - T2).
+
+#### Bug
+
+As for E2E, we add fractional times instead of subtracting them.
+The same considerations apply, but in the case there is no installed
+base yet.

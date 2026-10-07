@@ -1,0 +1,10 @@
+#!/bin/bash
+
+SCRIPT_DIR=$(readlink -f $(dirname "${BASH_SOURCE[0]}"))
+SERIAL_LINE=/dev/ttyUSB4
+SPEED=921600
+CU_BIN=/user/dcobas/bin/cu
+
+# watch boot develop, then exit cu serial interface
+$CU_BIN -l $SERIAL_LINE -s $SPEED -E ''
+

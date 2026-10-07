@@ -1,0 +1,30 @@
+VME64x Core
+===========
+
+Using the core
+--------------
+
+There is an example in the svec repository.  See svec/hdl/syn/vmecore_test
+The design implements the core on a svec card, with a WB slave that implements
+various features (an SRAM, a pattern area to check DMA, a simple timer to
+check interrupts, a bus-error generator...).
+There is a C program (in svec/software/vmecore_test) to test all these
+features.
+
+Running the testbench
+---------------------
+
+After having cloned the repository, simply do:
+
+git submodule init
+git submodule update
+cd hdl/testbench/simple_tb/modelsim
+hdlmake
+make
+sh run_all.sh
+
+This is an automatic testbench with a yes/no status.
+It runs the testbench several times with a different scenario value.
+The last line should be: OK!
+
+Tested with ModelSim SE-64 10.2a on linux.

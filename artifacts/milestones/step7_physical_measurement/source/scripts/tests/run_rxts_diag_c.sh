@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
+TEST_OUT=$(mktemp -d)
+trap 'rm -f "$TEST_OUT/test"; rmdir "$TEST_OUT"' EXIT
+${CC:-cc} -std=gnu99 -Wall -Wextra -Werror -fsanitize=undefined \
+  -fno-sanitize-recover=all -iquote "$ROOT/vendor/wrpc-sw/include" \
+  -iquote "$ROOT/vendor/wrpc-sw/pp_printf" "$ROOT/scripts/tests/rxts_diag/test.c" \
+  -o "$TEST_OUT/test"
+"$TEST_OUT/test"

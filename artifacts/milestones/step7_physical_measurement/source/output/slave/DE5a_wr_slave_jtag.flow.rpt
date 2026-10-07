@@ -1,0 +1,137 @@
+Flow report for DE5a_wr_slave_jtag
+Mon Oct  5 14:54:27 2026
+Quartus Prime Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+
+
+---------------------
+; Table of Contents ;
+---------------------
+  1. Legal Notice
+  2. Flow Summary
+  3. Flow Settings
+  4. Flow Non-Default Global Settings
+  5. Flow Elapsed Time
+  6. Flow OS Summary
+  7. Flow Log
+  8. Flow Messages
+  9. Flow Suppressed Messages
+
+
+
+----------------
+; Legal Notice ;
+----------------
+Copyright (C) 2017  Intel Corporation. All rights reserved.
+Your use of Intel Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Intel Program License 
+Subscription Agreement, the Intel Quartus Prime License Agreement,
+the Intel MegaCore Function License Agreement, or other 
+applicable license agreement, including, without limitation, 
+that your use is for the sole purpose of programming logic 
+devices manufactured by Intel and sold by Intel or its 
+authorized distributors.  Please refer to the applicable 
+agreement for further details.
+
+
+
++-------------------------------------------------------------------------------+
+; Flow Summary                                                                  ;
++-----------------------------+-------------------------------------------------+
+; Flow Status                 ; Successful - Mon Oct  5 14:54:14 2026           ;
+; Quartus Prime Version       ; 17.0.0 Build 595 04/25/2017 SJ Standard Edition ;
+; Revision Name               ; DE5a_wr_slave_jtag                              ;
+; Top-level Entity Name       ; DE5a_wr_slave_jtag                              ;
+; Family                      ; Arria 10                                        ;
+; Device                      ; 10AX115N2F45E1SG                                ;
+; Timing Models               ; Final                                           ;
+; Logic utilization (in ALMs) ; 11,316 / 427,200 ( 3 % )                        ;
+; Total registers             ; 19345                                           ;
+; Total pins                  ; 49 / 992 ( 5 % )                                ;
+; Total virtual pins          ; 0                                               ;
+; Total block memory bits     ; 1,676,928 / 55,562,240 ( 3 % )                  ;
+; Total DSP Blocks            ; 4 / 1,518 ( < 1 % )                             ;
+; Total HSSI RX channels      ; 1 / 48 ( 2 % )                                  ;
+; Total HSSI TX channels      ; 1 / 48 ( 2 % )                                  ;
+; Total PLLs                  ; 5 / 112 ( 4 % )                                 ;
++-----------------------------+-------------------------------------------------+
+
+
++-----------------------------------------+
+; Flow Settings                           ;
++-------------------+---------------------+
+; Option            ; Setting             ;
++-------------------+---------------------+
+; Start date & time ; 10/05/2026 14:50:10 ;
+; Main task         ; Compilation         ;
+; Revision Name     ; DE5a_wr_slave_jtag  ;
++-------------------+---------------------+
+
+
++------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+; Flow Non-Default Global Settings                                                                                                                                                                                 ;
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------+---------------+-------------------------+------------+
+; Assignment Name          ; Value                                                                                                                          ; Default Value ; Entity Name             ; Section Id ;
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------+---------------+-------------------------+------------+
+; AUTO_OPEN_DRAIN_PINS     ; Off                                                                                                                            ; On            ; --                      ; --         ;
+; COMPILER_SIGNATURE_ID    ; 141562625799615.179118301023876                                                                                                ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.cmp         ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/../wr_arria10_e3p1_det_phy.qsys     ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.cmp         ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/../wr_arria10_e3p1_atx_pll.qsys     ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/wr_arria10_e3p1_rst_ctl.cmp         ; --            ; --                      ; --         ;
+; MISC_FILE                ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/../wr_arria10_e3p1_rst_ctl.qsys     ; --            ; --                      ; --         ;
+; PROJECT_OUTPUT_DIRECTORY ; output_files_slave_jtag                                                                                                        ; --            ; --                      ; --         ;
+; SLD_FILE                 ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/wr_arria10_e3p1_det_phy.debuginfo   ; --            ; --                      ; --         ;
+; SLD_FILE                 ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/wr_arria10_e3p1_atx_pll.debuginfo   ; --            ; --                      ; --         ;
+; SLD_FILE                 ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/wr_arria10_e3p1_rst_ctl.debuginfo   ; --            ; --                      ; --         ;
+; SLD_INFO                 ; QSYS_NAME wr_arria10_e3p1_atx_pll HAS_SOPCINFO 1 GENERATION_ID 1786668571                                                      ; --            ; wr_arria10_e3p1_atx_pll ; --         ;
+; SLD_INFO                 ; QSYS_NAME wr_arria10_e3p1_det_phy HAS_SOPCINFO 1 GENERATION_ID 1786668577                                                      ; --            ; wr_arria10_e3p1_det_phy ; --         ;
+; SLD_INFO                 ; QSYS_NAME wr_arria10_e3p1_rst_ctl HAS_SOPCINFO 1 GENERATION_ID 1786668580                                                      ; --            ; wr_arria10_e3p1_rst_ctl ; --         ;
+; SOPCINFO_FILE            ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_det_phy/generated/../wr_arria10_e3p1_det_phy.sopcinfo ; --            ; --                      ; --         ;
+; SOPCINFO_FILE            ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_atx_pll/generated/../wr_arria10_e3p1_atx_pll.sopcinfo ; --            ; --                      ; --         ;
+; SOPCINFO_FILE            ; ../quartus_generated/work_wrphy_full/wr_arria10_e3p1_phy/wr_arria10_e3p1_rst_ctl/generated/../wr_arria10_e3p1_rst_ctl.sopcinfo ; --            ; --                      ; --         ;
+; SYNTHESIS_ONLY_QIP       ; On                                                                                                                             ; --            ; --                      ; --         ;
+; SYNTHESIS_ONLY_QIP       ; On                                                                                                                             ; --            ; --                      ; --         ;
+; SYNTHESIS_ONLY_QIP       ; On                                                                                                                             ; --            ; --                      ; --         ;
++--------------------------+--------------------------------------------------------------------------------------------------------------------------------+---------------+-------------------------+------------+
+
+
++-------------------------------------------------------------------------------------------------------------------------------+
+; Flow Elapsed Time                                                                                                             ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Module Name               ; Elapsed Time ; Average Processors Used ; Peak Virtual Memory ; Total CPU Time (on all processors) ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
+; Analysis & Synthesis      ; 00:00:53     ; 2.5                     ; 1706 MB             ; 00:01:31                           ;
+; Fitter                    ; 00:02:35     ; 2.0                     ; 12538 MB            ; 00:16:09                           ;
+; Assembler                 ; 00:00:26     ; 1.0                     ; 6973 MB             ; 00:00:25                           ;
+; TimeQuest Timing Analyzer ; 00:00:12     ; 1.5                     ; 4567 MB             ; 00:00:52                           ;
+; Total                     ; 00:04:06     ; --                      ; --                  ; 00:18:57                           ;
++---------------------------+--------------+-------------------------+---------------------+------------------------------------+
+
+
++---------------------------------------------------------------------------------------------+
+; Flow OS Summary                                                                             ;
++---------------------------+------------------+----------------+------------+----------------+
+; Module Name               ; Machine Hostname ; OS Name        ; OS Version ; Processor type ;
++---------------------------+------------------+----------------+------------+----------------+
+; Analysis & Synthesis      ; pain             ; Ubuntu 20.04.6 ; 20         ; x86_64         ;
+; Fitter                    ; pain             ; Ubuntu 20.04.6 ; 20         ; x86_64         ;
+; Assembler                 ; pain             ; Ubuntu 20.04.6 ; 20         ; x86_64         ;
+; TimeQuest Timing Analyzer ; pain             ; Ubuntu 20.04.6 ; 20         ; x86_64         ;
++---------------------------+------------------+----------------+------------+----------------+
+
+
+------------
+; Flow Log ;
+------------
+quartus_map --read_settings_files=on --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+quartus_fit --read_settings_files=off --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+quartus_asm --read_settings_files=off --write_settings_files=off DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+quartus_sta DE5a_wr_slave_jtag -c DE5a_wr_slave_jtag
+
+
+

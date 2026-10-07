@@ -1,0 +1,13 @@
+*.*\#
+\#*
+.\#*
+*.*~
+work
+*.wlf
+*.vstf
+*.patch
+modelsim.ini
+*.html
+*.o
+*.bin
+*.elf

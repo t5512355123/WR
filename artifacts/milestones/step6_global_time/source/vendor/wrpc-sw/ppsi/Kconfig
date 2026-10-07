@@ -1,0 +1,4 @@
+
+mainmenu "PPSi configuration"
+
+source Kconfig_ppsi

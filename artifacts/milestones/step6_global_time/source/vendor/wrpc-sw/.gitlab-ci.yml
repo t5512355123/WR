@@ -1,0 +1,50 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+before_script:
+  - PATH=/compilers/riscv-11.2-small/bin:/compilers/lm32-gcc-4.5.3/bin:$PATH
+
+stages:
+- compile
+
+make_wrpc_sw:
+  stage: compile
+  tags:
+  - ohwrsw
+  script:
+  - make spec_defconfig
+  - make
+  artifacts:
+    name: wrpc_sw_ci_${CI_JOB_NAME}_${CI_JOB_ID}
+    paths:
+    - wrc.elf
+
+make_all:
+  stage: compile
+  tags:
+  - ohwrsw
+  script:
+    - NPROC=$(grep -c ^processor /proc/cpuinfo)
+    - fail=""
+    - for f in $(ls configs); do
+    -   make clean
+    -   make $f
+    -   if ! make -j$NPROC; then
+    -     echo "FAILURE of $f"
+    -     fail="$fail $f"
+    -   fi
+    - done
+    - echo "FAILED TARGET are $fail"
+    - test "$fail" = ""
+
+make_rt_cpu:
+  stage: compile
+  tags:
+  - ohwrsw
+  script:
+  - make wr_switch_defconfig
+  - make
+  artifacts:
+    name: wrpc_sw_ci_${CI_JOB_NAME}_${CI_JOB_ID}
+    paths:
+    - rt_cpu.elf

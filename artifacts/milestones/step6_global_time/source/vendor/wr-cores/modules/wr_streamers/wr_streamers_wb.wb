@@ -1,0 +1,745 @@
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+  name = "WR Transmission control, status and debug";
+  description = "-----------------------------------------------------------------\
+  This WB registers allow to diagnose transmission and reception of\
+  data using WR streamers.                                         \
+  In particular, these registers provide access to streamer's      \
+  statistics that can be also access from SNMP, if supported.      \
+  -----------------------------------------------------------------\
+  Copyright (c) 2016 CERN/BE-CO-HT and CERN/TE-MS-MM               \
+                                                                   \
+  This source file is free software; you can redistribute it       \
+  and/or modify it under the terms of the GNU Lesser General       \
+  Public License as published by the Free Software Foundation;     \
+  either version 2.1 of the License, or (at your option) any       \
+  later version.                                                   \
+                                                                   \
+  This source is distributed in the hope that it will be           \
+  useful, but WITHOUT ANY WARRANTY; without even the implied       \
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR          \
+  PURPOSE.  See the GNU Lesser General Public License for more     \
+  details                                                          \
+                                                                   \
+  You should have received a copy of the GNU Lesser General        \
+  Public License along with this source; if not, download it       \
+  from http://www.gnu.org/licenses/lgpl-2.1.html                   \
+  -----------------------------------------------------------------";
+  prefix = "wr_streamers";
+  hdl_entity = "wr_streamers_wb";
+  version= 2;
+
+  reg {
+    name = "Statistics status and ctrl register";
+    prefix = "SSCR1";
+
+    field {
+      name = "Reset statistics";
+      prefix = "RST_STATS";
+      description = "Writing 1 reset counters, latency acc/max/min. This reset is timestamped";
+      type = MONOSTABLE;
+    };
+    field {
+      name = "Reset tx seq id";
+      prefix = "RST_SEQ_ID";
+      description = "Writing 1 reset sequence ID of transmitted frames";
+      type = MONOSTABLE;
+    };
+    field {
+      name = "Snapshot statistics";
+      prefix = "SNAPSHOT_STATS";
+      description = "Writing 1 snapshots statistics for reading, it means that all the counters \
+                    are copied at the same instant to registers and this registers can be read\
+                    via wishbone/snmp while the counters are still running in the background. \
+                    this allows to read coherent data";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY; 
+    };
+    field {
+      name = "Latency accumulator overflow";
+      prefix = "RX_LATENCY_ACC_OVERFLOW";
+      description = "Latency accumulator overflow - the lateny accumulator value is invalid";
+      type = BIT;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY; 
+    };
+   
+    field {
+      name = "Reset timestamp cycles";
+      prefix = "RST_TS_CYC";
+      description = "Timestamp of the last reset of stats (RST_STAT) -- count of clock cycles";
+      type = SLV;
+      size = 28;
+      align = 4;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY; 
+    };
+	};
+
+  reg {
+    name = "Statistics status and ctrl register";
+    prefix = "SSCR2";
+    field {
+      name = "Reset timestamp 32 LSB of TAI";
+      prefix = "RST_TS_TAI_LSB";
+      description = "Timestamp of the last reset of stats (RST_STAT)  -- LSB 32 bits of TAI";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY; 
+    };
+  };
+  reg {
+    name = "Statistics status and ctrl register";
+    prefix = "SSCR3";
+    field {
+      name = "Reset timestamp 8 MSB of TAI";
+      prefix = "RST_TS_TAI_MSB";
+      description = "Timestamp of the last reset of stats (RST_STAT)  -- MSB 8 bits of TAI";
+      type = SLV;
+      size = 8;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY; 
+    };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT0";
+    field {
+      name = "WR Streamer frame latency";
+      description = "Maximum latency of received frames since reset";
+      prefix = "RX_LATENCY_MAX";
+      type = SLV;
+      size = 28;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT1";
+    field {
+      name = "WR Streamer frame latency";
+      description = "Minimum latency of received frames since reset";
+      prefix = "RX_LATENCY_MIN";
+      type = SLV;
+      size = 28;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Tx statistics";
+    prefix = "TX_STAT2";
+    field {
+      name = "WR Streamer frame sent count (LSB)";
+      description = "Number of sent wr streamer frames since reset";
+      prefix = "TX_SENT_CNT_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Tx statistics";
+    prefix = "TX_STAT3";
+    field {
+      name = "WR Streamer frame sent count (MSB)";
+      description = "Number of sent wr streamer frames since reset";
+      prefix = "TX_SENT_CNT_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT4";
+    field {
+      name = "WR Streamer frame received count (LSB)";
+      description = "Number of received wr streamer frames since reset";
+      prefix = "RX_RCVD_CNT_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT5";
+    field {
+      name = "WR Streamer frame received count (MSB)";
+      description = "Number of received wr streamer frames since reset";
+      prefix = "RX_RCVD_CNT_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT6";
+    field {
+      name = "WR Streamer frame loss count (LSB)";
+      description = "Number of lost wr streamer frames since reset";
+      prefix = "RX_LOSS_CNT_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT7";
+    field {
+      name = "WR Streamer frame loss count (MSB)";
+      description = "Number of lost wr streamer frames since reset";
+      prefix = "RX_LOSS_CNT_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT8";
+    field {
+      name = "WR Streamer block loss count (LSB)";
+      description = "Number of indications that one or more blocks in a frame were lost (probably CRC\
+                     error) since reset";
+      prefix = "RX_LOST_BLOCK_CNT_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT9";
+    field {
+      name = "WR Streamer block loss count (MSB)";
+      description = "Number of indications that one or more blocks in a frame were lost (probably CRC\
+                     error) since reset";
+      prefix = "RX_LOST_BLOCK_CNT_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT10";
+    field {
+      name = "WR Streamer frame latency (LSB)";
+      description = "Accumulated latency of received frames since reset";
+      prefix = "RX_LATENCY_ACC_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT11";
+    field {
+      name = "WR Streamer frame latency (MSB)";
+      description = "Accumulated latency of received frames since reset";
+      prefix = "RX_LATENCY_ACC_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT12";
+    field {
+      name = "WR Streamer frame latency counter (LSB)";
+      description = "Counter of the accumulated frequency (so avg can be calculated in SW) since reset";
+      prefix = "RX_LATENCY_ACC_CNT_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+  reg {
+    name = "Rx statistics";
+    prefix = "RX_STAT13";
+    field {
+      name = "WR Streamer frame latency counter (MSB)";
+      description = "Counter of the accumulated frequency (so avg can be calculated in SW) since reset";
+      prefix = "RX_LATENCY_ACC_CNT_MSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+      };
+  };
+
+
+	
+
+  reg {
+    name = "Tx Config Reg 0";
+    prefix = "TX_CFG0";
+    field {
+      name = "Ethertype";
+      prefix = "Ethertype";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Tx Config Reg 1";
+    prefix = "TX_CFG1";
+    field {
+      name = "MAC Local LSB";
+      prefix = "mac_local_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Tx Config Reg 2";
+    prefix = "TX_CFG2";
+    field {
+      name = "MAC Local MSB";
+      prefix = "mac_local_MSB";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Tx Config Reg 3";
+    prefix = "TX_CFG3";
+    field {
+      name = "MAC Target LSB";
+      prefix = "mac_target_lsb";
+      type = SLV;
+      size = 32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Tx Config Reg 4";
+    prefix = "TX_CFG4";
+    field {
+      name = "MAC Target MSB";
+      prefix = "mac_target_MSB";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Tx Config Reg 4";
+    prefix = "TX_CFG5";
+    field {
+      name = "Enable tagging with Qtags";
+      prefix = "qtag_ena";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "VLAN ID";
+      prefix = "qtag_vid";
+      type = SLV;
+      size = 12;
+      align= 8;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "Priority";
+      prefix = "qtag_prio";
+      type = SLV;
+      size = 3;
+      align= 8;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 0";
+    prefix = "RX_CFG0";
+    field {
+      name = "Ethertype";
+      prefix = "Ethertype";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "Accept Broadcast";
+      description = "0: accept only unicasts; \
+      1: accept all broadcast packets";
+      prefix = "accept_broadcast";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "Filter Remote";
+      description = "0: accept streamer frames with any source MAC address; \
+      1: accept streamer frames only with the source MAC address defined in mac_remote";
+      prefix = "filter_remote";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 1";
+    prefix = "RX_CFG1";
+    field {
+      name = "MAC Local LSB";
+      prefix = "mac_local_LSB";
+      type = SLV;
+      size = 32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 2";
+    prefix = "RX_CFG2";
+    field {
+      name = "MAC Local MSB";
+      prefix = "mac_local_MSB";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 3";
+    prefix = "RX_CFG3";
+    field {
+      name = "MAC Remote LSB";
+      prefix = "mac_remote_lsb";
+      type = SLV;
+      size = 32;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 4";
+    prefix = "RX_CFG4";
+    field {
+      name = "MAC Remote MSB";
+      prefix = "mac_remote_MSB";
+      type = SLV;
+      size = 16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "Rx Config Reg 5";
+    prefix = "RX_CFG5";
+    field {
+      name = "Fixed Latency";
+      description = "This register allows to configure fixed-latency. If the value is other than zero, the instant of outputing the received data from the rx streamer to the user application is delayed, so that the time-difference between the transmission fo the data and the output to the user matches the provided value. If the configured latency value is smaller than the network latency, the data is provided to the user instantly. The configuration value is expressed in clock cycles (16ns) ";
+      prefix = "fixed_latency";
+      type = SLV;
+      size = 28;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  reg {
+    name = "TxRx Config Override";
+    prefix = "CFG";
+    field {
+      name = "Tx Ethertype";
+      description = "Overrides default/application Tx Ethertype configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_tx_ethtype";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "Tx MAC Local";
+      description = "Overrides default/application Tx local MAC configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_tx_mac_loc";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "Tx MAC Target";
+      description = "Overrides default/application Tx target MAC configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_tx_mac_tar";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+    field {
+      name = "QTAG";
+      description = "Overrides default/application QTAG values with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_tx_qtag";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx Ethertype";
+      description = "Overrides default/application Rx Ethertype configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_ethertype";
+      type = BIT;
+      align=16;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx MAC Local";
+      description = "Overrides default/application Rx MAC Local configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_mac_loc";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx MAC Remote";
+      description = "Overrides default/application Rx MAC Remote configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_mac_rem";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx Accept Broadcast";
+      description = "Overrides default/application Rx Accept Broardcast configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_acc_broadcast";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx Filter Remote";
+      description = "Overrides default/application Rx Filter Remote configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_ftr_remote";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+    field {
+      name = "Rx Fixed Latency ";
+      description = "Overrides default/application Rx fixed latency configuration with configuration in the proper register:\
+      0: Default/set by application; \
+      1: Value from WB register";
+      prefix = "or_rx_fix_lat";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+
+  };
+  reg {
+    name = "DBG Control register";
+    prefix = "DBG_CTRL";
+    description = "This register is meant to control simple debugging of transmitted or received data.\
+    It allows to sniff a 32-bit word at a configurable offset from received or transmitted data.";
+    field {
+      name = "Debug Tx (0) or Rx (1)";
+      prefix = "MUX";
+      type = BIT;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+    };
+    field {
+      name = "Debug Start byte";
+      prefix = "START_BYTE";
+      description ="The offset, in bytes, from which the 32-bit word is read.";
+      type = SLV;
+      align =8;
+      size = 8;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+    };
+   };
+  reg {
+    name = "DBG Data";
+    prefix = "DBG_DATA";
+    field {
+      name = "Debug content";
+      size = 32;
+      type =SLV;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+    };
+   };
+
+  reg {
+    name = "Test value";
+    prefix = "DUMMY";
+    field {
+      name = "DUMMY value to read";
+      prefix = "DUMMY";
+      type = SLV;
+      size = 32;
+      access_bus = READ_ONLY;
+      access_dev = WRITE_ONLY;
+		};		
+  };
+
+
+  reg {
+    name = "Reset Register";
+    prefix = "RSTR";
+		field {
+			 name = "Software reset streamers";
+			 prefix = "RST_SW";
+			 description = "Writing 1 triggers a full software reset of the streamers.";
+			 type = MONOSTABLE;
+    };
+	};
+
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT15";
+		 field {
+				name = "WR Streamer RX Late Frames Count (LSB)";
+				description = "Number of RX frames that missed their fixed-latency deadline";
+				prefix = "RX_LATE_FRAMES_CNT_LSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT16";
+		 field {
+				name = "WR Streamer RX Late Frames Count (MSB)";
+				description = "Number of RX frames that missed their fixed-latency deadline";
+				prefix = "RX_LATE_FRAMES_CNT_MSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT17";
+		 field {
+				name = "WR Streamer RX Timed-out Frames Count (LSB)";
+				description = "Number of RX frames that had their execution timestamp too far in the future (exceeding the RX_CFG6 value)";
+				prefix = "RX_TIMEOUT_FRAMES_CNT_LSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT18";
+		 field {
+				name = "WR Streamer RX Timed-out Frames Count (MSB)";
+				description = "Number of RX frames that had their execution timestamp too far in the future (exceeding the RX_CFG6 value)";
+				prefix = "RX_TIMEOUT_FRAMES_CNT_MSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT19";
+		 field {
+				name = "WR Streamer RX OK Frames Count (LSB)";
+				description = "Number of RX executed on time in the fixed latency mode";
+				prefix = "RX_MATCH_FRAMES_CNT_LSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+	reg {
+		 name = "Rx statistics";
+		 prefix = "RX_STAT20";
+		 field {
+				name = "WR Streamer RX OK Frames Count (MSB)";
+				description = "Number of RX executed on time in the fixed latency mode";
+				prefix = "RX_MATCH_FRAMES_CNT_MSB";
+				type = SLV;
+				size = 32;
+				access_bus = READ_ONLY;
+				access_dev = WRITE_ONLY;
+		 };
+  };
+
+
+  reg {
+    name = "Rx Config Reg 6";
+    prefix = "RX_CFG6";
+    field {
+      name = "RX Fixed Latency Timeout (Default: 0x1000000=~134ms)";
+      prefix = "RX_FIXED_LATENCY_TIMEOUT";
+      type = SLV;
+      size = 28;
+      reset_value = 0x1000000;
+      access_bus = READ_WRITE;
+      access_dev = READ_ONLY;
+      };
+  };
+  
+};

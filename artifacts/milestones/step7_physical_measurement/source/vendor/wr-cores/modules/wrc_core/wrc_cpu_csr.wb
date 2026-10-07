@@ -1,0 +1,150 @@
+--------------------------------------------------------------------------------
+-- CERN BE-CO-HT
+-- Mock Turtle
+-- https://gitlab.cern.ch/coht/mockturtle
+--------------------------------------------------------------------------------
+--
+-- unit name:   mt_cpu_csr
+--
+-- description: MT CPU Control/Status Registers block layout (wbgen2)
+--
+--------------------------------------------------------------------------------
+-- Copyright (c) 2014-2019 CERN (home.cern)
+--------------------------------------------------------------------------------
+-- Copyright and related rights are licensed under the Solderpad Hardware
+-- License, Version 2.0 (the "License"); you may not use this file except
+-- in compliance with the License. You may obtain a copy of the License at
+-- http://solderpad.org/licenses/SHL-2.0.
+-- Unless required by applicable law or agreed to in writing, software,
+-- hardware and materials distributed under this License is distributed on an
+-- "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+-- or implied. See the License for the specific language governing permissions
+-- and limitations under the License.
+--------------------------------------------------------------------------------
+
+-- -*- Mode: LUA; tab-width: 2 -*-
+
+peripheral {
+
+   name = "Mock Turtle CPU Control/Status registers block";
+   prefix = "wrc_cpu_csr";
+   hdl_entity = "wrc_cpu_csr_wb_slave";
+
+   reg {
+      name = "Core Reset Register";
+      prefix = "RESET";
+
+      field {
+	 name = "Core reset lines";
+	 size = 8;
+	 type = SLV;
+	 reset_value = 0x0;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_ONLY;
+      };
+   };
+
+  
+   reg {
+      name = "Core Upload Address Register";
+      prefix = "UADDR";
+
+      field {
+	 name = "Address to access in selected core's local memory.";
+	 prefix = "ADDR";
+	 size = 20;
+	 type = SLV;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_ONLY;
+      };
+   };
+
+   reg {
+      name = "Core Upload Data Register";
+      prefix = "UDATA";
+
+      field {
+	 name = "Read/Write data from/to selected core's local memory.";
+	 description = "The address to read/write from/to is specified in the UADDR register.";
+	 size = 32;
+	 type = SLV;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_WRITE;
+	 load = LOAD_EXT;
+      };
+   };
+
+  
+   reg {
+      align = 32;
+      name = "Debug Interface Status Register";
+      prefix = "DBG_STATUS";
+
+      field {
+	 name = "Per Core debug mode bit";
+	 type = SLV;
+	 size = 8;
+	 access_bus = READ_ONLY;
+	 access_dev = WRITE_ONLY;
+      };
+   };
+
+
+   reg {
+      name = "Debug Interface Force Register";
+      prefix = "DBG_FORCE";
+
+      field {
+	 name = "Core debug force";
+	 size = 8;
+	 type = SLV;
+	 reset_value = 0x00;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_ONLY;
+      };
+   };
+
+   reg {
+      name = "Debug Interface Instruction Ready Register";
+      prefix = "DBG_INSN_READY";
+
+      field {
+	 name = "Core instruction ready";
+	 size = 8;
+	 type = SLV;
+	 access_bus = READ_ONLY;
+	 access_dev = WRITE_ONLY;
+      };
+   };
+
+   reg {
+      name = "Debug Interface Core[0] Instruction Register";
+      prefix = "DBG_CORE0_INSN";
+
+      field {
+	 name = "Instruction to be executed";
+	 size = 32;
+	 type = PASS_THROUGH;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_WRITE;
+	 load = LOAD_EXT;
+      };
+   };
+
+
+   reg {
+      name = "Debug Interface Core[0] Mailbox Data Register";
+      prefix = "DBG_CORE0_MBX";
+
+      field {
+	 name = "Mailbox data";
+	 size = 32;
+	 type = SLV;
+	 access_bus = READ_WRITE;
+	 access_dev = READ_WRITE;
+	 load = LOAD_EXT;
+      };
+   };
+
+
+};

@@ -2,6 +2,12 @@
 
 最新紀錄整理日期：**2026-10-07**；分支：`step7-physical-measurement`。
 
+Step6 與 Step7 milestone 現在也已提交完整展開的 **`source/`**，可直接在資料夾內
+依序 build → compile → program → dashboard，不必先解壓。
+`source/` 為可寫建置工作區，頂層壓縮封存與原始 SOF 維持唯讀。
+請參閱 [Step6 編譯方式](artifacts/milestones/step6_global_time/SOURCE_USAGE.md)
+或 [Step7 編譯方式](artifacts/milestones/step7_physical_measurement/SOURCE_USAGE.md)。
+
 將 Master 與 Slave 的 SMA PPS 輸出接入 **RIGOL DS1104Z Plus** 示波器後，
 可觀察到兩台脈衝的上升緣在**奈秒（ns）等級對齊**。
 使用者在本次觀測期間未見明顯漂移；此結果作為 White Rabbit

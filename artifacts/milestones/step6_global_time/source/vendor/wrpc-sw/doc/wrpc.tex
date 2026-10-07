@@ -1,0 +1,2909 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[english]{babel}
+\usepackage{fullpage}
+\usepackage[table,x11names,dvipsnames,table]{xcolor}
+\usepackage{pgf}
+\usepackage{tikz}
+\usepackage[pdftex]{hyperref}  % makes cross references and URLs clickable
+\usepackage[overload]{textcase}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{textcomp}
+\usepackage{longtable} % table over many pages
+\usepackage[document]{ragged2e} %texta djustment
+\usepackage{mdwlist} % to have tight itemization
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{graphicx}
+\usepackage{colortbl}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage[toc]{appendix}
+\newcommand{\newparagraph}[1]{\paragraph{#1}\mbox{}\\}
+
+\definecolor{wrlblue}{RGB}{165,195,210}
+\definecolor{wrlgray}{RGB}{209,211,212}
+\definecolor{light-gray}{gray}{0.95}
+
+\hypersetup{
+    colorlinks,
+    linkcolor={red!50!black},
+    citecolor={blue!50!black},
+    urlcolor={blue!80!black}
+}
+
+% set listings as in other WR-doc(s)
+\lstset{columns=flexible, upquote=true, frame=single,
+basicstyle=\footnotesize\ttfamily, backgroundcolor=\color{light-gray}, label=lst:init_src}
+
+\newcommand{\multirowpar}[2]{
+  \multirow{#1}{\hsize}{\parbox{\hsize}{\strut\raggedright#2\strut}}
+}
+
+\newcommand{\hdltablesection}[1]{
+  \multicolumn{4}{|c|}{\bf\small#1}
+}
+
+\newcolumntype{L}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{M}[1]{>{\raggedright\let\newline\\\arraybackslash\hspace{0pt}\ttsmall}m{#1}}
+\newcolumntype{C}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}}m{#1}}
+\newcolumntype{D}[1]{>{\centering\let\newline\\\arraybackslash\hspace{0pt}\ttsmall}m{#1}}
+
+\let\underscore\_
+\renewcommand{\_}{\underscore\allowbreak}
+
+\newenvironment{hdlparamtable}{
+  \setlength{\extrarowheight}{1pt}
+  \begin{center}
+    \begin{longtable}{|M{.2\textwidth}|C{.09\textwidth}|D{.11\textwidth}|L{.5\textwidth}|}
+      \firsthline
+      \rowcolor{wrlblue}
+      \bf{name} & \bf{type} & \bf{default} & \bf{description}\\
+      \hline
+      \endhead
+}{
+  \lasthline
+    \end{longtable}
+  \end{center}
+}
+
+\newenvironment{hdlporttable}{
+  \setlength{\extrarowheight}{1pt}
+  \begin{center}
+    \begin{longtable}{|M{.25\textwidth}|C{.05\textwidth}|D{.05\textwidth}|L{.55\textwidth}|}
+      \firsthline
+      \rowcolor{wrlblue}
+      \bf{name} & \bf{dir} & \bf{size} & \bf{description}\\
+      \hline
+      \endhead
+}{
+  \lasthline
+    \end{longtable}
+  \end{center}
+}
+
+\def \wrpcrelease {wrpc-v5.0}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\tts}[1]{
+  \texttt{\small{#1}}}
+
+% same as \tts{}, without argument
+\newcommand{\ttsmall}{\ttfamily\small}
+
+\newcommand{\hrefwrpc}[1]{
+  \tts{\href{https://gitlab.com/ohwr/project/wr-cores/blob/\wrpcrelease/#1}{#1}}}
+
+\title{White Rabbit PTP Core User's Manual}
+\author{Grzegorz Daniluk \\Dimitrios Lampridis \\Adam Wujek \hfill CERN (BE-CO-HT)}
+
+\begin{document}
+\input{version.tex}
+
+\makeatletter
+\hypersetup{pdftitle={\@title},pdfauthor={\@author}}
+\raggedright
+{\LARGE\bf\@title}\\[0.2 cm]
+\hrule height 4pt \vspace{0.1cm}
+{\large\gitrevinfo\hfill\today}\\
+\vspace*{\fill}
+{\large\@author}\\
+\hrule height 2pt
+\justify
+\makeatother
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Introduction}
+
+This is the user manual for the White Rabbit PTP Core (WRPC), part of the White
+Rabbit project. It describes the building and running process, and it provides a
+guide to instantiating the WRPC in your own HDL design.
+
+If you don't want to get your hands dirty and prefer to start with the demo binaries
+available at \url{https://gitlab.com/ohwr/project/wr-cores/wikis/Documents} for officially
+supported boards, please skip Section~\ref{Building the Core} and move forward
+directly to Section~\ref{Programming FPGA}. For help with instantiating the WRPC in
+your own HDL design, see Section~\ref{sec:wrpc_hdl}.
+
+
+% ##########################################################################
+\subsection{Software and hardware requirements}
+\label{Software and hardware requirements}
+
+% ==========================================================================
+\subsubsection{Repositories and Releases}
+\label{Repositories and Releases}
+
+This manual is about the official \gitrevinfo{} stable release of the White
+Rabbit PTP Core (WRPC).  The code and documentation for the project is
+distributed in the following places:
+
+\begin{itemize*}
+
+\item \url{https://gitlab.com/ohwr/project/wr-cores/wikis/Documents}
+
+  Hosts the pdf documentation for every official release.
+  The place where you can find already synthesized demo bitstreams,
+  ready to be downloaded to one of the officially supported boards.
+
+\item \url{https://gitlab.com/ohwr/project/wr-cores.git}
+
+  Repository with HDL sources of the WRPC.
+
+\item \url{https://gitlab.com/ohwr/project/wrpc-sw.git}
+
+  Repository with the software running inside the WRPC. Starting from
+  version 5, the soft CPU core is a RISC-V, while previous versions were
+  using LM32.
+
+\end{itemize*}
+Other tools useful for building and running the WRPC can be downloaded from the
+following locations:
+
+\begin{itemize*}
+
+\item \url{https://gitlab.com/ohwr/project/hdl-make.git}
+
+  \textit{hdlmake} is used in the HDL synthesis process to create a Makefile and
+  Xilinx ISE / Altera Quartus project file
+
+% Split url into two \href
+\item {\href{https://gitlab.com/ohwr/project/wrpc-sw/wikis/uploads/9f9224d2249848ed3e854636de9c08dc/riscv-11.2-small.tgz}{https://gitlab.com/ohwr/project/wrpc-sw/wikis/uploads/}\\
+\href{https://gitlab.com/ohwr/project/wrpc-sw/wikis/uploads/9f9224d2249848ed3e854636de9c08dc/riscv-11.2-small.tgz}{9f9224d2249848ed3e854636de9c08dc/riscv-11.2-small.tgz}}
+
+  This toolchain based on GCC 11.2 can be used to compile the software
+  for WRPC. This toolchain can work only on 64bit host machines. The
+  instruction how to build the toolchain for RISC-V can be found in
+  the appendix~\ref{appendix:building_RISCV_toolchain}.
+
+\end{itemize*}
+Repositories containing the WRPC gateware and software (\textit{wr-cores},
+\textit{wrpc-sw}) are tagged with \texttt{wrpc-v4.1} tag. Other tools used to
+build the core and load it into the FPGA should be used in their newest stable
+releases, unless otherwise stated.
+
+% ==========================================================================
+\subsubsection{Required hardware}
+\label{Required hardware}
+
+The minimum hardware set required to run the WR PTP Core reference firmware
+depends on the hardware platform you want to use. One of the following setups
+can be chosen:
+\begin{itemize}
+\item \href{https://gitlab.com/ohwr/project/spec/wikis}{SPEC PCIe board} +
+  \href{https://gitlab.com/ohwr/project/fmc-dio-5chttla/wikis}{FMC DIO card} + PC
+  computer running Linux
+\item \href{https://gitlab.com/ohwr/project/svec/wikis}{SVEC VME board} + VME crate with
+  a single board computer running Linux\footnote{\label{note_a20}In our test setup
+    we used MEN A20 board}
+\item \href{https://gitlab.com/ohwr/project/vfc-hd/wikis}{VFC-HD VME board} +
+  \href{https://gitlab.com/ohwr/project/fmc-dio-5chttla/wikis}{FMC DIO card} +
+  VME crate with a single board computer running Linux\footref{note_a20}
+\item \href{https://gitlab.com/ohwr/project/fasec/wikis}{FASEC board} +
+  \href{https://gitlab.com/ohwr/project/fmc-dio-5chttla/wikis}{FMC DIO card}
+\end{itemize}
+
+To be able to test White Rabbit synchronization you would also need
+additional components regardless of the reference platform chosen from the list
+above:
+\begin{itemize}
+  \item another WR node (e.g. one of the reference boards listed above) or a
+    White Rabbit Switch
+  \item a pair of WR-supported SFP transceivers\footnote{The list of supported
+    SFPs can be found on our wiki page
+    \url{https://gitlab.com/ohwr/project/white-rabbit/wikis/SFP}}
+  \item a roll of G652, single mode fiber to connect your WR devices
+\end{itemize}
+
+% ##########################################################################
+\newpage
+\section{Building the Core}
+\label{Building the Core}
+
+\textbf{Note:} you can skip this chapter if you want to use the release binaries
+available from \textit{https://gitlab.com/ohwr}.
+
+\vspace{1em}
+Depending on your needs, building the WRPC can be a one- or two-step process.
+In most of the cases you only need to synthesize the FPGA firmware (section
+\ref{HDL synthesis}). This way, you get a working WRPC with the default/release
+software running inside the core. If, for some reasons, you need to modify
+the soft-core processor's software, please check also
+section~\ref{Software compilation}
+which contains a description of the software compilation process.
+
+% ==========================================================================
+\subsection{HDL synthesis}
+\label{HDL synthesis}
+
+Before running the synthesis process you have to make sure your environment is
+set up correctly. You will need a synthesis software from your FPGA vendor.
+Depending on whether you want to run the WRPC on Xilinx (e.g. SPEC, SVEC boards) or
+Altera/Intel (e.g. VFC-HD) FPGA, you should install either Xilinx ISE or Quartus
+Prime software.
+
+\subsubsection{Setting up Xilinx ISE on Linux}
+\label{Setting up Xilinx ISE}
+To synthesize the FPGA firmware containing the WRPC, Xilinx ISE with free of
+charge WebPack license is enough. ISE provides a set of scripts:
+\texttt{settings32.sh}, \texttt{settings32.csh}, \texttt{settings64.sh} and
+\texttt{settings64.csh} that configure all the system variables to let you
+easily run the software. Depending on the shell you use and whether your Linux is
+32 or 64-bits you should execute one of them before the other tools are used.
+For 64-bit system and BASH shell you should call (assuming that ISE is installed
+in the default \textit{/opt} directory):
+\begin{lstlisting}
+$ /opt/Xilinx/<version>/ISE_DS/settings64.sh
+\end{lstlisting}
+
+You can check if the shell is configured correctly by verifying if the
+\texttt{\$XILINX} variable contains path to your ISE installation directory.
+
+\subsubsection{Setting up Quartus Prime on Linux}
+\label{Setting up Quartus Prime}
+To be able to synthesize the WRPC for Arria V FPGA (which is used on the VFC-HD
+board) you need at least a license for the Quartus Prime Standard Edition with
+the support of Arria V family. To set up the software after it is installed, you
+should add the location of its binaries to your \texttt{\$PATH} environment
+variable. Assuming you have installed the software in \textit{/opt/altera}, the
+following command should be executed:
+\begin{lstlisting}
+$ export PATH=/opt/altera/16.0/quartus/bin:$PATH
+\end{lstlisting}
+
+\subsubsection{Downloading the sources}
+Thanks to the \textit{hdlmake} tool, the synthesis process for the reference
+designs does not differ between Xilinx and Altera/Intel based boards. The tool creates
+synthesis Makefile as well as ISE/Quartus project file based on a set of
+Manifest.py files that you will find in the \textit{wr-cores} repository.\\
+
+First, please clone the \textit{hdlmake} repository from its location given in
+section \ref{Repositories and Releases}:
+\begin{lstlisting}
+$ cd <your-location>
+$ git clone https://gitlab.com/ohwr/project/hdl-make.git
+$ cd hdl-make
+$ git checkout c4789c4
+\end{lstlisting}
+This checks out \textit{hdlmake} version 2.1 patched with the Arria V FPGA
+support (VFC-HD board).
+
+Then, using your favorite editor, you should create an \textit{hdlmake} script in
+/usr/bin to be able to call it from any directory. The script should have the
+following content:
+\begin{lstlisting}
+#!/usr/bin/env bash
+python2.7 <path_to_hdlmake_sources>/hdl-make/hdlmake/__main__.py #@
+\end{lstlisting}
+
+Please, make your script executable:
+\begin{lstlisting}
+$ chmod a+x /usr/bin/hdlmake
+\end{lstlisting}
+
+Having all the tools in place, you can now clone the main WR PTP Core git
+repository for the v5 release. The set of commands below clones the WR PTP Core
+repository, checks out the release tag, and downloads other HDL repositories
+(submodules) needed to synthesize the core:
+\begin{lstlisting}
+$ cd <your-location>
+$ git clone https://gitlab.com/ohwr/project/wr-cores.git
+$ cd wr-cores
+$ git checkout wrpc-v5
+$ git submodule init
+$ git submodule update
+\end{lstlisting}
+
+The local copies of the submodules are stored to:
+
+\texttt{<your\_location>/wr-cores/ip\_cores}
+
+\vspace{1em}
+\textbf{Note:} If you use the WRPC within another project (like
+\textit{wr-nic}), you may need to checkout another release tag for this
+repository. Please refer to the project's documentation to find out which
+version of this package you need to build.
+
+\subsubsection{Running the synthesis (ISE, Quartus)}
+The subdirectory you should enter to run the synthesis depends on the hardware
+platform you use:
+\begin{itemize*}
+  \item \textbf{SPEC}: \texttt{<your\_location>/wr-cores/syn/spec\_ref\_design}
+  \item \textbf{SVEC}: \texttt{<your\_location>/wr-cores/syn/svec\_ref\_design}
+  \item \textbf{VFC-HD}: \texttt{<your\_location>/wr-cores/syn/vfchd\_ref\_design}
+\end{itemize*}
+
+After selecting a proper location from the list above, please call
+\textit{hdlmake} without any arguments to create the Makefile and project file:
+\begin{lstlisting}
+$ hdlmake
+\end{lstlisting}
+
+After that, the actual synthesis is just the matter of executing:
+\begin{lstlisting}
+$ make
+\end{lstlisting}
+
+This takes (depending on your computer) about 10 minutes and should generate
+bitstream files in various formats depending on your selected reference
+hardware:
+\begin{itemize*}
+  \item \textbf{SPEC}: \texttt{spec\_wr\_ref\_top.bin}, \texttt{spec\_wr\_ref\_top.bit}
+  \item \textbf{SVEC}: \texttt{svec\_wr\_ref\_top.bin}, \texttt{svec\_wr\_ref\_top.bit}
+  \item \textbf{VFC-HD}: \texttt{vfchd\_wr\_ref.sof}
+\end{itemize*}
+
+You can select the bitstream format to be downloaded to FPGA depending on the
+programming method:
+\begin{itemize}
+  \item \textbf{*.bin} files to program the Xilinx FPGA on SPEC or SVEC board
+    using the official software support package (\textit{spec-sw},
+    \textit{svec-sw}). See section \ref{Programming FPGA} for more
+    information.
+  \item \textbf{*.bit} files to program the Xilinx FPGA with Xilinx USB Platform
+    Cable (using e.g. Xilinx Impact tool)
+  \item \textbf{*.sof} file to program the Intel FPGA (VFC-HD board) using using
+    the Altera / Intel JTAG cable
+\end{itemize}
+
+If, you would like to clean-up the repository to start building everything from
+scratch you can use the following commands:
+\begin{itemize*}
+\item \texttt{\$ make clean} - removes all synthesis reports and log files;
+\item \texttt{\$ make mrproper} - removes \texttt{*.bin}, \texttt{*.bit} and
+  \texttt{*.sof} files;
+\end{itemize*}
+
+\subsubsection{Running the synthesis (Vivado)}
+The workflow in Xilinx Vivado is different than for ISE and Quartus. It is
+heavily based on packed IP cores and schematic entry. Therefore, if you would
+like to synthesize the reference design for Zynq (FASEC board), you
+need to go through two Vivado projects:
+\begin{itemize*}
+  \item \texttt{<your\_location>/wr-cores/syn/wrc\_board\_fasec\_ip} - is a
+    project created with \textit{hdlmake} from all HDL files necessary to
+    synthesize the WR PTP Core with all its peripherals for Zynq (Kintex-7 FPGA).
+    The project contains also IP-XACT module description to generate Vivado IP
+    Core for further synthesis with a complete FASEC reference design.
+  \item \texttt{<your\_location>/wr-cores/syn/fasec\_ref\_design} - is a main
+    reference design project for FASEC board. It is made with the Vivado Block
+    Design instantiating Processing System, reset circuits, AXI interconnects
+    and WR PTP Core IP generated from \texttt{wrc\_board\_fasec\_ip} project.
+\end{itemize*}
+
+First, please execute the \texttt{build.tcl} script in Vivado batch mode
+\footnote{You can also use Tools->Run Tcl Script... from Vivado gui} to create
+WR PTP Core IP:
+\begin{lstlisting}
+$ cd <your_location>/wr-cores/syn/wrc_board_fasec_ip
+$ vivado -mode batch -source build.tcl
+\end{lstlisting}
+
+After this step, you can generate the main reference design Vivado project,
+using Tcl scripts in the repository:
+\begin{lstlisting}
+$ cd <your_location>/wr-cores/syn/fasec_ref_design
+$ vivado -mode batch -source build.tcl
+\end{lstlisting}
+
+Open the project file \texttt{fasec\_ref\_design.xpr} and continue with regular
+Vivado flow to synthesize the bitstream.
+
+% ==========================================================================
+\subsection{Software compilation}
+\label{Software compilation}
+
+By default, the RISC-V software for a stable release is embedded
+inside the FPGA bitstream you've downloaded from
+\textit{https://gitlab.com/ohwr} or
+synthesized in section \ref{HDL synthesis}. You can skip this section, unless
+you need to make some custom changes to the soft-core processor's software and
+compile it yourself.\\
+
+\textbf{Note:} To compile also the host tools that come with this software
+package you will need a \emph{readline-dev} library. In some Linux distributions
+you would have to install it manually. E.g. in Ubuntu, please install
+\emph{libreadline-dev} package.\\
+
+First, you need to download and unpack the toolchain from the location
+mentioned in section \ref{Repositories and Releases}.
+\begin{lstlisting}
+$ wget https://gitlab.com/ohwr/project/wrpc-sw/wikis/uploads/\
+9f9224d2249848ed3e854636de9c08dc/riscv-11.2-small.tgz
+$ tar xJf riscv-11.2-small.tgz -C <your_location>
+\end{lstlisting}
+
+Then you need to set a \texttt{CROSS\_COMPILE} environment variable in order
+to compile the software. For the RISC-V processor:
+\begin{lstlisting}
+$ export CROSS_COMPILE="<your_location>/riscv-11.2-small/bin/riscv32-elf-"
+\end{lstlisting}
+
+To get the sources of the WRPC software, please clone the \textit{wrpc-sw} git
+repository tagged with \texttt{wrpc-v5.0} tag. The commands in the listing below
+clone the \textit{wrpc-sw} repository together with submodules needed for this software.\\
+\begin{lstlisting}
+$ git clone https://gitlab.com/ohwr/project/wrpc-sw.git <your_location>/wrpc-sw
+$ cd <your_location>/wrpc-sw
+$ git checkout wrpc-v5
+\end{lstlisting}
+
+\textbf{Note:} If you use WRPC within another project, you may need to checkout
+a different tag or a specific commit. If this applies, please refer to a
+documentation for this project.\\
+
+Before you can compile \textit{wrpc-sw}, you can make some configuration
+choices. The package uses \textit{Kconfig} as a configuration engine, so you may
+run one of the following commands (the first two are text-mode, the third uses
+a KDE GUI and the fourth uses a Gnome GUI):
+\begin{lstlisting}
+$ make menuconfig
+$ make config
+$ make xconfig
+$ make gconfig
+\end{lstlisting}
+
+Other \code{Kconfig} target applies, like \code{config}, \code{oldconfig}
+and so on. A few default known-good configurations are found in
+\texttt{./configs} and you choose one by \code{make}ing it by name. For all
+three boards mentioned in this manual \code{spec\_defconfig} can be used.
+\begin{lstlisting}
+$ make spec_defconfig
+\end{lstlisting}
+
+After the package is configured, just run \code{make} without parameters to
+build your binary file:
+\begin{lstlisting}
+$ make
+\end{lstlisting}
+
+The first time you build, the \textit{Makefile} automatically downloads
+the \textit{git submodules} of this package, unless you already did that
+by hand. The second and later build won't download anything
+from the network.
+
+The compilation process produces the binary in 3 different formats:
+\begin{itemize*}
+  \item \textit{wrc.bin} can be then used with the loader from \textit{spec-sw}
+    or \textit{svec-sw} software package to program the soft-core processor
+    inside the White
+    Rabbit PTP Core (see section \ref{Programming FPGA} for details).
+  \item \textit{wrc.bram} you can use to initialize WRPC internal RAM with
+    software during the synthesis for Xilinx FPGAs.
+  \item \textit{wrc.mif} you can use to initialize WRPC internal RAM with
+    software during the synthesis for Altera FPGAs.
+\end{itemize*}
+The location of \textit{wrc.bram}/\textit{wrc.mif} files should be passed to the
+WR PTP Core HDL using the \texttt{g\_dpram\_initf} generic.
+
+% ##########################################################################
+\newpage
+\section{Programming FPGA with WRPC firmware}
+\label{Programming FPGA}
+
+% ==========================================================================
+\subsection{Programming FPGA on SPEC}
+\label{Programming FPGA on SPEC}
+
+\textbf{Note:} If you use a more recent version of the \texttt{spec-sw} than the
+one described in this manual, the up-to-date documentation can always be found
+in \textit{doc/} subdirectory of the \texttt{spec-sw} git repository.\\
+
+First you need to clone the SPEC board software support package
+(\textit{spec-sw}) from \textit{https://gitlab.com/ohwr}.
+It is a set of Linux kernel drivers and
+userspace tools, that interacts with a SPEC board plugged into a PCI-Express
+slot.\\
+
+\begin{lstlisting}
+$ git clone https://gitlab.com/ohwr/project/spec-sw.git <your_location>/spec-sw
+$ cd <your_location>/spec-sw
+$ git checkout 0745464
+$ make
+\end{lstlisting}
+
+You have to download also the "golden" firmware for SPEC card. It is used by
+the drivers to recognize the hardware:
+\begin{lstlisting}
+$ wget https://gitlab.com/ohwr/project/spec-sw/wikis/uploads/\
+636e7eaa2e1c3a884e2f9f694fdfd1b9/spec-init.bin-2015-09-18
+$ sudo mv spec-init.bin-2015-09-18 /lib/firmware/fmc/spec-init.bin
+\end{lstlisting}
+
+Now you can load the drivers necessary to access the SPEC board from your
+system:
+\begin{lstlisting}
+$ sudo insmod fmc-bus/kernel/fmc.ko
+$ sudo insmod kernel/spec.ko
+\end{lstlisting}
+
+You can use the \textit{dmesg} Linux command to verify if this step succeeded.
+Among plenty of messages you should be able to find something very similar to:
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+[1275526.738895] spec 0000:20:00.0:  probe for device 0020:0000
+[1275526.738906] spec 0000:20:00.0: PCI INT A -> GSI 16 (level, low) -> IRQ 16
+[1275526.738913] spec 0000:20:00.0: setting latency timer to 64
+[1275526.743102] spec 0000:20:00.0: got file "fmc/spec-init.bin", 1485236 (0x16a9b4) bytes
+[1275526.934710] spec 0000:20:00.0: FPGA programming successful
+[1275527.296754] spec 0000:20:00.0: mezzanine 0
+[1275527.296756]       Manufacturer: CERN
+[1275527.296757]       Product name: FmcDio5cha
+\end{lstlisting}
+
+Now, you are ready to program the FPGA with your synthesized bitstream from
+\texttt{<your\_location>/wr-cores/syn/spec\_ref\_design/spec\_wr\_ref\_top.bin}
+\begin{lstlisting}
+$ sudo tools/spec-fwloader \
+<your_location>/wr-cores/syn/spec_ref_design/spec_wr_ref_top.bin
+\end{lstlisting}
+
+If everything went right up to this moment you have your board running the FPGA
+bitstream with the WR PTP Core. If you need to load your own \texttt{wrc.bin}
+compiled in section \ref{Software compilation}, you can use the
+\texttt{spec-cl} tool:
+\begin{lstlisting}
+$ sudo tools/spec-cl <your_location>/wrpc-sw/wrc.bin
+\end{lstlisting}
+
+After all these steps, you should be able to start a Virtual-UART tool (also
+part of the \textit{spec-sw} package) that will be used to interact with the
+WRPC shell:
+\begin{lstlisting}
+$ sudo tools/spec-vuart
+\end{lstlisting}
+If you are able to see the shell prompt \textit{wrc\#} this means the Core
+is up and running on your SPEC card. Congratulations !\\
+
+Starting from version 3.0, WR PTP Core uses a flash memory chip on the carrier
+as a default place for storing calibration parameters and an init script.
+The storage format of this information is organized in SDBFS filesystem.
+Therefore, starting from v3.0 you have to write the empty
+SDBFS filesystem image to the flash before running the WRPC. The simplest way of
+doing this is by calling a WR PTP Core shell command:
+\begin{lstlisting}
+wrc# sdb fs 0
+\end{lstlisting}
+You should see the output similar to:
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+filename: .                 ; first: 2e0000; last: 32007f
+filename: wr-init           ; first: 2f0000; last: 2f00ff
+filename: calibration       ; first: 300000; last: 30007f
+filename: mac-address       ; first: 310000; last: 310005
+filename: sfp-database      ; first: 320000; last: 32007f
+Formatting SDBFS in Flash(0x2e0000)...
+\end{lstlisting}
+From version 4.3, it is possible to trigger creation of SDBFS via SNMP.
+For more details please refer to section~\ref{Generation of SFBFS via SNMP}.
+
+The other two methods: through the PCIe bus and using a Xilinx JTAG cable are
+described in appendix \ref{appendix:writing_sdbfs}.
+
+
+% ==========================================================================
+\subsection{Programming FPGA on other boards}
+
+Currently the driver packages for SVEC and VFC-HD boards depend on other CERN
+drivers and front-end infrastructure. We are working to make them exportable. If
+you are a CERN user of SVEC, VFC-HD board or SPEC in a Front-end computer,
+please check
+\url{https://wikis.cern.ch/display/HT/WR+Nodes} (accessible \textbf{only} from
+CERN network) for more instructions. If you are outside CERN and would like to
+use one of these boards, please contact us.
+
+% ==========================================================================
+\newpage
+\section{Using WRPC shell}
+
+\subsection{Writing configuration}
+\label{Writing configuration}
+
+First, you should perform a few configuration steps through the WRPC shell
+before using the core.
+
+\noindent\textbf{Note:} the examples below describe only a subset of the WRPC
+Shell commands. The full list of supported commands can be found in Appendix
+\ref{WRPC Shell commands}.\\
+
+Before making any configuration changes, it is recommended to stop the
+PTP daemon.  Then, the messages from the daemon will not show up to the
+console while you interact with the shell.
+
+\begin{lstlisting}
+wrc# ptp stop
+\end{lstlisting}
+
+\noindent First you should make sure your board has a proper MAC address
+assigned:
+\begin{lstlisting}
+wrc# mac get
+\end{lstlisting}
+If the result of above command is \texttt{MAC-address: 22:33:ww:xx:yy:zz} (where
+ww, xx, yy, zz are hex values), this
+means MAC was not yet configured and stored in the Flash/EEPROM. The value is
+based on thermometer serial number as is unique among SPEC devices. This is
+globally accepted as ``locally assigned'', but you might want to assign your own
+address. A value \texttt{22:33:44:55:66:77} is the final fallback if no
+thermometer is found.
+
+You should get the MAC for your board from its manufacturer. To configure the
+address and store it into the Flash/EEPROM (so that it's automatically loaded
+every time the WRPC starts) you should type two commands in the shell:
+\begin{lstlisting}
+wrc# mac set xx:xx:xx:xx:xx:xx
+wrc# mac setp xx:xx:xx:xx:xx:xx
+\end{lstlisting}
+where \texttt{xx:xx:xx:xx:xx:xx} is the MAC address of your board.\\
+
+Next, you should input calibration fixed delays values and alpha parameters. The
+example below clears any existing entries and adds two Axcen transceivers with
+$\Delta_{TX}$, $\Delta_{RX}$ and $\alpha$ parameters associated with them.
+Please note that the $\alpha$ value is split into two values. The most
+significant 9 decimal digits and the least significant 9 decimal digits.
+
+\begin{lstlisting}
+wrc# sfp erase
+wrc# sfp add AXGE-1254-0531 180750 148326 1235332 333756144
+wrc# sfp add AXGE-3454-0531 180750 148326 -1235332 333756144
+\end{lstlisting}
+
+To check the content of the SFP database you can execute the \textit{sfp show}
+shell command.\\
+
+\noindent\textbf{Note:} The $\Delta_{TX}$ and $\Delta_{RX}$ parameters above are
+the defaults for wrpc-v4.1 release bitstream available on
+\textit{https://gitlab.com/ohwr},
+running on the SPEC v4 board and calibrated to port 1 of a~WR Switch
+v3.3. These values as well as the default parameters for other boards are
+available on the calibration wiki page
+(\url{https://gitlab.com/ohwr/project/white-rabbit/wikis/Calibration}). If you
+re-synthesize the firmware or want to use the most accurate estimation of
+the fixed delays and alpha for your fiber, you should read and perform the WR
+Calibration procedure
+(\url{https://gitlab.com/ohwr/project/white-rabbit/wikis/Documents/White-Rabbit-calibration-procedure}).\\
+
+The WRPC  mode of operation (GrandMaster/Master/Slave) can be set
+using the \textit{mode} command:
+
+\begin{lstlisting}
+wrc# mode gm       # for GrandMaster mode
+wrc# mode master   # for Master mode
+wrc# mode slave    # for Slave mode
+\end{lstlisting}
+
+This stops the PTP daemon, changes the mode of operation, but does not start it
+automatically. Therefore, after calling it, you need to start the daemon
+manually:
+
+\begin{lstlisting}
+wrc# ptp start
+\end{lstlisting}
+
+\noindent\textbf{Note:} For running the GrandMaster mode, you need to have the
+\texttt{g\_with\_external\_clock\_input} generic enabled in your FPGA firmware.
+You also must provide 1-PPS and 10MHz signal from an external source (e.g. GPS receiver or
+Cesium clock). Depending on your board you should connect:
+\begin{itemize*}
+  \item \textbf{SPEC}: DIO mezzanine LEMO No.4 for 1-PPS, LEMO No.5 for 10MHz
+  \item \textbf{SVEC}: SVEC LEMO No.4 for 1-PPS, LEMO No.3 for 10MHz
+  \item \textbf{VFC-HD}: DIO mezzanine LEMO No.4 for 1-PPS, LEMO No.5 for 10MHz
+\end{itemize*}
+
+% ==========================================================================
+\subsection{Init script}
+\label{Init script}
+WRPC has a possibility to load user-defined intialization script on every
+startup. If you run WRPC release v4.1 or higher, the default software
+comes with a built-in init script. The default script disables VLAN support,
+loads calibration values from the SFP database (provided that it was written
+earlier by the user) and starts PTP in slave mode. Here are the actual WRPC
+shell commands executed from the built-in init script:
+\begin{lstlisting}
+vlan off
+ptp stop
+sfp match
+mode slave
+ptp start
+\end{lstlisting}
+
+You can still define your own init script that will be saved in the
+Flash/EEPROM memory attached to the WRPC. In that case, user-defined set of
+commands is executed after the built-in script. For example, if you would
+like to expand the default configuration by your own script that assigns an IP
+address, you need to to execute the following WRPC shell commands:
+\begin{lstlisting}
+wrc# init erase
+wrc# init add ip set 192.168.1.5
+\end{lstlisting}
+
+Another typical situation would be configuring the WRPC to run in GrandMaster or
+Master mode. In this case, assuming you also want to configure the IP address
+(like in the previous example) you would need to run the following WRPC shell
+commands:
+\begin{lstlisting}
+wrc# init erase
+wrc# init add mode master # for Free-running Master mode or
+wrc# init add mode gm     #for GrandMaster mode
+wrc# init add ptp start
+wrc# init add ip set 192.168.1.5
+\end{lstlisting}
+
+You can always check the content of the built-in and user-defined init scripts
+by calling \texttt{init show} command:
+\begin{lstlisting}
+wrc# init show
+-- built-in script --
+vlan off
+ptp stop
+sfp match
+mode slave
+ptp start
+-- user-defined script --
+ip set 192.168.1.5
+\end{lstlisting}
+
+\noindent\textbf{Note:} This simple configuration disables VLANs configuration
+in the WR PTP Core. If, for your network configuration you need to configure
+VLANs, please check the instructions in section \ref{VLAN Support}.
+
+% ==========================================================================
+\subsection{Running the Core}
+\label{Running the Core}
+
+Having the SFP calibration database, and eventually a user-defined init script
+created in \ref{Writing configuration} you can now restart the WRPC by typing
+the shell command:
+
+\begin{lstlisting}
+wrc# init boot
+\end{lstlisting}
+
+You should see log messages that confirm the execution of the initialization
+script:
+\begin{minipage}{\textwidth}
+\begin{lstlisting}
+executing: vlan off
+current vlan: 0 (0x0)
+executing:  ptp stop
+PTP stop
+executing:  sfp match
+AXGE-3454-0531
+SFP matched, dTx=180750 dRx=148326 alpha=-73685416
+executing:  mode slave
+PTP stop
+Locking PLL
+executing:  ptp start
+PTP start
+Slave Only, clock class set to 255
+executing: ip set 192.168.1.5
+IP-address: 192.168.1.5 (static assignment)
+\end{lstlisting}
+\end{minipage}
+
+Now, your device runs as a WR Slave.\\
+
+\textbf{Important!!!} WRPC needs to make a calibration of t24p phase transition
+value. It has to be done only once for a new bitstream and is performed
+automatically when WRPC runs in the Slave mode. That is why it is very
+important, even if WRPC is meant to run in the Master mode, to configure it to
+Slave for a moment and connect to any WR Master. This has to be repeated every
+time a new bitstream (gateware) is deployed. The measured value is automatically
+stored to Flash/EEPROM and used later in the Master or GrandMaster mode.\\
+
+The Shell also contains a monitoring function which you can use to check the
+WR synchronization status:
+
+\begin{lstlisting}
+wrc# gui
+\end{lstlisting}
+
+The information is presented in a clear, auto-refreshing screen (see the
+figure below).
+The information is refreshed at every WR iteration or periodically if
+nothing else happens (so you see an up-to-date timestamp). Only values are
+updated at every refresh. To force refresh of entire gui please press
+\texttt{r} key. To exit from this console mode press \texttt{<Esc>} or
+\texttt{q}. A full description of the information
+reporter by \textit{gui} is provided in Appendix \ref{WRPC GUI elements}.
+
+\noindent\textbf{Note:} the \textit{Synchronization status} and \textit{Timing
+parameters} in \texttt{gui} are available only in the WR Slave mode. When
+running as \textit{WR Master} or \textit{WR Grand Master}, you can see only
+the part above \texttt{Synchronization status}.
+
+
+\vspace{1em}
+\includegraphics[width=15cm]{wrpc_mon.png}
+\vspace{1em}
+
+If you want to log statistics from the WRPC operation, it is better to use a
+\texttt{stat} shell command. It reports the same information as \texttt{gui},
+but in a single line, which is easier to parse and analyze. Example for the slave mode:
+
+\begin{lstlisting}
+wrc# stat
+lnk:1 rx:172338 tx:151811 lock:1 ptp:slave sv:1 ss:'TRACK_PHASE' aux0:1 sec:6047 \
+nsec:828412744 mu:836453 dms:398530 dtxm:224455 drxm:232479 dtxs:180667 drxs:149251 \
+asym:39393 crtt:49643 cko:1 setp:5082 ucnt:270 hd:31734 md:46228 ad:0 temp: 52.6875 C
+lnk:1 rx:172392 tx:151860 lock:1 ptp:slave sv:1 ss:'TRACK_PHASE' aux0:1 sec:6049 \
+nsec:399776360 mu:836452 dms:398530 dtxm:224455 drxm:232479 dtxs:180667 drxs:149251 \
+asym:39392 crtt:49642 cko:2 setp:5082 ucnt:271 hd:31730 md:46211 ad:0 temp: 52.6875 C
+(...)
+\end{lstlisting}
+
+For master mode:
+\begin{lstlisting}
+wrc# stat
+lnk:1 rx:10955 tx:8050 lock:1 ptp:master sec:1630462668 nsec:109213512 hd:33525 \
+md:30000 ad:0 temp:48.3125 C
+lnk:1 rx:10956 tx:8054 lock:1 ptp:master sec:1630462669 nsec:109084328 hd:33523 \
+md:30000 ad:0 temp:48.3125 C
+(...)
+\end{lstlisting}
+
+\vspace{1em}
+Unlike \texttt{gui}, the \texttt{stat} command runs in the background: you can still
+issue shell commands while stats are running. You can stop statistics by running
+\texttt{stat} again. As an alternative to the toggling action of \texttt{stat}
+alone, you can use ``\texttt{stat on}'' or ``\texttt{stat off}''.
+
+Statistics are printed every time the WR servo runs; thus statistics
+are reported once per second the node is running in master and GrandMaster mode.
+No statistics are reported when the link is down.
+
+You can verify the synchronization performance by observing the offset between
+1-PPS signals from the WR Master and your WRPC running in the Slave mode. Please
+remember to use oscilloscope cables of the same length and type (with the same
+delay), or take their delay difference into account in your measurements.
+Depending on your board, 1-PPS output is produced on:
+\begin{itemize*}
+  \item \textbf{SPEC}: DIO mezzanine LEMO No.1
+  \item \textbf{SVEC}: SVEC LEMO No.1
+  \item \textbf{VFC-HD}: VFC-HD LEMO L3
+\end{itemize*}
+
+% ==========================================================================
+\subsection{Netconsole}
+\label{Netconsole}
+From the version 4.3 of WRPC the output from the serial console can be
+redirected\footnote{Such redirection includes \texttt{gui} command.
+To exit from \texttt{gui} when using the netconsole, please type
+\texttt{<Esc>} followed by \texttt{<Enter>}.}
+using UDP packets (port 55) to a remote host in the network via WR port. To use such
+functionality WRPC has to have compiled in option \texttt{CONFIG\_NETCONSOLE}.
+If option \texttt{NETCONSOLE\_DEF\_WAIT} is enabled WRPC after the start will
+wait for peer to comunicate with it. On the other hand if option
+\texttt{NETCONSOLE\_DEF\_DISABLE} is activated, then WRPC will not respond
+to any netconsole requests.
+
+To be able to configure netconsole from WRPC's command line the option
+\texttt{CONFIG\_CMD\_NETCONSOLE} has to be set in the dot-config.
+
+To make sure that netconsole is enabled, please execute \texttt{netconsole}
+command in the WRPC's shell:
+\begin{lstlisting}
+wrc# netconsole
+netconsole is waiting for peer
+\end{lstlisting}
+The above means that netconsole is ready to accept connections from a remote
+host. On the remote host, please execute the \texttt{nc}
+(or \texttt{netcat})\footnote{This is a standard tool which is installed on
+most Linux machines by default} command with the following parameters:
+\begin{lstlisting}
+host_pc$ nc -u <IP> 55
+\end{lstlisting}
+When any command is send via netconsole to WRPC it will start responding
+immediately. Please note that to trigger the sending of a command the
+\texttt{<enter>} key has to be pressed.
+
+Example session of a netconsole may look the following (on a host):
+\begin{lstlisting}
+$ nc -u 192.168.1.20 55
+
+
+wrc#temp
+ temp
+pcb:46.3750
+wrc#mode
+ mode
+running; e2e slave
+wrc#
+\end{lstlisting}
+At the same time the follwing will be printed on the serial console:
+\begin{lstlisting}
+wrc# temp
+pcb:46.3750
+wrc# mode
+running; e2e slave
+wrc#
+\end{lstlisting}
+
+Please note that all the input given on a host side will be printed twice in
+the netconsole, but only once in serial console. This will also bring an extra
+newline when \texttt{<enter>} is pressed. When all the interaction is made from
+a serial console, no extra newlines are introduced.
+Such behavior is caused by a \texttt{nc}. To get rid of such behavior custom
+version of \texttt{nc} would have to be distributed, which intentionally is
+avoided.
+
+To disable netconsole completely, please execute command:
+\begin{lstlisting}
+wrc# netconsole disable
+netconsole disabled
+\end{lstlisting}
+To make netconsole to listen for incoming messages please execute the folling
+command:
+\begin{lstlisting}
+wrc# netconsole wait
+netconsole is waiting for peer
+\end{lstlisting}
+Alternatively IP, MAC and port number of netconsole's peer can be entered
+manually, so netconsole will start sending packets to a given location.
+\begin{lstlisting}
+wrc# netconsole 90:e2:ba:1a:c6:78 192.168.1.1 53364
+netconsole's peer: MAC: 90:e2:ba:1a:c6:78 IP: 192.168.1.1 port: 53364
+\end{lstlisting}
+Worth to mentione here is that \texttt{nc} accepts parameter \texttt{-p}
+which specifies on which port \texttt{nc} will communicate on the host side.
+
+WRPC also may have support of configuring netconsole via SNMP, for details
+please check the section~\ref{Configuring netconsole via SNMP}.
+
+% ==========================================================================
+\newpage
+\section{WRPC diagnostics}
+\subsection{SNMP}
+\label{Diagnostics via SNMP}
+
+Up to the version 4.0 of WRPC the only way to perform diagnostics
+of the \texttt{wrpc-sw} was to use serial console with tools like \textit{gui}, \textit{stat},
+etc. For some set-ups, like standalone node, it is very inconvenient to use
+external console for diagnostics.
+
+Starting with version 4.0 of WRPC, it is possible to include the \textit{Mini
+SNMP responder}, which allows to perform remote diagnostics using \textit{SNMP} via
+a port connected to the \textit{Write Rabbit} network.
+
+The configuration file of WRPC contains the following
+SNMP-related options:
+\begin{itemize*}
+\item \texttt{CONFIG\_SNMP} -- include the \textit{Mini SNMP responder} into WRPC
+\item \texttt{CONFIG\_SNMP\_SET} -- enable the support of SNMP \textit{SET} packets
+\item \texttt{CONFIG\_SNMP\_VERBOSE} -- enable verbose output from the \textit{Mini SNMP
+      responder} on the WRPC's console
+\end{itemize*}
+
+The MIB file describing WRPC's OIDs can be found in the \texttt{lib} directory
+of the \texttt{wrpc-sw} repo.
+So far, the \textit{Mini SNMP responder} supports version 1 and a subset of version
+2c of the SNMP protocol.
+The following types of requests are supported:
+\begin{itemize*}
+   \item GET -- get value of a given OID
+   \item GETNEXT -- get value of a next OID after the given OID (this is used
+         for \texttt{snmpwalk}s)
+   \item SET -- change the value of a given OID (so far used only for adding
+         SFP's to the database and PTP restarts)
+\end{itemize*}
+The \textit{Mini SNMP responder} does not support:
+\begin{itemize*}
+   \item bulk requests packets (GETBULK)
+   \item more than one OID in the request packet
+   \item \texttt{trap} and \texttt{inform} packets
+   \item encryption
+   \item authentication
+   \item SNMPv2c return error types; all returned error types follows SNMPv1
+\end{itemize*}
+To make examples more readable, listings below use \texttt{SNMP\_OPT} environment
+variable. Make sure you set it properly in your shell.
+\begin{lstlisting}
+ $ SNMP_OPT="-c public -v 2c -m WR-WRPC-MIB -M +/var/lib/mibs/ietf:lib 192.168.1.20"
+\end{lstlisting}
+where:
+\begin{sloppypar} % to prevent \texttt{} from going to the margine
+\begin{itemize*}
+   \item \texttt{-c public} -- sets SNMP community as "\textit{public}"
+   \item \texttt{-v 2c} -- specifies SNMP version
+   \item \texttt{-m WR-WRPC-MIB} -- specifies MIBs to be loaded
+   \item \texttt{-M +/var/lib/mibs/ietf:lib} -- contains path to MIBs in the host
+         system (\texttt{/var/lib/mibs/ietf}) and path to \texttt{WR-WRPC-MIB} (\texttt{lib});
+         on Debian-like systems default MIBs can be downloaded using
+         \texttt{download-mibs} command (package \texttt{snmp-mibs-downloader}); on
+         CentOS and RedHat MIBs are included in the \texttt{libsmi} package
+   \item \texttt{192.168.1.20} -- the IP address of the target board
+\end{itemize*}\end{sloppypar}\noindent
+For example, to get the system uptime please execute the \texttt{snmpget} command:
+\begin{lstlisting}
+ $ snmpget $SNMP_OPT wrpcTimeSystemUptime.0
+\end{lstlisting}
+To get a dump of all available OIDs please execute the \texttt{snmpwalk}
+command:
+\begin{lstlisting}
+ $ snmpwalk $SNMP_OPT wrpcCore
+\end{lstlisting}
+Part of the \texttt{snmpwalk}'s output:
+\begin{lstlisting}
+ WR-WRPC-MIB::wrpcVersionHwType.0 = STRING: spec
+ WR-WRPC-MIB::wrpcVersionSwVersion.0 = STRING: wrpc-v3.0-251-g14e952e
+ WR-WRPC-MIB::wrpcVersionSwBuildBy.0 = STRING: Adam Wujek
+ WR-WRPC-MIB::wrpcVersionSwBuildDate.0 = STRING: Jun  7 2016 18:12:24
+ WR-WRPC-MIB::wrpcTimeTAI.0 = Counter64: 1465375022
+ WR-WRPC-MIB::wrpcTimeTAIString.0 = STRING: 2016-06-08-08:37:02
+ WR-WRPC-MIB::wrpcTimeSystemUptime.0 = Timeticks: (18186) 0:03:01.86
+ WR-WRPC-MIB::wrpcTemperatureName.1 = STRING: pcb
+ WR-WRPC-MIB::wrpcTemperatureValue.1 = STRING: 38.5625
+ WR-WRPC-MIB::wrpcSpllMode.0 = INTEGER: slave(3)
+ WR-WRPC-MIB::wrpcSpllIrqCnt.0 = Counter32: 1259605
+ [...]
+ WR-WRPC-MIB::wrpcPortSfpInDB.0 = INTEGER: inDataBase(2)
+ WR-WRPC-MIB::wrpcPortInternalTx.0 = Counter32: 452
+ WR-WRPC-MIB::wrpcPortInternalRx.0 = Counter32: 869
+ WR-WRPC-MIB::wrpcSfpPn.1 = STRING: AXGE-1254-0531
+ WR-WRPC-MIB::wrpcSfpDeltaTx.1 = INTEGER: 180750
+ WR-WRPC-MIB::wrpcSfpDeltaRx.1 = INTEGER: 148326
+ WR-WRPC-MIB::wrpcSfpAlpha.1 = INTEGER: 72169888
+ End of MIB
+\end{lstlisting}
+
+It is recommended to use SNMP v2c for communication with a WRPC.
+Please note that when the version 1 of SNMP is used, 64 bit counters are not
+supported. This makes impossible to read some WRPC's objects with
+SNMPv1.
+
+% --------------------------------------------------------------------------
+\subsubsection{Managing SFP database via SNMP}
+\label{Managing SFP database via SNMP}
+
+The SFPs database can be displayed using the \texttt{sfp show} command from
+the WRPC's console:
+\begin{lstlisting}
+ wrc# sfp show
+ 1: PN:AXGE-1254-0531   dTx:   180750 dRx:   148326 alpha: 72169888
+ 2: PN:AXGE-3454-0531   dTx:   180750 dRx:   148326 alpha: -73685416
+\end{lstlisting}
+The same data is exported by the \textit{Mini SNMP responder} via the table
+\texttt{wrpcSfpTable}:
+
+\begin{lstlisting}
+ $ snmpwalk $SNMP_OPT wrpcSfpTable
+ WR-WRPC-MIB::wrpcSfpPn.1 = STRING: AXGE-1254-0531
+ WR-WRPC-MIB::wrpcSfpPn.2 = STRING: AXGE-3454-0531
+ WR-WRPC-MIB::wrpcSfpDeltaTx.1 = INTEGER: 180750
+ WR-WRPC-MIB::wrpcSfpDeltaTx.2 = INTEGER: 180750
+ WR-WRPC-MIB::wrpcSfpDeltaRx.1 = INTEGER: 148326
+ WR-WRPC-MIB::wrpcSfpDeltaRx.2 = INTEGER: 148326
+ WR-WRPC-MIB::wrpcSfpAlpha.1 = INTEGER: 72169888
+ WR-WRPC-MIB::wrpcSfpAlpha.2 = INTEGER: -73685416
+ End of MIB
+\end{lstlisting}
+When the SET support is compiled into the \textit{Mini SNMP responder}, it is
+possible to erase or add/replace SFP entires to the SFPs database via SNMP.\\
+
+\begin{sloppypar} % to prevent \texttt{} from going to the margine
+Addition (or modification) of one SFP to the database can be done by a row of
+SNMP SETs. First, please set the delta Tx (\texttt{wrpcPtpConfigDeltaTx.0}), the
+delta Rx (\texttt{wrpcPtpConfigDeltaRx.0}) and the alpha (\texttt{wrpcPtpConfigAlpha.0})
+with new values. Then, to commit the change to the SFP database, perform the SNMP SET on
+the \texttt{wrpcPtpConfigApply.0} with the value \texttt{writeToFlashCurrentSfp}. It will
+add/update values for the currently plugged SFP.
+\end{sloppypar}
+
+To add or update entries for other SFPs, you shoud set deltas and alpha like
+above, set PN of an SFP to the \texttt{wrpcPtpConfigSfpPn.0} and commit
+the change by setting \texttt{writeToFlashGivenSfp} to the
+\texttt{wrpcPtpConfigApply.0}.\\
+
+It is also possible to update parameters of the currently used SFP without
+storing them to the Flash/EEPROM. For that, please set delta Tx, delta Rx and
+alpha as described above, then set \texttt{writeToMemoryCurrentSfp} to the
+\texttt{wrpcPtpConfigApply.0}. Please remember that these changes are made only
+in RAM and will be lost after a power cycle of a board, soft reset of WRPC or
+unplug/plug of a fiber/SFP.\\
+
+If a database entry or values in RAM of the currently used SFP are updated, it is
+necessary to perform a restart of the PTP daemon
+(set \texttt{wrpcPtpConfigRestart.0} with the value \texttt{restartPtp}). Such
+restart is necessary because currently PTP does not support on-the-fly changes
+of deltas nor alpha. It is expected that this behavior will change in the
+future.\\
+
+Each SNMP SET of \texttt{wrpcPtpConfigApply.0} or \texttt{wrpcPtpConfigRestart.0} returns
+the status of a performed action. For details please check \texttt{WR-WRPC-MIB}
+file.
+
+Commands below add an SFP with PN as "\texttt{NEW-SFP}", delta Tx "\texttt{1111}",
+delta Rx "\texttt{2222}" and alpha "\texttt{3333}".
+\begin{lstlisting}
+ $ snmpset $SNMP_OPT wrpcPtpConfigDeltaTx.0 = 1111
+ WR-WRPC-MIB::wrpcPtpConfigDeltaTx.0 = INTEGER: 1111
+ $ snmpset $SNMP_OPT wrpcPtpConfigDeltaRx.0 = 2222
+ WR-WRPC-MIB::wrpcPtpConfigDeltaRx.0 = INTEGER: 2222
+ $ snmpset $SNMP_OPT wrpcPtpConfigAlpha.0 = 3333
+ WR-WRPC-MIB::wrpcPtpConfigAlpha.0 = INTEGER: 3333
+ $ snmpset $SNMP_OPT wrpcPtpConfigSfpPn.0 = NEW-SFP
+ WR-WRPC-MIB::wrpcPtpConfigSfpPn.0 = STRING: "NEW-SFP"
+ $ snmpset $SNMP_OPT wrpcPtpConfigApply.0 = writeToFlashGivenSfp
+ WR-WRPC-MIB::wrpcPtpConfigApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+In case when the SFP database does not contain the currently plugged SFP, the last
+\texttt{snmpset} command will return \texttt{applySuccessfulMatchFailed(101)}.
+
+Optionally restart the PTP:
+\begin{lstlisting}
+ $ snmpset $SNMP_OPT wrpcPtpConfigRestart.0 = restartPtp
+ WR-WRPC-MIB::wrpcPtpConfigRestart.0 = INTEGER: restartPtpSuccessful(100)
+\end{lstlisting}
+
+Simple verification of performed actions:\\
+\begin{minipage}{\textwidth}
+\begin{lstlisting}
+ wrc# sfp show
+ 1: PN:AXGE-1254-0531   dTx:   180750 dRx:   148326 alpha: 72169888
+ 2: PN:AXGE-3454-0531   dTx:   180750 dRx:   148326 alpha: -73685416
+ 3: PN:NEW-SFP          dTx:     1111 dRx:     2222 alpha:     3333
+\end{lstlisting}
+\end{minipage}
+
+The same add can also be achieved by performing \texttt{sfp add} command in
+the WRPC's console:
+\begin{lstlisting}
+ wrc# sfp add NEW-SFP 1111 2222 0 3333
+ Update existing SFP entry
+ 3 SFPs in DB
+\end{lstlisting}
+
+Verify the result via SNMP:
+\begin{lstlisting}
+ $ snmpwalk $SNMP_OPT wrpcSfpTable
+ WR-WRPC-MIB::wrpcSfpPn.1 = STRING: AXGE-1254-0531
+ WR-WRPC-MIB::wrpcSfpPn.2 = STRING: AXGE-3454-0531
+ WR-WRPC-MIB::wrpcSfpPn.3 = STRING: NEW-SFP
+ WR-WRPC-MIB::wrpcSfpDeltaTx.1 = INTEGER: 180750
+ WR-WRPC-MIB::wrpcSfpDeltaTx.2 = INTEGER: 180750
+ WR-WRPC-MIB::wrpcSfpDeltaTx.3 = INTEGER: 1111
+ WR-WRPC-MIB::wrpcSfpDeltaRx.1 = INTEGER: 148326
+ WR-WRPC-MIB::wrpcSfpDeltaRx.2 = INTEGER: 148326
+ WR-WRPC-MIB::wrpcSfpDeltaRx.3 = INTEGER: 2222
+ WR-WRPC-MIB::wrpcSfpAlpha.1 = INTEGER: 72169888
+ WR-WRPC-MIB::wrpcSfpAlpha.2 = INTEGER: -73685416
+ WR-WRPC-MIB::wrpcSfpAlpha.3 = INTEGER: 3333
+ End of MIB
+\end{lstlisting}
+
+It is also possible to erase the SFPs database via SNMP (equivalent of
+the \texttt{sfp erase} command):
+\begin{lstlisting}
+ $ snmpset $SNMP_OPT wrpcPtpConfigApply.0 = eraseFlash
+ WR-WRPC-MIB::wrpcPtpConfigApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+To verify that database is empty:
+\begin{lstlisting}
+ wrc# sfp show
+ SFP database empty
+\end{lstlisting}
+
+% ==========================================================================
+\subsubsection{Setting up init script via SNMP}
+\label{Setting up init script via SNMP}
+
+When options \texttt{CONFIG\_SNMP\_INIT}, \texttt{CONFIG\_FLASH\_INIT}
+and \texttt{CONFIG\_SNMP\_SET} are enabled in the dot-config, it is possible to
+add a command at the end of an \textit{init script}. For more information about
+the~\textit{init script} please refer to section~\ref{Init script} and
+description of an \texttt{init} command in
+\hyperlink{cmd init add}{appendix~\ref{WRPC Shell commands}}.
+
+To add a command at the end of an init script, first specify a command by
+filling OID \texttt{wrpcInitScriptConfigLine.0}, then trigger the write to
+a Flash by setting \texttt{writeToFlash} to
+OID \texttt{wrpcInitScriptConfigLine.0}.
+
+The following example adds \texttt{my\_init\_command} at the end of
+the init script:
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcInitScriptConfigLine.0 = "my_init_command"
+WR-WRPC-MIB::wrpcInitScriptConfigLine.0 = STRING: my_init_command
+$ snmpset $SNMP_OPT wrpcInitScriptConfigApply.0 = writeToFlash
+WR-WRPC-MIB::wrpcInitScriptConfigApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+To erase the init script please write \texttt{eraseFlash} to
+OID \texttt{wrpcInitScriptConfigApply.0}. For example:
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcInitScriptConfigApply.0 = eraseFlash
+WR-WRPC-MIB::wrpcInitScriptConfigApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+As in version 4.3, there is no way to dump init scrips via SNMP.
+
+% ==========================================================================
+\subsubsection{Generation of SFBFS via SNMP}
+\label{Generation of SFBFS via SNMP}
+When options \texttt{CONFIG\_SNMP\_SDB}, \texttt{CONFIG\_GENSDBFS}
+and \texttt{CONFIG\_SNMP\_SET}
+are enabled in the dot-config, it is possible to trigger creation and erase
+of SDBFS image in a Flash via SNMP. The final result is the same as executing
+a command \hyperlink{cmd sdb fs}{\texttt{sdb~fs~...}} for creation or
+\hyperlink{cmd sdb fse}{\texttt{sdb~fse~...}} for erase from a serial console.
+
+To create SDBFS image in the flash, please set first parameters of used Flash:
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcSdbMemType.0 = 0
+WR-WRPC-MIB::wrpcSdbMemType.0 = INTEGER: flash(0)
+$ snmpset $SNMP_OPT wrpcSdbBaseAddr.0 = 3014656
+WR-WRPC-MIB::wrpcSdbBaseAddr.0 = INTEGER: 3014656
+$ snmpset $SNMP_OPT wrpcSdbParam.0 = 64
+WR-WRPC-MIB::wrpcSdbParam.0 = INTEGER: 64
+\end{lstlisting}
+For details about \texttt{memtype}, \texttt{baseadr} and \texttt{param}, please
+refer to a description of a command
+\hyperlink{cmd sdb fs}{\texttt{sdb fs <memtype> <baseadr> <param>}}
+in the~\hyperlink{cmd sdb fs}{appendix~\ref{WRPC Shell commands}}.
+
+Then trigger the creation itself:
+\begin{lstlisting}
+$ snmpset -t 20 $SNMP_OPT wrpcSdbApply.0 = writeToFlash
+WR-WRPC-MIB::wrpcSdbApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+When creating or erasing the Flash, it is important to set timeout longer than
+usual (in this case 20 seconds, parameter \texttt{-t 20} of \texttt{snmpset}),
+otherwise \texttt{snmpset} will resend request to write to memory.
+
+The way to erase flash is very similar to the creation:
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcSdbMemType.0 = 0
+WR-WRPC-MIB::wrpcSdbMemType.0 = INTEGER: flash(0)
+$ snmpset $SNMP_OPT wrpcSdbBaseAddr.0 = 3014656
+WR-WRPC-MIB::wrpcSdbBaseAddr.0 = INTEGER: 3014656
+$ snmpset $SNMP_OPT wrpcSdbParam.0 = 64
+WR-WRPC-MIB::wrpcSdbParam.0 = INTEGER: 64
+$ snmpset -t 20 $SNMP_OPT wrpcSdbApply.0 = eraseFlash
+WR-WRPC-MIB::wrpcSdbApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+% ==========================================================================
+\subsubsection{Configuring netconsole via SNMP}
+\label{Configuring netconsole via SNMP}
+
+It is possible to check the status and configure the netconsole described in
+section~\ref{Netconsole} via SNMP. Additionally it is possible to get MAC, IP
+and port number of a peer via SNMP.
+
+To be albe to read the above parameters the option
+\texttt{CONFIG\_SNMP\_NETCONSOLE} has to be enabled.
+\begin{lstlisting}
+$ snmpwalk $SNMP_OPT wrpcNetconsoleGetGroup
+WR-WRPC-MIB::wrpcNetconsoleGetStatus.0 = INTEGER: enabled(1)
+WR-WRPC-MIB::wrpcNetconsoleGetPeerMac.0 = STRING: 90:e2:ba:1a:c6:78
+WR-WRPC-MIB::wrpcNetconsoleGetPeerIp.0 = IpAddress: 192.168.1.1
+WR-WRPC-MIB::wrpcNetconsoleGetPeerPort.0 = INTEGER: 53364
+\end{lstlisting}
+
+If SNMP sets are enabled with option \texttt{CONFIG\_SNMP\_SET}, it is possible
+to change netconsole's mode to \texttt{disable} and \texttt{wait} via SNMP.
+For more details please check section~\ref{Netconsole}.
+
+Set netconsole's mode to \texttt{wait}:
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcNetconsoleSetApply.0 = wait
+WR-WRPC-MIB::wrpcNetconsoleSetApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+Set netconsole's mode to \texttt{disable}.
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcNetconsoleSetApply.0 = disable
+WR-WRPC-MIB::wrpcNetconsoleSetApply.0 = INTEGER: applySuccessful(100)
+\end{lstlisting}
+
+
+As today there is no possibility to set parameters like MAC, IP and port number
+of netconsole's peer via SNMP.
+
+% ==========================================================================
+\subsubsection{Run shell command via SNMP}
+\label{Run shell command via SNMP}
+
+When options \texttt{CONFIG\_SNMP\_CMD} and \texttt{CONFIG\_SNMP\_SET} are
+enabled in a dot-config, it is possible to trigger execution of any shell
+command via SNMP.
+
+To trigger an exectuion of a command, the command has to be set to
+the OID \texttt{wrpcShellCmdLine.0}. To prevent accidential runs, the magic
+number \texttt{44451} (literal \texttt{magic} can be used instead) has to be
+set in the OID \texttt{wrpcShellCmdMagic.0}.
+Finally, to trigger the execution set the OID \texttt{wrpcShellCmdRun.0} with
+value 12 (or literal \texttt{execute}). The last set will return information
+whether the triggering of a command was successful or not. To figure out if
+the command succeeded, please check the return value stored in the OID
+\texttt{wrpcShellCmdReturnCode.0}
+
+The example below shows the execution of \texttt{ip} command via SNMP.
+\begin{lstlisting}
+$ snmpset $SNMP_OPT wrpcShellCmdLine.0 = "ip"
+WR-WRPC-MIB::wrpcShellCmdLine.0 = STRING: ver
+$ snmpset $SNMP_OPT wrpcShellCmdMagic.0 = magic
+WR-WRPC-MIB::wrpcShellCmdMagic.0 = INTEGER: magic(44451)
+$ snmpset $SNMP_OPT wrpcShellCmdRun.0 = execute
+WR-WRPC-MIB::wrpcShellCmdRun.0 = INTEGER: executionSuccessful(100)
+\end{lstlisting}
+
+To check the return value:
+\begin{lstlisting}
+$ snmpget $SNMP_OPT WR-WRPC-MIB::wrpcShellCmdReturnCode
+WR-WRPC-MIB::wrpcShellCmdReturnCode.0 = INTEGER: 0
+\end{lstlisting}
+
+The \texttt{ip} command triggered in the above example caused the following
+output on a serial console:
+\begin{lstlisting}
+Execute command from SNMP: "ip"
+IP-address: 192.168.1.20 (from bootp)
+\end{lstlisting}
+
+The output of the executed command is printed only on the serial
+console\footnote{However, it can be also mirrored to the netconsole.
+For details, please check the section~\ref{Netconsole}.}.
+As today it cannot be forwarded via SNMP.
+
+\textbf{Note:} the maximum supported length of a command is the same as for
+the serial console's shell, which is 80 chars.
+
+\textbf{Note:} Be careful with interactive commands. It is possible to start
+such command (e.g. \texttt{gui}) via SNMP, but it is not possible to stop it.
+
+% ==========================================================================
+\newpage
+\subsection{Syslog}
+\label{Syslog}
+
+\begin{sloppypar} % to prevent \texttt{} from going to the margine
+The node can act as a \textit{syslog} client, though only on the UDP protocol.
+To activate it, you must build with \texttt{CONFIG\_SYSLOG} and pass proper
+parameters at run time.
+
+To configure \textit{syslog} you can run the \texttt{syslog} shell command, which
+receives two parameters (\texttt{ipaddr} and \texttt{macaddr}), or a
+single \texttt{off} subcommand.
+
+When deploying a network of nodes, you can choose to put the \texttt{syslog
+<ip> <mac>} command in the build-time init command. To do so, you
+must activate \texttt{CONFIG\_BUILD\_INIT} and then pass your command string
+as \texttt{CONFIG\_INIT\_COMMAND}.  In that context, you can use ``\texttt{;}'' as
+a command separator as no newlines are permitted in \texttt{Kconfig}
+strings.
+
+The strings that a WR node sends to the \textit{syslog} server are always
+using the format:  ``\texttt{<}\textit{level}\texttt{>} \textit{Jan 01 00:00:00 192.168.1.1 msg}''
+where \textit{level} is usually 14 (type ``user'', priority ``info'')
+and \textit{msg} is a free-format message strings.
+The \textit{syslog} client sends strings to the server in the following
+situations:\\
+
+\begin{longtable}{  p{6.5cm}  p{9cm} }
+
+\textit{ Boot time } &
+
+	The node sends ``\texttt{(ma:ca:dd:rr:ee:ss) Node up since} \textit{X}
+        \texttt{seconds}'' as soon as the network link is up and the \textit{syslog}
+        server is configured with the shell command or init script.
+        The message is re-sent, with an updated uptime value, if you change
+        the \textit{syslog} server parameters. \\
+& \\
+\textit{ Link up after link down } &
+
+	The message is ``\texttt{"Link up after} \textit{2.345} \texttt{s}''. The
+        time printed is the duration of the link-down interval that has just
+        passed -- no lost-by-design message is sent at link-down time. The
+        message is not sent the first time the link goes up, because
+        the boot message is already there.\\
+& \\
+\textit{ Synchronization, first time } &
+
+	When the node reaches WR synchronization (i.e. ``track phase''
+        state), it sends ``\texttt{Tracking after} \textit{5..678} \texttt{s}''.
+        The reported time is the lapse since power-on.\\
+& \\
+\textit{ Synchronization lost } &
+
+	Whenever WR looses \textit{track-phase} status, the node reports
+        \texttt{Lost track}.\\
+& \\
+\textit{ Synchronization recovered } &
+
+	When the WR servo is in \textit{track phase} state after loosing
+        synchronization, the node sends ``\textit{45}\texttt{-th re-track after}
+        \textit{23.456} \texttt{s}''. The time reported is the amount of time
+        during which the node has not been synchronized since previous synchronization.
+        The seconth and
+        thirth re-sync are reported as \texttt{2-th} and \texttt{3-th}, to make you
+        smile. At the \texttt{4-th} you should stop smiling and be concerned.\\
+& \\
+\textit{ Temperature over threshold } &
+
+	The node monitors various thermometers every few seconds.
+        If \texttt{CONFIG\_TEMP\_POLL\_INTERVAL} and related parameters are
+        set, any over-temperature event is reported to \textit{syslog}.
+        If any temperature in the collected set is over threshold,
+        the message is ``\texttt{Temperature high:}'' followed by the list of
+        all collected temperatures.  The message is repeated every
+        few seconds (\texttt{CONFIG\_TEMP\_HIGH\_RAPPEL}, default 60)
+        until all temperatures are under-threshold. When temperature
+        is recovered the node sends ``\texttt{Temperature ok:}'' followed by
+        the current list of temperatures.\\
+\end{longtable}
+\end{sloppypar}
+% --------------------------------------------------------------------------
+
+% FIXME: syslog examples
+
+% ==========================================================================
+\newpage
+\subsection{Diagnostic Tools}
+\label{Diagnostic Tools}
+This section describes various diagnostics tools that come with the WR PTP Core.
+These tools are foreseen for the hosted environments as they access various WR
+PTP Core registers over the External Wishbone interface\footnote{Please check
+section \ref{sec:wrpc_hdl} for information about the WR PTP Core interfaces.}
+(through PCIe or VME bridge).
+
+% --------------------------------------------------------------------------
+\subsubsection{wrpc-diags}
+\label{wrpc-diags}
+
+A direct access to synchronization status of the WR PTP Core is possible via WB registers.
+Such access can be used by the application-specific logic or by any software running on the
+host machine, provided the PCIe/VME bridge is instantiated in your design and
+lets you access the WR PTP Core external Wishbone Slave interface (see
+\ref{sec:hdl_wrpc}. Every reference design contains appropriate bridge, so you
+can use one of them to access conveniently the Wishbone registers for WRPC
+diagnostics using the \texttt{wrpc-diags} tool.
+
+You will find \texttt{wrpc-diags} tool in the \textit{wrpc-sw} repository. If
+you have not yet cloned it, please see section \ref{Software compilation}
+for more instructions how this should be done, as well as how to compile it.
+
+The tool is self documented in the sense that a help \texttt{h} command lists
+all the currently supported commands, and to get detailed information for a
+given command, one can type \texttt{h cmd}.
+
+To use the \texttt{wrpc-diags} tool interactively, call it with appropriate
+parameters, depending on your hardware type. For example for a SPEC board at
+address 01:00.0:
+\begin{lstlisting}
+$ sudo <your_wrpc-sw_location>/tools/wrpc-diags -o 0x20800 \
+   -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+
+The prompt \texttt{wrcdiag[00] >} will appear and you will be able to input commands.
+All the available commands are listed with \texttt{h}:
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+cfv-774-cbt:wrcdiag[00] > h
+Valid COMMANDS:
+Idx  Name    Params           Description
+# 1: q       [           ] -> Quit test program
+# 2: h       [ o c       ] -> Help on commands
+# 3: a       [           ] -> Atom list commands
+# 4: his     [           ] -> History
+# 5: s       [ Seconds   ] -> Sleep seconds
+# 6: ms      [ MilliSecs ] -> Sleep milliseconds
+# 7: sh      [ Unix Cmd  ] -> Shell command
+# 8: diags   [           ] -> show all wrc diags
+# 9: sstat   [           ] -> get servo status
+#10: ptpstat [           ] -> get PTP state
+#11: pstat   [           ] -> get port status
+#12: astat   [           ] -> get auxiliare state
+#13: txfcnt  [           ] -> get TX PTP frame count
+#14: rxfcnt  [           ] -> get RX frame count
+#15: ltime   [           ] -> Local Time expressed in sec since epoch
+#16: rttime  [           ] -> Round trip time in picoseconds
+#17: msdelay [           ] -> Master slave link delay in picoseconds
+#18: asym    [           ] -> Total link asymmetry in picoseonds
+#19: cko     [           ] -> Clock offset in picoseonds
+#20: setp    [           ] -> Current slave's clock phase shift value
+#21: ucnt    [           ] -> Update counter
+#22: temp    [           ] -> get board temperature
+
+Type "h name" to get complete command help
+\end{lstlisting}
+In order to see all the wrc diagnostics, the \texttt{diags} command inside the prompt should
+be executed as follows:
+\begin{lstlisting}
+cfc-774-cbt:wrcdiag[00] > diags
+servo status:		Track phase
+Port status:		Link up, PLL locked,
+PTP state:		PPS slave
+Aux state:		ch0:enabled
+TX frame count:		1593970
+RX frame count:		6883447
+TAI time:		Wed May 31 15:31:56 2017
+Round trip time:	848002 ps
+Master slave delay:	417483 ps
+Total Link asymmetry:	13036 ps
+Clock offset:		2 ps
+Phase setpoint:		7883 ps
+Update counter:		812977
+temp:			47.3750 C
+\end{lstlisting}
+Some advanced commands can be also executed. For example, one can call
+\texttt{temp} command every 1 second for 5 times:
+\begin{lstlisting}
+cfc-774-cbt:wrcdiag[00] > 5(temp, s 1)
+temp:			47.3750 C
+temp:			47.3750 C
+temp:			47.3750 C
+temp:			47.3750 C
+temp:			47.3750 C
+\end{lstlisting}
+
+The commands that are available from the interactive prompt can be also executed directly
+from the host's shell prompt and via ssh. Both cases can be useful when writing shell
+scripts using the tool. To call one of the commands from the host shell prompt,
+use \texttt{echo cmd | wrpc-diags} format. For example, to execute
+\texttt{diags} command for SPEC:
+\begin{lstlisting}
+echo 'diags' | sudo <your_wrpc-sw_location>/tools/wrpc-diags -o 0x20800 \
+    -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+In order to  call \texttt{temp} command every 1 second for 5 times:
+\begin{lstlisting}
+echo '5(temp, 1s)' | sudo <your_wrpc-sw_location>/tools/wrpc-diags -o 0x20800 \
+    -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+
+% --------------------------------------------------------------------------
+
+\subsubsection{wr-streamers}
+\label{sec:wr-streamers-tool}
+
+{\bf Note:} This tool can be used only if you've selected \tts{STREAMERS} mode
+for the external WRPC fabric interface or if you have manually instantiated
+WR Streamers module in your HDL design. See section \ref{sec:wrpc_hdl} for more
+details on WR PTP Core and Board Support Packages interfaces.\\
+
+The WR Streamers module provides information about transmitted and received
+frames, which can be useful for diagnostics and debugging. One way of accessing
+this information is by using the \texttt{diag} command of the WR PTP Core Shell.
+An alternative is to use the \texttt{wr-streamers} tool described in this
+section. You will find it in the \textit{wrpc-sw} repository. If
+you have not yet cloned it, please see section \ref{Software compilation}
+for more instructions how this should be done, as well as how to compile it.\\
+
+The available statistical information is identical to the one that can be
+accessed via the \texttt{diag} command of WR PTP Core's Shell. It includes
+statistics collected since the most recent reset: max/min latency, number of
+transmitted/received frames, number of lost frames/blocks, number of latency
+values accumulated, accumulated latency, and the time of the last reset. The
+wishbone registers can also be used to override the default network
+configuration of the WR Streamers.\\
+
+The \texttt{wr-streamers} tool is self documented in the sense that a help
+\texttt{h} command lists you all the currently supported commands, and to get
+detailed information for a given command, one can type \texttt{h cmd}.
+
+To use the \texttt{wr-streamers} tool interactively, call the tool with appropriate
+parameters, depending on your hardware type. For example for a SPEC board at
+address 01:00.0:
+\begin{lstlisting}
+$ sudo <your_wrpc-sw_location>/tools/wr-streamers -o 0x20700 \
+   -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+
+The prompt \texttt{wrstm[00] >} will appear and you will be able to input commands.
+All the available commands are listed with \texttt{h}:
+\begin{lstlisting}[basicstyle=\scriptsize\ttfamily]
+cfv-774-cbt:wrstm[00] > h
+Valid COMMANDS:
+Idx  Name        Params                       Description
+# 1: q           [                       ] -> Quit test program
+# 2: h           [ o c                   ] -> Help on commands
+# 3: a           [                       ] -> Atom list commands
+# 4: his         [                       ] -> History
+# 5: s           [ Seconds               ] -> Sleep seconds
+# 6: ms          [ MilliSecs             ] -> Sleep milliseconds
+# 7: sh          [ Unix Cmd              ] -> Shell command
+# 8: stats       [ [0/1/2/3/4/5/6/7]     ] -> show streamers statistics
+# 9: reset       [                       ] -> show time of the latest reset / time elapsed since then
+#10: resetcnt    [                       ] -> reset tx/rx/lost counters and avg/min/max latency values
+#11: resetseqid  [                       ] -> reset sequence ID of the tx streamer
+#12: flat        [ [fixed latency value] ] -> get/set config of fixed latency in integer [us] (-1 to disable)
+#13: flatstats   [                       ] -> get statistics regarding fixed latency operation
+#14: flattimeout [ [timeout value]       ] -> get/set fixed latency timeout [us] (-1 to set default: ~1ms)
+#15: qtagf       [ [0/1]                 ] -> QTags flag on off
+#16: qtagvp      [ [VID,prio]            ] -> QTags Get/Set VLAN ID and priority
+#17: qtagor      [ [0/1]                 ] -> get/set overriding of default qtag config with WB config (set ...
+#18: ls          [ [leapseconds]         ] -> get/set leap seconds
+#19: hdlswreset  [                       ] -> HD software reset of rx and tx streamer HDL modules (excludes ...
+
+Type "h name" to get complete command help
+\end{lstlisting}
+In order to see all the WR Streamers statistics, the \texttt{stats} command
+inside the prompt should be executed as follows:
+\begin{lstlisting}
+cfc-774-cbt:wrstm[01] > stats
+Latency [us]    : min=     3.824 max=     5.656 avg =    3.8958 (overflow    =0)
+Frames  [number]: tx =   1558137 rx =   1558137 lost=         0 (lost blocks =0)
+
+\end{lstlisting}
+
+The commands that are available from the interactive prompt can be also executed directly
+from the host's shell prompt and via ssh. Both cases can be useful when writing shell
+scripts using the tool. To call one of the commands from the host shell prompt, use
+\texttt{echo cmd | wr-streamers}. For example, to execute \texttt{stats} command for SPEC:
+\begin{lstlisting}
+echo 'stats' | sudo <your_wrpc-sw_location>/tools/wr-streamers -o 0x20700 \
+    -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+In order see the number of received frames every 1 second for 5 times, call:
+\begin{lstlisting}
+echo '5(stats 1, 1s)' | sudo <your_wrpc-sw_location/tools/wr-streamers -o 0x20700 \
+    -f /sys/bus/pci/devices/0000:01:00.0/resource0
+\end{lstlisting}
+
+% ==========================================================================
+\newpage
+\subsection{Other Diagnostic Methods}
+\label{Other Diagnostic Tools}
+
+% --------------------------------------------------------------------------
+\subsubsection{Latency Test}
+\label{Latency Test}
+
+\begin{sloppypar} % to prevent \texttt{} from going to the margine
+The configuration choice \texttt{CONFIG\_LATENCY\_PROBE} activates a
+mechanism for \textit{wr} nodes to measure network latency, base on the same
+hardware timestamps that are used for synchronization -- the mechanism
+assumes the nodes are synchronized.
+
+\textit{ltest} frames can be used to verify whether the network is
+overloaded and/or has strange inconsistencies in node-to-node delays.
+
+\textit{ltest} frames use a special ethernet type, \texttt{CONFIG\_LATENCY\_ETHTYPE},
+which defaults to 0x0123 (291). If \textit{vlans} are active, these frames
+are sent and received in the same \textit{vlans} as other CPU frames.
+
+The \texttt{ltest} sender periodically sends three frames, with a sequence
+number. One frames is at priority 7, one is at priority 6, and one is
+at priority 0. The last frame reports the departure timestamps of the
+previous frames.  The \textit{ltest} receiver uses ingress timestamps to
+measure latency and report lost frames.
+
+Every node that is built with \texttt{CONFIG\_LATENCY\_PROBE} listens for frames
+belonging to \texttt{CONFIG\_LATENCY\_ETHTYPE}.  A single node in the
+network is expected to send \textit{ltest} frames; use the \texttt{ltest}
+shell command to select how often to send the \textit{ltest} tuple of three
+frames. To enable sending every second use ``\texttt{ltest 1}'', to enable
+sending every 100ms use ``\texttt{ltest 0 100}'', to stop sending use
+\texttt{ltest 0}.
+
+In the sender node, a reminder is sent to the console very 10s
+reporting that the node is currently sending \textit{ltest} frames.  All
+non-sending nodes report every minute to \textit{syslog}. The
+report message includes the number of samples received as well
+as the minimum, average and maximum latency, in nanoseconds.
+Any lost frames are reported both to the console and to \textit{syslog}.
+
+You can use \textit{ltest} without \texttt{CONFIG\_SYSLOG}. In that case the
+receiver nodes print the exact latency (picosecond resolution) for
+every received event.
+\end{sloppypar}
+
+% --------------------------------------------------------------------------
+\subsubsection{wrpc-dump}
+\label{wrpc-dump}
+
+When trying to diagnose software issues, especially lockup situations,
+it may be useful to look at the current values or critical variables
+within \textit{wrpc-sw}/\textit{ppsi}.
+
+To this aim, you can pass a memory image (dump of RAM content) of \textit{wrpc} to
+\texttt{tools/wrpc-dump}.
+The tool will print information for softpll, ppsi data structures,
+ptp data sets and version information.
+
+For example, for the \textit{spec} board, you can use the resource file in
+\textit{sysfs} to look at a live system, or copy the file for off-line
+analysis. The following command line show both uses:
+
+\begin{lstlisting}
+   # Look for "resource0" in /sys/devices/pci, choose your bus number.
+   FILE=/sys/devices/pci0000:00/0000:00:04.0/0000:04:00.0/resource0
+
+   sudo ./tools/wrpc-dump $FILE
+
+   sudo tools/mapper $FILE 0 0x20000 > wrpc-memory-image
+   ./tools/wrpc-dump wrpc-memory-image
+\end{lstlisting}
+
+The \textit{mapper} tool used above, that is part of \textit{wrpc-sw}, reads a file
+using \textit{mmap()}. The kernel doesn't allow plain \textit{read()} from a
+resource file. If you encounter problem using \texttt{wrpc\_dump} directly,
+please use \texttt{mapper} then \texttt{wrpc\_dump}.
+
+\textbf{Note:} Data read by \texttt{mapper} may look as if it has wrong endianness compared
+to the file used for programming LM32 by \texttt{spec-cl}, but \texttt{spec-cl} is the
+one which change the endianness of the binary data during the programming.
+
+For the \textit{spec} board and WRPC using RISC-V as a soft-core processor,
+the procedure to read the WRPC memory is different. The read can be done by
+using the \texttt{spec-cl} tool with parameteres \texttt{-r} (perform read)
+and \texttt{-i} (use RISC-V architecture):
+\begin{lstlisting}
+   <path\_to\_spec-sw>/tools/spec-cl -i -r dump\_file.bin
+   ./tools/wrpc-dump dump\_file.bin
+\end{lstlisting}
+
+\texttt{spec-cl} tool can be found in the \texttt{spec-sw} repo. Be aware
+that the read of memory using spec-cl causes the restart of the RISC-V
+soft-core.
+
+\textbf{Note:} Depending on the selected soft-core processor architecture
+the \texttt{wrpc-dump} can be built for LM32 or RISC-V. The tool does not
+support both architectures in the same binary.
+
+With \textit{etherbone}, you can get a snapshot for \textit{wrpc} memory using
+\texttt{eb-get} and the proper address (the size is always 128kB)
+
+\begin{lstlisting}
+   eb-get dev/wbm2 0x4040000/0x20000 wrpc-memory-image
+   eb-get dev/ttyUSB2 0x4040000/0x20000 wrpc-memory-image
+\end{lstlisting}
+
+We won't show the 180 output lines here, to save some paper, but they
+are readable dumps of the data structures, including the PTP timestamps.
+
+% --------------------------------------------------------------------------
+\subsubsection{Softpll Timing}
+\label{spll Softpll Timing}
+
+To help understanding the CPU time spent in the \textit{softpll}, you can
+set \texttt{CONFIG\_SPLL\_FIFO\_LOG} in the configuration. The option
+depends on \texttt{CONFIG\_DEVELOPER} and is disabled by default.
+
+When the configuration option is set, \texttt{wrpc-dump} will also show
+information about the last 16 \textit{softpll} iterations. Both the \texttt{tstamp}
+and \texttt{duration} fields come from reading the \texttt{PPSG} nanosecond counter.
+
+\begin{lstlisting}
+   fifo log at 0x17258
+        trr:                           0x0126d921
+        tstamp:                        0x06b58d6a
+        duration:                      0x00000c7e
+        irq_count:                     2305
+        tag_count:                     2304
+        [... repeats for 5 more events ...]
+\end{lstlisting}
+
+% --------------------------------------------------------------------------
+\subsubsection{Uptime Counter}
+\label{Uptime Counter}
+
+\textit{Wrpc-sw} now maintains an ``uptime'' counter, in seconds. It lives
+at binary address 0xa0. It can be queried by \textit{etherbone},
+seen in memory maps or displayed with \texttt{uptime} command.
+
+In addition to knowing how much the node has been up, it can be used to
+know roughly when a node got stuck, and whether software is still
+running when a node is not active on the network. Neither of this events
+happens in production, but the tool is useful during development.
+
+% --------------------------------------------------------------------------
+\subsubsection{Profiling}
+\label{Profiling}
+
+The node now has a \textit{ps} command, that shows the number of iterations
+and time spent in each \textit{task}. Each task reports when it did
+something (as opposed to just polling the clock or network socket and
+seeing that nothing is there to do); the \textit{iterations} count shows how many
+times the task did something. The \textit{max\_ms} show the longest execution
+time of a particular task.
+
+\begin{lstlisting}
+wrc# ps
+ iterations     seconds.micros    max_ms name
+     145560          29.007144        75 idle
+          0           0.000000         0 spll-bh
+          6           0.001630         1 shell+gui
+        642           2.540416         8 ptp
+         31           0.000361         1 uptime
+          1           0.050424        51 check-link
+         32           0.011172         9 diags
+          0           0.000000         0 stats
+        235           0.023562         1 net-bh
+         32           0.029157         2 ipv4
+          0           0.000000         0 arp
+          0           0.000000         0 snmp
+          6           0.054566        12 temperature
+\end{lstlisting}
+
+By using ``\texttt{ps reset}'' you can zero all counters to start a new
+test run.
+
+It is possible to configure \texttt{ps} in such way that it prints information
+when any task runs longer than any run before since reset
+(or \texttt{ps reset}) and when it runs longer than a specified value
+in miliseconds.
+For this please use command ``\texttt{ps max <msecs>}'', where
+\texttt{<msecs>} is a number of milliseconds triggering printouts.
+\begin{lstlisting}
+wrc# ps max 10
+task temperature, run for 11 ms
+task temperature, run for 12 ms
+task temperature, run for 11 ms
+wrc# ps
+[...]
+New max run time for a task shell+gui, old 1, new 75
+task shell+gui, run for 75 ms
+\end{lstlisting}
+
+% --------------------------------------------------------------------------
+\subsubsection{Pfilter rules}
+\label{Pfilter rules}
+
+By setting \texttt{CONFIG\_PFILTER\_VERBOSE}, which depends on
+\texttt{CONFIG\_DEVELOPER}, you can get a dump of packet-filter rules
+whenever they are activated.  This happens at initialization time and
+whenever you change the MAC address or \textit{vlan} choice.
+
+% ==========================================================================
+\newpage
+\section{Network Services}
+\label{Network Services}
+
+If built with \texttt{CONFIG\_IP=y}, \textit{wrpc-sw} implements the following
+udp-based network services, in addition to \textit{ptp}:
+
+\begin{longtable}{  p{6.5cm}  p{9cm} }
+
+\textit{ bootp } &
+
+	The node will get an IPV4 address by making \textit{bootp} queries
+        once per second, until it gets a reply from a server. As an
+        alternative, the address can be set using the shell command,
+        and in this case the node won't send \textit{bootp} queries, or will
+        stop sending them.\\
+& \\
+\textit{ rdate } &
+
+	The node can be queried using \texttt{rdate -u}, once it has an IP
+        address.\\
+& \\
+\textit{ syslog } &
+
+	If \texttt{CONFIG\_SYSLOG} is set, the node is a syslog client.
+        See section \ref{Syslog} for details.\\
+& \\
+\textit{ snmp } &
+
+	If \texttt{CONFIG\_SNMP} is set, the node is a snmp agent.
+        See section \ref{Diagnostics via SNMP} for details.\\
+& \\
+\textit{ netconsole } &
+
+	If \texttt{CONFIG\_NETCONSOLE} is set, the node may mirror all serial
+	console's output to the remote host. See section~\ref{Netconsole}
+	for details.\\
+
+\end{longtable}
+
+% ==========================================================================
+\newpage
+\section{VLAN Support}
+\label{VLAN Support}
+
+If you are using the White Rabbit PTP Core version 4.1 or later, it comes by
+default with VLAN support enabled. You can always disable them in run time using
+a WRPC shell command:
+\begin{lstlisting}
+wrc# vlan off
+\end{lstlisting}
+
+Current implementation allows to configure up to 4 VLAN IDs (VIDs) at build
+time. The following Kconfig options are available in the software:
+\begin{longtable}{  p{6.5cm}  p{9cm} }
+
+\small{\textit{CONFIG\_VLAN}} &
+
+	This is the top-level choice. It can be enabled or disabled.
+        If VLANs are disabled, all incoming tagged frames will be discarded.\\
+& \\
+\small{\textit{CONFIG\_VLAN\_NR}} &
+
+  The default \textit{vlan} number for the CPU (class 0).  All network traffic
+        directed to (and originating from) the soft-core processor will
+        belong to this VLAN.  The~value can be changed at run time
+        using the \texttt{vlan set} shell command.\\
+& \\
+\small{\textit{CONFIG\_VLAN\_1\_FOR\_CLASS7}} & \\
+\small{\textit{CONFIG\_VLAN\_2\_FOR\_CLASS7}} &
+
+	The packet-filter rules are setup to deliver frames belonging
+        to two specific VLANs to class 7, usually Etherbone.
+        To deliver one VLAN only, set the two options to the same
+        number. These VIDs can be modified only at build time.\\
+& \\
+\small{\textit{CONFIG\_VLAN\_FOR\_CLASS6}} &
+
+	The packet-filter rules are setup to deliver frames belonging
+        to one specific VLAN to class 6, usually routed to the
+        Streamer module. This VID can be modified only at build time.\\
+
+\end{longtable}
+
+Frame classes are assigned inside the WRPC and are used to distinguish received
+frames between these that should be processed by the WR PTP Core (e.g. PTP
+frames, SNMP requests) and frames that should be passed to the external WR
+Fabric interface. Currently, class 0 is used for all frames that should be
+processed by the WRPC, class 6 is used for Streamers traffic, class 7 is used
+for Etherbone traffic (see HDL documentation for boards HDL modules and
+selection between Streamers, Etherbone and Plain modes).
+
+The default WR PTP Core v4.1 release firmware comes with the following VIDs:
+\begin{itemize}
+  \item \textbf{VID 1} - for class 0, traffic processed inside the WR PTP Core
+  \item \textbf{VID 10} and \textbf{VID 11} - for class 7, Etherbone traffic
+  \item \textbf{VID 20} - for class 6, Streamers traffic
+\end{itemize}
+This of course means that all the traffic from VIDs 10, 11, 20 is forwarded and
+available on the WR PTP Core external fabric interface. The user is free to use
+it for any other HDL module, not necessary Etherbone or Streamers.
+
+Currently, only VID for the traffic processed by the WRPC (class 0) can be
+modified in the run time. You can use the WRPC shell command
+\texttt{vlan set <vid>} to modify it. If, for example, your WR node is supposed
+to synchronize and respond to SNMP requests in VLAN 5, you should add this to
+the user-defined init script:
+\begin{lstlisting}
+wrc# init add vlan set 5
+\end{lstlisting}
+
+% ##########################################################################
+\newpage
+
+\input{HDLdoc/intro}
+\input{HDLdoc/wrc_core}
+\input{HDLdoc/wrc_platform}
+\input{HDLdoc/wrc_board}
+
+% ##########################################################################
+\newpage
+\section{Troubleshooting}
+\label{Troubleshooting}
+
+\textbf{My computer hangs on loading spec.ko or programming the FPGA.}
+
+This will occur when you try to load the driver or program the FPGA while your
+\textit{spec-vuart} is running and trying to get messages from Virtual-UART's
+registers inside the WRPC. Please remember to quit \textit{spec-vuart} before
+reloading the driver or programming the FPGA.\\
+
+\noindent \textbf{I want to synthesize WRPC but hdlmake says I don't have the
+tools.}
+
+If you have installed the synthesis tool (ISE for SPEC/SVEC or Quartus for
+VFC-HD), but you still see the message, please make sure you have correctly set
+up your environment. See sections \ref{Setting up Xilinx ISE} and \ref{Setting
+up Quartus Prime} for the instructions.\\
+
+\noindent \textbf{WR PTP Core seems to work but the 1-PPS skew on the
+oscilloscope between WR Master and WR Slave is more than 1ns.}
+
+Check if the oscilloscope cables you use have the same delays. If not, you
+should either change the cables or take the delay difference into account in your
+measurements. If that's not the case, please make sure you have the correct
+calibration values loaded to both of your devices (see section \ref{Writing
+configuration}). If you made your own synthesis of the WRPC, then the default
+calibration values are no longer valid and you need to perform the White Rabbit
+Calibration procedure\footnote{Use the latest version of the document available
+at: \url{https://gitlab.com/ohwr/project/white-rabbit/wikis/Documents/White-Rabbit-calibration-procedure}}.
+
+% ##########################################################################
+\section{Questions, reporting bugs}
+\label{Questions}
+
+If you have found a bug, you have problems with the WR PTP Core or one of the
+tools used to build and run it, you can write at our forums
+\url{https://forums.ohwr.org/c/white-rabbit-dev}
+
+
+% ##########################################################################
+
+
+\clearpage
+\appendix
+\appendixpage
+\section{WRPC Shell Commands}
+\label{WRPC Shell commands}
+
+Please note that some commands are available only when enabled in Kconfig during
+the build of WRPC.
+
+\renewcommand{\descriptionlabel}[1]{\texttt{#1}}
+
+\begin{description}
+\item[calibration] (legacy)
+
+  Tries to read t2/4 phase transition value from
+  the Flash/EEPROM (in WR Master or GrandMaster mode), or executes the t24p
+  calibration procedure and stores its result to the Flash/EEPROM (in WR
+  Slave mode).
+
+\item[config] \mbox{}
+
+  Prints the dot-config file used to build this instance of
+  WRPC and ppsi. It is an optional command, enabled at build time by
+  \texttt{CONFIG\_CMD\_CONFIG}.
+
+\item[daclog off]
+\item[daclog <ipaddr> <macaddr>] \mbox{}
+
+  Sends the \textit{DAC} output and input to
+  the \textit{VCXO} main oscillator via UDP packets to port 1050 on
+  a host defined with \code{<ipaddr>} and \code{<macaddr>}.
+  It is an optional command, enabled at build time by \texttt{CONFIG\_DACLOG}.
+
+\item[delays]
+\item[delays <tx> <rx>] \mbox{}
+
+  Gets or sets the constant delays in frame
+  transmission, only available if \texttt{CONFIG\_CMD\_LL}. Delays are
+  expressed in picoseconds. This command changes rx and tx deltas for
+  the currently matched SFP and both, \code{delta\_rxm} and \code{delta\_txm}.
+  For master mode, command has to be executed before the peer enters
+  CALIBRATED state. Otherwise it makes no effect on slave side. For slave mode,
+  if the command is executed before CALIBRATED is reached, then both slave
+  deltas are changed \code{delta\_rxs} (with added bitslide) and
+  \code{delta\_txs}. After the state CALIBRATED is reached, at every
+  executrion of \code{delays} command both master deltas (\code{delta\_rxm}
+  and \code{delta\_txm}) are be updated in realtime.
+  If the SFP match is performed (e.g. link restart) the \code{delays} command
+  has to be executed once more.
+
+\item[devmem <addr>]
+\item[devmem <addr> <value>] \mbox{}
+
+  Reads or writes a 32-bit word from memory
+  and/or FPGA registers. Only available if \texttt{CONFIG\_CMD\_LL} is set.
+
+\item[diag] \mbox{}
+
+  Handle diagnostics for auxiliary user registers in HDL. Only available
+  if \texttt{CONFIG\_AUX\_DIAG}.
+
+\item[diag ro <reg\_no>] \mbox{}
+
+  Reads register <reg\_no> from read-only bank.
+
+\item[diag rw <reg\_no>] \mbox{}
+
+  Reads register <reg\_no> from read-write bank.
+
+\item[diag w <reg\_no>] \mbox{}
+
+  Writes register <reg\_no> to read-write bank.
+
+\item[faketemp]
+\item[faketemp <T1> <T2> <T3>] \mbox{}
+
+  Reads or sets the three fake temperatures,
+  used to test the temperature/syslog mechanism. Available if
+  \texttt{CONFIG\_FAKE\_TEMPERATURES} is set.
+
+\item[gui] \mbox{}
+
+  Starts GUI WRPC monitor.
+
+\item[help] \mbox{}
+
+  Lists available shell commands in this instance of the WRPC.
+
+\item[init add <cmd>] \mbox{}
+
+  \hypertarget{cmd init add}{}
+  Adds shell command at the end of the initialization script.
+
+\item[init boot] \mbox{}
+
+  Executes the script stored in Flash/EEPROM (the same
+  action is done automatically when WRPC starts after resetting the soft-core
+  processor).
+
+\item[init erase] \mbox{}
+
+  Erases the initialization script in Flash/EEPROM.
+
+\item[init show] \mbox{}
+
+  Prints all commands from the script stored in Flash/EEPROM.
+
+\item[ip get]
+\item[ip set <ip>] \mbox{}
+
+  Reports or sets the IPv4 address of the WRPC (only available if
+  \texttt{CONFIG\_IP} is set at build time.
+
+\item[leapsec]
+\item[leapsec get] \mbox{}
+
+  Get number of leap seconds from PTP and from the system.
+
+\item[leapsec set <num>] \mbox{}
+
+  Set number of leap seconds for PTP. This settings make sense only
+  for GM mode.
+
+\item[ltest]
+\item[ltest fake <nsecs>] \mbox{}
+
+  Fakes delay to trigger latency failures (for testing).
+
+\item[ltest <secs> <msecs>] \mbox{}
+
+  Reads or sets the latency-test sending interval. See \ref{Latency Test}.
+  Available if \texttt{CONFIG\_LATENCY\_PROBE} is set.
+
+\item[ltest quiet] \mbox{}
+
+  Disables sending latency messages to Syslog.
+
+\item[ltest verbose] \mbox{}
+
+  Enables sending latency messages to Syslog.
+
+\item[mac getp] \mbox{}
+
+  Reads the persistent MAC address stored in Flash/EEPROM.
+
+\item[mac get] \mbox{}
+
+  Prints WRPC's MAC address.
+
+\item[mac setp <mac>] \mbox{}
+
+  Stores the persistent MAC address in Flash/EEPROM.
+
+\item[mac set <mac>] \mbox{}
+
+  Sets the MAC address of WRPC.
+
+\item[mode gm|master|slave] (legacy) \mbox{}
+
+  This command is now an alias of the \texttt{ptp} command.
+
+\item[netconsole] \mbox{}
+
+  Prints peer's MAC, IP and port number used by the netconsole; to
+  enable \code{netconsole} command \texttt{CONFIG\_CMD\_NETCONSOLE}
+  has to be set in the dot-config; for more information about
+  netconsole please refer to the section \ref{Netconsole}.
+
+\item[netconsole <MAC> <IP> <PORT>] \mbox{}
+
+  Sets peer's MAC, IP and port number for the netconsole.
+
+\item[netconsole wait] \mbox{}
+
+  Let the netconsole to wait for communication from peer; netconsole
+  will transmit when the next netconsole's packet arrives to WRPC.
+
+\item[netconsole disable] \mbox{}
+
+  Disable netconsole until enabled manually.
+
+\item[pll cl <channel>] \mbox{}
+
+  Checks if SoftPLL is locked for the channel.
+
+\item[pll gdac <index>] \mbox{}
+
+  Gets dac's value.
+
+\item[pll gps <channel>] \mbox{}
+
+  Gets current and target phase shift for the channel.
+
+\item[pll init <mode> <ref\_channel> <align\_pps>] \mbox{}
+
+  Manually runs \texttt{spll\_init()} function to initialize SoftPll.
+
+\item[pll sdac <index> <val>] \mbox{}
+
+  Sets the dac.
+
+\item[pll sps <channel> <picoseconds>] \mbox{}
+
+  Sets phase shift for the channel.
+
+\item[pll start <channel>] \mbox{}
+
+  Starts SoftPLL for the channel.
+
+\item[pll stop <channel>] \mbox{}
+
+  Stops SoftPLL for the channel.
+
+\item[pps] \mbox{}
+
+  Check status of a PPS generation independent of PPSI state.
+
+\item[pps force <on|off>] \mbox{}
+
+  Enable/disable PPS generation independent of PPSI state. It is
+  usefull mostly for testing purposes.
+
+\item[ps] \mbox{}
+
+  Prints the list of running tasks (processes) in the CPU. For each
+  task you get the number of iterations, the maximum execution time
+  (measured with the monotonic clock) and the CPU time consumed (using
+  the RT clock) since boot or last reset of values.
+
+\item[ps reset] \mbox{}
+
+  Zeroes the profiling information reported by the \code{ps} command.
+
+\item[ps max <msecs>] \mbox{}
+
+  Starts printing all tasks executing longer than a given number of
+  miliseconds. Additionally, it triggers printing messages if
+  particular task runs longer than ever before. Passing ``\code{0}''
+  as a parameter stops the further printouts.
+
+\item[ptp <e2e|p2p>] \mbox{}
+
+  Selects PTP delay mechanism: end-to-end or peer-to-peer.  If
+  configured, you can set \texttt{p2p} mode. Alternatively you can use
+  also aliases: \texttt{delay} (instead of \texttt{e2e}) or
+  \texttt{pdelay} (instead of \texttt{p2p}).
+
+\item[ptp gm|master|slave] \mbox{}
+
+  Sets WRPC to operate as Grandmaster clock (requires external 10MHz
+  and 1-PPS reference), Master or Slave. After setting the mode,
+  \texttt{ptp start} must be re-issued.
+
+\item[ptp abscal] \mbox{}
+
+  Sets WRPC for absolute calibration.  You need special hardware for
+  this process, which is described in
+  \url{https://gitlab.com/ohwr/project/wr-calibration/wikis}.
+
+\item[ptp <prio1|prio2|domain|class|accuracy|allan|tsource> <val>] \mbox{}
+
+  Sets various parametes of PTP. For details see below.  Use these
+  subcommands with caution. Setting the mode with \texttt{ptp} command
+  may affect the already set parameters using \texttt{ptp} subcommands
+  listed below.  Consider using \texttt{ptp master} and \texttt{ptp start}
+  before using mentioned subcommands.
+
+\item[ptp prio1 <0-255>] \mbox{}
+
+  Sets \textit{priority 1} used by PTP.
+
+\item[ptp prio2 <0-255>] \mbox{}
+
+  Sets \textit{priority 2} used by PTP.
+
+\item[ptp domain <0-255>] \mbox{}
+
+  Sets \textit{domain numbner} used by PTP.
+\item[ptp class <1-255>] \mbox{}
+
+  Sets \textit{clock class} used by PTP.
+
+\item[ptp accuracy <1-255>] \mbox{}
+
+  Sets \textit{clock accuracy} used by PTP.
+
+\item[ptp allan <0-65535>] \mbox{}
+
+  Sets \textit{clock allan variance} used by PTP.
+
+\item[ptp tsource <0-255>] \mbox{}
+
+  Sets \textit{time source} used by PTP.
+
+\item[ptp start] \mbox{}
+
+  Starts WR PTP daemon.
+
+\item[ptp stop] \mbox{}
+
+  Stops WR PTP daemon.
+
+\item[ptp <cmd> <cmd> ...] \mbox{}
+
+  You can concatenate several of the above subcommands in a single
+  \texttt{ptp} command. With no arguments, the command reports the
+  current values.
+
+\item[ptrack <enable|disable>] \mbox{}
+
+  Print status, enable or disable phase tracking. Useful for demos.
+
+\item[refresh] \mbox{}
+
+  Changes the update time period of the gui and stat commands.
+  Default period is 1 second. If you set the period to 0, the log
+  message is only generated one time.
+
+\item[sdb] \mbox{}
+
+  Prints devices connected to the Wishbone bus inside WRPC.
+
+\item[sdb fs <device> <baseadr> <param>] \mbox{}
+
+  \hypertarget{cmd sdb fs}{} Creates SDBFS image under specified
+  \code{<baseadr>} in selected storage depending on \code{<device>}
+  ({\bf 0} - Flash, {\bf 1} - I2C EEPROM, {\bf 2} - 1-Wire
+  EEPROM). The meaning of last parameter \code{<param>} depends on the
+  type of selected storage. It is either the sector size in kilobytes
+  (for Flash) or I2C chip address (for I2C EEPROM). Command \code{sdb}
+  is available if \texttt{CONFIG\_GENSDBFS} is set.
+
+\item[sdb fs 0] \mbox{}
+
+  Creates SDBFS image in Flash memory. Base address and sector size
+  are taken from HDL Syscon registers for SPEC/SVEC boards. If you
+  want to use it for custom board, base address and sector size must
+  be specified as VHDL generic parameters of the WR PTP Core. Command
+  \code{sdb} is available if \texttt{CONFIG\_GENSDBFS} is set.
+
+\item[sdb fse <device> <baseadr> <param>] \mbox{}
+
+  \hypertarget{cmd sdb fse}{} Erases SDBFS image under specified
+  \code{<baseadr>} from selected storage depending on \code{<device>}
+  ({\bf 0} - Flash, {\bf 1} - I2C EEPROM, {\bf 2} - 1-Wire
+  EEPROM). The meaning of last parameter \code{<param>} depends on the
+  type of selected storage. It is either the sector size in kilobytes
+  (for Flash) or I2C chip address (for I2C EEPROM). Command \code{sdb}
+  is available if \texttt{CONFIG\_GENSDBFS} is set.
+
+\item[sdb fse 0] \mbox{}
+
+  Erases SDBFS image from Flash memory. Base address and sector size
+  are taken from HDL Syscon registers for SPEC/SVEC boards. If you
+  want to use it for custom board, base address and sector size must
+  be specified as VHDL generic parameters of the WR PTP Core. Command
+  \code{sdb} is available if \texttt{CONFIG\_GENSDBFS} is set.
+
+\item[sfp add <PN> <deltaTx> <deltaRx> <alphaH> <alphaL>] \mbox{}
+
+  Stores calibration parameters for SFP to a file in
+  Flash/EEPROM. \code{<alphaL>} is the 9 lower decimal digits of alpha
+  value, \code{<alphaH>} are the 9 higher decimal digits. For negative
+  alpha values only \code{<alphaH>} is negative.
+
+\item[sfp erase] \mbox{}
+
+  Erases the SFP database stored in the Flash/EEPROM.
+
+\item[sfp match] \mbox{}
+
+  Prints the ID of a currently used SFP transceiver and tries to load
+  the calibration parameters for it.
+
+\item[sfp show] \mbox{}
+
+  Prints all SFP transceivers stored in database.
+
+\item[stat <on|off>] \mbox{}
+
+  Without parameter, toggles reporting of loggable statistics. You can
+  pass \texttt{on} or \texttt{off} as argument as an alternative to
+  toggling.
+
+\item[stat bts] \mbox{}
+
+  Prints bitslide value for established WR Link, needed by the
+  calibration procedure.
+
+\item[syslog off]
+
+\item[syslog <ipaddr> <macaddr>] \mbox{}
+
+  Disables or sets your \textit{syslog} server. See
+  \ref{Syslog}. Available if \texttt{CONFIG\_SYSLOG} is set.
+
+\item[temp] \mbox{}
+
+  Reports current temperatures.
+
+\item[time] \mbox{}
+
+  Prints current time from WRPC.
+
+\item[time raw] \mbox{}
+
+  Prints current time in a raw format (seconds, nanoseconds).
+
+\item[time setnsec <nsec>] \mbox{}
+
+  Sets only nanoseconds of the WRPC time.
+
+\item[time setsec <sec>] \mbox{}
+
+  Sets only seconds of the WRPC time (useful for setting time in
+  GrandMaster mode, when nanoseconds counter is aligned to external
+  1-PPS and 10 MHz).
+
+\item[time set <sec> <nsec>] \mbox{}
+
+  Sets WRPC time.
+
+\item[verbose <digits>] \mbox{}
+
+  Sets PPSi verbosity. See the PPSi manual about the meaning of the
+  digits (hint: \texttt{verbose 1111} is a good first bet to see how
+  the PTP system is working).
+
+\item[ver] \mbox{}
+
+  Prints which version of wrpc is running.
+
+\item[vlan] \mbox{}
+
+\item[vlan set <n>] \mbox{}
+
+  Reports or sets the active vlan used for sending/receiving network
+  frames. The command exists only if \texttt{CONFIG\_VLAN} is set.
+
+\item[vlan off] \mbox{}
+
+  Disables vlans. Available if \texttt{CONFIG\_VLAN} is set.
+
+\item[w1] \mbox{}
+
+  Lists onewire devices on the bus.
+
+\item[w1w <offset> <byte> [<byte> ...]] \mbox{}
+
+\item[w1r <offset> <len>] \mbox{}
+
+  If \texttt{CONFIG\_W1} is set and a OneWire EEPROM exists, write and
+  read data. For writing, \texttt{byte} values are decimal.
+
+\end{description}
+
+
+% ##########################################################################
+\clearpage
+\section{WRPC GUI elements}
+\label{WRPC GUI elements}
+
+\renewcommand{\descriptionlabel}[1]{\texttt{#1}}
+
+\begin{description}
+
+\item[TAI Time:] Current state of device's local clock
+
+\item[RX, TX:] Rx/Tx packets counters
+
+\item[IPv4:] IP address; also whether it is statically configured or
+    acquired via BOOTP (and the status of BOOTP)
+
+\item[mode:] Operation mode of the WR PTP Core - \code{<WR Master,
+    WR Slave>}
+
+\item[<Locked, NoLock>:] SoftPLL lock state
+
+\item[<Calibrated, Uncalibrated>:] Status of PHY calibration; not used
+    anymore
+
+\item[PTP status:] Current state of PTP state machine
+
+\item[Servo state:] Current state of WR servo state machine -
+    \code{<Uninitialized, SYNC\_SEC, SYNC\_NSEC, SYNC\_PHASE, TRACK\_PHASE>}
+
+\item[Phase tracking:] Is phase tracking enabled when WR Slave is
+    synchronized to WR Master - \code{<ON, OFF>}
+
+\item[Aux clock <N> status:] Statuses of AUX clocks; one status line per
+    available AUX clock; can contain <enabled> and <locked>
+
+%   \code{Synchronization source:} & network interface name from which WR
+% daemon gets synchronization - \code{<wru1>}\\
+
+\item[Round-trip time (mu):] Round-trip delay in picoseconds ($delay_{MM}$)
+
+\item[Master-slave delay:] Estimated one-way (master to slave) link
+    delay ($delay_{MS}$)
+
+\item[Master PHY delays:] Transmission/reception delays of WR
+    Master's hardware ($\Delta_{TXM}, \Delta_{RXM}$)
+
+\item[Slave PHY delays:] Transmission/reception delays of WR Slave's
+    hardware ($\Delta_{TXS}, \Delta_{RXS}$)
+
+\item[Total link asymmetry:] WR link asymmetry calculated as
+    $delay_{MM} - 2 \cdot delay_{MS}$
+
+\item[Cable rtt delay:] Round-trip fiber latency
+
+\item[Clock offset:] Slave to Master offset calculated by PTP daemon
+  ($ offset_{MS} $)
+
+\item[Phase setpoint:] Current Slave's clock phase shift value
+
+\item[Skew:] The difference between current and previous estimated
+    one-way link delay
+
+\item[Update counter:] The value of a counter incremented every time
+    the WR servo is updated
+
+\end{description}
+\renewcommand\arraystretch{1}
+
+
+% ##########################################################################
+\clearpage
+\section{Other ways to write SDBFS image to your Flash memory}
+\label{appendix:writing_sdbfs}
+
+\subsection{Writing SDBFS image through PCIe bus}
+To write SDBFS filesystem image to the Flash memory of a hosted SPEC card, you
+can use the \texttt{flash-write} tool available in the \emph{spec-sw} drivers
+package.
+
+First, please download the SDBFS image from \textit{https://gitlab.com}:
+\begin{lstlisting}
+$ wget https://gitlab.com/ohwr/project/wr-cores/wikis/uploads/\
+6f33b5a8660bd0f2ff7a07526b4484d6/sdbfs-flash.bin
+\end{lstlisting}
+It contains all the files required by the core. They are empty, but have to
+exist in the SDBFS structure to be filled later from the WR PTP Core shell or
+SNMP.\\
+
+Before calling the tool, you need to have SPEC drivers loaded in your system:
+\begin{lstlisting}
+$ cd <your_location>/spec-sw
+$ sudo insmod fmc-bus/kernel/fmc.ko
+$ sudo insmod kernel/spec.ko
+\end{lstlisting}
+
+To write the filesystem image to flash, please execute the following
+command:
+\begin{lstlisting}
+$ sudo tools/flash-write -c 0x0 0 1507712 < <your_location>/sdbfs-flash.bin
+\end{lstlisting}
+
+\noindent\textbf{Note:} If you have more than one SPEC board in your computer,
+you can use \code{-b} parameter which takes the PCI bus address of the card you
+want to program. This can be found in the list of the PCI devices installed in
+the system (\code{lspci}).
+
+\subsection{Writing SDBFS image in standalone configuration}
+
+If you use SPEC board in a host-less environment, or you use custom
+hardware and SPEC drivers/tools cannot be used, there is still a
+possibility of writing SDBFS through Xilinx JTAG.
+
+\vspace{1em}
+In the case when you want to run on the the SPEC a reference bitstream provided with a stable
+WRPC release, you can simply program your Flash with \textit{spec\_top.mcs}
+provided with the release binaries using for example Xilinx ISE Impact tool.
+This \textit{mcs} file already includes both SDBFS image and FPGA bitstream.
+
+In the case when you want to run a custom gateware or you have a custom hardware, you can
+download a standalone SDBFS image:
+\begin{lstlisting}
+$ wget https://gitlab.com/ohwr/project/wr-cores/wikis/uploads/\
+9dad995e74a3d49b472b8654833be01a/sdbfs-standalone-160812.bin
+\end{lstlisting}
+and generate a custom \textit{*.mcs} file with your own FPGA bitstream. You should
+use the following layout:
+\begin{longtable}{  l  l }
+\code{0x000000} & your FPGA bitstream \\
+\code{0x170000} & SDBFS image\\
+\end{longtable}
+
+For example, to generate the \textit{*.mcs} file for M25P32 Flash on SPEC, the
+following \textit{promgen} parameters should be used:
+\begin{lstlisting}
+promgen -w -spi -p mcs -c FF -s 32768 -u 0 <your_bitstream>.bit \
+-bd sdbfs-standalone-160812.bin start 0x170000 -o output.mcs
+\end{lstlisting}
+
+After that, you can use the Xilinx JTAG cable and Xilinx ISE Impact tool to
+write your \textit{output.mcs} file to the Flash memory.
+\newpage
+% ##########################################################################
+\section{wrpc-dump with Older WRPC Binaries}
+\label{appendix:wrpc_dump_with_Older_WRPC_Binaries}
+
+The tool has another working mode, that you can use with older
+\textit{wrpc} builds, where the special table is missing (but please be
+aware that the data structures may have changed slightly).  In this
+mode, you provide the address of the data structure and its name. It
+supports the names \textit{pll}, \textit{fifo} (the circular log described
+above), \textit{ppg}, \textit{ppi}, \textit{servo\_state}, \textit{ds} and
+\textit{stats}. The \textit{ds} name
+refers to the PTP data sets, and for this the pointer needed is
+\texttt{ppg} (ppsi global data).
+This is an example:
+
+\begin{lstlisting}
+   $ ./tools/wrpc-dump dump-file 00015798 servo_state
+
+   servo_state at 0x15798
+           if_name:                   ""
+           flags:                     1
+           state:                     4
+           delta_tx_m:                10
+           delta_rx_m:                174410
+           delta_tx_s:                0
+           delta_rx_s:                3200
+           fiber_fix_alpha:           73622176
+           clock_period_ps:           8000
+           t1:                        correct 1: 1448628309.390213200:0000
+           t2:                        correct 1: 1448628309.390213520:2921
+           t3:                        correct 1: 1448628310.419072616:0000
+           t4:                        correct 1: 1448628310.419073104:6041
+   [...]
+\end{lstlisting}
+
+The address is specified as a hex number, and can be retrieved running
+``\texttt{lm32-elf-nm  wrc.elf}''.
+
+Please note that the LM32 soft-core processor inside the WRPC has a different
+endianness than your host machine, thus a special endian conversion is needed.
+With current \textit{wrpc} it is autodetected, but if you dump an older binary
+you'll need to set the
+\texttt{WRPC\_SPEC} environment variable (to any value you like) to properly
+access the PCI memory or a dump taken from PCI:
+\begin{lstlisting}
+   $ export WRPC_SPEC=y
+\end{lstlisting}
+or
+\begin{lstlisting}
+   $ WRPC_SPEC=y ./tools/wrpc-dump dump-file 00015798 servo_state
+\end{lstlisting}
+This is not needed if the dump is retrieved using Etherbone.
+
+% ##########################################################################
+\newpage
+\section{Adding new objects to the SNMP}
+\label{appendix:adding_new_objects_to_the_SNMP}
+
+The \textit{Mini SNMP responder} can be easily expanded to export new objects.
+Values of new objects can come from WRPC's variables or other HDL modules
+as long as there is a proper interface to the WRPC to read these values.
+
+This section contains the instruction on how to export new objects with
+the given variables' content.
+
+The \textit{Mini SNMP responder} internally divides all OIDs into two parts.
+The first part is called \textit{limb}. The \textit{limb} part of the incoming OID is
+matched by a function \texttt{snmp\_respond}, with the defined \textit{limb} parts of OIDs
+in the structure \texttt{oid\_limb\_array}.
+When the \textit{limb} part is matched then the corresponding function from
+the structure \texttt{oid\_limb\_array} is called to try to match the second part of
+OID (the \textit{twig} part).
+
+\begin{sloppypar} % to prevent \texttt{} from going to the margine
+The example below adds to the \textit{Mini SNMP responder} an \texttt{int32\_t} variable
+(\texttt{example\_i32var}) with OID \texttt{1.3.6.1.4.1.96.102.1.1.0} and a string
+(\texttt{example\_string}) with OID \texttt{1.3.6.1.4.1.96.102.1.2.0}.
+Before assigning new OIDs in your projects please contact the maintainer of
+\texttt{wrpc-sw} repo to avoid conflicts.
+\end{sloppypar}
+
+\begin{itemize*}
+\item First declare \texttt{example\_i32var} and \texttt{example\_string}:
+\begin{lstlisting}
+ static int32_t example_i32var;
+ static char example_string[] = "test string";
+\end{lstlisting}
+
+\item Define the \textit{limb} part of the OID:
+\begin{lstlisting}
+ static uint8_t oid_wrpcExampleGroup[] = {0x2B,6,1,4,1,96,101,99};
+\end{lstlisting}
+
+\item Define the \textit{twig} part of the OID:
+\begin{lstlisting}
+ static uint8_t oid_wrpcExampleV1[] = {1,0};
+ static uint8_t oid_wrpcExampleV2[] = {2,0};
+\end{lstlisting}
+
+\item Add a group definition to the \texttt{struct snmp\_oid\_limb oid\_limb\_array}.
+      Please note that this structure has to be sorted by ascending OIDs.
+\begin{lstlisting}
+OID_LIMB_FIELD(oid_wrpcExampleGroup, func_group, oid_array_wrpcExampleGroup),
+\end{lstlisting}
+The macro \texttt{OID\_LIMB\_FIELD} takes the following arguments:
+\begin{itemize*}
+   \item \texttt{oid\_wrpcExampleGroup} -- an array with the \textit{limb} part of the
+         OID
+   \item \texttt{func\_group} -- a function to be called when the \textit{limb} part of
+         the OID is matched; this function will try to match the \textit{twig} part
+         of the OID within a table or a group.
+   \item \texttt{oid\_array\_wrpcExampleGroup} -- an array of \textit{twig} parts of OIDs
+\end{itemize*}
+\item Declare a previously used \texttt{oid\_wrpcExampleGroup}. Please note that
+      this structure has to be sorted by ascending \textit{twig} part of OIDs.
+\begin{lstlisting}
+ static struct snmp_oid oid_array_wrpcExampleGroup[] = {
+   OID_FIELD_VAR(oid_wrpcExampleV1, get_p, set_p, ASN_INTEGER,   &example_i32var),
+   OID_FIELD_VAR(oid_wrpcExampleV2, get_p, set_p, ASN_OCTET_STR, &example_string),
+   { 0, }
+ };
+\end{lstlisting}
+The macro \texttt{OID\_FIELD\_VAR} takes the following arguments:
+\begin{itemize*}
+   \item \texttt{oid\_wrpcExampleV1} -- an array with \textit{twig} part of the OID
+   \item \texttt{get\_p} (or \texttt{get\_pp)} -- a function to be called when \textit{twig}
+         part of the OID is matched for SNMP GET requests;
+   \item \texttt{set\_p} (or \texttt{set\_pp)} -- a function to be called when a \textit{twig}
+         part of the OID is matched for SNMP SET requests; if no SET
+         functionality is planned, please use NULL
+   \item \texttt{ASN\_INTEGER, ASN\_OCTET\_STR} -- type of the OID; please
+         check the source for other possible types
+   \item \texttt{\&example\_i32var, \&example\_string} -- addresses to the data in
+         memory
+\end{itemize*}
+In the case when the address of variable is not known at boot, it is possible to define
+a pointer to the variable which will be initialized (e.g. in the \texttt{snmp\_init}
+the function) at the boot time. In that case function \texttt{get\_pp} (\texttt{set\_pp}) has
+to be used instead of \texttt{get\_p} (\texttt{set\_p}). For variables that are a part of
+a structure and have to be accessed via a pointer, a macro \texttt{OID\_FIELD\_STRUCT}
+is available.
+
+For more complex extraction of variables or run-time value corrections,
+it is possible to use a custom \textit{get} function. It is possible to pass
+a constant number to the custom function instead of an address. For example:
+\begin{lstlisting}
+ OID_FIELD_VAR(oid_wrpcPtpServoUpdateTime, get_servo, NO_SET, ASN_COUNTER64, \
+               SERVO_UPDATE_TIME),
+\end{lstlisting}
+
+\end{itemize*}
+Perform a \texttt{snmpwalk} to get new OIDs:
+\begin{lstlisting}
+ $ snmpwalk -On $SNMP_OPT 1.3.6.1.4.1.96.102.1
+ .1.3.6.1.4.1.96.102.1.1.0 = INTEGER: 123432
+ .1.3.6.1.4.1.96.102.1.2.0 = STRING: "test string"
+ End of MIB
+\end{lstlisting}
+Trying to set too long string into the \texttt{example\_string} results in an error:
+\begin{lstlisting}
+ $ snmpset -On $SNMP_OPT 1.3.6.1.4.1.96.102.1.2.0 s "new long string"
+ Error in packet.
+ Reason: (badValue) The value given has the wrong type or length.
+ Failed object: .1.3.6.1.4.1.96.102.1.2.0
+\end{lstlisting}
+A short enough (not longer than defined \texttt{"test string"}) value succeeds:
+\begin{lstlisting}
+ $ snmpset -On $SNMP_OPT 1.3.6.1.4.1.96.102.1.2.0 s "new value12"
+ .1.3.6.1.4.1.96.102.1.2.0 = STRING: "new value12"
+\end{lstlisting}
+Set 999 to the \texttt{example\_i32var}:
+\begin{lstlisting}
+$ snmpset -On $SNMP_OPT 1.3.6.1.4.1.96.102.1.1.0 i 999
+.1.3.6.1.4.1.96.102.1.1.0 = INTEGER: 999
+\end{lstlisting}
+Perform \texttt{snmpwalk} to verify changes:
+\begin{lstlisting}
+$ snmpwalk -On $SNMP_OPT 1.3.6.1.4.1.96.102.1
+.1.3.6.1.4.1.96.102.1.1.0 = INTEGER: 999
+.1.3.6.1.4.1.96.102.1.2.0 = STRING: "new value12"
+End of MIB
+\end{lstlisting}
+
+% --------------------------------------------------------------------------
+\subsection{Mini SNMP responder's tests}
+\label{Mini SNMP responder's tests}
+
+In the \texttt{wrpc-sw} repo, automatic tests are available to validate the \textit{Mini
+SNMP responder} implementation. These tests are placed in the \texttt{test/snmp}
+directory.
+They use the \texttt{bats} framework (\url{https://github.com/sstephenson/bats}).
+
+To run these tests, please go to \texttt{test/snmp} directory, then set
+\texttt{TARGET\_IP} environment varaible to the IP of your target board, then type
+\texttt{make}. For example:
+\begin{lstlisting}
+ $ TARGET_IP=192.168.1.20 make
+ bats/libexec/bats snmp_tests_*.bats
+   Host up 192.168.1.20
+   Check the presence of snmpget
+   Check the presence of snmpgetnext
+   Check the presence of snmpwalk
+   Check the presence of snmpset
+   snmpget existing oid 1.3.6.1.4.1.96.101.1.1.1.0
+ [...]
+   snmpwalk 1.3.6.1.4.1.95
+   snmpwalk 1.3.6 count all OIDs
+ 100 tests, 0 failures
+\end{lstlisting}
+On the left of each test there will be a tick symbol shown or an \texttt{x}
+depending of the test's result (not included in the example above).
+
+Be aware that it might be necessary to clone the \texttt{bats} repo first.
+\texttt{make} command will inform whether this is needed.
+
+In the case when the number of OIDs changes please correct variable \texttt{TOTAL\_NUM\_OIDS}
+in file \texttt{snmp\_test\_config.bash}.
+
+These tests have to be executed after any changes are made to the \textit{Mini SNMP
+responder}.
+
+
+% --------------------------------------------------------------------------
+\newpage
+\section{Building RISC-V toolchain}
+\label{appendix:building_RISCV_toolchain}
+
+This section describes how to build from scratch the toolchain for RISC-V.
+Firstly, clone the \texttt{riscv-gnu-toolchain} repo and checkout the tag
+\texttt{2022.03.09} (or commit \texttt{051b9f7d}). This will allow to build
+the GCC 11.1.0 for the RISC-V architecture.
+\begin{lstlisting}
+git clone https://github.com/riscv/riscv-gnu-toolchain -b 2022.03.09
+\end{lstlisting}
+Run the configuration script with parameters to specify the installation
+directory and the details for the RISC-V architecture.
+The selected options use soft-float (\texttt{ilp32}) and allow to use
+compressed instruction set.
+\begin{lstlisting}
+./configure --prefix=<install_dir> --with-arch=rv32i --with-abi=ilp32
+\end{lstlisting}
+Start the build of the toolchain.
+\begin{lstlisting}
+make
+\end{lstlisting}
+The output will be copied to the specified \texttt{<install\_dir>}.
+
+
+% --------------------------------------------------------------------------
+\newpage
+\section{Wishbone Memory Maps}
+\label{sec:wb_mem_maps}
+
+This appendix provides a register map of Wishbone modules that are exposed to
+external applications/HDL core. In the table below you can see the list of
+modules available on the External Wishbone interface of the WR PTP Core. Please
+bare in mind that WR Streamers Diagnostics module is available only when
+\tts{STREAMERS} external fabric mode is selected.
+\begin{center}
+\begin{tabular}{|l|l|}
+  \hline
+  module name & base address\\
+  \hline \hline
+  WR Core Diagnostics & 0x20800\\
+  WR Streamers Diagnostics & 0x20700\\
+  \hline
+\end{tabular}
+\end{center}
+
+\input{wbgen/wrc_diags.tex}
+\newpage
+\input{wbgen/wr_streamers_wb.tex}
+
+\end{document}

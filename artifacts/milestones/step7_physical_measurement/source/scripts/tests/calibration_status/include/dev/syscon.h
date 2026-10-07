@@ -1,0 +1,1 @@
+/* No peripheral access is required by the actual command dispatcher. */

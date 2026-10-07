@@ -18,7 +18,7 @@
 更新操作說明放在各 milestone 新增的 SOURCE_USAGE.md，既有封存 README 不改動。
 舊 prepare_source／seal 腳本的操作限制，不適用於這次新增加的 Git-tracked source。
 
-腳本沿用各自封存原版，沒有変更 PI、bootstrap、servo 或 RTL。
+腳本沿用各自封存原版，沒有變更 PI、bootstrap、servo 或 RTL。
 Step6 的歷史腳本保留原來的檢查；Step7 保留 editable 操作政策。
 本次只有展開、比對、發布、路徑／腳本檢查及權限設定；
 未實際重新 firmware build／Quartus compile、燒錄、重置、斷電或 JTAG 觀測。

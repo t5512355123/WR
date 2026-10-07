@@ -93,12 +93,12 @@ def main():
         'files': {name: {'bytes': (PACKAGE / name).stat().st_size, 'sha256': digest(PACKAGE / name)}
                   for name in HELPERS + generated if (PACKAGE / name).is_file()},
     }
-    (PACKAGE / 'PACKAGE.json').write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
+    (PACKAGE / 'PACKAGE.json').write_text(json.dumps(metadata, indent=2, ensure_ascii=False) + '\n', encoding='utf-8', newline='\n')
     files = sorted(name for name in HELPERS + generated if name != 'SHA256SUMS')
     for name in files:
         if (PACKAGE / name).stat().st_size >= 100_000_000:
             raise SystemExit('Package file exceeds GitHub regular-file limit: ' + name)
-    (PACKAGE / 'SHA256SUMS').write_text(''.join(f'{digest(PACKAGE / name)}  {name}\n' for name in files), encoding='ascii')
+    (PACKAGE / 'SHA256SUMS').write_text(''.join(f'{digest(PACKAGE / name)}  {name}\n' for name in files), encoding='ascii', newline='\n')
     print(json.dumps({'packaged': str(PACKAGE), 'snapshot_commit': commit,
                       'archive_bytes': (PACKAGE / 'source.tar.gz').stat().st_size}, indent=2))
 

@@ -24,6 +24,12 @@ Step6 的歷史腳本保留原來的檢查；Step7 保留 editable 操作政策�
 未實際重新 firmware build／Quartus compile、燒錄、重置、斷電或 JTAG 觀測。
 因此沒有追加硬體 PASS 或 TIME_VALID 300 秒驗收。
 
+Pain pull 後再逐檔比對已提交的兩份 source 與各自 archive，均為 PASS；
+兩份 `output/SOURCE_SHA256SUMS` 的 production input 檢查均通過。
+四步驟腳本的 Bash 語法、MIF／SOF 檔案存在性及 `git ls-files firmware` 路徑均通過。
+Git 根目錄為 `/home/b10504072/04_WR`，沒有巢狀 repository。
+封存頂層已移除寫入權限，source 所有檔案／目錄保留擁有者寫入權限。
+
 ## Pain 舊 Step6 工作區的保護
 
 Pain 原有 Step6 source 含獨立 Git 與額外 program logs，不能直接覆寫。

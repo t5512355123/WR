@@ -10,7 +10,7 @@
 #ifndef __RXTS_CALIBRATOR_H
 #define __RXTS_CALIBRATOR_H
 
-#define DEFAULT_T24P_PHASE_TRANSITION 2389
+#define DEFAULT_T24P_PHASE_TRANSITION 7500 /* DE5a: Slave measured 7300-7600 ps; Master cannot self-calibrate */
 
 void calib_t24p_init(void);
 int calib_t24p(void);

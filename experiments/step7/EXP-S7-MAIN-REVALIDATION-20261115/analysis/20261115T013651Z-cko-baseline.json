@@ -1,0 +1,37 @@
+{
+  "capture_complete": false,
+  "cko_max_ps": 3799,
+  "cko_median_ps": -1001.0,
+  "cko_min_ps": -2521,
+  "cko_peak_to_peak_ps": 6320,
+  "cko_slope_ps_per_s": -1.204704467315698,
+  "cko_stable_within_120ps_300s": "INCONCLUSIVE_INCOMPLETE_CAPTURE",
+  "cko_stddev_ps": 1832.295706913888,
+  "diagnostic_capture_complete": true,
+  "dms_max_ps": 181384,
+  "dms_min_ps": 176741,
+  "duplicate_updates": 83,
+  "guarded_rows": 245,
+  "healthy_unique_rows": 162,
+  "max_unique_update_gap_ms": 2697,
+  "observed_span_ms": 179807,
+  "raw_rows": 290,
+  "rejected": {
+    "untrusted_phase_frame": 45
+  },
+  "required_duration_ms": 177000,
+  "setp_max_ps": 2986,
+  "setp_min_ps": 906,
+  "simultaneous_packet_or_physical_measurement": false,
+  "state_counts": {
+    "SYNC_PHASE": 15,
+    "TRACK_PHASE": 1,
+    "WAIT_OFFSET_STABLE": 146
+  },
+  "stop_records": [],
+  "strict_under_60_rows": 1,
+  "time_valid_300s_verdict": "NOT_ASSESSED_USE_SEPARATE_VERIFIER",
+  "time_valid_unique_rows": 162,
+  "unique_update_rows": 162,
+  "within_120_rows": 3
+}

@@ -1,0 +1,24 @@
+{
+  "raw_single_exchange_offset": {
+    "n": 451,
+    "min_ps": -577,
+    "max_ps": 480,
+    "mean_ps": -0.7,
+    "sd_ps": 179.8
+  },
+  "unique_updates": 451,
+  "span_s": 299.92,
+  "cko_min_ps": -35,
+  "cko_max_ps": 47,
+  "cko_mean_ps": -0.4,
+  "cko_sd_ps": 14.6,
+  "abs_cko_le_60": 451,
+  "abs_cko_le_120": 451,
+  "dms_jumps_over_2ns": 0,
+  "state_counts": {
+    "4": 451
+  },
+  "best_strict_hold_s": 299.92,
+  "required_hold_s": 120.0,
+  "verdict": "PASS_CKO_HOLD"
+}

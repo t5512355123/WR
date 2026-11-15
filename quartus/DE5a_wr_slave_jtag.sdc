@@ -1,7 +1,19 @@
 create_clock -name clk_50m -period 20.000 [get_ports CLK_50_B2J]
 create_clock -name qsfp_ref_125m -period 8.000 [get_ports QSFPA_REFCLK_p]
 create_clock -name qsfp_dmtd_124m992 -period 8.000512 [get_ports QSFPB_REFCLK_p]
-create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 [get_registers {*|clk_dmtd_62m496}]
+# The divide-by-2 DMTD register is in the top entity (no hierarchy prefix).
+# The former {*|clk_dmtd_62m496} pattern matched nothing, which left the DMTD
+# domain unconstrained.
+set wr_dmtd_div_reg [get_registers -nowarn {clk_dmtd_62m496}]
+if {[get_collection_size $wr_dmtd_div_reg] != 1} {
+    post_message -type error "DMTD divide-by-2 register did not resolve exactly once"
+    error "WR_DMTD_DIV_REG_MISMATCH"
+}
+create_generated_clock -name wr_core_dmtd_62m496 -source [get_ports QSFPB_REFCLK_p] -divide_by 2 $wr_dmtd_div_reg
+# DMTD runs at 124.992 MHz / 2 and is asynchronous to every other clock by
+# design (that offset is what the DMTD measures).  All crossings out of it use
+# gc_sync / gc_pulse_synchronizer2, so it must not be timed as synchronous.
+set_clock_groups -asynchronous -group [get_clocks wr_core_dmtd_62m496]
 derive_pll_clocks
 derive_clock_uncertainty
 
@@ -38,6 +50,19 @@ if {[get_collection_size $wr_rx_sync0_regs] <= 0} {
 
 set_false_path -from $wr_rx_clkout  -to $wr_rx_sync0_regs
 set_false_path -from $wr_rx_pma_clk -to $wr_rx_sync0_regs
+# Asynchronous reset from the system domain into the RX-clock RX-calibration
+# start synchronizer (ep_wishbone_controller.vhd).  In reset these registers and
+# their data input are all 0, so reset release cannot change their value even if
+# it is metastable; recovery/removal across the asynchronous clocks is not a
+# real constraint.  Restricted to exactly these four destinations.
+set rxcal_rst_src [get_registers -nowarn {*|wrc_periph:*|rst_net_n_chain[0]}]
+set rxcal_rst_dst [get_registers -nowarn [list     {*|ep_wishbone_controller:*|ep_tscr_rx_cal_start_sync0}     {*|ep_wishbone_controller:*|ep_tscr_rx_cal_start_sync1}     {*|ep_wishbone_controller:*|ep_tscr_rx_cal_start_sync2}     {*|ep_wishbone_controller:*|regs_o.tscr_rx_cal_start_o}]]
+if {[get_collection_size $rxcal_rst_src] != 1 ||
+    [get_collection_size $rxcal_rst_dst] != 4} {
+    post_message -type error "RX calibration reset CDC exception did not resolve 1 -> 4"
+    error "RXCAL_RESET_CDC_TARGET_MISMATCH"
+}
+set_false_path -from $rxcal_rst_src -to $rxcal_rst_dst
 
 # EXP-S5-RX2SYS-PROTOCOLLED-MULTIBIT-HOLD-CONSTRAINT-FIX-20260920
 # Source-proven RX -> SYS bundled-data protocols.

@@ -15,6 +15,13 @@ ap.add_argument("--hold-s", type=float, default=120.0)
 ap.add_argument("--max-gap-s", type=float, default=5.0)
 a = ap.parse_args()
 
+def num(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return None
+
+
 rows, seen, raw_by_ucnt = [], set(), {}
 for line in open(a.log, encoding="utf-8", errors="replace"):
     if line.startswith("S6_RAW_OFFSET"):
@@ -32,7 +39,7 @@ for line in open(a.log, encoding="utf-8", errors="replace"):
     seen.add(d["UCNT"])
     rows.append({"t": float(d["elapsed_ms"]) / 1000.0, "ucnt": int(d["UCNT"], 16),
                  "cko": int(d["CKO_PS"]), "state": d.get("SERVO_STATE"),
-                 "setp": int(d.get("SETP_PS", 0)), "dms": int(d.get("DMS_PS", 0)),
+                 "setp": num(d.get("SETP_PS")), "dms": num(d.get("DMS_PS")),
                  "tv": d.get("STATUS_TIME_VALID")})
 
 best, cur_start, last = 0.0, None, None
@@ -47,7 +54,7 @@ for r in rows:
 
 ck = [r["cko"] for r in rows]
 dms = [r["dms"] for r in rows]
-jumps = sum(1 for p, q in zip(rows, rows[1:]) if abs(q["dms"] - p["dms"]) > 2000)
+jumps = sum(1 for p, q in zip(rows, rows[1:]) if p["dms"] is not None and q["dms"] is not None and abs(q["dms"] - p["dms"]) > 2000)
 mean = sum(ck) / len(ck) if ck else 0
 sd = (sum((c - mean) ** 2 for c in ck) / (len(ck) - 1)) ** 0.5 if len(ck) > 1 else 0
 states = {}

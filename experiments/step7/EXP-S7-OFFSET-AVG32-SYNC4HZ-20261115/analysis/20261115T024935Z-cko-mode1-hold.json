@@ -1,0 +1,22 @@
+{
+  "raw_single_exchange_offset": {
+    "n": 0,
+    "min_ps": null,
+    "max_ps": null,
+    "mean_ps": 0,
+    "sd_ps": 0
+  },
+  "unique_updates": 0,
+  "span_s": 0,
+  "cko_min_ps": null,
+  "cko_max_ps": null,
+  "cko_mean_ps": 0,
+  "cko_sd_ps": 0,
+  "abs_cko_le_60": 0,
+  "abs_cko_le_120": 0,
+  "dms_jumps_over_2ns": 0,
+  "state_counts": {},
+  "best_strict_hold_s": 0.0,
+  "required_hold_s": 120.0,
+  "verdict": "FAIL_CKO_HOLD"
+}

@@ -209,15 +209,16 @@ static void de5a_off_push(int32_t off_ps, int32_t setp_ps)
 
 static int32_t de5a_off_mean(int32_t setp_now_ps)
 {
-	int64_t acc = 0;
+	/* 32-bit only: no 64-bit division helper in this firmware.  Offsets
+	 * here are sub-tick (|x| < 8000 ps) so 32 terms cannot overflow. */
+	int32_t acc = 0;
 	int i;
 
 	if (!de5a_off_count)
 		return 0;
 	for (i = 0; i < de5a_off_count; i++)
-		acc += (int64_t)de5a_off_buf[i] -
-			((int64_t)setp_now_ps - (int64_t)de5a_setp_buf[i]);
-	return (int32_t)(acc / de5a_off_count);
+		acc += de5a_off_buf[i] - (setp_now_ps - de5a_setp_buf[i]);
+	return acc / de5a_off_count;
 }
 
 static void setState(struct pp_instance *ppi, int newState)

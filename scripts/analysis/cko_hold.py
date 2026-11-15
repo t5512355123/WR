@@ -15,8 +15,13 @@ ap.add_argument("--hold-s", type=float, default=120.0)
 ap.add_argument("--max-gap-s", type=float, default=5.0)
 a = ap.parse_args()
 
-rows, seen = [], set()
+rows, seen, raw_by_ucnt = [], set(), {}
 for line in open(a.log, encoding="utf-8", errors="replace"):
+    if line.startswith("S6_RAW_OFFSET"):
+        m = re.search(r"UCNT=([0-9A-Fa-f]+) RAW_OFFSET_PS=(-?\d+)", line)
+        if m:
+            raw_by_ucnt.setdefault(int(m.group(1), 16), int(m.group(2)))
+        continue
     if not line.startswith("S6_INTERLEAVED_SAMPLE"):
         continue
     d = dict(re.findall(r"(\w+)=(\S+)", line))
@@ -48,7 +53,12 @@ sd = (sum((c - mean) ** 2 for c in ck) / (len(ck) - 1)) ** 0.5 if len(ck) > 1 el
 states = {}
 for r in rows:
     states[r["state"]] = states.get(r["state"], 0) + 1
+raw = [raw_by_ucnt[r["ucnt"]] for r in rows if r["ucnt"] in raw_by_ucnt]
+rmean = sum(raw) / len(raw) if raw else 0
+rsd = (sum((c - rmean) ** 2 for c in raw) / (len(raw) - 1)) ** 0.5 if len(raw) > 1 else 0
 out = {
+    "raw_single_exchange_offset": {"n": len(raw), "min_ps": min(raw) if raw else None,
+        "max_ps": max(raw) if raw else None, "mean_ps": round(rmean, 1), "sd_ps": round(rsd, 1)},
     "unique_updates": len(rows),
     "span_s": round(rows[-1]["t"] - rows[0]["t"], 3) if rows else 0,
     "cko_min_ps": min(ck) if ck else None, "cko_max_ps": max(ck) if ck else None,

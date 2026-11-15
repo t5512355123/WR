@@ -1,0 +1,19 @@
+{
+  "unique_updates": 283,
+  "span_s": 299.509,
+  "cko_min_ps": -540,
+  "cko_max_ps": 503,
+  "cko_mean_ps": 17.5,
+  "cko_sd_ps": 200.6,
+  "abs_cko_le_60": 77,
+  "abs_cko_le_120": 130,
+  "dms_jumps_over_2ns": 0,
+  "state_counts": {
+    "4": 81,
+    "3": 51,
+    "5": 151
+  },
+  "best_strict_hold_s": 8.898,
+  "required_hold_s": 120.0,
+  "verdict": "FAIL_CKO_HOLD"
+}

@@ -570,11 +570,19 @@ int wrc_wr_diags(void)
 		3: WRH_SYNC_PHASE,
 		4: WRH_TRACK_PHASE,
 		5: WRH_WAIT_OFFSET_STABLE */
+		/* DE5a: CKO = servo's filtered offset estimate (mean of the last
+		 * DE5A_OFFSET_AVG_N exchanges, see wrh-servo.c); the ASYM slot
+		 * carries the raw single-exchange offset instead of delayAsymmetry
+		 * (always 0 on this link) so both stay observable over JTAG. */
+		extern int32_t de5a_offset_raw_ps, de5a_offset_filt_ps;
+		if (wrh_servo)
+			asym = de5a_offset_raw_ps;
 		wdiags_write_servo_state(wr_mode,
 					 s->state,
 					 mu,
 					 pp_time_to_picos(&s->delayMS),
 					 asym,
+					 wrh_servo ? de5a_offset_filt_ps :
 					 (int32_t) pp_time_to_picos(&s->offsetFromMaster),
 					 cur_setpoint_ps,
 					 ppi_static.servo->update_count, 0, 0);

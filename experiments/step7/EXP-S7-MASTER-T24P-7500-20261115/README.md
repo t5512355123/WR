@@ -22,4 +22,4 @@ Slave CKO 以 `|CKO|<60 ps` 進入 TRACK 後，連續 120 秒維持 `|CKO|≤120
 另觀察 DMS 跳變次數是否降為 0。
 
 ## 結果
-（實驗後填寫）
+**FAIL（部分改善）**：8 ns 跳變 30→0、CKO σ 1838→201 ps，最佳嚴格保持 8.9 s。詳見 [REPORT.md](REPORT.md)。

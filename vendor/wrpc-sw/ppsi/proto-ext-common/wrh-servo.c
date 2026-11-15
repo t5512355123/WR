@@ -173,6 +173,53 @@ int wrh_servo_got_presp(struct pp_instance *ppi)
 }
 #endif
 
+/*
+ * DE5a offset estimator (EXP-S7-OFFSET-AVG32-SYNC4HZ-20261115).
+ * Each PTP exchange on this hardware carries ~200 ps of independent RX
+ * timestamp noise (forward and return alike), so a single-exchange offset
+ * cannot hold the 60/120 ps WR thresholds.  The servo therefore decides on,
+ * and corrects with, the mean of the last DE5A_OFFSET_AVG_N offsets.  Every
+ * stored offset is compensated for setpoint changes applied after it was
+ * measured (offset decreases by the same amount the setpoint increases).
+ * The raw single-exchange offset stays published for diagnostics.
+ */
+#define DE5A_OFFSET_AVG_N 32
+static int32_t de5a_off_buf[DE5A_OFFSET_AVG_N];
+static int32_t de5a_setp_buf[DE5A_OFFSET_AVG_N];
+static int de5a_off_count;
+static int de5a_off_head;
+int32_t de5a_offset_raw_ps;
+int32_t de5a_offset_filt_ps;
+int32_t de5a_offset_filt_count;
+
+static void de5a_off_clear(void)
+{
+	de5a_off_count = 0;
+	de5a_off_head = 0;
+}
+
+static void de5a_off_push(int32_t off_ps, int32_t setp_ps)
+{
+	de5a_off_buf[de5a_off_head] = off_ps;
+	de5a_setp_buf[de5a_off_head] = setp_ps;
+	de5a_off_head = (de5a_off_head + 1) % DE5A_OFFSET_AVG_N;
+	if (de5a_off_count < DE5A_OFFSET_AVG_N)
+		de5a_off_count++;
+}
+
+static int32_t de5a_off_mean(int32_t setp_now_ps)
+{
+	int64_t acc = 0;
+	int i;
+
+	if (!de5a_off_count)
+		return 0;
+	for (i = 0; i < de5a_off_count; i++)
+		acc += (int64_t)de5a_off_buf[i] -
+			((int64_t)setp_now_ps - (int64_t)de5a_setp_buf[i]);
+	return (int32_t)(acc / de5a_off_count);
+}
+
 static void setState(struct pp_instance *ppi, int newState)
 {
 	struct pp_servo *gs=SRV(ppi);
@@ -248,6 +295,9 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 			setState(ppi,WRH_SYNC_NSEC);
 	/* else, let the states below choose the sequence */
 	}
+	de5a_offset_raw_ps = (int32_t)pp_time_to_picos(&offsetMS);
+	if (gs->state != WRH_WAIT_OFFSET_STABLE && gs->state != WRH_TRACK_PHASE)
+		de5a_off_clear();
 
 	pp_diag(ppi, servo, 3, "wrh_servo state: %s%s\n",
 			gs->servo_state_name,
@@ -299,15 +349,25 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 	case WRH_WAIT_OFFSET_STABLE:
 
 		/* ts_to_picos() below returns phase alone */
-		remaining_offset = abs(pp_time_to_picos(&offsetMS));
+		de5a_off_push((int32_t)pp_time_to_picos(&offsetMS),
+			      s->cur_setpoint_ps);
+		if (de5a_off_count < DE5A_OFFSET_AVG_N)
+			break; /* collect a full window before deciding */
+		remaining_offset = abs(de5a_off_mean(s->cur_setpoint_ps));
 		if(remaining_offset < WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
 			TOPS(ppi)->enable_timing_output(GLBS(ppi),1);
 			s->prev_delayMS_ps = s->delayMS_ps;
+			s->missed_iters = 0;
 			setState(ppi,WRH_TRACK_PHASE);
 		} else {
+			/* converge with the filtered estimate */
+			s->cur_setpoint_ps +=
+				de5a_off_mean(s->cur_setpoint_ps) / 2;
+			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
+			gs->flags |= PP_SERVO_FLAG_WAIT_HW;
 			s->missed_iters++;
 		}
-		if (s->missed_iters >= 10) {
+		if (s->missed_iters >= 4 * DE5A_OFFSET_AVG_N) {
 			s->missed_iters = 0;
 			setState(ppi,WRH_SYNC_PHASE);
 		}
@@ -315,17 +375,20 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 
 	case WRH_TRACK_PHASE:
 		s->skew_ps = s->delayMS_ps - s->prev_delayMS_ps;
+		de5a_off_push(offset_ps, s->cur_setpoint_ps);
 
 		/* Can be disabled for manually tweaking and testing */
 		if(wrh_tracking_enabled) {
-			if (abs(offset_ps) >
+			int32_t filt_ps = de5a_off_mean(s->cur_setpoint_ps);
+
+			if (abs(filt_ps) >
 			    2 * WRH_SERVO_OFFSET_STABILITY_THRESHOLD) {
 				setState(ppi,WRH_SYNC_PHASE);
 				break;
 			}
 
 			// adjust phase towards offset = 0 make ck0 0
-			s->cur_setpoint_ps += (offset_ps / 12);
+			s->cur_setpoint_ps += (filt_ps / 8);
 
 			pp_diag(ppi, servo, 3, "%s.%d: Adjust_phase: %d\n",__func__,__LINE__,s->cur_setpoint_ps);
 			WRH_OPER()->adjust_phase(s->cur_setpoint_ps);
@@ -337,6 +400,10 @@ static int __wrh_servo_update(struct pp_instance *ppi)
 		break;
 
 	}
+
+	de5a_offset_filt_count = de5a_off_count;
+	de5a_offset_filt_ps = de5a_off_count ?
+		de5a_off_mean(s->cur_setpoint_ps) : de5a_offset_raw_ps;
 
 	gs->servo_locked = (gs->state==WRH_TRACK_PHASE);
 

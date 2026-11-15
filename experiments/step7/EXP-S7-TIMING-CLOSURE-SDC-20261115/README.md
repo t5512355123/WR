@@ -22,4 +22,4 @@
 - 只剩 DMTD feedback sampler 內 Codex 加的 `dbg_d0_*` 偵錯計數器約 −0.2 ns hold；舊 fit 未約束 DMTD，fitter 沒有修 hold，預期重新 fit 後解決。
 
 ## 結果
-（實驗後填寫）
+**PASS**：Master／Slave `TIMING_CLOSED=YES`（最差 hold +0.034 ns）；TIME_VALID 300 s PASS；CKO −35..+34 ps，嚴格保持 299.2 s。詳見 [REPORT.md](REPORT.md)。

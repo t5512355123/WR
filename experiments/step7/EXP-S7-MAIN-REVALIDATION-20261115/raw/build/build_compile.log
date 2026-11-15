@@ -1,0 +1,12 @@
+2026-11-15T09:00:07+08:00
+WRPC master MIF: /home/b10504072/04_WR/build/firmware/master/wrc.mif
+WRPC slave MIF: /home/b10504072/04_WR/build/firmware/slave/wrc.mif
+CURRENT_BUILD_POLICY=editable sha_verification=disabled
+CURRENT_FIRMWARE_BUILD=PASS experiment=EXP-S7-MAIN-REVALIDATION-20261115
+Master Quartus build passed: /home/b10504072/04_WR/quartus/output_files_master_jtag/DE5a_wr_master_jtag.sof (timing_closed=NO)
+Slave Quartus build passed: /home/b10504072/04_WR/quartus/output_files_slave_jtag/DE5a_wr_slave_jtag.sof (timing_closed=NO)
+CURRENT_EXPORT_POLICY=editable local_edits_allowed=1 sha_verification=disabled
+CURRENT_BUILD_RECORD=/home/b10504072/04_WR/experiments/step7/EXP-S7-MAIN-REVALIDATION-20261115/raw/build/20261115T010926Z-current.oCG6UO
+CURRENT_OUTPUT_EXPORT=PASS retained_sofs=output/
+CURRENT_COMPILE=PASS retained_sofs=output/
+BUILD_COMPILE_EXIT=0 2026-11-15T09:09:26+08:00

@@ -21,4 +21,4 @@
 與 Step6 相同：兩台各自在 ≥300 秒採樣窗內每筆皆 `STATUS_TIME_VALID=1`。
 
 ## 結果
-（實驗後填寫）
+**PASS**：兩台 `PASS_TIME_VALID_300S`（Master 1193/1193、Slave 1192/1192，約 102 秒取得 TIME_VALID）。詳見 [REPORT.md](REPORT.md)。

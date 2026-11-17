@@ -1,0 +1,99 @@
+BEGIN 2026-11-17T14:58:53+08:00 feffbe82 reprogram-only
+2383986878121687965f96e18b2d1d5de959b25fd4de0cdadd73e2b7778b2e64  output/DE5a_wr_master_jtag.sof
+913ffea9b7c91aff3b1e75e6d1ae86502093f5acdf1a58eb74b8669f9f9e1d2c  output/DE5a_wr_slave_jtag.sof
+CURRENT_BUILD_POLICY=editable sha_verification=disabled
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Nov 17 14:58:54 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.2]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.2]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_slave_jtag.sof with checksum 0x30BBBC6C for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Tue Nov 17 14:58:59 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Tue Nov 17 14:59:13 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1644 megabytes
+    Info: Processing ended: Tue Nov 17 14:59:13 2026
+    Info: Elapsed time: 00:00:19
+    Info: Total CPU time (on all processors): 00:00:05
+Info: *******************************************************************
+Info: Running Quartus Prime Programmer
+    Info: Version 17.0.0 Build 595 04/25/2017 SJ Standard Edition
+    Info: Copyright (C) 2017  Intel Corporation. All rights reserved.
+    Info: Your use of Intel Corporation's design tools, logic functions 
+    Info: and other software and tools, and its AMPP partner logic 
+    Info: functions, and any output files from any of the foregoing 
+    Info: (including device programming or simulation files), and any 
+    Info: associated documentation or information are expressly subject 
+    Info: to the terms and conditions of the Intel Program License 
+    Info: Subscription Agreement, the Intel Quartus Prime License Agreement,
+    Info: the Intel MegaCore Function License Agreement, or other 
+    Info: applicable license agreement, including, without limitation, 
+    Info: that your use is for the sole purpose of programming logic 
+    Info: devices manufactured by Intel and sold by Intel or its 
+    Info: authorized distributors.  Please refer to the applicable 
+    Info: agreement for further details.
+    Info: Processing started: Tue Nov 17 14:59:14 2026
+Info: Command: quartus_pgm -c "DE5 [1-11.1]" -m jtag -o p;/home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof
+Info (213045): Using programming cable "DE5 [1-11.1]"
+Info (213011): Using programming file /home/b10504072/04_WR/output/DE5a_wr_master_jtag.sof with checksum 0x30B1C02C for device 10AX115N2F45@1
+Info (209060): Started Programmer operation at Tue Nov 17 14:59:17 2026
+Info (209016): Configuring device index 1
+Info (209017): Device 1 contains JTAG ID code 0x02E660DD
+Info (209007): Configuration succeeded -- 1 device(s) configured
+Info (209011): Successfully performed operation(s)
+Info (209061): Ended Programmer operation at Tue Nov 17 14:59:32 2026
+Info: Quartus Prime Programmer was successful. 0 errors, 0 warnings
+    Info: Peak virtual memory: 1645 megabytes
+    Info: Processing ended: Tue Nov 17 14:59:32 2026
+    Info: Elapsed time: 00:00:18
+    Info: Total CPU time (on all processors): 00:00:05
+CURRENT_PROGRAM=PASS order=slave,master
+PROGRAMMED 2026-11-17T14:59:32+08:00
+TV300_EXIT=0 took=700s
+"verdict": "PASS_TIME_VALID_300S"
+{
+  "raw_single_exchange_offset": {
+    "n": 453,
+    "min_ps": -437,
+    "max_ps": 441,
+    "mean_ps": 4.5,
+    "sd_ps": 180.7
+  },
+  "unique_updates": 453,
+  "span_s": 299.597,
+  "cko_min_ps": -37,
+  "cko_max_ps": 39,
+  "cko_mean_ps": 0.8,
+  "cko_sd_ps": 14.6,
+  "abs_cko_le_60": 453,
+  "abs_cko_le_120": 453,
+  "dms_jumps_over_2ns": 0,
+  "state_counts": {
+    "4": 453
+  },
+  "best_strict_hold_s": 299.597,
+  "required_hold_s": 120.0,
+  "verdict": "PASS_CKO_HOLD"
+}
+CKO_READER_EXIT=0 CKO_RAW=experiments/step7/EXP-S7-TIMING-CLOSURE-SDC-20261115/raw/cko/20261117T071412Z-cko.log CKO_RESULT=experiments/step7/EXP-S7-TIMING-CLOSURE-SDC-20261115/analysis/20261117T071412Z-cko-hold.json
+CKO_EXIT=0
+END 2026-11-17T15:19:14+08:00

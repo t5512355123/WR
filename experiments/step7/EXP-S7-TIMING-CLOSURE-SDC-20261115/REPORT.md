@@ -53,3 +53,12 @@ STATUS_TIME_VALID 613/613，嚴格保持 299.9 s（PASS_CKO_HOLD，第三次通�
 ![改善前後比較](analysis/chart-20261115T034819Z/cko-compare-20261005.png)
 
 圖表由 `python scripts/analysis/plot_cko_hold.py <cko.log> --old-csv <10-05 cko-timeseries.csv> --out <dir>` 產生。
+
+## 重新燒錄重現（2026-11-17 14:59，不重新編譯）
+燒錄同一組 SOF（Master `2383…2e64`、Slave `913f…1d2c`，hash 已核對）→ TIME_VALID 300 s PASS（`PASS_TIME_VALID_300S`）→ 等 180 s →
+CKO 300 s：濾波 CKO −37..+39 ps、峰對峰 76 ps、σ 14.6 ps，453/453 筆 TRACK 且 |CKO|≤60 ps，STATUS_TIME_VALID 612/612，
+嚴格保持 299.6 s（PASS_CKO_HOLD，第四次通過、第一次跨日重新燒錄）。raw 單次交換 σ 180.7 ps。
+
+![2026-11-17 Slave CKO](analysis/chart-20261117T071412Z/cko-timeseries.png)
+
+證據：`raw/pipeline/pipeline-repeat-20261117.log`、`raw/cko/20261117T071412Z-cko.log`、`analysis/20261117T071412Z-cko-hold.json`。
